@@ -23,7 +23,9 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
+        // A rotated receipt would otherwise keep the old image's loaded size and skip its spinner and stall timer
         <ImageView
+            key={url}
             attachmentID={attachmentID}
             onError={onError}
             url={url}

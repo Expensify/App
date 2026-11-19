@@ -1,3 +1,4 @@
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import ReceiptImage from '@components/ReceiptImage';
 import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
 import type {AnchorPosition} from '@components/TransactionItemRow/types';
@@ -10,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {createReceiptImageLoadReporter} from '@libs/telemetry/ReceiptImageLoadLog';
 import {hasReceiptSource, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -95,24 +97,26 @@ function ReceiptCell({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={bind.onMouseLeave}
         >
-            <ReceiptImage
-                source={source}
-                isEReceipt={isEReceipt}
-                transactionID={transactionItem.transactionID}
-                shouldUseThumbnailImage
-                thumbnailContainerStyles={styles.bgTransparent}
-                isAuthTokenRequired
-                fallbackIcon={icons.Receipt}
-                fallbackIconSize={20}
-                fallbackIconColor={theme.icon}
-                fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
-                iconSize="x-small"
-                loadingIconSize="small"
-                loadingIndicatorStyles={styles.receiptCellLoadingContainer}
-                transactionItem={transactionItem}
-                shouldUseInitialObjectPosition
-                isPerDiemRequest={isPerDiem}
-            />
+            <ImageLoadEventContext.Provider value={createReceiptImageLoadReporter(transactionItem, 'list')}>
+                <ReceiptImage
+                    source={source}
+                    isEReceipt={isEReceipt}
+                    transactionID={transactionItem.transactionID}
+                    shouldUseThumbnailImage
+                    thumbnailContainerStyles={styles.bgTransparent}
+                    isAuthTokenRequired
+                    fallbackIcon={icons.Receipt}
+                    fallbackIconSize={20}
+                    fallbackIconColor={theme.icon}
+                    fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
+                    iconSize="x-small"
+                    loadingIconSize="small"
+                    loadingIndicatorStyles={styles.receiptCellLoadingContainer}
+                    transactionItem={transactionItem}
+                    shouldUseInitialObjectPosition
+                    isPerDiemRequest={isPerDiem}
+                />
+            </ImageLoadEventContext.Provider>
             {shouldMountPreview && (
                 <ReceiptPreview
                     source={previewSource}

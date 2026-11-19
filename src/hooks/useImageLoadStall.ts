@@ -2,6 +2,9 @@ import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState} from 'react';
 
+/** Why the watchdog fired: 'ceiling' when no bytes ever arrived, 'stall' when bytes arrived and then stopped. */
+type ImageLoadStallReason = 'ceiling' | 'stall';
+
 /**
  * Reports an image load whose transport went silent: silence after the first activity is a stall
  * (IMAGE_LOAD_STALL_TIMEOUT); no activity at all gets the ceiling (IMAGE_LOAD_CEILING_TIMEOUT), as
@@ -12,7 +15,7 @@ import {useEffect, useRef, useState} from 'react';
  * instead of using useCallback, which React Compiler forbids here. The returned identity must never
  * change, because callers pass it straight to the Image onProgress prop.
  */
-function useImageLoadStall(isWatchActive: boolean, onStalled: () => void) {
+function useImageLoadStall(isWatchActive: boolean, onStalled: (reason: ImageLoadStallReason) => void) {
     const onStalledRef = useRef(onStalled);
     useEffect(() => {
         onStalledRef.current = onStalled;
@@ -29,10 +32,11 @@ function useImageLoadStall(isWatchActive: boolean, onStalled: () => void) {
                 clearTimeout(timerRef.current);
             }
 
-            const timeout = hasActivityRef.current ? CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT : CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT;
+            const reason: ImageLoadStallReason = hasActivityRef.current ? 'stall' : 'ceiling';
+            const timeout = reason === 'stall' ? CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT : CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT;
             timerRef.current = setTimeout(() => {
                 timerRef.current = null;
-                onStalledRef.current();
+                onStalledRef.current(reason);
             }, timeout);
         };
 
@@ -68,3 +72,4 @@ function useImageLoadStall(isWatchActive: boolean, onStalled: () => void) {
 }
 
 export default useImageLoadStall;
+export type {ImageLoadStallReason};

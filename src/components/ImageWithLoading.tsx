@@ -1,17 +1,19 @@
 import useImageLoadStall from '@hooks/useImageLoadStall';
+import type {ImageLoadStallReason} from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
 
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
+import ImageLoadEventContext, {getImageLoadSource} from './ImageLoadEventContext';
 import ImageLoadTimeoutNotice from './ImageLoadTimeoutNotice';
 import LoadingIndicator from './LoadingIndicator';
 
@@ -62,8 +64,11 @@ function ImageWithLoading({
     };
     const [reloadKey, setReloadKey] = useState(0);
     const {isOffline} = useNetwork();
+    const reportImageLoadEvent = useContext(ImageLoadEventContext);
+    const loadSource = getImageLoadSource(rest.source);
 
     const handleError = () => {
+        reportImageLoadEvent?.({type: 'error', afterTimeout: hasLoadTimedOutRef.current, component: 'ImageWithLoading', source: loadSource});
         // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
         if (hasLoadTimedOutRef.current && shouldShowTimeoutNotice) {
             return;
@@ -80,18 +85,24 @@ function ImageWithLoading({
     };
 
     /** The transport went silent. Stop the spinner and offer a retry; the image and preview stay mounted in case the load still finishes. */
-    const handleLoadTimeout = () => {
+    const handleLoadTimeout = (reason: ImageLoadStallReason) => {
+        reportImageLoadEvent?.({type: 'stall', reason, component: 'ImageWithLoading', source: loadSource});
         updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
+        reportImageLoadEvent?.({type: 'retry', component: 'ImageWithLoading', source: loadSource});
         updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
     };
 
     const imageLoadedSuccessfully = (e: ImageOnLoadEvent) => {
+        // A load that ends after a stall or a retry is a recovery, which tells a slow load from a stuck one
+        if (hasLoadTimedOutRef.current || reloadKey > 0) {
+            reportImageLoadEvent?.({type: 'recovered', component: 'ImageWithLoading', source: loadSource});
+        }
         isLoadedRef.current = true;
         setIsLoading(false);
         setIsImageCached(true);
