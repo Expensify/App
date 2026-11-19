@@ -1,12 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import type {ArrowKeyFocusManagerConfig} from '@hooks/useArrowKeyFocusManager';
 
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
 
 /** The rows a re-rendered list hands the hook */
-type ListRowsProps = {maxIndex: number; disabledIndexes: readonly number[]};
+type ListRowsProps = Pick<ArrowKeyFocusManagerConfig, 'maxIndex' | 'disabledIndexes'>;
 
 const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 

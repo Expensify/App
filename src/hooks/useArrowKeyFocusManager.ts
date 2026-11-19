@@ -256,3 +256,5 @@ export default function useArrowKeyFocusManager({
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndexExternal is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndexExternal];
 }
+
+export type {Config as ArrowKeyFocusManagerConfig};
