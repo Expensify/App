@@ -30,7 +30,7 @@ setupGlobalFetchMock();
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@libs/actions/ScheduleCall', () => ({confirmBooking: jest.fn()}));
 jest.mock('@components/HeaderWithBackButton', () => () => null);
-jest.mock('@components/ReportActionAvatars', () => () => null);
+jest.mock('@components/Avatar/connected/AccountAvatar', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',
     () =>

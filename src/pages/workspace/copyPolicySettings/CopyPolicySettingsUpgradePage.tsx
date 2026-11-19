@@ -23,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
@@ -37,8 +36,8 @@ function CopyPolicySettingsUpgradePage() {
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['ShieldYellow']);
 
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [copyPolicySettingsState] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -47,11 +46,10 @@ function CopyPolicySettingsUpgradePage() {
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
     const policiesToUpgrade = getCollectTargetsToUpgrade(targetPolicies, parts, sourcePolicy);
 
-    // Don't trust an "all targets are Corporate" reading until both Onyx keys have loaded and every
-    // target policy has actually resolved. Otherwise unresolved targets look like `undefined` (not
-    // Collect), policiesToUpgrade collapses to 0, and the redirect below skips a required upgrade.
+    // Don't trust an "all targets are Corporate" reading until every target policy has actually resolved.
+    // Otherwise unresolved targets look like `undefined` (not Collect), policiesToUpgrade collapses to 0,
+    // and the redirect below skips a required upgrade.
     const areAllTargetPoliciesResolved = targetPolicies.every((policy) => !!policy);
-    const isDataLoaded = !isLoadingOnyxValue(copyPolicySettingsMetadata, policiesMetadata) && areAllTargetPoliciesResolved;
 
     const controlOnlyFeatures = formatList(
         getControlOnlySelectedParts(targetPolicies, parts, sourcePolicy)
@@ -83,12 +81,12 @@ function CopyPolicySettingsUpgradePage() {
     // lands here without that condition (e.g. back navigation after upgrading), skip to Confirm. We
     // never auto-redirect once an upgrade has been requested - the success view drives navigation then.
     useEffect(() => {
-        if (!sourcePolicyID || !isDataLoaded || hasRequestedUpgrade || policiesToUpgrade.length > 0) {
+        if (!sourcePolicyID || !areAllTargetPoliciesResolved || hasRequestedUpgrade || policiesToUpgrade.length > 0) {
             return;
         }
         // This step is no longer valid, so replace it instead of leaving it beneath Confirm in the navigation stack.
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID), {forceReplace: true});
-    }, [isDataLoaded, hasRequestedUpgrade, policiesToUpgrade.length, sourcePolicyID]);
+    }, [areAllTargetPoliciesResolved, hasRequestedUpgrade, policiesToUpgrade.length, sourcePolicyID]);
 
     const onUpgrade = () => {
         if (!sourcePolicyID || policiesToUpgrade.length === 0) {

@@ -4,6 +4,10 @@ import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
 import useNoopPopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/noop';
 import ScrollView from '@components/ScrollView';
+import type {ScrollViewProps} from '@components/ScrollView';
+
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 
 import getPlatform from '@libs/getPlatform';
 import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
@@ -11,9 +15,12 @@ import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, PropsWithChildren} from 'react';
+import type ReactNative from 'react-native';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import React from 'react';
+
+import mockCreateMock from '../../utils/createMock';
 
 type MockMeasuredPopoverProps = PropsWithChildren<{
     isVisible?: boolean;
@@ -25,37 +32,83 @@ type MockMeasuredPopoverProps = PropsWithChildren<{
     outerStyle?: unknown;
 }>;
 
+type MockFocusableMenuItemProps = {
+    title: string;
+    pressableTestID?: string;
+    onPress?: (event: GestureResponderEvent) => void;
+    onFocus?: () => void;
+    focused?: boolean;
+    shouldSyncFocus?: boolean;
+};
+
 type RestoreFocusType = PopoverMenuProps['restoreFocusType'];
 
 const mockPopoverWithMeasuredContent = jest.fn<void, [MockMeasuredPopoverProps]>();
 const mockClose = jest.fn<void, [(() => void | Promise<void>) | undefined, boolean | undefined, boolean | undefined]>();
 const mockGetPlatform = jest.mocked(getPlatform);
+const sentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
+const mockUseAccessibilityAnnouncement = jest.mocked(useAccessibilityAnnouncement);
+const mockUseActiveElementRole = jest.mocked(useActiveElementRole);
+const mockKeyboardShortcuts = new Map<string, {callback: () => void; isActive: boolean}>();
+const mockFocusableMenuItem = jest.fn<void, [MockFocusableMenuItemProps]>();
+const mockScrollTo = jest.fn();
+
+function getRowLayoutContainer(testID: string) {
+    let instance = screen.getByTestId(testID).parent;
+    while (instance && typeof (instance.props as {onLayout?: unknown}).onLayout !== 'function') {
+        instance = instance.parent;
+    }
+    if (!instance) {
+        throw new Error(`Could not find the layout container for ${testID}`);
+    }
+    return instance;
+}
 
 jest.mock('@libs/getPlatform');
+jest.mock('@hooks/useAccessibilityAnnouncement');
+jest.mock('@hooks/useActiveElementRole');
+jest.mock('@hooks/useKeyboardShortcut', () => (shortcut: {shortcutKey: string}, callback: () => void, config: {isActive?: boolean} = {}) => {
+    mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, isActive: config.isActive ?? true});
+});
+jest.mock('@components/ScrollView', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+
+    const MockScrollView = ReactLocal.forwardRef<ComponentRef<typeof RN.ScrollView>, Omit<ScrollViewProps, 'ref'>>((props, ref) => {
+        ReactLocal.useImperativeHandle(ref, () => mockCreateMock<ComponentRef<typeof RN.ScrollView>>({scrollTo: mockScrollTo}));
+        return <RN.ScrollView {...props} />;
+    });
+
+    return MockScrollView;
+});
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
-        {text: 'Item 1'},
+        {text: 'Item 1', sentryLabel},
         {
             text: 'Item 2',
-            subMenuItems: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
+            sentryLabel,
+            subMenuItems: [
+                {text: 'Sub 1', sentryLabel},
+                {text: 'Sub 2', sentryLabel, subMenuItems: [{text: 'Deep 1', sentryLabel}]},
+            ],
         },
-        {text: 'Item 3'},
+        {text: 'Item 3', sentryLabel},
     ];
 
     describe('getItemKey', () => {
         test('returns explicit key if defined', () => {
-            const item = {text: 'Hello', key: 'custom-key'};
+            const item = {text: 'Hello', sentryLabel, key: 'custom-key'};
             expect(getItemKey(item)).toBe('custom-key');
         });
 
         test('falls back to text if no key provided', () => {
-            const item = {text: 'Fallback'};
+            const item = {text: 'Fallback', sentryLabel};
             expect(getItemKey(item)).toBe('Fallback');
         });
 
         test('handles items with empty text and no key', () => {
-            const item = {text: ''};
+            const item = {text: '', sentryLabel};
             expect(getItemKey(item)).toBe('');
         });
     });
@@ -102,7 +155,10 @@ describe('PopoverMenu utils', () => {
             expect(result).toEqual({
                 found: true,
                 indexes: [1],
-                itemsAtLeaf: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
+                itemsAtLeaf: [
+                    {text: 'Sub 1', sentryLabel},
+                    {text: 'Sub 2', sentryLabel, subMenuItems: [{text: 'Deep 1', sentryLabel}]},
+                ],
             });
         });
 
@@ -127,8 +183,8 @@ describe('PopoverMenu utils', () => {
 
         test('returns not found if same text keys appear in different levels but mismatch path', () => {
             const nestedMenu: PopoverMenuItem[] = [
-                {text: 'A', subMenuItems: [{text: 'B'}]},
-                {text: 'B'}, // same text at root
+                {text: 'A', sentryLabel, subMenuItems: [{text: 'B', sentryLabel}]},
+                {text: 'B', sentryLabel}, // same text at root
             ];
 
             const result = resolveIndexPathByKeyPath(nestedMenu, ['B', 'C']);
@@ -186,30 +242,35 @@ jest.mock('@components/FocusableMenuItem', () => {
 
     return {
         __esModule: true,
-        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
-            <Pressable
-                testID={props.pressableTestID}
-                onPress={props.onPress}
-                accessibilityLabel="Pressable"
-            >
-                <Text>{props.title}</Text>
-            </Pressable>
-        ),
+        default: (props: MockFocusableMenuItemProps) => {
+            mockFocusableMenuItem(props);
+            return (
+                <Pressable
+                    testID={props.pressableTestID}
+                    onPress={props.onPress}
+                    accessibilityLabel="Pressable"
+                    accessibilityState={{selected: props.focused}}
+                >
+                    <Text>{props.title}</Text>
+                </Pressable>
+            );
+        },
     };
 });
 
 describe('PopoverMenu integration — submenu open/close behaviors', () => {
     const baseMenu: PopoverMenuItem[] = [
-        {text: 'Item A', key: 'A'},
+        {text: 'Item A', sentryLabel, key: 'A'},
         {
             text: 'Item B',
+            sentryLabel,
             key: 'B',
             subMenuItems: [
-                {text: 'Sub B1', key: 'B1'},
-                {text: 'Sub B2', key: 'B2'},
+                {text: 'Sub B1', sentryLabel, key: 'B1'},
+                {text: 'Sub B2', sentryLabel, key: 'B2'},
             ],
         },
-        {text: 'Item C', key: 'C'},
+        {text: 'Item C', sentryLabel, key: 'C'},
     ];
 
     const anchorRef = React.createRef<ComponentRef<typeof View>>();
@@ -238,7 +299,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         });
 
         // Add new root
-        const newMenu = [...baseMenu, {text: 'Item D', key: 'D'}];
+        const newMenu = [...baseMenu, {text: 'Item D', sentryLabel, key: 'D'}];
         rerender(
             <PopoverMenu
                 isVisible
@@ -333,7 +394,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
             if (item.key === 'B' && item.subMenuItems) {
                 return {
                     ...item,
-                    subMenuItems: [...item.subMenuItems, {text: 'Sub B3', key: 'B3'}],
+                    subMenuItems: [...item.subMenuItems, {text: 'Sub B3', sentryLabel, key: 'B3'}],
                 };
             }
             return item;
@@ -367,6 +428,12 @@ describe('PopoverMenu integration — optional search', () => {
 
     beforeEach(() => {
         mockPopoverWithMeasuredContent.mockClear();
+        mockUseAccessibilityAnnouncement.mockClear();
+        mockUseActiveElementRole.mockReturnValue(null);
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+        mockKeyboardShortcuts.clear();
+        mockFocusableMenuItem.mockClear();
+        mockScrollTo.mockClear();
     });
 
     it('keeps existing popovers keyboard-neutral when search is disabled', () => {
@@ -374,7 +441,7 @@ describe('PopoverMenu integration — optional search', () => {
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
-                menuItems={[{text: 'Item'}]}
+                menuItems={[{text: 'Item', sentryLabel}]}
                 onClose={() => {}}
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
@@ -391,7 +458,7 @@ describe('PopoverMenu integration — optional search', () => {
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
-                menuItems={[{text: 'Item'}]}
+                menuItems={[{text: 'Item', sentryLabel}]}
                 searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
                 onClose={() => {}}
                 anchorPosition={anchorPosition}
@@ -403,6 +470,243 @@ describe('PopoverMenu integration — optional search', () => {
         expect(mockPopoverWithMeasuredContent.mock.calls.at(-1)?.[0].avoidKeyboard).toBe(true);
         expect(renderResult.UNSAFE_getByType(ScrollView).props.keyboardShouldPersistTaps).toBe('always');
         expect(renderResult.UNSAFE_getByType(ScrollView).props.scrollEventThrottle).toBe(16);
+    });
+
+    it('shows the visually focused row while keeping focus synchronized to the search input', () => {
+        // Given a searchable radio-button popover whose search input has focus
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldShowRadioButton
+                menuItems={[
+                    {text: 'Item 1', sentryLabel},
+                    {text: 'Item 2', sentryLabel},
+                ]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // When Arrow Down moves the logical focus to the first result
+        fireEvent(screen.getByLabelText('Find a member'), 'focus');
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        expect(arrowDownShortcut?.isActive).toBe(true);
+        act(() => arrowDownShortcut?.callback());
+
+        // Then the result is visibly focused without moving actual focus away from the input
+        const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
+        expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Item 1', shouldSyncFocus: false}));
+    });
+
+    it('scrolls a filtered result with preserved variable-height row measurements into view', () => {
+        const initialMenuItems = [
+            {text: 'Item 1', sentryLabel},
+            {text: 'Item 2', sentryLabel},
+            {text: 'Item 3', sentryLabel},
+            {text: 'Item 4', sentryLabel},
+        ];
+
+        // Given measured rows of different heights in a searchable popover
+        const renderResult = render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={initialMenuItems}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        fireEvent(renderResult.UNSAFE_getByType(ScrollView), 'layout', {nativeEvent: {layout: {height: 100, width: 300, x: 0, y: 0}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 1'), 'layout', {nativeEvent: {layout: {height: 40, width: 300, x: 0, y: 0}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 2'), 'layout', {nativeEvent: {layout: {height: 60, width: 300, x: 0, y: 40}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 3'), 'layout', {nativeEvent: {layout: {height: 70, width: 300, x: 0, y: 100}}});
+
+        // When filtering keeps the measured rows and Arrow Down reaches the first off-screen result
+        renderResult.rerender(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={initialMenuItems.slice(0, 3)}
+                searchInputOptions={{label: 'Find a member', value: 'Item', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        mockScrollTo.mockClear();
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey)?.callback());
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey)?.callback());
+
+        // Then the list scrolls far enough to reveal the complete focused row
+        expect(mockScrollTo).toHaveBeenLastCalledWith({y: 70, animated: false});
+    });
+
+    it('announces an arrow-focused row while the search input retains focus', () => {
+        // Given a searchable popover with the search input focused
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Account name', sentryLabel, description: 'account@example.com'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        fireEvent(screen.getByLabelText('Find a member'), 'focus');
+
+        // When Arrow Down visually focuses the first result
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        act(() => arrowDownShortcut?.callback());
+
+        // Then the account is announced without moving focus away from the search input
+        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('Account name, account@example.com', true, {
+            shouldAnnounceOnNative: false,
+            shouldAnnounceOnWeb: true,
+            announcementKey: 1,
+            politeness: 'polite',
+        });
+        const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
+        expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Account name', shouldSyncFocus: false}));
+    });
+
+    it('does not announce a logical row when the search input is not focused', () => {
+        // Given a searchable popover whose search input does not have focus
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Account name', sentryLabel, description: 'account@example.com'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // When Arrow Down focuses a row through the ordinary menu navigation path
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        act(() => arrowDownShortcut?.callback());
+
+        // Then no live announcement is emitted because real row focus provides the accessibility feedback
+        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('', false, {shouldAnnounceOnNative: false, shouldAnnounceOnWeb: true, announcementKey: 0, politeness: 'polite'});
+    });
+
+    it.each([
+        {platform: CONST.PLATFORM.WEB, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 1},
+        {platform: CONST.PLATFORM.IOS, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 0},
+        {platform: CONST.PLATFORM.ANDROID, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 0},
+        {platform: CONST.PLATFORM.IOS, shouldUpdateFocusedIndex: true, expectedSelectedIndex: 1},
+    ])('respects the searchable row focus policy on $platform with shouldUpdateFocusedIndex=$shouldUpdateFocusedIndex', ({platform, shouldUpdateFocusedIndex, expectedSelectedIndex}) => {
+        // Given a searchable radio menu with a caller-controlled native focus policy
+        mockGetPlatform.mockReturnValue(platform);
+        const selectFirstItem = jest.fn();
+        const selectSecondItem = jest.fn();
+        render(
+            <PopoverMenu
+                isVisible
+                shouldShowRadioButton
+                shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                menuItems={[
+                    {text: 'Item 1', sentryLabel, isSelected: true, onSelected: selectFirstItem},
+                    {text: 'Item 2', sentryLabel, onSelected: selectSecondItem},
+                ]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // When the second row receives focus, exercise logical selection without a focused control intercepting Enter
+        const secondItemProps = mockFocusableMenuItem.mock.calls.findLast(([props]) => props.title === 'Item 2')?.[0];
+        expect(secondItemProps?.onFocus).toBeDefined();
+        act(() => secondItemProps?.onFocus?.());
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.callback());
+
+        // Then web tracks the focused row, while native honors the caller's opt-out
+        expect(selectFirstItem).toHaveBeenCalledTimes(expectedSelectedIndex === 0 ? 1 : 0);
+        expect(selectSecondItem).toHaveBeenCalledTimes(expectedSelectedIndex === 1 ? 1 : 0);
+    });
+
+    it.each([true, false])('lets a focused interactive control handle Enter in a searchable popover with shouldUpdateFocusedIndex=%s', (shouldUpdateFocusedIndex) => {
+        // Given a searchable popover whose Clear button or account row has actual focus
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When the popover registers its Enter shortcut
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                menuItems={[{text: 'Item', sentryLabel}]}
+                searchInputOptions={{label: 'Find a member', value: 'query', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // Then the popover shortcut is inactive so Enter reaches the focused control
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(false);
+    });
+
+    it('preserves the existing Enter shortcut behavior for non-searchable popovers', () => {
+        // Given a non-searchable popover with a focused interactive element
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When the popover registers its Enter shortcut
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Item', sentryLabel}]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // Then the existing non-search popover behavior remains unchanged
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(true);
+    });
+
+    it('lets the activated row handle Enter when its non-searchable popover does not synchronize the focused index', () => {
+        const selectFirstItem = jest.fn();
+        const selectSecondItem = jest.fn();
+
+        // Given an account-switcher-style popover where actual row focus does not update the logical focused index
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When a different row receives the activation while the global Enter shortcut is disabled
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldUpdateFocusedIndex={false}
+                menuItems={[
+                    {text: 'Item 1', sentryLabel, isSelected: true, onSelected: selectFirstItem},
+                    {text: 'Item 2', sentryLabel, onSelected: selectSecondItem},
+                ]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(false);
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item 2'));
+
+        // Then the activated row selects itself instead of the stale logically focused row
+        expect(selectFirstItem).not.toHaveBeenCalled();
+        expect(selectSecondItem).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -461,6 +765,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
             [
                 {
                     text: 'Delete',
+                    sentryLabel,
                     shouldCallAfterModalHide: true,
                     shouldCloseAllModals: true,
                     shouldSkipFocusRestore: true,
@@ -496,12 +801,14 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const onClose = renderLifecycleMenu([
             {
                 text: 'Delete marked',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
             },
             {
                 text: 'Ordinary',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 onSelected,
             },
@@ -530,7 +837,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         'keeps caller-driven restoreFocusType updates visible to the close lifecycle: %s',
         (nextRestoreFocusType) => {
             const onSelected = jest.fn();
-            const menuItems: PopoverMenuItem[] = [{text: 'Caller option', onSelected}];
+            const menuItems: PopoverMenuItem[] = [{text: 'Caller option', sentryLabel, onSelected}];
 
             const {rerender} = render(
                 <PopoverMenu
@@ -565,6 +872,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -604,6 +912,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         renderLifecycleMenu([
             {
                 text: 'Keep open',
+                sentryLabel,
                 shouldCloseModalOnSelect: false,
                 shouldSkipFocusRestore: true,
                 onSelected,
@@ -621,6 +930,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -659,6 +969,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -696,6 +1007,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
                 menuItems={[
                     {
                         text: 'Delete',
+                        sentryLabel,
                         shouldCallAfterModalHide: true,
                         shouldSkipFocusRestore: true,
                         onSelected: jest.fn(),
@@ -718,6 +1030,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     it('keeps legacy focus management for a marked option in the non-iOS hook', () => {
         const menuItem = {
             text: 'Delete',
+            sentryLabel,
             shouldCallAfterModalHide: true,
             shouldSkipFocusRestore: true,
             onSelected: jest.fn(),
@@ -740,9 +1053,11 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         renderLifecycleMenu([
             {
                 text: 'Actions',
+                sentryLabel,
                 subMenuItems: [
                     {
                         text: 'Delete nested',
+                        sentryLabel,
                         shouldCallAfterModalHide: true,
                         shouldSkipFocusRestore: true,
                         onSelected: jest.fn(),

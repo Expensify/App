@@ -15,6 +15,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {DistributedPick} from 'type-fest';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,7 +29,7 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
-type TransactionItemRowNarrowProps = Pick<
+type TransactionItemRowNarrowProps = DistributedPick<
     TransactionItemRowProps,
     | 'transactionItem'
     | 'report'
@@ -62,7 +64,7 @@ function TransactionItemRowNarrow({
     isSelected,
     shouldShowTooltip,
     onCheckboxPress = () => {},
-    shouldShowCheckbox = false,
+    shouldShowCheckbox,
     style,
     dataSet,
     isInSingleTransactionReport = false,

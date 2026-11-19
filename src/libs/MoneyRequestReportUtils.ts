@@ -109,24 +109,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCre
 }
 
 /**
- * Give a list of report actions and a list of transactions,
- * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
- * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
- */
-function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
-    return transactions
-        .map((transaction) => {
-            if (isTransactionPendingDelete(transaction)) {
-                return;
-            }
-
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            return action?.childReportID;
-        })
-        .filter((reportID): reportID is string => !!reportID);
-}
-
-/**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
 function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
@@ -348,7 +330,6 @@ export {
     getReportRowReport,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,

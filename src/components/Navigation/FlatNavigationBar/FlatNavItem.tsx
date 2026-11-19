@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
+import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -10,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -17,6 +19,7 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -32,6 +35,9 @@ type FlatNavItemProps = {
 
     isSelected: boolean;
 
+    /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
+
     /** Draws the row taller than the destination rows, as the Account row is */
     isTall?: boolean;
 
@@ -44,6 +50,9 @@ type FlatNavItemProps = {
     sentryLabel: SentryLabel;
 
     onPress: () => void;
+
+    /** Route of the destination, so the row can be opened in a new browser tab */
+    linkRoute?: Route;
 
     /** Called when the pointer moves onto the row */
     onHoverIn?: () => void;
@@ -59,11 +68,13 @@ function FlatNavItem({
     renderLeftElement,
     rightElement,
     isSelected,
+    isCollapsed = false,
     isTall = false,
     statusIndicatorColor,
     accessibilityLabel,
     sentryLabel,
     onPress,
+    linkRoute,
     onHoverIn,
     onHoverOut,
 }: FlatNavItemProps) {
@@ -78,9 +89,13 @@ function FlatNavItem({
         return isHovered ? styles.highlightBG : undefined;
     };
 
+    // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
+
     return (
         <PressableWithFeedback
             onPress={onPress}
+            linkRoute={linkRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
@@ -115,14 +130,15 @@ function FlatNavItem({
                             </View>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        <Text
-                            variant={isSelected ? 'textStrong' : 'text'}
-                            color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                            style={styles.flex1}
-                        >
-                            {label}
-                        </Text>
+                        <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                            <Text
+                                variant={isSelected ? 'textStrong' : 'text'}
+                                color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                numberOfLines={1}
+                            >
+                                {label}
+                            </Text>
+                        </Animated.View>
                         {rightElement}
                     </>
                 );
