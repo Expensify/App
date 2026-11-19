@@ -267,8 +267,26 @@ describe('LogOutPreviousUserPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the prompt is closed, so it cannot sign out whatever session is current later
+        // Then the prompt is closed, so it cannot sign out whatever session is current later, and closing it does not count as "Stay signed in"
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('goes Home without signing out when the switch is cancelled', async () => {
+        // Given an account signed in to NewDot and a transition link for a different account
+        mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+        renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+
+        // When the user chooses to stay signed in
+        fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.staySignedIn')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page leaves /transition for Home and keeps the current account signed in
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
     it('restores the last visited public room before opening sign-in for an anonymous session', async () => {
