@@ -2172,7 +2172,7 @@ const translations = {
             selectMemberError: 'Select a member to reject this report back to.',
             couldNotReject: 'The report could not be rejected. Please try again.',
             couldNotRejectExpense: 'The expense could not be rejected because it may have already been moved or rejected.',
-            couldNotRejectCorporateCardExpense: 'Corporate card expenses on a statement report cannot be rejected individually. Please reject the entire report instead.',
+            couldNotRejectStatementReportedCorporateCardExpense: 'Corporate card expenses on a statement report cannot be rejected individually. Please reject the entire report instead.',
             couldNotRejectExpenseContactConcierge: 'This expense could not be rejected. Please contact Concierge for help.',
         },
         moveExpenses: 'Move to report',

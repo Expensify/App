@@ -40,7 +40,7 @@ function getTransactionRejectError(transaction: OnyxEntry<Transaction>): {key: s
     // fallback for offline failures, so it must not shadow a more specific server error.
     const rejectCorporateCardKey = Object.keys(getLatestErrorField(transaction, 'rejectCorporateCard')).at(0);
     if (rejectCorporateCardKey) {
-        return {key: rejectCorporateCardKey, translationKey: 'iou.rejectReport.couldNotRejectCorporateCardExpense'};
+        return {key: rejectCorporateCardKey, translationKey: 'iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'};
     }
 
     const rejectKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
@@ -53,8 +53,8 @@ function getTransactionRejectError(transaction: OnyxEntry<Transaction>): {key: s
 }
 
 /**
- * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
- * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ * The Onyx timestamp key of whichever reject error field won (`reject`, `rejectCorporateCard`, or `rejectOther`).
+ * It is what disables the row.
  */
 function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
     return getTransactionRejectError(transaction)?.key;
@@ -132,11 +132,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
-        if (
-            !isEmptyObject(transaction.errorFields?.reject ?? {}) ||
-            !isEmptyObject(transaction.errorFields?.rejectCorporateCard ?? {}) ||
-            !isEmptyObject(transaction.errorFields?.rejectOther ?? {})
-        ) {
+        if (getTransactionRejectError(transaction) !== undefined) {
             return true;
         }
 

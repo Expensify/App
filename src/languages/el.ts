@@ -2068,7 +2068,7 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Επιλέξτε μέλος στο οποίο θα απορρίψετε αυτήν την αναφορά.',
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
             couldNotRejectExpense: 'Η δαπάνη δεν ήταν δυνατό να απορριφθεί, επειδή μπορεί να έχει ήδη μετακινηθεί ή απορριφθεί.',
-            couldNotRejectCorporateCardExpense:
+            couldNotRejectStatementReportedCorporateCardExpense:
                 'Οι εταιρικές δαπάνες κάρτας σε μια αναφορά εκκαθαριστικού δεν μπορούν να απορριφθούν μεμονωμένα. Παρακαλούμε απορρίψτε αντί γι’ αυτό ολόκληρη την αναφορά.',
             couldNotRejectExpenseContactConcierge: 'Αυτή η δαπάνη δεν ήταν δυνατό να απορριφθεί. Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
         },

@@ -224,7 +224,7 @@ describe('MoneyRequestReportUtils', () => {
             // Given a corporate card expense the backend refused to reject individually
             const transaction = createMock<Transaction>({
                 transactionID: '1',
-                errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectCorporateCardExpense'}},
+                errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'}},
             });
 
             // When the list asks whether anything may select it
@@ -251,7 +251,7 @@ describe('MoneyRequestReportUtils', () => {
         const rejected = createMock<Transaction>({transactionID: '3', errorFields: {reject: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpense'}}});
         const rejectedCorporateCard = createMock<Transaction>({
             transactionID: '4',
-            errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectCorporateCardExpense'}},
+            errorFields: {rejectCorporateCard: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense'}},
         });
         const rejectedOther = createMock<Transaction>({transactionID: '5', errorFields: {rejectOther: {[REJECTED_AT]: 'iou.rejectReport.couldNotRejectExpenseContactConcierge'}}});
 
@@ -314,7 +314,7 @@ describe('MoneyRequestReportUtils', () => {
 
             // When the error is read
             // Then the corporate card translation path is returned
-            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense');
         });
 
         test('returns the reject error when only that field is set', () => {
@@ -335,19 +335,19 @@ describe('MoneyRequestReportUtils', () => {
             expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectExpenseContactConcierge');
         });
 
-        test('rejectCorporateCard takes priority over reject when both are set', () => {
-            // Given a corporate card expense where the server set rejectCorporateCard but failureData also set reject
+        test('rejectCorporateCard takes priority over rejectOther when both are set', () => {
+            // Given a corporate card expense where the server set rejectCorporateCard but failureData also set rejectOther
             const transaction = createMock<Transaction>({
                 transactionID: '1',
                 errorFields: {
                     rejectCorporateCard: {[REJECTED_AT]: 'corporate card message'},
-                    reject: {[REJECTED_AT]: 'generic message'},
+                    rejectOther: {[REJECTED_AT]: 'catch-all message'},
                 },
             });
 
             // When the error is read
             // Then the corporate card error wins, not the generic fallback
-            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense');
         });
 
         test('reject takes priority over rejectOther when both are set', () => {
@@ -365,6 +365,21 @@ describe('MoneyRequestReportUtils', () => {
             expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectExpense');
         });
 
+        test('rejectCorporateCard takes priority over reject when both are set', () => {
+            // Given a corporate card expense where both a server-specific field and the already-moved field are set
+            const transaction = createMock<Transaction>({
+                transactionID: '1',
+                errorFields: {
+                    rejectCorporateCard: {[REJECTED_AT]: 'corporate card message'},
+                    reject: {[REJECTED_AT]: 'already moved message'},
+                },
+            });
+
+            // When the error is read
+            // Then the corporate card error wins over the already-moved field
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense');
+        });
+
         test('rejectCorporateCard takes priority over all three fields when all are set', () => {
             // Given an expense with all three reject error fields set simultaneously
             const transaction = createMock<Transaction>({
@@ -378,7 +393,7 @@ describe('MoneyRequestReportUtils', () => {
 
             // When the error is read
             // Then the most specific field wins
-            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectCorporateCardExpense');
+            expect(getTransactionRejectError(transaction)?.translationKey).toBe('iou.rejectReport.couldNotRejectStatementReportedCorporateCardExpense');
         });
     });
 

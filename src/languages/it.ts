@@ -2015,7 +2015,8 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Seleziona un membro a cui rimandare indietro questo report per rifiutarlo.',
             couldNotReject: 'Non è stato possibile rifiutare il report. Riprova.',
             couldNotRejectExpense: 'La spesa non può essere rifiutata perché potrebbe essere già stata spostata o rifiutata.',
-            couldNotRejectCorporateCardExpense: 'Le spese della carta aziendale in un report estratto conto non possono essere rifiutate singolarmente. Rifiuta invece l’intero report.',
+            couldNotRejectStatementReportedCorporateCardExpense:
+                'Le spese della carta aziendale in un report estratto conto non possono essere rifiutate singolarmente. Rifiuta invece l’intero report.',
             couldNotRejectExpenseContactConcierge: 'Questa spesa non può essere rifiutata. Contatta Concierge per ricevere aiuto.',
         },
         moveExpenses: 'Sposta nel report',
