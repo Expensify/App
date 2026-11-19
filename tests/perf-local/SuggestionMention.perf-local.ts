@@ -3,7 +3,9 @@
  * with many participants. Each measured run renders the real SuggestionMention with the text `@al`, which runs
  * getUserMentionOptions (weighting every personal detail, filtering, sorting) and renders the suggestion list.
  *
- * Run with: npx jest --testMatch '<rootDir>/tests/perf-local/SuggestionMention.perf-local.tsx' --runInBand
+ * Run with: npm run perf-local -- --testMatch '<rootDir>/tests/perf-local/SuggestionMention.perf-local.ts'
+ * It prints one line per scenario, so it also runs under plain Jest:
+ * npx jest --testMatch '<rootDir>/tests/perf-local/SuggestionMention.perf-local.ts' --runInBand
  */
 import {act, render} from '@testing-library/react-native';
 
@@ -132,19 +134,17 @@ function buildRoom(participantsCount: number): Report {
 }
 
 function renderComposer(value: string) {
-    return (
-        <SuggestionMention
-            value={value}
-            selection={{start: value.length, end: value.length}}
-            setSelection={() => {}}
-            updateComment={() => {}}
-            isAutoSuggestionPickerLarge
-            measureParentContainerAndReportCursor={() => {}}
-            isComposerFocused
-            isGroupPolicyReport
-            policyID={POLICY_ID}
-        />
-    );
+    return React.createElement(SuggestionMention, {
+        value,
+        selection: {start: value.length, end: value.length},
+        setSelection: () => {},
+        updateComment: () => {},
+        isAutoSuggestionPickerLarge: true,
+        measureParentContainerAndReportCursor: () => {},
+        isComposerFocused: true,
+        isGroupPolicyReport: true,
+        policyID: POLICY_ID,
+    });
 }
 
 function writeResult(label: string, result: {meanDuration: number; stdevDuration: number; durations: number[]; outlierDurations?: number[]}) {
