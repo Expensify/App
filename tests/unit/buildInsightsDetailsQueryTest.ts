@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 
 const FILTERS: InsightsFilters = {date: {from: '2026-01-01', to: '2026-03-20'}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: CONST.CURRENCY.USD};
 const TOP_EXPENSES_SNAPSHOT_HASH = 123;
+const LAST_DAY = '2026-11-19';
 
 describe('buildInsightsDetailsQuery', () => {
     it('summarizes the last period in the Date range on ranking graphs, up to the range end', () => {
@@ -17,6 +18,7 @@ describe('buildInsightsDetailsQuery', () => {
             itemKey: '1234',
             periodEnd: undefined,
             topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+            lastDay: LAST_DAY,
         });
 
         // Then March is summarized up to the range end as a finished period, and the member is sent as an account ID
@@ -37,6 +39,7 @@ describe('buildInsightsDetailsQuery', () => {
             itemKey: '2026-02-01',
             periodEnd: '2026-02-28',
             topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+            lastDay: LAST_DAY,
         });
 
         // Then February is summarized and the request names no item, since the period is the item
@@ -55,6 +58,7 @@ describe('buildInsightsDetailsQuery', () => {
                 itemKey: merchant,
                 periodEnd: undefined,
                 topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+                lastDay: LAST_DAY,
             });
 
         // When their panels' queries are built, one of them twice
@@ -77,9 +81,31 @@ describe('buildInsightsDetailsQuery', () => {
             itemKey: 'Engineering',
             periodEnd: undefined,
             topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+            lastDay: LAST_DAY,
         });
 
         // Then there's no request, so the panel loads its Top expenses through Search instead
         expect(query).toBeUndefined();
+    });
+
+    it('summarizes the period with the last counted day when the Date range ends in the future', () => {
+        // Given This year grouped by month, a range that runs to December 31 while expenses are counted through November 19
+        jest.useFakeTimers().setSystemTime(new Date('2026-11-19T12:00:00'));
+
+        // When a merchant on Top merchants opens the Details panel
+        const query = buildInsightsDetailsQuery({
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
+            filters: {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}},
+            itemGroupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            itemKey: 'Anthropic',
+            periodEnd: undefined,
+            topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+            lastDay: LAST_DAY,
+        });
+
+        // Then November is summarized up to that day as an in-progress period, since the chart has no December bucket yet
+        expect(query?.period).toEqual({start: '2026-11-01', end: LAST_DAY});
+        expect(query?.isPeriodInProgress).toBe(true);
+        jest.useRealTimers();
     });
 });

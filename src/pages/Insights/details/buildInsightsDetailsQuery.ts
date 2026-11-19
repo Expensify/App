@@ -63,6 +63,9 @@ type BuildInsightsDetailsQueryParams = {
 
     /** Hash of the snapshot the panel's Top expenses are stored under */
     topExpensesSnapshotHash: number;
+
+    /** Last day the dashboard counts expenses through, as yyyy-MM-dd */
+    lastDay: string;
 };
 
 /** Returns the calendar period of the given length that contains the date. */
@@ -90,11 +93,13 @@ function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGrou
     }
 
     const range = getInsightsDateRange(params.filters.date);
-    if (!range.end) {
+    // Ranges like This year end in the future, but the chart only has buckets through the last counted day
+    const end = range.end && range.end > params.lastDay ? params.lastDay : range.end;
+    if (!end || end < range.start) {
         return undefined;
     }
-    const period = getCalendarPeriod(periodGroupBy, range.end);
-    return {start: range.start > period.start ? range.start : period.start, end: range.end};
+    const period = getCalendarPeriod(periodGroupBy, end);
+    return {start: range.start > period.start ? range.start : period.start, end};
 }
 
 /** Builds the request for a Details panel's sections, or nothing when the backend doesn't support the graph or the period can't be resolved. */
@@ -120,7 +125,7 @@ function buildInsightsDetailsQuery(params: BuildInsightsDetailsQueryParams): Ins
         topExpensesSnapshotHash,
         period,
         periodGroupBy,
-        isPeriodInProgress: period.end >= format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+        isPeriodInProgress: period.end >= params.lastDay,
     };
 }
 

@@ -77,7 +77,15 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
     const detailsQuery =
         chartSpec && topExpensesSnapshotHash !== undefined
-            ? buildInsightsDetailsQuery({graphKey: chartSpec.graphKey, filters, itemGroupBy: chartSpec.groupBy, itemKey, periodEnd, topExpensesSnapshotHash})
+            ? buildInsightsDetailsQuery({
+                  graphKey: chartSpec.graphKey,
+                  filters,
+                  itemGroupBy: chartSpec.groupBy,
+                  itemKey,
+                  periodEnd,
+                  topExpensesSnapshotHash,
+                  lastDay: getInsightsLastDay(asOf),
+              })
             : undefined;
     const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
     const {summary, state: detailsState} = useInsightsSummary(detailsQuery);
