@@ -1,3 +1,4 @@
+import DiscardStaleSearchSnapshot from './DiscardStaleSearchSnapshot';
 import FailureTracking from './FailureTracking';
 import FlagSearchTransactionWrites from './FlagSearchTransactionWrites';
 import FraudMonitoring from './FraudMonitoring';
@@ -19,6 +20,7 @@ import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
+    DiscardStaleSearchSnapshot,
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,

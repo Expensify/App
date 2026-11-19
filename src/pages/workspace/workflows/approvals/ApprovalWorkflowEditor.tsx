@@ -195,22 +195,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 )}
 
                 <MenuItemSectionRoot
-                    accessibilityLabel={members}
+                    accessibilityLabel={members || translate('workflowsExpensesFromPage.title')}
                     onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 >
                     <MenuItem.Row>
                         <MenuItemField.Content name={translate('workflowsExpensesFromPage.title')}>
-                            {approvalWorkflow.isDefault ? (
-                                <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue>
-                            ) : (
-                                <MenuItem.FieldValue
-                                    accessibilityLabel={members}
-                                    numberOfLines={0}
-                                >
-                                    <UserPills users={memberPills} />
-                                </MenuItem.FieldValue>
-                            )}
+                            {approvalWorkflow.isDefault ? <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue> : <UserPills users={memberPills} />}
                         </MenuItemField.Content>
                         {(!!approvalWorkflow?.errors?.members || !approvalWorkflow.isDefault) && (
                             <MenuItem.Trailing>
@@ -242,7 +233,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemSectionRoot
-                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
+                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '') || approverDescriptions.at(approverIndex)}
                                 onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                                 style={errorText || hintText ? styles.pb0 : undefined}
@@ -250,16 +241,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 <MenuItem.Row>
                                     <MenuItemField.Content name={approverDescriptions.at(approverIndex) ?? ''}>
                                         {!!approver && (
-                                            <MenuItem.FieldValue accessibilityLabel={formatPhoneNumber(approver.displayName)}>
-                                                <View style={styles.pr3}>
-                                                    <UserPill
-                                                        avatar={approver.avatar}
-                                                        displayName={approver.displayName}
-                                                        email={approver.email}
-                                                        style={styles.userPillStandalone}
-                                                    />
-                                                </View>
-                                            </MenuItem.FieldValue>
+                                            <View style={styles.pr3}>
+                                                <UserPill
+                                                    avatar={approver.avatar}
+                                                    displayName={approver.displayName}
+                                                    email={approver.email}
+                                                    style={styles.userPillStandalone}
+                                                />
+                                            </View>
                                         )}
                                     </MenuItemField.Content>
                                     <MenuItem.Trailing>
