@@ -11,7 +11,7 @@ import isStartupNetworkRequest from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import {getAuthTokenType, hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
@@ -22,10 +22,26 @@ let middlewares: Middleware[] = [];
 /** Reauthentication retries the same request object from inside the still-pending original call, so only its newest attempt may record the phase. */
 const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
+type SentAuthState = {
+    authToken: string | null;
+    authTokenType: ReturnType<typeof getAuthTokenType>;
+};
+
+/** The session each request's latest attempt was sent with, so an auth failure can be compared with the session that is current when it arrives. */
+const sentAuthStateByRequest = new WeakMap<WeakKey, SentAuthState>();
+
+function getSentAuthState(request: WeakKey): SentAuthState | undefined {
+    return sentAuthStateByRequest.get(request);
+}
+
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
         // Add the session only once storage has it, otherwise the first request of a launch goes without one
         const finalParameters = enhanceParameters(request.command, request?.data ?? {});
+        sentAuthStateByRequest.set(request, {
+            authToken: typeof finalParameters.authToken === 'string' ? finalParameters.authToken : null,
+            authTokenType: getAuthTokenType(),
+        });
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
@@ -113,5 +129,5 @@ function clearMiddlewares() {
     middlewares = [];
 }
 
-export {clearMiddlewares, processWithMiddleware, addMiddleware};
-export type {Middleware};
+export {clearMiddlewares, processWithMiddleware, addMiddleware, getSentAuthState};
+export type {Middleware, SentAuthState};
