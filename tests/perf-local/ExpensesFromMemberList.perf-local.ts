@@ -148,13 +148,14 @@ describe('Approval workflow "Expenses from" member toggle', () => {
             });
 
             const {unmount} = render(
-                React.createElement(ComposeProviders, {
-                    components: [OnyxListItemProvider, LocaleContextProvider],
-                    children: React.createElement(
+                React.createElement(
+                    ComposeProviders,
+                    createMock<React.ComponentProps<typeof ComposeProviders>>({components: [OnyxListItemProvider, LocaleContextProvider]}),
+                    React.createElement(
                         DynamicWorkspaceWorkflowsApprovalsExpensesFromPage,
                         createMock<React.ComponentProps<typeof DynamicWorkspaceWorkflowsApprovalsExpensesFromPage>>({route: {params: {policyID: POLICY_ID}}}),
                     ),
-                }),
+                ),
             );
             await waitForBatchedUpdatesWithAct();
             // Every workspace member plus the admin is listed once.
