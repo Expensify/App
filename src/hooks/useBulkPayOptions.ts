@@ -19,7 +19,7 @@ import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccount, Fund, Report} from '@src/types/onyx';
+import type {AccountData, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -34,11 +34,6 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
-
-/** Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account. */
-function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
-    return accountData && 'type' in accountData ? accountData : undefined;
-}
 
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
@@ -117,7 +112,7 @@ function useBulkPayOptions({
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
-                const accountData = getBankAccountData(method.accountData);
+                const accountData = method?.accountData as AccountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
                 return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
@@ -150,7 +145,7 @@ function useBulkPayOptions({
                   value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
               }))
             : undefined;
-    const personalBankAccountList = formattedPaymentMethods.filter((ba) => getBankAccountData(ba.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+    const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     const payViaABAOption = {
         ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
