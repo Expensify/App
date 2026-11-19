@@ -3158,6 +3158,26 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
     }
 
+    // A typed violation grouping gets both violation has values, the same as choosing it in the filters UI (see
+    // useUpdateFilterQuery), so the Has pill shows which stages the groups count. A typed violation has value, even a
+    // negated one, already picks the stages, so the query is left alone then.
+    if (
+        standardizedQuery.type === CONST.SEARCH.DATA_TYPES.EXPENSE &&
+        standardizedQuery.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        !queryHasHasFilter(standardizedQuery, VIOLATION_HAS_VALUES, true)
+    ) {
+        const violationHasFilters = VIOLATION_HAS_VALUES.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}));
+        // Values next to a negated one are written into its `-has:` list, so they only join a group with no negated values
+        const hasFilterGroup = standardizedQuery.flatFilters.find(
+            (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && filter.filters.every((hasFilter) => hasFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO),
+        );
+        if (hasFilterGroup) {
+            hasFilterGroup.filters.push(...violationHasFilters);
+        } else {
+            standardizedQuery.flatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: violationHasFilters});
+        }
+    }
+
     return buildSearchQueryString(standardizedQuery);
 }
 
