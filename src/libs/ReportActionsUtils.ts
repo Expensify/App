@@ -74,6 +74,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -365,6 +366,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
@@ -397,6 +399,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
@@ -1737,6 +1740,9 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1801,6 +1807,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
+        return false;
+    }
+
     if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
@@ -1810,10 +1820,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
+    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead.
+    // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
+    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
+    if (isPaymentRecordedByReimbursedAction(reportAction)) {
+        // Search passes isInvoice because its invoice can exist only in the Search snapshot, not in Onyx.
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !(isInvoice ?? isInvoiceReportID(reportAction.reportID ?? reportID))) {
             return false;
         }
 
@@ -1840,6 +1852,16 @@ function shouldReportActionBeVisible(
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
+/** Whether an action can automatically create an unread divider for this account. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const recipients = getOriginalMessage(reportAction)?.actionableForAccountIDs;
+        // Older actions have no recipient metadata, so preserve their existing behavior.
+        return !recipients || recipients.includes(currentUserAccountID);
+    }
+    return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
+}
+
 /**
  * Checks if the new marker should be hidden for the report action.
  */
@@ -1862,6 +1884,7 @@ function isReportActionVisible(
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1873,18 +1896,45 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+        return shouldReportActionBeVisible(
+            reportAction,
+            reportAction.reportActionID,
+            canUserPerformWriteAction,
+            currentUserAccountID,
+            reportID,
+            isSupportTicketReport,
+            reportActions,
+            isInvoice,
+        );
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         if (!staticVisibility) {
             return false;
@@ -1894,7 +1944,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions, isInvoice);
 }
 
 /**
@@ -3548,6 +3598,27 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
 }
 
 /**
+ * Whether the action records a payment that ReimburseReport or MarkReimbursed made
+ */
+function isPaymentRecordedByReimbursedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+}
+
+function isInvoiceReportID(reportID: string | undefined): boolean {
+    return !!reportID && getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
+ * Returns true for a REIMBURSED or MARKED_REIMBURSED action that was created from NewDot or that Auth marked with
+ * shouldShow false. Such an action is hidden on every report except an invoice.
+ */
+function isPaymentActionHiddenOutsideInvoices(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isPaymentRecordedByReimbursedAction(reportAction) && (!!getOriginalMessage(reportAction)?.isNewDot || reportAction.shouldShow === false);
+}
+
+/**
  * Checks if a report action is an actionable whisper that requires write permission to be visible.
  */
 function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -3688,6 +3759,7 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
+                case CONST.EXPORT_LABELS.DIGITS:
                 case CONST.EXPORT_LABELS.ZOHO_BOOKS:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
@@ -6226,6 +6298,18 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
     });
 }
 
+function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
+    const {feedName = 'company', bank, policyID = '', warningDaysBeforeExpiry = 0, mentionedAccountIDs} = originalMessage ?? {};
+    const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
+    return translate('report.actions.type.companyCardConsentExpiring', {
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
+        warningDaysBeforeExpiry,
+        workspaceCompanyCardRoute,
+        mentionedAccountID: mentionedAccountIDs?.at(0),
+    });
+}
+
 function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
     const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -6469,6 +6553,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
@@ -6477,6 +6562,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
+    isPaymentActionHiddenOutsideInvoices,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
@@ -6589,6 +6675,7 @@ export {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,

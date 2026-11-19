@@ -728,6 +728,7 @@ describe('useAdvancedSearchFilters', () => {
                 expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED);
                 expect(result.current.at(3)).toEqual([
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
