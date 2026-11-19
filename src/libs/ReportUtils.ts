@@ -66,10 +66,11 @@ import type {
     OriginalMessageChangePolicy,
     OriginalMessageExportIntegration,
     OriginalMessageModifiedExpense,
+    OriginalMessageMergedReports,
     OriginalMessageMovedTransaction,
     PaymentMethodType,
 } from '@src/types/onyx/OriginalMessage';
-import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, Status, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
@@ -9350,6 +9351,45 @@ function buildOptimisticUndeletedTransactionAction(transactionThreadReportID: st
 }
 
 /**
+ * Builds an optimistic MERGED_REPORTS report action for the destination report of a merge, with a randomly generated reportActionID.
+ */
+function buildOptimisticMergedReportsAction(
+    destinationReportID: string,
+    sourceReports: OriginalMessageMergedReports['sourceReports'],
+    movedTransactionCount: number,
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS> {
+    const reportNames = sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
+    const messageText = sourceReports.length === 1 ? `merged ${reportNames} into this report` : `merged ${sourceReports.length} reports into this report: ${reportNames}`;
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS,
+        reportID: destinationReportID,
+        actorAccountID: currentUserPersonalDetails.accountID,
+        avatar: currentUserPersonalDetails.avatar,
+        created: DateUtils.getDBTime(),
+        originalMessage: {sourceReports, movedTransactionCount},
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                html: messageText,
+                text: messageText,
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails.displayName ?? currentUserPersonalDetails.login ?? '',
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
@@ -16358,6 +16398,7 @@ export {
     navigateToLinkedReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildOptimisticUndeletedTransactionAction,
+    buildOptimisticMergedReportsAction,
     isBusinessInvoiceRoom,
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
