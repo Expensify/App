@@ -7,7 +7,6 @@ import type Session from '@src/types/onyx/Session';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 
-import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
@@ -68,11 +67,6 @@ Onyx.connectWithoutView({
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
         isSupportSession = value?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
         isDelegateTokenSession = value?.authTokenType === CONST.AUTH_TOKEN_TYPES.DELEGATE;
-
-        Sentry.setUser({
-            id: value?.accountID,
-            email: value?.email,
-        });
     },
 });
 

@@ -11,6 +11,7 @@
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridVerticalBarModuleSpecSwift.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -60,6 +61,38 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void()>
+  Func_void create_Func_void(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)]() mutable -> void {
+      swiftClosure.call();
+    };
+  }
+  
+  // pragma MARK: std::function<void(VerticalBarEdge /* edge */)>
+  Func_void_VerticalBarEdge create_Func_void_VerticalBarEdge(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_VerticalBarEdge::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](VerticalBarEdge edge) mutable -> void {
+      swiftClosure.call(static_cast<int>(edge));
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridVerticalBarModuleSpec>
+  std::shared_ptr<HybridVerticalBarModuleSpec> create_std__shared_ptr_HybridVerticalBarModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridVerticalBarModuleSpec_(std__shared_ptr_HybridVerticalBarModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridVerticalBarModuleSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 
