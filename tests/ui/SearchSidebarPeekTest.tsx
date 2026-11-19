@@ -47,6 +47,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsActions: () => ({setLastSearchType: () => {}}),
 }));
 let mockIsElementHovered = false;
+let mockHasKeyboardFocusInside = false;
 // Jest has no DOM, so the element the sidebar reads the pointer against counts as one as long as it can answer matches().
 jest.mock('@libs/isHTMLElement', () => ({
     __esModule: true,
@@ -54,11 +55,14 @@ jest.mock('@libs/isHTMLElement', () => ({
 }));
 let mockOuterHoverOut: (() => void) | undefined;
 let mockInnerHoverIn: (() => void) | undefined;
-// Hands the sidebar an element whose hover state the test controls, the way the DOM node reports it on web.
+// Hands the sidebar an element whose hover and keyboard focus state the test controls, the way the DOM node reports them on web.
 jest.mock('@components/Hoverable', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     return ({children, onHoverIn, onHoverOut, ref}: {children: React.ReactNode; onHoverIn?: () => void; onHoverOut?: () => void; ref?: React.Ref<unknown>}) => {
-        useImperativeHandle(ref, () => ({matches: (selector: string) => mockIsElementHovered && selector === ':hover'}));
+        useImperativeHandle(ref, () => ({
+            matches: (selector: string) => mockIsElementHovered && selector === ':hover',
+            querySelector: (selector: string) => (mockHasKeyboardFocusInside && selector === ':focus-visible' ? {} : null),
+        }));
         if (onHoverOut) {
             mockOuterHoverOut = onHoverOut;
         }
@@ -90,6 +94,7 @@ describe('SearchSidebar peek', () => {
     beforeEach(async () => {
         mockPeekSurface = undefined;
         mockIsElementHovered = false;
+        mockHasKeyboardFocusInside = false;
         await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
         await waitForBatchedUpdatesWithAct();
     });
@@ -118,6 +123,21 @@ describe('SearchSidebar peek', () => {
         });
 
         // Then the sidebar stays peeking, because the pointer is genuinely inside it
+        expect(collapse.result.current.isPeeking).toBe(true);
+    });
+
+    it('keeps peeking once a menu is gone if keyboard focus is inside the sidebar, even with the pointer off it', async () => {
+        // Given a peeking sidebar whose saved search menu was closed with Escape, so focus went back to the menu's button,
+        // while the pointer rested over the part of the menu outside the sidebar
+        const collapse = await renderPeekingSidebar();
+        mockHasKeyboardFocusInside = true;
+
+        // When the menu's modal is gone
+        act(() => {
+            mockPeekSurface?.endPeekIfPointerLeft();
+        });
+
+        // Then the sidebar stays peeking, because collapsing would unmount the focused button and drop keyboard focus
         expect(collapse.result.current.isPeeking).toBe(true);
     });
 

@@ -5,7 +5,7 @@ import {createContext} from 'react';
 
 type PeekSurfaceContextValue = {
     /**
-     * Ends the peek unless the pointer is still over the surface. A menu calls this once its popover is gone, because the popover
+     * Ends the peek unless the pointer is still over the surface or keyboard focus is inside it. A menu calls this once its popover is gone, because the popover
      * is portaled outside the surface and taking it away sends no hover-out to the surface.
      */
     endPeekIfPointerLeft: () => void;

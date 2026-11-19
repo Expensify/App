@@ -85,9 +85,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     // A saved search's menu is portaled outside the sidebar, so when it closes under a still pointer no hover-out reaches the sidebar.
     // The menu calls this once it is gone, and the pointer is read against the sidebar instead.
+    // Keyboard focus holds the peek too: Escape returns focus to the menu's button, and collapsing would unmount it and drop focus.
+    // Only keyboard focus counts, because a row clicked with the mouse keeps focus too and must not hold the peek after the pointer leaves.
     const endPeekIfPointerLeft = () => {
         const element = sidebarRef.current;
-        if (isHTMLElement(element) && element.matches(':hover')) {
+        if (isHTMLElement(element) && (element.matches(':hover') || !!element.querySelector(':focus-visible'))) {
             return;
         }
         endPeek();
