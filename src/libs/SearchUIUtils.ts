@@ -75,6 +75,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -110,6 +111,7 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
+import {savedSearchesPresenceSelector, shouldShowSavedSearchesSection} from '@selectors/SavedSearches';
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -126,10 +128,12 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import getCollator from './CollatorUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import formatTagParentPath from './formatTagParentPath';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
+import getSearchTimeGroupingDateKey from './getSearchTimeGroupingDateKey';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isTransactionGroupListItemType from './isTransactionGroupListItemType';
@@ -234,8 +238,10 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getPositiveHasFilterValues,
     getQueryHashes,
     getViolationDisplayName,
+    hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
     isGroupBySupportedBySearch,
@@ -386,6 +392,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -521,7 +528,10 @@ const transactionPaidByGroupColumnNamesToSortingProperty: TransactionPaidByGroup
     ...transactionGroupBaseSortingProperties,
 };
 
-const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = transactionGroupBaseSortingProperties;
+const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION]: 'formattedViolation' as const,
+    ...transactionGroupBaseSortingProperties,
+};
 
 const transactionWorkflowStageGroupColumnNamesToSortingProperty: TransactionWorkflowStageGroupSorting = {
     [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
@@ -541,7 +551,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
     // The trip search sorts by start date, trip name and traveler, but not by end date
     CONST.SEARCH.TABLE_COLUMNS.END_DATE,
 ]);
@@ -1089,6 +1098,10 @@ function isTransactionQuarterGroupListItemType(item: ListItem): item is Transact
 
 function isTransactionApproverGroupListItemType(item: ListItem): item is TransactionApproverGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER;
+}
+
+function isTransactionViolationGroupListItemType(item: ListItem): item is TransactionViolationGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION;
 }
 
 /**
@@ -2021,6 +2034,8 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
+    const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2116,6 +2131,16 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
+                ...(shouldFormatViolations
+                    ? {
+                          formattedViolations: getViolationsForTransaction(
+                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                              transactionItem.transactionID,
+                              violationHasValues,
+                              translate,
+                          ),
+                      }
+                    : {}),
                 date,
                 submitted,
                 approved,
@@ -2814,7 +2839,15 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
+                    !isReportActionVisible(
+                        reportAction,
+                        reportID,
+                        canUserPerformWriteAction(report, isReportArchived),
+                        visibleReportActionsData,
+                        undefined,
+                        reportActionsCollection,
+                        isInvoiceReport(report),
+                    ) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -3339,6 +3372,12 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): Selec
             }
             return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
         }
+        case CONST.SEARCH.GROUP_BY.VIOLATION: {
+            if (!groupData || typeof groupData !== 'object' || !('violation' in groupData) || typeof groupData.violation !== 'string') {
+                return undefined;
+            }
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: groupData.violation};
+        }
         case CONST.SEARCH.GROUP_BY.CARD:
             return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -3370,11 +3409,12 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): Selec
 
 /** Leaves the deselected groups' dates out of a time-grouped query, through the `filters` AST. */
 function addExcludedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
     const filters = dateRanges.reduce<ASTNode | undefined>((left, range) => {
         const outsideRangeNode: ASTNode = {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
-            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
-            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: dateFilterKey, right: range.start},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: dateFilterKey, right: range.end},
         };
         return left ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right: outsideRangeNode} : outsideRangeNode;
     }, queryJSON.filters);
@@ -3447,9 +3487,19 @@ function getAllMatchingExpenseActionQuery(
     return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend({...expenseQuery.queryJSON, searchKey}), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
+/**
+ * Narrows a query to the given values of one filter key. Only the key's included values are replaced: exclusions such as
+ * `-violation:missingCategory` are kept, because groups can overlap (an expense can be in several violation groups) and
+ * dropping the exclusion would bring back expenses the parent query hides.
+ */
+function replaceIncludedFilterValues(flatFilters: QueryFilters, filterKey: QueryFilterKey, filterValues: Array<string | number>): QueryFilters {
+    const newFlatFilters = flatFilters.filter((filter) => filter.key !== filterKey || filter.filters.every((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    newFlatFilters.push({key: filterKey, filters: filterValues.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}))});
+    return newFlatFilters;
+}
+
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
-    newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
+    const newFlatFilters = replaceIncludedFilterValues(queryJSON.flatFilters, filterKey, [filterValue]);
     // `limit` caps the number of groups on the parent query. Once `groupBy` is dropped it would cap the rows inside this
     // group instead, so it must not be carried over to the drill-down query.
     const newQueryJSON: SearchQueryJSON = {
@@ -3561,6 +3611,12 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
+            case CONST.SEARCH.GROUP_BY.VIOLATION: {
+                if ('violation' in group && typeof group.violation === 'string' && group.violation) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, group.violation);
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -3574,11 +3630,13 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
 }
 
 function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start: string; end: string}): {transactionsQueryJSON: SearchQueryJSON | undefined; start: string; end: string} {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+    // Narrow the same date the backend buckets the groups by, so a group opens the expenses it counts
+    const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey);
     const {start, end} = adjustTimeRangeToDateFilters(dateRange, dateFilters);
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== dateFilterKey);
     newFlatFilters.push({
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+        key: dateFilterKey,
         filters: [
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: start},
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
@@ -3654,7 +3712,11 @@ function getMemberSections(
 }
 
 /** Builds Search list sections grouped by violation type; call only via `getSections()`. */
-function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: LocalizedTranslate): [TransactionViolationGroupListItemType[], number, boolean] {
+function getViolationSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+): [TransactionViolationGroupListItemType[], number, boolean] {
     const violationSections: TransactionViolationGroupListItemType[] = [];
 
     for (const key in data) {
@@ -3666,8 +3728,7 @@ function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: 
             violationSections.push({
                 groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION,
                 transactions: [],
-                // Search has no violation type filter, so a group has no query of its own
-                transactionsQueryJSON: undefined,
+                transactionsQueryJSON: queryJSON ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, violationGroup.violation) : undefined,
                 ...violationGroup,
                 formattedViolation: getViolationDisplayName(violationGroup.violation, translate),
                 keyForList: key,
@@ -4285,7 +4346,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.APPROVER:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
             case CONST.SEARCH.GROUP_BY.VIOLATION:
-                return getViolationSections(data, translate);
+                return getViolationSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.PAID_BY:
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.PAID_BY);
             case CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE:
@@ -4964,6 +5025,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER;
         case CONST.SEARCH.GROUP_BY.APPROVER:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER;
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION;
         default:
             return [];
     }
@@ -5129,6 +5192,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.quarter';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
             return 'search.filters.groupBy.approver';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION:
+            return 'search.filters.groupBy.violation';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -5569,9 +5634,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     // Saved section
     {
-        const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
-
-        if (shouldShowSavedSearchesMenuItemTitle) {
+        if (shouldShowSavedSearchesSection(savedSearchesPresenceSelector(savedSearches), isOffline)) {
             const savedSection: SearchTypeMenuSection = {
                 translationPath: 'search.savedSearchesMenuItemTitle',
                 menuItems: [],
@@ -5735,7 +5798,7 @@ function isSearchGroupBy(value: string): value is SearchGroupBy {
 }
 
 function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined {
-    // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
+    // Insights-only group-bys are treated like unknown values because Search can't group by them
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
@@ -5868,12 +5931,12 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         return undefined;
     }
 
-    const names = Array.from(violationNames);
-    if (!translate) {
-        return names.join(', ');
-    }
-
-    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
+    // Labels are de-duplicated and sorted so the cell reads the same as the key the backend sorts this column by.
+    const labels = translate ? new Set(Array.from(violationNames, (name) => getViolationDisplayName(name, translate))) : violationNames;
+    const collator = getCollator(IntlStore.getCurrentLocale());
+    return Array.from(labels)
+        .sort((first, second) => collator.compare(first, second))
+        .join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
@@ -5901,7 +5964,7 @@ function collectApprovedViolationNamesForTransaction(violationNames: Set<string>
 /**
  * Collects a transaction's submitted violations from its report's submit actions.
  * A report can be submitted more than once, so this aggregates across every submit action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required within each submit action,
@@ -5920,7 +5983,7 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 /**
  * Collects a transaction's approved violations from its report's approved and forwarded actions.
  * A report can be approved or forwarded more than once, so this aggregates across every matching action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required within each approved or forwarded action,
@@ -5997,7 +6060,11 @@ function getSortOrderOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.SORT_ORDER).map<SingleSelectItem<SortOrder>>((value) => ({text: translate(`search.filters.sortOrder.${value}`), value}));
 }
 
-function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
+/**
+ * The group-by options, in sections. Violation only shows when a workspace has Rules on, since grouping by violation
+ * only returns results for those workspaces.
+ */
+function getGroupBySections(translate: LocalizedTranslate, shouldShowViolationGroupBy = false): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
         text: translate(`search.filters.groupBy.${groupBy}`),
         value: groupBy,
@@ -6008,7 +6075,12 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
             options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.APPROVER)],
         },
         {
-            options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+            options: [
+                getOption(CONST.SEARCH.GROUP_BY.CATEGORY),
+                getOption(CONST.SEARCH.GROUP_BY.MERCHANT),
+                getOption(CONST.SEARCH.GROUP_BY.TAG),
+                ...(shouldShowViolationGroupBy ? [getOption(CONST.SEARCH.GROUP_BY.VIOLATION)] : []),
+            ],
         },
         {
             options: [
@@ -6229,6 +6301,11 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.SUBMITTED_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     [FILTER_KEYS.SUBMITTED_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     [FILTER_KEYS.SUBMITTED_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+
+    [FILTER_KEYS.ANY_SUBMISSION_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_BEFORE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
+    [FILTER_KEYS.ANY_SUBMISSION_RANGE]: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
 
     [FILTER_KEYS.APPROVED_ON]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
     [FILTER_KEYS.APPROVED_AFTER]: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -6665,6 +6742,13 @@ const FILTER_VIEW_MAP = {
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.SUBMITTED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTED,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTED,
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION]: {
+        labelKey: 'search.filters.anySubmission',
+        icon: 'Send',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ANY_SUBMISSION,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ANY_SUBMISSION,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ANY_SUBMISSION,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
         labelKey: 'search.filters.paid',
@@ -8523,6 +8607,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 export {
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
+    replaceIncludedFilterValues,
     getTagGroupLabel,
     getSearchTypeMenuItemSentryLabel,
     getSearchTypeMenuTabSentryLabel,
@@ -8554,6 +8639,7 @@ export {
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isTransactionApproverGroupListItemType,
+    isTransactionViolationGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
     isTransactionEntry,

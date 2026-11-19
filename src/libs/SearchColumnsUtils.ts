@@ -17,6 +17,7 @@ const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchCustomColumnId
     [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
     [CONST.SEARCH.GROUP_BY.QUARTER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER],
     [CONST.SEARCH.GROUP_BY.APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER],
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION],
 };
 
 /** The columns users can pick for a table of this data type, or of this grouping. */
@@ -58,6 +59,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
         case CONST.SEARCH.GROUP_BY.APPROVER:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION);
         default:
             return [];
     }

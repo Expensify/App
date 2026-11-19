@@ -199,6 +199,7 @@ function Search({
     const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -474,7 +475,7 @@ function Search({
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
-        if (isInPreloadedTab) {
+        if (isLoadingApp || isInPreloadedTab) {
             return;
         }
 
@@ -551,10 +552,10 @@ function Search({
 
         // We don't need to run the effect on change of isFocused, and searchRequestQuery stands in for queryJSON.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, searchRequestQuery, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, searchRequestQuery, shouldCalculateTotals, validGroupBy, searchRequestOffset, isLoadingApp]);
 
     useEffect(() => {
-        if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
+        if (isLoadingApp || !shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
             return;
         }
 
@@ -586,6 +587,7 @@ function Search({
         shouldCalculateTotals,
         validGroupBy,
         searchRequestOffset,
+        isLoadingApp,
     ]);
 
     useEffect(() => {
@@ -1552,6 +1554,7 @@ function Search({
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
+                    isScreenFocused={isFocused}
                 />
             </View>
         );
