@@ -1544,6 +1544,7 @@ function Search({
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
+                    isScreenFocused={isFocused}
                 />
             </View>
         );
