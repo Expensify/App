@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExportLabelsForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getExportTemplateSearchValue, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -112,7 +112,8 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
 
             // Standard templates are filtered on by the label the backend records for them, while custom templates are filtered on by their display name
             const isStandardTemplate = isStandardExportTemplate(template.templateName);
-            const filterValue = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
+            const templateLabel = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
+            const filterValue = getExportTemplateSearchValue(templateLabel);
             if (usedPickerValueKeys.has(filterValue)) {
                 continue;
             }

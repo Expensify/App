@@ -24,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {EXPORT_TEMPLATE_SEARCH_PREFIX, getExportedToDisplayName} from '@libs/AccountingUtils';
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
@@ -129,7 +130,7 @@ const setPerformanceTimersEnd = () => {
 };
 
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
-    return `${filterKey}:${value}`;
+    return `${filterKey}:${filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO ? getExportedToDisplayName(value) : value}`;
 }
 
 function SearchRouterItem({
@@ -253,7 +254,7 @@ function SearchAutocompleteList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass', 'TablePencil']);
     const taxRates = getAllTaxRates(policies);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -725,7 +726,10 @@ function SearchAutocompleteList({
             return {
                 text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                singleIcon: expensifyIcons.MagnifyingGlass,
+                singleIcon:
+                    filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO && text.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX)
+                        ? expensifyIcons.TablePencil
+                        : expensifyIcons.MagnifyingGlass,
                 searchQuery: text,
                 autocompleteID,
                 keyForList: autocompleteID ?? text,

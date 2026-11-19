@@ -56,6 +56,19 @@ const STANDARD_EXPORT_TEMPLATE_NAME_MAPPING = {
 
 const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_EXPORT_TEMPLATE_NAME_MAPPING));
 
+const EXPORT_TEMPLATE_SEARCH_PREFIX = 'template:';
+const ACCOUNTING_EXPORT_SEARCH_VALUES = new Set<string>([...Object.values(CONST.EXPORT_LABELS), ...CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES]);
+
+/** Distinguishes templates whose names also identify accounting exports. */
+function getExportTemplateSearchValue(label: string): string {
+    return ACCOUNTING_EXPORT_SEARCH_VALUES.has(label) || label.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX) ? `${EXPORT_TEMPLATE_SEARCH_PREFIX}${label}` : label;
+}
+
+/** Returns the recorded template name without its Search discriminator. */
+function getExportedToDisplayName(value: string): string {
+    return value.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX) ? value.slice(EXPORT_TEMPLATE_SEARCH_PREFIX.length) : value;
+}
+
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
     return ROUTE_NAME_MAPPING[routeParam];
 }
@@ -140,6 +153,9 @@ function isStandardExportTemplateLabel(label: string): boolean {
 }
 
 export {
+    EXPORT_TEMPLATE_SEARCH_PREFIX,
+    getExportTemplateSearchValue,
+    getExportedToDisplayName,
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,

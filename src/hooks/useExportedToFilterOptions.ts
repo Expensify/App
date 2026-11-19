@@ -1,7 +1,7 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {Filter} from '@components/Search/types';
 
-import {getExportLabelsForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getExportTemplateSearchValue, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -51,7 +51,9 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  */
 export default function useExportedToFilterOptions(policyIDsOverride?: Filter): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: exportedToPoliciesSelector,
+    });
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
     const policiesToUse = getAllPolicyValues(
@@ -71,7 +73,7 @@ export default function useExportedToFilterOptions(policyIDsOverride?: Filter): 
 
         const standardExportTemplateDisplayName = getStandardExportTemplateDisplayName(template.templateName);
         const filterValue = standardExportTemplateDisplayName !== template.templateName ? standardExportTemplateDisplayName : (template.name ?? template.templateName);
-        standardAndCustomExportTemplates.push(filterValue);
+        standardAndCustomExportTemplates.push(getExportTemplateSearchValue(filterValue));
     }
 
     // React Compiler stops memoizing a value made before a hook call and passed to a function after it, unless the hook also received it, so the policy IDs are read again here.
