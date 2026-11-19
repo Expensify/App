@@ -1,5 +1,7 @@
 import ScrollView from '@components/ScrollView';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
@@ -169,6 +171,9 @@ type ExternalScrollFlashListTableProps<T> = {
     /** Where the table region starts within the parent page's scrollable content (px from the top). */
     offsetTop: number;
 
+    /** Reports the end of the rows in the parent list's scrollable content, excluding the summary below the table. */
+    onTableEndOffsetChange?: (offset: number) => void;
+
     /** Imperative handle exposing row positions in page space (see ExternalScrollFlashListTableHandle). */
     ref?: React.Ref<ExternalScrollFlashListTableHandle>;
 };
@@ -197,10 +202,20 @@ function ExternalScrollFlashListTable<T>({
     store,
     viewportHeight,
     offsetTop,
+    onTableEndOffsetChange,
     ref,
 }: ExternalScrollFlashListTableProps<T>) {
+    const styles = useThemeStyles();
     const lastIndex = items.length - 1;
     const listRef = useRef<FlashListRef<T>>(null);
+
+    const updateTableEndOffset = () => {
+        const layout = listRef.current?.getLayout(lastIndex);
+        if (!layout) {
+            return;
+        }
+        onTableEndOffsetChange?.(offsetTop + (listRef.current?.getFirstItemOffset() ?? 0) + layout.y + layout.height);
+    };
 
     useImperativeHandle(
         ref,
@@ -229,6 +244,9 @@ function ExternalScrollFlashListTable<T>({
                 getItemType={getItemType}
                 renderItem={({item, index}: ListRenderItemInfo<T>) => renderItem(item, index, {isFirst: index === 0, isLast: index === lastIndex})}
                 ListHeaderComponent={renderHeader()}
+                ListHeaderComponentStyle={styles.zIndex1}
+                onCommitLayoutEffect={updateTableEndOffset}
+                onContentSizeChange={updateTableEndOffset}
                 drawDistance={estimatedRowHeight * 12}
                 renderScrollComponent={ExternalScrollDriver}
                 // Consumed by ExternalScrollDriver (FlashList spreads overrideProps onto the scroll component).
@@ -246,4 +264,4 @@ function ExternalScrollFlashListTable<T>({
 
 export default ExternalScrollFlashListTable;
 export {createScrollOffsetStore};
-export type {ExternalScrollFlashListTableHandle};
+export type {ExternalScrollFlashListTableHandle, ScrollOffsetStore};
