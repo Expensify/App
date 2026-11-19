@@ -2019,7 +2019,7 @@ function convertApprovalWorkflowRulesToWorkflows({
     // in separate workflows.
     const ruleBackedSubmitters = new Set<string>();
     const defaultWorkflowSubmitters = new Set<string>();
-    // The chain builders only read the rules that list the submitter, so each one gets just those instead of rescanning every rule at every step
+    // The chain builders only read the rules that list the submitter, so each one gets just those instead of scanning every rule again at every step
     const rulesBySubmitter = new Map<string, Record<string, ApprovalWorkflowRule>>();
     for (const [ruleID, rule] of Object.entries(rules)) {
         for (const submitter of extractSubmitterEmails(rule)) {
