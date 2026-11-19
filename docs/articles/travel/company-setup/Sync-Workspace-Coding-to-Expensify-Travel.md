@@ -3,7 +3,6 @@ title: Sync Workspace Coding to Expensify Travel
 description: Learn how workspace admins can sync categories, tags, and report fields to Expensify Travel so travelers code their trips when they book.
 keywords: [Expensify Travel, Sync coding to Expensify Travel, booking questions, code travel expenses, categories at booking, tags at booking, report fields at booking, travel expense coding, workspace admin]
 internalScope: Audience is workspace admins. Covers enabling Sync coding to Expensify Travel, which workspace coding becomes booking questions, and how the answers apply to travel expenses. Does not cover enabling Expensify Travel, travel policy rules, or creating categories, tags, or report fields.
-retrievalIntent: How do I make travelers choose a category, tag, or report field when they book travel
 contentType: task
 platform: new
 ---
@@ -47,9 +46,7 @@ Expensify adds the category, tags, and description to the travel expense. Report
 
 ## Why don't travelers see the booking questions?
 
-Travelers see the booking questions for their default workspace. If a traveler's default workspace is a different workspace, they don't see this workspace's questions. To change the default workspace, in the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**, select **More (⋮)** next to the workspace, then select **Set as default workspace**.
-
-Changes to your coding can take a few minutes to reach Expensify Travel.
+Travelers see the booking questions for their default workspace, after your coding reaches Expensify Travel. Coding changes can take a few minutes to arrive. If a traveler's default workspace is a different workspace, they don't see this workspace's questions. To change the default workspace, in the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**, select **More (⋮)** next to the workspace, then select **Set as default workspace**.
 
 ## What happens if I disable Sync coding to Expensify Travel?
 

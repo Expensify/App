@@ -2,7 +2,7 @@
 title: Enable Expensify Travel on a workspace
 description: Learn how Workspace Admins can enable Expensify Travel to manage business travel bookings and expenses in one place.
 keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel, reviewing your request, validate your account, travel access request]
-internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel, the account verification prompts shown when first selecting Book travel, and the Add trip names to expenses setting. Does not cover booking restrictions, travel policy configuration, or syncing workspace coding to Expensify Travel
+internalScope: Audience is workspace admins. Covers enabling Expensify Travel, the account verification prompts shown when first selecting Book travel, and the Add trip names to expenses setting. Does not cover booking restrictions, travel policy configuration, or syncing workspace coding to Expensify Travel
 ---
 
 # Enable Expensify Travel on a workspace
