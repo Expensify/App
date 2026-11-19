@@ -2106,6 +2106,74 @@ describe('WorkflowUtils', () => {
             ]);
         });
 
+        it('Should describe a step once for the adjacent totals it covers, when the branches only split after it', () => {
+            // Given an optional over-limit approver who final approves the reports up to 250,000.00 and sends the rest to James,
+            // who sends the ones up to 500,000.00 to Susan and the rest to Simon, who sends them to Susan too
+            const james = {email: 'james@example.com', displayName: 'James'};
+            const susan = {email: 'susan@example.com', displayName: 'Susan'};
+            const forkApprover = buildApprover(1, {
+                displayName: 'Jason',
+                overLimitAmount: 1000000,
+                forkBranches: [
+                    {upTo: 25000000, approvers: []},
+                    {over: 25000000, upTo: 50000000, approvers: [james, susan]},
+                    {over: 50000000, approvers: [james, {email: 'simon@example.com', displayName: 'Simon'}, susan]},
+                ],
+            });
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then James gets one line for every report over 250,000.00, since they all reach him, and so does Susan's final
+            // approval, which comes after the steps leading to it
+            expect(lines).toEqual([
+                '<strong>Jason</strong> approves reports over $10,000.00 in this workflow.',
+                '<strong>Jason</strong> final approves the reports under $250,000.00.',
+                '<strong>James</strong> approves reports from <strong>Jason</strong> over $250,000.00.',
+                '<strong>Simon</strong> approves reports from <strong>James</strong> over $500,000.00.',
+                '<strong>Susan</strong> final approves the reports over $250,000.00.',
+            ]);
+        });
+
+        it('Should describe a step separately for totals that are not adjacent', () => {
+            // Given an approver who sends the reports up to 1,000.00 to Bob, who final approves them, and the rest to Carol, who
+            // final approves the ones up to 5,000.00 and sends the rest to Bob
+            const bob = {email: 'bob@example.com', displayName: 'Bob'};
+            const carol = {email: 'carol@example.com', displayName: 'Carol'};
+            const forkApprover = buildApprover(1, {
+                displayName: 'Alice',
+                forkBranches: [
+                    {upTo: 100000, approvers: [bob]},
+                    {over: 100000, upTo: 500000, approvers: [carol]},
+                    {over: 500000, approvers: [carol, bob]},
+                ],
+            });
+
+            // When the fork is described
+            const lines = getApprovalForkDescription({
+                forkApprover,
+                currency: CONST.CURRENCY.USD,
+                translate: translateLocal,
+                formatPhoneNumber: (phoneNumber) => phoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then Bob's final approval gets a line for each range, since the reports Carol final approves come between them
+            expect(lines).toEqual([
+                '<strong>Alice</strong> approves reports in this workflow.',
+                '<strong>Bob</strong> final approves the reports under $1,000.00.',
+                '<strong>Carol</strong> final approves the reports between $1,000.00 and $5,000.00.',
+                '<strong>Carol</strong> approves reports from <strong>Alice</strong> over $5,000.00.',
+                '<strong>Bob</strong> final approves the reports over $5,000.00.',
+            ]);
+        });
+
         it('Should not mention totals when every report that reaches the fork approver takes the same branch', () => {
             // Given an approver every report goes through, who sends them all to Bob
             const forkApprover = buildApprover(1, {displayName: 'Alice', forkBranches: [{approvers: [{email: 'bob@example.com', displayName: 'Bob'}]}]});

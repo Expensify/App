@@ -1272,15 +1272,29 @@ type GetApprovalForkDescriptionParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
+/** A step the reports take after a fork's approver, for the report totals in its range */
+type ApprovalForkStep = {
+    approver: Pick<Approver, 'email' | 'displayName'>;
+
+    /** Who sends the approver the reports, unless the approver final approves them */
+    sender: Pick<Approver, 'email' | 'displayName'> | undefined;
+
+    range: AmountRange;
+
+    /** Where the step comes in the description */
+    position: number;
+};
+
 /**
- * The lines describing a fork, as HTML: what its approver does in the workflow, then, for each range of report totals,
- * lowest first, who approves the reports after them, and who final approves the reports.
+ * The lines describing a fork, as HTML: what its approver does in the workflow, then the steps the reports take after
+ * them, from the lowest report totals up, each final approval after the steps leading to it: who approves the reports
+ * after whom, and who final approves them.
  */
 function getApprovalForkDescription({forkApprover, currency, translate, formatPhoneNumber, convertToDisplayString}: GetApprovalForkDescriptionParams): string[] {
     // Display names are rendered as HTML, so they're escaped. A member who never set a name shows their login.
     const getName = ({displayName}: Pick<Approver, 'displayName'>) => Str.htmlEncode(Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName);
     const formatAmount = (amount: number) => convertToDisplayString(amount, currency);
-    const getRange = ({over, upTo}: ApproverForkBranch) => {
+    const getRange = ({over, upTo}: AmountRange) => {
         if (over !== undefined && upTo !== undefined) {
             return translate('workflowsApprovalForkPage.betweenAmounts', {lowerAmount: formatAmount(over), upperAmount: formatAmount(upTo)});
         }
@@ -1295,14 +1309,40 @@ function getApprovalForkDescription({forkApprover, currency, translate, formatPh
             ? translate('workflowsApprovalForkPage.approvesReportsInWorkflow', {approver: getName(forkApprover)})
             : translate('workflowsApprovalForkPage.approvesReportsOverAmountInWorkflow', {approver: getName(forkApprover), amount: formatAmount(forkApprover.overLimitAmount)}),
     ];
-    for (const branch of forkApprover.forkBranches ?? []) {
-        const range = getRange(branch);
-        const finalApprover = branch.approvers.at(-1) ?? forkApprover;
-        for (const [index, approver] of branch.approvers.slice(0, -1).entries()) {
-            const sender = index === 0 ? forkApprover : branch.approvers.at(index - 1);
-            lines.push(translate('workflowsApprovalForkPage.approvesReportsFrom', {approver: getName(approver), sender: getName(sender ?? forkApprover), range}));
+    const branchSteps = (forkApprover.forkBranches ?? []).flatMap(({over, upTo, approvers}) => {
+        const range = {over, upTo};
+        return [
+            ...approvers.slice(0, -1).map((approver, index) => ({approver, sender: index === 0 ? forkApprover : (approvers.at(index - 1) ?? forkApprover), range})),
+            {approver: approvers.at(-1) ?? forkApprover, sender: undefined, range},
+        ];
+    });
+
+    // Branches can share steps and only split after them, so a step the reports take in adjacent ranges of totals is
+    // described once, for all of them. It comes where it first comes up, or, for a final approval, where it last does, so
+    // it follows the steps leading to it.
+    const steps: ApprovalForkStep[] = [];
+    const lastStepByKey = new Map<string, ApprovalForkStep>();
+    for (const [position, {approver, sender, range}] of branchSteps.entries()) {
+        const key = JSON.stringify([approver.email, sender?.email]);
+        const lastStep = lastStepByKey.get(key);
+
+        // The ranges come lowest first, so a range is adjacent to the step's last one unless there's a gap between them
+        if (lastStep && (lastStep.range.upTo === undefined || range.over === undefined || range.over <= lastStep.range.upTo)) {
+            lastStep.range = {over: lastStep.range.over, upTo: lastStep.range.upTo === undefined || range.upTo === undefined ? undefined : Math.max(lastStep.range.upTo, range.upTo)};
+            lastStep.position = sender ? lastStep.position : position;
+            continue;
         }
-        lines.push(translate('workflowsApprovalForkPage.finalApprovesReports', {approver: getName(finalApprover), range}));
+        const step = {approver, sender, range, position};
+        steps.push(step);
+        lastStepByKey.set(key, step);
+    }
+
+    for (const {approver, sender, range} of steps.sort((a, b) => a.position - b.position)) {
+        lines.push(
+            sender
+                ? translate('workflowsApprovalForkPage.approvesReportsFrom', {approver: getName(approver), sender: getName(sender), range: getRange(range)})
+                : translate('workflowsApprovalForkPage.finalApprovesReports', {approver: getName(approver), range: getRange(range)}),
+        );
     }
     return lines;
 }
