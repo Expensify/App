@@ -203,6 +203,7 @@ import {
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
+    getMergedReportNames,
     getMessageOfOldDotReportAction,
     getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
@@ -9359,7 +9360,7 @@ function buildOptimisticMergedReportsAction(
     movedTransactionCount: number,
     currentUserPersonalDetails: CurrentUserPersonalDetails,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS> {
-    const reportNames = sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
+    const reportNames = getMergedReportNames(sourceReports);
     const messageText = sourceReports.length === 1 ? `merged ${reportNames} into this report` : `merged ${sourceReports.length} reports into this report: ${reportNames}`;
 
     return {
