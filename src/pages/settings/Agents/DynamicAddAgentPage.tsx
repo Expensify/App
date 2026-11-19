@@ -5,7 +5,6 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -44,9 +43,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
-import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
 
@@ -58,16 +55,9 @@ import scrollToMultilineInput from './scrollToMultilineInput';
 
 type DynamicAddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD>;
 
-type DynamicAddAgentPageContentProps = {
-    /** Route params (policyID) forwarded from the screen */
-    route: DynamicAddAgentPageProps['route'];
-
-    /** Template picked in the "New agent" screen used to pre-fill the fields, or undefined for a blank agent */
-    template: NewAgentTemplate | undefined;
-};
-
-function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
+function DynamicAddAgentPage({route}: DynamicAddAgentPageProps) {
     const StyleUtils = useStyleUtils();
+    const [template] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
@@ -85,8 +75,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
-    const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
-    const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
+    const [avatarDraft] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
@@ -121,7 +110,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     // opened from a template, seed the template's avatar; otherwise fall back to a random preset.
     const hasSeededRef = useRef(false);
     useEffect(() => {
-        if (hasSeededRef.current || isDraftLoading || avatarDraft) {
+        if (hasSeededRef.current || avatarDraft) {
             return;
         }
         hasSeededRef.current = true;
@@ -129,7 +118,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         if (seedID) {
             setNewAgentAvatarPreset(seedID);
         }
-    }, [isDraftLoading, avatarDraft, template]);
+    }, [avatarDraft, template]);
 
     let avatarSource: AvatarSource = '';
     if (uploadedAvatar?.uri) {
@@ -276,8 +265,6 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                     submitFlexEnabled={false}
                     shouldHideFixErrorsAlert
                     enabledWhenOffline
-                    // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
-                    isSubmitDisabled={isDraftLoading}
                 >
                     <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                         <View style={[styles.alignItemsCenter]}>
@@ -357,21 +344,6 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
-    );
-}
-
-function DynamicAddAgentPage({route}: DynamicAddAgentPageProps) {
-    const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
-
-    if (isLoadingOnyxValue(templateMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
-
-    return (
-        <DynamicAddAgentPageContent
-            route={route}
-            template={template}
-        />
     );
 }
 
