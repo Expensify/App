@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,6 +24,9 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ExpenseHeaderApprovalButtonProps = {
+    /** Defaults to false; changes button styling without changing approval behavior. */
+    isSecondary?: boolean;
+
     /** Whether any transaction is on hold */
     isAnyTransactionOnHold: boolean;
 
@@ -69,7 +73,7 @@ type ExpenseHeaderApprovalButtonProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Label used to identify this button in Sentry */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 type ApprovalOption = {
@@ -78,6 +82,7 @@ type ApprovalOption = {
     icon: IconAsset;
     onSelected: () => void;
     keyForList: string;
+    sentryLabel: SentryLabel;
 };
 
 type ApprovalDropdownOptionProps = {
@@ -118,6 +123,7 @@ function getApprovalDropdownOptions({
             icon: illustrations.ThumbsUp,
             onSelected: onPartialApprove,
             keyForList: APPROVE_PARTIAL,
+            sentryLabel: CONST.SENTRY_LABEL.APPROVE_MENU.OPTION.PARTIAL,
         });
     }
 
@@ -127,12 +133,14 @@ function getApprovalDropdownOptions({
         icon: illustrations.DocumentCheck,
         onSelected: onFullApprove,
         keyForList: APPROVE_FULL,
+        sentryLabel: CONST.SENTRY_LABEL.APPROVE_MENU.OPTION.FULL,
     });
 
     return options;
 }
 
 function ExpenseHeaderApprovalButton({
+    isSecondary = false,
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
     onApprove,
@@ -176,7 +184,7 @@ function ExpenseHeaderApprovalButton({
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                 customText={translate('iou.approve')}
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
@@ -200,7 +208,7 @@ function ExpenseHeaderApprovalButton({
 
     return (
         <Button
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            variant={isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => onApprove(true)}
             sentryLabel={sentryLabel}
             isDisabled={isDisabled}

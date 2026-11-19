@@ -44,9 +44,9 @@ On web:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the three-dot icon next to the Xero connection.
-5. Click **Sync now**.
+3. Select **Connections**, then select **Configure** next to Xero.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 6. When prompted, click **Reconnect**.
 7. Log in using the Xero admin credentials originally used to connect the Workspace.
 8. Complete the authorization flow.
@@ -56,9 +56,9 @@ On mobile:
 1. Tap the navigation tabs on the bottom.
 2. Tap **Workspaces**.
 3. Select your Workspace.
-4. Tap **Accounting**.
-5. Tap the three-dot icon next to the Xero connection.
-6. Tap **Sync now**.
+4. Select **Connections**, then select **Configure** next to Xero.
+5. Select **More (⋮)**.
+6. Select **Sync now**.
 7. When prompted, tap **Reconnect** and complete the authorization flow.
 
 ---
@@ -67,8 +67,8 @@ On mobile:
 
 After reconnecting:
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
-2. Click **Sync now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Xero.
+2. Select **More (⋮)**, then select **Sync now**.
 3. Retry exporting the report if needed.
 
 If the connection was successfully restored, syncing and exports should complete normally.

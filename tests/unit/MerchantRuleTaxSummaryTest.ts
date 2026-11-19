@@ -8,7 +8,7 @@ import type {Policy, Rule} from '@src/types/onyx';
 import type {ExpenseDefaultTaxValue} from '@src/types/onyx/ExpenseDefaultRules';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -57,6 +57,7 @@ describe('Merchant rule tax summary', () => {
             policyID: policy.id,
             rules: {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: rule},
             translate: translateLocal,
+            convertToDisplayString,
             isOffline: false,
             onNavigate: () => {},
         }).at(0)?.ruleDescription;

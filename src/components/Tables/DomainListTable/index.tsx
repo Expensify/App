@@ -64,7 +64,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             key: 'actions',
             width: variables.domainTableActionColumnWidth,
             label: '',
-            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
         },
     ];
 
@@ -95,6 +95,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN), session),
             buttonText: translate('domain.addDomain.newDomain'),
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.LIST.EMPTY_STATE_NEW_DOMAIN,
         },
     ];
 

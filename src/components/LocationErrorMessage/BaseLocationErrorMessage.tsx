@@ -51,6 +51,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
                         <TextLink
                             onPress={onAllowLocationLinkPress}
+                            sentryLabel={CONST.SENTRY_LABEL.LOCATION_ERROR.ALLOW_PERMISSION_LINK}
                             style={styles.locationErrorLinkText}
                         >
                             {` ${translate('location.allowPermission')} `}

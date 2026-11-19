@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -40,6 +41,7 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DOWNGRADE.CONFIRMATION_GOT_IT}
                     text={translate('workspace.downgrade.completed.gotIt')}
                     onPress={onConfirmDowngrade}
                 />

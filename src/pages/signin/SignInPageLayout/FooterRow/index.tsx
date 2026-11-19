@@ -1,21 +1,22 @@
 import TextLink from '@components/TextLink';
 
-import type {FooterColumnRow} from '@pages/signin/SignInPageLayout/types';
+import type {FooterLink} from '@pages/signin/SignInPageLayout/types';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
-type FooterRowProps = FooterColumnRow & {
+type FooterRowProps = FooterLink & {
     text: string;
     style: StyleProp<TextStyle>;
 };
 
-function FooterRow({href, onPress, text, style}: FooterRowProps) {
+function FooterRow({href, onPress, sentryLabel, text, style}: FooterRowProps) {
     if (onPress) {
         return (
             <TextLink
                 style={style}
+                sentryLabel={sentryLabel}
                 onPress={onPress}
             >
                 {text}
@@ -26,6 +27,7 @@ function FooterRow({href, onPress, text, style}: FooterRowProps) {
     return (
         <TextLink
             style={style}
+            sentryLabel={sentryLabel}
             href={href}
             tabIndex={0}
         >

@@ -179,6 +179,7 @@ function AddCardToDigitalWalletPage({
                     illustrationStyle={styles.digitalWalletResultIllustration}
                     descriptionStyle={styles.textSupporting}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_RESULT_CONFIRM}
                     onButtonPress={goBackToEntryPoint}
                 />
             </ScreenWrapper>
@@ -223,6 +224,7 @@ function AddCardToDigitalWalletPage({
                         ) : (
                             <View style={[styles.flexRow, styles.gap2]}>
                                 <ButtonDisabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_DENY}
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.flex1}
@@ -231,6 +233,7 @@ function AddCardToDigitalWalletPage({
                                     <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
                                 </ButtonDisabledWhenOffline>
                                 <ButtonDisabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_CONFIRM}
                                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.flex1}

@@ -7,6 +7,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {CardList, PersonalDetails, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -44,6 +45,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
 
+    /** Violation messages for the Violations column */
+    formattedViolations?: string;
+
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
@@ -69,7 +73,22 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     declined?: SearchTransaction['declined'];
 };
 
-type TransactionItemRowProps = {
+/**
+ * A row that shows a checkbox needs a label for it. Wide rows show it unless they show a radio button, whatever
+ * `shouldShowCheckbox` says, so only a narrow row without `shouldShowCheckbox` can skip the label.
+ */
+type CheckboxSentryLabelProps =
+    | {
+          shouldShowCheckbox?: boolean;
+          checkboxSentryLabel: SentryLabel;
+      }
+    | {
+          shouldUseNarrowLayout: true;
+          shouldShowCheckbox?: false;
+          checkboxSentryLabel?: undefined;
+      };
+
+type TransactionItemRowProps = CheckboxSentryLabelProps & {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     chatReport?: Report;
@@ -89,7 +108,6 @@ type TransactionItemRowProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
-    shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
     style?: StyleProp<ViewStyle>;
@@ -103,6 +121,7 @@ type TransactionItemRowProps = {
     radioButtonContainerStyle?: StyleProp<ViewStyle>;
     radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
+    shouldShowCategoryOnNarrowLayout?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     shouldDisableActionPointerEvents?: boolean;
@@ -115,7 +134,6 @@ type TransactionItemRowProps = {
     /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
      * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
     transactionThreadReportID?: string;
-    checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
      * to keep the prop ref content-stable across unrelated policy updates. */
@@ -129,7 +147,8 @@ type TransactionItemRowProps = {
     onEditDate?: (newDate: string) => InlineEditSaveResult;
     onEditMerchant?: (newMerchant: string) => InlineEditSaveResult;
     onEditDescription?: (newDescription: string) => InlineEditSaveResult;
-    onEditCategory?: (newCategory: string) => InlineEditSaveResult;
+    /** The optional categories include a category just created, before Onyx subscribers have rendered it. */
+    onEditCategory?: (newCategory: string, updatedPolicyCategories?: PolicyCategories) => InlineEditSaveResult;
     onEditAmount?: (newAmount: number) => InlineEditSaveResult;
     onEditTag?: (newTag: string) => InlineEditSaveResult;
 

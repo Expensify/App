@@ -72,10 +72,10 @@ The Sender ID must be entered exactly as **expensify** in lowercase.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Reenter the Sage Intacct admin credentials if prompted.
 5. Click **Save**.
-6. Click **Sync Now**.
+6. Select **More (⋮)**, then select **Sync now**.
 
 If credentials and web services settings are configured correctly, the sync should complete successfully.
 

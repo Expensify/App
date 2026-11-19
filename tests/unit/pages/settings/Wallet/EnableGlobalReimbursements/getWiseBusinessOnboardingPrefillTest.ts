@@ -4,6 +4,7 @@ import getWiseBusinessOnboardingPrefill, {getMissingPrefill} from '@pages/settin
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const ADDRESS_KEYS = getAddressInputKeys('address');
@@ -115,6 +116,25 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         expect(prefill[ADDRESS_KEYS.country]).toBe(CONST.COUNTRY.US);
     });
 
+    it('turns a state outside the US into the code the picker lists, whether it was saved as the full name or the code', () => {
+        // Given addresses saved the way the address page saves them, with the full state name AddressSearch gives outside the US,
+        // one saved with the code, and one with a name the picker does not list
+        const getStateFor = (state: string, country: Country) =>
+            getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, {addresses: [{street: '1 Main St', city: 'City', state, zip: '1000', country}]})[ADDRESS_KEYS.state];
+
+        // When the onboarding builds its starting answers for each
+        const states = [
+            getStateFor('Ontario', CONST.COUNTRY.CA),
+            getStateFor('new south wales', CONST.COUNTRY.AU),
+            getStateFor('São Paulo', CONST.COUNTRY.BR),
+            getStateFor('NSW', CONST.COUNTRY.AU),
+            getStateFor('State of São Paulo', CONST.COUNTRY.BR),
+        ];
+
+        // Then each listed state starts picked by its code, and the unlisted one is left for the user to pick instead of sending Wise a name
+        expect(states).toEqual(['ON', 'NSW', 'SP', 'NSW', undefined]);
+    });
+
     it('leaves out what is not on file', () => {
         // Given a user with no private details yet and no details of the bank account, such as an admin who shares the account but does not own it
 
@@ -209,6 +229,45 @@ describe('getMissingPrefill', () => {
             ssnProvided: true,
             phoneNumber: '+15125550199',
             idDocument: [{name: 'license.jpg', uri: 'kyc/1/license.jpg', savedFileKey: 'kyc/1/license.jpg'}],
+        });
+    });
+
+    it('resumes the picked sources and their documents labelled by type', () => {
+        // Given the source of funds pages saved earlier, as the server stores them
+        const businessAccountData: WiseBusinessAccountData = {
+            ...BUSINESS_ACCOUNT_DATA,
+            wise: {
+                pages: {
+                    BUSINESS_SOURCE_OF_WEALTH_INFO: {
+                        sourceOfWealthList: [
+                            {businessSourceOfWealthInfo: CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN, isSourceOfFund: true},
+                            {businessSourceOfWealthInfo: CONST.WISE.SOURCE_OF_WEALTH.REVENUE, isSourceOfFund: false},
+                        ],
+                    },
+                },
+                documents: {
+                    BUSINESS_SOURCE_OF_WEALTH_PROOF: {
+                        [`proofFile-REVENUE-TAX_DOCUMENTS`]: ['kyc/42/BusinessTaxReturn.pdf'],
+                        [`proofFile-BUSINESS_LOAN-LOAN_AGREEMENT`]: ['kyc/42/LoanAgreement.pdf'],
+                        [`proofFile-BUSINESS_LOAN-BANK_STATEMENT`]: ['kyc/42/BankStatement.pdf'],
+                    },
+                },
+            },
+        };
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, businessAccountData, PRIVATE_PERSONAL_DETAILS);
+
+        // Then the sources come back ticked, and each source's files come back under their document type
+        expect(prefill).toMatchObject({
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN, CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [
+                {id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [expect.objectContaining({savedFileKey: 'kyc/42/BusinessTaxReturn.pdf'})]},
+            ],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN}`]: [
+                {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [expect.objectContaining({savedFileKey: 'kyc/42/LoanAgreement.pdf'})]},
+                {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [expect.objectContaining({savedFileKey: 'kyc/42/BankStatement.pdf'})]},
+            ],
         });
     });
 

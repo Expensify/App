@@ -1,7 +1,7 @@
 // Minimal `react-native-reanimated` stub for the headless Bun renderer.
 //
 // `victory-native`'s `CartesianChart` calls `useSharedValue` while rendering,
-// and `@shopify/react-native-skia`'s `ReanimatedProxy` reads arbitrary
+// and `react-native-skia`'s `ReanimatedProxy` reads arbitrary
 // properties off the module at load (`Rea.createWorkletRuntime`,
 // `Rea.runOnRuntime`, etc.). Both must keep working without a real Reanimated
 // runtime mounted.

@@ -2,6 +2,7 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
@@ -10,6 +11,7 @@ import useAncestors from '@hooks/useAncestors';
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
+import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -689,6 +691,20 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
+    it('readNewestAction stamps the given read time instead of now', async () => {
+        // Given a report that was read long ago
+        const REPORT_ID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, lastReadTime: '2026-01-01 09:00:00.000'});
+
+        // When it is marked read with the time the user saw it, which is earlier than now
+        Report.readNewestAction(REPORT_ID, true, false, '2026-01-01 10:00:00.000');
+        await waitForBatchedUpdates();
+
+        // Then the report keeps that time, so actions that arrived after it stay unread
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report?.lastReadTime).toBe('2026-01-01 10:00:00.000');
+    });
+
     it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -1051,6 +1067,98 @@ describe('actions/Report', () => {
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
+    });
+
+    describe.each([
+        {
+            name: 'a NetSuite export',
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 12:00:00.000'},
+        },
+        {
+            name: 'a payment meant for someone else',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+            originalMessage: {actionableForAccountIDs: [3]},
+        },
+    ])('marking unread with $name', ({actionName, originalMessage}) => {
+        const reportID = 'scoped-unread';
+        const currentUserAccountID = 1;
+        const comment = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: '2023-01-01 11:00:00.000',
+            message: [{type: 'COMMENT', text: 'An ordinary comment', html: 'An ordinary comment'}],
+        });
+        const informational = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'informational',
+            actionName,
+            originalMessage,
+            actorAccountID: 2,
+            created: '2023-01-01 12:00:00.000',
+            message: [{type: 'COMMENT', text: 'System message', html: 'System message'}],
+        });
+
+        beforeEach(async () => {
+            apiWriteSpy.mockResolvedValue(undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                lastVisibleActionCreated: informational.created,
+                lastReadTime: informational.created,
+                lastActorAccountID: informational.actorAccountID,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('uses the newest eligible message when marking the whole chat unread', () => {
+            // Given a read chat whose newest activity cannot show an automatic divider
+            const reportActions = {comment, informational};
+
+            // When the user marks the chat unread without choosing a specific message
+            Report.markCommentAsUnread(reportID, reportActions, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the read time points to the ordinary comment without storing a manual message anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: comment.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(comment.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: null})})]),
+                }),
+            );
+        });
+
+        it('keeps a specific message unread even when automatic dividers are filtered', () => {
+            // Given the same system message and an older ordinary comment
+            const reportActions = {comment, informational};
+
+            // When the user explicitly marks the system message unread
+            Report.markCommentAsUnread(reportID, reportActions, informational, currentUserAccountID, false);
+
+            // Then the chosen message still supplies the read time and manual anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: informational.reportActionID})})]),
+                }),
+            );
+        });
+
+        it('keeps the existing fallback when no eligible message from another user exists', () => {
+            // Given only filtered activity from another user and a newer comment from the current user
+            const ownComment = {...comment, actorAccountID: currentUserAccountID, created: '2023-01-01 13:00:00.000'};
+
+            // When the whole chat is marked unread
+            Report.markCommentAsUnread(reportID, {ownComment, informational}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the system message still supplies the fallback rather than the user's own comment
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.anything(),
+            );
+        });
     });
 
     it('Should properly update comment with links', async () => {
@@ -3074,6 +3182,22 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('keeps the names of users the parked edit mentions by login', async () => {
+            // Given a comment whose attachment is still uploading, and the names of every known user
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            const accountIDToName = {'1001': 'alice@expensify.com', '1002': 'bob@expensify.com'};
+
+            // When an edit that mentions Alice as @login, the only form a draft has, is parked on the upload
+            const editMentioningAlice = `hello @alice@expensify.com\n\n[file.csv](${localSource})`;
+            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1, undefined, undefined, accountIDToName);
+            await waitForBatchedUpdates();
+
+            // Then only Alice's name is saved with it, so the replay can read her accountID mention in the synced copy back as @login
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.accountIDToName).toEqual({'1001': 'alice@expensify.com'});
+        });
+
         it('leaves a failed upload showing as failed when it drops the parked edit', async () => {
             // Given a comment whose attachment is still uploading, with an edit parked on it
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -4954,6 +5078,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUserAccountID: 1,
@@ -4992,6 +5117,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5056,6 +5182,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5130,6 +5257,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5230,6 +5358,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5318,6 +5447,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -6333,6 +6463,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6343,6 +6474,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
             });
         });
 
@@ -6371,6 +6503,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6402,6 +6535,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6451,6 +6585,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Find the transaction optimistic data
@@ -6519,6 +6654,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6571,6 +6707,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6636,6 +6773,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6704,6 +6842,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6789,6 +6928,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -7085,6 +7225,118 @@ describe('actions/Report', () => {
 
             // Then the reveal already ended the return trip, so the mark stays while the user is in the report
             expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+    });
+
+    describe('openReport personal details', () => {
+        it.each([undefined, {}])('does not fall back to cached owner details when the supplied list is %p', async (personalDetails) => {
+            // Given Onyx knows an owner that is absent from the caller's explicitly supplied data.
+            const reportID = 'missing-owner-details';
+            const owner = {accountID: 111, login: 'cached-owner@example.com'};
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When creating a report without supplied owner details, the action must not consult a hidden fallback.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: 1,
+                personalDetails,
+                newReportObject: {reportID, ownerAccountID: owner.accountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the created action has no owner login, even though the global store contains one.
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const createdAction = Object.values(actions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+            expect(getReportActionMessage(createdAction)?.text).toBe('');
+        });
+
+        it.each([undefined, {}])('creates optimistic participants from the supplied list %p without falling back to Onyx', async (personalDetails) => {
+            // Given a participant exists in Onyx but is absent from the data supplied by the caller.
+            const reportID = 'missing-participant-details';
+            const participant = {accountID: 222, login: 'known@example.com'};
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[participant.accountID]: participant});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When creating a report with no supplied profile for that participant.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: 1,
+                personalDetails,
+                participants: [{login: participant.login, accountIDForOptimisticData: participant.accountID}],
+                newReportObject: {reportID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then participant creation uses the supplied list consistently, including when it is undefined.
+            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(details?.[participant.accountID]?.isOptimisticPersonalDetail).toBe(true);
+        });
+
+        it.each([true, false])('preserves supplied profiles and settles new thread participants when the API succeeds: %p', async (shouldSucceed) => {
+            // Given the caller knows the owner and one participant, whose profile must not be replaced.
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            const reportID = 'personal-details-report';
+            const owner = {accountID: 111, login: 'owner@example.com', displayName: 'Report owner'};
+            const known = {accountID: 222, login: 'known@example.com', displayName: 'Known participant'};
+            const newLogin = 'new@example.com';
+            const newAccountID = generateAccountID(newLogin);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner, [known.accountID]: known});
+            await waitForBatchedUpdates();
+            setHasRadio(false);
+
+            // When a new report is opened offline, all optimistic state must be available immediately.
+            Report.openReport({
+                reportID,
+                introSelected: undefined,
+                conciergeChat: undefined,
+                hasReportActions: false,
+                currentUserAccountID: owner.accountID,
+                personalDetails: {[owner.accountID]: owner, [known.accountID]: known},
+                participants: [
+                    {login: known.login, accountIDForOptimisticData: known.accountID},
+                    {login: newLogin, accountIDForOptimisticData: newAccountID},
+                ],
+                newReportObject: {reportID, ownerAccountID: owner.accountID},
+                isNewThread: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the created action identifies the supplied owner and only the unknown participant gets an optimistic profile.
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const createdAction = Object.values(actions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(createdAction?.message).toEqual(expect.arrayContaining([expect.objectContaining({text: owner.login})]));
+            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(details?.[known.accountID]).toEqual(known);
+            expect(details?.[newAccountID]).toEqual({accountID: newAccountID, login: newLogin, displayName: newLogin, isOptimisticPersonalDetail: true});
+
+            // When connectivity returns, the queued request either succeeds or rolls back the new thread's participants.
+            if (!shouldSucceed) {
+                mockFetch.fail();
+            }
+            setHasRadio(true);
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
+
+            // Then existing profiles survive both outcomes, and a failed thread removes only its newly created profile.
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const settledDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            expect(settledDetails?.[owner.accountID]).toEqual(owner);
+            expect(settledDetails?.[known.accountID]).toEqual(known);
+            if (shouldSucceed) {
+                expect(settledDetails?.[newAccountID]).toEqual(details?.[newAccountID]);
+            } else {
+                expect(settledDetails?.[newAccountID]).toBeUndefined();
+            }
         });
     });
 
@@ -7546,6 +7798,45 @@ describe('actions/Report', () => {
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
                 const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+            });
+
+            it('reads Concierge details loaded while waiting for server data', async () => {
+                // Given navigation starts before OpenApp has loaded Concierge, with an empty caller snapshot.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: null});
+                await waitForBatchedUpdates();
+                let resolveServerDataReady = () => {};
+                const serverDataReady = new Promise<void>((resolve) => {
+                    resolveServerDataReady = resolve;
+                });
+                jest.mocked(onServerDataReady).mockReturnValueOnce(serverDataReady);
+                setHasRadio(false);
+
+                // When navigation is requested, report creation must wait for OpenApp to finish.
+                const navigationPromise = Report.navigateToConciergeChat({
+                    conciergeReportID: undefined,
+                    introSelected: testIntroSelected,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    conciergePersonalDetails: {},
+                    shouldDismissModal: false,
+                });
+                await waitForBatchedUpdates();
+                expect(PersistedRequests.getAll()).toHaveLength(0);
+
+                // When OpenApp loads the real profile and then signals readiness, the captured snapshot is still empty.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
+                await waitForBatchedUpdates();
+                resolveServerDataReady();
+                await navigationPromise;
+                await waitForBatchedUpdates();
+
+                // Then the queued report uses Concierge's real account and never overwrites its profile optimistically.
+                const openReportRequests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT);
+                expect(openReportRequests).toHaveLength(1);
+                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
+                expect(ReportUtils.buildOptimisticChatReport).toHaveBeenCalledWith(expect.objectContaining({participantList: [CONST.ACCOUNT_ID.CONCIERGE, TEST_USER_ACCOUNT_ID]}));
             });
 
             it('should not create an optimistic personal detail for Concierge when the personal details passed in are stale', async () => {
@@ -11598,6 +11889,84 @@ describe('actions/Report', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
         });
 
+        it("should create a transaction thread under the owner's self DM for another user's unreported expense", async () => {
+            // Given an unreported expense action that lives in another user's self DM, which the current user does not have in Onyx
+            const ownerSelfDMReportID = '602';
+            const transaction = {...createRandomTransaction(602), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(602),
+                reportActionID: 'owner-action-602',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID + 1,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transaction.transactionID,
+                },
+            };
+
+            // When the current user opens it with the owner's self DM
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReportAction: reportAction,
+                transaction,
+                selfDMReportID: ownerSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the thread hangs off the owner's IOU action, which is stored locally so the expense can render, and no optimistic self DM report is written for the owner's ID
+            expect(result?.parentReportID).toBe(ownerSelfDMReportID);
+            expect(result?.parentReportActionID).toBe(reportAction.reportActionID);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const ownerSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`);
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID + 1);
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBe(result?.reportID);
+            const ownerSelfDM = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ownerSelfDMReportID}`);
+            expect(ownerSelfDM?.chatType).toBeUndefined();
+        });
+
+        it("should drop the dead thread from the owner's IOU action when creating it in another user's self DM fails", async () => {
+            // Given an unreported expense action from another user's self DM, and a server that rejects the thread
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            const ownerSelfDMReportID = '603';
+            const transaction = {...createRandomTransaction(603), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(603),
+                reportActionID: 'owner-action-603',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID + 1,
+                childReportID: undefined,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transaction.transactionID,
+                },
+            };
+            mockFetch.fail?.();
+
+            // When the current user opens it and OpenReport fails
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReportAction: reportAction,
+                transaction,
+                selfDMReportID: ownerSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the action no longer points at the failed thread, because nothing from the server repairs another user's self DM and the next open has to retry
+            const ownerSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`);
+            expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
+        });
+
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(100, undefined),
@@ -12780,6 +13149,8 @@ describe('actions/Report', () => {
     describe('mergeReports', () => {
         const currentUserAccountID = 1;
         const currentUserEmail = 'test@example.com';
+        const currentUserPersonalDetail = {accountID: currentUserAccountID, login: currentUserEmail};
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[currentUserEmail]: currentUserPersonalDetail};
 
         const POLICY_ID = 'policy_123';
         const WORKSPACE_CHAT_REPORT_ID = 'workspace_chat_456';
@@ -12965,6 +13336,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13036,6 +13408,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13106,6 +13479,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13131,6 +13505,71 @@ describe('actions/Report', () => {
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
             expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);
+        });
+
+        it('builds the destination next step with the personal details looked up by login', async () => {
+            const approverEmail = 'approver@example.com';
+            const approverAccountID = 2;
+            const personalDetailsByLoginsWithApprover: PersonalDetailsByLogin = {...personalDetailsByLogins, [approverEmail]: {accountID: approverAccountID, login: approverEmail}};
+            const approvalPolicy = createMock<OnyxTypes.Policy>({
+                ...policy,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+            });
+            const submittedDestinationReport = createMock<OnyxTypes.Report>({
+                ...destinationReport,
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: -500,
+                unheldTotal: -500,
+                transactionCount: 1,
+            });
+
+            // Given a destination report waiting on the approver of a workspace with Basic approval, whose next step needs
+            // the approver's personal details to find who it waits on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, approvalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, submittedDestinationReport);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+
+            // When other reports are merged into it
+            Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                cardList: undefined,
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                currentUserPersonalDetails: {accountID: currentUserAccountID, email: currentUserEmail},
+                policy: approvalPolicy,
+                policyTagList: {},
+                allReports: {...allReports, [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: submittedDestinationReport},
+                allReportActions,
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the destination stays submitted, and its next step is built with the same personal details, so it can resolve the approver
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: expect.objectContaining({reportID: DESTINATION_REPORT_ID}),
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+                }),
+            );
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 

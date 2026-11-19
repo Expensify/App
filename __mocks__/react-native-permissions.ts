@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 
-import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
+import {PERMISSIONS} from 'react-native-permissions/mock';
 
 const RESULTS = {
     UNAVAILABLE: 'unavailable',

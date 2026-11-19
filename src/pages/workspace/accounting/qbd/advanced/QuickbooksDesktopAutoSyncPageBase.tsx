@@ -65,6 +65,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.AUTO_SYNC_SWITCH}
                 isActive={!!autoSync?.enabled}
                 wrapperStyle={[styles.pv2, styles.mh5]}
                 shouldPlaceSubtitleBelowSwitch
@@ -81,6 +82,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
             {!!autoSync?.enabled && (
                 <OfflineWithFeedback pendingAction={pendingAction}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.ACCOUNTING_METHOD}
                         value={
                             accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                 ? translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)

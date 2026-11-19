@@ -93,6 +93,9 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether the confirm button is disabled */
+    isConfirmDisabled?: boolean;
+
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
 
@@ -151,6 +154,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isConfirmDisabled,
     isTitleLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
@@ -222,6 +226,7 @@ function ConfirmModal({
                 imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isConfirmDisabled={isConfirmDisabled}
                 isTitleLoading={isTitleLoading}
                 shouldEnablePromptScroll={shouldEnablePromptScroll}
                 shouldUseSuccessStyleForConfirm={shouldUseSuccessStyleForConfirm}

@@ -1,6 +1,5 @@
 import Hoverable from '@components/Hoverable';
-import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
-import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
+import {useLHNTooltipActionsContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -24,7 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ReactNode} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, View, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 
@@ -34,6 +33,12 @@ type PressableProps = {
 
     /** Whether the row is the currently focused/active option. Drives the focused background and accessibility metadata. */
     isOptionFocused: boolean;
+
+    /** Background of the focused row in place of the default one, when the row takes the flat navigation bar's look */
+    selectedStyle?: ViewStyle;
+
+    /** Background of the hovered row in place of the default one, when the row takes the flat navigation bar's look */
+    hoveredStyle?: ViewStyle;
 
     onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<ComponentRef<typeof View> | null>) => void;
 
@@ -53,14 +58,13 @@ type PressableProps = {
     shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isScreenFocused} = useLHNTooltipContext();
+    const {getIsScreenFocused, hideProductTrainingTooltip} = useLHNTooltipActionsContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
 
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -108,7 +112,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     };
 
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isScreenFocused && shouldUseNarrowLayout) {
+        if (!getIsScreenFocused() && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
@@ -167,7 +171,8 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                         styles.sidebarLinkInnerLHN,
                         StyleUtils.getBackgroundColorStyle(theme.sidebar),
                         isOptionFocused ? styles.sidebarLinkActive : null,
-                        (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
+                        isOptionFocused ? selectedStyle : null,
+                        (hovered || isContextMenuActive) && !isOptionFocused ? (hoveredStyle ?? styles.sidebarLinkHover) : null,
                     ]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={accessibilityLabelWithContextMenuHint}

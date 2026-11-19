@@ -9,10 +9,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -26,12 +28,15 @@ type WiseSetupInProgressRowProps = {
     /** Whether the admin has something to do, which shows Continue to the intro that picks the setup up */
     canContinue: boolean;
 
+    /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+    isOnboardingSubmitted: boolean;
+
     /** Spacing for the row, which follows the list it sits in */
     style?: StyleProp<ViewStyle>;
 };
 
 /** Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished */
-function WiseSetupInProgressRow({bankAccountID, canContinue, style}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -55,8 +60,13 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, style}: WiseSetupIn
                     <>
                         {' '}
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_SETUP_IN_PROGRESS_CONTINUE_LINK}
                             variant="label"
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))}
+                            onPress={() =>
+                                isOnboardingSubmitted
+                                    ? Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))
+                                    : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))
+                            }
                         >
                             {translate('walletPage.wiseSetupInProgress.continue')}
                         </TextLink>

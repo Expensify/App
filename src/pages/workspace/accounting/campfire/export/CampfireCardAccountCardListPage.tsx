@@ -93,6 +93,7 @@ function CampfireCardAccountCardListPage({
                             )}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.CARD_ACCOUNT_CARD_ROW}
                                 name={getCardDescription(card, translate)}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feedWithDomainID, String(cardID))))}
                                 value={cardAccountDisplayName}
