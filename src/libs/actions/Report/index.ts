@@ -9567,6 +9567,7 @@ function mergeReports({
         reportID: destinationReportID,
         sourceReportIDList: sourceReportIDs,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+        mergedReportsReportActionID: mergedReportsAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MERGE_REPORTS, parameters, {
