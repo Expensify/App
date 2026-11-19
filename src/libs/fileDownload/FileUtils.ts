@@ -755,8 +755,8 @@ const createFile = (file: File & Pick<ImagePickerResponse, 'width' | 'height'>):
     return clonedFile;
 };
 
-const resizeImageIfNeeded = (file: FileObject) => {
-    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+const resizeImageIfNeeded = (file: FileObject, maxSize: number = CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= maxSize) {
         return Promise.resolve(file);
     }
     return getImageDimensionsAfterResize(file)

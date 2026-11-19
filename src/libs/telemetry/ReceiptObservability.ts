@@ -20,6 +20,9 @@ type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share' | 'odometer';
 
+/** Which validation step made a new file from the picked one. */
+type ReceiptDerivingStep = 'convert' | 'resize';
+
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
  * for both file browsing and drag and drop. Keeping it here means a new platform only has to change one place.
@@ -247,10 +250,15 @@ function logReceiptStatFailed(code: string | undefined) {
     });
 }
 
-function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureSource: ReceiptCaptureSource}) {
+/**
+ * Records a receipt that could not be moved into the receipts folder. `step` is set when the file was made from the
+ * picked one after capture (a HEIC or DNG conversion, a resize), so those failures can be told apart from the capture.
+ */
+function logReceiptAdoptFailed({error, captureSource, step}: {error: unknown; captureSource: ReceiptCaptureSource; step?: ReceiptDerivingStep}) {
     Log.alert(`${RECEIPT_LOG_PREFIX} adopt failed`, {
         event: 'adoptFailed',
         captureSource,
+        step,
         error: error instanceof Error ? error.message : String(error),
     });
 }
@@ -403,4 +411,4 @@ export {
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,
 };
-export type {ReceiptCaptureSource};
+export type {ReceiptCaptureSource, ReceiptDerivingStep};
