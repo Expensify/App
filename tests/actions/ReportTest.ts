@@ -13367,8 +13367,25 @@ describe('actions/Report', () => {
             expect(parentActions?.[REPORT_PREVIEW_ACTION_1_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(parentActions?.[REPORT_PREVIEW_ACTION_2_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+            // The destination report gets a pending MERGED_REPORTS action that names both source reports, since they are about to be deleted
+            const destinationActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
+            const mergedReportsAction = Object.values(destinationActions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS);
+            expect(mergedReportsAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(mergedReportsAction?.actorAccountID).toBe(currentUserAccountID);
+            expect(mergedReportsAction?.originalMessage).toEqual({
+                sourceReports: [
+                    {reportID: SOURCE_REPORT_1_ID, reportName: sourceReport1.reportName},
+                    {reportID: SOURCE_REPORT_2_ID, reportName: sourceReport2.reportName},
+                ],
+                movedTransactionCount: 2,
+            });
+
             await mockFetch.resume();
             await waitForBatchedUpdates();
+
+            // The MERGED_REPORTS action is no longer pending once the merge succeeds
+            const destinationActionsAfterSuccess = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
+            expect(destinationActionsAfterSuccess?.[mergedReportsAction?.reportActionID ?? '']?.pendingAction).toBeFalsy();
 
             // Verify success state in Onyx
             // Source reports deleted (null)
@@ -13412,9 +13429,19 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
+            const destinationActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
+            const mergedReportsActionID = Object.values(destinationActions ?? {}).find(
+                (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            )?.reportActionID;
+            expect(mergedReportsActionID).toBeDefined();
+
             mockFetch.fail();
             await mockFetch.resume();
             await waitForBatchedUpdates();
+
+            // A failed merge removes its optimistic MERGED_REPORTS action, because no merge happened
+            const destinationActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
+            expect(destinationActionsAfterFailure?.[mergedReportsActionID ?? '']).toBeFalsy();
 
             // Verify failure state in Onyx
             // Transactions rolled back to source reports
