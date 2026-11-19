@@ -45,7 +45,6 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         enter,
         applySidePanelOffset = false,
     }) => {
-        // getCardStyles builds a new object on every call, so it is extended in place below
         const cardStyle: Writable<Animated.WithAnimatedValue<ViewStyle>> = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {

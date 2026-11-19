@@ -125,7 +125,6 @@ function Button({
     if (!blendOpacity) {
         buttonBlendForegroundStyle = undefined;
     } else {
-        // `StyleSheet.flatten` returns nothing for an empty style
         const {backgroundColor, opacity}: ViewStyle = StyleSheet.flatten(buttonStyles) ?? {};
         buttonBlendForegroundStyle = {
             backgroundColor,

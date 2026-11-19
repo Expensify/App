@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, TextInput, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -279,7 +279,7 @@ function BaseTextInput({
 
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const newTextInputContainerStyles: ViewStyle =
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
         StyleSheet.flatten([
             styles.textInputContainer,
             !hasLabel && styles.pt0,

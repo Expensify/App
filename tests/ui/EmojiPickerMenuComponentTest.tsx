@@ -120,7 +120,6 @@ function renderEmojiMenu(Menu: typeof WebEmojiPickerMenu, onEmojiSelected: Emoji
     );
 }
 
-/** A type guard, because `instanceof View` alone doesn't narrow to the host instance when `View` is typed as a function component */
 function isViewInstance(instance: unknown): instance is ComponentRef<typeof View> {
     return instance instanceof View;
 }

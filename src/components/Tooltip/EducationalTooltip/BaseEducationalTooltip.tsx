@@ -17,7 +17,6 @@ import {DeviceEventEmitter, Dimensions} from 'react-native';
 
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
-// On web the target is the DOM node, which react-native-web extends with the host instance methods such as measureInWindow
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HostInstance}>;
 
 /**

@@ -48,7 +48,6 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
 
     const isOurMention = accountID === currentUserAccountID;
 
-    // `StyleSheet.flatten` returns nothing for an empty style
     const flattenStyle = StyleSheet.flatten(style) ?? {};
     const {color, ...styleWithoutColor} = flattenStyle;
 

@@ -61,7 +61,6 @@ function renderElements(defaultRendererProps: TDefaultRendererProps<TTextOrTPhra
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
-    // `StyleSheet.flatten` returns nothing for an empty style
     const flattenTextStyle: TextStyle = StyleSheet.flatten(textStyle) ?? {};
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
 

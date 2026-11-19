@@ -33,7 +33,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, TextInput, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
@@ -341,7 +341,7 @@ function BaseTextInput({
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
     const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
 
-    const newTextInputContainerStyles: ViewStyle =
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
         StyleSheet.flatten([
             styles.textInputContainer,
             !shouldApplyPaddingToContainer && styles.p0,
