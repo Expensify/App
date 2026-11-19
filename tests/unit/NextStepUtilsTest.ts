@@ -1,4 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {
     buildNextStepMessage,
@@ -916,6 +917,7 @@ describe('libs/NextStepUtils', () => {
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
+        const currentUserPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
         const policyID = 'policy-1';
 
         beforeAll(() => {
@@ -1003,6 +1005,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1053,6 +1056,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1112,6 +1116,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1167,6 +1172,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1186,6 +1192,7 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the current next step when the approve-only member is not the report owner', () => {
+            const ownerLogin = 'owner@expensify.com';
             const currentNextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1221,7 +1228,8 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: 'owner@expensify.com',
+                reportOwnerLogin: ownerLogin,
+                reportOwnerPersonalDetailsByLogin: {[ownerLogin]: {accountID: 99, login: ownerLogin}},
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1278,6 +1286,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1345,6 +1354,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1423,6 +1433,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
