@@ -60,46 +60,61 @@ describe('Clipboard.setHtml', () => {
     });
 
     it('writes plain text when the HTML flavor is empty', () => {
+        // Given the HTML flavor is empty and the plain text is still valid
+        // When the clipboard write runs
         WebClipboard.setHtml('', 'hello');
 
+        // Then plain text is written, because an empty HTML flavor must not drop the copy
         expect(mockSetString).toHaveBeenCalledWith('hello');
         expect(mockWrite).not.toHaveBeenCalled();
     });
 
     it('writes plain text when the browser cannot set HTML', () => {
+        // Given the browser has no clipboard.write API
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
             value: {},
         });
 
+        // When an HTML copy is requested
         WebClipboard.setHtml('<b>hello</b>', 'hello');
 
+        // Then the plain text is still written instead of throwing
         expect(mockSetString).toHaveBeenCalledWith('hello');
     });
 
     it('writes plain text when ClipboardItem throws', () => {
+        // Given constructing an HTML clipboard item is unsupported
         installClipboardItem(true);
 
+        // When an HTML copy is requested
         WebClipboard.setHtml('<b>hello</b>', 'hello');
 
+        // Then the failure falls back to plain text instead of losing the copy
         expect(mockSetString).toHaveBeenCalledWith('hello');
     });
 
     it('writes plain text when the async clipboard write rejects', async () => {
+        // Given the browser accepts the HTML write call but then denies it
         mockWrite.mockImplementation(() => Promise.reject(new Error('denied')));
 
+        // When an HTML copy is requested
         WebClipboard.setHtml('<b>hello</b>', 'hello');
         await Promise.resolve();
 
+        // Then the rejection still leaves the plain-text flavor available
         expect(mockSetString).toHaveBeenCalledWith('hello');
     });
 
     it('writes plain text when Safari execCommand refuses the copy', () => {
+        // Given Safari refuses the deprecated HTML copy command
         mockGetBrowser.mockReturnValue(CONST.BROWSER.SAFARI);
         mockExecCommand.mockReturnValue(false);
 
+        // When an HTML copy is requested
         WebClipboard.setHtml('<b>hello</b>', 'hello');
 
+        // Then plain text is written through the fallback, not the async clipboard API
         expect(mockExecCommand).toHaveBeenCalledWith('copy');
         expect(mockSetString).toHaveBeenCalledWith('hello');
         expect(mockWrite).not.toHaveBeenCalled();

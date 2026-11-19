@@ -21,8 +21,6 @@ export default function getClipboardText(selection: string, reportIDToName?: Rec
         lines.push(text);
     }
 
-    return lines
-        .join('\n')
-        .replaceAll(/\n{3,}/g, '\n\n')
-        .replaceAll(/^\n+|\n+$/g, '');
+    // Join block boundaries with one newline. Do not collapse longer runs: a code block can contain them on purpose.
+    return lines.join('\n');
 }

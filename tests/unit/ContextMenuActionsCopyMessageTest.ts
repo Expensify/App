@@ -322,13 +322,14 @@ describe('ContextMenuActions copy message', () => {
     });
 
     it('writes both flavors for an HTML-sourced system message when HTML is supported', () => {
-        // Given the clipboard supports HTML and the helper is already passed as an HTML source
+        // Given the clipboard supports HTML and this action is already an HTML source
         mockCanSetHtml.mockReturnValue(true);
 
         if (!copyMessageAction?.onPress) {
             throw new Error('Copy message context menu action was not found');
         }
 
+        // When the message is copied
         copyMessageAction.onPress(
             false,
             createReportActionPayload(
@@ -340,11 +341,13 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
+        // Then both flavors are written, so a rich paste can keep the source and a plain paste still has text
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'workspaceActions.updatedMemberWorkArrangement');
         expect(mockSetString).not.toHaveBeenCalled();
     });
 
     it('writes both clipboard flavors for a modified expense that contains HTML', () => {
+        // Given a modified-expense message whose visible text is HTML with a link
         const html = '<strong>added a receipt</strong> from <a href="https://expensify.com">Expensify</a>';
         const payload = createReportActionPayload(
             createMock<CopyMessagePayload['reportAction']>({
@@ -357,13 +360,16 @@ describe('ContextMenuActions copy message', () => {
         payload.translate = translateReceipt;
         mockCanSetHtml.mockReturnValue(true);
 
+        // When the message is copied
         copyMessageAction.onPress(false, payload);
 
+        // Then a rich paste keeps the link and plain text does not keep Markdown syntax
         expect(mockSetHtml).toHaveBeenCalledWith(html, 'added a receipt from Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
     });
 
     it('copies a workspace name that contains markup characters literally', () => {
+        // Given a renamed workspace whose old name contains characters that look like markup
         const payload = createReportActionPayload(
             createMock<CopyMessagePayload['reportAction']>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
@@ -380,17 +386,21 @@ describe('ContextMenuActions copy message', () => {
         payload.translate = translateRenamedWorkspace;
         mockCanSetHtml.mockReturnValue(true);
 
+        // When the message is copied
         copyMessageAction.onPress(false, payload);
 
+        // Then the name is copied literally, because parsing it as HTML would drop the bracketed word
         expect(mockSetString).toHaveBeenCalledWith('renamed <Team> to Ops & Co');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
 
     it('copies a comment the same way a painted selection of that comment is copied', () => {
+        // Given the same comment copied from a painted selection and from Copy message
         const html = '<div>first message</div><div><strong>second</strong> <a href="https://expensify.com">Expensify</a></div>';
         const plainText = 'first message\nsecond Expensify';
         mockCanSetHtml.mockReturnValue(true);
 
+        // When both copy paths run
         copyMessageAction.onPress(false, createPayload(html));
         expect(mockSetHtml).toHaveBeenCalledWith(html, plainText);
 
@@ -405,6 +415,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
+        // Then both paths write the same flavors, so the paste does not depend on which copy path was used
         expect(mockSetHtml).toHaveBeenCalledWith(html, plainText);
         expect(mockSetString).not.toHaveBeenCalled();
     });

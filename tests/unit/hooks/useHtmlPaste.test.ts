@@ -93,26 +93,41 @@ describe('useHtmlPaste composer paste', () => {
     });
 
     it('pastes valid HTML as Markdown with the message line break', async () => {
-        await pasteIntoComposer('first message second message', '<div>first message</div><div>second message</div>');
+        // Given the clipboard has a mashed plain flavor and HTML that wraps each message
+        const plainText = 'first message second message';
+        const html = '<div>first message</div><div>second message</div>';
 
+        // When the composer handles the paste, it prefers HTML that converts to real content
+        await pasteIntoComposer(plainText, html);
+
+        // Then the message boundary survives, instead of the mashed plain flavor
         expect(textInputElement.textContent).toBe('first message\nsecond message');
     });
 
     it('pastes text/plain when the HTML flavor is empty', async () => {
+        // Given the HTML flavor is only whitespace, which used to hide a valid plain-text flavor
+        // When the composer handles the paste
         await pasteIntoComposer('kept plain text', '   ');
 
+        // Then the plain-text flavor is used instead of pasting nothing
         expect(textInputElement.textContent).toBe('kept plain text');
     });
 
     it('pastes text/plain when the HTML flavor is missing', async () => {
+        // Given the clipboard has no text/html flavor for the composer to convert
+        // When the composer handles the paste
         await pasteIntoComposer('plain only');
 
+        // Then the plain text is pasted unchanged
         expect(textInputElement.textContent).toBe('plain only');
     });
 
     it('pastes text/plain for the native markdown input wrapper', async () => {
+        // Given the HTML is the native markdown input wrapper, not the message the user copied
+        // When the composer handles the paste
         await pasteIntoComposer('native markdown', '<p dir="ltr"><span>converted</span></p>');
 
+        // Then the stored plain text is kept, because converting that wrapper would replace the markdown
         expect(textInputElement.textContent).toBe('native markdown');
     });
 });
