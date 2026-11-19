@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.40-0",
+  "version": "9.5.47-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -132,12 +132,11 @@
     "@sentry/core": "10.76.2",
     "@sentry/react-native": "8.32.0",
     "@shopify/flash-list": "2.3.2",
-    "@shopify/react-native-skia": "^2.11.2",
     "@ua/react-native-airship": "26.7.0",
     "array.prototype.tosorted": "^1.1.4",
     "awesome-phonenumber": "6.11.0",
     "canvas-size": "^1.2.6",
-    "canvaskit-wasm": "0.41.0",
+    "canvaskit-wasm": "0.41.1",
     "d3-scale": "^4.0.2",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -205,7 +204,7 @@
     "react-native-nitro-image": "0.15.2",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "10.2.0",
-    "react-native-onyx": "3.0.143",
+    "react-native-onyx": "3.0.145",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.6.3",
@@ -219,6 +218,7 @@
     "react-native-safe-area-context": "5.9.1",
     "react-native-screens": "4.28.0",
     "react-native-share": "11.0.2",
+    "react-native-skia": "2.15.5",
     "react-native-svg": "15.15.5",
     "react-native-tab-view": "^4.3.0",
     "react-native-url-polyfill": "^2.0.0",
@@ -231,7 +231,7 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "scheduler": "0.27.0",
-    "victory-native": "^42.0.1",
+    "victory-native": "43.0.1",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
@@ -446,6 +446,9 @@
     },
     "expo-modules-core": {
       "react-native-worklets": "0.13.0"
+    },
+    "react-native-google-places-autocomplete": {
+      "qs": "^6.16.1"
     }
   },
   "expo": {

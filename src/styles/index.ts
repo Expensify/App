@@ -175,6 +175,12 @@ const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight:
 // silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
 const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
+// A subnav row's label lines up with the label of the row above: the row's padding, the icon and the icon-label gap.
+const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + variables.iconSizeNormal + variables.flatNavigationBarItemGap;
+
+// The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
+const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -949,7 +955,7 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: variables.flatNavigationBarItemGap,
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
@@ -960,6 +966,49 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.spacing2,
+            height: variables.flatNavigationBarSubnavItemHeight,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        // Sits at the bottom of its row, which leaves the gap above the group.
+        flatNavigationBarSubnavHeader: {
+            height: variables.flatNavigationBarSubnavHeaderHeight,
+            justifyContent: 'flex-end',
+            paddingBottom: 4,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+        },
+
+        // The active row's marker slides along this rule.
+        flatNavigationBarSubnavRule: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: flatNavigationBarSubnavRuleLeft,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarSubnavMarker: {
+            position: 'absolute',
+            top: 0,
+            left: flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            width: variables.flatNavigationBarSubnavMarkerWidth,
+            height: variables.flatNavigationBarSubnavMarkerHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.success,
         },
 
         flatNavigationBarDivider: {
@@ -3886,6 +3935,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.pr5,
         },
 
+        growlNotificationNativeContent: {
+            width: '100%',
+            maxWidth: variables.growlNotificationMaxWidth,
+            alignSelf: 'center',
+        },
+
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
             right: 0,
@@ -4258,11 +4313,6 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
-        },
-
-        iPhoneXSafeArea: {
-            backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         transferBalancePayment: {
@@ -7404,12 +7454,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: (bottom: number) =>
+        nativeTabBarFloatingButtons: (bottom: number, left: number, right: number) =>
             ({
                 position: 'absolute',
-                right: 0,
+                right,
                 bottom,
-                left: 0,
+                left,
                 height: 0,
             }) satisfies ViewStyle,
 
@@ -7731,11 +7781,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
-        }),
-
-        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
-            left: -left,
-            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
@@ -8171,6 +8216,70 @@ const plainStyles = (theme: ThemeColors) =>
 
         insightsAICard: {
             width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
+
+        insightsDataTableSkeletonTopOffset: (topOffset: number) =>
+            ({
+                marginTop: topOffset,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableShareColumn: {
+            flex: 1.5,
+            minWidth: 0,
+            alignSelf: 'stretch',
+            paddingRight: variables.insightsRankingTableShareLabelSpace,
+        } satisfies ViewStyle,
+
+        insightsRankingTableNumberColumn: {
+            width: variables.w130,
+        } satisfies ViewStyle,
+
+        insightsRankingTableChangeColumn: {
+            width: variables.w96,
+            alignItems: 'flex-end',
+        } satisfies ViewStyle,
+
+        insightsRankingTableBar: (widthPercent: number) =>
+            ({
+                width: `${widthPercent}%`,
+                minWidth: variables.insightsRankingTableBarMinWidth,
+                height: variables.insightsRankingTableBarHeight,
+                borderRadius: variables.insightsRankingTableBarHeight / 2,
+                backgroundColor: colors.green400,
+                flexShrink: 0,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableBarTrack: {
+            flexDirection: 'row',
+            height: variables.insightsRankingTableBarHeight,
+            borderRadius: variables.insightsRankingTableBarHeight / 2,
+            backgroundColor: theme.border,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAverageLineAnchor: (leftPercent: number, overhangTop = 0, overhangBottom?: number) =>
+            ({
+                position: 'absolute',
+                top: -overhangTop,
+                bottom: -(overhangBottom ?? overhangTop),
+                left: `${leftPercent}%`,
+                width: 0,
+                alignItems: 'center',
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageDashedLine: (width: number) =>
+            ({
+                width,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageLegendMark: {
+            height: variables.insightsRankingTableBarHeight + variables.insightsRankingTableAverageMarkerOverhang * 2,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAveragePill: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingHorizontal: VictoryTheme.averageLine.pillPaddingHorizontal,
+            paddingVertical: VictoryTheme.averageLine.pillPaddingVertical,
         } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {

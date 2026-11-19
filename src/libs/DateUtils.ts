@@ -814,17 +814,15 @@ const isFutureDay = (inputDate: Date): boolean => {
  * Whether a transaction's date is further ahead than the backend tolerates.
  *
  * Mirrors the backend rule `DATETIME(COALESCE(modifiedCreated, created)) <= DATETIME('NOW', '+14 hours')`. A
- * transaction date is a plain calendar date with no time or offset, so the backend cannot know the sender's local
- * date and allows up to the furthest timezone (UTC+14) before flagging it.
+ * transaction date has no offset, and a date without a time counts as midnight, so the backend cannot know the
+ * sender's local date and allows up to the furthest timezone (UTC+14) before flagging it.
  */
 const isTransactionDateFuture = (transactionDate: string): boolean => {
     if (!transactionDate) {
         return false;
     }
 
-    const thresholdDate = formatMachineDateWithUTCTimeZone(addHours(new Date(), 14).toISOString());
-
-    return formatMachineDateWithUTCTimeZone(transactionDate) > thresholdDate;
+    return isAfter(toDate(transactionDate, {timeZone: 'UTC'}), addHours(new Date(), 14));
 };
 
 /**
@@ -1085,11 +1083,26 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
 
 const MAX_AVERAGE_DURATION_FRACTION_DIGITS = 1;
 
-/** The smallest difference between two average durations that formatAverageDuration writes differently, in seconds */
+/** The smallest difference between two average durations of a day or more that formatAverageDuration writes differently, in seconds */
 const AVERAGE_DURATION_PRECISION_IN_SECONDS = CONST.DATE.SECONDS_PER_DAY / 10 ** MAX_AVERAGE_DURATION_FRACTION_DIGITS;
 
 /**
- * Writes an average duration in days in the viewer's locale, e.g. "2.5 days", or "2.5d" when compact.
+ * Picks the Y-axis tick step for a chart of average durations from the unit its largest value reads in, so ticks land on round minutes,
+ * hours or days and short durations are not drawn against an axis stretched to a tenth of a day.
+ */
+function getAverageDurationTickStep(maxDurationInSeconds: number): number {
+    if (maxDurationInSeconds < CONST.DATE.SECONDS_PER_HOUR) {
+        return CONST.DATE.SECONDS_PER_MINUTE;
+    }
+    if (maxDurationInSeconds < CONST.DATE.SECONDS_PER_DAY) {
+        return CONST.DATE.SECONDS_PER_HOUR / 10 ** MAX_AVERAGE_DURATION_FRACTION_DIGITS;
+    }
+    return AVERAGE_DURATION_PRECISION_IN_SECONDS;
+}
+
+/**
+ * Writes an average duration in a single unit in the viewer's locale: minutes under an hour, hours under a day and days otherwise,
+ * e.g. "50 minutes", "2.5 hours" or "2.5 days", or "50m", "2.5h" or "2.5d" when compact.
  * The number is rounded and formatted here rather than left to the translation, because locales whose `one` plural category also covers 0 and fractions
  * would otherwise print a literal "1" for them.
  */
@@ -1099,12 +1112,26 @@ function formatAverageDuration(
     numberFormat: LocaleContextProps['numberFormat'],
     shouldUseCompactNotation = false,
 ): string {
-    const days = Number((durationInSeconds / CONST.DATE.SECONDS_PER_DAY).toFixed(MAX_AVERAGE_DURATION_FRACTION_DIGITS));
-    const formattedDays = numberFormat(days, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS});
-    if (shouldUseCompactNotation) {
-        return `${formattedDays}${translateParam('common.dayAbbreviation')}`;
+    // The unit is picked after rounding, so 59.8 minutes reads "1 hour" rather than "60 minutes".
+    // A small negative difference rounds to -0, which would print as "-0 minutes", so it becomes 0.
+    const roundTo = (secondsPerUnit: number, fractionDigits: number) => Number((durationInSeconds / secondsPerUnit).toFixed(fractionDigits)) || 0;
+    const minutes = roundTo(CONST.DATE.SECONDS_PER_MINUTE, 0);
+    const hours = roundTo(CONST.DATE.SECONDS_PER_HOUR, MAX_AVERAGE_DURATION_FRACTION_DIGITS);
+    const formatInUnit = (
+        count: number,
+        countKey: 'common.minuteCount' | 'common.hourCount' | 'common.dayCount',
+        abbreviationKey: 'common.minuteAbbreviation' | 'common.hourAbbreviation' | 'common.dayAbbreviation',
+    ) => {
+        const formattedCount = numberFormat(count, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS});
+        return shouldUseCompactNotation ? `${formattedCount}${translateParam(abbreviationKey)}` : translateParam(countKey, {count, formattedCount});
+    };
+    if (Math.abs(minutes) < CONST.DATE.SECONDS_PER_HOUR / CONST.DATE.SECONDS_PER_MINUTE) {
+        return formatInUnit(minutes, 'common.minuteCount', 'common.minuteAbbreviation');
     }
-    return translateParam('common.dayCount', {count: days, formattedCount: formattedDays});
+    if (Math.abs(hours) < CONST.DATE.SECONDS_PER_DAY / CONST.DATE.SECONDS_PER_HOUR) {
+        return formatInUnit(hours, 'common.hourCount', 'common.hourAbbreviation');
+    }
+    return formatInUnit(roundTo(CONST.DATE.SECONDS_PER_DAY, MAX_AVERAGE_DURATION_FRACTION_DIGITS), 'common.dayCount', 'common.dayAbbreviation');
 }
 
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
@@ -1617,6 +1644,7 @@ const DateUtils = {
     getFormattedDurationBetweenDates,
     getFormattedDuration,
     formatAverageDuration,
+    getAverageDurationTickStep,
     formatCountdownTimer,
     isFutureDay,
     isTransactionDateFuture,
