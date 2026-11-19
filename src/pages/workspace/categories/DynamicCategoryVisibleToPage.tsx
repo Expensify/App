@@ -80,6 +80,9 @@ function DynamicCategoryVisibleToPage({
     const {selectedKeys, toggleKey, toggleVisibleKeys} = useOverridableSelection(visibleMemberKeys);
     const initialSelectedKeys = useInitialSelection(visibleMemberKeys, {resetOnFocus: true});
 
+    // Every row and the save check look members up by key, so a Set keeps large workspaces from scanning the whole selection per member.
+    const selectedKeySet = new Set(selectedKeys);
+
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
     }, []);
@@ -103,7 +106,7 @@ function DynamicCategoryVisibleToPage({
                 ],
                 reportID: '',
                 keyForList: String(accountID),
-                isSelected: selectedKeys.includes(String(accountID)),
+                isSelected: selectedKeySet.has(String(accountID)),
             }),
             value: accountID,
         };
@@ -124,9 +127,10 @@ function DynamicCategoryVisibleToPage({
 
     const saveVisibility = () => {
         // Only current members count, so one removed since the page opened isn't sent.
-        const newSelectedAccountIDs = memberAccountIDs.filter((accountID) => selectedKeys.includes(String(accountID)));
-        const deselectedAccountIDs = memberAccountIDs.filter((accountID) => !selectedKeys.includes(String(accountID)));
-        const hasChanges = newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDs.includes(accountID));
+        const newSelectedAccountIDs = memberAccountIDs.filter((accountID) => selectedKeySet.has(String(accountID)));
+        const deselectedAccountIDs = memberAccountIDs.filter((accountID) => !selectedKeySet.has(String(accountID)));
+        const visibleAccountIDSet = new Set(visibleAccountIDs);
+        const hasChanges = newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDSet.has(accountID));
         if (!hasChanges || !policyCategory) {
             Navigation.goBack(categorySettingsBackPath);
             return;
