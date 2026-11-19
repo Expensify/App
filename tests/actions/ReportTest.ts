@@ -13562,6 +13562,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                isChatReportArchived: false,
                 personalDetailsByLogins: personalDetailsByLoginsWithApprover,
             });
             await waitForBatchedUpdates();
