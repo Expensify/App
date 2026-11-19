@@ -2019,12 +2019,17 @@ function convertApprovalWorkflowRulesToWorkflows({
     // in separate workflows.
     const ruleBackedSubmitters = new Set<string>();
     const defaultWorkflowSubmitters = new Set<string>();
-    for (const rule of Object.values(rules)) {
+    // The chain builders only read the rules that list the submitter, so each one gets just those instead of rescanning every rule at every step
+    const rulesBySubmitter = new Map<string, Record<string, ApprovalWorkflowRule>>();
+    for (const [ruleID, rule] of Object.entries(rules)) {
         for (const submitter of extractSubmitterEmails(rule)) {
             ruleBackedSubmitters.add(submitter);
             if (rule.isDefaultApprovalWorkflow) {
                 defaultWorkflowSubmitters.add(submitter);
             }
+            const submitterRules = rulesBySubmitter.get(submitter) ?? {};
+            submitterRules[ruleID] = rule;
+            rulesBySubmitter.set(submitter, submitterRules);
         }
     }
 
@@ -2056,12 +2061,13 @@ function convertApprovalWorkflowRulesToWorkflows({
         availableMembers.push(member);
 
         // Mirrors the legacy builder: a submitter whose approver is no longer on the workspace is still shown, flagged.
-        const hasInitialRule = !!resolveFirstApprover(email, rules, {});
+        const submitterRules = rulesBySubmitter.get(email) ?? {};
+        const hasInitialRule = !!resolveFirstApprover(email, submitterRules, {});
         if (!hasInitialRule && !submitsTo) {
             continue;
         }
 
-        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail}).map((approver) => ({
+        let chain = buildApproverChainFromRules({submitter: email, rules: submitterRules, employees, personalDetailsByEmail}).map((approver) => ({
             ...approver,
             ...(isNonMemberApprover(policy, approver.email) ? {isNotWorkspaceMember: true} : {}),
         }));
