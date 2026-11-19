@@ -41,7 +41,7 @@ jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: () => ({is
 jest.mock('@hooks/useDelegateAccountID', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useReportTransactions', () => ({__esModule: true, default: jest.fn()}));
-jest.mock('@hooks/usePersonalDetailByLogin', () => ({useGetPersonalDetailsByLogin: () => () => ({})}));
+jest.mock('@hooks/usePersonalDetailByLogin', () => ({useGetPersonalDetailsByLogin: () => () => ({}), usePersonalDetailsByLogins: () => ({})}));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: () => [undefined]}));
 jest.mock('@hooks/usePaginatedReportActions', () => ({__esModule: true, default: () => ({reportActions: []})}));
 jest.mock('@hooks/useStrictPolicyRules', () => ({__esModule: true, default: () => ({areStrictPolicyRulesEnabled: false})}));
