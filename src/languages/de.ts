@@ -3652,9 +3652,6 @@ ${amount} für ${merchant} – ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `zwischen ${lowerAmount} und ${upperAmount}`,
         removeFork: 'Diese Verzweigung entfernen',
         removeForks: 'Verzweigungen entfernen',
-        removeForksTitle: 'Alle Verzweigungen entfernen?',
-        removeForksPrompt:
-            'Dieser Workflow hat mehr als eine Verzweigung aus Expensify Classic übernommen. Wenn du sie entfernst, durchläuft jeder Bericht die im Workflow angezeigten Genehmigenden.',
     },
     workflowsPayerPage: {
         title: 'Autorisierte zahlende Person',

@@ -3499,8 +3499,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `介于 ${lowerAmount} 和 ${upperAmount} 之间的`,
         removeFork: '移除此分支',
         removeForks: '移除分支',
-        removeForksTitle: '移除所有分支？',
-        removeForksPrompt: '此流程从 Expensify Classic 继承了多个分支。移除后，所有报表都将经过流程中显示的审批人。',
     },
     workflowsPayerPage: {
         title: '授权付款人',

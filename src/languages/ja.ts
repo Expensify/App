@@ -3596,8 +3596,6 @@ ${date} の ${merchant} への ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount}〜${upperAmount}`,
         removeFork: 'この分岐を削除',
         removeForks: '分岐を削除',
-        removeForksTitle: 'すべての分岐を削除しますか？',
-        removeForksPrompt: 'このワークフローはExpensify Classicから複数の分岐を引き継いでいます。削除すると、すべてのレポートがワークフローに表示されている承認者を経由します。',
     },
     workflowsPayerPage: {
         title: '承認済み支払者',

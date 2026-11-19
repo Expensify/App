@@ -3658,9 +3658,6 @@ ${amount} pour ${merchant} - ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `comprises entre ${lowerAmount} et ${upperAmount}`,
         removeFork: 'Supprimer cette bifurcation',
         removeForks: 'Supprimer les bifurcations',
-        removeForksTitle: 'Supprimer toutes les bifurcations ?',
-        removeForksPrompt:
-            'Ce workflow a hérité de plusieurs bifurcations d’Expensify Classic. Les supprimer fait passer chaque note de frais par les approbateurs affichés dans le workflow.',
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',

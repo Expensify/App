@@ -38,14 +38,6 @@ jest.mock('@userActions/Workflow', () => ({
     removeApprovalWorkflowForks: jest.fn(),
 }));
 
-// Matches ModalActions.CONFIRM (components/Modal/Global/ModalContext.tsx), inlined since a jest.mock factory
-// can't reference an out-of-scope import.
-const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{title: string}]>(() => Promise.resolve({action: 'CONFIRM'}));
-jest.mock('@hooks/useConfirmModal', () => ({
-    __esModule: true,
-    default: () => ({showConfirmModal: mockShowConfirmModal}),
-}));
-
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: () => true,
@@ -137,7 +129,7 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
         });
     });
 
-    it('removes the fork of a workflow that has only that one without asking first', async () => {
+    it('removes the fork of a workflow that has only that one', async () => {
         // Given Alice sends reports over 2,000.00 to Bob, who sends them to Denise to approve instead of on to Charlie
         await setPolicy({
             [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
@@ -155,18 +147,17 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
         await waitForBatchedUpdatesWithAct();
         runAfterTransition();
 
-        // Then the page described the fork without numbering it, since it's the only one, nothing asks for confirmation, since
-        // only that fork goes, and the workflow is saved with the approvers it shows
+        // Then the page described the fork without numbering it, since it's the only one, and the workflow is saved with the
+        // approvers it shows
         expect(screen.getByText(translateLocal('workflowsApprovalForkPage.description', {count: 1}))).toBeTruthy();
         expect(screen.queryByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 1}))).toBeNull();
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(removeApprovalWorkflowForks).toHaveBeenCalledTimes(1);
         const approvalWorkflow = jest.mocked(removeApprovalWorkflowForks).mock.calls.at(0)?.at(0)?.approvalWorkflow;
         expect(approvalWorkflow?.approvers.map(({email}) => email)).toEqual([ALICE_EMAIL, BOB_EMAIL, CHARLIE_EMAIL]);
         expect(approvalWorkflow?.members.map(({email}) => email)).toEqual([SUBMITTER_EMAIL]);
     });
 
-    it('asks before removing every fork of a workflow that has more than one', async () => {
+    it('removes every fork of a workflow that has more than one at once', async () => {
         // Given Alice sends reports over 5,000.00 to Bob, who approves them, and Charlie sends the ones over 1,000.00 to Denise,
         // who approves them, so both skip the approvers after them
         await setPolicy({
@@ -180,40 +171,16 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
         renderForkPage();
         await waitForBatchedUpdatesWithAct();
 
-        // When the admin removes the forks and confirms
+        // When the admin removes the forks
         fireEvent.press(screen.getByText(translateLocal('workflowsApprovalForkPage.removeForks')));
         await waitForBatchedUpdatesWithAct();
         runAfterTransition();
 
-        // Then the page numbered both forks, the admin was asked first, since removing one fork removes the other too, and
-        // the workflow is saved once
+        // Then the page numbered both forks, so the admin saw every fork the button removes, and the workflow is saved once,
+        // since one save as rules removes both forks
         expect(screen.getByText(translateLocal('workflowsApprovalForkPage.description', {count: 2}))).toBeTruthy();
         expect(screen.getByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 1}))).toBeTruthy();
         expect(screen.getByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 2}))).toBeTruthy();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: translateLocal('workflowsApprovalForkPage.removeForksTitle')}));
         expect(removeApprovalWorkflowForks).toHaveBeenCalledTimes(1);
-    });
-
-    it('keeps the forks when the admin cancels', async () => {
-        // Given the same workflow with two forks, and the admin will cancel the confirmation
-        mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));
-        await setPolicy({
-            [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: ALICE_EMAIL},
-            [ALICE_EMAIL]: {email: ALICE_EMAIL, forwardsTo: CHARLIE_EMAIL, approvalLimit: 500000, overLimitForwardsTo: BOB_EMAIL},
-            [BOB_EMAIL]: {email: BOB_EMAIL},
-            [CHARLIE_EMAIL]: {email: CHARLIE_EMAIL, forwardsTo: ADMIN_EMAIL, approvalLimit: 100000, overLimitForwardsTo: DENISE_EMAIL},
-            [DENISE_EMAIL]: {email: DENISE_EMAIL},
-        });
-        renderForkPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // When the admin presses the button
-        fireEvent.press(screen.getByText(translateLocal('workflowsApprovalForkPage.removeForks')));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then nothing is saved and the page stays open
-        expect(Navigation.goBack).not.toHaveBeenCalled();
-        expect(removeApprovalWorkflowForks).not.toHaveBeenCalled();
     });
 });

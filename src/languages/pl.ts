@@ -3673,8 +3673,6 @@ ${amount} dla ${merchant} - ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `od ${lowerAmount} do ${upperAmount}`,
         removeFork: 'Usuń to rozgałęzienie',
         removeForks: 'Usuń rozgałęzienia',
-        removeForksTitle: 'Usunąć wszystkie rozgałęzienia?',
-        removeForksPrompt: 'Ten proces przejął z Expensify Classic więcej niż jedno rozgałęzienie. Po ich usunięciu każdy raport przejdzie przez osoby zatwierdzające pokazane w procesie.',
     },
     workflowsPayerPage: {
         title: 'Upoważniony płatnik',

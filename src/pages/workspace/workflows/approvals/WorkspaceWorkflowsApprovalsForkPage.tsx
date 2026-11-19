@@ -7,13 +7,11 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import Header from '@components/Header';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +46,6 @@ function WorkspaceWorkflowsApprovalsForkPage({policy, isLoadingReportData = true
     const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {showConfirmModal} = useConfirmModal();
     const {approvalWorkflows, rulesCollection} = useApprovalWorkflows(policy);
     const {policyID, firstApproverEmail} = route.params;
 
@@ -67,23 +64,9 @@ function WorkspaceWorkflowsApprovalsForkPage({policy, isLoadingReportData = true
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
-    const removeForks = async () => {
+    const removeForks = () => {
         if (!approvalWorkflow) {
             return;
-        }
-
-        // Rules can't keep any of the workflow's forks, so removing one removes the others too, which the admin confirms
-        if (hasMultipleForks) {
-            const result = await showConfirmModal({
-                title: translate('workflowsApprovalForkPage.removeForksTitle'),
-                prompt: translate('workflowsApprovalForkPage.removeForksPrompt'),
-                confirmText: translate('workflowsApprovalForkPage.removeForks'),
-                cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            });
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
         }
 
         Navigation.goBack(undefined, {

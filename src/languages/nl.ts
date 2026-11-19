@@ -3638,9 +3638,6 @@ ${amount} voor ${merchant} - ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tussen ${lowerAmount} en ${upperAmount}`,
         removeFork: 'Deze vertakking verwijderen',
         removeForks: 'Vertakkingen verwijderen',
-        removeForksTitle: 'Alle vertakkingen verwijderen?',
-        removeForksPrompt:
-            'Deze workflow heeft meer dan één vertakking uit Expensify Classic overgenomen. Als je ze verwijdert, gaat elk rapport langs de fiatteurs die in de workflow worden getoond.',
     },
     workflowsPayerPage: {
         title: 'Geautoriseerde betaler',

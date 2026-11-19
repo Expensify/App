@@ -3702,9 +3702,6 @@ ${amount} για ${merchant} - ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `μεταξύ ${lowerAmount} και ${upperAmount}`,
         removeFork: 'Κατάργηση αυτής της διακλάδωσης',
         removeForks: 'Κατάργηση διακλαδώσεων',
-        removeForksTitle: 'Κατάργηση όλων των διακλαδώσεων;',
-        removeForksPrompt:
-            'Αυτή η ροή εργασίας κληρονόμησε περισσότερες από μία διακλαδώσεις από το Expensify Classic. Αν τις καταργήσετε, κάθε αναφορά θα περνά από τους εγκρίνοντες που εμφανίζονται στη ροή εργασίας.',
     },
     workflowsPayerPage: {
         title: 'Εξουσιοδοτημένος πληρωτής',

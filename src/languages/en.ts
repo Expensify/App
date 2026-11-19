@@ -3804,8 +3804,6 @@ const translations = {
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `between ${lowerAmount} and ${upperAmount}`,
         removeFork: 'Remove this fork',
         removeForks: 'Remove forks',
-        removeForksTitle: 'Remove all forks?',
-        removeForksPrompt: 'This workflow has inherited more than one fork from Expensify Classic. Removing them sends every report through the approvers shown in the workflow.',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',

@@ -3638,9 +3638,6 @@ ${amount} para ${merchant} - ${date}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `entre ${lowerAmount} e ${upperAmount}`,
         removeFork: 'Remover esta bifurcação',
         removeForks: 'Remover bifurcações',
-        removeForksTitle: 'Remover todas as bifurcações?',
-        removeForksPrompt:
-            'Este fluxo de trabalho herdou mais de uma bifurcação do Expensify Classic. Ao removê-las, todos os relatórios passarão pelos aprovadores mostrados no fluxo de trabalho.',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
