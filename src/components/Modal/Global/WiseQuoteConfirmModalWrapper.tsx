@@ -1,10 +1,9 @@
-import RenderHTML from '@components/RenderHTML';
+import WisePaymentDisclosure from '@components/WisePaymentSummary/components/WisePaymentDisclosure';
 import WiseQuotePaymentSummary from '@components/WisePaymentSummary/components/WiseQuotePaymentSummary';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
@@ -30,7 +29,6 @@ type WiseQuoteConfirmModalWrapperProps = ModalProps & {
 /** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying */
 function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm}: WiseQuoteConfirmModalWrapperProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const [wiseQuote] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote});
     const wiseQuoteID = wiseQuote?.wiseQuoteID;
@@ -52,9 +50,7 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
                         reportID={reportID}
                         isPayingUnheldOnly={isPayingUnheldOnly}
                     />
-                    <View style={styles.mt5}>
-                        <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: translate('iou.pay')})} />
-                    </View>
+                    <WisePaymentDisclosure buttonText={translate('iou.pay')} />
                 </View>
             }
             confirmText={confirmText}
@@ -62,6 +58,7 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
             isConfirmDisabled={!wiseQuoteID}
             shouldDisableConfirmButtonWhenOffline
             shouldHandleNavigationBack
+            shouldEnablePromptScroll
         />
     );
 }

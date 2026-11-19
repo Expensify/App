@@ -1,9 +1,8 @@
-import RenderHTML from '@components/RenderHTML';
+import WisePaymentDisclosure from '@components/WisePaymentSummary/components/WisePaymentDisclosure';
 import WiseQuoteCarousel from '@components/WisePaymentSummary/components/WiseQuoteCarousel';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -33,7 +32,6 @@ type WiseQuoteCarouselModalWrapperProps = ModalProps & {
 /** Pay all stays disabled until every quoted report's quote is loaded, since Wise requires the admin to be able to see each one */
 function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quotedReportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const selectQuoteStates = (onyxReports: OnyxCollection<Report>) =>
         Object.fromEntries(
             quotedReportIDs.map((reportID) => {
@@ -68,9 +66,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
                         quotedReportIDs={quotedReportIDs}
                         isLoading={isLoading}
                     />
-                    <View style={styles.mt5}>
-                        <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: confirmText})} />
-                    </View>
+                    <WisePaymentDisclosure buttonText={confirmText} />
                 </View>
             }
             confirmText={confirmText}
@@ -78,6 +74,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
             isConfirmDisabled={!hasEveryQuote}
             shouldDisableConfirmButtonWhenOffline
             shouldHandleNavigationBack
+            shouldEnablePromptScroll
         />
     );
 }
