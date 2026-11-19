@@ -10,11 +10,11 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemGroup from '@components/MenuItemGroup';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,10 +27,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
@@ -46,6 +48,7 @@ import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacat
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -122,6 +125,8 @@ function ProfilePage() {
     const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
     const publicOptions: Array<{
         description: string;
         title: string;
@@ -215,7 +220,7 @@ function ProfilePage() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
+        singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus))))();
     };
 
     const privateOptions: Array<{
@@ -385,18 +390,37 @@ function ProfilePage() {
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
                                     {privateOptions.map((detail) => (
-                                        <MenuItemWithTopDescription
+                                        <MenuItemSectionRoot
                                             key={detail.testID}
-                                            shouldShowRightIcon
-                                            title={detail.title}
-                                            description={detail.description}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={detail.action}
-                                            brickRoadIndicator={detail.brickRoadIndicator}
-                                            furtherDetails={detail.furtherDetails}
-                                            pressableTestID={detail?.testID}
+                                            onPress={callIfAuthenticated(detail.action, session)}
+                                            testID={detail.testID}
                                             sentryLabel={detail.sentryLabel}
-                                        />
+                                        >
+                                            <MenuItem.Row>
+                                                <MenuItem.Content>
+                                                    {detail.title ? (
+                                                        <>
+                                                            <MenuItem.FieldName>{detail.description}</MenuItem.FieldName>
+                                                            <MenuItem.FieldValue>{detail.title}</MenuItem.FieldValue>
+                                                        </>
+                                                    ) : (
+                                                        <MenuItem.FieldNamePlaceholder>{detail.description}</MenuItem.FieldNamePlaceholder>
+                                                    )}
+                                                    {!!detail.furtherDetails && (
+                                                        <Text
+                                                            style={styles.textLabelSupporting}
+                                                            numberOfLines={2}
+                                                        >
+                                                            {detail.furtherDetails}
+                                                        </Text>
+                                                    )}
+                                                </MenuItem.Content>
+                                                <MenuItem.Trailing>
+                                                    {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            </MenuItem.Row>
+                                        </MenuItemSectionRoot>
                                     ))}
                                 </MenuItemGroup>
                             )}
