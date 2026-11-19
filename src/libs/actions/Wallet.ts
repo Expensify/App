@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 
-import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {AndroidCardData, AndroidPaymentCredentialsResponse, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -436,6 +436,52 @@ function createDigitalGoogleWallet(
         });
 }
 
+/** Second call of Unified Push Provisioning, rejects without a Google OPC so the TSP OPC never goes to Google alone */
+function createGoogleOpaquePaymentCard(
+    {
+        walletAccountID,
+        deviceID,
+        cardID,
+        serverSessionID,
+        tokenRequestorID,
+    }: {
+        deviceID: string;
+        walletAccountID: string;
+        cardID: number;
+        serverSessionID: string;
+        tokenRequestorID?: string;
+    },
+    authentication?: WalletAuthentication,
+): Promise<AndroidPaymentCredentialsResponse> {
+    const params: CreateDigitalWalletParams = {
+        platform: 'android',
+        appVersion: pkg.version,
+        walletAccountID,
+        deviceID,
+        cardID,
+        serverSessionID,
+        ...(tokenRequestorID ? {tokenRequestorID} : {}),
+    };
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
+        authentication ? {...params, signedChallenge: JSON.stringify(authentication.signedChallenge), authenticationMethod: authentication.authenticationMethod} : params,
+    ).then((response) => {
+        const googleOpaquePaymentCard: unknown = response && 'googleOpaquePaymentCard' in response ? response.googleOpaquePaymentCard : undefined;
+        const opaquePaymentCard: unknown = response && 'opaquePaymentCard' in response ? response.opaquePaymentCard : undefined;
+        if (
+            response?.jsonCode !== CONST.JSON_CODE.SUCCESS ||
+            typeof googleOpaquePaymentCard !== 'string' ||
+            !googleOpaquePaymentCard ||
+            typeof opaquePaymentCard !== 'string' ||
+            !opaquePaymentCard
+        ) {
+            throw new Error(`createGoogleOpaquePaymentCard failed, jsonCode: ${response?.jsonCode}`);
+        }
+        return {opaquePaymentCard, googleOpaquePaymentCard};
+    });
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -451,4 +497,5 @@ export {
     clearWalletAdditionalDetailsErrors,
     issuerEncryptPayloadCallback,
     createDigitalGoogleWallet,
+    createGoogleOpaquePaymentCard,
 };

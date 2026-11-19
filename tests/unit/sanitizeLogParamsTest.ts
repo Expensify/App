@@ -15,6 +15,8 @@ describe('sanitizeLogParams', () => {
                 activationData: 'activation',
                 ephemeralPublicKey: 'ephemeral',
                 opaquePaymentCard: 'opaque',
+                googleOpaquePaymentCard: 'google-opaque',
+                serverSessionID: '11111111-2222-3333-4444-555555555555',
             },
         };
         // When the shared API logging boundary sanitizes these parameters.

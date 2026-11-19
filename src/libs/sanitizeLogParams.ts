@@ -25,6 +25,8 @@ const SENSITIVE_KEYS = new Set([
     'activationData',
     'ephemeralPublicKey',
     'opaquePaymentCard',
+    'googleOpaquePaymentCard',
+    'serverSessionID',
     'ssn',
     'ssnLast4',
     'accountNumber',
