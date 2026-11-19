@@ -41,7 +41,6 @@ import type {
 } from './types';
 
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
-import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import flex from './flex';
 import createModalStyleUtils from './generators/ModalStyleUtils';
@@ -1546,7 +1545,6 @@ const staticStyleUtils = {
     getEReceiptColorCode,
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
-    getCardStyles,
     getSearchPageNarrowHeaderStyles,
     splitPercentageInputStyles,
     getOpacityStyle,

@@ -33,7 +33,7 @@ import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatN
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
-    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarDockedWidthStyle,
     useSearchSidebarToggleButtonStyle,
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
@@ -52,7 +52,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const dockedWidthStyle = useSearchSidebarDockedWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
@@ -108,7 +108,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     );
 
     return (
-        <Animated.View style={layoutSpacerStyle}>
+        <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
             <Hoverable onHoverOut={endPeek}>
                 <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                     <View style={styles.flex1}>
