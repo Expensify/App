@@ -37,7 +37,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {currentSearchKey} = useSearchQueryContext();
-    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchResults, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
 
     const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as OnyxEntry<Report>;
     const snapshotPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] as OnyxEntry<Policy>;
@@ -52,7 +52,8 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
         getAdditionalOnyxData: hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey),
         fallbackReport: snapshotReport,
         fallbackPolicy: snapshotPolicy,
-        fallbackTransactions: snapshotTransactions,
+        fallbackTransactions: currentSearchTransactionsByReportID.get(reportID) ?? snapshotTransactions,
+        fallbackViolations: currentSearchViolations,
     });
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);

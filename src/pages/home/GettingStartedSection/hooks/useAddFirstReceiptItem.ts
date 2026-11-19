@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import Onyx from 'react-native-onyx';
 
 import type {GettingStartedItem} from './useGettingStartedItems';
 
@@ -46,7 +47,12 @@ function useAddFirstReceiptItem(): UseAddFirstReceiptItemResult {
                 return isReportOwner(report, currentUserAccountID) && (isMoneyRequestReport(report) || isSelfDM(report));
             }),
     });
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
+    // Read the drafts on press, since a subscription would re-render Home when Create expense writes its draft.
+    const startAddFirstReceipt = async () => {
+        const drafts = await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), validTransactionDraftIDsSelector(drafts), CONST.IOU.REQUEST_TYPE.SCAN);
+    };
 
     return {
         // Completes on any of the user's own expenses, so expenses created before this step existed also count.
@@ -55,7 +61,9 @@ function useAddFirstReceiptItem(): UseAddFirstReceiptItemResult {
             label: translate('homePage.gettingStartedSection.addFirstReceipt'),
             subText: translate('homePage.gettingStartedSection.addFirstReceiptSubText'),
             isComplete: hasCreatedExpense,
-            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN),
+            onPress: () => {
+                startAddFirstReceipt();
+            },
         },
         // The selector returns an array once the collection loads, even when it is empty.
         isLoadingTransactions: liveExpenseReportIDs === undefined,

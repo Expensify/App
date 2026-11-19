@@ -1051,14 +1051,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1070,14 +1067,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_STATE: {
         path: 'state',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1633,10 +1627,6 @@ const DYNAMIC_ROUTES = {
         path: 'reveal-validate-code/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
         getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
-    },
-    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        path: 'digital-details/update-address',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
     },
     WALLET_CARD_CHANGE_PIN: {
         path: 'change-pin/:cardID',
@@ -2510,17 +2500,11 @@ const ROUTES = {
     SEARCH_REJECT_REASON_RHP: 'search/reject',
     SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: {
         route: 'search/edit-multiple/tag/:tagListIndex',
         getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
     },
-    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
-    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
     SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
@@ -2721,10 +2705,6 @@ const ROUTES = {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
-    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
-        route: 'settings/card/:cardID/update-address',
-        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
-    },
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
         getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
@@ -2861,7 +2841,6 @@ const ROUTES = {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
-    SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_PRIVATE_PERSONAL_DETAILS: {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
@@ -3897,9 +3876,9 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string, governmentRateCountry?: string) => {
             const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            const urlWithParams = reportID || upgradePlanType || governmentRateCountry ? getUrlWithParams(base, {reportID, upgradePlanType, governmentRateCountry}) : base;
             return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },
@@ -5699,6 +5678,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_IMPORT: {
         route: 'workspaces/:policyID/accounting/digits/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT: {
+        route: 'workspaces/:policyID/accounting/digits/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/digits/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/digits/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/digits/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',

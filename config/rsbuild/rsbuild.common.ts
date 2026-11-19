@@ -181,9 +181,6 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
     return {
         source: {
             define: getDefineValues(file),
-            // Rsbuild already treats images/fonts/pdf as static assets by default; .lottie needs to
-            // be added explicitly so it's emitted as a file instead of falling through to the JS pipeline.
-            assetsInclude: /\.lottie$/,
         },
         resolve: {
             alias: {
@@ -295,6 +292,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                         type: 'asset/source' as const,
                     },
                     {
+                        // Small Lottie archives cannot be inlined because they have no data URL MIME type.
                         test: /\.lottie$/,
                         type: 'asset/resource' as const,
                     },
