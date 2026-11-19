@@ -18,7 +18,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
@@ -3948,6 +3948,86 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', () => {
+            // Given a policy chat where the current user has the approve-only role
+            const reportID = '9001';
+            const policyID = 'policy_approve_only';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Approve Only Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is hidden because approve-only members cannot create policy rooms
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for an actionable report mention whisper when the user can create rooms on the policy', () => {
+            // Given a policy chat where the current user has the member role
+            const reportID = '9002';
+            const policyID = 'policy_member';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Member Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);
         });
     });
