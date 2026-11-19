@@ -15,7 +15,7 @@ import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
