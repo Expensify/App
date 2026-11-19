@@ -17,6 +17,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAttendees from '@hooks/useAttendees';
@@ -120,6 +121,7 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
+    isCardTransactionReimbursableEditable,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
     isCategoryBeingAnalyzed,
     isCustomUnitRateIDForP2P,
@@ -172,6 +174,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -344,7 +347,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    } = getTransactionDetails(displayTransaction, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -395,7 +398,7 @@ function MoneyRequestView({
     const baseTransaction = updatedTransaction ?? transaction;
     const {taxCode, taxValue} = baseTransaction ?? {};
 
-    const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
+    const taxRateTitle = getTaxName(translate, policy, baseTransaction, isExpenseUnreported);
     const resolvedTaxCode = taxCode ? resolveCurrentTaxCode(policy, taxCode) : undefined;
     const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
@@ -558,10 +561,11 @@ function MoneyRequestView({
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
-        canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable) &&
-        !isManagedCardTransactionTransactionUtils(transaction) &&
+        (isManagedCardTransactionTransactionUtils(transaction) || canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction) &&
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
@@ -621,8 +625,6 @@ function MoneyRequestView({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isGroupPolicyByType(reportPolicyType));
-    const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-        getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
@@ -871,10 +873,11 @@ function MoneyRequestView({
             return translate('violations.customUnitOutOfPolicy');
         }
 
-        // Return violations if there are any
-        if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
-            const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-            return `${violations
+        const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
+        const displayableViolations = field === 'merchant' ? violations.filter((violation) => violation.name === CONST.VIOLATIONS.NONDEFAULT_MERCHANT) : violations;
+
+        if (displayableViolations.length > 0) {
+            return `${displayableViolations
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
@@ -1034,7 +1037,8 @@ function MoneyRequestView({
     const distanceRateCopyValue = rateToDisplay || undefined;
     const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(descriptionHTML);
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML, {accountIDToName}) : undefined;
     const merchantCopyValue = updatedMerchantTitle;
     const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
@@ -1754,6 +1758,24 @@ function MoneyRequestView({
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
+                            {!!getErrorForField('reimbursable') && (
+                                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                                    <ViolationMessages
+                                        violations={getViolationsForField('reimbursable')}
+                                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                                        textStyle={[styles.ph0]}
+                                        isLast
+                                        isMarkAsCash={isMarkAsCash}
+                                        canEdit={canEdit}
+                                        companyCardPageURL={companyCardPageURL}
+                                        connectionLink={connectionLink}
+                                        routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                        distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                        policyVendors={policyVendors}
+                                        transactionCurrency={transaction?.currency}
+                                    />
+                                </View>
+                            )}
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
@@ -1846,6 +1868,18 @@ function MoneyRequestView({
                             isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                    <MoneyRequestViewAdditionalFields
+                        transaction={transaction}
+                        report={parentReport}
+                        reportActions={parentReportActions}
+                        policy={policy}
+                        policyCategories={policyCategories}
+                        policyTags={reportPolicyTags}
+                        visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                        isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                    />
                 )}
                 {shouldShowTripRoomLink && (
                     <>

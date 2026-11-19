@@ -77,6 +77,7 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.pendingFields)}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_PROGRAM_ACCOUNT_FEED_ROW}
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
                                     session,

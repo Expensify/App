@@ -978,6 +978,29 @@ const tests = [
         },
     },
     {
+        query: 'type:expense group-by:violation',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:violation columns:group-violation,group-expenses,group-total',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
+            filters: null,
+        },
+    },
+    {
         query: 'type:expense has:approved-violation approver:22982540',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1379,6 +1402,48 @@ const keywordTests = [
                 operator: 'eq',
                 left: 'receiptType',
                 right: ['hotel', 'itemized'],
+            },
+        },
+    },
+    {
+        query: 'violation:missingCategory,overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'violationName',
+                right: ['missingCategory', 'overLimit'],
+            },
+        },
+    },
+    {
+        query: '-violation:missingCategory,overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'violationName',
+                right: ['missingCategory', 'overLimit'],
+            },
+        },
+    },
+    {
+        query: 'violationName:overLimit',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'violationName',
+                right: 'overLimit',
             },
         },
     },

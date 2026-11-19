@@ -102,6 +102,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD], campfireConfig?.pendingFields)}>
                     <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.ACCOUNTING_METHOD}
                         onPress={callIfAuthenticated(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD.getRoute(policyID)) : undefined), session)}
                     >
                         <MenuItemField.Row
@@ -137,6 +138,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.BILL_PAYMENT_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.BILL_PAYMENT_ACCOUNT}
                         name={translate('workspace.campfire.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={billPaymentAccount ? `${billPaymentAccount?.id} ${billPaymentAccount?.name}` : undefined}
@@ -168,6 +170,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.campfire.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={settlementsBankAccount ? `${settlementsBankAccount?.id} ${settlementsBankAccount?.name}` : undefined}
@@ -201,6 +204,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.TRAVEL_BILLING_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.campfire.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.id} ${travelBillingSettlementsBankAccount?.name}` : undefined}
@@ -212,6 +216,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                                 name={translate('workspace.campfire.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingPayableAccount ? `${travelBillingPayableAccount?.id} ${travelBillingPayableAccount?.name}` : undefined}

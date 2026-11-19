@@ -121,6 +121,7 @@ function ConfirmationFooterContent({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({transaction});
 
+    const confirmButtonSentryLabel = CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE[iouType] ?? CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON;
     const splitOrRequestOptions = useConfirmationCtaText({
         expensesNumber,
         isTypeInvoice: iouType === CONST.IOU.TYPE.INVOICE,
@@ -133,6 +134,7 @@ function ConfirmationFooterContent({
         receiptPath,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
+        sentryLabel: confirmButtonSentryLabel,
     });
 
     const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
@@ -195,7 +197,7 @@ function ConfirmationFooterContent({
                         useKeyboardShortcuts
                         // Using || because we want undefined and false to both be treated as falsy for isLoading
                         isLoading={isConfirmed || isConfirming || isLoadingReceipt}
-                        sentryLabel={CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE[iouType] ?? CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
+                        sentryLabel={confirmButtonSentryLabel}
                     />
                 </View>
             </EducationalTooltip>

@@ -105,6 +105,8 @@ const INCLUDED_NODE_MODULES = [
     'expo-video',
     'expo-image',
     'expo-image-manipulator',
+    // Lets knip see that expo-modules-core is used. Remove together with this entry.
+    /** @type {import('expo-modules-core')} */
     'expo-modules-core',
     'victory-native',
     '@shopify/react-native-skia',
@@ -179,13 +181,13 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
     return {
         source: {
             define: getDefineValues(file),
-            // Rsbuild already treats images/fonts/pdf as static assets by default; .lottie needs to
-            // be added explicitly so it's emitted as a file instead of falling through to the JS pipeline.
-            assetsInclude: /\.lottie$/,
         },
         resolve: {
             alias: {
+                // The JSDoc types in this block only let knip see that these packages are used. Remove each with its alias.
+                /** @type {import('lodash-es')} */
                 lodash: 'lodash-es',
+                /** @type {import('react-web-config')} */
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
                 // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
@@ -283,6 +285,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                         type: 'asset/source' as const,
                     },
                     {
+                        // Small Lottie archives cannot be inlined because they have no data URL MIME type.
                         test: /\.lottie$/,
                         type: 'asset/resource' as const,
                     },
@@ -303,6 +306,8 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
                     // where Pager is imported without extension due to having platform-specific implementations
                     {
+                        // Lets knip see that react-native-tab-view is used. Remove together with this rule.
+                        /** @type {import('react-native-tab-view')} */
                         test: /\.js$/,
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],

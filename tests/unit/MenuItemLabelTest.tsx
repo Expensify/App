@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -28,6 +29,7 @@ describe('MenuItem label placement', () => {
                 <MenuItem.Root
                     accessibilityLabel={ROW_ACCESSIBILITY_LABEL}
                     onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
@@ -53,6 +55,7 @@ describe('MenuItem label placement', () => {
                     label={LABEL_TEXT}
                     accessibilityLabel={ROW_ACCESSIBILITY_LABEL}
                     onPress={jest.fn()}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>

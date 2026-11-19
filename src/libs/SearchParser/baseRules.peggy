@@ -28,6 +28,8 @@ groupCurrency
   = "groupCurrency"
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
+tagLevel = "tagLevel"i / "tag-level"i { return "tagLevel"; }
+tagParent = "tagParent"i / "tag-parent"i { return "tagParent"; }
 category = "category"i { return "category"; }
 vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
@@ -53,6 +55,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+violationName
+  = "violationName"
+  / "violation"i { return "violationName"; }
 transactionStatus
   = "transactionStatus"
   / "transaction-status"i { return "transactionStatus"; }
@@ -88,10 +93,14 @@ approved = "approved"i { return "approved"; }
 anyApproval
   = "anyApproval"i { return "anyApproval"; }
   / "any-approval"i { return "anyApproval"; }
+anySubmission
+  = "anySubmission"i { return "anySubmission"; }
+  / "any-submission"i { return "anySubmission"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 withdrawn = "withdrawn"i { return "withdrawn"; }
+workflowStage = "workflowStage"i / "workflow-stage"i { return "workflowStage"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
@@ -157,6 +166,7 @@ columnsValues
   / groupYear
   / groupQuarter
   / groupApprover
+  / groupViolation
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -197,6 +207,7 @@ groupWeek               = "group-week"i &wordBoundary               { return "gr
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
 groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
+groupViolation          = "group-violation"i &wordBoundary          { return "groupViolation"; }
 
 
 operator "operator"

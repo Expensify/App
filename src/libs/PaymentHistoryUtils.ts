@@ -26,6 +26,8 @@ type PaymentHistoryRow = {
     activeUserCount?: number;
     /** Whether the bill was on Collect 2025 pricing, which counts members instead of active users. */
     countsMembers: boolean;
+    /** An invoice bill that resolved to the default Paid state rather than to a settled payment. */
+    isUnsettledInvoice: boolean;
 };
 
 /** The dynamic badge shown on the payment details page, carrying the extra detail that only renders there. */
@@ -104,15 +106,17 @@ function getPaymentHistoryRows(purchases: Purchases | null | undefined): Payment
             continue;
         }
 
+        const state = foldedState.get(purchase.purchaseID)?.state ?? getOwnState(purchase);
         rows.push({
             purchaseID: purchase.purchaseID,
             created: purchase.created,
             amount: getDisplayAmount(purchase),
             currency: purchase.currency,
             showsTax: !!purchase.message.salesTaxCharged && !purchase.message.salesTaxExempt,
-            state: foldedState.get(purchase.purchaseID)?.state ?? getOwnState(purchase),
+            state,
             activeUserCount: getActiveUserCount(purchase),
             countsMembers: !!purchase.message.isTeam2025Pricing,
+            isUnsettledInvoice: purchase.message.billingType === CONST.BILLING.TYPE_INVOICING && state === CONST.PAYMENT_HISTORY.STATE.PAID,
         });
     }
 

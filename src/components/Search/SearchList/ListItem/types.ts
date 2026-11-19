@@ -24,6 +24,7 @@ import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -124,6 +125,11 @@ type TransactionListItemType = ListItem &
 
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
+
+        /**
+         * Violation messages sorted alphabetically for the Violations column.
+         */
+        formattedViolations?: string;
 
         /** The original amount of the transaction */
         originalAmount?: number;
@@ -515,6 +521,9 @@ type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {grou
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
+
+        /** Selected-level display name without dependent parents; absent on legacy full-tag rows. */
+        formattedTagName?: string;
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
@@ -550,6 +559,17 @@ type TransactionApproverGroupListItemType = TransactionGroupListItemType & {grou
 type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
         /** Violation name translated for display and sorting */
         formattedViolation: string;
+    };
+
+type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.PAID_BY} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted name of the member who paid the reports, used for displaying and sorting */
+        formattedPaidBy?: string;
+    };
+
+type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE} & SearchWorkflowStageGroup & {
+        /** Stage name translated for display */
+        formattedWorkflowStage: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -626,6 +646,8 @@ type GroupHeaderItemType =
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
+    | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWorkflowStageGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -687,6 +709,8 @@ export type {
     TransactionQuarterGroupListItemType,
     TransactionApproverGroupListItemType,
     TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

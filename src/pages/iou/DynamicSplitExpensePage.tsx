@@ -178,7 +178,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             parentReport,
         );
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, effectivePolicy, true) ?? {};
     let transactionDetailsAmount;
     // `initSplitExpense` computes the total against the fallback rate for self-DM splits
     // where the original rate was deleted from the workspace, and stores it on the draft.
@@ -491,11 +491,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(item.created, dateFnsLocale);
         previewHeaderText.unshift({text: date}, dotSeparator);
 
         if (isApproved) {

@@ -62,6 +62,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             [],
             targetTransactionPolicy,
