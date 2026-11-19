@@ -1,10 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -13,33 +11,6 @@ import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
 import {containsHtmlTag} from './ValidationUtils';
-
-function formatRequireItemizedReceiptsOverText(
-    translate: LocaleContextProps['translate'],
-    policy: Policy,
-    categoryMaxAmountNoItemizedReceipt: number | null | undefined,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-) {
-    const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
-    const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-
-    if (isAlwaysSelected) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.always`);
-    }
-
-    if (isNeverSelected) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
-    }
-
-    if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
-    }
-
-    return translate(
-        `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
-        convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-    );
-}
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
     const approverRule = approvalRules?.find((rule) =>
@@ -365,7 +336,6 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 }
 
 export {
-    formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,

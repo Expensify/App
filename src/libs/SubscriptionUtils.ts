@@ -561,10 +561,6 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-function shouldCalculateBillNewDot(currentUserAccountID: number, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
-    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
-}
-
 function getSubscriptionPrice(
     plan: PersonalPolicyTypeExcludedProps | null,
     preferredCurrency: PreferredCurrency,
@@ -749,7 +745,6 @@ export {
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
     getEarlyDiscountInfo,
-    shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
     shouldUseSimplifiedCollectSubscriptionUI,
