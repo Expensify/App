@@ -439,6 +439,14 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
+    if (fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO || fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE) {
+        const parsedQuery = parseForAutocomplete(textInputValue);
+        const activeRange = parsedQuery?.autocomplete ?? parsedQuery?.ranges.at(-1);
+
+        // Parser ranges distinguish commas inside quoted template names from value separators.
+        return activeRange?.key === fieldKey ? textInputValue.slice(0, activeRange.start) : getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
     const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
     if (nameFieldKey) {
@@ -476,12 +484,14 @@ function getQueryWithAutocompleteSelection(textInputValue: string, fieldKey: str
     if (fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO && selectedValue.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX)) {
         value = getExportedToDisplayName(selectedValue);
         const templateKey = CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE;
-        const header = /(?:exported-to|exportedTo)[:=]\s*$/i;
+        const header = /(?:exported-to|exportedTo)\s*[:=]\s*$/i;
         // Template values use a separate key so an existing name beginning with "template:" stays literal.
         if (header.test(queryPrefix)) {
             queryPrefix = queryPrefix.replace(header, `${templateKey}:`);
         } else {
-            const negation = parseForAutocomplete(textInputValue)?.autocomplete?.negated ? CONST.SEARCH.NOT_PREFIX : '';
+            const parsedQuery = parseForAutocomplete(textInputValue);
+            const activeRange = parsedQuery?.autocomplete ?? parsedQuery?.ranges.at(-1);
+            const negation = activeRange?.negated ? CONST.SEARCH.NOT_PREFIX : '';
             queryPrefix = `${queryPrefix.replace(/,\s*$/, '')} ${negation}${templateKey}:`;
         }
     }
