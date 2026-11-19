@@ -46,6 +46,11 @@ const OTHER_ACCOUNT_TRANSITION_URL = `${CONST.DEEPLINK_BASE_URL}/${ROUTES.TRANSI
     shortLivedAuthToken: 'token',
     exitTo: ROUTES.HOME,
 }).toString()}`;
+const SAME_ACCOUNT_TRANSITION_URL = `${CONST.DEEPLINK_BASE_URL}/${ROUTES.TRANSITION_BETWEEN_APPS}?${new URLSearchParams({
+    email: OUTGOING_EMAIL,
+    shortLivedAuthToken: 'token',
+    exitTo: ROUTES.HOME,
+}).toString()}`;
 
 let mockInitialURL = SUPPORT_TRANSITION_URL;
 
@@ -305,5 +310,35 @@ describe('LogOutPreviousUserPage', () => {
         // Then the page processes the link and goes Home instead of showing the not-found page
         expect(screen.queryByTestId('NotFoundPage')).toBeNull();
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('keeps the user on the current screen after the mismatch modal when the transition page was already left', async () => {
+        // Given an account signed in to NewDot and a link for the same account whose token the server rejects as a mismatch
+        mockInitialURL = SAME_ACCOUNT_TRANSITION_URL;
+        let resolveSignIn: (response: Awaited<ReturnType<typeof signInWithShortLivedAuthToken>>) => void = () => {};
+        jest.mocked(signInWithShortLivedAuthToken).mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveSignIn = resolve;
+            }),
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+        renderPage({shortLivedAuthToken: 'token', email: OUTGOING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the exitTo navigation has left the transition page before the response reports the mismatch
+        act(() => {
+            navigationRef.dispatch(StackActions.replace(SCREENS.CONCIERGE));
+        });
+        await act(async () => {
+            resolveSignIn({type: CONST.ERROR_TYPE.ACCOUNT_MISMATCH} as Awaited<ReturnType<typeof signInWithShortLivedAuthToken>>);
+        });
+        const goBackCallCountBeforeDismiss = jest.mocked(Navigation.goBack).mock.calls.length;
+        fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.buttonConfirm')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then dismissing the modal does not move the user, because they are no longer on the transition page
+        expect(jest.mocked(Navigation.goBack).mock.calls.length).toBe(goBackCallCountBeforeDismiss);
     });
 });

@@ -167,8 +167,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                 }).then(() => {
-                    // Go to the home page once the user dismisses this. The exitTo navigation below only runs when !CONFIG.IS_HYBRID_APP, so nothing else leaves /transition on HybridApp.
+                    // Go to the home page once the user dismisses this, unless the exitTo navigation below already left /transition. Nothing else leaves /transition on HybridApp.
                     Navigation.isNavigationReady().then(() => {
+                        if (navigationRef.getRootState()?.routes.at(-1)?.name !== SCREENS.TRANSITION_BETWEEN_APPS) {
+                            return;
+                        }
                         Navigation.goBack(ROUTES.HOME);
                     });
                 });
