@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState} from 'react';
 
-/** Why the watchdog fired: 'ceiling' when no bytes ever arrived, 'stall' when bytes arrived and then stopped. */
+/** 'ceiling': no bytes ever arrived. 'stall': bytes arrived, then stopped */
 type ImageLoadStallReason = 'ceiling' | 'stall';
 
 /**

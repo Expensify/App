@@ -86,7 +86,7 @@ function ImageWithSizeCalculation({
     return (
         // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
-            // A new source, including a recycled list row, must not inherit the previous image's stall and retry state
+            // Remount on a new source so a recycled row doesn't inherit the old stall state
             key={getImageLoadSource(source)}
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}

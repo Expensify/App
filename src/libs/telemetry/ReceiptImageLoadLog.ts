@@ -1,4 +1,4 @@
-/** Logs receipt image errors, stalls, retries and recoveries under the [Receipt] prefix, without the image URL */
+/** Logs receipt image errors, stalls, retries and recoveries, never the image URL */
 import type {ImageLoadEvent, ImageLoadEventReporter} from '@components/ImageLoadEventContext';
 
 import Log from '@libs/Log';
@@ -23,12 +23,11 @@ const EVENT_NAMES = {
     recovered: 'uiRecovered',
 } as const satisfies Record<ImageLoadEvent['type'], string>;
 
-// A dropped connection fails every thumbnail on a Search page at once, so each receipt, surface, event and source logs once
+// One line per receipt, surface, event and source, since a dropped connection fails every thumbnail at once
 const loggedKeys = new Set<string>();
 const MAX_LOGGED_KEYS = 1000;
 
-// Distinct receipts failing together in a list or a chat full of previews still flood the JS thread, so every surface but the
-// single-receipt modal is capped per window
+// Many distinct receipts can fail together in a list or chat, so every surface but the modal is capped
 const BURST_WINDOW_MS = 10_000;
 const MAX_LINES_PER_WINDOW = 10;
 const bursts = new Map<string, {windowStart: number; lineCount: number; suppressedCount: number}>();
@@ -52,7 +51,7 @@ function getReceiptSourceKind(source: string | number | undefined): ReceiptSourc
     return 'local';
 }
 
-/** Keeps signed URL tokens and large data URIs out of the dedupe key, so a rotated token still dedupes */
+/** Strips the query and data URIs so tokens stay out of memory and a rotated token still dedupes */
 function getSourceIdentity(source: string | number | undefined): string {
     if (typeof source !== 'string') {
         return String(source);
@@ -63,7 +62,7 @@ function getSourceIdentity(source: string | number | undefined): string {
     return source.split(/[?#]/, 1).at(0) ?? '';
 }
 
-/** Returns how many lines were dropped before this one, or null when this line is over the cap and must be dropped too */
+/** Returns how many lines were dropped before this one, or null to drop this one */
 function takeBurstSlot(surface: ReceiptImageSurface, type: ImageLoadEvent['type']): number | null {
     const now = Date.now();
     const burstKey = `${surface}|${type}`;
@@ -117,7 +116,7 @@ function logReceiptImageLoadEvent(transaction: OnyxEntry<Transaction>, surface: 
     };
     const message = `${RECEIPT_LOG_PREFIX} ${eventName}`;
 
-    // Errors and stalls are what we count. Retries and recoveries only explain what came after them
+    // Errors and stalls are the counted states. Retries and recoveries only explain them
     if (event.type === 'error' || event.type === 'stall') {
         Log.hmmm(message, parameters);
         return;

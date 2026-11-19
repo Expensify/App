@@ -99,7 +99,7 @@ function ImageWithLoading({
     };
 
     const imageLoadedSuccessfully = (e: ImageOnLoadEvent) => {
-        // A load that ends after a stall or a retry is a recovery, which tells a slow load from a stuck one
+        // Loading after a stall or a retry counts as a recovery
         if (hasLoadTimedOutRef.current || reloadKey > 0) {
             reportImageLoadEvent?.({type: 'recovered', component: 'ImageWithLoading', source: loadSource});
         }

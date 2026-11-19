@@ -1,4 +1,4 @@
-/** Lets receipt screens hear about load problems from the generic image components below them */
+/** Lets receipt screens log load problems from the generic image components. Without a provider nothing is reported */
 import type {ImageLoadStallReason} from '@hooks/useImageLoadStall';
 
 import {createContext} from 'react';
@@ -10,13 +10,13 @@ type ImageLoadComponent = 'ImageWithLoading' | 'ImageView' | 'Lightbox';
 type ImageLoadEvent = {
     component: ImageLoadComponent;
 
-    /** The raw URI, which can be a signed link. Use it to tell sources apart, never log it */
+    /** Raw URI, possibly a signed link. Never log it */
     source: string | number | undefined;
 } & (
     | {
           type: 'error';
 
-          /** The load had already hit the stall timeout */
+          /** The load had already stalled */
           afterTimeout: boolean;
       }
     | {type: 'stall'; reason: ImageLoadStallReason}
@@ -26,7 +26,6 @@ type ImageLoadEvent = {
 
 type ImageLoadEventReporter = (event: ImageLoadEvent) => void;
 
-/** Receipt screens provide this to log image load problems. Chat images have no provider, so they never reach the logs */
 const ImageLoadEventContext = createContext<ImageLoadEventReporter | undefined>(undefined);
 
 function getImageLoadSource(source: BaseImageProps['source']): string | number | undefined {
