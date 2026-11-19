@@ -1,21 +1,25 @@
 import {act, render} from '@testing-library/react-native';
 
 import type {ParamListBase, TabNavigationState} from '@react-navigation/native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {NativeBottomTabView} from '@react-navigation/bottom-tabs/unstable';
 import {DefaultTheme, ThemeProvider} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
+import {StyleSheet} from 'react-native';
 
 type NativeBottomTabViewProps = Parameters<typeof NativeBottomTabView>[0];
 
 type MockTabsHostProps = {
     navStateRequest: {selectedScreenKey: string};
+    tabBarItemSelectionHidden?: boolean;
     onTabSelected: (event: {nativeEvent: {selectedScreenKey: string; provenance: number; actionOrigin: string}}) => void;
     children: React.ReactNode;
 };
 
 type MockTabsScreenProps = {
     screenKey: string;
+    specialEffects?: {repeatedTabSelection?: {popToRoot?: boolean; scrollToTop?: boolean}};
     children: React.ReactNode;
 };
 
@@ -23,33 +27,38 @@ type MockTabsScreenProps = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const NativeTabView = NativeBottomTabView as unknown as React.ComponentType<NativeBottomTabViewProps>;
 
-// Each mounted native tab and each mounted tab content, in mount order
+// Each mounted native tab, and each mounted tab content as `<route key>@<native tab it is drawn inside>`, in mount order
 const mockNativeTabMounts: string[] = [];
 const contentMounts: string[] = [];
 let mockLatestHostProps: MockTabsHostProps | undefined;
+const mockLatestScreenProps = new Map<string, MockTabsScreenProps>();
 
 jest.mock('react-native-screens', () => {
-    const {useEffect: mockUseEffect} = jest.requireActual<typeof React>('react');
+    const {useEffect: mockUseEffect, createContext, createElement} = jest.requireActual<typeof React>('react');
+    const mockNativeTabContext = createContext<string | undefined>(undefined);
 
     function Host(props: MockTabsHostProps) {
         mockLatestHostProps = props;
         return props.children;
     }
 
-    function Screen({screenKey, children}: MockTabsScreenProps) {
+    function Screen(props: MockTabsScreenProps) {
+        const {screenKey, children} = props;
+        mockLatestScreenProps.set(screenKey, props);
         mockUseEffect(() => {
             mockNativeTabMounts.push(screenKey);
         }, []);
-        return children;
+        return createElement(mockNativeTabContext.Provider, {value: screenKey}, children);
     }
 
-    return {Tabs: {Host, Screen}};
+    return {Tabs: {Host, Screen}, mockNativeTabContext};
 });
 
 function TabContent({routeKey}: {routeKey: string}) {
+    const nativeTab = useContext(jest.requireMock<{mockNativeTabContext: React.Context<string | undefined>}>('react-native-screens').mockNativeTabContext);
     useEffect(() => {
-        contentMounts.push(routeKey);
-    }, [routeKey]);
+        contentMounts.push(`${routeKey}@${nativeTab}`);
+    }, [routeKey, nativeTab]);
     return null;
 }
 
@@ -86,17 +95,43 @@ function buildHiddenAccountTabState(): TabNavigationState<ParamListBase> {
     };
 }
 
+// Flat nav: Spend hidden and drawn in the Expenses placeholder, Workspaces hidden and drawn in More, Account hidden with no host
+function buildFlatNavTabState(focusedRouteName: string): TabNavigationState<ParamListBase> {
+    const routeNames = ['Inbox', 'Expenses', 'More', 'Spend', 'Workspaces', 'Account'];
+    return {
+        type: 'tab',
+        key: 'tab',
+        index: routeNames.indexOf(focusedRouteName),
+        stale: false,
+        routeNames,
+        routes: routeNames.map((name) => ({name, key: `${name}-key`})),
+        history: [{type: 'route', key: `${focusedRouteName}-key`}],
+        preloadedRouteKeys: [],
+    };
+}
+
+const FLAT_NAV_OPTIONS: Record<string, Record<string, unknown>> = {
+    More: {tabBarSelectionEnabled: false},
+    Spend: {tabBarItemHidden: true, tabBarItemHostRouteName: 'Expenses'},
+    Workspaces: {tabBarItemHidden: true, tabBarItemHostRouteName: 'More'},
+    Account: {tabBarItemHidden: true},
+};
+
 function buildNavigation() {
     return {dispatch: jest.fn(), emit: jest.fn(), getState: jest.fn()};
 }
 
-function buildDescriptors(state: TabNavigationState<ParamListBase>, hiddenRouteNames: string[]): NativeBottomTabViewProps['descriptors'] {
+function buildDescriptors(
+    state: TabNavigationState<ParamListBase>,
+    hiddenRouteNames: string[],
+    optionsByRouteName: Record<string, Record<string, unknown>> = {},
+): NativeBottomTabViewProps['descriptors'] {
     const descriptors = Object.fromEntries(
         state.routes.map((route) => [
             route.key,
             {
                 route,
-                options: {tabBarItemHidden: hiddenRouteNames.includes(route.name)},
+                options: {tabBarItemHidden: hiddenRouteNames.includes(route.name), ...optionsByRouteName[route.name]},
                 navigation: {},
                 render: () => <TabContent routeKey={route.key} />,
             },
@@ -107,7 +142,13 @@ function buildDescriptors(state: TabNavigationState<ParamListBase>, hiddenRouteN
     return descriptors as unknown as NativeBottomTabViewProps['descriptors'];
 }
 
-function renderTabView(state: TabNavigationState<ParamListBase>, navigation: ReturnType<typeof buildNavigation>, hiddenRouteNames: string[] = []) {
+function renderTabView(
+    state: TabNavigationState<ParamListBase>,
+    navigation: ReturnType<typeof buildNavigation>,
+    hiddenRouteNames: string[] = [],
+    optionsByRouteName: Record<string, Record<string, unknown>> = {},
+) {
+    navigation.getState.mockReturnValue(state);
     return (
         <ThemeProvider value={DefaultTheme}>
             <NativeTabView
@@ -115,10 +156,35 @@ function renderTabView(state: TabNavigationState<ParamListBase>, navigation: Ret
                 // The view calls only the navigation methods the mock provides.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 navigation={navigation as unknown as NativeBottomTabViewProps['navigation']}
-                descriptors={buildDescriptors(state, hiddenRouteNames)}
+                descriptors={buildDescriptors(state, hiddenRouteNames, optionsByRouteName)}
             />
         </ThemeProvider>
     );
+}
+
+function renderFlatNav(focusedRouteName: string, {navigation = buildNavigation(), options = FLAT_NAV_OPTIONS} = {}) {
+    return render(renderTabView(buildFlatNavTabState(focusedRouteName), navigation, [], options));
+}
+
+function selectNatively(selectedScreenKey: string) {
+    act(() => {
+        mockLatestHostProps?.onTabSelected({nativeEvent: {selectedScreenKey, provenance: 1, actionOrigin: 'user'}});
+    });
+}
+
+function isViewStyleProp(style: unknown): style is StyleProp<ViewStyle> {
+    return typeof style === 'object';
+}
+
+// The `display` of the view a hidden route is drawn in, found from its content
+function getHiddenRouteDisplay(screen: ReturnType<typeof render>, routeKey: string) {
+    const content = screen.UNSAFE_getByProps({routeKey});
+    let instance: typeof content | null = content;
+    while (instance && instance.props.pointerEvents === undefined) {
+        instance = instance.parent;
+    }
+    const style: unknown = instance?.props.style;
+    return isViewStyleProp(style) ? StyleSheet.flatten(style)?.display : undefined;
 }
 
 describe('NativeBottomTabView', () => {
@@ -126,6 +192,7 @@ describe('NativeBottomTabView', () => {
         mockNativeTabMounts.length = 0;
         contentMounts.length = 0;
         mockLatestHostProps = undefined;
+        mockLatestScreenProps.clear();
     });
 
     it('keeps the native tab when the focused route gets a new key, and remounts only its content', () => {
@@ -139,7 +206,7 @@ describe('NativeBottomTabView', () => {
         // Then no native tab is mounted again, since Android never removes the replaced one and would show Inbox twice
         expect(mockNativeTabMounts).toEqual(['Inbox', 'Spend']);
         // And the Inbox content still remounts under its new key, so the remount the new key asks for still happens
-        expect(contentMounts.filter((routeKey) => routeKey.startsWith('Inbox'))).toEqual(['Inbox-key-1', 'Inbox-key-2']);
+        expect(contentMounts.filter((mount) => mount.startsWith('Inbox'))).toEqual(['Inbox-key-1@Inbox', 'Inbox-key-2@Inbox']);
         // And native is asked to select the tab by its route name, which did not change
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
     });
@@ -159,6 +226,22 @@ describe('NativeBottomTabView', () => {
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Spend'}), target: 'tab'}));
     });
 
+    it('navigates back to the rendered tab when the user taps it after another tap navigated away before JS rendered', () => {
+        // Given the Inbox tab rendered, and a native tap on Spend that navigated before JS rendered again
+        const navigation = buildNavigation();
+        const inboxState = buildTabState('Inbox-key-1');
+        render(renderTabView(inboxState, navigation));
+        selectNatively('Spend');
+        navigation.getState.mockReturnValue({...inboxState, index: 1, history: [{type: 'route', key: 'Spend-key'}]});
+        navigation.dispatch.mockClear();
+
+        // When the user taps Inbox, which native already shows as selected again
+        selectNatively('Inbox');
+
+        // Then JS navigates back to Inbox, since the navigator is on Spend, so the bar and the screen do not end on different tabs
+        expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'}));
+    });
+
     it('leaves a focused hidden route when the user taps the tab it is drawn in', () => {
         // Given Account focused, drawn in the natively selected Inbox tab
         const navigation = buildNavigation();
@@ -171,5 +254,98 @@ describe('NativeBottomTabView', () => {
 
         // Then JS navigates to Inbox, since no item is drawn as selected and the tap is the user leaving Account
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'}));
+    });
+
+    it.each([
+        {focusedRouteName: 'Spend', hostRouteName: 'Expenses', repeatedTabSelection: {popToRoot: true, scrollToTop: true}},
+        {focusedRouteName: 'Workspaces', hostRouteName: 'More', repeatedTabSelection: {popToRoot: false, scrollToTop: false}},
+    ])('selects and draws $focusedRouteName inside its explicit host $hostRouteName', ({focusedRouteName, hostRouteName, repeatedTabSelection}) => {
+        // Given a hidden route focused with a placeholder as its host, as the flat nav bar does. More has its own selection
+        // disabled, because a tap on it opens a menu.
+        renderFlatNav(focusedRouteName);
+
+        // When the native host is asked which tab to select
+        // Then it selects the host and keeps its selection drawn, so the bar highlights the slot the route stands in
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe(hostRouteName);
+        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(false);
+        // And the route is drawn inside that host rather than the first visible tab
+        expect(contentMounts).toContain(`${focusedRouteName}-key@${hostRouteName}`);
+        // And a repeated tap pops and scrolls the route as a tap on a selected tab does, unless the host leaves it to JS
+        // because its selection is disabled
+        expect(mockLatestScreenProps.get(hostRouteName)?.specialEffects?.repeatedTabSelection).toEqual(repeatedTabSelection);
+    });
+
+    it.each([
+        {tappedRouteName: 'Expenses', expectedDispatches: []},
+        {tappedRouteName: 'Inbox', expectedDispatches: [[expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'})]]},
+    ])('leaves a hidden route only when the user taps a tab other than its host: $tappedRouteName', ({tappedRouteName, expectedDispatches}) => {
+        // Given Spend focused inside the natively selected Expenses placeholder
+        const navigation = buildNavigation();
+        renderFlatNav('Spend', {navigation});
+
+        // When the user taps its host again, which native reports as a repeated selection, or another visible tab
+        selectNatively(tappedRouteName);
+
+        // Then the press reaches the tapped tab, but JS navigates only away from the host: Expenses shows as selected, so
+        // a tap on it repeats the selection of Spend instead of leaving it
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: `${tappedRouteName}-key`});
+        expect(navigation.dispatch.mock.calls).toEqual(expectedDispatches);
+    });
+
+    it('mounts a route with an explicit host ahead of its first visit, inside that host', () => {
+        // Given the flat nav tabs with Inbox focused, so Spend and Workspaces have not been visited
+        renderFlatNav('Inbox');
+
+        // When the deferred tabs render after the first commit
+        // Then Spend and Workspaces are mounted inside their hosts, like the visible tabs, so they are ready when first opened
+        expect(contentMounts).toEqual(expect.arrayContaining(['Spend-key@Expenses', 'Workspaces-key@More']));
+        // And Account, which has no explicit host, stays unmounted until it is first visited, as before
+        expect(contentMounts.some((mount) => mount.startsWith('Account-key'))).toBe(false);
+    });
+
+    it('falls back to the first visible tab when the host is not a visible route', () => {
+        // Given Spend focused with a host that is not registered, as when the placeholders are gone after the beta is turned off
+        renderFlatNav('Spend', {options: {...FLAT_NAV_OPTIONS, Spend: {tabBarItemHidden: true, tabBarItemHostRouteName: 'Missing'}}});
+
+        // When the native host is asked which tab to select
+        // Then Spend is drawn like a route without a host, so it is never left without a tab to be drawn in
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(true);
+    });
+
+    it('draws a hidden route without a host exactly as before host routes', () => {
+        // Given Account focused, which has no host, next to routes that have one
+        renderFlatNav('Account');
+
+        // When the native tabs are configured
+        // Then it is drawn in the first visible tab, which the host selects with no item drawn as selected and no
+        // repeated selection effects, the same as patch 005 draws it
+        expect(contentMounts).toContain('Account-key@Inbox');
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(true);
+        expect(mockLatestScreenProps.get('Inbox')?.specialEffects?.repeatedTabSelection).toEqual({popToRoot: false, scrollToTop: false});
+    });
+    it('keeps the route a host showed laid out while another tab is focused', () => {
+        // Given Spend focused in its Expenses host and then Inbox focused
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the views the hidden routes are drawn in are laid out
+        // Then Spend stays laid out in Expenses, so a native tap on Expenses shows it before JS focuses it again, and
+        // Workspaces, the only route More hosts, is laid out there the same way
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+        expect(getHiddenRouteDisplay(screen, 'Workspaces-key')).toBeUndefined();
+    });
+
+    it('hides a hidden route without a host while it is not focused', () => {
+        // Given Account, which has no host, visited and then left for Inbox
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Account'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the view Account is drawn in is laid out
+        // Then it is hidden, since it is drawn over the content of Inbox, the tab it shares
+        expect(getHiddenRouteDisplay(screen, 'Account-key')).toBe('none');
     });
 });

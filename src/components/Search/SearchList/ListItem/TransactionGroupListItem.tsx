@@ -24,7 +24,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType, isTransactionViolationGroupListItemType} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -75,6 +75,7 @@ import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
+import ViolationListItemHeader from './ViolationListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -505,8 +506,20 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: isTransactionViolationGroupListItemType(groupItem) ? (
+                <ViolationListItemHeader
+                    violation={groupItem}
+                    onCheckboxPress={handleSelectionButtonPress}
+                    isDisabled={isDisabledOrEmpty}
+                    columns={columns}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
+                />
+            ) : null,
             // Only Insights charts group by these, so Search never lists their groups
-            [CONST.SEARCH.GROUP_BY.VIOLATION]: null,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: null,
         };

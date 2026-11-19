@@ -51,6 +51,7 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
+import useWorkspaceCompanyCardsBulkActions from './useWorkspaceCompanyCardsBulkActions';
 import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableControls';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
@@ -284,7 +285,8 @@ function WorkspaceCompanyCardsTable({
             label: '',
             sortable: false,
             styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.pr3],
             },
             // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
             // content while at least one row can render the button.
@@ -552,15 +554,24 @@ function WorkspaceCompanyCardsTable({
                 />
             </View>
         ) : undefined;
+    // Derived here rather than from the table's own rows, so the floating bar and the narrow layout's dropdown are
+    // built from one selection.
+    const selectedCards = cardsData.filter((card) => !card.disabled && validSelectedCardKeys.includes(keyExtractor(card)));
+    const bulkActionOptions = useWorkspaceCompanyCardsBulkActions({
+        policyID,
+        domainOrWorkspaceAccountID,
+        bankName,
+        feedName,
+        canWriteCompanyCards,
+        clearCardSelection,
+        selectedCards,
+    });
+
     const tableControlsComponent = showCards ? (
         <WorkspaceCompanyCardsTableControls
-            policyID={policyID}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            bankName={bankName}
-            feedName={feedName}
-            canWriteCompanyCards={canWriteCompanyCards}
-            clearCardSelection={clearCardSelection}
+            bulkActionOptions={bulkActionOptions}
             isSelectionModeEnabled={isSelectionModeEnabled}
+            selectedCardsCount={selectedCards.length}
         />
     ) : undefined;
     const balanceLabelsComponent = showCards ? (
@@ -680,6 +691,7 @@ function WorkspaceCompanyCardsTable({
             )}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
+            {showCards && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }
