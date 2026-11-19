@@ -1,8 +1,6 @@
-import type {CardProgramKey} from '@libs/CardUtils';
-
 type QueueExpensifyCardForBillingParams = {
+    feedCountry?: string;
     domainAccountID: number;
-    feedCountry?: CardProgramKey;
 };
 
 export default QueueExpensifyCardForBillingParams;
