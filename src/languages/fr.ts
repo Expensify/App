@@ -1884,14 +1884,14 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmPay: 'Confirmer le montant du paiement',
         wisePaymentSummary: {
             confirmPayment: 'Confirmer le paiement',
+            reportTotal: 'Total de la note de frais',
             employeeWillReceive: 'L’employé recevra',
             companyWillPay: 'L’entreprise paiera',
             totalFees: 'Frais totaux',
             fxRate: 'Taux de change',
             paymentDetails: 'Détails du paiement',
-            companyPaid: "L'entreprise a payé",
+            debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
-            paymentServicesProvidedByWise: 'Services de paiement fournis par Wise',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
                 `<muted-text-label>Le destinataire peut recevoir moins en raison des frais facturés par sa banque et des taxes étrangères. En cliquant sur ${buttonText}, j’accepte les <a href="${CONST.WISE.TERMS_URL}">Conditions d’utilisation</a> et la <a href="${CONST.WISE.PRIVACY_URL}">Politique de confidentialité</a> de Wise.</muted-text-label>`,
             payAll: 'Tout payer',

@@ -1876,14 +1876,14 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmPay: 'Zahlungsbetrag bestätigen',
         wisePaymentSummary: {
             confirmPayment: 'Zahlung bestätigen',
+            reportTotal: 'Berichtssumme',
             employeeWillReceive: 'Mitarbeiter erhält',
             companyWillPay: 'Unternehmen zahlt',
             totalFees: 'Gesamtgebühren',
             fxRate: 'Wechselkurs',
             paymentDetails: 'Zahlungsdetails',
-            companyPaid: 'Unternehmen zahlte',
+            debitedAmount: 'Abgebuchter Betrag',
             employeeReceived: 'Mitarbeiter erhielt',
-            paymentServicesProvidedByWise: 'Zahlungsdienste bereitgestellt von Wise',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
                 `<muted-text-label>Der Empfänger erhält möglicherweise weniger aufgrund von Gebühren seiner Bank und ausländischen Steuern. Mit Klick auf ${buttonText} akzeptiere ich die <a href="${CONST.WISE.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzrichtlinie</a> von Wise.</muted-text-label>`,
             payAll: 'Alle bezahlen',

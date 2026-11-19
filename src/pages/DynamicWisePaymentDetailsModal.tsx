@@ -3,7 +3,6 @@ import Button from '@components/Button';
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import HeaderTitle from '@components/HeaderTitle';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import WisePaymentSummary from '@components/WisePaymentSummary';
 import {getLatestPaidWisePaymentAmounts} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 import getWisePaymentSummaryRows from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
@@ -66,12 +65,6 @@ function DynamicWisePaymentDetailsModal({route}: DynamicWisePaymentDetailsModalP
                             rows={getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly: false, isPaid: true, translate, convertToDisplayString})}
                         />
                     )}
-                    <Text
-                        variant="label"
-                        style={[styles.textSupporting, styles.textAlignCenter, styles.mt5]}
-                    >
-                        {translate('iou.wisePaymentSummary.paymentServicesProvidedByWise')}
-                    </Text>
                 </ScrollView>
                 <Button
                     style={styles.m5}

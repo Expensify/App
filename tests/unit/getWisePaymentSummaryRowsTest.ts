@@ -91,11 +91,30 @@ describe('getWisePaymentSummaryRows', () => {
 
     it('names the amounts in the past tense in the payment details', () => {
         // Given a report that was already paid through Wise
-        // When the rows are built for the payment details
+        // When the rows are built for View details
         const rows = getRows({isPaid: true});
 
-        // Then the rows keep their order and only the tense changes, so the labels match the ones the admin saw before Pay
-        expect(rows.map(({label}) => label)).toEqual(['Reimbursable', 'Total fees', 'Company paid', 'Employee received', 'FX rate']);
+        // Then the admin reads what was debited and what the employee received, in the payment details layout
+        expect(rows.map(({label}) => label)).toEqual(['Report total', 'Debited amount', 'Employee received', 'Total fees', 'FX rate']);
+    });
+
+    it('adds the reimbursable part and the tax to the payment details when they apply', () => {
+        // Given a paid report where only $1.00 of $6.60 was reimbursable, and Wise charged a tax
+        const report = {...fullyReimbursableReport, total: -660, reimbursableTotal: -100, nonReimbursableTotal: -560};
+
+        // When the rows are built for View details
+        const rows = getRows({report, amounts: {...amounts, tax: 25}, isPaid: true});
+
+        // Then the reimbursable row follows the report total and the tax follows the fees, since the report total alone does not say what Wise sent
+        expect(rows).toEqual([
+            {label: 'Report total', value: '$6.60'},
+            {label: 'Reimbursable', value: '$1.00'},
+            {label: 'Debited amount', value: '$10.10'},
+            {label: 'Employee received', value: '£7.41'},
+            {label: 'Total fees', value: '$0.10'},
+            {label: 'Tax', value: '$0.25'},
+            {label: 'FX rate', value: '$1 = £0.7407'},
+        ]);
     });
 
     it('shows N/A as the FX rate when Wise pays in the same currency', () => {
