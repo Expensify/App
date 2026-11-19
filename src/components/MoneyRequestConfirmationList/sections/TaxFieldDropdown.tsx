@@ -4,6 +4,8 @@ import TaxPickerModal from '@components/TaxPicker/TaxPickerModal';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionTaxRate from '@hooks/useUpdateTransactionTaxRate';
 
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -39,7 +41,7 @@ function TaxFieldDropdown({transactionID, policy, selectedTaxRate, onClose, ...p
 
     const {updateTaxRate} = useUpdateTransactionTaxRate({
         transactionID,
-        transaction: draftTransaction ?? transaction,
+        transaction: shouldUseTransactionDraft(action, iouType) ? (draftTransaction ?? transaction) : transaction,
         report,
         policy,
         isEditing: action === CONST.IOU.ACTION.EDIT,

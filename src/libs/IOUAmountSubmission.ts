@@ -633,84 +633,102 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
     submitGlobalCreate(args, ctx);
 }
 
-function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
-    const {
-        policy,
-        selectedCurrency,
-        decimals,
-        transactionID,
-        splitDraftTransaction,
-        transaction,
-        report,
-        duplicateTransactions,
-        duplicateTransactionViolations,
-        policyCategories,
-        delegateAccountID,
-        policyRecentlyUsedCurrencies,
-        allReports,
-        allPersonalDetails,
-        navigateBack,
-        isTrackIntentUser,
-        reportPolicyTags,
-        getCurrencyDecimals,
-        getCurrencySymbol,
-        rules,
-    } = args;
-    const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
+/**
+ * The tax a saved expense takes once its amount or currency changes. A currency change re-applies the new currency's
+ * default tax rate, but only while the current rate is still the auto-applied default for the previous currency, so a
+ * rate the user picked is kept (mirrors the create-flow guard in `submitCreateAmount`).
+ */
+function getTaxForEditedAmount(policy: OnyxEntry<OnyxTypes.Policy>, transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount: number, newCurrency: string, decimals: number) {
+    const transactionCurrency = getCurrency(transaction);
+    const transactionTaxCode = getTransactionDetails(transaction)?.taxCode;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, newCurrency) ?? '';
+    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, transaction, transactionCurrency, transactionTaxCode);
+    const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, transaction, transactionTaxCode ?? '') !== undefined;
+    const taxCode = ((newCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+    const taxValue = getTaxValue(policy, transaction, taxCode) ?? '';
+    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, newAmount, decimals));
+    return {taxCode, taxValue, taxAmount};
+}
 
-    // If the value hasn't changed, don't request to save changes on the server and just close the modal
-    const transactionCurrency = getCurrency(currentTransaction);
-    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
-    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
-        navigateBack();
-        return;
-    }
+type UpdateSavedExpenseAmountParams = Pick<
+    SubmitAmountArgs,
+    | 'policy'
+    | 'transactionID'
+    | 'transaction'
+    | 'duplicateTransactions'
+    | 'duplicateTransactionViolations'
+    | 'policyCategories'
+    | 'delegateAccountID'
+    | 'policyRecentlyUsedCurrencies'
+    | 'isTrackIntentUser'
+    | 'reportPolicyTags'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'isASAPSubmitBetaEnabled'
+    | 'isVendorMatchingBetaEnabled'
+> & {
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
 
-    // When the currency changes we re-apply the new currency's default tax rate, but only when the current tax rate is
-    // still the auto-applied default for the previous currency. A tax rate the user picked manually is preserved across
-    // the currency change (mirrors the create-flow guard in `submitCreateAmount`).
-    const transactionTaxCode = getTransactionDetails(currentTransaction)?.taxCode;
-    const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, selectedCurrency) ?? '';
-    const isCurrentTaxAutoDefault = isTaxCodeAutoDefaultForCurrency(policy, currentTransaction, transactionCurrency, transactionTaxCode);
-    const isTransactionTaxCodeValid = transactionTaxCode === '' || getTaxValue(policy, currentTransaction, transactionTaxCode ?? '') !== undefined;
-    const taxCode = ((selectedCurrency !== transactionCurrency && isCurrentTaxAutoDefault) || !isTransactionTaxCodeValid ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
-    const taxPercentage = getTaxValue(policy, currentTransaction, taxCode) ?? '';
-    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
+    /** New amount, signed and in the smallest currency unit */
+    amount: number;
+    currency: string;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+};
 
-    if (isSplitBill) {
-        setDraftSplitTransaction(
-            transactionID,
-            splitDraftTransaction ?? transaction,
-            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
-            getCurrencyDecimals,
-            getCurrencySymbol,
-        );
-        navigateBack();
-        return;
-    }
+/**
+ * Saves a new amount and currency to a saved expense, along with the tax they work out to. Both the amount page and
+ * the inline amount input on the expense view save through here, so an edit in either leaves the expense in the same state.
+ */
+function updateSavedExpenseAmount({
+    policy,
+    transactionID,
+    transaction,
+    transactionThreadReport,
+    parentReport,
+    iouReportOwnerLogin,
+    amount,
+    currency,
+    duplicateTransactions,
+    duplicateTransactionViolations,
+    policyCategories,
+    currentUserAccountID,
+    currentUserEmail,
+    isASAPSubmitBetaEnabled,
+    policyRecentlyUsedCurrencies,
+    delegateAccountID,
+    reportPolicyTags,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    getCurrencySymbol,
+    rules,
+    isVendorMatchingBetaEnabled,
+}: UpdateSavedExpenseAmountParams): void {
+    const {taxCode, taxValue, taxAmount} = getTaxForEditedAmount(policy, transaction, amount, currency, getCurrencyDecimals(currency));
 
     // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
     if (transaction?.splitShares) {
-        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, getCurrencyDecimals, false);
+        resetSplitShares(transaction, amount, currency, currentUserAccountID, getCurrencyDecimals, false);
     }
 
-    const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
-
     updateMoneyRequestAmountAndCurrency({
-        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
+        isVendorMatchingBetaEnabled,
         transactionID,
-        transaction: currentTransaction,
-        transactionThreadReport: report,
+        transaction,
+        transactionThreadReport,
         parentReport,
-        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
+        iouReportOwnerLogin,
         transactions: duplicateTransactions,
         transactionViolations: duplicateTransactionViolations,
-        currency: selectedCurrency,
-        amount: newAmount,
+        currency,
+        amount,
         taxAmount,
         policy,
         taxCode,
-        taxValue: taxPercentage,
+        taxValue,
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
@@ -722,6 +740,72 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+    });
+}
+
+function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
+    const {
+        policy,
+        selectedCurrency,
+        decimals,
+        transactionID,
+        splitDraftTransaction,
+        transaction,
+        report,
+        allReports,
+        allPersonalDetails,
+        navigateBack,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+    } = args;
+    const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
+
+    // If the value hasn't changed, don't request to save changes on the server and just close the modal
+    const transactionCurrency = getCurrency(currentTransaction);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+        navigateBack();
+        return;
+    }
+
+    if (isSplitBill) {
+        const {taxCode, taxAmount} = getTaxForEditedAmount(policy, currentTransaction, newAmount, selectedCurrency, decimals);
+        setDraftSplitTransaction(
+            transactionID,
+            splitDraftTransaction ?? transaction,
+            {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        );
+        navigateBack();
+        return;
+    }
+
+    const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+
+    updateSavedExpenseAmount({
+        policy,
+        transactionID,
+        transaction,
+        transactionThreadReport: report,
+        parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),
+        amount: newAmount,
+        currency: selectedCurrency,
+        duplicateTransactions: args.duplicateTransactions,
+        duplicateTransactionViolations: args.duplicateTransactionViolations,
+        policyCategories: args.policyCategories,
+        currentUserAccountID,
+        currentUserEmail,
+        isASAPSubmitBetaEnabled,
+        policyRecentlyUsedCurrencies: args.policyRecentlyUsedCurrencies,
+        delegateAccountID: args.delegateAccountID,
+        reportPolicyTags: args.reportPolicyTags,
+        isTrackIntentUser: args.isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+        rules: args.rules,
+        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
     });
     navigateBack();
 }
@@ -741,5 +825,5 @@ function submitAmount(args: SubmitAmountArgs): void {
     submitEditAmount(args, ctx);
 }
 
-export {submitAmount, getIsP2PForAmount};
+export {submitAmount, getIsP2PForAmount, updateSavedExpenseAmount};
 export type {SubmitAmountArgs};

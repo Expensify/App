@@ -5,8 +5,10 @@ import TaxFieldDropdown from '@components/MoneyRequestConfirmationList/sections/
 import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
 
 import {setMoneyRequestTaxRateValues} from '@libs/actions/IOU/MoneyRequest';
+import {updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -20,6 +22,10 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/MoneyRequest'),
     setMoneyRequestTaxRateValues: jest.fn(),
+}));
+jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/UpdateMoneyRequest'),
+    updateMoneyRequestTaxRate: jest.fn(),
 }));
 
 // The currency list lives in a provider the form is rendered without here. USD has two decimals.
@@ -43,6 +49,10 @@ const REDUCED_TAX_CODE = 'id_TAX_RATE_2';
 const EXPENSE_AMOUNT = -10000;
 const REDUCED_TAX_AMOUNT = 909;
 
+// A $200 saved expense, whose tax at the reduced rate of 10% is $18.18.
+const SAVED_EXPENSE_AMOUNT = -20000;
+const SAVED_REDUCED_TAX_AMOUNT = 1818;
+
 const policy: Policy = {
     ...createRandomPolicy(1),
     outputCurrency: 'USD',
@@ -58,6 +68,30 @@ const policy: Policy = {
     },
 };
 
+const renderDropdown = (action: IOUAction) =>
+    render(
+        <ConfirmationFieldsProvider
+            transactionID={TRANSACTION_ID}
+            reportID={REPORT_ID}
+            action={action}
+            iouType={CONST.IOU.TYPE.SUBMIT}
+        >
+            <TaxFieldDropdown
+                isVisible
+                onClose={jest.fn()}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                shouldMeasureAnchorPositionFromTop
+                shouldSwitchPositionIfOverflow={false}
+                popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
+                popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
+                transactionID={TRANSACTION_ID}
+                policy={policy}
+                selectedTaxRate="Standard (5%)"
+            />
+        </ConfirmationFieldsProvider>,
+    );
+
 describe('TaxFieldDropdown', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -66,6 +100,7 @@ describe('TaxFieldDropdown', () => {
     beforeEach(async () => {
         mockTaxPickerModalProps = undefined;
         jest.mocked(setMoneyRequestTaxRateValues).mockClear();
+        jest.mocked(updateMoneyRequestTaxRate).mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -83,28 +118,7 @@ describe('TaxFieldDropdown', () => {
         await waitForBatchedUpdates();
 
         // When the tax rate row's dropdown opens on the create form and the user picks the reduced rate
-        render(
-            <ConfirmationFieldsProvider
-                transactionID={TRANSACTION_ID}
-                reportID={REPORT_ID}
-                action={CONST.IOU.ACTION.CREATE}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-            >
-                <TaxFieldDropdown
-                    isVisible
-                    onClose={jest.fn()}
-                    anchorPosition={{horizontal: 0, vertical: 0}}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                    shouldMeasureAnchorPositionFromTop
-                    shouldSwitchPositionIfOverflow={false}
-                    popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
-                    popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
-                    transactionID={TRANSACTION_ID}
-                    policy={policy}
-                    selectedTaxRate="Standard (5%)"
-                />
-            </ConfirmationFieldsProvider>,
-        );
+        renderDropdown(CONST.IOU.ACTION.CREATE);
         await waitForBatchedUpdates();
         expect(mockTaxPickerModalProps?.transactionID).toBe(TRANSACTION_ID);
         expect(mockTaxPickerModalProps?.selectedTaxRate).toBe('Standard (5%)');
@@ -115,5 +129,38 @@ describe('TaxFieldDropdown', () => {
         // amount, the same as picking it on the full-page selector
         expect(setMoneyRequestTaxRateValues).toHaveBeenCalledTimes(1);
         expect(setMoneyRequestTaxRateValues).toHaveBeenCalledWith(TRANSACTION_ID, {taxCode: REDUCED_TAX_CODE, taxValue: '10%', taxAmount: REDUCED_TAX_AMOUNT});
+    });
+
+    it('works the tax amount out from the saved expense, not a draft left over with its ID', async () => {
+        // Given a saved $200 expense, and a $100 draft with its ID left over from a Submit flow the user backed out of
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: SAVED_EXPENSE_AMOUNT,
+            currency: 'USD',
+            taxCode: STANDARD_TAX_CODE,
+            taxValue: '5%',
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: EXPENSE_AMOUNT,
+            currency: 'USD',
+            taxCode: STANDARD_TAX_CODE,
+            taxValue: '5%',
+        });
+        await waitForBatchedUpdates();
+
+        // When the tax rate row's dropdown opens on the expense view and the user picks the reduced rate
+        renderDropdown(CONST.IOU.ACTION.EDIT);
+        await waitForBatchedUpdates();
+        act(() => mockTaxPickerModalProps?.onSelected?.({code: REDUCED_TAX_CODE, keyForList: 'Reduced (10%)-1', text: 'Reduced (10%)'}));
+
+        // Then the saved expense gets the tax in its own $200, not the $9.09 the leftover draft's amount would give
+        expect(updateMoneyRequestTaxRate).toHaveBeenCalledTimes(1);
+        expect(updateMoneyRequestTaxRate).toHaveBeenCalledWith(
+            expect.objectContaining({transactionID: TRANSACTION_ID, taxCode: REDUCED_TAX_CODE, taxValue: '10%', taxAmount: SAVED_REDUCED_TAX_AMOUNT}),
+        );
+        expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
     });
 });
