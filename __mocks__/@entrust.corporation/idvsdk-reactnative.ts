@@ -19,6 +19,11 @@ const DocumentType = {
     ResidencePermit: 'residence_permit',
 };
 
+const ThemeMode = {
+    Light: 'Light',
+    Dark: 'Dark',
+};
+
 class EntrustIdv {
     start = jest.fn();
 }
@@ -28,4 +33,4 @@ const Welcome = jest.fn(() => ({type: StepNames.Welcome}));
 const Document = jest.fn((options?: unknown) => ({type: StepNames.Document, options}));
 const FaceVideo = jest.fn((options?: unknown) => ({type: StepNames.FaceVideo, options}));
 
-export {Document, DocumentType, EntrustIdv, FaceVideo, resolveLocalFont, StepNames, Welcome};
+export {Document, DocumentType, EntrustIdv, FaceVideo, resolveLocalFont, StepNames, ThemeMode, Welcome};

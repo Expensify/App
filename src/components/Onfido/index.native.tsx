@@ -19,6 +19,7 @@ import {Document, DocumentType} from '@entrust.corporation/idvsdk-reactnative/st
 import {FaceVideo} from '@entrust.corporation/idvsdk-reactnative/steps/Face';
 import {StepNames} from '@entrust.corporation/idvsdk-reactnative/steps/Step';
 import {Welcome} from '@entrust.corporation/idvsdk-reactnative/steps/Welcome';
+import {ThemeMode} from '@entrust.corporation/idvsdk-reactnative/theming/Theme';
 import React, {useEffect} from 'react';
 import {Alert, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -49,8 +50,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
-        // The SDK follows the device's light or dark mode, not the app's, so both modes get the same brand colors.
-        // Our success colors are identical in the light and dark app themes, which keeps this correct whichever one is active.
+        // Without a mode the SDK follows the device's light or dark setting, which can differ from the theme the user picked in the app.
+        const themeMode = theme.colorScheme === CONST.COLOR_SCHEME.DARK ? ThemeMode.Dark : ThemeMode.Light;
         const brandColors: ThemeColors = {
             backgroundColorBrandDefault: theme.success,
             backgroundColorBrandHover: theme.successHover,
@@ -175,6 +176,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
             ],
             configuration: {
                 theme: {
+                    mode: themeMode,
+                    // Our success colors are identical in the light and dark app themes, so both modes get the same brand colors
                     lightColors: brandColors,
                     darkColors: brandColors,
                 },
