@@ -20,7 +20,9 @@ import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
+import Tooltip from './Tooltip';
 import UserPill from './UserPill';
 import UserPills from './UserPills';
 
@@ -33,6 +35,9 @@ type ApprovalWorkflowSectionProps = {
 
     /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
     onShowAllMembersPress?: () => void;
+
+    /** Called with the email of an approver whose employee settings fork some reports away from the workflow, when their warning or row is pressed */
+    onForkPress?: (approverEmail: string) => void;
 
     /** Currency used for formatting approval limits */
     currency?: string;
@@ -57,6 +62,7 @@ function ApprovalWorkflowSection({
     approvalWorkflow,
     onPress,
     onShowAllMembersPress,
+    onForkPress,
     currency = CONST.CURRENCY.USD,
     isDisabled = false,
     providerName,
@@ -64,7 +70,7 @@ function ApprovalWorkflowSection({
     isRecruitingAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Exclamation', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
@@ -117,6 +123,8 @@ function ApprovalWorkflowSection({
         email: m.email,
     }));
     const pressAction = isDisabled ? undefined : onPress;
+    const forkPressAction = isDisabled ? undefined : onForkPress;
+    const forkTooltip = translate('workflowsPage.approvalForkTooltip');
 
     // Only shown to someone who can fix it, since the copy asks them to pick a new approver
     const getApproverError = (approver: Approver) => {
@@ -213,7 +221,7 @@ function ApprovalWorkflowSection({
                                 iconWidth={20}
                                 numberOfLinesDescription={1}
                                 iconFill={theme.icon}
-                                onPress={pressAction}
+                                onPress={approver.forkBranches && forkPressAction ? () => forkPressAction(approver.email) : pressAction}
                                 shouldRemoveBackground
                                 titleComponent={
                                     <View style={[styles.ml3, styles.pr3]}>
@@ -222,7 +230,24 @@ function ApprovalWorkflowSection({
                                             displayName={approver.displayName}
                                             email={approver.email}
                                             style={styles.userPillStandalone}
-                                        />
+                                        >
+                                            {!!approver.forkBranches && !!forkPressAction && (
+                                                <Tooltip text={forkTooltip}>
+                                                    <PressableWithoutFeedback
+                                                        onPress={() => forkPressAction(approver.email)}
+                                                        accessibilityLabel={forkTooltip}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_FORK}
+                                                    >
+                                                        <Icon
+                                                            src={icons.Exclamation}
+                                                            fill={theme.icon}
+                                                            size={CONST.ICON_SIZE.SMALL}
+                                                        />
+                                                    </PressableWithoutFeedback>
+                                                </Tooltip>
+                                            )}
+                                        </UserPill>
                                     </View>
                                 }
                                 brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

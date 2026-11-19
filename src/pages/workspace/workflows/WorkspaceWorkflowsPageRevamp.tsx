@@ -73,7 +73,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 

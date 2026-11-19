@@ -472,6 +472,21 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     updatePolicyDefaultApprover(approvalWorkflow, policy);
 }
 
+type RemoveApprovalWorkflowForksParams = {
+    /** Workflow whose employee settings fork some reports away from it, as shown, with its forks */
+    approvalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+};
+
+/**
+ * Remove every fork of a workflow by saving it as approval workflow rules, which send each report along the approvers
+ * shown. The employee settings that forked the reports stay as they are, since other workflows can still go through them.
+ */
+function removeApprovalWorkflowForks({approvalWorkflow, policy, rules}: RemoveApprovalWorkflowForksParams) {
+    updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow: approvalWorkflow, policy, rules});
+}
+
 type BuildReturnToDefaultWorkflowDiffParams = {
     /** The workflow these members are leaving, because it is deleted or they are taken out of it, listing only them. */
     approvalWorkflow: ApprovalWorkflow;
@@ -862,6 +877,7 @@ export {
     createApprovalWorkflowRules,
     importApprovalWorkflowRules,
     removeApprovalWorkflowRules,
+    removeApprovalWorkflowForks,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
     removeApprovalWorkflow,

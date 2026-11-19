@@ -210,24 +210,6 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage fast edit save', ()
         expect(params?.shouldUseApprovalWorkflowRules).toBe(true);
     });
 
-    it('keeps the save on employeeList under the rules beta while a policy without rules has an over-limit approver', async () => {
-        // Given the rules beta is on, the policy has no rules while Carol sends reports over her limit to Alice, and a
-        // "+N more" edit is ready to save
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[CAROL_EMAIL]: {approvalLimit: 10000, overLimitForwardsTo: ALICE_EMAIL}}});
-            await waitForBatchedUpdatesWithAct();
-        });
-        await seedWorkflow({isFastEdit: true});
-
-        // When the admin presses Save
-        await renderAndPressSave();
-
-        // Then the save is told to stay on employeeList, since writing rules would change where reports over Carol's limit go
-        const [params] = saveFastEditApprovalWorkflowMock.mock.calls.at(0) ?? [];
-        expect(params?.shouldUseApprovalWorkflowRules).toBe(false);
-    });
-
     it('leaves the save and the draft to the Edit page when opened from it', async () => {
         // Given the page was opened from the Edit page, not the "+N more" shortcut
         await seedWorkflow({isFastEdit: false});

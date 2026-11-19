@@ -3588,6 +3588,11 @@ const ROUTES = {
         getRoute: (policyID: string, approverIndex: number, isAddingApprover?: boolean) =>
             `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}${isAddingApprover ? '&isAddingApprover=true' : ''}` as const,
     },
+    WORKSPACE_WORKFLOWS_APPROVALS_FORK: {
+        route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/fork/:forkApproverEmail',
+        getRoute: (policyID: string, firstApproverEmail: string, forkApproverEmail: string) =>
+            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/fork/${encodeURIComponent(forkApproverEmail)}` as const,
+    },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
         getRoute: (policyId: string) => `workspaces/${policyId}/workflows/payer` as const,

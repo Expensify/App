@@ -74,7 +74,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const policyID = route.params.policyID;
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
     const approverIndex = Number(route.params.approverIndex) || 0;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
     // A newly picked approver gets the same steps as in a new workflow, even while an existing workflow is edited

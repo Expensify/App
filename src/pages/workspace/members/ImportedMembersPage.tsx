@@ -77,7 +77,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     // With rules, each row lists every approver of the member's workflow, each with their own limit, instead of
     // the member's own submitsTo, forwardsTo and limit
-    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules();
 
     // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
     const canImportApprovers = shouldUseApprovalWorkflowRules && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;

@@ -3522,6 +3522,7 @@ ${amount} για ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `από ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Αν η αναφορά υπερβαίνει τα ${amount}`,
         finalApprover: 'Τελικός εγκρίνων',
+        approvalForkTooltip: 'Υπάρχει πρόβλημα με αυτή τη ροή εργασίας. Κάντε κλικ για προβολή.',
         manager: 'Διαχειριστής',
         makeOrTrackPaymentsTitle: 'Πληρωμές',
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
@@ -3648,9 +3649,6 @@ ${amount} για ${merchant} - ${date}`,
         title: 'Επεξεργασία ροής έγκρισης',
         deleteTitle: 'Διαγραφή ροής έγκρισης',
         deletePrompt: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτή τη ροή έγκρισης; Όλα τα μέλη θα ακολουθούν στη συνέχεια την προεπιλεγμένη ροή.',
-        hiddenRoutesTitle: 'Ορισμένες αναφορές θα δρομολογηθούν διαφορετικά',
-        hiddenRoutesPrompt:
-            'Αυτή η ροή εργασίας ρυθμίστηκε με εγκρίνοντες που στέλνουν ορισμένες αναφορές σε άλλους εγκρίνοντες, ανάλογα με το σύνολο της αναφοράς. Η αποθήκευση διατηρεί μόνο τους εγκρίνοντες που εμφανίζονται εδώ, οπότε κάθε αναφορά θα περνά από αυτούς.',
     },
     workflowsExpensesFromPage: {
         title: 'Έξοδα από',
@@ -3678,6 +3676,27 @@ ${amount} για ${merchant} - ${date}`,
         removeApprover: 'Αφαίρεση εγκρίνοντα',
         next: 'Επόμενο',
         enterAmountError: 'Παρακαλούμε εισαγάγετε ένα έγκυρο ποσό',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Διακλάδωση έγκρισης',
+        description: 'Αυτή η ροή εργασίας κληρονόμησε από το Expensify Classic μια διακλάδωση στη ροή έγκρισης που διαφέρει από τη ρυθμισμένη ροή εργασίας.',
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές σε αυτή τη ροή εργασίας.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
+            `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές πάνω από ${amount} σε αυτή τη ροή εργασίας.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές από τον/την <strong>${sender}</strong> ${range}.`
+                : `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές από τον/την <strong>${sender}</strong>.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές ${range}.` : `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές.`,
+        underAmount: ({amount}: {amount: string}) => `κάτω από ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `πάνω από ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `μεταξύ ${lowerAmount} και ${upperAmount}`,
+        removeFork: 'Κατάργηση αυτής της διακλάδωσης',
+        removeForks: 'Κατάργηση διακλαδώσεων',
+        removeForksTitle: 'Κατάργηση όλων των διακλαδώσεων;',
+        removeForksPrompt:
+            'Αυτή η ροή εργασίας κληρονόμησε περισσότερες από μία διακλαδώσεις από το Expensify Classic. Αν τις καταργήσετε, κάθε αναφορά θα περνά από τους εγκρίνοντες που εμφανίζονται στη ροή εργασίας.',
     },
     workflowsPayerPage: {
         title: 'Εξουσιοδοτημένος πληρωτής',

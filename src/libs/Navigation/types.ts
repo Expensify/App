@@ -1153,6 +1153,13 @@ type WorkspaceSplitNavigatorParamList = {
         /** Whether the page was reached by picking a new approver, rather than by opening an approver already in the workflow */
         isAddingApprover?: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_FORK]: {
+        policyID: string;
+        firstApproverEmail: string;
+
+        /** Approver whose employee settings fork some of the workflow's reports away from it */
+        forkApproverEmail: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
     };

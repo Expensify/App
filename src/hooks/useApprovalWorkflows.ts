@@ -10,25 +10,22 @@ import {
     getApproverPendingActionByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
-    shouldUseApprovalWorkflowRules,
 } from '@libs/WorkflowUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
+import useShouldUseApprovalWorkflowRules from './useShouldUseApprovalWorkflowRules';
 
 type UseApprovalWorkflowsResult = {
     /** Every approval workflow the workspace's data describes, derived from the policy employees or the approval-workflow rules */
@@ -78,7 +75,7 @@ type UseApprovalWorkflowsResult = {
 function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsResult {
     const policyID = policy?.id;
     const {localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const shouldUseRules = useShouldUseApprovalWorkflowRules();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [personalDetails] = useAllPersonalDetails();
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID)});
@@ -90,7 +87,6 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
         currentUserLogin,
         rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
     };
-    const shouldUseRules = shouldUseApprovalWorkflowRules(policy, !isEmptyObject(params.rules), isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS));
     const {approvalWorkflows, availableMembers, usedApproverEmails} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);

@@ -3508,6 +3508,7 @@ ${amount} voor ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Als het rapport hoger is dan ${amount}`,
         finalApprover: 'Laatste fiatteur',
+        approvalForkTooltip: 'Er is een probleem met deze workflow. Klik om te bekijken.',
         manager: 'Manager',
         submitFrequency: 'Frequentie van indienen',
         submitOn: 'Indienen op',
@@ -3582,9 +3583,6 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Goedkeuringsworkflow bewerken',
         deleteTitle: 'Goedkeuringsworkflow verwijderen',
         deletePrompt: 'Weet je zeker dat je deze goedkeuringsworkflow wilt verwijderen? Alle leden zullen daarna de standaardworkflow volgen.',
-        hiddenRoutesTitle: 'Sommige rapporten worden anders doorgestuurd',
-        hiddenRoutesPrompt:
-            'Deze workflow is ingesteld met fiatteurs die sommige rapporten, afhankelijk van het rapporttotaal, naar andere fiatteurs sturen. Bij opslaan blijven alleen de hier getoonde fiatteurs over, dus elk rapport gaat langs hen.',
     },
     workflowsExpensesFromPage: {
         title: 'Uitgaven vanaf',
@@ -3612,6 +3610,29 @@ ${amount} voor ${merchant} - ${date}`,
         removeApprover: 'Fiatteur verwijderen',
         next: 'Volgende',
         enterAmountError: 'Voer een geldig bedrag in',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Goedkeuringsvertakking',
+        description: 'Deze workflow heeft uit Expensify Classic een vertakking in de goedkeuringsworkflow overgenomen die afwijkt van de ingestelde workflow.',
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> keurt rapporten goed in deze workflow.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
+            `<strong>${approver}</strong> keurt rapporten boven ${amount} goed in deze workflow.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> keurt rapporten van <strong>${sender}</strong> ${range} goed.`
+                : `<strong>${approver}</strong> keurt rapporten van <strong>${sender}</strong> goed.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten ${range}.`
+                : `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten.`,
+        underAmount: ({amount}: {amount: string}) => `onder ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `boven ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tussen ${lowerAmount} en ${upperAmount}`,
+        removeFork: 'Deze vertakking verwijderen',
+        removeForks: 'Vertakkingen verwijderen',
+        removeForksTitle: 'Alle vertakkingen verwijderen?',
+        removeForksPrompt:
+            'Deze workflow heeft meer dan één vertakking uit Expensify Classic overgenomen. Als je ze verwijdert, gaat elk rapport langs de fiatteurs die in de workflow worden getoond.',
     },
     workflowsPayerPage: {
         title: 'Geautoriseerde betaler',

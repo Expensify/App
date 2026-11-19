@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getApprovalWorkflowSource, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, getFirstForkApproverEmail, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -390,6 +390,22 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                 // on a member too (each member belongs to exactly one workflow).
                                 const firstMemberEmail = workflow.members.at(0)?.email ?? '';
 
+                                // A workflow with forks keeps routing by employee settings, and saving it any other way than by
+                                // removing its forks would drop them unseen, so it opens its forks instead of the editor
+                                const firstForkApproverEmail = getFirstForkApproverEmail(workflow);
+                                const viewFork = (forkApproverEmail: string) =>
+                                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, firstApproverEmail, forkApproverEmail));
+                                const editWorkflow = () => {
+                                    if (firstForkApproverEmail) {
+                                        viewFork(firstForkApproverEmail);
+                                        return;
+                                    }
+
+                                    // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+                                    clearApprovalWorkflow();
+                                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, firstMemberEmail));
+                                };
+
                                 return (
                                     <OfflineWithFeedback
                                         key={`${firstApproverEmail}-${firstMemberEmail}`}
@@ -397,17 +413,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                     >
                                         <ApprovalWorkflowSection
                                             approvalWorkflow={workflow}
-                                            onPress={
-                                                shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                                    ? undefined
-                                                    : () => {
-                                                          // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-                                                          clearApprovalWorkflow();
-                                                          Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, firstMemberEmail));
-                                                      }
-                                            }
+                                            onPress={shouldBlockApprovalWorkflowEditing || !canWriteApprovals ? undefined : editWorkflow}
+                                            onForkPress={viewFork}
                                             onShowAllMembersPress={
-                                                shouldBlockApprovalWorkflowEditing
+                                                shouldBlockApprovalWorkflowEditing || !!firstForkApproverEmail
                                                     ? undefined
                                                     : () => {
                                                           selectApprovalWorkflowForEdit({

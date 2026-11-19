@@ -192,4 +192,38 @@ describe('ApprovalWorkflowSection', () => {
         // Then no error is shown, since there is no Edit button to act on it
         expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
     });
+
+    describe('of a workflow whose employee settings fork some reports away from it', () => {
+        // Cathy's employee settings send the reports over 2,000.00 that reach her to Denise, instead of on to Charlie
+        const forkedWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {email: 'alice@example.com', displayName: 'Alice'},
+                {email: 'cathy@example.com', displayName: 'Cathy', overLimitAmount: 200000, forkBranches: [{approvers: [{email: 'denise@example.com', displayName: 'Denise'}]}]},
+                {email: 'charlie@example.com', displayName: 'Charlie'},
+            ],
+        };
+
+        it('shows a warning on the approver the fork leaves from, which opens their fork', () => {
+            // Given the workflow card renders for an admin
+            const onForkPress = jest.fn();
+            renderSection({approvalWorkflow: forkedWorkflow, onPress: jest.fn(), onForkPress});
+
+            // When the admin presses the warning
+            fireEvent.press(screen.getByLabelText('workflowsPage.approvalForkTooltip'));
+
+            // Then only Cathy has one, and it opens her fork, since the routing it explains is hers
+            expect(screen.getAllByLabelText('workflowsPage.approvalForkTooltip')).toHaveLength(1);
+            expect(onForkPress).toHaveBeenCalledWith('cathy@example.com');
+        });
+
+        it('does not show the warning to someone who cannot edit the workflow', () => {
+            // Given the workflow card renders read-only
+            // When it renders
+            renderSection({approvalWorkflow: forkedWorkflow, onPress: jest.fn(), onForkPress: jest.fn(), isDisabled: true});
+
+            // Then there's no warning, since they can't remove the fork it leads to
+            expect(screen.queryByLabelText('workflowsPage.approvalForkTooltip')).toBeNull();
+        });
+    });
 });
