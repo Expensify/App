@@ -17,6 +17,8 @@ import Onyx from 'react-native-onyx';
 import type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
 
 const LEADER_LOCK_NAME = 'activeClientLeader';
+const INITIAL_LEADER_LOCK_RETRY_DELAY_MS = 1000;
+const MAX_LEADER_LOCK_RETRY_DELAY_MS = 30 * 1000;
 
 // Builds from before Web Locks pick the leader from ACTIVE_CLIENTS alone. The prefix lets us tell their IDs apart while both builds are open.
 const WEB_LOCK_CLIENT_ID_PREFIX = 'webLock_';
@@ -32,7 +34,8 @@ let beforeunloadListenerAdded = false;
 const canUseWebLocks = () => typeof navigator !== 'undefined' && !!navigator.locks;
 
 /**
- * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
+ * Waits for client initialization, including a refused first lock request. The main queue can run without
+ * leadership; the shared write queue checks the lock separately before sending persisted requests.
  */
 const isReady: IsReady = () => savedSelfPromise;
 
@@ -40,6 +43,8 @@ let isHoldingLeaderLock = false;
 let isStealingLeaderLock = false;
 let leaderLockRequestID = 0;
 let waitForLeaderLockController: AbortController | undefined;
+let leaderLockRetryTimeout: ReturnType<typeof setTimeout> | undefined;
+let leaderLockRetryDelay = INITIAL_LEADER_LOCK_RETRY_DELAY_MS;
 
 let isPromotingNewLeader = false;
 
@@ -125,6 +130,8 @@ Onyx.connectWithoutView({
  * If we make a new request before an older one is granted, the older one gives the lock back as soon as it gets it.
  */
 const requestLeaderLock = (shouldSteal: boolean) => {
+    clearTimeout(leaderLockRetryTimeout);
+    leaderLockRetryTimeout = undefined;
     leaderLockRequestID++;
     const requestID = leaderLockRequestID;
     isStealingLeaderLock = shouldSteal;
@@ -139,6 +146,7 @@ const requestLeaderLock = (shouldSteal: boolean) => {
             }
             isHoldingLeaderLock = true;
             isStealingLeaderLock = false;
+            leaderLockRetryDelay = INITIAL_LEADER_LOCK_RETRY_DELAY_MS;
             resolveSavedSelfPromise();
 
             // Saving our ID last tells older build tabs that we lead, and re-renders the UI that depends on the leader in every tab (see SignInPage)
@@ -156,13 +164,28 @@ const requestLeaderLock = (shouldSteal: boolean) => {
             isHoldingLeaderLock = false;
             isStealingLeaderLock = false;
             notifyIfBecameLeader();
+            // A refused first request must not prevent startMainQueue from registering its leadership listener
+            // and starting ordinary API requests. This does not grant permission to send the shared write queue.
+            resolveSavedSelfPromise();
 
-            // Only rejoin the queue after losing a granted lock. Safari can reject acquisitions immediately
-            // while the document is inactive, so failed acquisitions wait for init() on focus or pageshow.
-            if (!wasHoldingLeaderLock || !(error instanceof DOMException) || error.name !== 'AbortError') {
+            if (wasHoldingLeaderLock && error instanceof DOMException && error.name === 'AbortError') {
+                requestLeaderLock(false);
                 return;
             }
-            requestLeaderLock(false);
+
+            // Safari can refuse inactive documents immediately. Yield between attempts so input can run,
+            // back off persistent failures, and leave hidden pages to recover through foreground initialization.
+            if (document.visibilityState !== 'visible') {
+                return;
+            }
+            leaderLockRetryTimeout = setTimeout(() => {
+                leaderLockRetryTimeout = undefined;
+                if (requestID !== leaderLockRequestID || document.visibilityState !== 'visible') {
+                    return;
+                }
+                requestLeaderLock(false);
+            }, leaderLockRetryDelay);
+            leaderLockRetryDelay = Math.min(leaderLockRetryDelay * 2, MAX_LEADER_LOCK_RETRY_DELAY_MS);
         });
 };
 
@@ -190,6 +213,7 @@ const init: Init = () => {
             // Take leadership back from an older build tab that saved its ID after ours
             setActiveClients([clientID]);
         } else if (!isStealingLeaderLock) {
+            leaderLockRetryDelay = INITIAL_LEADER_LOCK_RETRY_DELAY_MS;
             requestLeaderLock(true);
         }
         if (!beforeunloadListenerAdded) {

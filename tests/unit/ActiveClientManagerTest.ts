@@ -1,4 +1,7 @@
 import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from '@libs/ActiveClientManager/types';
+import type * as Network from '@libs/Network';
+
+import CONST from '@src/CONST';
 
 type ActiveClientManagerModule = {
     init: Init;
@@ -15,6 +18,21 @@ type LockRequest = {
 
 const mockSetActiveClients = jest.fn<Promise<void>, [string[]]>(() => Promise.resolve());
 const mockActiveClientsCallbacks: Array<(value: string[] | undefined) => void> = [];
+const mockProcessMainQueue = jest.fn();
+const mockFlushSequentialQueue = jest.fn();
+
+jest.mock('@libs/Network/MainQueue', () => ({
+    process: mockProcessMainQueue,
+}));
+
+jest.mock('@libs/Network/MainQueueStore', () => ({
+    __esModule: true,
+    default: {enqueue: jest.fn()},
+}));
+
+jest.mock('@libs/Network/SequentialQueue', () => ({
+    flush: mockFlushSequentialQueue,
+}));
 
 jest.mock('@userActions/ActiveClients', () => ({
     setActiveClients: (activeClients: string[]) => mockSetActiveClients(activeClients),
@@ -110,10 +128,8 @@ class FakeLockManager {
     }
 }
 
-const waitForLocks = () =>
-    new Promise((resolve) => {
-        setTimeout(resolve, 0);
-    });
+// Flush promise callbacks without firing delayed lock retries.
+const waitForLocks = () => jest.advanceTimersByTimeAsync(0);
 
 /** Each tab gets its own copy of the module, so its own clientID and leader state, like a separate page load */
 function openTab(): ActiveClientManagerModule {
@@ -137,6 +153,7 @@ describe('ActiveClientManager', () => {
     let visibilitySpy: jest.SpiedGetter<DocumentVisibilityState>;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         lockManager = new FakeLockManager();
         requestSpy = jest.spyOn(lockManager, 'request');
         addEventListenerSpy = jest.spyOn(window, 'addEventListener');
@@ -147,6 +164,8 @@ describe('ActiveClientManager', () => {
         });
         mockSetActiveClients.mockClear();
         mockActiveClientsCallbacks.length = 0;
+        mockProcessMainQueue.mockClear();
+        mockFlushSequentialQueue.mockClear();
     });
 
     afterEach(() => {
@@ -159,6 +178,9 @@ describe('ActiveClientManager', () => {
         addEventListenerSpy.mockRestore();
         requestSpy.mockRestore();
         visibilitySpy.mockRestore();
+        jest.dontMock('@libs/ActiveClientManager');
+        jest.clearAllTimers();
+        jest.useRealTimers();
         Object.defineProperty(navigator, 'locks', {
             value: undefined,
             configurable: true,
@@ -318,7 +340,141 @@ describe('ActiveClientManager', () => {
         expect(tab.isClientTheLeader()).toBe(false);
         expect(mockSetActiveClients).not.toHaveBeenCalled();
         expect(onBecomeLeader).not.toHaveBeenCalled();
-        expect(onReady).not.toHaveBeenCalled();
+        expect(onReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts the main request queue after the first acquisition fails and flushes again when the lock is granted', async () => {
+        // Given network startup waiting on the actual web client's readiness promise.
+        const error = new DOMException('The document is not fully active', 'InvalidStateError');
+        requestSpy.mockRejectedValueOnce(error).mockRejectedValueOnce(error);
+        const tab = openTab();
+        jest.isolateModules(() => {
+            jest.doMock('@libs/ActiveClientManager', () => tab);
+            const network = jest.requireActual<typeof Network>('@libs/Network');
+            network.startMainQueue();
+        });
+
+        // When the first lock request fails, network startup must not wait for a focus event.
+        tab.init();
+        await waitForLocks();
+        await jest.advanceTimersByTimeAsync(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+
+        // Then the main queue runs without falsely granting leadership to the failed client.
+        expect(mockProcessMainQueue).toHaveBeenCalled();
+        expect(mockFlushSequentialQueue).toHaveBeenCalledTimes(1);
+        expect(tab.isClientTheLeader()).toBe(false);
+
+        // When a delayed retry obtains the lock without any foreground or pageshow event.
+        await jest.advanceTimersByTimeAsync(2000);
+
+        // Then the listener registered during startup can flush the writes that were waiting for leadership.
+        expect(tab.isClientTheLeader()).toBe(true);
+        expect(mockFlushSequentialQueue).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(['InvalidStateError', 'SecurityError', 'AbortError'])('recovers from an initial %s without requiring another focus event', async (errorName) => {
+        // Given an initial acquisition failure that would otherwise leave a single visible tab unable to send writes.
+        requestSpy.mockRejectedValueOnce(new DOMException('The lock cannot be acquired', errorName));
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+
+        // When the page stays visible and the browser accepts a later request.
+        await jest.advanceTimersByTimeAsync(999);
+        expect(requestSpy).toHaveBeenCalledTimes(1);
+        await jest.advanceTimersByTimeAsync(1);
+
+        // Then a delayed request restores leadership without monopolizing the browser's promise callbacks.
+        expect(requestSpy).toHaveBeenCalledTimes(2);
+        expect(requestSpy.mock.calls[1]?.[1].steal).not.toBe(true);
+        expect(tab.isClientTheLeader()).toBe(true);
+        await expect(tab.isReady()).resolves.toBeUndefined();
+    });
+
+    it('slows repeated acquisition failures down to one attempt every thirty seconds', async () => {
+        // Given repeated refusals, with a finite mock so an immediate-retry regression cannot hang Jest.
+        const error = new DOMException('The lock cannot be acquired', 'SecurityError');
+        for (let attempt = 0; attempt < 9; attempt++) {
+            requestSpy.mockRejectedValueOnce(error);
+        }
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+
+        // When the browser keeps refusing the lock, each failure must allow timers and input to run.
+        for (const [index, delay] of [1000, 2000, 4000, 8000, 16000, 30000, 30000].entries()) {
+            await jest.advanceTimersByTimeAsync(delay - 1);
+            expect(requestSpy).toHaveBeenCalledTimes(index + 1);
+            await jest.advanceTimersByTimeAsync(1);
+            expect(requestSpy).toHaveBeenCalledTimes(index + 2);
+        }
+
+        // Then network startup is not blocked, and no failed attempt has claimed leadership.
+        await expect(tab.isReady()).resolves.toBeUndefined();
+        expect(tab.isClientTheLeader()).toBe(false);
+        expect(mockSetActiveClients).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a failed acquisition while the page is hidden', async () => {
+        // Given a visible tab that schedules recovery after its first acquisition fails.
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        const tab = openTab();
+        const onReady = jest.fn();
+        tab.isReady().then(onReady);
+        tab.init();
+        await waitForLocks();
+
+        // When the user hides the page before the retry is due.
+        visibilitySpy.mockReturnValue('hidden');
+        await jest.advanceTimersByTimeAsync(60000);
+
+        // Then the hidden page does not keep requesting locks, but the main queue may finish initialization.
+        expect(requestSpy).toHaveBeenCalledTimes(1);
+        expect(onReady).toHaveBeenCalledTimes(1);
+        expect(tab.isClientTheLeader()).toBe(false);
+    });
+
+    it('cancels a scheduled retry when foreground initialization acquires the lock first', async () => {
+        // Given a failed attempt with a delayed retry still pending.
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        const tab = openTab();
+        tab.init();
+        await waitForLocks();
+
+        // When returning to the foreground obtains the lock before the timer fires.
+        tab.init();
+        await waitForLocks();
+        await jest.advanceTimersByTimeAsync(1000);
+
+        // Then the old timer does not request another lock or disturb the current leader.
+        expect(requestSpy).toHaveBeenCalledTimes(2);
+        expect(tab.isClientTheLeader()).toBe(true);
+    });
+
+    it('waits behind a healthy leader when retrying an acquisition failure', async () => {
+        // Given a failed first tab and a second tab that obtains leadership before the delayed retry.
+        requestSpy.mockRejectedValueOnce(new DOMException('The document is not fully active', 'InvalidStateError'));
+        const firstTab = openTab();
+        firstTab.init();
+        await waitForLocks();
+        const secondTab = openTab();
+        secondTab.init();
+        await waitForLocks();
+
+        // When the first tab retries without another user interaction.
+        await jest.advanceTimersByTimeAsync(1000);
+
+        // Then it waits for the existing lock rather than stealing it or sending the same writes.
+        expect(requestSpy.mock.calls[2]?.[1].steal).not.toBe(true);
+        expect(firstTab.isClientTheLeader()).toBe(false);
+        expect(secondTab.isClientTheLeader()).toBe(true);
+
+        // When the healthy leader closes.
+        lockManager.closeLeaderTab();
+        await waitForLocks();
+
+        // Then the waiting tab can acquire the lock normally.
+        expect(firstTab.isClientTheLeader()).toBe(true);
     });
 
     it('can acquire leadership on focus after its initial lock request failed', async () => {
@@ -358,7 +514,7 @@ describe('ActiveClientManager', () => {
         expect(mockSetActiveClients).toHaveBeenCalledTimes(1);
     });
 
-    it('stops retrying when Safari suspends the leader and rejects its next acquisition', async () => {
+    it('defers further retries when Safari suspends the leader and rejects its next acquisition', async () => {
         // Given a leader whose document will reject new lock requests during suspension.
         const tab = openTab();
         tab.init();
@@ -371,7 +527,7 @@ describe('ActiveClientManager', () => {
         lockManager.suspendLeaderTab();
         await waitForLocks();
 
-        // Then the tab stops after the failed acquisition rather than blocking input with endless rejections.
+        // Then the tab waits before retrying rather than blocking input with endless immediate rejections.
         expect(requestSpy).toHaveBeenCalledTimes(2);
         expect(tab.isClientTheLeader()).toBe(false);
     });
