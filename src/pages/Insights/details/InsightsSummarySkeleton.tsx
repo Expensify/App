@@ -1,73 +1,54 @@
-import SkeletonRect from '@components/SkeletonRect';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 
-import useContainerWidth from '@hooks/useContainerWidth';
-import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {lineHeightScale} from '@styles/typography';
 
 import React from 'react';
 import {View} from 'react-native';
 
-const BAR_HEIGHT = 8;
 const LABEL_WIDTH = 80;
-const HEADLINE_HEIGHT = 16;
-const HEADLINE_WIDTH = 160;
-const TILE_VALUE_WIDTH = 96;
-const TILE_GAP = 20;
-
-const AVERAGE_Y = 0;
-const HEADLINE_Y = AVERAGE_Y + variables.lineHeightLarge;
-const FIRST_TILE_ROW_Y = HEADLINE_Y + variables.lineHeightSizeH2 + variables.lineHeightLarge;
-const TILE_ROW_HEIGHT = variables.lineHeightLarge * 2 + variables.lineHeightNormal;
-const HEIGHT = FIRST_TILE_ROW_Y + TILE_ROW_HEIGHT * 2;
+const COMPARISON_WIDTH = 200;
+const VALUE_WIDTH = 96;
 
 /** Loading skeleton of the Summary card's content */
 function InsightsSummarySkeleton() {
-    const theme = useTheme();
-    const {onLayout, containerWidth} = useContainerWidth();
-    const secondTileX = (containerWidth + TILE_GAP) / 2;
+    const styles = useThemeStyles();
 
-    const renderTile = (x: number, y: number) => (
-        <>
-            <SkeletonRect
-                transform={[{translateX: x}, {translateY: y}]}
-                width={LABEL_WIDTH}
-                height={BAR_HEIGHT}
+    const renderTile = () => (
+        <View style={[styles.flex1, styles.gap1]}>
+            <SkeletonTextLine
+                lineHeight={lineHeightScale.label}
+                barWidth={LABEL_WIDTH}
             />
-            <SkeletonRect
-                transform={[{translateX: x}, {translateY: y + variables.lineHeightLarge}]}
-                width={TILE_VALUE_WIDTH}
-                height={BAR_HEIGHT}
+            <SkeletonTextLine
+                lineHeight={lineHeightScale.text}
+                barWidth={VALUE_WIDTH}
             />
-        </>
+        </View>
     );
 
     return (
-        <View onLayout={onLayout}>
-            <SkeletonViewContentLoader
-                animate
-                width="100%"
-                height={HEIGHT}
-                backgroundColor={theme.skeletonLHNIn}
-                foregroundColor={theme.skeletonLHNOut}
-            >
-                <SkeletonRect
-                    transform={[{translateY: AVERAGE_Y}]}
-                    width={LABEL_WIDTH}
-                    height={BAR_HEIGHT}
+        <>
+            <View style={[styles.p4, styles.gap1, styles.borderBottom]}>
+                <SkeletonTextLine
+                    lineHeight={lineHeightScale.label}
+                    barWidth={LABEL_WIDTH}
                 />
-                <SkeletonRect
-                    transform={[{translateY: HEADLINE_Y}]}
-                    width={HEADLINE_WIDTH}
-                    height={HEADLINE_HEIGHT}
+                <SkeletonTextLine
+                    lineHeight={lineHeightScale.text}
+                    barWidth={COMPARISON_WIDTH}
                 />
-                {renderTile(0, FIRST_TILE_ROW_Y)}
-                {renderTile(secondTileX, FIRST_TILE_ROW_Y)}
-                {renderTile(0, FIRST_TILE_ROW_Y + TILE_ROW_HEIGHT)}
-                {renderTile(secondTileX, FIRST_TILE_ROW_Y + TILE_ROW_HEIGHT)}
-            </SkeletonViewContentLoader>
-        </View>
+            </View>
+            <View style={[styles.flexRow, styles.gap5, styles.p4, styles.borderBottom]}>
+                {renderTile()}
+                {renderTile()}
+            </View>
+            <View style={[styles.flexRow, styles.gap5, styles.p4]}>
+                {renderTile()}
+                {renderTile()}
+            </View>
+        </>
     );
 }
 

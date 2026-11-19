@@ -248,11 +248,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                 </Text>
             </View>
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
-            {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && (
-                <View style={styles.p4}>
-                    <InsightsSummarySkeleton />
-                </View>
-            )}
+            {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsSummarySkeleton />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.READY && (
                 <>
                     <View style={[styles.p4, styles.gap1, styles.borderBottom]}>
