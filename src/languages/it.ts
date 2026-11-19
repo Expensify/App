@@ -582,6 +582,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} giorno`,
             other: (count: number) => `${formattedCount ?? count} giorni`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ora`,
+            other: (count: number) => `${formattedCount ?? count} ore`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minuti`,
+        }),
         amount: 'Importo',
     },
     socials: {

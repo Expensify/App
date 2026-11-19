@@ -528,6 +528,14 @@ const translations = {
             one: (count: number) => `${formattedCount ?? count} day`,
             other: (count: number) => `${formattedCount ?? count} days`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hour`,
+            other: (count: number) => `${formattedCount ?? count} hours`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minute`,
+            other: (count: number) => `${formattedCount ?? count} minutes`,
+        }),
         rename: 'Rename',
         address: 'Address',
         dayAbbreviation: 'd',
