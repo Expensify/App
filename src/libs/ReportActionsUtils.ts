@@ -5454,6 +5454,15 @@ function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAct
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole, newRole);
 }
 
+/**
+ * Builds the MERGED_REPORTS message. The merged report names are plain text because the merge deletes those reports.
+ */
+function getMergedReportsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS>>) {
+    const sourceReports = getOriginalMessage(reportAction)?.sourceReports ?? [];
+    const reportNames = sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
+    return translate('iou.mergedReports', {count: sourceReports.length, reportNames});
+}
+
 function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {oldAuditRate, newAuditRate} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE>) ?? {};
 
@@ -6442,6 +6451,7 @@ export {
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
+    getMergedReportsMessage,
     getDynamicExternalWorkflowRoutedMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getReportAction,
