@@ -236,6 +236,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         });
 
     const allApprovers: SelectionListApprover[] = [...selectedMembers];
+    const selectedMemberLogins = new Set(selectedMembers.map((selectedOption) => normalizeLogin(selectedOption.login)));
     const approversEmail = workflowApprovers?.map((member) => member?.email);
     const availableMembers = liveAvailableMembers
         .map((member) => {
@@ -265,11 +266,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 ),
             };
         })
-        .filter(
-            (member) =>
-                (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) &&
-                !selectedMembers.some((selectedOption) => normalizeLogin(selectedOption.login) === normalizeLogin(member.login)),
-        );
+        .filter((member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMemberLogins.has(normalizeLogin(member.login)));
     allApprovers.push(...availableMembers);
 
     // Add search results for non-workspace members
@@ -292,7 +289,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         }
 
         // Add search results that aren't already in the list (selected approvers or userToInvite)
-        const searchResults = availableOptions.personalDetails.filter((option) => !allApprovers.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
+        const listedLogins = new Set(allApprovers.map((approver) => normalizeLogin(approver.login)));
+        const searchResults = availableOptions.personalDetails.filter((option) => !listedLogins.has(normalizeLogin(option.login)));
         for (const option of searchResults) {
             allApprovers.push({
                 text: option.text ?? option.login ?? '',
