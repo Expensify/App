@@ -76,6 +76,12 @@ jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
 }));
 
+// A fixed state, so the anonymous case does not depend on the report routes this test navigator lacks.
+jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({routes: []})),
+}));
+
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {View} = jest.requireActual<typeof import('react-native')>('react-native');
@@ -263,7 +269,7 @@ describe('LogOutPreviousUserPage', () => {
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
     });
 
-    it('keeps the transition route on top when signing out an anonymous session for a link into another account', async () => {
+    it('restores the last visited public room before opening sign-in for an anonymous session', async () => {
         // Given an anonymous session that last visited a public room, and a transition link for an account
         mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
         jest.mocked(isAnonymousUser).mockReturnValue(true);
@@ -271,17 +277,16 @@ describe('LogOutPreviousUserPage', () => {
             await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
             await Onyx.set(ONYXKEYS.LAST_VISITED_PATH, REPORT_ROUTE);
         });
-        const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot');
+        const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
         // When the transition page opens for that link
         renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the page signs out without leaving the transition route, so the public transition page can sign in the link account
+        // Then the page rebuilds the public room before the sign-in modal opens, because an anonymous session only gets the sign-in modal and is never signed in to the link account
+        expect(resetRootSpy).toHaveBeenCalledTimes(1);
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
-        expect(resetRootSpy).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
-        expect(navigationRef.getRootState()?.routes.at(-1)?.name).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
+        expect(resetRootSpy.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(signOutAndRedirectToSignIn).mock.invocationCallOrder.at(0) ?? 0);
         resetRootSpy.mockRestore();
     });
 
