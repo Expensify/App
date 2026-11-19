@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
-description: Add categories to use for coding expenses.
+description: Add categories to use for coding expenses and control which categories workspace members can use.
 keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, description hint, category description hint, remind members what to write in description, auto-categorize new expenses, turn off auto-categorization]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and adding a Description hint to a category. Does not cover personal expense rules or accounting integration setup.
+internalScope: Audience is workspace admins. Covers creating, importing, enabling, and managing expense categories, including per-member category visibility, GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and adding a Description hint to a category. Does not cover personal expense rules or accounting integration setup.
 ---
 
 # Create Expense Categories
@@ -91,6 +91,23 @@ Once categories are added (manually or via import), they can be toggled on or of
 Bulk actions are available using the checkboxes and **Selected** menu.
 
 **Note:** GL and payroll code import is available on the Control plan only.
+
+---
+
+## How to control which categories a member can use
+
+On the Control plan, workspace admins can use **Category visibility** to limit which enabled categories individual members can use for their expenses. By default, all enabled categories are available to every member.
+
+[Learn how to set a member's Category visibility](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#how-to-set-a-members-category-visibility).
+
+Category visibility works differently from disabling a category:
+
+- **Disabled categories** are unavailable to everyone in the workspace.
+- **Category visibility restrictions** limit which enabled categories an individual member can use without affecting other members.
+
+New categories, including those imported from an accounting integration, are available to all members by default.
+
+Category visibility restrictions apply to members' own expenses, including those of workspace admins. However, admins and approvers can still access all enabled categories when editing another member's expense.
 
 ---
 
@@ -190,6 +207,10 @@ Expensify learns your category preferences over time and suggests them automatic
 - These suggestions are based on patterns and may vary by user.
 - This is on by default. To stop new expenses from being categorized automatically, a Workspace Admin can go to **Workspaces > [workspace name] > Categories > More** and disable **Auto-categorize new expenses**.
 
+When a member has category restrictions, AI auto-categorization chooses only from their allowed categories. If there is no confident match, it leaves the category blank. For expenses created on someone else’s behalf, it uses the expense owner’s category visibility. Changing visibility does not automatically recategorize existing expenses.
+
+Merchant rules, card MCC defaults, and SmartScan category groups can still apply their configured category. If that category is not allowed for the member, the expense receives a **Category not allowed** violation.
+
 ## How to set default categories by MCC code
 
 Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a **Travel** category. These defaults are rules on the **Expense defaults** tab of the **Rules** page.
@@ -222,6 +243,22 @@ Yes, until an expense is approved or reimbursed. Approvers can also edit categor
 
 Yes. When a category is manually edited, the change is logged in the related expense chat.
 
+Changes to a member’s **Category visibility** are recorded in the workspace’s **#admins** room.
+
+## Why does an expense show Category not allowed?
+
+The expense uses a category the member does not have access to. This can happen when an admin changes the member’s category visibility after an expense was coded, or when a rule or default applies a restricted category. Visibility changes update violations on open and submitted reports, but do not automatically recategorize the expenses.
+
+Recode the expense to an allowed category, or ask a workspace admin to restore access. Either action clears the violation. This violation alone does not prevent report submission. Unlike **Category no longer valid**, it does not mean the category is disabled for the whole workspace.
+
+## Why can’t I disable a category?
+
+You cannot disable a category if doing so would leave a restricted member without an enabled category. Give the affected member access to another enabled category first.
+
+## What happens if a member’s last available category is deleted?
+
+Their restriction is cleared, restoring access to all enabled categories. The same happens if an accounting sync disables their last available category. Review their category visibility afterward.
+
 ## What happens if a category is disabled in my accounting system?
 
 It will be removed from the workspace’s category list. However, it will remain visible on previously submitted or drafted reports where it was already applied.
@@ -237,4 +274,3 @@ Alternatively, you can enable tags on the workspace to edit the category directl
 ## How can members see GL codes?
 
 GL codes are hidden from members by default. On the Control plan, a Workspace Admin can make them visible by going to **Workspaces > [workspace name] > Categories > More** and enabling **Show GL codes when categorizing expenses**. Once enabled, the GL code appears next to each category name when categorizing expenses.
-

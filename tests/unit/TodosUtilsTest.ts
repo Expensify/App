@@ -437,6 +437,35 @@ describe('TodosUtils', () => {
             expect(result.reportsToPay.map((report) => report.reportID)).toEqual(['pay_export_failed']);
         });
 
+        it('excludes a non-reimbursable-only report from the pay bucket before its transactions load', () => {
+            // Given an approved report whose totals show only non-reimbursable spend, and whose transactions haven't been fetched yet
+            const nonReimbursableReport = createMockReport('pay_non_reimbursable_unloaded', {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: -100,
+                nonReimbursableTotal: -100,
+                reimbursableTotal: 0,
+            });
+            const policy = createMockPolicy(POLICY_ID, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            // When building the to-do buckets
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([nonReimbursableReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            // Then it is kept out of the pay bucket, so it doesn't drop out of Ready to pay only once the report is opened
+            expect(result.reportsToPay).toEqual([]);
+        });
+
         it('excludes a report whose expenses are all pending card transactions', () => {
             const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
             const submitReport = createMockReport('pending_submit', {

@@ -1,10 +1,14 @@
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-import type {RadioButtonProps} from './SelectionButton';
+import type {RadioButtonProps as SelectionRadioButtonProps} from './SelectionButton';
 
 import SelectionButton from './SelectionButton';
+
+/** Radio buttons fall back to a default label, so they don't need one. */
+type RadioButtonProps = Omit<SelectionRadioButtonProps, 'sentryLabel'> & WithSentryLabel;
 
 /**
  * A circular radio button for single-selection contexts.

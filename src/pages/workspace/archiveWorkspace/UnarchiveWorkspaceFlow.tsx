@@ -9,7 +9,6 @@ import {close} from '@libs/actions/Modal';
 import {unarchivePolicy} from '@libs/actions/Policy/Policy';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useEffect, useRef} from 'react';
 
@@ -35,9 +34,7 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss, onUnarchiveComplete}: Unar
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const isLoadingData = isLoadingOnyxValue(policyResult);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     // The modal callbacks below run after the effect that created them, so they read the latest network state from a ref.
     const isOfflineRef = useRef(isOffline);
@@ -45,10 +42,10 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss, onUnarchiveComplete}: Unar
         isOfflineRef.current = isOffline;
     }, [isOffline]);
 
-    // Closes the popover (if still open) and shows the confirmation modal once the policy entry has loaded.
+    // Closes the popover (if still open) and shows the confirmation modal once, on mount.
     const hasStartedRef = useRef(false);
     useEffect(() => {
-        if (hasStartedRef.current || isLoadingData) {
+        if (hasStartedRef.current) {
             return;
         }
         hasStartedRef.current = true;

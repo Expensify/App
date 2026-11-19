@@ -64,7 +64,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             key: 'actions',
             width: variables.domainTableActionColumnWidth,
             label: '',
-            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
         },
     ];
 

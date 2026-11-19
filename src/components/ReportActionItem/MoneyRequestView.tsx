@@ -625,8 +625,6 @@ function MoneyRequestView({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isGroupPolicyByType(reportPolicyType));
-    const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-        getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
@@ -708,7 +706,7 @@ function MoneyRequestView({
                 event?.stopPropagation();
                 openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
             }}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
         >
             <Text style={styles.textLabelSupporting}>
                 {translate('common.googleThisMerchant', {
@@ -875,10 +873,11 @@ function MoneyRequestView({
             return translate('violations.customUnitOutOfPolicy');
         }
 
-        // Return violations if there are any
-        if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
-            const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-            return `${violations
+        const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
+        const displayableViolations = field === 'merchant' ? violations.filter((violation) => violation.name === CONST.VIOLATIONS.NONDEFAULT_MERCHANT) : violations;
+
+        if (displayableViolations.length > 0) {
+            return `${displayableViolations
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
@@ -1413,31 +1412,59 @@ function MoneyRequestView({
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
-                        <MenuItemWithTopDescription
+                        <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
-                            description={translate('common.merchant')}
-                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
-                            title={updatedMerchantTitle}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('merchant')}
-                            errorTextStyle={styles.userSelectNone}
-                            numberOfLinesTitle={0}
-                            copyValue={merchantCopyValue}
-                            copyable={!canEditMerchant && !!merchantCopyValue}
-                            isTitleSelectable={!!merchantCopyValue}
-                        />
+                            shouldAllowTextSelection={!!merchantCopyValue}
+                            shouldBeAccessible={canEditMerchant || !shouldShowGoogleMerchantSearchLink}
+                            style={styles.taskDescriptionMenuItem}
+                            onPress={
+                                canEditMerchant
+                                    ? callIfAuthenticated(() => {
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport?.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                      }, session)
+                                    : undefined
+                            }
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    {updatedMerchantTitle ? (
+                                        <>
+                                            <MenuItem.FieldName>{translate('common.merchant')}</MenuItem.FieldName>
+                                            <MenuItem.FieldValue
+                                                numberOfLines={0}
+                                                isSelectable={!!merchantCopyValue}
+                                                style={styles.flex1}
+                                            >
+                                                {updatedMerchantTitle}
+                                            </MenuItem.FieldValue>
+                                        </>
+                                    ) : (
+                                        <MenuItem.FieldNamePlaceholder>{translate('common.merchant')}</MenuItem.FieldNamePlaceholder>
+                                    )}
+                                    {shouldShowGoogleMerchantSearchLink && renderGoogleMerchantSearchLink()}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    {!!getErrorForField('merchant') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                    {canEditMerchant && <MenuItem.Chevron />}
+                                    {!canEditMerchant && !!merchantCopyValue && <MenuItem.Copy value={merchantCopyValue} />}
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                            {!!getErrorForField('merchant') && (
+                                <MenuItem.HelpText
+                                    isError
+                                    message={getErrorForField('merchant')}
+                                />
+                            )}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
@@ -1759,6 +1786,24 @@ function MoneyRequestView({
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
+                            {!!getErrorForField('reimbursable') && (
+                                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                                    <ViolationMessages
+                                        violations={getViolationsForField('reimbursable')}
+                                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                                        textStyle={[styles.ph0]}
+                                        isLast
+                                        isMarkAsCash={isMarkAsCash}
+                                        canEdit={canEdit}
+                                        companyCardPageURL={companyCardPageURL}
+                                        connectionLink={connectionLink}
+                                        routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                        distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                        policyVendors={policyVendors}
+                                        transactionCurrency={transaction?.currency}
+                                    />
+                                </View>
+                            )}
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}

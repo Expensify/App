@@ -50,6 +50,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -211,6 +212,7 @@ import {
     getReportPreviewMessageForCopy,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
+    isChatThread,
     isExpenseReport,
     isSelfDM,
     isSupportTicket,
@@ -274,7 +276,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -402,6 +404,7 @@ type ContextMenuActionPayload = {
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
     iouTransactionReport: OnyxEntry<ReportType>;
     moneyRequestActionChildReport: OnyxEntry<ReportType>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -871,6 +874,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransactionViolations,
                 iouTransactionReport,
                 moneyRequestActionChildReport,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -885,41 +889,28 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
+            const performHold = () =>
+                changeMoneyRequestHoldStatus({
+                    reportAction: moneyRequestAction,
+                    iouTransaction,
+                    iouTransactionReport,
+                    reportActionChildReport: moneyRequestActionChildReport,
+                    policy: moneyRequestPolicy,
+                    isOffline,
+                    currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionViolations: iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
+                });
+
             if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus({
-                        reportAction: moneyRequestAction,
-                        iouTransaction,
-                        iouTransactionReport,
-                        reportActionChildReport: moneyRequestActionChildReport,
-                        policy: moneyRequestPolicy,
-                        isOffline,
-                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        transactionViolations: iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                        rules,
-                    }),
-                );
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus({
-                reportAction: moneyRequestAction,
-                iouTransaction,
-                iouTransactionReport,
-                reportActionChildReport: moneyRequestActionChildReport,
-                policy: moneyRequestPolicy,
-                isOffline,
-                currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                transactionViolations: iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            });
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
@@ -1383,7 +1374,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                         ),
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report, shouldUseShortDisplayName: false}));
+                    // Match ReimbursementQueuedContent, which names the parent report's owner when the action is in a thread.
+                    const queuedPaymentReport = isChatThread(report) ? getReportOrDraftReport({reportID: report?.parentReportID}) : report;
+                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report: queuedPaymentReport, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
@@ -1490,6 +1483,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
                     setClipboardMessage(getCompanyCardConnectionBroken30DaysMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+                    setClipboardMessage(getCompanyCardConsentExpiringMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
                     setClipboardMessage(getCardConnectionBrokenMessage(undefined, getOriginalMessage(reportAction)?.cardName, translate, false));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
