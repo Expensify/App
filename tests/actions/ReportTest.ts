@@ -13,6 +13,7 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
@@ -338,6 +339,90 @@ describe('actions/Report', () => {
             expect(parameters).not.toHaveProperty('optimisticConciergeReportActionID');
             expect(trackConciergeResponse).not.toHaveBeenCalled();
         }
+        await waitForBatchedUpdates();
+    });
+
+    it.each<[string, string, string | undefined, string | undefined, boolean]>([
+        ['Concierge DM', '300', undefined, undefined, true],
+        ['new Concierge thread', '300', undefined, '700', true],
+        ['existing Concierge thread', '400', '300', undefined, true],
+        ['ordinary chat', '600', undefined, undefined, false],
+    ])('starts thinking before the send completes in a %s', async (_name, reportID, parentReportID, conciergeThreadReportID, shouldStart) => {
+        // Given the network write has not completed.
+        apiWriteSpy.mockResolvedValue(undefined);
+        const targetReportID = conciergeThreadReportID ?? reportID;
+        AgentZeroOptimisticStore.clear(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
+
+        // When a message is sent through the shared report action.
+        Report.addComment({
+            report: {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                parentReportID,
+            },
+            notifyReportID: reportID,
+            ancestors: [],
+            text: 'Please help me with expenses',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 10,
+            delegateAccountID: undefined,
+            conciergeReportID: '300',
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+
+        // Then only Concierge conversations start immediately, on the predicted reply destination.
+        const entry = AgentZeroOptimisticStore.getEntry(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
+        expect(!!entry).toBe(shouldStart);
+        if (shouldStart) {
+            expect(apiWriteSpy.mock.calls.at(-1)?.[1]).toEqual(
+                expect.objectContaining({
+                    reportActionID: entry?.turns.at(0)?.questionReportActionID,
+                    optimisticConciergeReportActionID: entry?.turns.at(0)?.responseReportActionID,
+                }),
+            );
+            expect(apiWriteSpy.mock.calls.at(-1)?.[2]).toEqual(
+                expect.objectContaining({
+                    conciergeProcessingReportID: targetReportID,
+                }),
+            );
+        }
+        AgentZeroOptimisticStore.clear(targetReportID, CONST.ACCOUNT_ID.CONCIERGE);
+        await waitForBatchedUpdates();
+    });
+
+    it('does not start thinking for a pregenerated followup, which already shows its own scheduled reply', async () => {
+        // Given the network write has not completed.
+        apiWriteSpy.mockResolvedValue(undefined);
+        AgentZeroOptimisticStore.clear('300', CONST.ACCOUNT_ID.CONCIERGE);
+        const reportAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: '900',
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            message: [
+                {
+                    html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text><followup-response>Go to Settings.</followup-response></followup></followup-list>',
+                    text: 'Here is help',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                },
+            ],
+        });
+
+        // When a followup with a pregenerated response is chosen in the Concierge DM.
+        resolveSuggestedFollowup(
+            {...createRandomReport(300, undefined), reportID: '300'},
+            undefined,
+            reportAction,
+            {text: 'How do I set up QuickBooks?', response: 'Go to Settings.'},
+            CONST.DEFAULT_TIME_ZONE,
+            10,
+            'user@example.com',
+            undefined,
+            '300',
+        );
+
+        // Then nothing waits for Concierge, because the scheduled reply is already on its way.
+        expect(AgentZeroOptimisticStore.getEntry('300', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        expect(apiWriteSpy.mock.calls.at(-1)?.[2]?.conciergeProcessingReportID).toBeUndefined();
         await waitForBatchedUpdates();
     });
 

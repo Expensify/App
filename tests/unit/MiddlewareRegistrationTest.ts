@@ -14,6 +14,7 @@ import {
     Reauthentication,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -48,6 +49,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     HandleMovedScanFailedExpenses,
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];

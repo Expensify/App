@@ -519,6 +519,49 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.statusLabel).toBe('');
         });
 
+        it('clears a sent message after the 2-minute timeout when neither its reply nor its completion arrives', async () => {
+            // Given a message whose server response and completion event were both lost, as with a retried duplicate send.
+            jest.useFakeTimers();
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'lost-question', responseReportActionID: 'lost-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the safety window passes.
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator stops instead of staying up indefinitely.
+            expect(result.current.isProcessing).toBe(false);
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        });
+
+        it('keeps a label the server saved on the report when a sent message times out', async () => {
+            // Given an escalated chat, whose label the server saved on the report, and a message whose completion was lost.
+            const escalationLabel = 'Concierge is escalating for human review...';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: escalationLabel});
+            await waitForBatchedUpdates();
+            jest.useFakeTimers();
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'escalated-question', responseReportActionID: 'escalated-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the safety window passes.
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the message stops waiting, and the saved label is left for the server to end.
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe(escalationLabel);
+        });
+
         it('should not clear optimistic state before the 2-minute timeout', async () => {
             jest.useFakeTimers();
 
@@ -820,6 +863,130 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('final response handling', () => {
+        it('keeps a new turn visible through an older reply and an empty snapshot, then clears on silent completion', async () => {
+            // Given a new message is pending while a previous Concierge reply is still newest locally.
+            const previousReportActionID = 'old-reply';
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, previousReportActionID, {questionReportActionID: 'new-question', responseReportActionID: 'new-reply'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [previousReportActionID]: {
+                    reportActionID: previousReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-27 10:57:24.000',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'An earlier answer',
+                            text: 'An earlier answer',
+                        },
+                    ],
+                },
+            });
+            const {result} = renderHook(
+                () => ({
+                    ...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                    ...useAgentZeroStatus(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            // Then the previous reply does not hide the new pending turn.
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When OpenReport returns an empty processing snapshot before the run finishes.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
+            await waitForBatchedUpdates();
+
+            // Then the local indicator survives that ordinary snapshot.
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the server completes the exact turn without adding a reply.
+            act(() => AgentZeroOptimisticStore.completeTurn('new-question'));
+            await waitForBatchedUpdates();
+
+            // Then the indicator ends immediately rather than waiting for its safety timeout.
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('clears each message only when its own reply lands, even if the completion event never arrives', async () => {
+            // Given two messages are pending and neither completion event will reach this tab.
+            const firstReplyID = 'first-reply';
+            const secondReplyID = 'second-reply';
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'first-question', responseReportActionID: firstReplyID});
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'second-question', responseReportActionID: secondReplyID});
+            const {result} = renderHook(
+                () => ({
+                    ...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                    ...useAgentZeroStatus(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            // When the reply to the first message is saved.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [firstReplyID]: {
+                    reportActionID: firstReplyID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-11-17 10:00:00.000',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then the newer message keeps its indicator although Concierge's reply is now the newest action.
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)?.turns.map((turn) => turn.questionReportActionID)).toEqual(['second-question']);
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When the second reply is still being sent, and then is saved.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [secondReplyID]: {
+                    reportActionID: secondReplyID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-11-17 10:01:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[secondReplyID]: {pendingAction: null}});
+            await waitForBatchedUpdates();
+
+            // Then the indicator ends with the reply to the latest message, not earlier.
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('keeps a sent message pending through an empty label and finishes it on escalation without hiding the escalation label', async () => {
+            // Given a pending message and Concierge's label for its run.
+            const escalationLabel = 'Concierge is escalating for human review...';
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'escalated-question', responseReportActionID: 'escalated-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // When Auth clears the label just before a tool runs, which happens mid-run.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: ''}});
+            await waitForBatchedUpdates();
+
+            // Then the message is still pending, because only its reply or completion finishes it.
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the run escalates, which saves its label on the report, and the server finishes the message.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: escalationLabel});
+            act(() => AgentZeroOptimisticStore.completeTurn('escalated-question'));
+            await waitForBatchedUpdates();
+
+            // Then the message no longer waits, and the escalation label stays visible.
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(result.current.isProcessing).toBe(true);
+            await waitFor(() => expect(result.current.statusLabel).toBe(escalationLabel));
+        });
+
         it('should clear reasoning history when processing indicator is cleared', async () => {
             // Given a Concierge chat with active reasoning
             const serverLabel = 'Concierge is looking up categories...';
@@ -946,11 +1113,11 @@ describe('AgentZeroStatusContext', () => {
         });
 
         it('should auto-clear after 120s safety timeout when serverLabel is active', async () => {
-            // Given a Concierge chat where the server sets a processing indicator
+            // Given a Concierge chat where the server sends a live processing label, keyed by agent as the server does
             const serverLabel = 'Concierge is looking up categories...';
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: serverLabel,
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: serverLabel},
             });
 
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});

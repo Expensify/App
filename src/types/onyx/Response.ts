@@ -18,6 +18,18 @@ type Data = {
     policyDiff?: VacationDelegatePolicyDiff;
 };
 
+/** Identifies the user message covered by a temporary Concierge processing decision. */
+type ConciergeProcessingStatus = {
+    /** The server's reply destination, which can differ from the client's new thread ID. */
+    reportID: string;
+
+    /** The triggering user message; completion must leave a newer send pending. */
+    reportActionID: string;
+
+    /** False also retires local pending state when a run is suppressed or no job was queued. */
+    isProcessing: boolean;
+};
+
 /** Model of server response */
 type Response<TKey extends OnyxKey> = {
     /** ID of the next update that needs to be fetched from the server */
@@ -39,6 +51,9 @@ type Response<TKey extends OnyxKey> = {
     requestID?: string;
 
     reportID?: string;
+
+    /** The actual reply destination and display decision, including when no Concierge job starts. */
+    conciergeProcessingStatus?: ConciergeProcessingStatus;
 
     /** Authoritative transaction thread for an edit; 0 means Auth has no thread for the expense. */
     transactionThreadReportID?: number | string;
@@ -159,3 +174,4 @@ type Response<TKey extends OnyxKey> = {
 };
 
 export default Response;
+export type {ConciergeProcessingStatus};

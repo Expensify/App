@@ -8,6 +8,7 @@ import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRo
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
@@ -1114,7 +1115,8 @@ function addActions({
 
     // Reserve a reply identity for questions the user explicitly sends to Concierge. The
     // server reuses it for both draft events and the final action, excluding unsolicited replies.
-    const isConciergeConversation = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID) || isAdminRoom(reportForAction);
+    const isConciergeDMOrThread = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID);
+    const isConciergeConversation = isConciergeDMOrThread || isAdminRoom(reportForAction);
     if (isConciergeConversation && !pregeneratedResponseParams && resolvedReportActionID) {
         parameters.optimisticConciergeReportActionID = rand64();
         trackConciergeResponse({
@@ -1329,10 +1331,20 @@ function addActions({
         optimisticData.push(optimisticSnapshotUpdate);
     }
 
+    // Pregenerated follow-ups already show their own scheduled reply, so only questions the user typed wait for Concierge here.
+    const conciergeProcessingReportID = isConciergeDMOrThread && !pregeneratedResponseParams ? (conciergeThreadReportID ?? reportID) : undefined;
+    if (conciergeProcessingReportID && resolvedReportActionID && parameters.optimisticConciergeReportActionID) {
+        AgentZeroOptimisticStore.addTurn(conciergeProcessingReportID, CONST.ACCOUNT_ID.CONCIERGE, lastVisibleAction?.reportActionID ?? null, {
+            questionReportActionID: resolvedReportActionID,
+            responseReportActionID: parameters.optimisticConciergeReportActionID,
+        });
+    }
+
     API.write(commandName, parameters, {
         optimisticData,
         successData,
         failureData,
+        conciergeProcessingReportID,
     });
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 

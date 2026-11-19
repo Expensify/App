@@ -59,6 +59,9 @@ type OnyxDataBase<TOnyxUpdate> = {
 
     /** Client-only details retained with a queued bulk-edit request for response reconciliation. */
     bulkEditActionContext?: BulkEditActionContext;
+
+    /** Client-only predicted reply destination for reconciling the optimistic Concierge indicator. */
+    conciergeProcessingReportID?: string;
 };
 
 /** Model of onyx requests sent to the API */

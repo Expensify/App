@@ -1,5 +1,6 @@
 import {clearAgentZeroProcessingIndicator, getNewerActions} from '@libs/actions/Report';
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
+import type {PendingTurn} from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 
@@ -10,8 +11,8 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 import type {NewestReportAction} from '@selectors/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getNewestReportActionSelector} from '@selectors/ReportAction';
-import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
+import {answeredTurnQuestionIDsSelector, getNewestReportActionSelector} from '@selectors/ReportAction';
+import {getAgentZeroProcessingLabel, hasPersistedAgentZeroProcessingLabelSelector} from '@selectors/ReportNameValuePairs';
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 import useLocalize from './useLocalize';
@@ -55,12 +56,34 @@ const DEBOUNCE_DELAY = 150; // ms
  *   decide when its final reply has landed: the indicator only clears once the newest
  *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
  */
+/**
+ * Finishes each sent message once its reply is saved under the ID the client reserved for it, so an older reply
+ * never finishes a newer message and a missed completion event does not leave the message waiting. Reading the
+ * reply from Onyx also covers a reply that arrived while this tab was offline.
+ */
+function useCompleteAnsweredTurns(reportID: string, agentAccountID: number, pendingTurns: PendingTurn[] | undefined) {
+    const [answeredQuestionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: answeredTurnQuestionIDsSelector(pendingTurns, agentAccountID)});
+    useEffect(() => {
+        for (const questionReportActionID of answeredQuestionIDs ?? []) {
+            AgentZeroOptimisticStore.completeTurn(questionReportActionID);
+        }
+    }, [answeredQuestionIDs]);
+}
+
 function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
     // when its own label changes.
     const serverLabelSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID);
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
+
+    // A label the server saved on the report, such as the escalation notice, is cleared only by the server and comes
+    // back on the next OpenReport. The local safety clears read this through a ref because they run from a timer.
+    const [hasPersistedLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: hasPersistedAgentZeroProcessingLabelSelector});
+    const hasPersistedLabelRef = useRef<boolean>(!!hasPersistedLabel);
+    useEffect(() => {
+        hasPersistedLabelRef.current = !!hasPersistedLabel;
+    }, [hasPersistedLabel]);
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
     const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
@@ -69,22 +92,18 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         newestReportActionRef.current = newestReportAction;
     }, [newestReportAction]);
 
-    // Track pending optimistic requests with a counter, backed by a module-level store so
-    // the state survives ReportScreen remounts (switching chats and coming back). Each
-    // kickoffWaitingIndicator() call increments the counter; when a Concierge reply is
-    // detected (via Pusher, reconnect, or safety timeout), the entry is cleared — any
-    // signal that a response arrived resolves all pending requests (optimistic state is
-    // a display signal, not a queue).
-    const subscribeToOptimisticStore = (onStoreChange: () => void) =>
-        AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
-            if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
-                return;
-            }
-            onStoreChange();
-        });
+    // Track pending optimistic requests in a module-level store so the state survives
+    // ReportScreen remounts (switching chats and coming back). Messages sent to Concierge are
+    // tracked one by one and clear on their own reply or completion, so an older reply cannot
+    // clear a newer message. Other kickoffs are counted and clear on the agent's next reply,
+    // the safety timeout, or reconnect.
+    const subscribeToOptimisticStore = (onStoreChange: () => void) => AgentZeroOptimisticStore.subscribeToEntry(reportID, agentAccountID, onStoreChange);
     const getOptimisticSnapshot = () => AgentZeroOptimisticStore.getEntry(reportID, agentAccountID);
     const optimisticEntry = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
-    const pendingOptimisticRequests = optimisticEntry?.count ?? 0;
+    const pendingOptimisticRequests = AgentZeroOptimisticStore.getPendingCount(optimisticEntry);
+    const pendingTurns = optimisticEntry?.turns;
+    const hasPendingTurns = AgentZeroOptimisticStore.hasPendingTurns(optimisticEntry);
+    useCompleteAnsweredTurns(reportID, agentAccountID, pendingTurns);
     // Debounced label shown to the user — smooths rapid server label changes.
     // displayedLabelRef mirrors state so the label-sync effect can read the current value
     // without including displayedLabel in its dependency array (avoids extra effect cycles).
@@ -131,6 +150,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_INDICATOR_DURATION_MS if no response has arrived.
+     * A label the server saved on the report is left alone, because only the server ends it.
      */
     const hardClearIndicator = () => {
         // If offline, don't clear — the response may arrive when reconnected
@@ -139,9 +159,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         }
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
-        displayedLabelRef.current = '';
-        setDisplayedLabel('');
-        clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        if (!hasPersistedLabelRef.current) {
+            displayedLabelRef.current = '';
+            setDisplayedLabel('');
+            clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        }
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
     };
 
@@ -180,11 +202,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         onReconnect: () => {
             const wasOptimistic = pendingOptimisticRequests > 0;
 
-            if (wasOptimistic) {
+            if (wasOptimistic && !hasPersistedLabelRef.current) {
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
-            // Fetch missed actions so the Onyx-driven Concierge-reply detection can fire.
+            // Fetch missed actions so a reply that landed while offline can finish its message.
             getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
 
             if (serverLabel || wasOptimistic) {
@@ -227,9 +249,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         // the server NVP can briefly go truthy→falsy→truthy between processing phases (e.g.,
         // "thinking..." → (gap) → "searching documentation..."), and clearing the optimistic
         // floor here means a chat-switch during the gap lands on "no optimistic, no serverLabel
-        // → no indicator." The optimistic entry is cleared by authoritative signals only: the
-        // reply-detection effect (new agent action newer than baseline), the 120s safety
-        // timeout, or the onReconnect handler.
+        // → no indicator." The optimistic entry is cleared by a matching turn completion,
+        // legacy reply detection, the 120s safety timeout, or the onReconnect handler.
         if (hasServerLabel || pendingOptimisticRequests > 0) {
             startSafetyTimer();
         }
@@ -338,6 +359,10 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
+        // The newest reply can answer an older message. Tracked messages wait for their own reply or completion instead.
+        if (hasPendingTurns) {
+            return;
+        }
         if (newestActorAccountID !== agentAccountID) {
             return;
         }
@@ -355,7 +380,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID, hasPendingTurns]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
