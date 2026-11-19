@@ -35,29 +35,6 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
 };
 
 /**
- * Resolves the final `useOnyx` result, extracting the specific key's data out of the search snapshot
- * when applicable.
- *
- * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
- * OXC's React Compiler currently fails to compile a hook when a generic type cast referencing the hook's
- * own type parameters (e.g. `as UseOnyxResult<TReturnValue>`) appears inside a nested closure. That
- * bailout is silent (no build warning) and disables automatic memoization for the entire file.
- */
-function resolveSnapshotAwareResult<TKey extends OnyxKey, TReturnValue>(
-    shouldUseSnapshot: boolean,
-    hasSelector: boolean,
-    originalResult: UseOnyxResult<OnyxValue<OnyxKey>>,
-    key: TKey,
-): UseOnyxResult<TReturnValue> {
-    if (!shouldUseSnapshot || hasSelector) {
-        return originalResult as UseOnyxResult<TReturnValue>;
-    }
-
-    const keyData = getKeyData(originalResult[0] as SearchResults, key);
-    return [keyData, originalResult[1]] as UseOnyxResult<TReturnValue>;
-}
-
-/**
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>) => {
@@ -78,18 +55,19 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
     // Determine if we should use snapshot data based on search state and key
     const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatible && !shouldUseLiveData;
 
-    // Create selector function that handles both regular and snapshot data
-    const selector = !selectorProp || !shouldUseSnapshot ? selectorProp : (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
+    // A snapshot read subscribes to the whole snapshot, so it selects its own key. Onyx then compares only that key's data and a
+    // write to another key in the snapshot does not re-render the reader, as it would not for a read outside Search.
+    const selector = !shouldUseSnapshot
+        ? selectorProp
+        : (data: OnyxValue<OnyxKey> | undefined) => {
+              const keyData = getKeyData<OnyxKey, OnyxValue<OnyxKey>>(data as SearchResults, key);
+              return selectorProp ? selectorProp(keyData) : keyData;
+          };
 
     const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
-    const originalResult = useOnyxWithoutSnapshots(snapshotKey, onyxOptions);
-
-    // Extract the specific key data from snapshot if in search mode
-    const result = resolveSnapshotAwareResult<TKey, TReturnValue>(shouldUseSnapshot, !!selector, originalResult, key);
-
-    return result;
+    return useOnyxWithoutSnapshots(snapshotKey, onyxOptions) as UseOnyxResult<TReturnValue>;
 };
 
 export default useOnyx;

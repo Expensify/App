@@ -2,13 +2,13 @@ import {getSearchTabRouteParams} from '@components/Navigation/NavigationTabBar/g
 
 import useOnyx from '@hooks/useOnyx';
 
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getPlatform from '@libs/getPlatform';
+import getSearchTabPreloadTarget from '@libs/Navigation/helpers/getSearchTabPreloadTarget';
 import {setIdlePreloadedSearchTabRouteKey} from '@libs/Navigation/helpers/searchTabPreloadStore';
-import {getTabNavigatorState, getTabPreloadTarget, isTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getTabNavigatorState, isTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {Scheduler} from '@libs/Scheduler';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -30,7 +30,8 @@ type SearchTabPreloadProps = {
 };
 
 /**
- * Mounts the Spend tab off idle with the exact query the tab button would open, so the first visit only reveals it.
+ * Builds the Spend tab off idle with the exact query the tab button would open, so the first visit only reveals it.
+ * The platform's `getSearchTabPreloadTarget` decides when a preload has something to build.
  * Its own component, so the saved Spend query it reads re-renders only this and not AuthScreensInitHandler.
  */
 function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreloadProps) {
@@ -39,11 +40,12 @@ function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreload
 
     // Reads the saved query when the idle task runs, so a Spend search does not reschedule the preload.
     const preloadSearchTab = useEffectEvent(() => {
-        if (getIsNarrowLayout()) {
+        // A submit that ends on Spend opens the tab itself, pre-inserted under the RHP, so a preload would only compete with it.
+        if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
             return;
         }
         const rootState = navigationRef.getRootState();
-        const target = getTabPreloadTarget(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        const target = getSearchTabPreloadTarget(rootState);
         // Already preloaded, but its screens are not mounted yet, so the target check alone would let a rescheduled task preload it again.
         if (!target || isTabPreloaded(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)) {
             return;
@@ -60,9 +62,8 @@ function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreload
         navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: query, ...params}}), target});
     });
 
-    // Desktop browsers only: the native tab bar already mounts every tab at startup, and the cost on a phone CPU is unmeasured.
     useEffect(() => {
-        if (getPlatform(true) !== CONST.PLATFORM.WEB || isLoadingApp !== false || !tabNavigatorStateKey) {
+        if (isLoadingApp !== false || !tabNavigatorStateKey) {
             return;
         }
 
