@@ -11,6 +11,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -35,6 +36,11 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/telemetry/activeSpans', () => ({
+    ...jest.requireActual('@libs/telemetry/activeSpans'),
+    endSpan: jest.fn(),
+    cancelSpan: jest.fn(),
+}));
 jest.mock('@components/Modal/ReanimatedModal', () => {
     const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
     return MockReanimatedModal;
@@ -219,5 +225,45 @@ describe('DynamicCategoryVisibleToPage', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('ends the open span once the member list renders, and cancels it on leaving', async () => {
+        // Given the Fees "Visible to" page with the workspace's members loaded, and no span calls from earlier tests
+        jest.mocked(endSpan).mockClear();
+        jest.mocked(cancelSpan).mockClear();
+        const {unmount} = renderPage({policyID: policy.id, categoryName: 'Fees'});
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+        // Then the span ends, since the list has members to show
+        expect(endSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
+
+        // When the admin leaves the page
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the span is cancelled too, which is a no-op for a span that already ended
+        expect(cancelSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
+    });
+
+    it('keeps the open span running while the workspace members are still loading', async () => {
+        // Given the Fees "Visible to" page opened before the workspace's members have loaded, and no span calls from earlier tests
+        jest.mocked(endSpan).mockClear();
+        jest.mocked(cancelSpan).mockClear();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: null});
+        });
+        const {unmount} = renderPage({policyID: policy.id, categoryName: 'Fees'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the span doesn't end, since there's no member list to measure yet
+        expect(endSpan).not.toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
+
+        // When the admin leaves before the members load
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the span is cancelled, so the P95 doesn't count a page that never showed its list
+        expect(cancelSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
     });
 });
