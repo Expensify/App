@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -44,13 +43,13 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [cardFeeds, cardFeedsMetadata] = useCardFeeds(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
     const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feed, cardID, navigation.getState()));
 
     const splitFeed = splitCardFeedWithDomainID(feed);
-    const [defaultValue, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeed?.domainID}_${splitFeed?.feedName}`, {
+    const [defaultValue] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeed?.domainID}_${splitFeed?.feedName}`, {
         selector: (cards) => cards?.[cardID]?.nameValuePairs?.cardTitle,
     });
 
@@ -69,10 +68,6 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
 
         return errors;
     };
-
-    if (isLoadingOnyxValue(allBankCardsMetadata, cardFeedsMetadata)) {
-        return null;
-    }
 
     return (
         <AccessOrNotFoundWrapper
