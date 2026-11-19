@@ -10064,11 +10064,12 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getMergedReportsMessage', () => {
-        const buildMergedReportsAction = (sourceReports: Array<{reportID: string; reportName: string}>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS> => ({
-            ...createRandomReportAction(1),
-            actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS,
-            originalMessage: {sourceReports, movedTransactionCount: 3},
-        });
+        const buildMergedReportsAction = (sourceReports: Array<{reportID: string; reportName: string}>) =>
+            ({
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS,
+                originalMessage: {sourceReports, movedTransactionCount: 3},
+            }) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS>;
 
         it('names the single merged report', () => {
             // Given an action for a merge of one report
