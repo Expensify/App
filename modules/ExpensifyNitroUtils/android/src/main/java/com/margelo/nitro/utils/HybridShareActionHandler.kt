@@ -78,7 +78,7 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
     companion object {
         private const val TAG = "HybridShareActionHandler"
 
-        // The intent handlers in both host apps save the share under these names, see IntentHandlerConstants and ShareFileObject.
+        // The intent handlers in both host apps save the share under these names, see IntentHandlerConstants, ShareFileObject and the share folder in FileUtils / InternalStorageUtils.
         private const val PREFERENCES_FILE = "shareActionHandler"
         private const val SHARE_OBJECT_PROPERTY = "shareObject"
         private const val CONTENT_KEY = "content"
