@@ -273,22 +273,15 @@ describe('LogOutPreviousUserPage', () => {
         });
         const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot');
 
-        // The sign-out keeps only the top root route, so record which route is on top when it runs
-        let topRouteAtSignOut: string | undefined;
-        jest.mocked(signOutAndRedirectToSignIn).mockImplementationOnce(() => {
-            topRouteAtSignOut = navigationRef.getRootState()?.routes.at(-1)?.name;
-            return undefined;
-        });
-
         // When the transition page opens for that link
         renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the page signs out with the transition route still on top, so the public transition page can sign in the link account
+        // Then the page signs out without leaving the transition route, so the public transition page can sign in the link account
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
-        expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
         expect(resetRootSpy).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(navigationRef.getRootState()?.routes.at(-1)?.name).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
         resetRootSpy.mockRestore();
     });
 
