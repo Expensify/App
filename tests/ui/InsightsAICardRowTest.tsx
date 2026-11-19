@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -147,6 +147,26 @@ describe('InsightsAICardRow', () => {
         // Then the chip shows whole units of the chip currency, not cents, and not a percentage
         expect(screen.getByText(/30,318/)).toBeOnTheScreen();
         expect(screen.queryByText(/%/)).toBeNull();
+    });
+
+    it.each([false, true])('passes card evidence to Explain when available: %s', async (hasContext) => {
+        // Given either a legacy card or a card carrying its exact category and comparison evidence.
+        const askConcierge = jest.fn();
+        jest.mocked(useAskConcierge).mockReturnValue({askConcierge, askConciergeWithAttachment: jest.fn(), shouldShowAskConcierge: true, conciergeTargetReportID: undefined});
+        const explainContext: NonNullable<AIInsight['explainContext']> = {
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
+            groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+            signal: CONST.INSIGHTS.AI_INSIGHT.SIGNAL.SPIKE,
+            evidence: {category: 'IT Site Hosting', total: 10000},
+        };
+        const insight = {...SPIKE, ...(hasContext && {explainContext})};
+        await renderRow([insight]);
+
+        // When the user asks about the card.
+        fireEvent.press(screen.getByRole('button', {name: 'Explain'}));
+
+        // Then structured facts accompany the current filters, without making legacy cards unusable.
+        expect(askConcierge).toHaveBeenCalledWith(SPIKE.explainPrompt, {insightsScope: {...INSIGHTS_SCOPE, ...(hasContext && {insight: explainContext})}}, undefined);
     });
 
     it('tells screen readers which way the change went', async () => {

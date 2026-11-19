@@ -10,8 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {InsightsScope} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import useInsightsExplanation from './useInsightsExplanation';
 
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
@@ -25,12 +27,42 @@ type InsightsExplainButtonProps = {
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
+function InsightsExplainButtonContent({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
-    const {askConcierge, shouldShowAskConcierge} = useAskConcierge({forceConcierge: true});
+    const {askConcierge, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
+    const getPreloadedAnswer = useInsightsExplanation(explainPrompt, insightsScope, conciergeTargetReportID, shouldShowAskConcierge);
+    const [isLoading, setIsLoading] = useState(false);
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
+    const explainInsight = () => {
+        if (isLoading) {
+            return;
+        }
+        const answer = getPreloadedAnswer();
+        if (typeof answer === 'string' || !answer) {
+            askConcierge(explainPrompt, {insightsScope}, answer);
+            return;
+        }
+        setIsLoading(true);
+        answer.then((response) => {
+            // Filter changes remount this button, so a previous click must not post into the new context.
+            if (!isMounted.current) {
+                return;
+            }
+            setIsLoading(false);
+            askConcierge(explainPrompt, {insightsScope}, response);
+        });
+    };
 
     if (!shouldShowAskConcierge) {
         return null;
@@ -44,7 +76,8 @@ function InsightsExplainButton({explainPrompt, insightsScope, children}: Insight
             <View style={styles.alignSelfStart}>
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
-                    onPress={() => askConcierge(explainPrompt, {insightsScope})}
+                    onPress={explainInsight}
+                    isLoading={isLoading}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
                     accessibilityLabel={translate('insightsPage.explain')}
                     innerStyles={styles.bgTransparent}
@@ -59,6 +92,15 @@ function InsightsExplainButton({explainPrompt, insightsScope, children}: Insight
                 </Button>
             </View>
         </Tooltip>
+    );
+}
+
+function InsightsExplainButton(props: InsightsExplainButtonProps) {
+    return (
+        <InsightsExplainButtonContent
+            key={JSON.stringify([props.explainPrompt, props.insightsScope])}
+            {...props}
+        />
     );
 }
 

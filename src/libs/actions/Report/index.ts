@@ -449,6 +449,8 @@ type AddCommentParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
+    preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
@@ -468,6 +470,8 @@ type AddActionsParams = {
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    /** Sanitized HTML answer to show immediately in the Concierge reply thread. */
+    preloadedResponse?: string;
     reportActionID?: string;
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
@@ -923,6 +927,7 @@ function addActions({
     isInSidePanel = false,
     sidePanelContext,
     pregeneratedResponseParams,
+    preloadedResponse,
     reportActionID,
     delegateAccountID,
     conciergeReportID,
@@ -999,6 +1004,28 @@ function addActions({
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
+
+    const replyReportID = conciergeThreadReportID ?? reportID;
+    const preloadedConciergeAction =
+        preloadedResponse && isConciergeChat && !file
+            ? buildOptimisticAddCommentReportAction({
+                  text: preloadedResponse,
+                  isHTML: true,
+                  actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                  reportID: replyReportID,
+                  currentUserAccountID,
+                  delegateAccountIDParam: delegateAccountID,
+                  anchorCreatedToServer: true,
+                  lastActionCreated: reportCommentAction?.created,
+              })
+            : undefined;
+    const resolvedPregeneratedResponseParams = preloadedConciergeAction
+        ? {
+              optimisticConciergeReportActionID: preloadedConciergeAction.reportAction.reportActionID,
+              optimisticConciergeCreated: preloadedConciergeAction.reportAction.created,
+              pregeneratedResponse: preloadedConciergeAction.commentText,
+          }
+        : pregeneratedResponseParams;
 
     // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
     const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
@@ -1115,7 +1142,7 @@ function addActions({
     // Reserve a reply identity for questions the user explicitly sends to Concierge. The
     // server reuses it for both draft events and the final action, excluding unsolicited replies.
     const isConciergeConversation = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID) || isAdminRoom(reportForAction);
-    if (isConciergeConversation && !pregeneratedResponseParams && resolvedReportActionID) {
+    if (isConciergeConversation && !resolvedPregeneratedResponseParams && resolvedReportActionID) {
         parameters.optimisticConciergeReportActionID = rand64();
         trackConciergeResponse({
             accountID: currentUserAccountID,
@@ -1126,10 +1153,10 @@ function addActions({
     }
 
     // Add pregenerated params
-    if (pregeneratedResponseParams) {
-        parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
-        parameters.optimisticConciergeCreated = pregeneratedResponseParams.optimisticConciergeCreated;
-        parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
+    if (resolvedPregeneratedResponseParams) {
+        parameters.optimisticConciergeReportActionID = resolvedPregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.optimisticConciergeCreated = resolvedPregeneratedResponseParams.optimisticConciergeCreated;
+        parameters.pregeneratedResponse = resolvedPregeneratedResponseParams.pregeneratedResponse;
     }
 
     const optimisticData: Array<
@@ -1198,8 +1225,8 @@ function addActions({
     }
 
     // In case of error, remove the optimistic Concierge response
-    if (pregeneratedResponseParams) {
-        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
+    if (resolvedPregeneratedResponseParams && !preloadedConciergeAction) {
+        failureReportActions[resolvedPregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
@@ -1260,7 +1287,10 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeThreadReportID}`,
-                value: {[optimisticThreadCreatedAction.reportActionID]: optimisticThreadCreatedAction},
+                value: {
+                    [optimisticThreadCreatedAction.reportActionID]: optimisticThreadCreatedAction,
+                    ...(preloadedConciergeAction && {[preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction}),
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1324,6 +1354,26 @@ function addActions({
         );
     }
 
+    if (preloadedConciergeAction) {
+        // Keep the answer in the same optimistic write as its question and thread, so failures roll them back together.
+        if (!conciergeThreadReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`,
+                value: {[preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction},
+            });
+        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`,
+            value: {[preloadedConciergeAction.reportAction.reportActionID]: null},
+        });
+        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`] = {
+            ...snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}`],
+            [preloadedConciergeAction.reportAction.reportActionID]: preloadedConciergeAction.reportAction,
+        };
+    }
+
     const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
     if (optimisticSnapshotUpdate) {
         optimisticData.push(optimisticSnapshotUpdate);
@@ -1341,10 +1391,11 @@ function addActions({
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID, reportActionID: preloadedConciergeAction?.reportAction.reportActionID}));
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
+    return preloadedConciergeAction?.reportAction.reportActionID;
 }
 
 /** Add an attachment with an optional comment to a report */
@@ -1444,6 +1495,7 @@ function addComment({
     isInSidePanel,
     sidePanelContext,
     pregeneratedResponseParams,
+    preloadedResponse,
     reportActionID,
     delegateAccountID,
     conciergeReportID,
@@ -1453,7 +1505,7 @@ function addComment({
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({
+    return addActions({
         report,
         notifyReportID,
         ancestors,
@@ -1462,6 +1514,7 @@ function addComment({
         text,
         isInSidePanel,
         pregeneratedResponseParams,
+        preloadedResponse,
         reportActionID,
         delegateAccountID,
         sidePanelContext,
