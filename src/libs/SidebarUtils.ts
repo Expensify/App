@@ -826,6 +826,7 @@ function getOptionData({
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
+    lastOriginalAction,
     translate,
     dateFnsLocale,
     convertToDisplayString,
@@ -860,6 +861,7 @@ function getOptionData({
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -1031,6 +1033,7 @@ function getOptionData({
         reportAttributesDerived,
         visibleReportActionsData,
         oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
+        lastOriginalAction,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,

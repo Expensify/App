@@ -3,6 +3,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SetNameValuePairsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,13 +11,8 @@ import type {ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} fro
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-
-type SingleExpenseReportView = ValueOf<typeof CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW>;
-
-const SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME = 'expensify_singleExpenseReportView';
 
 /**
  * Apply a report layout selection from the group-by selector.
@@ -79,6 +75,12 @@ function setReportLayout(selection: ReportLayoutSelection, currentLayoutOption?:
         });
     }
 
+    // Support agents change the layout to troubleshoot, which must not change how the customer sees their reports
+    if (isSupportAuthToken()) {
+        Onyx.update(optimisticData);
+        return;
+    }
+
     const parameters: SetNameValuePairsParams = {};
     for (const [nvpName, nvpValue] of Object.entries(nameValuePairs)) {
         parameters[`nameValuePairs[${nvpName}]`] = nvpValue;
@@ -135,6 +137,12 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
         },
     ];
 
+    // Support agents change the columns to troubleshoot, which must not change how the customer sees their reports
+    if (isSupportAuthToken()) {
+        Onyx.update(optimisticData);
+        return;
+    }
+
     const parameters = {
         columns: JSON.stringify(columns),
     };
@@ -142,32 +150,4 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
     API.write(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, parameters, {optimisticData, failureData});
 }
 
-/**
- * Set whether the user views single-expense reports in the expense view or the table view.
- * The preference is saved on the account so it applies to every single-expense report on every device.
- */
-function setSingleExpenseReportView(view: SingleExpenseReportView, previousValue?: SingleExpenseReportView | null) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW,
-            value: view,
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW,
-            value: previousValue ?? null,
-        },
-    ];
-
-    const parameters: SetNameValuePairsParams = {
-        [`nameValuePairs[${SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME}]`]: view,
-    };
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS, parameters, {optimisticData, failureData});
-}
-
-export {setReportLayout, getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns, setSingleExpenseReportView};
+export {setReportLayout, getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns};

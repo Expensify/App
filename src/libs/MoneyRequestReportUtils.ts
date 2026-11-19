@@ -87,24 +87,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCre
 }
 
 /**
- * Give a list of report actions and a list of transactions,
- * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
- * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
- */
-function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
-    return transactions
-        .map((transaction) => {
-            if (isTransactionPendingDelete(transaction)) {
-                return;
-            }
-
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            return action?.childReportID;
-        })
-        .filter((reportID): reportID is string => !!reportID);
-}
-
-/**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
 function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
@@ -169,30 +151,10 @@ function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Tran
  * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
  *
  * If report is a special "transaction thread" we want to use other Report views.
- * Likewise, if report has only 1 connected transaction, then we also use other views,
- * unless the user chose the table view for single-expense reports.
+ * Likewise, if report has only 1 connected transaction, then we also use other views.
  */
-function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[], shouldUseTableViewForSingleExpense = false) {
-    if (isReportTransactionThread(report)) {
-        return false;
-    }
-    return shouldUseTableViewForSingleExpense || !isSingleTransactionReport(report, transactions);
-}
-
-/**
- * Returns whether the report shows its expenses in a table and so gets the multi-expense layout (super-wide RHP).
- * A single-expense report counts too when the user chose the table view for single-expense reports.
- */
-function shouldUseMultiExpenseReportLayout(transactionCount: number, shouldUseTableViewForSingleExpense: boolean) {
-    return transactionCount > 1 || (shouldUseTableViewForSingleExpense && transactionCount === 1);
-}
-
-/**
- * Returns the transaction thread that report comments go to, or undefined when they go to the report itself.
- * In the table view the thread's actions aren't shown in the report, so comments go to the report itself.
- */
-function getEffectiveTransactionThreadReportID(transactionThreadReportID: string | undefined, isSentMoneyReport: boolean, shouldUseTableViewForSingleExpense: boolean) {
-    return isSentMoneyReport || shouldUseTableViewForSingleExpense ? undefined : transactionThreadReportID;
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
 function shouldWaitForTransactions(
@@ -342,14 +304,11 @@ export {
     getReportRowReport,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
-    shouldUseMultiExpenseReportLayout,
-    getEffectiveTransactionThreadReportID,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
     getTransactionRejectErrorKey,

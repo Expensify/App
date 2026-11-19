@@ -200,9 +200,11 @@ describe('setupNode workspace installs', () => {
         // When the cache-seeding workflow runs
         const {jobs} = readWorkflow('seedCache');
 
-        // Then each subset needs a matching seed, while native hybrid builds need no workspace packages.
+        // Then each subset needs a matching seed on both runner architectures, while native hybrid builds need no workspace packages.
         expect(jobs.seedStandalone.strategy?.matrix.workspaces.map((value) => JSON.parse(value) as unknown)).toEqual([[], [WORKER], [RENDERER], [RENDERER, WORKER]]);
+        expect(jobs.seedStandalone.strategy?.matrix.runner).toEqual(['blacksmith-2vcpu-ubuntu-2404', 'blacksmith-2vcpu-ubuntu-2404-arm']);
         expect(jobs.seedStandalone.steps.find((item) => item.uses === SETUP_NODE)?.with?.WORKSPACES).toBe('${{ matrix.workspaces }}');
+        expect(jobs.seedHybrid.strategy?.matrix.runner).toEqual(['blacksmith-2vcpu-ubuntu-2404', 'blacksmith-2vcpu-ubuntu-2404-arm']);
         expect(jobs.seedHybrid.steps.find((item) => item.uses === SETUP_NODE)?.with?.WORKSPACES ?? action.inputs.WORKSPACES.default).toBe('[]');
     });
 });

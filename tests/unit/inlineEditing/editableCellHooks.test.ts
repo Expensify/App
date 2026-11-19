@@ -5,6 +5,7 @@ import usePopoverEditState from '@components/EditableCell/usePopoverEditState';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import createMock from '../../utils/createMock';
@@ -77,7 +78,7 @@ const openPopoverForAnchor = (anchor: AnchorRect, options: PopoverSetupOptions<s
     const measureInWindow: MeasureInWindow = (callback) => callback(anchor.x, anchor.y, anchor.width, anchor.height);
     const {result} = setupPopover<string>({value: 'hello', ...options});
 
-    result.current.anchorRef.current = createMock<View>({measureInWindow});
+    result.current.anchorRef.current = createMock<ComponentRef<typeof View>>({measureInWindow});
     act(() => result.current.startEditing());
 
     return result;
