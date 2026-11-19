@@ -22,14 +22,14 @@ import type Middleware from './types';
 const MembersNeedCategoryError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
         const isDisablingCategories = request?.command === WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED;
-        const isRemovingCategoryAccess = request?.command === WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY;
-        if ((!isDisablingCategories && !isRemovingCategoryAccess) || !response || response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+        const isVisibilityChange = request?.command === WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY;
+        if ((!isDisablingCategories && !isVisibilityChange) || !response || response.jsonCode === CONST.JSON_CODE.SUCCESS) {
             return response;
         }
 
         const accountIDs = response.additionalData?.accountIDs;
         const policyID = request.data?.policyID;
-        const categories = isRemovingCategoryAccess ? request.data?.categoryNames : request.data?.categories;
+        const categories = isVisibilityChange ? request.data?.categoryNames : request.data?.categories;
         if (!accountIDs?.length || typeof policyID !== 'string' || typeof categories !== 'string') {
             return response;
         }
@@ -53,7 +53,9 @@ const MembersNeedCategoryError: Middleware = <TKey extends OnyxKey>(responseProm
             Log.warn('MembersNeedCategoryError: could not parse the request categories', {error});
         }
 
-        setMembersNeedCategoryModal(policyID, accountIDs, categoryNames, isRemovingCategoryAccess);
+        // A visibility change with nobody selected disables the categories, so it keeps the disable title, like the page's own check.
+        const isRemovingAccess = isVisibilityChange && request.data?.selectedAccountIDList !== JSON.stringify([]);
+        setMembersNeedCategoryModal(policyID, accountIDs, categoryNames, isRemovingAccess);
         return response;
     });
 

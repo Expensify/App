@@ -24,7 +24,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyCategoryMemberVisibility} from '@libs/actions/Policy/Category';
-import {getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -74,7 +74,7 @@ function DynamicCategoryVisibleToPage({
     const isCategoryDisabled = !!policyCategory && !policyCategory.enabled && !policyCategory.pendingFields?.enabled;
 
     // A missing visibleTo means every member can use the category, so every row starts checked.
-    const visibleAccountIDs = memberAccountIDs.filter((accountID) => !policyCategory?.visibleTo || !!policyCategory.visibleTo[accountID]);
+    const visibleAccountIDs = memberAccountIDs.filter((accountID) => isCategoryVisibleToMember(policyCategory, accountID));
     // Rows are keyed by the member's accountID as a string, which is what the list and the selection hook compare.
     const visibleMemberKeys = visibleAccountIDs.map((accountID) => String(accountID));
     const {selectedKeys, toggleKey, toggleVisibleKeys} = useOverridableSelection(visibleMemberKeys);

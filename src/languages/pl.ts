@@ -7244,7 +7244,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             visibleTo: 'Widoczne dla',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 członek',
-                other: `${count} członków`,
+                few: `${count} członkowie`,
+                many: `${count} członków`,
+                other: `${count} członka`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
             cannotDisableCategoryForMembers: {

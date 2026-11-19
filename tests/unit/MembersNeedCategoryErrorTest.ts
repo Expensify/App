@@ -79,6 +79,25 @@ describe('MembersNeedCategoryError', () => {
         expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fees'], isRemovingAccess: true});
     });
 
+    it('keeps the disable title when the rejected visibility change unchecked every member', async () => {
+        // Given the backend rejected unchecking every member on Fees, which would have disabled it
+        const request: Request<OnyxKey> = {
+            command: WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY,
+            data: {
+                policyID: POLICY_ID,
+                categoryNames: JSON.stringify(['Fees']),
+                selectedAccountIDList: JSON.stringify([]),
+                deselectedAccountIDList: JSON.stringify([1, 2, 3]),
+            },
+        };
+
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse()), request, true);
+
+        // Then the modal uses the disable title, matching the check the page runs before saving
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fees'], isRemovingAccess: false});
+    });
+
     it('does nothing when the disable succeeded', async () => {
         // Given the backend accepted the disable
         // When the response passes through the middleware

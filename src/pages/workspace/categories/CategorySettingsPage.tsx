@@ -31,7 +31,7 @@ import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -232,8 +232,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         return <NotFoundPage />;
     }
 
-    // A missing visibleTo means every member can use the category.
-    const visibleToMemberCount = Object.values(policyCategory.visibleTo ?? {}).filter(Boolean).length;
+    // A missing visibleTo means every member can use the category. visibleTo can still hold removed members, members pending
+    // removal and optimistic invite IDs, so only current members are counted, which matches the checked rows on the Visible to page.
+    const visibleToMemberCount = policyMemberAccountIDs.filter((accountID) => isCategoryVisibleToMember(policyCategory, accountID)).length;
     const visibleToText = policyCategory.visibleTo ? translate('workspace.categories.membersCount', {count: visibleToMemberCount}) : translate('workspace.common.everyone');
 
     return (
