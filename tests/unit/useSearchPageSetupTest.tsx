@@ -5,7 +5,8 @@ import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {markPendingSearchWrite, resetForTesting as resetPendingSearchWrite} from '@libs/pendingSearchWrite';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import mockOnyxKeys from '@src/ONYXKEYS';
@@ -29,6 +30,7 @@ let mockSearchKey: SearchKey | undefined;
 let mockIsInPreloadedTab = false;
 let mockShouldUseLiveData = false;
 let mockIsLoadingApp = false;
+let mockShouldReturnTripRooms = false;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -70,6 +72,12 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 jest.mock('@hooks/useIsInPreloadedTab', () => () => mockIsInPreloadedTab);
 
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => () => false);
+jest.mock('@hooks/useShouldReturnTripRooms', () => () => mockShouldReturnTripRooms);
+
+jest.mock('@libs/SearchQueryUtils', () => ({
+    ...jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils'),
+    getCurrentSearchQueryJSON: jest.fn(),
+}));
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({shouldUseLiveData: mockShouldUseLiveData, currentSearchResults: mockSearchResults}),
@@ -147,6 +155,7 @@ const mockedSaveLastSearchParams = jest.mocked(saveLastSearchParams);
 
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
+        jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(queryJSON);
         mockedSaveLastSearchParams.mockClear();
         mockClearSelectedTransactions.mockClear();
         mockOpenSearch.mockClear();
@@ -157,6 +166,7 @@ describe('useSearchPageSetup', () => {
         mockShouldUseLiveData = false;
         mockIsOffline = false;
         mockIsLoadingApp = false;
+        mockShouldReturnTripRooms = false;
         mockLastFocusCallback = undefined;
         mockMarkPageRequestedSearch.mockClear();
         mockClearPageRequestedSearch.mockClear();
@@ -171,6 +181,7 @@ describe('useSearchPageSetup', () => {
         // Given a retained Drafts page with cached results from the previous account
         const previousQuery = buildSearchQueryJSON(`type:expense-report action:submit from:${previousAccountID}`);
         const nextQuery = buildSearchQueryJSON(`type:expense-report action:submit from:${nextAccountID}`);
+        jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(previousQuery);
         mockSearchKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
         mockSearchResults = buildLoadedSnapshot(previousQuery?.hash ?? 0);
         const {rerender} = renderHook(({query}) => useSearchPageSetup(query), {initialProps: {query: previousQuery}});
@@ -189,6 +200,7 @@ describe('useSearchPageSetup', () => {
         expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
 
         // When the new account's query arrives, it must still wait for app loading to finish
+        jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(nextQuery);
         rerender({query: nextQuery});
         expect(mockSearch).not.toHaveBeenCalled();
         expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
@@ -394,10 +406,63 @@ describe('useSearchPageSetup', () => {
         // Then each query got exactly one clear, so switching back and forth cannot re-request forever
         expect(getClearedHashes()).toEqual([queryJSON?.hash, queryJSONB?.hash]);
     });
+    it('requests trip rooms when the provider drops grouping from the route query', () => {
+        // Given a grouped trip route that SearchQueryProvider normalizes for the trip rooms beta
+        jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(buildSearchQueryJSON('type:trip group-by:from'));
+        const tripQuery = buildSearchQueryJSON('type:trip');
+        mockShouldReturnTripRooms = true;
+
+        // When the normalized query reaches page setup
+        renderHook(() => useSearchPageSetup(tripQuery));
+
+        // Then grouping differences cannot block a legitimate trip search
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: tripQuery, shouldReturnTripRooms: true, shouldSaveRecentSearch: true}));
+    });
+
+    it('requests the default query when the Search route has no query', () => {
+        // Given a Search route opened without `q`, which navigation resolves to no query while the provider falls back to the default
+        jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(undefined);
+
+        // When the default query reaches page setup
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        // Then the missing route query cannot hold the page in its loading state
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON, shouldSaveRecentSearch: true}));
+        expect(mockedSaveLastSearchParams).toHaveBeenCalledWith(expect.objectContaining({queryJSON}));
+    });
+
     describe('in a tab preloaded at idle', () => {
+        it.each([false, true])('does not save the preloaded query while the submitted route reaches context (cached: %s)', (isCached) => {
+            // Given Home has built Spend with its default query and Search Router submits a different query
+            const submittedQuery = buildSearchQueryJSON(isCached ? 'type:expense merchant:hotel' : 'type:expense merchant:coffee');
+            mockIsInPreloadedTab = true;
+            mockSearchResults = isCached ? buildLoadedSnapshot(queryJSON?.hash ?? 0) : undefined;
+            const {rerender} = renderHook(({query}) => useSearchPageSetup(query), {initialProps: {query: queryJSON}});
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(submittedQuery);
+
+            // When Spend unfreezes before the root navigation subscription publishes the submitted query
+            mockIsInPreloadedTab = false;
+            rerender({query: queryJSON});
+
+            // Then the stale default cannot save preferences, claim a request, or enter recent searches
+            expect(mockSearch).not.toHaveBeenCalled();
+            expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+            expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
+
+            // When context catches up, even cached results still need the first visit's recent search
+            mockSearchResults = isCached ? buildLoadedSnapshot(submittedQuery?.hash ?? 0) : undefined;
+            rerender({query: submittedQuery});
+
+            // Then only the query the user submitted is requested and saved
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: submittedQuery, shouldSaveRecentSearch: true, shouldShowLoading: !isCached}));
+            expect(mockedSaveLastSearchParams).toHaveBeenCalledWith(expect.objectContaining({queryJSON: submittedQuery}));
+        });
+
         it('holds the request and the saved search params until the preloaded tab is opened', () => {
             // Given a preloaded tab with nothing cached for its query, which no other test has saved yet
             const uncachedQueryJSON = buildSearchQueryJSON('type:expense status:drafts');
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValue(uncachedQueryJSON);
             mockIsInPreloadedTab = true;
             const {rerender} = renderHook(() => useSearchPageSetup(uncachedQueryJSON));
 

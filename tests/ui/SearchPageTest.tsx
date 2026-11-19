@@ -353,6 +353,7 @@ const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJ
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
+        jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockImplementation(() => SearchQueryUtils.buildSearchQueryJSON(mockSearchQueryParam()));
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [
