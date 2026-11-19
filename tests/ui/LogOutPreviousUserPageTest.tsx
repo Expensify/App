@@ -16,6 +16,7 @@ import LogOutPreviousUserPage from '@pages/LogOutPreviousUserPage';
 import {isAnonymousUser, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -143,6 +144,7 @@ describe('LogOutPreviousUserPage', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            await IntlStore.load(CONST.LOCALES.EN);
         });
         await waitForBatchedUpdatesWithAct();
     });
