@@ -29,6 +29,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
+import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -39,10 +40,10 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const {translate, formatPhoneNumber} = useLocalize();
     const routeAccountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const [routePersonalDetails] = usePersonalDetail(routeAccountID);
+    const [routeLogin] = usePersonalDetail(routeAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    // The route can carry an ID generated from the login while an invite is pending, so resolve the member by login like Member details does.
-    const memberLogin = routePersonalDetails?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
+    // The route can carry an ID generated from the login instead of the member's real one, so resolve the member by login like Member details does.
+    const memberLogin = routeLogin ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
