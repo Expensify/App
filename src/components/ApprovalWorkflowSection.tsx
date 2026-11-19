@@ -101,7 +101,8 @@ function ApprovalWorkflowSection({
         convertToDisplayString,
     });
 
-    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
+    // Sort a copy, since the Approvals list keys each workflow by its first member.
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically([...approvalWorkflow.members], 'displayName', localeCompare);
 
     // Mirror the approver row's pending opacity on the "Expenses from" row so both fade together while
     // the workflow (e.g. a member invited offline) is still pending server confirmation.
