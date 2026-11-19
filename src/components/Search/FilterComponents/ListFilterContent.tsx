@@ -375,7 +375,7 @@ function ListFilterContent({
             baseFilterKey={baseFilterKey}
             isNegated={isNegated}
             isNegationDisabled={isNegationDisabled}
-            negationDisabledTooltip={isNegationDisabled ? translate('search.filters.requiredWithViolationFilter') : undefined}
+            negationDisabledTooltip={isNegationDisabled ? translate('search.filters.notAvailableWithViolationFilter') : undefined}
             onNegationChange={onNegationChange}
         >
             {content}

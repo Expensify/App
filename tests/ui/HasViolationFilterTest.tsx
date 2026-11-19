@@ -85,15 +85,15 @@ describe('Has filter required violation stages', () => {
         expect(jest.mocked(Tooltip).mock.lastCall?.[0].shouldRender).toBe(shouldRender);
     });
 
-    it('disables Has negation with the required tooltip while positive violations are selected', () => {
+    it('disables Has negation with the unavailable tooltip while positive violations are selected', () => {
         // Given a positive violation filter in the shared Has content used by all filter surfaces
         renderHasFilter(['overLimit']);
 
         // When the Has negation toggle is rendered
         const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
 
-        // Then the negative option is disabled with the same explanation as the required stage
-        expect(props).toEqual(expect.objectContaining({isNegationDisabled: true, negationDisabledTooltip: 'search.filters.requiredWithViolationFilter'}));
+        // Then the negative option explains why it is unavailable rather than describing it as required
+        expect(props).toEqual(expect.objectContaining({isNegationDisabled: true, negationDisabledTooltip: 'search.filters.notAvailableWithViolationFilter'}));
     });
 
     it.each([{violationNames: undefined}, {violationNames: []}])('allows Has negation without a positive violation filter (%j)', ({violationNames}) => {

@@ -11108,6 +11108,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         filtersHeader: 'Filtri',
         filters: {
             requiredWithViolationFilter: 'Obbligatorio con il filtro delle violazioni',
+            notAvailableWithViolationFilter: 'Non disponibile con il filtro delle violazioni',
             date: {
                 before: (date?: string) => `Prima di ${date ?? ''}`,
                 after: (date?: string) => `Dopo ${date ?? ''}`,

@@ -11515,6 +11515,7 @@ const translations = {
         filtersHeader: 'Filters',
         filters: {
             requiredWithViolationFilter: 'Required with violation filter',
+            notAvailableWithViolationFilter: 'Not available with violation filter',
             date: {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,

@@ -35,7 +35,7 @@ describe('NegatableFilter', () => {
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
                 isNegated={false}
                 isNegationDisabled
-                negationDisabledTooltip="Required with violation filter"
+                negationDisabledTooltip="Not available with violation filter"
                 onNegationChange={onNegationChange}
             />,
         );
@@ -45,7 +45,7 @@ describe('NegatableFilter', () => {
 
         // Then no negation change occurs, and the tooltip explains the restriction
         expect(onNegationChange).not.toHaveBeenCalled();
-        expect(jest.mocked(Tooltip).mock.lastCall?.[0]).toEqual(expect.objectContaining({text: 'Required with violation filter', shouldRender: true}));
+        expect(jest.mocked(Tooltip).mock.lastCall?.[0]).toEqual(expect.objectContaining({text: 'Not available with violation filter', shouldRender: true}));
         fireEvent.press(screen.getByText('search.filters.filterType.has.positive'));
         expect(onNegationChange).toHaveBeenCalledWith(false);
     });
