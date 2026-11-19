@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getApprovalWorkflowSource, getFirstForkApproverEmail, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, hasApprovalWorkflowForks, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -392,12 +392,11 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
                                 // A workflow with forks keeps routing by employee settings, and saving it any other way than by
                                 // removing its forks would drop them unseen, so it opens its forks instead of the editor
-                                const firstForkApproverEmail = getFirstForkApproverEmail(workflow);
-                                const viewFork = (forkApproverEmail: string) =>
-                                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, firstApproverEmail, forkApproverEmail));
+                                const hasForks = hasApprovalWorkflowForks(workflow);
+                                const viewForks = () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, firstApproverEmail));
                                 const editWorkflow = () => {
-                                    if (firstForkApproverEmail) {
-                                        viewFork(firstForkApproverEmail);
+                                    if (hasForks) {
+                                        viewForks();
                                         return;
                                     }
 
@@ -414,9 +413,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                         <ApprovalWorkflowSection
                                             approvalWorkflow={workflow}
                                             onPress={shouldBlockApprovalWorkflowEditing || !canWriteApprovals ? undefined : editWorkflow}
-                                            onForkPress={viewFork}
+                                            onForkPress={viewForks}
                                             onShowAllMembersPress={
-                                                shouldBlockApprovalWorkflowEditing || !!firstForkApproverEmail
+                                                shouldBlockApprovalWorkflowEditing || hasForks
                                                     ? undefined
                                                     : () => {
                                                           selectApprovalWorkflowForEdit({

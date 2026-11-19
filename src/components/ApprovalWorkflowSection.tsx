@@ -36,8 +36,8 @@ type ApprovalWorkflowSectionProps = {
     /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
     onShowAllMembersPress?: () => void;
 
-    /** Called with the email of an approver whose employee settings fork some reports away from the workflow, when their warning or row is pressed */
-    onForkPress?: (approverEmail: string) => void;
+    /** Called when the warning or the row of an approver whose employee settings fork some reports away from the workflow is pressed */
+    onForkPress?: () => void;
 
     /** Currency used for formatting approval limits */
     currency?: string;
@@ -221,7 +221,7 @@ function ApprovalWorkflowSection({
                                 iconWidth={20}
                                 numberOfLinesDescription={1}
                                 iconFill={theme.icon}
-                                onPress={approver.forkBranches && forkPressAction ? () => forkPressAction(approver.email) : pressAction}
+                                onPress={approver.forkBranches && forkPressAction ? forkPressAction : pressAction}
                                 shouldRemoveBackground
                                 titleComponent={
                                     <View style={[styles.ml3, styles.pr3]}>
@@ -234,7 +234,7 @@ function ApprovalWorkflowSection({
                                             {!!approver.forkBranches && !!forkPressAction && (
                                                 <Tooltip text={forkTooltip}>
                                                     <PressableWithoutFeedback
-                                                        onPress={() => forkPressAction(approver.email)}
+                                                        onPress={forkPressAction}
                                                         accessibilityLabel={forkTooltip}
                                                         role={CONST.ROLE.BUTTON}
                                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_FORK}

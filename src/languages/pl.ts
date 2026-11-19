@@ -3651,7 +3651,11 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Rozgałęzienie zatwierdzania',
-        description: 'Ten proces przejął z Expensify Classic rozgałęzienie w procesie zatwierdzania, które różni się od skonfigurowanego procesu.',
+        description: () => ({
+            one: 'Ten proces przejął z Expensify Classic rozgałęzienie w procesie zatwierdzania, które różni się od skonfigurowanego procesu.',
+            other: 'Ten proces przejął z Expensify Classic rozgałęzienia w procesie zatwierdzania, które różnią się od skonfigurowanego procesu.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Rozgałęzienie ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> zatwierdza raporty w tym procesie.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> zatwierdza raporty powyżej ${amount} w tym procesie.`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
@@ -3660,6 +3664,10 @@ ${amount} dla ${merchant} - ${date}`,
                 : `<strong>${approver}</strong> zatwierdza raporty od <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `<strong>${approver}</strong> ostatecznie zatwierdza raporty ${range}.` : `<strong>${approver}</strong> ostatecznie zatwierdza raporty.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> ostatecznie zatwierdza raporty od <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> ostatecznie zatwierdza raporty od <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `poniżej ${amount}`,
         overAmount: ({amount}: {amount: string}) => `powyżej ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `od ${lowerAmount} do ${upperAmount}`,

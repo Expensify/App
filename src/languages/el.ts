@@ -3679,7 +3679,11 @@ ${amount} για ${merchant} - ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Διακλάδωση έγκρισης',
-        description: 'Αυτή η ροή εργασίας κληρονόμησε από το Expensify Classic μια διακλάδωση στη ροή έγκρισης που διαφέρει από τη ρυθμισμένη ροή εργασίας.',
+        description: () => ({
+            one: 'Αυτή η ροή εργασίας κληρονόμησε από το Expensify Classic μια διακλάδωση στη ροή έγκρισης που διαφέρει από τη ρυθμισμένη ροή εργασίας.',
+            other: 'Αυτή η ροή εργασίας κληρονόμησε από το Expensify Classic διακλαδώσεις στη ροή έγκρισης που διαφέρουν από τη ρυθμισμένη ροή εργασίας.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Διακλάδωση ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές σε αυτή τη ροή εργασίας.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
             `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές πάνω από ${amount} σε αυτή τη ροή εργασίας.`,
@@ -3689,6 +3693,10 @@ ${amount} για ${merchant} - ${date}`,
                 : `Ο/Η <strong>${approver}</strong> εγκρίνει αναφορές από τον/την <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές ${range}.` : `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές από τον/την <strong>${sender}</strong> ${range}.`
+                : `Ο/Η <strong>${approver}</strong> δίνει την τελική έγκριση στις αναφορές από τον/την <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `κάτω από ${amount}`,
         overAmount: ({amount}: {amount: string}) => `πάνω από ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `μεταξύ ${lowerAmount} και ${upperAmount}`,

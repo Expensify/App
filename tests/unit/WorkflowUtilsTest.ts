@@ -2095,14 +2095,14 @@ describe('WorkflowUtils', () => {
                 convertToDisplayString,
             });
 
-            // Then each approver of each branch gets a line with the totals it covers, the last one final approving the reports,
-            // and names are escaped, since the lines are rendered as HTML
+            // Then each approver of each branch gets a line with the totals it covers, the last one final approving the reports and
+            // naming Alice when the reports come straight from her, and names are escaped, since the lines are rendered as HTML
             expect(lines).toEqual([
                 '<strong>Alice</strong> approves reports over $2,000.00 in this workflow.',
                 '<strong>Bob</strong> approves reports from <strong>Alice</strong> under $5,000.00.',
                 '<strong>Carol</strong> final approves the reports under $5,000.00.',
                 '<strong>Alice</strong> final approves the reports between $5,000.00 and $10,000.00.',
-                '<strong>&lt;b&gt;Dave&lt;/b&gt;</strong> final approves the reports over $10,000.00.',
+                '<strong>&lt;b&gt;Dave&lt;/b&gt;</strong> final approves the reports from <strong>Alice</strong> over $10,000.00.',
             ]);
         });
 
@@ -2142,16 +2142,16 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should describe a step separately for totals that are not adjacent', () => {
-            // Given an approver who sends the reports up to 1,000.00 to Bob, who final approves them, and the rest to Carol, who
-            // final approves the ones up to 5,000.00 and sends the rest to Bob
-            const bob = {email: 'bob@example.com', displayName: 'Bob'};
+            // Given an approver who sends the reports up to 1,000.00 to Bob and then Dan, who final approves them, and the rest to
+            // Carol, who final approves the ones up to 5,000.00 and sends the rest to Dan
             const carol = {email: 'carol@example.com', displayName: 'Carol'};
+            const dan = {email: 'dan@example.com', displayName: 'Dan'};
             const forkApprover = buildApprover(1, {
                 displayName: 'Alice',
                 forkBranches: [
-                    {upTo: 100000, approvers: [bob]},
+                    {upTo: 100000, approvers: [{email: 'bob@example.com', displayName: 'Bob'}, dan]},
                     {over: 100000, upTo: 500000, approvers: [carol]},
-                    {over: 500000, approvers: [carol, bob]},
+                    {over: 500000, approvers: [carol, dan]},
                 ],
             });
 
@@ -2164,13 +2164,14 @@ describe('WorkflowUtils', () => {
                 convertToDisplayString,
             });
 
-            // Then Bob's final approval gets a line for each range, since the reports Carol final approves come between them
+            // Then Dan's final approval gets a line for each range, since the reports Carol final approves come between them
             expect(lines).toEqual([
                 '<strong>Alice</strong> approves reports in this workflow.',
-                '<strong>Bob</strong> final approves the reports under $1,000.00.',
-                '<strong>Carol</strong> final approves the reports between $1,000.00 and $5,000.00.',
+                '<strong>Bob</strong> approves reports from <strong>Alice</strong> under $1,000.00.',
+                '<strong>Dan</strong> final approves the reports under $1,000.00.',
+                '<strong>Carol</strong> final approves the reports from <strong>Alice</strong> between $1,000.00 and $5,000.00.',
                 '<strong>Carol</strong> approves reports from <strong>Alice</strong> over $5,000.00.',
-                '<strong>Bob</strong> final approves the reports over $5,000.00.',
+                '<strong>Dan</strong> final approves the reports over $5,000.00.',
             ]);
         });
 
@@ -2188,7 +2189,7 @@ describe('WorkflowUtils', () => {
             });
 
             // Then the lines name no totals
-            expect(lines).toEqual(['<strong>Alice</strong> approves reports in this workflow.', '<strong>Bob</strong> final approves the reports.']);
+            expect(lines).toEqual(['<strong>Alice</strong> approves reports in this workflow.', '<strong>Bob</strong> final approves the reports from <strong>Alice</strong>.']);
         });
     });
 

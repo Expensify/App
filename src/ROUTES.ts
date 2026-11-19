@@ -3589,9 +3589,8 @@ const ROUTES = {
             `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}${isAddingApprover ? '&isAddingApprover=true' : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_FORK: {
-        route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/fork/:forkApproverEmail',
-        getRoute: (policyID: string, firstApproverEmail: string, forkApproverEmail: string) =>
-            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/fork/${encodeURIComponent(forkApproverEmail)}` as const,
+        route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/fork',
+        getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/fork` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',

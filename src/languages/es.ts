@@ -3592,7 +3592,11 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Bifurcación de aprobación',
-        description: 'Este flujo de trabajo heredó de Expensify Classic una bifurcación en el flujo de aprobación que difiere del flujo de trabajo configurado.',
+        description: () => ({
+            one: 'Este flujo de trabajo heredó de Expensify Classic una bifurcación en el flujo de aprobación que difiere del flujo de trabajo configurado.',
+            other: 'Este flujo de trabajo heredó de Expensify Classic bifurcaciones en el flujo de aprobación que difieren del flujo de trabajo configurado.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Bifurcación ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> aprueba informes en este flujo de trabajo.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
             `<strong>${approver}</strong> aprueba informes de más de ${amount} en este flujo de trabajo.`,
@@ -3600,6 +3604,10 @@ ${amount} para ${merchant} - ${date}`,
             range ? `<strong>${approver}</strong> aprueba informes de <strong>${sender}</strong> ${range}.` : `<strong>${approver}</strong> aprueba informes de <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `<strong>${approver}</strong> da la aprobación final a los informes ${range}.` : `<strong>${approver}</strong> da la aprobación final a los informes.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> da la aprobación final a los informes de <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> da la aprobación final a los informes de <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `de menos de ${amount}`,
         overAmount: ({amount}: {amount: string}) => `de más de ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `de entre ${lowerAmount} y ${upperAmount}`,

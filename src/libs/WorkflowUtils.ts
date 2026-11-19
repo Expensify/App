@@ -529,12 +529,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail, poli
  * workflow as approval workflow rules would send every report along it instead, so only removing its forks does that.
  */
 function hasApprovalWorkflowForks(approvalWorkflow: Pick<ApprovalWorkflow, 'approvers'> | undefined): boolean {
-    return !!getFirstForkApproverEmail(approvalWorkflow);
-}
-
-/** The approver of the workflow's first fork, which opens instead of its editor since only removing the forks saves it */
-function getFirstForkApproverEmail(approvalWorkflow: Pick<ApprovalWorkflow, 'approvers'> | undefined): string | undefined {
-    return approvalWorkflow?.approvers.find((approver) => !!approver.forkBranches)?.email;
+    return !!approvalWorkflow?.approvers.some((approver) => !!approver.forkBranches);
 }
 
 /** Build a Member from a policy employee using personal details for avatar/displayName */
@@ -1276,8 +1271,13 @@ type GetApprovalForkDescriptionParams = {
 type ApprovalForkStep = {
     approver: Pick<Approver, 'email' | 'displayName'>;
 
-    /** Who sends the approver the reports, unless the approver final approves them */
+    /**
+     * Who sends the approver the reports. A final approval names them only when the reports come straight from the fork's
+     * approver. Otherwise the steps leading to it come first in the description and show who passes the reports on.
+     */
     sender: Pick<Approver, 'email' | 'displayName'> | undefined;
+
+    isFinalApproval: boolean;
 
     range: AmountRange;
 
@@ -1312,8 +1312,8 @@ function getApprovalForkDescription({forkApprover, currency, translate, formatPh
     const branchSteps = (forkApprover.forkBranches ?? []).flatMap(({over, upTo, approvers}) => {
         const range = {over, upTo};
         return [
-            ...approvers.slice(0, -1).map((approver, index) => ({approver, sender: index === 0 ? forkApprover : (approvers.at(index - 1) ?? forkApprover), range})),
-            {approver: approvers.at(-1) ?? forkApprover, sender: undefined, range},
+            ...approvers.slice(0, -1).map((approver, index) => ({approver, sender: index === 0 ? forkApprover : (approvers.at(index - 1) ?? forkApprover), isFinalApproval: false, range})),
+            {approver: approvers.at(-1) ?? forkApprover, sender: approvers.length === 1 ? forkApprover : undefined, isFinalApproval: true, range},
         ];
     });
 
@@ -1322,27 +1322,31 @@ function getApprovalForkDescription({forkApprover, currency, translate, formatPh
     // it follows the steps leading to it.
     const steps: ApprovalForkStep[] = [];
     const lastStepByKey = new Map<string, ApprovalForkStep>();
-    for (const [position, {approver, sender, range}] of branchSteps.entries()) {
-        const key = JSON.stringify([approver.email, sender?.email]);
+    for (const [position, {approver, sender, isFinalApproval, range}] of branchSteps.entries()) {
+        const key = JSON.stringify([approver.email, sender?.email, isFinalApproval]);
         const lastStep = lastStepByKey.get(key);
 
         // The ranges come lowest first, so a range is adjacent to the step's last one unless there's a gap between them
         if (lastStep && (lastStep.range.upTo === undefined || range.over === undefined || range.over <= lastStep.range.upTo)) {
             lastStep.range = {over: lastStep.range.over, upTo: lastStep.range.upTo === undefined || range.upTo === undefined ? undefined : Math.max(lastStep.range.upTo, range.upTo)};
-            lastStep.position = sender ? lastStep.position : position;
+            lastStep.position = isFinalApproval ? position : lastStep.position;
             continue;
         }
-        const step = {approver, sender, range, position};
+        const step = {approver, sender, isFinalApproval, range, position};
         steps.push(step);
         lastStepByKey.set(key, step);
     }
 
-    for (const {approver, sender, range} of steps.sort((a, b) => a.position - b.position)) {
-        lines.push(
-            sender
-                ? translate('workflowsApprovalForkPage.approvesReportsFrom', {approver: getName(approver), sender: getName(sender), range: getRange(range)})
-                : translate('workflowsApprovalForkPage.finalApprovesReports', {approver: getName(approver), range: getRange(range)}),
-        );
+    for (const {approver, sender, isFinalApproval, range} of steps.sort((a, b) => a.position - b.position)) {
+        const name = getName(approver);
+        const rangeText = getRange(range);
+        if (!sender) {
+            lines.push(translate('workflowsApprovalForkPage.finalApprovesReports', {approver: name, range: rangeText}));
+        } else if (isFinalApproval) {
+            lines.push(translate('workflowsApprovalForkPage.finalApprovesReportsFrom', {approver: name, sender: getName(sender), range: rangeText}));
+        } else {
+            lines.push(translate('workflowsApprovalForkPage.approvesReportsFrom', {approver: name, sender: getName(sender), range: rangeText}));
+        }
     }
     return lines;
 }
@@ -2440,7 +2444,6 @@ export {
     extractSubmitterEmails,
     getApprovalForkDescription,
     getApproverTitles,
-    getFirstForkApproverEmail,
     getApproversFromImportedApprovers,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,

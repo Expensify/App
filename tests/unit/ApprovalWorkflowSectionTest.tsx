@@ -204,7 +204,7 @@ describe('ApprovalWorkflowSection', () => {
             ],
         };
 
-        it('shows a warning on the approver the fork leaves from, which opens their fork', () => {
+        it('shows a warning on the approver the fork leaves from, which opens the forks', () => {
             // Given the workflow card renders for an admin
             const onForkPress = jest.fn();
             renderSection({approvalWorkflow: forkedWorkflow, onPress: jest.fn(), onForkPress});
@@ -212,9 +212,9 @@ describe('ApprovalWorkflowSection', () => {
             // When the admin presses the warning
             fireEvent.press(screen.getByLabelText('workflowsPage.approvalForkTooltip'));
 
-            // Then only Cathy has one, and it opens her fork, since the routing it explains is hers
+            // Then only Cathy has one, since the routing her fork explains leaves from her, and it opens the forks
             expect(screen.getAllByLabelText('workflowsPage.approvalForkTooltip')).toHaveLength(1);
-            expect(onForkPress).toHaveBeenCalledWith('cathy@example.com');
+            expect(onForkPress).toHaveBeenCalledTimes(1);
         });
 
         it('does not show the warning to someone who cannot edit the workflow', () => {

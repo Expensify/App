@@ -1156,9 +1156,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_FORK]: {
         policyID: string;
         firstApproverEmail: string;
-
-        /** Approver whose employee settings fork some of the workflow's reports away from it */
-        forkApproverEmail: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;

@@ -3782,7 +3782,11 @@ const translations = {
     },
     workflowsApprovalForkPage: {
         title: 'Approval fork',
-        description: 'This workflow has inherited a fork in the approval workflow from Expensify Classic that differs from the configured workflow.',
+        description: () => ({
+            one: 'This workflow has inherited a fork in the approval workflow from Expensify Classic that differs from the configured workflow.',
+            other: 'This workflow has inherited forks in the approval workflow from Expensify Classic that differ from the configured workflow.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Fork ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> approves reports in this workflow.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> approves reports over ${amount} in this workflow.`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
@@ -3791,6 +3795,10 @@ const translations = {
                 : `<strong>${approver}</strong> approves reports from <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `<strong>${approver}</strong> final approves the reports ${range}.` : `<strong>${approver}</strong> final approves the reports.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> final approves the reports from <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> final approves the reports from <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `under ${amount}`,
         overAmount: ({amount}: {amount: string}) => `over ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `between ${lowerAmount} and ${upperAmount}`,

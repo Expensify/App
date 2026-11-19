@@ -3573,7 +3573,11 @@ ${date} の ${merchant} への ${amount}`,
     },
     workflowsApprovalForkPage: {
         title: '承認の分岐',
-        description: 'このワークフローは、設定されたワークフローとは異なる承認ワークフローの分岐をExpensify Classicから引き継いでいます。',
+        description: () => ({
+            one: 'このワークフローは、設定されたワークフローとは異なる承認ワークフローの分岐をExpensify Classicから引き継いでいます。',
+            other: 'このワークフローは、設定されたワークフローとは異なる承認ワークフローの分岐をExpensify Classicから引き継いでいます。',
+        }),
+        forkNumber: ({number}: {number: number}) => `分岐 ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong>はこのワークフローでレポートを承認します。`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
             `<strong>${approver}</strong>はこのワークフローで${amount}を超えるレポートを承認します。`,
@@ -3583,6 +3587,10 @@ ${date} の ${merchant} への ${amount}`,
                 : `<strong>${approver}</strong>は<strong>${sender}</strong>からのレポートを承認します。`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `<strong>${approver}</strong>が${range}のレポートを最終承認します。` : `<strong>${approver}</strong>がレポートを最終承認します。`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong>が<strong>${sender}</strong>からの${range}のレポートを最終承認します。`
+                : `<strong>${approver}</strong>が<strong>${sender}</strong>からのレポートを最終承認します。`,
         underAmount: ({amount}: {amount: string}) => `${amount}未満`,
         overAmount: ({amount}: {amount: string}) => `${amount}超`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount}〜${upperAmount}`,

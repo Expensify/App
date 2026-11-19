@@ -81,8 +81,8 @@ function buildPolicy(employeeList: PolicyEmployeeList): Policy {
 
 const Stack = createStackNavigator();
 
-function renderForkPage(forkApproverEmail: string) {
-    const route = {key: 'fork-route', name: 'Workspace_Workflows_Approvals_Fork', params: {policyID: POLICY_ID, firstApproverEmail: ALICE_EMAIL, forkApproverEmail}};
+function renderForkPage() {
+    const route = {key: 'fork-route', name: 'Workspace_Workflows_Approvals_Fork', params: {policyID: POLICY_ID, firstApproverEmail: ALICE_EMAIL}};
     return render(
         <NavigationContainer>
             <Stack.Navigator>
@@ -147,7 +147,7 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
             [CHARLIE_EMAIL]: {email: CHARLIE_EMAIL},
             [DENISE_EMAIL]: {email: DENISE_EMAIL},
         });
-        renderForkPage(BOB_EMAIL);
+        renderForkPage();
         await waitForBatchedUpdatesWithAct();
 
         // When the admin removes the fork
@@ -155,7 +155,10 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
         await waitForBatchedUpdatesWithAct();
         runAfterTransition();
 
-        // Then nothing asks for confirmation, since only that fork goes, and the workflow is saved with the approvers it shows
+        // Then the page described the fork without numbering it, since it's the only one, nothing asks for confirmation, since
+        // only that fork goes, and the workflow is saved with the approvers it shows
+        expect(screen.getByText(translateLocal('workflowsApprovalForkPage.description', {count: 1}))).toBeTruthy();
+        expect(screen.queryByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 1}))).toBeNull();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(removeApprovalWorkflowForks).toHaveBeenCalledTimes(1);
         const approvalWorkflow = jest.mocked(removeApprovalWorkflowForks).mock.calls.at(0)?.at(0)?.approvalWorkflow;
@@ -174,7 +177,7 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
             [CHARLIE_EMAIL]: {email: CHARLIE_EMAIL, forwardsTo: ADMIN_EMAIL, approvalLimit: 100000, overLimitForwardsTo: DENISE_EMAIL},
             [DENISE_EMAIL]: {email: DENISE_EMAIL},
         });
-        renderForkPage(BOB_EMAIL);
+        renderForkPage();
         await waitForBatchedUpdatesWithAct();
 
         // When the admin removes the forks and confirms
@@ -182,7 +185,11 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
         await waitForBatchedUpdatesWithAct();
         runAfterTransition();
 
-        // Then they were asked first, since removing one fork removes the other too, and the workflow is saved once
+        // Then the page numbered both forks, the admin was asked first, since removing one fork removes the other too, and
+        // the workflow is saved once
+        expect(screen.getByText(translateLocal('workflowsApprovalForkPage.description', {count: 2}))).toBeTruthy();
+        expect(screen.getByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 1}))).toBeTruthy();
+        expect(screen.getByText(translateLocal('workflowsApprovalForkPage.forkNumber', {number: 2}))).toBeTruthy();
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: translateLocal('workflowsApprovalForkPage.removeForksTitle')}));
         expect(removeApprovalWorkflowForks).toHaveBeenCalledTimes(1);
     });
@@ -198,7 +205,7 @@ describe('WorkspaceWorkflowsApprovalsForkPage', () => {
             [CHARLIE_EMAIL]: {email: CHARLIE_EMAIL, forwardsTo: ADMIN_EMAIL, approvalLimit: 100000, overLimitForwardsTo: DENISE_EMAIL},
             [DENISE_EMAIL]: {email: DENISE_EMAIL},
         });
-        renderForkPage(BOB_EMAIL);
+        renderForkPage();
         await waitForBatchedUpdatesWithAct();
 
         // When the admin presses the button

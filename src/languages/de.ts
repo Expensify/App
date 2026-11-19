@@ -3628,7 +3628,11 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Genehmigungsverzweigung',
-        description: 'Dieser Workflow hat aus Expensify Classic eine Verzweigung im Genehmigungsworkflow übernommen, die vom konfigurierten Workflow abweicht.',
+        description: () => ({
+            one: 'Dieser Workflow hat aus Expensify Classic eine Verzweigung im Genehmigungsworkflow übernommen, die vom konfigurierten Workflow abweicht.',
+            other: 'Dieser Workflow hat aus Expensify Classic Verzweigungen im Genehmigungsworkflow übernommen, die vom konfigurierten Workflow abweichen.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Verzweigung ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> genehmigt Berichte in diesem Workflow.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> genehmigt Berichte über ${amount} in diesem Workflow.`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
@@ -3639,6 +3643,10 @@ ${amount} für ${merchant} – ${date}`,
             range
                 ? `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte ${range}.`
                 : `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte von <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte von <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `unter ${amount}`,
         overAmount: ({amount}: {amount: string}) => `über ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `zwischen ${lowerAmount} und ${upperAmount}`,

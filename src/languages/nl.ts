@@ -3613,7 +3613,11 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Goedkeuringsvertakking',
-        description: 'Deze workflow heeft uit Expensify Classic een vertakking in de goedkeuringsworkflow overgenomen die afwijkt van de ingestelde workflow.',
+        description: () => ({
+            one: 'Deze workflow heeft uit Expensify Classic een vertakking in de goedkeuringsworkflow overgenomen die afwijkt van de ingestelde workflow.',
+            other: 'Deze workflow heeft uit Expensify Classic vertakkingen in de goedkeuringsworkflow overgenomen die afwijken van de ingestelde workflow.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Vertakking ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> keurt rapporten goed in deze workflow.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
             `<strong>${approver}</strong> keurt rapporten boven ${amount} goed in deze workflow.`,
@@ -3625,6 +3629,10 @@ ${amount} voor ${merchant} - ${date}`,
             range
                 ? `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten ${range}.`
                 : `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten van <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten van <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `onder ${amount}`,
         overAmount: ({amount}: {amount: string}) => `boven ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tussen ${lowerAmount} en ${upperAmount}`,

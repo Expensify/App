@@ -3613,7 +3613,11 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApprovalForkPage: {
         title: 'Biforcazione di approvazione',
-        description: 'Questo flusso di lavoro ha ereditato da Expensify Classic una biforcazione nel flusso di approvazione diversa dal flusso di lavoro configurato.',
+        description: () => ({
+            one: 'Questo flusso di lavoro ha ereditato da Expensify Classic una biforcazione nel flusso di approvazione diversa dal flusso di lavoro configurato.',
+            other: 'Questo flusso di lavoro ha ereditato da Expensify Classic delle biforcazioni nel flusso di approvazione diverse dal flusso di lavoro configurato.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Biforcazione ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> approva i report in questo flusso di lavoro.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
             `<strong>${approver}</strong> approva i report oltre ${amount} in questo flusso di lavoro.`,
@@ -3621,6 +3625,10 @@ ${amount} per ${merchant} - ${date}`,
             range ? `<strong>${approver}</strong> approva i report di <strong>${sender}</strong> ${range}.` : `<strong>${approver}</strong> approva i report di <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
             range ? `<strong>${approver}</strong> dà l’approvazione finale ai report ${range}.` : `<strong>${approver}</strong> dà l’approvazione finale ai report.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong>.`,
         underAmount: ({amount}: {amount: string}) => `sotto ${amount}`,
         overAmount: ({amount}: {amount: string}) => `oltre ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tra ${lowerAmount} e ${upperAmount}`,
