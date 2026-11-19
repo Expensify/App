@@ -1,7 +1,9 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
+import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,7 +16,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
@@ -88,6 +89,13 @@ const submissionSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount
 
 const serverErrorFieldsSelector = (form: OnyxEntry<WiseBusinessOnboardingForm>) => form?.errorFields;
 
+// Wise holds a submitted business, so the device copy of its answers has no further use
+function clearSubmittedAnswers() {
+    clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+    clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+    clearWiseOnboardingUnsavedPages();
+}
+
 /** The last page of our own onboarding, after the confirmation page. Confirm submits the business to Wise once every box is ticked. */
 function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
@@ -98,20 +106,15 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [submission] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: submissionSelector});
     const [serverErrorFields] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {selector: serverErrorFieldsSelector});
-    const isAlreadySubmittedSelector = (bankAccountList: OnyxEntry<BankAccountList>) => isWiseOnboardingSubmitted(bankAccountList?.[bankAccountID]?.accountData);
-    const [isAlreadySubmitted = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: isAlreadySubmittedSelector});
+    const onboardingStatusSelector = (bankAccountList: OnyxEntry<BankAccountList>) => bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status;
+    const [onboardingStatus] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: onboardingStatusSelector});
+    const isAlreadySubmitted = !!onboardingStatus;
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
 
     // The terms replaced the onboarding pages, so going back to one of them puts it in their place
     const openOnboardingPage = (pageKey: string) => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageKey), introPath), {forceReplace: true});
     const goBackToConfirmation = () => openOnboardingPage(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY);
-
-    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
-    useAndroidBackButtonHandler(() => {
-        goBackToConfirmation();
-        return true;
-    });
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
@@ -141,15 +144,50 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const isSubmitSuccessful = hasSubmitFinished && !!submission?.isSuccess;
     const pageToFix = hasSubmitFinished && !isSubmitSuccessful ? getPageWithServerError(serverErrorFields) : undefined;
     const submitError = hasSubmitFinished && !isSubmitSuccessful ? submission?.error : undefined;
-    // Once this submission or an earlier one sent the business to Wise, these pages have nothing left to submit
-    const hasWiseBusiness = isSubmitSuccessful || isAlreadySubmitted;
+
+    // The admin can leave during the wait in ways that skip leaveTerms, such as the browser's back
+    useEffect(() => {
+        if (!isSubmitSuccessful) {
+            return;
+        }
+        clearSubmittedAnswers();
+    }, [isSubmitSuccessful]);
+
+    // Wise settles the status within seconds of the submit, so the status page waits for that or for the timeout
+    const [hasStatusWaitElapsed, setHasStatusWaitElapsed] = useState(false);
+    useEffect(() => {
+        if (!isSubmitSuccessful) {
+            return;
+        }
+        const statusWaitTimeout = setTimeout(() => setHasStatusWaitElapsed(true), CONST.WISE.ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS);
+        return () => clearTimeout(statusWaitTimeout);
+    }, [isSubmitSuccessful]);
+    const hasWiseDecided = !!onboardingStatus && onboardingStatus !== CONST.WISE.ONBOARDING_STATUS.IN_REVIEW;
+    const isWaitingForWiseStatus = isSubmitSuccessful && !hasWiseDecided && !hasStatusWaitElapsed;
+
+    // Once this submission or an earlier one sent the business to Wise, these pages have nothing left to submit.
+    // The submit response itself sets IN_REVIEW, so the status page waits for the request to finish and for Wise's decision.
+    const isSubmitInFlight = isSubmitRequested && !hasSubmitFinished;
+    const shouldOpenStatusPage = !isSubmitInFlight && !isWaitingForWiseStatus && (isSubmitSuccessful || isAlreadySubmitted);
+
+    const goBack = () => {
+        if (!isSubmitSuccessful) {
+            goBackToConfirmation();
+            return;
+        }
+        Navigation.goBack(introPath);
+    };
+
+    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
+    useAndroidBackButtonHandler(() => {
+        goBack();
+        return true;
+    });
 
     // The back path follows the focused route, so once this page is replaced it no longer ends in the terms and must not navigate again
     const leaveTerms = useEffectEvent(() => {
-        if (hasWiseBusiness) {
-            clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            clearWiseOnboardingUnsavedPages();
+        if (shouldOpenStatusPage) {
+            clearSubmittedAnswers();
             // Wise's hosted form still has to collect the owners and directors, which the status page asks for while Wise needs more info
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true});
             return;
@@ -168,7 +206,7 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
             return;
         }
         leaveTerms();
-    }, [hasWiseBusiness, pageToFix, isIntroPathReady]);
+    }, [shouldOpenStatusPage, pageToFix, isIntroPathReady]);
 
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
@@ -186,13 +224,35 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
+    // Stays up after the wait until the status page replaces this one, so the terms do not show again in between
+    if (isSubmitSuccessful) {
+        return (
+            <ScreenWrapper
+                testID="WiseAcceptTermsPage"
+                includeSafeAreaPaddingBottom
+            >
+                <Header>
+                    <Header.BackButton onPress={goBack} />
+                    <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
+                </Header>
+                <ConfirmationPage>
+                    <ConfirmationPage.Content style={styles.ph5}>
+                        <ConfirmationPage.Illustration illustration={LottieAnimations.ReviewingBankInfo} />
+                        <ConfirmationPage.Heading>{translate('reimbursementAccountLoadingAnimation.oneMoment')}</ConfirmationPage.Heading>
+                        <ConfirmationPage.Description style={styles.textSupporting}>{translate('reimbursementAccountLoadingAnimation.explanationLine')}</ConfirmationPage.Description>
+                    </ConfirmationPage.Content>
+                </ConfirmationPage>
+            </ScreenWrapper>
+        );
+    }
+
     return (
         <ScreenWrapper
             testID="WiseAcceptTermsPage"
             includeSafeAreaPaddingBottom
         >
             <Header>
-                <Header.BackButton onPress={goBackToConfirmation} />
+                <Header.BackButton onPress={goBack} />
                 <Header.Title title={translate('walletPage.wiseOnboarding.terms.title')} />
             </Header>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>

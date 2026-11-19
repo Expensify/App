@@ -57,6 +57,7 @@ function HelpLinkComponent({importCustomField, styles, translate, alignmentStyle
     return (
         <Text style={[styles.mb3, styles.flex1, alignmentStyle]}>
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOM_FIELD_HELP_LINK}
                 href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
                 style={[styles.link, alignmentStyle]}
             >

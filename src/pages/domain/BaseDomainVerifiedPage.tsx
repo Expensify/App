@@ -1,6 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Str} from 'expensify-common';
@@ -43,7 +41,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
@@ -53,10 +51,6 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
-
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     if (!domain || !isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;

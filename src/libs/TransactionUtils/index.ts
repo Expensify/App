@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
-import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -42,25 +42,41 @@ import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
 import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
-// These cycle imports are safe because buildOptimisticTransaction, getUpdatedTransaction, and the duplicates and tax helpers were extracted from this file to keep it under the max-lines limit.
-// They import helper functions from this file, and this file re-exports them. Neither side calls the other at initialization time.
-// eslint-disable-next-line import/no-cycle
 import buildOptimisticTransaction from './buildOptimisticTransaction';
-// eslint-disable-next-line import/no-cycle
 import {
-    buildMergeDuplicatesParams,
-    buildNewTransactionAfterReviewingDuplicates,
-    canMergeDuplicates,
-    compareDuplicateTransactionFields,
-    removeSettledAndApprovedTransactions,
-    removeTransactionFromDuplicateTransactionViolation,
-} from './duplicates';
-import {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './fields';
+    getCurrency,
+    getCreated,
+    getFormattedCreated,
+    isCustomUnitRateIDForP2P,
+    getRateID,
+    isExpenseUnreported,
+    isDistanceExpenseType,
+    isDistanceRequest,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isTimeRequest,
+    getAmount,
+    getTaxCode,
+    getDescription,
+    getMerchant,
+    isManagedCardTransaction,
+    isExpensifyCardTransaction,
+    isCardTransactionReimbursableEditable,
+    isScanRequest,
+    isFetchingWaypointsFromServer,
+    hasLocallyKnownDistance,
+    hasAppliedCommuterExclusion,
+    getCategory,
+    getTag,
+    getReimbursable,
+    hasNonReimbursableTransactions,
+    isPending,
+} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
-// eslint-disable-next-line import/no-cycle
+import getTagArrayFromName from './getTagArrayFromName';
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
-// eslint-disable-next-line import/no-cycle
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
@@ -76,7 +92,6 @@ import {
     hasTaxRateWithMatchingValue,
     transformedTaxRates,
 } from './tax';
-// eslint-disable-next-line import/no-cycle
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
@@ -110,11 +125,6 @@ function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    const requestType = transaction?.iouRequestType;
-    return requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || isDistanceExpenseType(requestType);
-}
-
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 }
@@ -136,18 +146,6 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-}
-
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-}
-
-function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-}
-
-function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
-    return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
@@ -223,10 +221,6 @@ function isMapBasedDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return isMapDistanceRequest(transaction) || isGPSDistanceRequest(transaction) || hasWaypoints;
 }
 
-function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
-}
-
 /** The fields a Scan confirmation lets the user fill in behind "Show more", plus the type that tells it is a scan. */
 type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountSet' | 'isMerchantSet' | 'isCreatedSet'>;
 
@@ -252,27 +246,6 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
  */
 function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
     return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
-}
-
-function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
-        return true;
-    }
-    return transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
-}
-
-function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
-}
-
-function isDistanceExpenseType(requestType: IOURequestType | undefined): requestType is DistanceExpenseType {
-    return (
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
-    );
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -502,46 +475,6 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transaction
 }
 
 /**
- * Return the comment field (referred to as description in the App) from the transaction.
- * The comment does not have its modifiedComment counterpart.
- */
-function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
-    // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
-    return transaction?.comment?.comment?.toString() ?? '';
-}
-
-/**
- * Return the amount field from the transaction, return the modifiedAmount if present.
- */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
-    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        const amount = Number(transaction?.modifiedAmount) ?? 0;
-        if (hasValidModifiedAmount(transaction)) {
-            return Math.abs(amount);
-        }
-        return Math.abs(transaction?.amount ?? 0);
-    }
-
-    if (disableOppositeConversion) {
-        return transaction?.amount ?? 0;
-    }
-
-    // Expense report case:
-    // The amounts are stored using an opposite sign and negative values can be set,
-    // we need to return an opposite sign than is saved in the transaction object
-    let amount = Number(transaction?.modifiedAmount) ?? 0;
-    if (hasValidModifiedAmount(transaction)) {
-        return -amount;
-    }
-
-    amount = transaction?.amount ?? 0;
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    return amount ? -amount : 0;
-}
-
-/**
  * Return the tax amount field from the transaction.
  */
 function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
@@ -553,13 +486,6 @@ function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseR
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     const amount = transaction?.taxAmount ?? 0;
     return amount ? -amount : 0;
-}
-
-/**
- * Return the tax code from the transaction.
- */
-function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
-    return transaction?.taxCode ?? '';
 }
 
 /**
@@ -672,25 +598,6 @@ function getTotalForDisplay(transaction: Transaction, reportCurrency: string | u
     };
 }
 
-/**
- * Verify if the transaction is expecting the distance to be calculated on the server
- */
-function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !!transaction?.pendingFields?.waypoints;
-}
-
-/**
- * Whether the transaction's route distance is already known locally (from a computed route or stored quantity),
- * so amount/merchant can be recalculated without waiting for the server.
- *
- * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
- * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
- */
-function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
-    return hasDistanceSource && !!getAmount(transaction);
-}
-
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
 // aren't typed `pendingFields` keys (they live on the comment), so this is matched by name rather than property access.
 const DISTANCE_RECEIPT_REGENERATION_FIELDS = new Set(['waypoints', 'distance', 'merchant', 'customUnitRateID']);
@@ -707,13 +614,6 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
     }
     const hasPendingRegenerationField = Object.entries(pendingFields).some(([field, pendingAction]) => !!pendingAction && DISTANCE_RECEIPT_REGENERATION_FIELDS.has(field));
     return hasPendingRegenerationField;
-}
-
-/**
- * Return the merchant field from the transaction, return the modifiedMerchant if present.
- */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
-    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
@@ -823,17 +723,6 @@ function getFormattedAttendees(
 }
 
 /**
- * Return the reimbursable value. Defaults to true to match BE logic.
- */
-function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return transaction?.reimbursable ?? true;
-}
-
-function hasNonReimbursableTransactions(transactions?: Transaction[]): boolean {
-    return !!transactions?.some((transaction) => !getReimbursable(transaction));
-}
-
-/**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
 function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
@@ -865,13 +754,6 @@ function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection |
 }
 
 /**
- * Return the category from the transaction. This "category" field has no "modified" complement.
- */
-function getCategory(transaction: OnyxInputOrEntry<Transaction>): string {
-    return transaction?.category ?? '';
-}
-
-/**
  * Return the cardID from the transaction.
  */
 function getCardID(transaction: Transaction): number {
@@ -883,33 +765,6 @@ function getCardID(transaction: Transaction): number {
  */
 function getBillable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.billable ?? false;
-}
-
-/**
- * Return a colon-delimited tag string as an array, considering escaped colons and double backslashes.
- */
-function getTagArrayFromName(tagName: string): string[] {
-    // WAIT!!!!!!!!!!!!!!!!!!
-    // You need to keep this in sync with TransactionUtils.php
-
-    // We need to be able to preserve double backslashes in the original string
-    // and not have it interfere with splitting on a colon (:).
-    // So, let's replace it with something absurd to begin with, do our split, and
-    // then replace the double backslashes in the end.
-    const tagWithoutDoubleSlashes = tagName.replaceAll('\\\\', '☠');
-    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replaceAll('\\:', '☢');
-
-    // Do our split
-    const matches = tagWithoutEscapedColons.split(':');
-    const newMatches: string[] = [];
-
-    for (const item of matches) {
-        const tagWithEscapedColons = item.replaceAll('☢', '\\:');
-        const tagWithDoubleSlashes = tagWithEscapedColons.replaceAll('☠', '\\\\');
-        newMatches.push(tagWithDoubleSlashes);
-    }
-
-    return newMatches;
 }
 
 /**
@@ -965,52 +820,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     return '';
 }
 
-/**
- * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
- * This "tag" field has no "modified" complement.
- */
-function getTag(transaction: OnyxInputOrEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
-    if (tagIndex !== undefined) {
-        const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
-        return tagsArray.at(tagIndex) ?? '';
-    }
-
-    return transaction?.tag ?? '';
-}
-
 function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagIndex?: number): string {
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
-}
-
-/**
- * Determine whether a transaction is made with an Expensify card.
- */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
-    return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
-}
-
-/**
- * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
- */
-function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
-    return !!transaction?.managedCard;
-}
-
-/**
- * Determine whether the reimbursable value of a transaction can be changed by the user.
- * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
- * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
- */
-function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
-    if (!isManagedCardTransaction(transaction)) {
-        return true;
-    }
-
-    if (isExpensifyCardTransaction(transaction)) {
-        return false;
-    }
-
-    return typeof transaction?.comment?.forceReimbursable !== 'boolean';
 }
 
 /**
@@ -1049,16 +860,6 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {
     return transaction?.cardName ?? '';
-}
-
-/**
- * Check if the transaction status is set to Pending.
- */
-function isPending(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction?.status) {
-        return false;
-    }
-    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
 }
 
 /**
@@ -1936,16 +1737,10 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
-    compareDuplicateTransactionFields,
     getTransactionID,
-    buildNewTransactionAfterReviewingDuplicates,
-    buildMergeDuplicatesParams,
-    canMergeDuplicates,
     getReimbursable,
     hasNonReimbursableTransactions,
     isPayAtEndExpense,
-    removeSettledAndApprovedTransactions,
-    removeTransactionFromDuplicateTransactionViolation,
     getCardName,
     getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
@@ -2018,4 +1813,3 @@ export {
 };
 
 export type {ManuallyEnteredScanFields};
-export type {MergeDuplicatesTransactionParams} from './duplicates';

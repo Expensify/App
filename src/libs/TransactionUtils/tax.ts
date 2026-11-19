@@ -10,7 +10,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils/customUnits';
+import {isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils/tax';
 
 import CONST from '@src/CONST';
 import type {Policy, Rule, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -18,11 +19,8 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './index';
 
 function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
     if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {

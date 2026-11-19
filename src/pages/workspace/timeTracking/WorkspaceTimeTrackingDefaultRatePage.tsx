@@ -27,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingDefaultRateForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -43,10 +42,10 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
+    if (!policy) {
         return <FullScreenLoadingIndicator />;
     }
 

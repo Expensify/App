@@ -26,7 +26,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+import {getCreated, getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
 
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -102,7 +102,8 @@ function DynamicIOURequestStepDate({
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
-    const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const currentCreated = getFormattedCreated(currentTransaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
@@ -118,8 +119,9 @@ function DynamicIOURequestStepDate({
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
-        // Only update created if it has changed
-        if (newCreated === currentCreated) {
+        // Only update created if it has changed. The stored value can include a time from SmartScan, so picking the day
+        // that is already shown still saves the date without that time, which can clear a futureDate violation.
+        if (newCreated === getCreated(currentTransaction)) {
             saveAndNavigateBack();
             return;
         }

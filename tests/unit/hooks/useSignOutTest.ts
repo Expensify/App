@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
@@ -258,7 +258,7 @@ describe('useSignOut', () => {
         expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
     });
 
-    it('should call signOutImmediately without showing confirm modals', () => {
+    it('should call signOutImmediately without showing confirm modals', async () => {
         // Given the settings page uses the immediate sign-out escape hatch
         const {result} = renderHook(() => useSignOut());
 
@@ -267,8 +267,8 @@ describe('useSignOut', () => {
             result.current.signOutImmediately();
         });
 
-        // Then redirect happens with no confirm modals
-        expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        // Then redirect happens once the session is read, with no confirm modals
+        await waitFor(() => expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1));
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 

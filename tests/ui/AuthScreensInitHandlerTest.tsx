@@ -280,7 +280,14 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the current account is signed out right away, because a supportal link does not ask to switch accounts
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, true, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(
+            expect.objectContaining({accountID: TEST_ACCOUNT_ID, email: 'test@test.com'}),
+            false,
+            true,
+            true,
+            undefined,
+            CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+        );
     });
 
     it('does not sign out for a non-supportal transition', async () => {
