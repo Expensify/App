@@ -22,6 +22,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: jest.fn(),
     navigate: jest.fn(),
     getActiveRoute: () => mockGetActiveRoute(),
+    isActiveRoute: (route: string) => mockGetActiveRoute() === route,
     goBack: jest.fn(),
 }));
 
@@ -124,8 +125,8 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         mockGetActiveRoute.mockReturnValue('r/123');
     });
 
-    it.each(['r/123', 'search?q=type:expense'])('opens add payment card over subscription after dismissing the web modal from %s', (activeRoute) => {
-        // Given the restricted screen can open over different pages, neither should determine the card form's background
+    it.each(['r/123', 'search?q=type:expense', 'settings/profile'])('opens subscription before add payment card after dismissing the web modal from %s', (activeRoute) => {
+        // Given the restricted screen can open over other tabs or Settings pages, none should remain under the card form
         mockGetActiveRoute.mockReturnValue(activeRoute);
         render(<WorkspaceOwnerRestrictedActionWeb />);
 
@@ -148,6 +149,32 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         expect(openPaymentCard).toBeInstanceOf(Function);
         openPaymentCard?.();
 
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        const subscriptionOptions = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(1);
+        const afterSubscriptionTransition = typeof subscriptionOptions === 'object' ? subscriptionOptions.afterTransition : undefined;
+        expect(afterSubscriptionTransition).toBeInstanceOf(Function);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'settings/subscription', {afterTransition: afterSubscriptionTransition});
+        afterSubscriptionTransition?.();
+
+        expect(Navigation.navigate).toHaveBeenCalledTimes(2);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'settings/subscription/add-payment-card');
+    });
+
+    it('opens the web card form directly when subscription is already active', () => {
+        // Given Subscription is already revealed underneath the restricted modal
+        mockGetActiveRoute.mockReturnValue('settings/subscription');
+        render(<WorkspaceOwnerRestrictedActionWeb />);
+
+        // When dismissal and the closing screen deferral finish after the owner taps Add payment card
+        fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        getDismissModalAfterTransition()?.();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        const openPaymentCard = jest.mocked(runAfterClosingScreenUnmount).mock.calls.at(0)?.at(0);
+        expect(openPaymentCard).toBeInstanceOf(Function);
+        openPaymentCard?.();
+
+        // Then the form opens without waiting for a redundant Subscription transition that would never start
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/subscription/add-payment-card');
     });

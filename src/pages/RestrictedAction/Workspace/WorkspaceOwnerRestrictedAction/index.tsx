@@ -28,11 +28,23 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
+    const openPaymentCardForm = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+
     const addPaymentCard = () => {
         Navigation.dismissModal({
             // The transition ends a moment before React removes this screen. Opening the card form in that gap shows
             // this screen again for a frame, so wait until it is gone.
-            afterTransition: () => runAfterClosingScreenUnmount(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route))),
+            afterTransition: () =>
+                runAfterClosingScreenUnmount(() => {
+                    if (Navigation.isActiveRoute(ROUTES.SETTINGS_SUBSCRIPTION.route)) {
+                        openPaymentCardForm();
+                        return;
+                    }
+
+                    // Opening the form only swaps the page underneath when it is in another tab. From another Settings
+                    // page, such as Profile, that page would stay under the form, so open Subscription first.
+                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route, {afterTransition: openPaymentCardForm});
+                }),
         });
     };
 
