@@ -26,7 +26,6 @@ import Button from './Button';
 import Modal from './Modal';
 import Text from './Text';
 
-/** Shows the progress and result of a bulk action started from Search "Select all". */
 const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittingTitle',
@@ -36,6 +35,7 @@ const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletingTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletingExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changingWorkspaceTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const DONE_TITLES = {
@@ -47,6 +47,19 @@ const DONE_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectedTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletedTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changedWorkspaceTitle',
+} as const satisfies Record<BulkActionType, TranslationPaths>;
+
+const FAILED_BODIES = {
+    [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.notApprovedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.notSubmittedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.notPaidBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.notHeldBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.notUnheldBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.notRejectedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.notDeletedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.notMovedBody',
+    [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 type BulkActionRunningProps = {
@@ -69,6 +82,7 @@ function BulkActionRunning({action, onSendFromConcierge}: BulkActionRunningProps
             </View>
             <Text style={styles.mb5}>{translate('bulkAction.runningBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.SEND_FROM_CONCIERGE}
                 onPress={onSendFromConcierge}
                 style={styles.w100}
             >
@@ -93,6 +107,7 @@ function BulkActionConcierge({onClose}: BulkActionConciergeProps) {
             <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.conciergeTitle')}</Text>
             <Text style={styles.mb5}>{translate('bulkAction.conciergeBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.GO_TO_CONCIERGE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => close(() => openConciergeAnywhere({forceConcierge: true}))}
                 style={styles.w100}
@@ -100,6 +115,7 @@ function BulkActionConcierge({onClose}: BulkActionConciergeProps) {
                 <Button.Text>{translate('bulkAction.goToConcierge')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={[styles.w100, styles.mt3]}
             >
@@ -133,21 +149,24 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
 
     const viewFailedReports = () => {
         const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${failedReportIDs.join(',')}`);
-        onClose();
         if (!queryJSON) {
+            onClose();
             return;
         }
+
+        // close() runs the modal's onClose, which clears the record.
         close(() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)})));
     };
 
     return (
         <>
-            <Text style={[styles.exportDownloadTitle, styles.mb2]}>{doneTitle}</Text>
+            <Text style={[styles.exportDownloadTitle, total === 0 || failedReportIDs.length > 0 ? styles.mb2 : styles.mb5]}>{doneTitle}</Text>
             {total === 0 && <Text style={styles.mb5}>{translate('bulkAction.noReportsBody')}</Text>}
             {failedReportIDs.length > 0 && (
                 <>
-                    <Text style={styles.mb5}>{translate('bulkAction.failedReportsBody', {count: failedReportIDs.length})}</Text>
+                    <Text style={styles.mb5}>{translate(FAILED_BODIES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY], {count: failedReportIDs.length})}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.VIEW_FAILED_REPORTS}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={viewFailedReports}
                         style={[styles.w100, styles.mb3]}
@@ -157,6 +176,7 @@ function BulkActionDone({action, total, failedReportIDs, onClose}: BulkActionDon
                 </>
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={styles.w100}
             >
@@ -180,6 +200,7 @@ function BulkActionFailed({onClose}: BulkActionFailedProps) {
             <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('bulkAction.failedTitle')}</Text>
             <Text style={styles.mb5}>{translate('bulkAction.failedBody')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_STATUS_MODAL.CLOSE}
                 onPress={onClose}
                 style={styles.w100}
             >
@@ -193,13 +214,12 @@ type BulkActionStatusModalProps = {
     /** The bulk action ID to subscribe to */
     bulkActionID: string;
 
-    isVisible: boolean;
-
     /** Callback when the modal is closed */
     onClose: () => void;
 };
 
-function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionStatusModalProps) {
+/** Shows the progress and result of a bulk action started from Search "Select all". */
+function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalProps) {
     const styles = useThemeStyles();
     // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -220,7 +240,7 @@ function BulkActionStatusModal({bulkActionID, isVisible, onClose}: BulkActionSta
 
     return (
         <Modal
-            isVisible={isVisible}
+            isVisible
             onClose={isRunning ? () => {} : onClose}
             onBackdropPress={isRunning ? () => {} : undefined}
             shouldTreatModalAsCovering

@@ -11,24 +11,6 @@ describe('getUprightRotation', () => {
         expect(getUprightRotation({width: 1920, height: 1440, rotation: 180})).toBe(90);
     });
 
-    it('turns the opposite hold the other way, rather than leaving it 180 out', () => {
-        // `PhotoFile.orientation` is counter-clockwise, so `landscape-left` (270 CCW) is the 90 clockwise
-        // the Galaxy S20 FE needs, and `landscape-right` (90 CCW) has to go the other way.
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 0}, 'landscape-left')).toBe(90);
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 0}, 'landscape-right')).toBe(270);
-    });
-
-    it('keeps the verified quarter-turn for a hold that cannot make a landscape frame upright', () => {
-        // Only a quarter-turn makes a landscape frame portrait, so these fall back rather than turning 0 or
-        // 180 and leaving the receipt on its side.
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 0}, 'portrait')).toBe(90);
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 0}, 'portrait-upside-down')).toBe(90);
-    });
-
-    it('ignores the hold for a frame that already decodes upright, since only the decoded frame matters', () => {
-        expect(getUprightRotation({width: 1440, height: 1920, rotation: 0}, 'landscape-right')).toBeUndefined();
-    });
-
     it('leaves a photo that is already upright with no metadata alone, rather than re-encoding it', () => {
         // iOS, where react-native-image-size reports the displayed size and no rotation.
         expect(getUprightRotation({width: 2160, height: 2880})).toBeUndefined();
@@ -42,6 +24,19 @@ describe('getUprightRotation', () => {
     it('still turns a frame that decodes landscape, whatever its metadata says', () => {
         // 1440x1920 asking for 90 decodes as 1920x1440, genuinely on its side.
         expect(getUprightRotation({width: 1440, height: 1920, rotation: 90})).toBe(90);
+    });
+
+    it('turns a sideways frame the way the capture was oriented', () => {
+        // Given landscape frames saved without a rotation tag, captured with the sensor turned either way
+        const size = {width: 1920, height: 1440, rotation: 0};
+
+        // When the upright rotation is derived from each capture's orientation
+        const leftTurn = getUprightRotation(size, 'left');
+        const rightTurn = getUprightRotation(size, 'right');
+
+        // Then each turns its own way, so a photo taken in the opposite hold is not saved upside down
+        expect(leftTurn).toBe(90);
+        expect(rightTurn).toBe(270);
     });
 
     it('leaves a square photo with no metadata alone', () => {

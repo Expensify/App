@@ -1,8 +1,9 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -29,6 +30,8 @@ import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPay
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,6 +39,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -50,6 +54,7 @@ function TransferBalancePage() {
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -125,15 +130,15 @@ function TransferBalancePage() {
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('transferAmountPage.transferSuccess')}
                     description={
                         walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
                             ? translate('transferAmountPage.transferDetailBankAccount')
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
-                    shouldShowButton
                     buttonText={translate('common.done')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_SUCCESS_DONE}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
                     containerStyle={styles.flex1}
                 />
@@ -179,6 +184,7 @@ function TransferBalancePage() {
                     <View style={styles.ph5}>
                         {paymentTypes.map((paymentType) => (
                             <MenuItem
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_PAYMENT_TYPE}
                                 key={paymentType.key}
                                 title={paymentType.title}
                                 description={paymentType.description}
@@ -198,17 +204,31 @@ function TransferBalancePage() {
                     </View>
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
                     {!!selectedAccount && (
-                        <MenuItem
-                            title={selectedAccount?.title}
-                            description={selectedAccount?.description}
-                            shouldShowRightIcon
-                            iconStyles={selectedAccount?.iconStyles}
-                            iconWidth={selectedAccount?.iconSize}
-                            iconHeight={selectedAccount?.iconSize}
-                            icon={selectedAccount?.icon}
-                            onPress={() => navigateToChooseTransferAccount(selectedAccount?.accountType ?? CONST.PAYMENT_METHODS.DEBIT_CARD)}
-                            displayInDefaultIconColor
-                        />
+                        <MenuItem.Root
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_ACCOUNT}
+                            onPress={callIfAuthenticated(() => navigateToChooseTransferAccount(selectedAccount.accountType ?? CONST.PAYMENT_METHODS.DEBIT_CARD), session)}
+                        >
+                            <MenuItem.Row>
+                                {!!selectedAccount.icon && (
+                                    <MenuItem.Leading>
+                                        <View style={[styles.popoverMenuIcon, selectedAccount.iconStyles]}>
+                                            <Icon
+                                                src={selectedAccount.icon}
+                                                width={selectedAccount.iconSize}
+                                                height={selectedAccount.iconSize}
+                                            />
+                                        </View>
+                                    </MenuItem.Leading>
+                                )}
+                                <MenuItem.Content>
+                                    {!!selectedAccount.title && <MenuItem.Title>{selectedAccount.title}</MenuItem.Title>}
+                                    {!!selectedAccount.description && <MenuItem.Description>{selectedAccount.description}</MenuItem.Description>}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
                     <View style={styles.ph5}>
                         <Text style={[styles.mt5, styles.mb3, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.fee')}</Text>
@@ -217,6 +237,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_SUBMIT}
                         buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount, CONST.CURRENCY.USD) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}

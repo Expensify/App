@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerChangeCheckProps = {
@@ -45,7 +45,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
 
     const policyID = policy?.id;
 
-    const updateDisplayTexts = useCallback(() => {
+    const updateDisplayTexts = () => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
         if (error !== changeOwnerErrors.at(0)) {
             return;
@@ -53,17 +53,20 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
 
         const texts = getOwnershipChecksDisplayText(error, translate, convertToDisplayString, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [error, userPersonalDetails?.login, policy, translate, convertToDisplayString]);
+    };
 
     useEffect(() => {
         updateDisplayTexts();
     }, [updateDisplayTexts]);
 
-    const confirm = useCallback(() => {
+    // Failed settlements or an uncleared balance block the transfer, so the button exits the flow instead of requesting the change
+    const isOwnerChangeBlocked = error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE;
+
+    const confirm = () => {
         if (!policyID) {
             return;
         }
-        if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
+        if (isOwnerChangeBlocked) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
             clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
@@ -72,7 +75,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         }
 
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
-    }, [policy, accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
+    };
 
     return (
         <>
@@ -80,6 +83,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
+                    sentryLabel={isOwnerChangeBlocked ? CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_CHECK_DISMISS : CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_CHECK_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}

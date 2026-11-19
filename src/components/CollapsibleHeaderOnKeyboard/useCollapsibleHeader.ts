@@ -1,6 +1,6 @@
 import usePrevious from '@hooks/usePrevious';
 
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
 
 import {useEffect, useRef} from 'react';
@@ -25,7 +25,7 @@ type CollapsibleHeader = {
     /** To be spread onto `CollapsibleHeaderView`, which owns the two animated wrappers. */
     onLayout: (e: LayoutChangeEvent) => void;
     outerStyle: AnimatedStyle<ViewStyle>;
-    innerStyle: AnimatedStyle<ViewStyle>;
+    innerStyle: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 /** Collapses the wrapped content to `targetHeight`. Quick, so the header is out of the way before the input lands. */
@@ -42,10 +42,15 @@ function restoreHeaderTo(animatedHeight: SharedValue<number>, naturalHeight: num
     animatedHeight.set(withTiming(naturalHeight, {duration: RESTORE_DURATION}));
 }
 
+type UseCollapsibleHeaderOptions = {
+    onNaturalHeightChange?: (height: number) => void;
+    shouldMeasureWhileCollapsed?: boolean;
+};
+
 /**
  * Measurement and animated styles shared by `CollapsibleHeaderOnKeyboard` and `CollapsibleHeaderOnKeyboardGroupMember`.
  */
-function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void): CollapsibleHeader {
+function useCollapsibleHeader({onNaturalHeightChange, shouldMeasureWhileCollapsed = false}: UseCollapsibleHeaderOptions = {}): CollapsibleHeader {
     const {isFocused, isInLandscapeMode, isFocusedSV, isInLandscapeModeSV} = useCollapsibleScreenState();
     const prevIsFocused = usePrevious(isFocused);
     // JS ref guards against re-measurement when the Reanimated.View fires onLayout with height=0
@@ -66,8 +71,16 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
         // Submit shows beside More after Retract). Avoids stale clipped height from the collapse animation.
         if (!isInLandscapeMode) {
             naturalHeightRef.current = height;
-            naturalHeight.set(height);
             animatedHeight.set(height);
+            naturalHeight.set(height);
+            onNaturalHeightChange?.(height);
+            return;
+        }
+
+        // Leave animatedHeight alone, so the header stays collapsed at its new size.
+        if (shouldMeasureWhileCollapsed && naturalHeightRef.current !== -1 && animatedHeight.get() < naturalHeightRef.current && height !== naturalHeightRef.current) {
+            naturalHeightRef.current = height;
+            naturalHeight.set(height);
             onNaturalHeightChange?.(height);
             return;
         }
@@ -76,8 +89,8 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
         if (naturalHeightRef.current === -1 || (animatedHeight.get() >= naturalHeightRef.current && height !== naturalHeightRef.current)) {
             naturalHeightRef.current = height;
-            naturalHeight.set(height);
             animatedHeight.set(height);
+            naturalHeight.set(height);
             onNaturalHeightChange?.(height);
         }
     };
@@ -107,9 +120,9 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
 
     // Outer wrapper controls layout space (height collapses to 0, clips overflowing content).
     const outerStyle = useAnimatedStyle<ViewStyle>(() => {
-        // When fully open, leave height undefined so the view sizes itself naturally.
+        // When fully open or before initial measurement, leave height undefined so the view sizes itself naturally.
         // This avoids fighting the layout engine during orientation changes.
-        if (animatedHeight.get() >= naturalHeight.get()) {
+        if (naturalHeight.get() === -1 || animatedHeight.get() >= naturalHeight.get()) {
             return {overflow: 'hidden', height: 'auto'};
         }
         return {height: animatedHeight.get(), overflow: 'hidden'};

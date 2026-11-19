@@ -32,7 +32,7 @@ const FALLBACK_OFFSET = 2;
 
 const LOADING_CONTEXT = {context: 'Lightbox'};
 
-const cachedImageDimensions = new Map<string, Dimensions | undefined>();
+const cachedImageDimensions = new Map<string | number, Dimensions | undefined>();
 
 function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
     if (isActive) {
@@ -48,8 +48,8 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** URI to full-sized attachment */
-    uri: string;
+    /** URI to full-sized attachment, or a static image asset on native */
+    uri: string | number;
 
     /** Triggers whenever the zoom scale changes */
     onScaleChanged?: OnScaleChangedCallback;
@@ -94,6 +94,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
             onScaleChanged: () => {},
             onSwipeDown: () => {},
             pagerRef: undefined,
+            pagerGesture: undefined,
             externalGestureHandler: undefined,
         };
     } else {
@@ -116,7 +117,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         onTap,
         onScaleChanged: onScaleChangedContext,
         onSwipeDown,
-        pagerRef,
+        pagerGesture,
         isScrollEnabled,
         externalGestureHandler,
     } = carouselContext;
@@ -250,7 +251,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 canvasSize={canvasSize}
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
-                                pagerRef={pagerRef}
+                                pagerGesture={pagerGesture}
                                 isUsedInCarousel={isUsedInCarousel}
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 isPagerScrollEnabled={isScrollEnabled}
@@ -262,7 +263,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                                 <Image
                                     key={reloadKey}
-                                    source={{uri}}
+                                    source={typeof uri === 'string' ? {uri} : uri}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     priority={imagePriority}
@@ -295,7 +296,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                             <Image
-                                source={{uri}}
+                                source={typeof uri === 'string' ? {uri} : uri}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}

@@ -28,7 +28,7 @@ import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
+import {formatSelectedParticipantsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
@@ -50,7 +50,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
@@ -117,16 +116,17 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -147,9 +147,9 @@ function ParticipantSearchResults({
     onFinish,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -178,7 +178,7 @@ function ParticipantSearchResults({
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
-    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode,
     // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
     // (referral banner / Next button) renders behind the system navigation bar.
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
@@ -199,12 +199,14 @@ function ParticipantSearchResults({
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
+    const canUseWorkspaceChats = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK;
+    const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
-        selectedOptions: participants as Participant[],
+        selectedOptions: participants,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeOwnedWorkspaceChats:
-            !shouldExcludeWorkspaces && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK),
+        includeOwnedWorkspaceChats,
+        excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
         excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
         includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
         includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -219,6 +221,8 @@ function ParticipantSearchResults({
         preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        // Only boost the default workspace chat when workspace chats can be shown, so it doesn't take a slot in the recent-reports limit
+        activePolicyID: includeOwnedWorkspaceChats ? activePolicyID : undefined,
     };
 
     /**
@@ -249,7 +253,7 @@ function ParticipantSearchResults({
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const handleSelectionChange = (options: OptionData[]) => {
+    const handleSelectionChange = (options: Array<Participant | OptionData>) => {
         if (!isIOUSplit) {
             return;
         }
@@ -257,26 +261,27 @@ function ParticipantSearchResults({
         onParticipantsAdded(sanitizedParticipants);
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
-        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        getValidOptionsConfig,
-        shouldInitialize: didScreenTransitionEnd,
-        enablePhoneContacts: isNative,
-        contactOptions: contacts,
-        initialSelected: participants as OptionData[],
-        onSelectionChange: handleSelectionChange,
-        onSingleSelect: (option: OptionData) => {
-            if (isIOUSplit) {
-                return;
-            }
-            addSingleParticipant(option);
-        },
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
+        useSearchSelector<Participant>({
+            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            getValidOptionsConfig,
+            shouldInitialize: didScreenTransitionEnd,
+            enablePhoneContacts: isNative,
+            contactOptions: contacts,
+            initialSelected: participants,
+            onSelectionChange: handleSelectionChange,
+            onSingleSelect: (option: Participant | OptionData) => {
+                if (isIOUSplit) {
+                    return;
+                }
+                addSingleParticipant(option);
+            },
+        });
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 
@@ -313,11 +318,7 @@ function ParticipantSearchResults({
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
-        const formatResults = formatSectionsFromSearchTerm(
-            searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
-            [],
-            [],
+        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, participants, {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
@@ -328,10 +329,8 @@ function ParticipantSearchResults({
             getReportByID,
             rules,
             personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
-        );
+        });
         sections.push({...formatResults.section, sectionIndex: 0});
 
         const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
@@ -445,7 +444,7 @@ function ParticipantSearchResults({
      * @param option
      */
     const addParticipantToSelection = (option: Participant) => {
-        toggleSelection(option as OptionData);
+        toggleSelection(option);
     };
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -454,13 +453,20 @@ function ParticipantSearchResults({
     const hasPolicyExpenseChatParticipant = selectedOptions.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = selectedOptions.length > 1 && hasPolicyExpenseChatParticipant;
 
-    const handleConfirmSelection = (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
-        const shouldAddSingleParticipant = option && !selectedOptions.length;
-        if (shouldShowSplitBillErrorMessage || (!selectedOptions.length && !option)) {
+    const confirmSelection = () => {
+        if (shouldShowSplitBillErrorMessage || !selectedOptions.length) {
             return;
         }
 
-        if (shouldAddSingleParticipant) {
+        onFinish(CONST.IOU.TYPE.SPLIT);
+    };
+
+    const confirmFocusedOption = (option: Participant) => {
+        if (shouldShowSplitBillErrorMessage) {
+            return;
+        }
+
+        if (!selectedOptions.length) {
             addSingleParticipant(option);
             return;
         }
@@ -488,14 +494,13 @@ function ParticipantSearchResults({
                 shouldShowSplitBillErrorMessage={shouldShowSplitBillErrorMessage}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
                 isDismissedReferralBanner={isDismissedReferralBanner}
-                onConfirmSelection={handleConfirmSelection}
+                onConfirmSelection={confirmSelection}
                 onNewWorkspace={() => onFinish()}
-                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
     const onSelectRow = (option: Participant) => {
-        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport(option.reportID)?.policyID : undefined);
+        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
@@ -507,7 +512,6 @@ function ParticipantSearchResults({
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
-            onRestrictedParticipantSelected?.();
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
             return;
         }
@@ -554,7 +558,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
@@ -564,12 +568,14 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (
         <SelectionListWithSections
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirm: confirmSelection,
+                onConfirmFocusedOption: confirmFocusedOption,
                 isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
                 // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
                 // otherwise Enter can't toggle off the conflicting row.

@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -21,8 +22,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -75,6 +78,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -86,7 +90,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
@@ -95,6 +99,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
@@ -104,6 +109,11 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const isAppLoadPending = useIsAppLoadPending();
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
+
+    // Tapping a row used to create the report immediately, which closed the page on input (WCAG 3.2.2 On Input).
+    // The tap now only stages the workspace, and the report is created from an explicit Create button.
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const [shouldShowError, setShouldShowError] = useState(false);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
@@ -149,6 +159,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
+                    currentUserPersonalDetails,
                     newReport: optimisticReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     policyCategories: undefined,
@@ -165,6 +176,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     ...allMatchingQueryParams,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
@@ -256,6 +268,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
+                isSelected: draftPolicyID === policy.id,
             });
             index++;
         }
@@ -271,6 +284,16 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
+    };
+
+    const confirmWorkspace = () => {
+        const selectedPolicy = usersWorkspaces.find((policy) => policy.policyID === draftPolicyID);
+        if (!selectedPolicy) {
+            setShouldShowError(true);
+            return;
+        }
+
+        selectPolicy(selectedPolicy);
     };
 
     return (
@@ -295,9 +318,24 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                             <SelectionList<WorkspaceListItem>
                                 data={filteredAndSortedUserWorkspaces}
                                 ListItem={UserListItem}
-                                onSelectRow={selectPolicy}
+                                onSelectRow={(policy) => {
+                                    setDraftPolicyID(policy.policyID);
+                                    setShouldShowError(false);
+                                }}
+                                titleNumberOfLines={2}
                                 textInputOptions={textInputOptions}
-                                shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                                shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
+                                shouldFooterBeInsideList={shouldFooterBeInsideList}
+                                footerContent={
+                                    <FormAlertWithSubmitButton
+                                        buttonText={translate('common.create')}
+                                        onSubmit={confirmWorkspace}
+                                        isAlertVisible={shouldShowError}
+                                        message={translate('newRoomPage.pleaseSelectWorkspace')}
+                                        enabledWhenOffline
+                                        sentryLabel={CONST.SENTRY_LABEL.NEW_REPORT_WORKSPACE_SELECTION.CREATE}
+                                    />
+                                }
                             />
                         </>
                     )}

@@ -71,6 +71,12 @@ function clearBulkAction(bulkActionID: string, bulkAction: OnyxEntry<BulkAction>
     locallyInitiatedBulkActionIDs.delete(bulkActionID);
     const onyxKey = `${ONYXKEYS.COLLECTION.BULK_ACTION}${bulkActionID}` as const;
 
+    // A failed bulk action only exists on this device, since the backend drops it when queuing fails.
+    if (bulkAction?.state === CONST.BULK_ACTION.STATE.FAILED) {
+        Onyx.set(onyxKey, null);
+        return;
+    }
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,

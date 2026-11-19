@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import useReceiptPartnerConnectionListings from '@pages/workspace/connections/useReceiptPartnerConnectionListings';
 
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -28,7 +28,7 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: true, showReadOnlyModal: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 jest.mock('@userActions/Link', () => ({openExternalLink: jest.fn()}));
-jest.mock('@userActions/Policy/Policy', () => ({enablePolicyFeatureForConnection: jest.fn()}));
+jest.mock('@userActions/Policy/Policy', () => ({enablePolicyFeatureForConnection: jest.fn(), openPolicyReceiptPartnersPage: jest.fn()}));
 
 const policy: Policy = {
     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -58,7 +58,7 @@ describe('useReceiptPartnerConnectionListings', () => {
         const {result} = renderHook(() => useReceiptPartnerConnectionListings(policy));
 
         // When the admin presses "+" on Uber
-        act(() => result.current.at(0)?.onConnect());
+        act(() => result.current.at(0)?.onConnect?.());
 
         // Then the feature is turned on and the Uber connect page opens, since Connections has no toggle for the feature
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
@@ -77,11 +77,26 @@ describe('useReceiptPartnerConnectionListings', () => {
         // When the admin then connects Uber from the page and the connection shows up
         mockUberState = {...mockUberState, isUberConnected: false};
         rerender({});
-        act(() => result.current.at(0)?.onConnect());
+        act(() => result.current.at(0)?.onConnect?.());
         mockUberState = {...mockUberState, isUberConnected: true};
         rerender({});
 
         // Then the invite flow opens once, so the admin can invite employees to the new connection
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch the Uber data again when Uber disconnects', () => {
+        // Given a connected Uber
+        mockUberState = {...mockUberState, isUberConnected: true};
+        const {rerender} = renderHook(() => useReceiptPartnerConnectionListings(policy));
+        expect(openPolicyReceiptPartnersPage).not.toHaveBeenCalled();
+
+        // When Uber disconnects outside this page, for example from another device or from Uber's REVOKED webhook
+        mockUberState = {...mockUberState, isUberConnected: false};
+        rerender({});
+
+        // Then the Uber data is fetched again, since the disconnect removed the connectFormData that Connect needs
+        expect(openPolicyReceiptPartnersPage).toHaveBeenCalledTimes(1);
+        expect(openPolicyReceiptPartnersPage).toHaveBeenCalledWith('policy-1');
     });
 });

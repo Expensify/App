@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-svg/lib/typescript/web/types.d.ts b/node_modules/react-native-svg/lib/typescript/web/types.d.ts
+index ad1276e..67aa184 100644
+--- a/node_modules/react-native-svg/lib/typescript/web/types.d.ts
++++ b/node_modules/react-native-svg/lib/typescript/web/types.d.ts
+@@ -48,7 +48,7 @@ export interface BaseProps {
+     fontSize?: NumberProp;
+     fontFamily?: string;
+     forwardedRef?: React.RefCallback<SVGElement> | React.MutableRefObject<SVGElement | null>;
+-    style?: Iterable<unknown>;
++    style?: unknown;
+     gradientTransform?: TransformProps['transform'];
+     patternTransform?: TransformProps['transform'];
+ }

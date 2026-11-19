@@ -1,8 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationMainContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {Alert} from 'react-native';
 
 import type AddToWalletButtonProps from './types';
@@ -26,15 +28,23 @@ const isIOS = getPlatform() === CONST.PLATFORM.IOS;
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const styles = useThemeStyles();
-    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
+    const {executeScenario} = useMultifactorAuthentication();
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable, refreshWalletStatus} = useIsCardInWallet(card);
 
-    const handleOnPress = useCallback(() => {
+    const handleOnPress = () => {
+        if (isUkEuExpensifyCard(card)) {
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, {card, cardHolderName, cardDescription});
+            return;
+        }
         setIsLoading(true);
-        handleAddCardToWallet(card, cardHolderName, cardDescription, () => setIsLoading(false))
+        handleAddCardToWallet(card, cardHolderName, cardDescription)
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+
+                    // Keep the spinner until the new wallet status is known, so the Add button does not flash back in the meantime
+                    refreshWalletStatus().finally(() => setIsLoading(false));
                     if (isIOS) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
                     }
@@ -47,7 +57,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 Log.warn(`Error while adding card to wallet: ${error}`);
                 Alert.alert('Failed to add card to wallet', 'Please try again later.');
             });
-    }, [card, cardDescription, cardHolderName]);
+    };
 
     if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;

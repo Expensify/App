@@ -2,7 +2,7 @@
  * Helpers for a policy's tags: tag-list lookup, parent-tag matching for dependent tags, tag names, and GL codes.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
-import {getTagArrayFromName} from '@libs/TransactionUtils';
+import getTagArrayFromName from '@libs/TransactionUtils/getTagArrayFromName';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyTagLists, PolicyTags} from '@src/types/onyx';
@@ -30,6 +30,15 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: n
     }
 
     return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
+}
+
+/**
+ * Gets the Onyx key and value of the tag list with the given orderWeight.
+ * Tag list names can repeat (e.g. "Sub-projects" stored under both "Sub-projects" and "Sub-projects_2"),
+ * so a tag list must be read and written by its key, never by its name.
+ */
+function getTagListEntryByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): [string, ValueOf<PolicyTagLists>] | undefined {
+    return Object.entries(policyTagList ?? {}).find(([, tagList]) => tagList?.orderWeight === orderWeight);
 }
 
 /**
@@ -177,11 +186,8 @@ function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, order
         tags: {},
         orderWeight: 0,
     };
-    if (isEmptyObject(policyTagList)) {
-        return tagListEmpty;
-    }
 
-    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+    return getTagListEntryByOrderWeight(policyTagList, orderWeight)?.[1] ?? tagListEmpty;
 }
 
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
@@ -254,10 +260,22 @@ function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined
 }
 
 /**
- * Escape colon from tag name
+ * Whether at least one selectable tag on the workspace, in any tag list, has a non-blank GL code. Disabled and
+ * pending-deletion tags can't be picked in the tag picker, so their GL codes don't count.
+ */
+function hasAnyTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>): boolean {
+    return getTagLists(policyTagLists).some((tagList) =>
+        Object.values(tagList.tags ?? {}).some((tag) => !!tag?.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getGLCodeFromPolicyTag(tag).trim()),
+    );
+}
+
+/**
+ * Escape colon from tag name. A colon preceded by an odd number of backslashes is already escaped and is left as-is,
+ * otherwise `\:` would become `\\:`, which is read as an escaped backslash followed by a tag level separator.
+ * A colon preceded by an even number of backslashes (e.g. `\\:`) is a bare separator, so it is escaped, matching `getTagArrayFromName`.
  */
 function escapeTagName(tag: string) {
-    return tag?.replaceAll(CONST.COLON, '\\:');
+    return tag?.replaceAll(/(?<!\\)((?:\\\\)*):/g, '$1\\:');
 }
 
 /**
@@ -352,6 +370,7 @@ function getTagListLabel(tagListName: string | undefined, fallbackLabel: string)
 export {
     getSortedTagKeys,
     getTagListName,
+    getTagListEntryByOrderWeight,
     getTagLists,
     hasTags,
     matchesParentTagsFilter,
@@ -367,6 +386,7 @@ export {
     getLengthOfTag,
     getTagGLCode,
     getGLCodeFromPolicyTag,
+    hasAnyTagGLCode,
     escapeTagName,
     isDefaultTagName,
     getCountOfEnabledTagsOfList,

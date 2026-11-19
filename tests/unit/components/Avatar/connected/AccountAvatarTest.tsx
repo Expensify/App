@@ -2,12 +2,16 @@ import {render} from '@testing-library/react-native';
 
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {ViewStyle} from 'react-native';
 
 import React from 'react';
+
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
 const ACCOUNT_ID = 42;
 const OTHER_ACCOUNT_ID = 7;
@@ -39,9 +43,10 @@ jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mock
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -82,6 +87,24 @@ describe('AccountAvatar (connected)', () => {
             displayName: expectedDisplayName,
             fallbackIcon: undefined,
         });
+    });
+
+    it('should seed a letter avatar from accountEmail when the account has no personal details', () => {
+        // Given a new invitee with no personal details yet
+        mockPersonalDetails = {};
+
+        // When the avatar renders with the invitee's email
+        render(
+            <AccountAvatar
+                accountID={ACCOUNT_ID}
+                accountEmail={LOGIN}
+            />,
+        );
+
+        // Then it shows the email's letter avatar instead of the generic fallback
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(
+            expect.objectContaining({id: ACCOUNT_ID, source: getDefaultAvatarURL({accountID: ACCOUNT_ID, accountEmail: LOGIN}), name: LOGIN}),
+        );
     });
 
     it('should render a placeholder icon for the placeholder account ID, so the slot keeps its size', () => {

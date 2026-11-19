@@ -10,14 +10,14 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
 
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
@@ -76,53 +76,50 @@ function FullNameStepImpl({
     customFirstNameLabel,
     customLastNameLabel,
     shouldShowPatriotActLink = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            const errors = getFieldRequiredErrors(values, stepFields, translate);
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const firstName = (values as Record<string, unknown>)[firstNameInputID] as string;
-            if (!isRequiredFulfilled(firstName)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('common.error.fieldRequired');
-            } else if (!isValidLegalName(firstName)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            }
+        const firstName = (values as Record<string, unknown>)[firstNameInputID] as string;
+        if (!isRequiredFulfilled(firstName)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[firstNameInputID] = translate('common.error.fieldRequired');
+        } else if (!isValidDisplayName(firstName)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[firstNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        }
 
-            if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
-            }
+        if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
+        }
 
-            const lastName = (values as Record<string, unknown>)[lastNameInputID] as string;
-            if (!isRequiredFulfilled(lastName)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('common.error.fieldRequired');
-            } else if (!isValidLegalName(lastName)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            }
+        const lastName = (values as Record<string, unknown>)[lastNameInputID] as string;
+        if (!isRequiredFulfilled(lastName)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[lastNameInputID] = translate('common.error.fieldRequired');
+        } else if (!isValidDisplayName(lastName)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[lastNameInputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        }
 
-            if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('personalDetails.error.containsReservedWord');
-            }
-            return errors;
-        },
-        [firstNameInputID, lastNameInputID, stepFields, translate],
-    );
+        if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[lastNameInputID] = translate('personalDetails.error.containsReservedWord');
+        }
+        return errors;
+    };
 
     return (
         <FormProvider

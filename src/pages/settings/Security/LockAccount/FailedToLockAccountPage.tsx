@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -28,15 +29,14 @@ function FailedToLockAccountPage() {
                 title={translate('lockAccountPage.lockAccount')}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={illustrations.LockOpen}
                     heading={translate('failedToLockAccountPage.failedToLockAccount')}
                     description={translate('failedToLockAccountPage.failedToLockAccountDescription')}
-                    shouldShowButton
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('failedToLockAccountPage.chatWithConcierge')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.FAILED_TO_LOCK_ACCOUNT_CHAT_WITH_CONCIERGE}
                     onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
-                    containerStyle={styles.h100}
                 />
             </ScrollView>
         </ScreenWrapper>

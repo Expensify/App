@@ -3,10 +3,11 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
 import React from 'react';
@@ -22,11 +23,13 @@ function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_PERSONAL_CARD_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_PERSONAL_CARD_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.title', {cardName: card?.cardName})}
             subtitle={translate('homePage.timeSensitiveSection.fixPersonalCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))}
+            onCtaPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(String(card.cardID))))}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );

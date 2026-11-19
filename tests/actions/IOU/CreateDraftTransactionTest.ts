@@ -90,6 +90,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
@@ -753,6 +754,40 @@ describe('actions/IOU', () => {
                 // And it happens once the merge has been applied
                 await waitForBatchedUpdates();
                 expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
+            });
+
+            it('should show the restricted creation modal instead of creating a workspace when the domain group restricts workspace creation', async () => {
+                // Given a tracked self DM expense for a member whose domain group restricts workspace creation
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                const showRestrictedPolicyCreationModal = jest.fn();
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    isRestrictedPolicyCreation: true,
+                    showRestrictedPolicyCreationModal,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the modal explains why, and the user stays put because the server would reject the new workspace
+                expect(showRestrictedPolicyCreationModal).toHaveBeenCalledTimes(1);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
             });
 
             it('should leave the draft transaction unreported when the destination picker is shown', async () => {

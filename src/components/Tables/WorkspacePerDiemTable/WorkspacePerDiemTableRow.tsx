@@ -2,6 +2,7 @@ import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,6 +34,9 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {selectedKeys, isMobileSelectionEnabled} = useTableContext();
+    // Checked here instead of in the row data, so toggling selection mode doesn't rebuild every row.
+    const isSelectionModeActive = selectedKeys.length > 0 || isMobileSelectionEnabled;
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -46,8 +50,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.ROW}
             offlineWithFeedback={{
+                errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
+                onClose: item.dismissError,
             }}
             onPress={item.action}
         >
@@ -77,7 +83,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             <InlineTextEditCell
                                 value={item.destination}
                                 accessibilityLabel={translate('common.destination')}
-                                canEdit={item.canEditDestination && !item.disabled}
+                                canEdit={item.canEditDestination && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onRenameDestination}
                                 displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
@@ -92,7 +98,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             <InlineTextEditCell
                                 value={item.subRateName}
                                 accessibilityLabel={translate('common.subrate')}
-                                canEdit={item.canEditSubrate && !item.disabled}
+                                canEdit={item.canEditSubrate && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onRenameSubrate}
                                 displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
@@ -108,7 +114,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                                 rate={item.rate}
                                 currency={item.currency}
                                 displayText={item.formattedAmount}
-                                canEdit={item.canEditAmount && !item.disabled}
+                                canEdit={item.canEditAmount && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onChangeAmount}
                             />
                         </View>

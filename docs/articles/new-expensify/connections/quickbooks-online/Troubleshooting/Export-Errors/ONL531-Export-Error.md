@@ -51,7 +51,7 @@ If the error persists, reset the export configuration.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Under **Export reimbursable expenses as** or **Export non-reimbursable expenses as**, select a different export option.
 6. Click **Save**.
@@ -62,7 +62,7 @@ If the error persists, reset the export configuration.
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Under **Export reimbursable expenses as** or **Export non-reimbursable expenses as**, select a different export option.
 6. Tap **Save**.

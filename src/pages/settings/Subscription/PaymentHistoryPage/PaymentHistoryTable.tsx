@@ -60,7 +60,7 @@ function PaymentHistoryTable() {
                     <PaymentHistoryTableRow
                         key={row.purchaseID}
                         row={row}
-                        dateLabel={DateUtils.formatWithUTCTimeZone(row.created, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) || row.created}
+                        dateLabel={DateUtils.formatToLongDateInUTC(row.created, dateFnsLocale) || row.created}
                         shouldShowDivider={index < rows.length - 1}
                     />
                 ))}
@@ -77,9 +77,13 @@ type PaymentHistoryTableRowProps = {
 function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHistoryTableRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // The amount due by invoice may not be settled yet, so hide the Paid badge for a plain invoice bill.
+    const shouldShowStateBadge = !row.isUnsettledInvoice;
     const stateLabel = translate(getStateTranslationKey(row.state));
     const amountLabel = convertAmountToDisplayString(row.amount, row.currency);
-    const activeUserLabel = row.activeUserCount ? translate('subscription.paymentHistory.activeUsers', {count: row.activeUserCount}) : undefined;
+    const activeUserLabel = row.activeUserCount
+        ? translate(row.countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: row.activeUserCount})
+        : undefined;
     const taxLabel = row.showsTax ? translate('subscription.paymentHistory.inclTax') : undefined;
     const {success, error} = getBadgeAppearance(row.state);
 
@@ -87,7 +91,7 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
         <MenuItem.Root
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.getRoute(row.purchaseID))}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_HISTORY_ROW}
-            accessibilityLabel={[dateLabel, stateLabel, activeUserLabel, amountLabel, taxLabel].filter(Boolean).join(', ')}
+            accessibilityLabel={[dateLabel, shouldShowStateBadge ? stateLabel : undefined, activeUserLabel, amountLabel, taxLabel].filter(Boolean).join(', ')}
             style={[styles.ph4, styles.pv4, shouldShowDivider && styles.borderBottom]}
         >
             <MenuItem.Row>
@@ -99,17 +103,21 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
                     >
                         {dateLabel}
                     </Text>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Badge
-                            text={stateLabel}
-                            success={success}
-                            error={error}
-                            isCondensed
-                            badgeStyles={styles.ml0}
-                            textStyles={styles.userSelectText}
-                        />
-                        {!!activeUserLabel && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{activeUserLabel}</Text>}
-                    </View>
+                    {(shouldShowStateBadge || !!activeUserLabel) && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {shouldShowStateBadge && (
+                                <Badge
+                                    text={stateLabel}
+                                    success={success}
+                                    error={error}
+                                    isCondensed
+                                    badgeStyles={styles.ml0}
+                                    textStyles={styles.userSelectText}
+                                />
+                            )}
+                            {!!activeUserLabel && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{activeUserLabel}</Text>}
+                        </View>
+                    )}
                 </MenuItem.Content>
                 <View style={[styles.menuItemTrailing, styles.gap3]}>
                     <View style={styles.alignItemsEnd}>

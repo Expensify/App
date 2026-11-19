@@ -1,6 +1,7 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -20,12 +21,12 @@ function getCursorRect(event: GestureResponderEvent | MouseEvent): AnchorRect | 
     return undefined;
 }
 
-type SecondaryInteractionTriggerProps = {
+type SecondaryInteractionTriggerProps = WithRequiredSentryLabel & {
     children: ReactNode;
 };
 
 /** Always opens; `<PressableWithSecondaryInteraction>` reserves `event.preventDefault()` for OS-level suppression so it can't double as a consumer gate. */
-function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProps): React.ReactElement {
+function SecondaryInteractionTrigger({children, sentryLabel}: SecondaryInteractionTriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
     const {isVisible} = useRootVisibility(SecondaryInteractionTrigger.displayName);
     const {triggerID, contentID} = useRootMeta(SecondaryInteractionTrigger.displayName);
@@ -33,6 +34,7 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
     return (
         <PressResponder
             ref={ref}
+            sentryLabel={sentryLabel}
             onSecondaryInteraction={(event) => open(getCursorRect(event))}
             accessibilityState={{expanded: isVisible}}
             accessibilityHasPopup={CONST.ROLE.MENU}
@@ -47,4 +49,3 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
 SecondaryInteractionTrigger.displayName = 'PopoverMenu.SecondaryInteractionTrigger';
 
 export default SecondaryInteractionTrigger;
-export type {SecondaryInteractionTriggerProps};

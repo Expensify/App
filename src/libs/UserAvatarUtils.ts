@@ -522,10 +522,12 @@ type BuildUserIconArgsType = DefaultAvatarsType & {
 
 /**
  * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
- * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
+ * Shared by `useAccountIcons` and `useActionAvatar` so the resolution stays in one place.
  */
 function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name, accountEmail}: BuildUserIconArgsType): Icon {
-    const seededSource = accountEmail ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(accountEmail)}) : undefined;
+    // Invited accounts have no personal details until the invite is submitted, so seed from the invited email to match the letter avatar written on submit.
+    const seedEmail = accountEmail ?? invitedEmail;
+    const seededSource = seedEmail ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(seedEmail)}) : undefined;
     return {
         id: accountID,
         type: CONST.ICON_TYPE_AVATAR,

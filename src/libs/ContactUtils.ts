@@ -44,7 +44,6 @@ function getContacts(
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarSource = (contact?.imageData || RandomAvatarUtils.getAvatarForContact(`${contact?.firstName}${email}${contact?.lastName}`)) ?? '';
             const phoneNumber = contact.phoneNumbers?.[0]?.value ?? '';
             const firstName = contact?.firstName ?? '';

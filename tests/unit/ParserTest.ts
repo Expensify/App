@@ -1,6 +1,21 @@
 import Parser from '@libs/Parser';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 describe('Parser', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
     describe('isHTML', () => {
         test('returns true for strings containing HTML tags', () => {
             expect(Parser.isHTML('<b>bold</b>')).toBe(true);
@@ -66,6 +81,29 @@ describe('Parser', () => {
 
         test('returns #Hidden for mention-report when reportID is missing from the map', () => {
             expect(Parser.htmlToMarkdown('<mention-report reportID="42" />', {reportIDToName: {}})).toBe('#Hidden');
+        });
+
+        test('does not resolve mention-report from Onyx reports when no reportIDToName map is passed', async () => {
+            // Given a report that exists in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}42`, {reportID: '42', reportName: 'Expense Report'});
+            await waitForBatchedUpdates();
+
+            // When converting a mention of that report without passing a reportIDToName map
+            const markdown = Parser.htmlToMarkdown('<mention-report reportID="42" />');
+
+            // Then the report name is not looked up from Onyx, because callers that can receive report mentions must pass the map themselves
+            expect(markdown).toBe('#Hidden');
+        });
+
+        test('keeps the room name of a text-form report mention without a reportIDToName map', () => {
+            // Given HTML produced by the frontend's reportMentions rule, which keeps the room name inline instead of a reportID
+            const html = 'see <mention-report>#admins</mention-report>';
+
+            // When converting it without a reportIDToName map, as task, rule and category hint callers do
+            const markdown = Parser.htmlToMarkdown(html);
+
+            // Then the room name is preserved because no lookup is needed
+            expect(markdown).toBe('see #admins');
         });
     });
 

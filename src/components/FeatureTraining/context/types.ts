@@ -8,9 +8,6 @@ type FeatureTrainingStateValue = {
     /** Whether this content is being rendered inside a carousel */
     isCarousel: boolean;
 
-    /** Sentry label for the confirm button */
-    confirmSentryLabel: string | undefined;
-
     /** Carousel-only: current 0-based page index (undefined in single-page mode) */
     currentPage: number | undefined;
 

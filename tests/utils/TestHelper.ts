@@ -51,7 +51,7 @@ type MockFetch = jest.Mock<ReturnType<typeof fetch>, FetchMockParameters> & {
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
 type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 type APIWriteOnyxData = OnyxData<OnyxKey>;
-type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
+type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'finallyData' | 'optimisticData' | 'successData'>;
 type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
 type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
 type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
@@ -124,7 +124,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
         const connectionID = Onyx.connect({
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
-                Onyx.disconnect(connectionID);
+                connectionID.unsubscribe();
                 options.callback?.(...params);
                 resolve();
             },
@@ -288,7 +288,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined, undefined, login, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined, undefined, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -296,7 +296,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
         });
 }
 
-function signOutTestUser() {
+async function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
         const mockedResponse: OnyxResponse<never> = {
@@ -306,8 +306,9 @@ function signOutTestUser() {
         // Return a Promise that resolves with the mocked response
         return Promise.resolve(mockedResponse);
     });
-    Session.signOutAndRedirectToSignIn();
-    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+    await Session.signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+    await waitForBatchedUpdates();
+    HttpUtils.xhr = originalXhr;
 }
 
 /**
@@ -427,7 +428,14 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
     expect(call).toBeTruthy();
     const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
-    expect(params).toEqual(expect.objectContaining(expectedParams));
+
+    // FormData coerces every value to a string, so a number or boolean in the expectation could never match.
+    const expectedEntries = Object.entries((expectedParams ?? {}) as Record<string, unknown>).map(([key, value]) => [
+        key,
+        typeof value === 'number' || typeof value === 'boolean' ? String(value) : value,
+    ]);
+
+    expect(params).toEqual(expect.objectContaining(Object.fromEntries(expectedEntries)));
 }
 
 function setPersonalDetails(login: string, accountID: number) {

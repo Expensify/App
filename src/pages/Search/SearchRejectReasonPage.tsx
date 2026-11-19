@@ -1,7 +1,8 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
-import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getRowsCheckedInExcludedGroups} from '@components/Search/selectionBuilders';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,9 +12,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
+import {queueBulkExpenseAction, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
@@ -26,15 +28,16 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 type SearchRejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS>
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP>;
 
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
-    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
-    const {currentSearchHash} = useSearchQueryContext();
+    const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -48,75 +51,74 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
-    const selectedTransactionsForReject = useMemo(() => {
-        if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
-            return selectedTransactionIDs.reduce<Record<string, {reportID: string}>>((acc, transactionID) => {
-                acc[transactionID] = {reportID};
-                return acc;
-            }, {});
-        }
-        return selectedTransactions;
-    }, [route.name, reportID, selectedTransactionIDs, selectedTransactions]);
+    const selectedTransactionsForReject =
+        route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID
+            ? selectedTransactionIDs.reduce<
+                  Record<
+                      string,
+                      {
+                          reportID: string;
+                      }
+                  >
+              >((acc, transactionID) => {
+                  acc[transactionID] = {
+                      reportID,
+                  };
+                  return acc;
+              }, {})
+            : selectedTransactions;
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = useCallback(
-        ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-                return;
-            }
+    // "Select all" can cover more expenses than are loaded, so the backend rejects every match.
+    const shouldQueueOnServer = route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected;
+    const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
-                hash: currentSearchHash,
-                selectedTransactions: selectedTransactionsForReject,
+        if (shouldQueueOnServer) {
+            queueBulkExpenseAction(
+                CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions),
                 comment,
-                allPolicies,
-                allReports,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserLogin: currentUserLogin ?? '',
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                delegateAccountID,
-                getCurrencyDecimals,
-                allReportsTransactionsAndViolations,
-                rules,
-            });
-            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
-                clearSelectedTransactions(true);
-            } else {
-                clearSelectedTransactions();
-            }
+            );
+            clearSelectedTransactions();
             Navigation.dismissToSuperWideRHP();
-            if (urlToNavigateBack) {
-                Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
-            }
-        },
-        [
-            isDelegateAccessRestricted,
-            currentSearchHash,
-            selectedTransactionsForReject,
+            return;
+        }
+
+        const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+            hash: currentSearchHash,
+            selectedTransactions: selectedTransactionsForReject,
+            comment,
             allPolicies,
             allReports,
-            currentUserAccountID,
-            currentUserLogin,
-            isBetaEnabled,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             delegateAccountID,
             getCurrencyDecimals,
             allReportsTransactionsAndViolations,
             rules,
-            route.name,
-            showDelegateNoAccessModal,
-            clearSelectedTransactions,
-        ],
-    );
+        });
+        if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
+            clearSelectedTransactions(true);
+        } else {
+            clearSelectedTransactions();
+        }
+        Navigation.dismissToSuperWideRHP();
+        if (urlToNavigateBack) {
+            Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
+        }
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
+        return errors;
+    };
 
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM);
@@ -127,6 +129,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
         <RejectReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            enabledWhenOffline={!shouldQueueOnServer}
         />
     );
 }

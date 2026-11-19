@@ -22,7 +22,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type DynamicCountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY>;
 
@@ -34,40 +34,30 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
     const initialSelectedValue = useInitialSelection(currentCountry ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
-    const countries = useMemo(
-        () =>
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
-        [translate, currentCountry],
-    );
+    const countries = Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
+        const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+        return {
+            value: countryISO,
+            keyForList: countryISO,
+            text: countryName,
+            isSelected: currentCountry === countryISO,
+            searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+        };
+    });
 
     const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
 
-    const selectCountry = useCallback(
-        (option: Option) => {
-            Navigation.goBack(appendParam(backPath, 'country', option.value), {compareParams: false});
-        },
-        [backPath],
-    );
+    const selectCountry = (option: Option) => {
+        Navigation.goBack(appendParam(backPath, 'country', option.value), {compareParams: false});
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-            label: translate('common.country'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-        }),
-        [debouncedSearchValue, searchResults.length, searchValue, translate, setSearchValue],
-    );
+    const textInputOptions = {
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        label: translate('common.country'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     return (
         <ScreenWrapper

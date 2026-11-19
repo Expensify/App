@@ -4,7 +4,6 @@ import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
-import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -48,6 +47,11 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
+
+/** The newest action of a report, which is the last key of its `reportActions` collection. */
+function getLastReportAction(reportActions: OnyxEntry<ReportActions>) {
+    return reportActions?.[Object.keys(reportActions).pop() ?? 0];
+}
 
 let hasRenderedApp = false;
 
@@ -500,7 +504,7 @@ describe('Unread Indicators', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         callback: (val) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(val);
                         },
                     });
@@ -638,7 +642,7 @@ describe('Unread Indicators', () => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         callback: (val) => {
-                            Onyx.disconnect(connection);
+                            connection.unsubscribe();
                             resolve(val);
                         },
                     });
@@ -689,7 +693,7 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
-                    lastReportAction = reportActions ? lastItem(reportActions) : undefined;
+                    lastReportAction = getLastReportAction(reportActions);
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: getReportActionText(lastReportAction),
                         lastActorAccountID: lastReportAction?.actorAccountID,
@@ -755,7 +759,7 @@ describe('Unread Indicators', () => {
 
         await waitForBatchedUpdates();
 
-        const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
+        const firstNewReportAction = getLastReportAction(reportActions);
 
         if (firstNewReportAction) {
             markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID, false);
@@ -791,7 +795,7 @@ describe('Unread Indicators', () => {
             await waitForBatchedUpdates();
         }
 
-        const secondNewReportAction = reportActions ? lastItem(reportActions) : undefined;
+        const secondNewReportAction = getLastReportAction(reportActions);
         const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(1);
@@ -801,7 +805,7 @@ describe('Unread Indicators', () => {
             }),
         );
 
-        Onyx.disconnect(connection);
+        connection.unsubscribe();
     });
 
     it('Do not display the new line indicator when receiving a new message from another user', async () => {
@@ -941,7 +945,7 @@ describe('Unread Indicators', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });
@@ -995,7 +999,7 @@ describe('Unread Indicators', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                 callback: (val) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(val);
                 },
             });

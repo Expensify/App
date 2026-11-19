@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
-    formatDate,
+    getActiveUserAccountIDs,
     getBadgeText,
     getPaymentDetailsBadge,
     getPaymentHistoryRow,
@@ -14,6 +14,8 @@ import {
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
+
+import createMock from '../utils/createMock';
 
 function createPurchase(purchaseID: number, created: string, message: Purchase['message'] = {}, amount = 1000): Purchase {
     return {
@@ -95,6 +97,26 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.at(0)?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
     });
 
+    it('marks a plain invoicing2018 bill as an unsettled invoice, so the table can hide its Paid badge', () => {
+        // Given a plain invoice bill, an ordinary paid bill, and an invoice that was later refunded
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(2, '2026-03-01'),
+            createPurchase(3, '2026-04-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(4, '2026-05-01', {billingType: CONST.BILLING.TYPE_REFUND, refundPurchaseID: 3}),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then only the plain invoice is flagged: the ordinary paid bill is not, and the refunded invoice keeps its refund state instead of Paid
+        expect(rows.find((row) => row.purchaseID === 1)?.isUnsettledInvoice).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 2)?.isUnsettledInvoice).toBe(false);
+        const refundedInvoice = rows.find((row) => row.purchaseID === 3);
+        expect(refundedInvoice?.isUnsettledInvoice).toBe(false);
+        expect(refundedInvoice?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
+    });
+
     it('marks failed bills and shows tax only when it was charged', () => {
         // Given a failed bill that includes tax, a taxed bill for an exempt account, and a plain paid bill
         const purchaseList = [
@@ -133,6 +155,85 @@ describe('getPaymentHistoryRows', () => {
 
         // Then the repeated person is counted once
         expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('counts members only on bills that were on Collect 2025 pricing', () => {
+        // Given a bill on Collect 2025 pricing and an older bill that wasn't
+        const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01', {isTeam2025Pricing: true})];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row follows its own bill's pricing, so a plan change doesn't relabel past bills
+        expect(rows.find((row) => row.purchaseID === 2)?.countsMembers).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 1)?.countsMembers).toBe(false);
+    });
+
+    it('uses totalActorCount on a legacy bill even when totalUniqueMembersCount is higher', () => {
+        // Given a legacy bill where totalUniqueMembersCount counts every member of every workspace (including archived),
+        // while totalActorCount reflects the users actually billed — Classic shows the billed count, so we must too.
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: 2,
+                totalUniqueMembersCount: 5,
+                billablePolicies: {
+                    first: {actorList: 'ada@example.com', corporate: true},
+                    second: {actorList: 'bob@example.com', corporate: false},
+                },
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the row shows the billed-actor count, matching the details page
+        expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('uses the larger of teamActorCount and totalUniqueMembersCount on a Team 2025 bill', () => {
+        // Given a Team 2025 bill where a force-upgraded policy inflated teamActorCount above totalUniqueMembersCount
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 7,
+                totalUniqueMembersCount: 4,
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 2,
+                totalUniqueMembersCount: 6,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row uses the larger count — team actors in the first case, unique members in the second
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(7);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(6);
+    });
+
+    it('coerces string actor counts from Auth into numbers', () => {
+        // Given counts that arrive as strings from Auth (totalActorCount / teamActorCount are serialized as strings there)
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: '3',
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: '4',
+                totalUniqueMembersCount: 2,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the counts are numeric and compared correctly
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(3);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(4);
     });
 });
 
@@ -282,7 +383,7 @@ describe('getBadgeText', () => {
             JSON.stringify({
                 key: 'subscription.paymentHistory.badge.refundedAmountOn',
                 amount: convertAmountToDisplayString(500, CONST.CURRENCY.USD),
-                date: formatDate('2026-03-01', undefined),
+                date: 'March 1, 2026',
             }),
         );
     });
@@ -375,6 +476,85 @@ describe('getReceiptSource', () => {
     });
 });
 
+describe('incomplete receipt purchases', () => {
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {}}},
+        {name: 'missing message', purchase: {purchaseID: 1}},
+    ])('rejects a $name with and without a receipt', ({purchase}) => {
+        // Given partial persisted data that must not be treated as a valid receipt carrier
+        const purchaseID = 1;
+        for (const receipt of [undefined, {receiptID: 100, source: 'https://example.com/receipt.pdf'}]) {
+            const purchases = createMock<Record<string, Purchase>>({[purchaseID]: {...purchase, receipt}});
+
+            // When either receipt helper resolves the incomplete purchase
+            const source = getReceiptSource(purchases, 1);
+            const isInvoice = isInvoiceBilling(purchases, 1);
+
+            // Then neither helper accepts the entry or dereferences its missing message
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {failedPurchaseID: 10}}},
+        {name: 'missing message', purchase: {purchaseID: 20}},
+    ])('stops a receipt chain at a $name', ({purchase}) => {
+        // Given a cleared bill whose chain contains an invalid entry before a valid invoice
+        const failedPurchaseID = 20;
+        const original = createPurchase(10, '2026-01-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        original.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(30, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID});
+        for (const receipt of [undefined, original.receipt]) {
+            const purchases = createMock<Record<string, Purchase>>({...toPurchases([original, clear]), [failedPurchaseID]: {...purchase, receipt}});
+
+            // When either helper traverses the invalid link, even one carrying a receipt
+            const source = getReceiptSource(purchases, 30);
+            const isInvoice = isInvoiceBilling(purchases, 30);
+
+            // Then resolution stops safely rather than accepting or following the invalid entry
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('rejects a null message at the root or a linked purchase', () => {
+        // Given persisted data with a null message, including a direct receipt source
+        const invalid = createPurchase(1, '2026-01-01');
+        invalid.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
+        Reflect.set(invalid, 'message', null);
+        const clear = createPurchase(2, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 1});
+        const purchases = toPurchases([invalid, clear]);
+
+        // When resolving the invalid purchase directly or through a cleared bill
+        for (const purchaseID of [1, 2]) {
+            const source = getReceiptSource(purchases, purchaseID);
+            const isInvoice = isInvoiceBilling(purchases, purchaseID);
+
+            // Then neither path treats the receipt as safe for billing classification
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('terminates a cyclic receipt chain', () => {
+        // Given a chain with no receipt that eventually points back to the cleared bill
+        const clear = createPurchase(1, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 2});
+        const failed = createPurchase(2, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, failedPurchaseID: 1});
+        const purchases = toPurchases([clear, failed]);
+
+        // When the receipt helpers traverse the cycle
+        const source = getReceiptSource(purchases, 1);
+        const isInvoice = isInvoiceBilling(purchases, 1);
+
+        // Then the existing cycle protection still returns an empty result
+        expect(source).toBeNull();
+        expect(isInvoice).toBe(false);
+    });
+});
+
 describe('isInvoiceBilling', () => {
     it('returns true for an invoice bill with a receipt', () => {
         // Given an invoice purchase with a receipt source
@@ -428,5 +608,25 @@ describe('getReceiptFileName', () => {
         // When extracting the filename
         // Then it falls back to receipt-{purchaseID}
         expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
+    });
+});
+
+describe('getActiveUserAccountIDs', () => {
+    it('dedupes users billed under more than one workspace', () => {
+        // Given a purchase whose active users repeat, because one person was billed under two workspaces
+        const purchase = {...createPurchase(1, '2026-02-01'), activeUsers: [10, 20, 10, 30]};
+
+        // When the active users for the Activity list are read
+        // Then each person is listed once, so the count under the Activity header matches the list
+        expect(getActiveUserAccountIDs(purchase)).toEqual([10, 20, 30]);
+    });
+
+    it('returns no users when the details have not loaded or nobody was billed', () => {
+        // Given a missing purchase, a purchase without active users, and a purchase with an empty list
+        // When the active users are read
+        // Then the list is empty, so the page hides the Activity section
+        expect(getActiveUserAccountIDs(undefined)).toEqual([]);
+        expect(getActiveUserAccountIDs(createPurchase(1, '2026-02-01'))).toEqual([]);
+        expect(getActiveUserAccountIDs({...createPurchase(1, '2026-02-01'), activeUsers: []})).toEqual([]);
     });
 });

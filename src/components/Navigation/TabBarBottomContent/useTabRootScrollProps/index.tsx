@@ -1,5 +1,6 @@
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 
 import variables from '@styles/variables';
 
@@ -14,12 +15,13 @@ import type {TabRootScrollOptions} from './types';
  * already adds the bottom safe area or the offline indicator's room says so, so neither is added twice.
  */
 function useTabRootScrollProps(style?: StyleProp<ViewStyle>, {hasBottomSafeAreaPadding = false, hasOfflineIndicatorPadding = false}: TabRootScrollOptions = {}): TabRootScrollProps {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const StyleUtils = useStyleUtils();
     const insetStyle = useBottomSafeSafeAreaPaddingStyle({
         style,
         addBottomSafeAreaPadding: !hasBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: !hasOfflineIndicatorPadding,
-        additionalPaddingBottom: variables.floatingTabBarHeight + variables.floatingTabBarBottomInset,
+        additionalPaddingBottom: StyleUtils.getFloatingTabBarHeight(isInLandscapeMode) + variables.floatingTabBarBottomInset,
     });
 
     return {contentContainerStyle: shouldUseNarrowLayout ? insetStyle : style};

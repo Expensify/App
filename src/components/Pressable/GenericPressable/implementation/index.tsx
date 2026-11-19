@@ -11,7 +11,7 @@ import React, {useLayoutEffect, useRef} from 'react';
 
 import GenericPressable from './BaseGenericPressable';
 
-function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
+function WebGenericPressable({focusable = true, ref, sentryLabel, 'aria-busy': explicitAriaBusy, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
     const role = (props.accessibilityRole ?? props.role) as Role;
     // React Native Web maps role="button" to a native <button>. Safari clears the native text range
@@ -22,7 +22,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
     // preserve interaction/focus behavior, so we must set aria-disabled imperatively instead.
     const internalRef = useRef<ComponentRef<typeof View>>(null);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
+    // `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
     const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
     useLayoutEffect(() => {
         const el = internalRef.current as unknown as HTMLElement | null;
@@ -50,7 +50,9 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
-            aria-labelledby={props.accessibilityLabelledBy}
+            aria-busy={explicitAriaBusy ?? props.accessibilityState?.busy}
+            // React Native types aria-labelledby as a single ID string. react-native-web joins an ID list with spaces, so this renders the same attribute.
+            aria-labelledby={Array.isArray(props.accessibilityLabelledBy) ? props.accessibilityLabelledBy.join(' ') : props.accessibilityLabelledBy}
             aria-valuenow={props.accessibilityValue?.now}
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}

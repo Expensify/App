@@ -1,3 +1,8 @@
+import type {InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
+import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+
+import type {InsightsSearchKey} from './InsightsDashboard';
+
 type SidePanel = {
     /** Whether the Side Panel is open on large screens */
     open: boolean;
@@ -12,11 +17,30 @@ type SidePanel = {
     reportID?: string;
 };
 
+/** Insights dashboard and filters the user was looking at when they asked Concierge about it */
+type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency' | 'tagLevel'> & {
+    searchKey: InsightsSearchKey;
+
+    /** Violation stage the explained Compliance chart counts. AI cards leave it out, since they cover both stages. */
+    violationStage?: InsightsViolationStage;
+
+    /** Encoded ancestor path when explaining a specific dependent tag. */
+    tagParent?: string;
+};
+
 /**
  * Describes the context of what the user was viewing when they sent a message from the Side Panel.
  * Sent to the backend so Concierge can tailor its response to the user's current context.
  */
-type SidePanelContext = {reportID?: string; selectedTransactionIDs?: string; selectedReportIDs?: string};
+type SidePanelContext = {
+    reportID?: string;
+    selectedTransactionIDs?: string;
+    selectedReportIDs?: string;
+    insightsScope?: InsightsScope;
+
+    /** The workspace whose page the user has open. Sent only when no report is on screen, since a report carries its own workspace. */
+    policyID?: string;
+};
 
 export default SidePanel;
-export type {SidePanelContext};
+export type {InsightsScope, SidePanelContext};

@@ -3,10 +3,13 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import type CONST from '@src/CONST';
 
 import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
-import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
+
+/** The style expo-image accepts: an image style plus the text styles it uses for SF Symbols on iOS */
+type ExpoImageStyle = ImageStyle & Pick<TextStyle, 'fontWeight' | 'color' | 'fontSize'>;
 
 type ImageObjectPosition = ValueOf<typeof CONST.IMAGE_OBJECT_POSITION>;
 
@@ -27,13 +30,17 @@ type BaseImageProps = {
     /** Called when the image starts to load. */
     onLoadStart?: () => void;
 
-    style?: StyleProp<ImageStyle>;
+    style?: StyleProp<ExpoImageStyle>;
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
     /** Priorities for completing loads. If more than one load is queued at a time,
      *  the load with the higher priority will be started first.
      *  Maps to SDWebImageHighPriority (iOS) and Glide.Priority.IMMEDIATE (Android). */
     priority?: ValueOf<typeof CONST.IMAGE_LOADING_PRIORITY> | null;
+
+    /** Identity of the picture for the native view. Defaults to a key derived from the source, which clears the view every
+     *  time the same picture changes URI (a fresh attachment goes picker path, cache copy, remote URL). Ignored on web. */
+    recyclingKey?: string;
 };
 
 type ImageOwnProps = BaseImageProps & {
@@ -75,4 +82,4 @@ type ImageOwnProps = BaseImageProps & {
 
 type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ExpoImageStyle, ImageProps, ImageOnLoadEvent, ImageObjectPosition};

@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY>;
 
@@ -47,27 +47,22 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const [selectedFrequencyDraft, setSelectedFrequencyDraft] = useState<ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>>();
     const currentFrequency = selectedFrequencyDraft ?? selectedFrequency;
 
-    const data = useMemo(() => {
-        const options = [];
-
+    const options = [];
+    options.push({
+        value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
+        text: translate('workspace.expensifyCard.frequency.daily'),
+        keyForList: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
+        isSelected: currentFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
+    });
+    if (shouldShowMonthlyOption) {
         options.push({
-            value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
-            text: translate('workspace.expensifyCard.frequency.daily'),
-            keyForList: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
-            isSelected: currentFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY,
+            value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
+            text: translate('workspace.expensifyCard.frequency.monthly'),
+            keyForList: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
+            isSelected: currentFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
         });
-
-        if (shouldShowMonthlyOption) {
-            options.push({
-                value: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
-                text: translate('workspace.expensifyCard.frequency.monthly'),
-                keyForList: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
-                isSelected: currentFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
-            });
-        }
-
-        return options;
-    }, [translate, shouldShowMonthlyOption, currentFrequency]);
+    }
+    const data = options;
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
         setSelectedFrequencyDraft(value);

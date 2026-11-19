@@ -33,7 +33,7 @@ describe('useMCPConnectionListings', () => {
         const claude = result.current.find((listing) => listing.key === 'claude');
 
         // When they connect Claude
-        claude?.onConnect();
+        claude?.onConnect?.();
 
         // Then MCP is turned on and Claude's connect page opens, since Connections has no MCP toggle
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED);
@@ -46,7 +46,7 @@ describe('useMCPConnectionListings', () => {
         const mcpGuide = result.current.find((listing) => listing.key === 'mcp');
 
         // When the admin presses "+" on it
-        mcpGuide?.onConnect();
+        mcpGuide?.onConnect?.();
 
         // Then the guide opens, since the client is set up by following it rather than by connecting from here
         expect(openExternalLink).toHaveBeenCalledWith(CONST.MCP_HELP_URL);
@@ -59,7 +59,7 @@ describe('useMCPConnectionListings', () => {
         const {result} = renderHook(() => useMCPConnectionListings(policy));
 
         // When they try to connect an assistant
-        result.current.at(0)?.onConnect();
+        result.current.at(0)?.onConnect?.();
 
         // Then they are told they can't, and nothing is turned on or opened
         expect(mockShowReadOnlyModal).toHaveBeenCalledTimes(1);

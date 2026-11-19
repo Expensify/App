@@ -7,7 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import AgentsTable from '@components/Tables/AgentsTable';
 
-import useAgents from '@hooks/useAgents';
+import useAgentsTable from '@hooks/useAgentsTable';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openAgentsPage} from '@libs/actions/Agent';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+import {useEffect} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -36,15 +38,20 @@ function AgentsPage() {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgents();
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable();
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
 
     useDocumentTitle(translate('agentsPage.title'));
+    useEffect(() => openAgentsPage(), []);
 
     const newAgentButton = hasAgents ? (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.NEW_AGENT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
         >
@@ -56,6 +63,7 @@ function AgentsPage() {
         {
             icon: icons.Plus,
             buttonText: translate('agentsPage.newAgent'),
+            sentryLabel: CONST.SENTRY_LABEL.AGENTS.EMPTY_STATE_NEW_AGENT,
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
         },
@@ -65,6 +73,7 @@ function AgentsPage() {
         {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.AGENTS.BULK_ACTIONS_DELETE,
             icon: icons.Trashcan,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
@@ -73,6 +82,7 @@ function AgentsPage() {
 
     const headerButtons = shouldShowBulkActionsButton ? (
         <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.BULK_ACTIONS}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             shouldAlwaysShowDropdownMenu
             customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
@@ -138,6 +148,7 @@ function AgentsPage() {
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
                 emptyStateButtons={emptyStateButtons}
+                bulkActionOptions={bulkActionsButtonOptions}
             />
         </ScreenWrapper>
     );

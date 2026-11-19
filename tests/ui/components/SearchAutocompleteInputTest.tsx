@@ -2,15 +2,23 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
+import {getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 
 import {setSearchContext} from '@libs/actions/Search';
+import {getAllPolicyValues} from '@libs/SearchQueryUtils';
 
 import type {ThemeColors} from '@styles/theme/types';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import type * as FastEquals from 'fast-equals';
 import type {ForwardedRef} from 'react';
 import type {View as NativeView, ViewProps} from 'react-native';
 import type * as Reanimated from 'react-native-reanimated';
@@ -23,6 +31,11 @@ import {DynamicColorIOS, PlatformColor, useAnimatedStyle} from 'react-native-rea
 
 import createMock from '../../utils/createMock';
 
+// The mocked hooks read these lists. They keep their identity between renders like the real hooks, and a test replaces one to simulate a data update.
+let mockCurrencyList: Record<string, {retired: boolean}> = {};
+let mockOnyxValues: Record<string, unknown> = {};
+let mockExportedToFilterOptions: string[] = [];
+
 jest.mock('@components/TextInput', () => {
     const react = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: typeof NativeView}>('react-native');
@@ -34,9 +47,23 @@ jest.mock('@hooks/useThemeStyles', () => () => ({searchRouterTextInputContainer:
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({displayName: 'Current User'}));
-jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: {}})}));
-jest.mock('@hooks/useExportedToFilterOptions', () => () => ({exportedToFilterOptions: []}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: mockCurrencyList})}));
+jest.mock('@hooks/useExportedToFilterOptions', () => jest.fn(() => ({exportedToFilterOptions: mockExportedToFilterOptions})));
+jest.mock('@hooks/useOnyx', () => {
+    // Selectors may capture the typed query, so recompute their output and preserve identity when that output is unchanged.
+    const {deepEqual} = jest.requireActual<typeof FastEquals>('fast-equals');
+    const selections = new Map<string, {selected: unknown}>();
+    return (key: string, options?: {selector: (rawValue: unknown) => unknown}) => {
+        const rawValue = mockOnyxValues[key];
+        const selected = options ? options.selector(rawValue) : rawValue;
+        let selection = selections.get(key);
+        if (!selection || !deepEqual(selection.selected, selected)) {
+            selection = {selected};
+            selections.set(key, selection);
+        }
+        return [selection.selected];
+    };
+});
 jest.mock('@hooks/useFocusAfterNav', () => jest.fn(() => false));
 jest.mock('@libs/actions/Search', () => ({setSearchContext: jest.fn()}));
 
@@ -60,9 +87,81 @@ const input = jest.mocked(TextInput);
 const animatedStyle = jest.mocked(useAnimatedStyle);
 const focusAfterNav = jest.mocked(useFocusAfterNav);
 
-beforeEach(() => jest.clearAllMocks());
+const COWORKER_LOGIN = 'coworker@example.com';
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    mockCurrencyList = {};
+    mockOnyxValues = {};
+    mockExportedToFilterOptions = [];
+    jest.mocked(useExportedToFilterOptions).mockImplementation(() => ({exportedToFilterOptions: mockExportedToFilterOptions, connectedIntegrationNames: new Set<string>()}));
+});
 
 describe('SearchAutocompleteInput', () => {
+    test.each([
+        {scope: 'workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"USD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: '', expectedIDs: undefined, isNegated: false, shouldHighlight: true},
+        {scope: '-workspace:"USD WS"', expectedIDs: ['usd'], isNegated: true, shouldHighlight: true},
+        {scope: '-workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: true, shouldHighlight: false},
+        {scope: 'workspace:cad', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"USD WS" -workspace:"CAD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: '-workspace:"CAD WS" workspace:"USD WS"', expectedIDs: ['usd'], isNegated: false, shouldHighlight: false},
+        {scope: 'workspace:"CAD WS" -workspace:"USD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: '-workspace:"USD WS" workspace:"CAD WS"', expectedIDs: ['cad'], isNegated: false, shouldHighlight: true},
+        {scope: 'workspace:"Shared WS","Shared WS"', expectedIDs: ['usd', 'cad'], isNegated: false, shouldHighlight: true},
+    ])('scopes exported-to highlighting to the typed $scope instead of submitted USD scope', ({scope, expectedIDs, isNegated, shouldHighlight}) => {
+        // Given USD and CAD workspaces, an export options mock that defaults to USD,
+        // and substitutions that map repeated workspace names to different IDs.
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD WS', outputCurrency: CONST.CURRENCY.USD}),
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD WS', outputCurrency: CONST.CURRENCY.CAD}),
+        };
+        mockOnyxValues = {[ONYXKEYS.COLLECTION.POLICY]: policies};
+        const canadianTemplate = 'Canadian Multiple Tax Export';
+        const standardTemplate = 'All Data - Expense Level Export';
+        jest.mocked(useExportedToFilterOptions).mockImplementation((override) => {
+            const scopedPolicies = getAllPolicyValues(override ?? {value: ['usd'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policies);
+            return {
+                exportedToFilterOptions: scopedPolicies.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD) ? [standardTemplate, canadianTemplate] : [standardTemplate],
+                connectedIntegrationNames: new Set<string>(),
+            };
+        });
+        const substitutionMap = {
+            [getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, 'Shared WS', 0)]: 'usd',
+            [getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, 'Shared WS', 1)]: 'cad',
+        };
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value={'type:expense workspace:"USD WS"'}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // When the user edits the workspace and selects an export value without submitting another search.
+        const query = `${scope} exported-to:"${canadianTemplate}"`;
+        rerender(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then highlighting uses the same resolved scope as suggestions, and standard exports remain recognized.
+        expect(useExportedToFilterOptions).toHaveBeenLastCalledWith({value: expectedIDs, isNegated});
+        const parser = input.mock.lastCall?.[0].parser;
+        const highlight = {start: query.indexOf(`"${canadianTemplate}"`), type: 'mention-user', length: canadianTemplate.length + 2};
+        if (shouldHighlight) {
+            expect(parser?.(query)).toContainEqual(highlight);
+        } else {
+            expect(parser?.(query)).not.toContainEqual(highlight);
+        }
+        const standardQuery = `${scope} exported-to:"${standardTemplate}"`;
+        expect(parser?.(standardQuery)).toContainEqual({start: standardQuery.indexOf(`"${standardTemplate}"`), type: 'mention-user', length: standardTemplate.length + 2});
+    });
+
     test.each([
         {description: 'string colors', border: 'red', focusedBorder: 'blue', expected: 'rgba(255, 0, 0, 1)', focusedExpected: 'rgba(0, 0, 255, 1)'},
         {description: 'transparent neighbor', border: 'transparent', focusedBorder: 'red', expected: 'rgba(255, 0, 0, 0)', focusedExpected: 'rgba(255, 0, 0, 1)'},
@@ -225,5 +324,122 @@ describe('SearchAutocompleteInput', () => {
         }
         expect(changes.mock.invocationCallOrder.at(0)).toBeLessThan(contextCallOrder);
         expect(props?.autoFocus).toBe(true);
+    });
+
+    it('keeps the same markdown parser while the query changes', () => {
+        // Given the input rendered with a query and unchanged autocomplete data
+        const substitutionMap = {};
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value="from:"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+        const firstParser = input.mock.lastCall?.[0].parser;
+
+        // When the user types and the query changes
+        rerender(
+            <SearchAutocompleteInput
+                value="from:me"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then the input gets the same parser, so Live Markdown doesn't register a new one on every keystroke
+        expect(firstParser).toBeDefined();
+        expect(input.mock.lastCall?.[0].parser).toBe(firstParser);
+    });
+
+    test.each([
+        {
+            list: 'currencies',
+            query: 'currency:USD',
+            updateList: () => {
+                mockCurrencyList = {USD: {retired: false}};
+            },
+            expected: [{start: 9, type: 'mention-user', length: 3}],
+        },
+        {
+            list: 'categories',
+            query: 'category:Travel',
+            updateList: () => {
+                mockOnyxValues = {[ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {Travel: {name: 'Travel', enabled: true}}}};
+            },
+            expected: [{start: 9, type: 'mention-user', length: 6}],
+        },
+        {
+            list: 'tags',
+            query: 'tag:Urgent',
+            updateList: () => {
+                mockOnyxValues = {
+                    [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: {Projects: {name: 'Projects', tags: {Urgent: {name: 'Urgent', enabled: true}}}}},
+                };
+            },
+            expected: [{start: 4, type: 'mention-user', length: 6}],
+        },
+        {
+            list: 'user logins',
+            query: `from:${COWORKER_LOGIN}`,
+            updateList: () => {
+                mockOnyxValues = {[ONYXKEYS.LOGINS]: {[COWORKER_LOGIN]: {partnerID: CONST.PARTNER_ID.EXPENSIFY, partnerUserID: COWORKER_LOGIN}}};
+            },
+            expected: [{start: 5, type: 'mention-here', length: COWORKER_LOGIN.length}],
+        },
+        {
+            list: 'exported-to options',
+            query: 'exported-to:Xero',
+            updateList: () => {
+                mockExportedToFilterOptions = ['Xero'];
+            },
+            expected: [{start: 12, type: 'mention-user', length: 4}],
+        },
+    ])('gives the input a new parser that highlights the new value when the $list change', ({query, updateList, expected}) => {
+        // Given the input rendered before the list has the queried value, so the parser doesn't highlight it
+        const substitutionMap = {};
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+        const firstParser = input.mock.lastCall?.[0].parser;
+        expect(firstParser?.(query)).toEqual([]);
+
+        // When the list updates with the queried value
+        updateList();
+        rerender(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then the input gets a new parser that highlights it, because Live Markdown caches ranges by parser and text and the old parser would keep the old highlights
+        const nextParser = input.mock.lastCall?.[0].parser;
+        expect(nextParser).not.toBe(firstParser);
+        expect(nextParser?.(query)).toEqual(expected);
+    });
+
+    it('does not highlight a login that is not one of the expensify logins', () => {
+        // Given a login from another partner, which the logins selector filters out
+        const otherPartnerLogin = 'partner@example.com';
+        mockOnyxValues = {[ONYXKEYS.LOGINS]: {[otherPartnerLogin]: {partnerID: CONST.PARTNER_ID.IPHONE, partnerUserID: otherPartnerLogin}}};
+        const query = `from:${otherPartnerLogin}`;
+
+        // When the input renders and parses a query for that login
+        render(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={{}}
+            />,
+        );
+
+        // Then it isn't highlighted, because only the user's own expensify logins count as valid values
+        expect(input.mock.lastCall?.[0].parser?.(query)).toEqual([]);
     });
 });

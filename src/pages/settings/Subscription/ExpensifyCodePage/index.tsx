@@ -43,18 +43,15 @@ function ExpensifyCodePage() {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
-            return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE], translate);
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
+        return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE], translate);
+    };
 
-    const handleSubmit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
         applyExpensifyCode(values[INPUT_IDS.EXPENSIFY_CODE]);
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
-    }, []);
+    };
 
     useFocusEffect(
         useCallback(() => {

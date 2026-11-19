@@ -6,17 +6,18 @@ import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {formatPhoneNumber} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
@@ -51,6 +52,8 @@ type CopyMessagePayload = Parameters<typeof copyMessageAction.onPress>[1];
 
 const MENTIONED_REPORT_ID = '1';
 const REPORT_ID_TO_NAME = {[MENTIONED_REPORT_ID]: '#general'};
+const MENTIONED_ACCOUNT_ID = '2';
+const ACCOUNT_ID_TO_NAME = {[MENTIONED_ACCOUNT_ID]: 'user2@expensify.com'};
 
 const createPayload = (selection: string): CopyMessagePayload =>
     createMock<CopyMessagePayload>({
@@ -60,6 +63,7 @@ const createPayload = (selection: string): CopyMessagePayload =>
         },
         selection,
         reportIDToName: REPORT_ID_TO_NAME,
+        accountIDToName: ACCOUNT_ID_TO_NAME,
         report: {},
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
@@ -108,7 +112,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME, ACCOUNT_ID_TO_NAME);
         expect(mockSetString).toHaveBeenCalledWith('Expensify');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
@@ -124,7 +128,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME, ACCOUNT_ID_TO_NAME);
         expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
     });
@@ -160,7 +164,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined, undefined);
         expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
     });
 
@@ -256,8 +260,34 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined, undefined);
         expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
+    });
+
+    it('copies the localized message for a default work arrangement update action', () => {
+        // Given a default work arrangement change log, whose stored text is Auth's English message
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('changed the default work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When its message is copied
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                    message: [{text: 'stored message', html: 'stored message'}],
+                    originalMessage: {newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        // Then the translated change log text is copied instead of the stored text
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.workArrangement.changed', undefined, undefined);
+        expect(mockSetString).toHaveBeenCalledWith('changed the default work arrangement');
     });
 
     it.each([
@@ -272,6 +302,11 @@ describe('ContextMenuActions copy message', () => {
             'workspaceActions.officeLocation.renamed',
         ],
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, 'workspaceActions.officeLocation.removed'],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+            {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+            'workspaceActions.officeLocation.changedMemberOfficeLocation',
+        ],
     ] as const)('copies the localized message for a %s action', (actionName, originalMessage, translationKey) => {
         // Given an office location change log, whose stored text is Auth's English message
         mockCanSetHtml.mockReturnValue(false);
@@ -294,7 +329,7 @@ describe('ContextMenuActions copy message', () => {
         );
 
         // Then the translated change log text is copied instead of the stored text
-        expect(mockGetClipboardText).toHaveBeenCalledWith(translationKey, undefined);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(translationKey, undefined, undefined);
         expect(mockSetString).toHaveBeenCalledWith('office change');
     });
 
@@ -318,8 +353,69 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined, undefined);
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    describe('queued payment in a thread', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('copies the message for the parent invoice, like the shown text', async () => {
+            // Given a queued payment shown at the top of a thread whose parent is an invoice
+            const invoiceReportID = 'queuedInvoice';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 2});
+            await waitForBatchedUpdates();
+            const threadReport = createMock<Report>({reportID: 'queuedThread', type: CONST.REPORT.TYPE.CHAT, parentReportID: invoiceReportID, parentReportActionID: '3'});
+            const payload = createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth sends paymentType on originalMessage, which getOriginalMessage reads.
+                    originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+                }),
+            );
+
+            if (!copyMessageAction?.onPress) {
+                throw new Error('Copy message context menu action was not found');
+            }
+
+            // When its message is copied
+            copyMessageAction.onPress(false, {...payload, report: threadReport, formatPhoneNumber});
+
+            // Then it asks the invoice sender for a bank account, because ReimbursementQueuedContent shows the parent invoice's message
+            expect(mockSetString).toHaveBeenCalledWith('iou.waitingOnVendorBankAccount');
+        });
+    });
+
+    it.each([
+        [false, 'workspaceActions.setCategoryVisibility'],
+        [true, 'workspaceActions.setCategoryVisibility\nworkspaceActions.categoryVisibilityCategoriesList'],
+    ])('copies the category visibility message the row shows when isThreadReportParentAction is %s', (isThreadReportParentAction, expectedText) => {
+        // Given a category visibility change with too many categories to list inline
+        const reportAction = createMock<CopyMessagePayload['reportAction']>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture needs the change log data that getOriginalMessage reads to build the message
+            originalMessage: {
+                categoryNames: Array.from({length: CONST.POLICY.CATEGORY_VISIBILITY.MAX_LISTED_ITEMS}, (_, index) => `Category ${index + 1}`),
+                accountIDs: [],
+                hadRestriction: false,
+                reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+            },
+        });
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When the message is copied from #admins or from the top of its thread
+        copyMessageAction.onPress(false, {...createReportActionPayload(reportAction), isThreadReportParentAction});
+
+        // Then the copied text matches the row: #admins only counts the categories, while the top of the thread also lists them in full
+        expect(mockSetString).toHaveBeenCalledWith(expectedText);
     });
 });

@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -20,23 +20,29 @@ import {
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
-import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
+import {getBackendAmountFromInput, isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -44,6 +50,7 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
@@ -58,7 +65,6 @@ type AmountFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    isParticipantPickerVisible?: boolean;
 };
 
 function AmountField({
@@ -73,9 +79,10 @@ function AmountField({
     policy,
     clearFormErrors,
     setFormError,
-    isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const isScreenFocused = useIsFocused();
+    const navigation = useNavigation();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -86,9 +93,11 @@ function AmountField({
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const {splitDraftTransaction, baseTransaction} = useSplitDraftBaseTransaction(transactionID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const currencyButtonRef = useRef<ComponentRef<typeof View>>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
@@ -99,17 +108,21 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
-    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    // A receipt that is still scanning and whose fields the user can't enter inline (for example, a tracked scan moved
+    // to someone) shows the read-only row, so it reads "Scanning…" instead of the receipt's placeholder zero amount.
+    const isScanningReceipt = !!transactionSlice?.isScanning && !canEnterScanFieldsManually;
+    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest || isScanningReceipt;
     // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
     // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
-    // not offered as a control at all: no caret, no hover, no press.
-    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
+    // not offered as a control at all: no caret, no hover, no press. A scanning receipt's amount comes from SmartScan,
+    // so its row is locked the same way until the scan finishes.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
     // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually, isPolicyExpenseChat);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
@@ -145,12 +158,20 @@ function AmountField({
     const allowNegative =
         shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
-    // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
-    // focus past the RHP entry / picker close animation so the input reliably receives focus.
+    // Focus the amount on mount and after picking a participant. Other pages leave focus on the row the user edited.
+    const shouldFocusOnScreenFocusRef = useRef(true);
+    useEffect(
+        () =>
+            navigation.addListener('blur', () => {
+                shouldFocusOnScreenFocusRef.current = navigationRef.getCurrentRoute()?.name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS;
+            }),
+        [navigation],
+    );
+
+    // `autoFocus` only runs on mount and the RHP often keeps this instance mounted, so focus again when the screen
+    // regains focus. The timeout waits out the RHP animation.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused || !shouldFocusOnScreenFocusRef.current) {
             return;
         }
 
@@ -162,7 +183,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isScreenFocused]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -170,23 +191,6 @@ function AmountField({
 
     const hideCurrencyPicker = () => {
         setIsCurrencyPickerVisible(false);
-    };
-
-    const getBackendAmountFromInput = (value: string) => {
-        const isNegative = value.startsWith('-');
-        const cleanAmount = value.replace('-', '');
-
-        if (!cleanAmount || cleanAmount.trim() === '') {
-            return null;
-        }
-
-        const numericAmount = Number.parseFloat(cleanAmount);
-        if (Number.isNaN(numericAmount)) {
-            return null;
-        }
-
-        const absoluteBackendAmount = convertToBackendAmount(numericAmount);
-        return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
     };
 
     /**
@@ -224,7 +228,7 @@ function AmountField({
 
             setDraftSplitTransaction(
                 transactionID,
-                splitDraftTransaction,
+                baseTransaction,
                 {
                     amount: updatedAmount,
                     currency: updatedCurrency,
@@ -344,6 +348,7 @@ function AmountField({
                 headerText={translate('common.selectCurrency')}
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
+                launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
@@ -365,6 +370,7 @@ function AmountField({
                             shouldShowCurrencyButton={shouldShowAmountButtons}
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
+                            currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
                             }}
@@ -394,23 +400,35 @@ function AmountField({
                                 onPress={openAmountPage}
                                 isDisabled={didConfirm}
                                 isInteractive={canOpenAmountPage}
-                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                             />
                         ) : (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canOpenAmountPage}
-                                title={formattedAmount}
-                                description={translate('iou.amount')}
-                                interactive={canOpenAmountPage}
-                                onPress={openAmountPage}
+                            <MenuItem.Root
+                                onPress={canOpenAmountPage ? callIfAuthenticated(openAmountPage, session) : undefined}
                                 style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.moneyRequestConfirmationAmount}
-                                disabled={didConfirm}
-                                brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                                isDisabled={didConfirm}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.FieldName>{translate('iou.amount')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue style={styles.moneyRequestConfirmationAmount}>{formattedAmount}</MenuItem.FieldValue>
+                                    </MenuItem.Content>
+                                    {(canOpenAmountPage || shouldShowAmountMissingError) && (
+                                        <MenuItem.Trailing>
+                                            {shouldShowAmountMissingError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {canOpenAmountPage && <MenuItem.Chevron />}
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                                {shouldShowAmountMissingError && (
+                                    <MenuItem.HelpText
+                                        message={translate('common.error.enterAmount')}
+                                        isError
+                                    />
+                                )}
+                            </MenuItem.Root>
                         )}
                     </View>
                     {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px

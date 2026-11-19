@@ -5,14 +5,16 @@ import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -20,7 +22,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
@@ -33,6 +35,9 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isAssigned: boolean;
         assignedCard?: Card;
 
+        /** Set when a full-number search matched this card only on partial digits, so another card could share them */
+        isPartialNumberMatch?: boolean;
+
         /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
         canEditName?: boolean;
 
@@ -40,6 +45,13 @@ type WorkspaceCompanyCardTableRowData = TableData &
         onRenameName?: (newName: string) => void;
 
         exportAccountTitle?: string;
+
+        /** Abbreviated local date of the last successful sync, or "Never" / "Updating...". Unset for unassigned cards. */
+        lastUpdatedText?: string;
+
+        /** Full local timestamp of the last successful sync, as the card details page shows it */
+        lastUpdatedTooltip?: string;
+
         onDismissError?: () => void;
     };
 
@@ -85,7 +97,7 @@ function WorkspaceCompanyCardTableRow({
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, isPartialNumberMatch, onDismissError} = item;
 
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
@@ -126,7 +138,18 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
+    const partialNumberMatchHint = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
+    // Screen readers get the full sync timestamp, which sighted users see in the tooltip.
+    const accessibilityLabel = [
+        memberColumnTitle,
+        isPartialNumberMatch ? partialNumberMatchHint : undefined,
+        formattedCardDetails,
+        formattedCustomCardName,
+        item.exportAccountTitle,
+        item.lastUpdatedTooltip ?? item.lastUpdatedText,
+    ]
+        .filter(Boolean)
+        .join(', ');
 
     return (
         <Table.Row
@@ -147,7 +170,7 @@ function WorkspaceCompanyCardTableRow({
                         {isAssigned ? (
                             <AccountAvatarWithCardFeed
                                 accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeed={getCompanyCardFeed(assignedCard?.bank)}
                                 cardFeedIconSize={subscriptCardFeedIconSize}
                                 borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 containerStyle={styles.mr0}
@@ -170,6 +193,7 @@ function WorkspaceCompanyCardTableRow({
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             )}
+                            {!!isPartialNumberMatch && <Text style={[styles.textLabelSupporting, styles.lh16, styles.mr3]}>{partialNumberMatchHint}</Text>}
                         </View>
                     </View>
 
@@ -216,12 +240,30 @@ function WorkspaceCompanyCardTableRow({
                         </View>
                     )}
 
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <Tooltip text={item.lastUpdatedTooltip}>
+                                <Text
+                                    numberOfLines={1}
+                                    // Shrinks the text to its content so the tooltip centers on the date, not the whole cell.
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre, styles.alignSelfStart, styles.mw100]}
+                                >
+                                    {item.lastUpdatedText ?? ''}
+                                </Text>
+                            </Tooltip>
+                        </View>
+                    )}
+
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={assignCardOrOpenDetails}

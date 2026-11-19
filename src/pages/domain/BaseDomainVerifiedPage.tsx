@@ -1,7 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -18,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -32,14 +31,17 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to navigate to when the user confirms verification success */
     confirmDestination?: Route;
+
+    /** Sentry label for the confirm button, one per destination */
+    confirmSentryLabel: SentryLabel;
 };
 
-function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID), confirmSentryLabel}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
@@ -49,10 +51,6 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
-
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     if (!domain || !isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
@@ -64,19 +62,22 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
-            <ConfirmationPage
-                illustration={LottieAnimations.Fireworks}
-                heading={translate('domain.domainVerified.header')}
-                descriptionComponent={
+            <ConfirmationPage>
+                <ConfirmationPage.Content style={styles.p10}>
+                    <ConfirmationPage.Illustration />
+                    <ConfirmationPage.Heading>{translate('domain.domainVerified.header')}</ConfirmationPage.Heading>
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
                     </View>
-                }
-                innerContainerStyle={styles.p10}
-                buttonText={translate('common.buttonConfirm')}
-                shouldShowButton
-                onButtonPress={() => Navigation.navigate(confirmDestination)}
-            />
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.PrimaryButton
+                        sentryLabel={confirmSentryLabel}
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => Navigation.navigate(confirmDestination)}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }

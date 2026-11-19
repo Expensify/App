@@ -7,6 +7,8 @@ import usePressResponderProps from '@components/Pressable/PressResponder/usePres
 import useResponderRef from '@components/Pressable/PressResponder/useResponderRef';
 import Text from '@components/Text';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 
@@ -40,7 +42,7 @@ function Probe({consumerOnPress, consumerNativeID, consumerAccessibilityState, c
             nativeID={merged.nativeID}
             accessibilityState={merged.accessibilityState}
             accessibilityLabel="probe"
-            sentryLabel="probe"
+            sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
         >
             <Text>probe</Text>
         </PressableWithFeedback>
@@ -89,6 +91,7 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     nativeID="ancestor-id"
                     accessibilityControls="content-id"
@@ -105,6 +108,7 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     accessibilityState={{expanded: true}}
                     onPress={() => {}}
@@ -129,6 +133,7 @@ describe('PressResponder', () => {
             };
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     onPress={responderOnPress}
                 >
@@ -147,6 +152,7 @@ describe('PressResponder', () => {
             const consumerOnPress = jest.fn();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     nativeID="just-aria"
                 >
@@ -163,6 +169,7 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     nativeID="deep-ancestor"
                     onPress={() => {}}
@@ -185,6 +192,7 @@ describe('PressResponder', () => {
             const consumerRef = React.createRef<ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={responderRef as PressableProps['ref']}
                     onPress={() => {}}
                 >
@@ -203,6 +211,7 @@ describe('PressResponder', () => {
             const consumerRef = React.createRef<ComponentRef<typeof RNViewType>>();
             render(
                 <PressResponder
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={undefined}
                     nativeID="no-ref"
                     onPress={() => {}}

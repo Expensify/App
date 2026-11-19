@@ -2,6 +2,7 @@ import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
@@ -41,6 +42,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {onPress: onPressFromProps} = useRendererProps<ConciergeLinkRenderersProps, 'concierge-link'>('concierge-link') ?? {};
+    const delegateAccountID = useDelegateAccountID();
 
     /**
      * Simple wrapper to create a stable reference without passing event args to navigation function.
@@ -55,6 +57,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
             hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             shouldDismissModal: false,
+            delegateAccountID,
         });
     };
 
@@ -75,8 +78,9 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
 
     return (
         <Text
-            style={[style as TextStyle, linkStyle]}
+            style={[style, linkStyle]}
             onPress={navigateToConciergeChat}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.CONCIERGE_LINK}
             onKeyDown={handleKeyDown}
             suppressHighlighting
             accessible

@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -49,39 +50,37 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path);
     const styles = useThemeStyles();
     const reportIDToName = useReportIDToNameMap();
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report), {reportIDToName}));
+    const accountIDToName = useAccountIDToNameMap();
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report), {reportIDToName, accountIDToName}));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
     const reportIsArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const handleReportDescriptionChange = useCallback((value: string) => {
+    const handleReportDescriptionChange = (value: string) => {
         setDescription(value);
-    }, []);
+    };
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
-    }, [backPath]);
+    };
 
-    const submitForm = useCallback(() => {
+    const submitForm = () => {
         const newValue = description.trim();
 
-        updateDescription(report, newValue, currentUserAccountID, reportIDToName);
+        updateDescription(report, newValue, currentUserAccountID, reportIDToName, accountIDToName);
         goBack();
-    }, [report, description, goBack, currentUserAccountID, reportIDToName]);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
-            const errors: Errors = {};
-            const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
-            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
+        const errors: Errors = {};
+        const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
+        if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+            errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     useFocusEffect(
         useCallback(() => {

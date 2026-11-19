@@ -1,4 +1,5 @@
-import * as Browser from '@libs/Browser';
+import type {ComposerRef} from '@components/Composer/types';
+
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
@@ -11,11 +12,11 @@ function inputFocusChange(focus: boolean) {
     Onyx.set(ONYXKEYS.INPUT_FOCUSED, focus);
 }
 
-let refSave: HTMLElement | undefined;
-function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
+let refSave: Pick<ComposerRef, 'focus'> | null | undefined;
+function composerFocusKeepFocusOn(ref: Pick<ComposerRef, 'focus'> | null, isFocused: boolean, modal: Modal, onyxFocused: boolean) {
     if (isFocused && !onyxFocused) {
         inputFocusChange(true);
-        ref.focus();
+        ref?.focus();
     }
     if (isFocused) {
         refSave = ref;
@@ -32,6 +33,4 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
     }
 }
 
-const callback = (method: () => void) => !Browser.isMobile() && method();
-
-export {composerFocusKeepFocusOn, inputFocusChange, callback};
+export {composerFocusKeepFocusOn, inputFocusChange};

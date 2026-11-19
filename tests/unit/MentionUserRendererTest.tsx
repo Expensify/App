@@ -83,7 +83,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
             if (!target) {
                 return '';
             }
-            // Keep SMS domain as is here, Str.removeSMSDomain in component will strip it later
+            // Keep SMS domain as is here, the component will format it later
             if (target.endsWith('@expensify.sms')) {
                 return target;
             }
@@ -112,6 +112,11 @@ jest.mock('@hooks/useOnyx', () => {
         return [undefined, loadedMetadata];
     };
 });
+
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@hooks/usePersonalDetails'),
+    useAllPersonalDetailsWithoutSnapshots: (selector: (personalDetails: typeof mockPersonalDetails) => unknown) => [selector(mockPersonalDetails), {status: 'loaded'}],
+}));
 
 jest.mock('@libs/Log', () => ({
     info: jest.fn(),
@@ -221,10 +226,10 @@ describe('MentionUserRenderer', () => {
         expect(screen.getByText('@alex@other.com')).toBeVisible();
     });
 
-    test('strips SMS domain from phone number mentions', () => {
+    test('formats phone number for phone number mentions', () => {
         const tnode = buildTNode({data: '@+12018675309@expensify.sms'});
         renderMention({tnode});
-        expect(screen.getByText('@+12018675309')).toBeVisible();
+        expect(screen.getByText('@(201) 867-5309')).toBeVisible();
         expect(screen.queryByText('expensify.sms')).not.toBeVisible();
     });
 

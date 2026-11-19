@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/module/web/handlers/HoverGestureHandler.js b/node_modules/react-native-gesture-handler/lib/module/web/handlers/HoverGestureHandler.js
+index 7ba7b7b..6f0567f 100644
+--- a/node_modules/react-native-gesture-handler/lib/module/web/handlers/HoverGestureHandler.js
++++ b/node_modules/react-native-gesture-handler/lib/module/web/handlers/HoverGestureHandler.js
+@@ -33,6 +33,12 @@ export default class HoverGestureHandler extends GestureHandler {
+     this.end();
+   }
+   onPointerMove(event) {
++    // `pointerenter` is missed when the pointer is already over the view before the listeners are attached
++    // (the v3 detector attaches them in an effect, after paint), so start hovering on the first move instead.
++    if (this.state === State.UNDETERMINED) {
++      this.onPointerMoveOver(event);
++      return;
++    }
+     this.tracker.track(event);
+     this.stylusData = event.stylusData;
+     super.onPointerMove(event);
+diff --git a/node_modules/react-native-gesture-handler/src/web/handlers/HoverGestureHandler.ts b/node_modules/react-native-gesture-handler/src/web/handlers/HoverGestureHandler.ts
+index 0f13b55..46967aa 100644
+--- a/node_modules/react-native-gesture-handler/src/web/handlers/HoverGestureHandler.ts
++++ b/node_modules/react-native-gesture-handler/src/web/handlers/HoverGestureHandler.ts
+@@ -49,6 +49,13 @@ export default class HoverGestureHandler extends GestureHandler {
+   }
+ 
+   protected override onPointerMove(event: AdaptedEvent): void {
++    // `pointerenter` is missed when the pointer is already over the view before the listeners are attached
++    // (the v3 detector attaches them in an effect, after paint), so start hovering on the first move instead.
++    if (this.state === State.UNDETERMINED) {
++      this.onPointerMoveOver(event);
++      return;
++    }
++
+     this.tracker.track(event);
+     this.stylusData = event.stylusData;
+ 

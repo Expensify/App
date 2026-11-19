@@ -25,7 +25,7 @@ type UseConfirmSubmitReportViolationsParams = {
 
 /**
  * Hook that returns a callback to confirm any report violations (rejected expenses, pending RTER
- * card-match, and other policy violations) before proceeding with a report submission.
+ * card-match, a missing merchant or amount, and other policy violations) before proceeding with a report submission.
  */
 function useConfirmSubmitReportViolations({
     reportID,

@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
@@ -28,12 +28,12 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const {formatPhoneNumber, translate} = useLocalize();
 
     const [personalDetail] = usePersonalDetail(accountID);
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
+    const [personalDetailLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`);
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber});
 
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
+    const isLoading = personalDetailLoadingState?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
 
     useEffect(() => {
         if (!isValidAccountRoute(Number(accountID))) {
@@ -43,28 +43,23 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     }, [accountID]);
 
     // Temp variables are coming as '' therefore || is needed
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID, defaultAvatars});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
 
     const shouldShowNotFoundPage = !avatarURL;
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            originalFileName,
-            headerTitle: displayName,
-            isLoading,
-            shouldShowNotFoundPage,
-            maybeIcon: true,
-            onDownloadAttachment,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [displayName, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        originalFileName,
+        headerTitle: displayName,
+        isLoading,
+        shouldShowNotFoundPage,
+        maybeIcon: true,
+        onDownloadAttachment,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer

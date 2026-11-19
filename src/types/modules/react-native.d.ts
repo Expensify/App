@@ -9,6 +9,8 @@ import type {TargetedEvent} from 'react-native';
 
 type AppStateTrackerModule = {
     getWasAppRelaunchedFromIcon: () => Promise<boolean>;
+    // Missing on binaries built before this method was added.
+    reportFullyDrawn?: () => void;
 };
 
 type RNTextInputResetModule = {
@@ -46,7 +48,7 @@ declare module 'react-native' {
         };
     }
 
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+    interface PressableStateCallbackType {
         readonly isScreenReaderActive: boolean;
         readonly isDisabled: boolean;
     }

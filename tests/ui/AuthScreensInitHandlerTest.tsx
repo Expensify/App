@@ -78,6 +78,7 @@ jest.mock('@libs/SessionUtils', () => ({
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
 }));
 
@@ -276,7 +277,14 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(
+            expect.objectContaining({accountID: TEST_ACCOUNT_ID, email: 'test@test.com'}),
+            false,
+            false,
+            true,
+            undefined,
+            CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+        );
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

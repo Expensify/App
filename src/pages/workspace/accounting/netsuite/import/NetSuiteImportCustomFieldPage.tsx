@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -57,6 +57,7 @@ function HelpLinkComponent({importCustomField, styles, translate, alignmentStyle
     return (
         <Text style={[styles.mb3, styles.flex1, alignmentStyle]}>
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOM_FIELD_HELP_LINK}
                 href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
                 style={[styles.link, alignmentStyle]}
             >
@@ -82,38 +83,32 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
-    const listEmptyComponent = useMemo(
-        () => (
-            <WorkspaceEmptyStateSection
-                shouldStyleAsCard={false}
-                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={illustrations.FolderWithPapers}
-                subtitleComponent={
-                    <HelpLinkComponent
-                        importCustomField={importCustomField}
-                        styles={styles}
-                        translate={translate}
-                        alignmentStyle={styles.textAlignCenter}
-                    />
-                }
-                containerStyle={[styles.flex1, styles.justifyContentCenter]}
-            />
-        ),
-        [importCustomField, styles, translate, illustrations.FolderWithPapers],
-    );
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.flexRow]}>
+    const listEmptyComponent = (
+        <WorkspaceEmptyStateSection
+            shouldStyleAsCard={false}
+            title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
+            icon={illustrations.FolderWithPapers}
+            subtitleComponent={
                 <HelpLinkComponent
                     importCustomField={importCustomField}
                     styles={styles}
                     translate={translate}
-                    alignmentStyle={styles.textAlignLeft}
+                    alignmentStyle={styles.textAlignCenter}
                 />
-            </View>
-        ),
-        [styles, importCustomField, translate],
+            }
+            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+        />
+    );
+
+    const listHeaderComponent = (
+        <View style={[styles.ph5, styles.flexRow]}>
+            <HelpLinkComponent
+                importCustomField={importCustomField}
+                styles={styles}
+                translate={translate}
+                alignmentStyle={styles.textAlignLeft}
+            />
+        </View>
     );
 
     return (
@@ -141,6 +136,7 @@ function NetSuiteImportCustomFieldPage({
                             pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_RECORD_ROW}
                                 name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
                                 value={'listName' in record ? record.listName : record.segmentName}
@@ -159,6 +155,11 @@ function NetSuiteImportCustomFieldPage({
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={
+                        importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS
+                            ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_SEGMENTS
+                            : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_LISTS
+                    }
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}

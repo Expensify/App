@@ -8,6 +8,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -48,9 +49,12 @@ type MoreFeatureToggleProps = {
 
     /** Called when the user dismisses the error message. */
     onCloseError?: () => void;
+
+    /** Sentry label of the feature's switch, from `CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES`. */
+    switchSentryLabel: SentryLabel;
 };
 
-function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onToggle, onPress, disabled, disabledAction, errors, onCloseError}: MoreFeatureToggleProps) {
+function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onToggle, onPress, disabled, disabledAction, errors, onCloseError, switchSentryLabel}: MoreFeatureToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -61,7 +65,8 @@ function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onTo
                 <View
                     style={[
                         styles.workspaceSectionMoreFeaturesItem,
-                        shouldUseNarrowLayout && styles.flexBasis100,
+                        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+                        shouldUseNarrowLayout && [styles.flexBasisAuto, styles.w100],
                         shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
                         hovered && isActive && !!onPress && styles.hoveredComponentBG,
                     ]}
@@ -81,6 +86,7 @@ function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onTo
                         errors={errors}
                         onCloseError={onCloseError}
                         onPress={onPress}
+                        switchSentryLabel={switchSentryLabel}
                     />
                 </View>
             )}

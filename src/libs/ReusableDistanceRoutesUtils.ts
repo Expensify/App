@@ -1,10 +1,15 @@
-import CONST from '@src/CONST';
-import type {ReusableDistanceRoute} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {toDate} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getWaypointIndex} from './TransactionUtils';
+import {getValidWaypoints, getWaypointIndex, hasPendingDistanceReceiptRegeneration} from './TransactionUtils';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 
 /**
@@ -53,8 +58,45 @@ function filterRoutes(routes: ReusableDistanceRoute[], searchValue: string): Reu
 /**
  * Formats the inserted timestamp of the source expense for the Last used badge
  */
-function formatLastUsed(inserted: string): string {
-    return DateUtils.formatWithUTCTimeZone(inserted, CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
+function formatLastUsed(inserted: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    return DateUtils.formatToMonthDay(toDate(inserted, {timeZone: 'UTC'}), dateFnsLocale, 'UTC');
+}
+
+/**
+ * Checks that every waypoint on the route is valid. Routes created offline with invalid addresses
+ * receive zero coordinates once synced, so getValidWaypoints drops them and the count no longer matches.
+ */
+function hasValidWaypoints(waypoints: WaypointCollection | undefined): boolean {
+    if (!waypoints) {
+        return false;
+    }
+    const waypointsCount = Object.keys(waypoints).length;
+    return waypointsCount >= 2 && Object.keys(getValidWaypoints(waypoints)).length === waypointsCount;
+}
+
+/**
+ * Resolves the reusable routes that can be shown. Routes with invalid waypoints or no resolved route distance are
+ * excluded. While online, routes whose source expense still has a pending map receipt (just created, or its
+ * waypoints/distance edited) are left out until the server generates the new map image, the same check the report
+ * preview uses before loading a distance receipt.
+ */
+function getAvailableReusableDistanceRoutes(routes: ReusableDistanceRoute[] | undefined, transactions: OnyxCollection<Transaction> | undefined, isOffline: boolean): ReusableDistanceRoute[] {
+    if (!routes?.length) {
+        return [];
+    }
+    return routes.filter((route) => {
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`];
+        if (!hasValidWaypoints(route.waypoints) || (transaction?.comment?.waypoints && !hasValidWaypoints(transaction.comment.waypoints))) {
+            return false;
+        }
+        const hasPendingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
+        if (!isOffline && hasPendingReceipt) {
+            return false;
+        }
+        const distance = transaction?.comment?.customUnit?.quantity ?? route.distance;
+        const isPendingOfflineRoute = isOffline && (hasPendingReceipt || Object.values(route.waypoints).some((waypoint) => waypoint.lat === undefined || waypoint.lng === undefined));
+        return (distance ?? 0) > 0 || isPendingOfflineRoute;
+    });
 }
 
 /**
@@ -71,4 +113,4 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource, normalizeRouteWaypoints};
+export {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource, normalizeRouteWaypoints};

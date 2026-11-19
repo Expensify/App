@@ -126,7 +126,7 @@ describe('actions/IOU/Receipt', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
                     },
                 });
@@ -239,6 +239,67 @@ describe('actions/IOU/Receipt', () => {
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
         });
 
+        it('should optimistically set receipt state to SCAN_READY when replacing a failed scan placeholder', async () => {
+            // Given a transaction whose receipt is SCAN_FAILED and whose amount has never been filled in
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {source: 'failed.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, filename: 'failed.jpg'},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                modifiedAmount: undefined,
+                isAmountSet: false,
+            });
+
+            // When replaceReceipt is called without an explicit state and not as a crop/rotate
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state is SCAN_READY, mirroring the backend upgrade so the UI shows "Scanning" instead of 0.00
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+            expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+        });
+
+        it('should keep optimistic state OPEN on failed scan replacement when the user has already entered an amount', async () => {
+            // Given a transaction whose receipt is SCAN_FAILED but whose amount the user has already confirmed
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {source: 'failed.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, filename: 'failed.jpg'},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                modifiedAmount: 1234,
+                isAmountSet: true,
+            });
+
+            // When replaceReceipt is called
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state stays OPEN so re-scanning does not overwrite the user's confirmed amount
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        });
+
         it('should add receipt if it does not exist', async () => {
             // Given a transaction with no receipt
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: null});
@@ -266,6 +327,61 @@ describe('actions/IOU/Receipt', () => {
                 const updatedSnapshot = await getSearchSnapshot(snapshotHash);
                 expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
             });
+        });
+
+        it('should clear the previous reservation dates when a new receipt replaces the old one', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user replaces it with a different receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the old dates are gone, so the per-night limit check and hint don't use them for the new receipt
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBeUndefined();
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBeUndefined();
+        });
+
+        it('should keep the reservation dates when the same receipt is cropped or rotated', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user crops or rotates that receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                isSameReceipt: true,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the dates stay, because the receipt is still the same stay
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBe('2026-10-01');
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBe('2026-10-04');
         });
 
         it('should optimistically set pending field for receipt', async () => {

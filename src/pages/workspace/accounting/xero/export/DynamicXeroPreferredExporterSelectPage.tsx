@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type CardListItem = ListItem & {
@@ -39,60 +39,49 @@ function DynamicXeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsP
 
     const policyID = policy?.id;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.path);
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const data: CardListItem[] = useMemo(() => {
-        if (!isEmpty(policyOwner) && isEmpty(exporters)) {
-            return [
-                {
-                    value: policyOwner,
-                    text: policyOwner,
-                    keyForList: policyOwner,
-                    isSelected: true,
-                },
-            ];
+    // Don't show guides if the current user is not a guide themselves or an Expensify employee
+    const data: CardListItem[] =
+        !isEmpty(policyOwner) && isEmpty(exporters)
+            ? [
+                  {
+                      value: policyOwner,
+                      text: policyOwner,
+                      keyForList: policyOwner,
+                      isSelected: true,
+                  },
+              ]
+            : exporters?.reduce<CardListItem[]>((options, exporter) => {
+                  if (!exporter.email) {
+                      return options;
+                  }
+                  if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
+                      return options;
+                  }
+                  options.push({
+                      value: exporter.email,
+                      text: exporter.email,
+                      keyForList: exporter.email,
+                      isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
+                  });
+                  return options;
+              }, []);
+
+    const selectExporter = (row: CardListItem) => {
+        if (row.value !== config?.export?.exporter && policyID) {
+            updateXeroExportExporter(policyID, row.value, config?.export?.exporter);
         }
+        goBack();
+    };
 
-        return exporters?.reduce<CardListItem[]>((options, exporter) => {
-            if (!exporter.email) {
-                return options;
-            }
-
-            // Don't show guides if the current user is not a guide themselves or an Expensify employee
-            if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                return options;
-            }
-
-            options.push({
-                value: exporter.email,
-                text: exporter.email,
-                keyForList: exporter.email,
-                isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
-            });
-            return options;
-        }, []);
-    }, [policyOwner, exporters, currentUserLogin, config?.export?.exporter]);
-
-    const selectExporter = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== config?.export?.exporter && policyID) {
-                updateXeroExportExporter(policyID, row.value, config?.export?.exporter);
-            }
-            goBack();
-        },
-        [policyID, config?.export?.exporter, goBack],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const headerContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
+        </View>
     );
 
     return (

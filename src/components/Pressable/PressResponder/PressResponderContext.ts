@@ -1,5 +1,7 @@
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+
 import type {AccessibilityState, GestureResponderEvent} from 'react-native';
 
 import {createContext} from 'react';
@@ -9,7 +11,8 @@ type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) =
 // `| false` matches `PressableProps['accessibilityHasPopup']`.
 type AccessibilityHasPopup = 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
 
-type PressResponderContextValue = {
+// A responder adds its handlers to the pressable below it, so it brings the label for them too.
+type PressResponderContextValue = WithSentryLabelWhenPressable<'onPress' | 'onSecondaryInteraction'> & {
     onPress?: PressableProps['onPress'];
     onSecondaryInteraction?: SecondaryInteractionHandler;
     accessibilityState?: AccessibilityState;
