@@ -1042,11 +1042,14 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken sends the current session authToken to the API as currentAuthToken', async () => {
+            // Given a device that is already signed in with its own authToken
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
+            // When it signs in with a shortLivedAuthToken from a transition link
             SessionUtil.signInWithShortLivedAuthToken('testAuthToken', 'existingSessionAuthToken', false, undefined, undefined);
             await waitForBatchedUpdates();
 
+            // Then the request also sends the current authToken, so the server can reject a token that belongs to another account
             expect(makeRequestSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', currentAuthToken: 'existingSessionAuthToken'}));
 
             makeRequestSpy.mockRestore();

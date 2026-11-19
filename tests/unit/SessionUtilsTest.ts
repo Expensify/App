@@ -135,7 +135,12 @@ describe('SessionUtils', () => {
             ['should return true when the encoded email does not match sessionEmail', '?email=other%40example.com', 'user@example.com', true],
             ['should return false when the encoded email matches sessionEmail after decoding', '?email=user%40example.com', 'user@example.com', false],
         ])('%s', (_description, transitionURL, sessionEmail, expectedResult) => {
-            expect(isLoggingInAsNewUser(transitionURL, sessionEmail)).toBe(expectedResult);
+            // Given a transition link and the email of the account signed in to NewDot
+            // When the link's email or delegatorEmail is compared to the session email
+            const isNewUser = isLoggingInAsNewUser(transitionURL, sessionEmail);
+
+            // Then only a link for another account counts as logging in as a new user, whichever way the link writes the email
+            expect(isNewUser).toBe(expectedResult);
         });
     });
 
