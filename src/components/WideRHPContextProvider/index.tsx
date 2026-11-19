@@ -46,7 +46,10 @@ type RHPRouteKeys = {wide: string[]; superWide: string[]};
 
 const NO_RHP_ROUTE_KEYS: RHPRouteKeys = {wide: [], superWide: []};
 
-/** `width` includes a screen animating out; `displayed` does not. */
+/**
+ * Mirrors WideRHPStateContext's width keys for the hooks in every screen, so only screens whose own width changed re-render, and adds the displayed keys only this store has.
+ * `width` includes a screen animating out, and `displayed` does not. Code that needs the width key lists reads the context.
+ */
 let rhpRouteKeys: {width: RHPRouteKeys; displayed: RHPRouteKeys} = {width: NO_RHP_ROUTE_KEYS, displayed: NO_RHP_ROUTE_KEYS};
 const rhpRouteKeysListeners = new Set<() => void>();
 
@@ -71,7 +74,7 @@ function subscribeToRHPRouteKeys(listener: () => void): () => void {
 }
 
 /** A primitive, so `useSyncExternalStore` snapshots compare by value. */
-function findRHPRouteWidth(keys: RHPRouteKeys, routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
+function findRHPRouteWidth(keys: RHPRouteKeys, routeKey: string | undefined): RHPWidthHint | undefined {
     if (!routeKey) {
         return undefined;
     }
@@ -85,12 +88,12 @@ function findRHPRouteWidth(keys: RHPRouteKeys, routeKey: string | undefined): Ex
 }
 
 /** For layout: kept while the screen animates out, so it doesn't reflow as it leaves. */
-function getRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
+function getRHPRouteWidth(routeKey: string | undefined): RHPWidthHint | undefined {
     return findRHPRouteWidth(rhpRouteKeys.width, routeKey);
 }
 
 /** For visibility: `undefined` once the screen starts animating out. */
-function getDisplayedRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
+function getDisplayedRHPRouteWidth(routeKey: string | undefined): RHPWidthHint | undefined {
     return findRHPRouteWidth(rhpRouteKeys.displayed, routeKey);
 }
 
@@ -154,7 +157,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     const allWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'wide').map((registration) => registration.key);
     const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
-    const derivedKeys = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys, seenRHPRouteKeys);
+    const derivedKeys = getVisibleRHPKeys(rootNavigationState, allSuperWideRHPRouteKeys, allWideRHPRouteKeys, seenRHPRouteKeys);
     const hasSameKeys =
         arraysEqual(publishedKeys.widthWideRHPRouteKeys, derivedKeys.widthWideRHPRouteKeys) &&
         arraysEqual(publishedKeys.widthSuperWideRHPRouteKeys, derivedKeys.widthSuperWideRHPRouteKeys) &&

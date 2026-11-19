@@ -25,6 +25,12 @@ const TRANSACTIONS_WITHOUT_NEW = TRANSACTIONS.filter(({transactionID}) => transa
 let setChatVisible: (isVisible: boolean) => void = () => {};
 const scrollToIndex = jest.fn();
 
+// A real compare, so the carousel sorts cards by date as it does in the app.
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({translate: (key: string) => key, localeCompare: (first: string, second: string) => first.localeCompare(second)}),
+}));
+
 function Chat({isInitiallyVisible, children}: {isInitiallyVisible: boolean; children: ReactNode}) {
     const [isVisible, setIsVisible] = useState(isInitiallyVisible);
     useEffect(() => {
@@ -150,6 +156,41 @@ describe('useReportPreviewCarousel', () => {
 
         // Then it scrolls on time, since writes that keep arriving would otherwise hold the scroll back until the flag is swept
         expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+    });
+
+    it('scrolls to where a new expense is when the delay ends, even if the carousel reordered during the delay', () => {
+        // Given a chat the user can see, with the newest expense just added as the last card
+        const {showReport} = renderCarousel(new Set([NEW_TRANSACTION_ID]));
+
+        // When an update during the delay moves that expense's date before the others, which sorts it to the first card
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+        const transactionsWithEarlierNewExpense = TRANSACTIONS.map((transaction) =>
+            transaction.transactionID === NEW_TRANSACTION_ID ? {...transaction, created: '2026-08-01'} : transaction,
+        );
+        showReport(new Set([NEW_TRANSACTION_ID]), transactionsWithEarlierNewExpense);
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+
+        // Then the carousel scrolls to the first card, where the expense is now, instead of skipping the scroll because it moved
+        expect(scrolledIndexes()).toEqual([0]);
+    });
+
+    it('does not scroll to an expense that became new after an earlier delay started, until its own delay passes', () => {
+        // Given a chat the user can see, with an expense that has just become new
+        const {showReport} = renderCarousel(new Set([NEW_TRANSACTION_ID]));
+
+        // When that expense stops being new partway through the delay and another one becomes new
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+        showReport(new Set(['2']));
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+
+        // Then the first delay ends without a scroll, since the other expense has been new for only half a delay
+        expect(scrolledIndexes()).toEqual([]);
+
+        // When the other expense's own delay passes
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+
+        // Then the carousel scrolls to it
+        expect(scrolledIndexes()).toEqual([1]);
     });
 
     it('scrolls to a new expense only once, however often the chat is covered and uncovered while it is still new', () => {

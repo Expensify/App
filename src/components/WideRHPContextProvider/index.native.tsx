@@ -4,7 +4,7 @@ import React, {createContext, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
-import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
+import type {RHPWidthHint, WideRHPActionsContextType, WideRHPStateContextType} from './types';
 
 import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from './default';
 
@@ -43,11 +43,11 @@ function subscribeToRHPRouteKeys(): () => void {
     return () => {};
 }
 
-function getRHPRouteWidth(): undefined {
+function getRHPRouteWidth(): RHPWidthHint | undefined {
     return undefined;
 }
 
-function getDisplayedRHPRouteWidth(): undefined {
+function getDisplayedRHPRouteWidth(): RHPWidthHint | undefined {
     return undefined;
 }
 

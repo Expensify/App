@@ -12,6 +12,7 @@ import useIsSidebarOfFocusedSplitNavigator from '@hooks/useIsSidebarOfFocusedSpl
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRouteFromContext from '@hooks/useRouteFromContext';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,14 +34,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {Route} from '@react-navigation/native';
 import type {ComponentRef, ReactNode} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
-import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {DeviceEventEmitter, Keyboard} from 'react-native';
 
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
@@ -52,8 +52,6 @@ import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
-
-const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -201,8 +199,7 @@ function ScreenWrapper({
     // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
     // MFA navigator's own stack actions (e.g. replacing the validateCode page with the Face ID prompt, or popping the outcome screen on close),
     // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
-    // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
-    const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
+    const route = useRouteFromContext();
     const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
     const displayedRHPWidth = useSyncExternalStore(subscribeToRHPRouteKeys, () => getDisplayedRHPRouteWidth(route?.key));
     const isSidebarOfFocusedSplitNavigator = useIsSidebarOfFocusedSplitNavigator(route?.name, navigation);

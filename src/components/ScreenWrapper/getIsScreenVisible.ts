@@ -1,5 +1,5 @@
 /** ScreenWrapper uses this rule to decide whether the user can see its screen. */
-import type {RHPWidth} from '@components/WideRHPContextProvider/types';
+import type {RHPWidthHint} from '@components/WideRHPContextProvider/types';
 
 type GetIsScreenVisibleParams = {
     isFocused: boolean;
@@ -11,7 +11,7 @@ type GetIsScreenVisibleParams = {
     isSidebarOfFocusedSplitNavigator: boolean;
 
     /** `undefined` unless this is a wide or super-wide RHP screen on display. */
-    displayedRHPWidth: Exclude<RHPWidth, 'narrow'> | undefined;
+    displayedRHPWidth: RHPWidthHint | undefined;
 };
 
 /**

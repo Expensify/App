@@ -32,13 +32,13 @@ function seenIn(keys: string[], rhpRouteKey = 'rhp-1') {
 
 /** What the frame must still be wide enough for. */
 function visibleKeys(state: NavigationState | undefined, wide: string[], superWide: string[], seen: string[] = [...wide, ...superWide]) {
-    const {widthWideRHPRouteKeys, widthSuperWideRHPRouteKeys} = getVisibleRHPKeys(state, wide, superWide, seenIn(seen));
+    const {widthWideRHPRouteKeys, widthSuperWideRHPRouteKeys} = getVisibleRHPKeys(state, superWide, wide, seenIn(seen));
     return {visibleWideRHPRouteKeys: widthWideRHPRouteKeys, visibleSuperWideRHPRouteKeys: widthSuperWideRHPRouteKeys};
 }
 
 /** What the navigation state still holds, for below-ness and Escape. */
 function displayedKeys(state: NavigationState | undefined, wide: string[], superWide: string[], seen: string[] = [...wide, ...superWide]) {
-    const {displayedWideRHPRouteKeys, displayedSuperWideRHPRouteKeys} = getVisibleRHPKeys(state, wide, superWide, seenIn(seen));
+    const {displayedWideRHPRouteKeys, displayedSuperWideRHPRouteKeys} = getVisibleRHPKeys(state, superWide, wide, seenIn(seen));
     return {visibleWideRHPRouteKeys: displayedWideRHPRouteKeys, visibleSuperWideRHPRouteKeys: displayedSuperWideRHPRouteKeys};
 }
 
@@ -160,6 +160,6 @@ describe('getVisibleRHPKeys', () => {
 
         // When the caller asks which registered screens to record as seen
         // Then only the one in the state is recorded, paired with its RHP so a later hold ends when that RHP goes
-        expect(getVisibleRHPKeys(state, ['wideKey', 'goneKey'], [], new Map()).presentRouteEntries).toEqual([['wideKey', 'rhp-1']]);
+        expect(getVisibleRHPKeys(state, [], ['wideKey', 'goneKey'], new Map()).presentRouteEntries).toEqual([['wideKey', 'rhp-1']]);
     });
 });

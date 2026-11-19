@@ -28,7 +28,7 @@ const emptyRHPKeysState: VisibleRHPKeys = {
  * Separates the screens on display from those the frame is still sized for, which also include one animating out. Only a key
  * seen in the state can be dismissing, so callers record `presentRouteEntries` into `seenRouteKeys`.
  */
-function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: string[], allSuperWideRHPKeys: string[], seenRouteKeys: ReadonlyMap<string, string>): VisibleRHPKeys {
+function getVisibleRHPKeys(state: NavigationState | undefined, allSuperWideRHPKeys: string[], allWideRHPKeys: string[], seenRouteKeys: ReadonlyMap<string, string>): VisibleRHPKeys {
     if (!state || (!allWideRHPKeys.length && !allSuperWideRHPKeys.length)) {
         return emptyRHPKeysState;
     }

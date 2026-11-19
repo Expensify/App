@@ -70,8 +70,7 @@ function useScrollToNewTransaction({
         if (shouldInlineTransactions) {
             // Inline: the transaction is a main-list item at the same index (transactions lead `data`).
             const rafId = requestAnimationFrame(() => {
-                // The ID is consumed inside the frame (not at schedule time): if a re-fire cancels this frame, the next
-                // effect run reschedules instead of treating the scroll as done.
+                // The ID is recorded inside the frame, so when a re-run cancels the frame, the next run schedules the scroll again instead of treating it as done.
                 scrolledToNewTransactionIDRef.current = newTransactionID;
                 if (viewableItemsRef.current.some((token) => token.index === newTransactionTableIndex)) {
                     return;
@@ -81,8 +80,7 @@ function useScrollToNewTransaction({
             return () => cancelAnimationFrame(rafId);
         }
 
-        // Horizontal table: the rows live in a nested FlashList whose own scroll does nothing, so only the parent page scrolls.
-        // Ask the table where the row sits on the page, which works for unmounted rows, and scroll the parent there.
+        // The table's rows sit in a nested FlashList that can't scroll, so the parent page scrolls to the row's offset, which the table knows even for unmounted rows.
         const rafId = requestAnimationFrame(() => {
             scrolledToNewTransactionIDRef.current = newTransactionID;
             const row = tableRef.current?.getRowPageOffset(newTransactionTableIndex);

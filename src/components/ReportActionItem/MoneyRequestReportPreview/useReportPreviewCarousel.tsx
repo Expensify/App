@@ -160,14 +160,18 @@ function useReportPreviewCarousel({
     // Scrolled to once while a transaction stays new, so returning to the chat doesn't pull the user back from older cards.
     const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
 
-    const scrollToNewTransaction = useEffectEvent((index: number, transactionID: string | undefined) => {
-        if (!isScreenVisible || !transactionID || !newTransactionIDs?.has(transactionID) || transactionID === scrolledToNewTransactionIDRef.current) {
+    const scrollToNewTransaction = useEffectEvent((newTransactionIDsWhenDelayStarted: Set<string>) => {
+        if (!isScreenVisible) {
             return;
         }
-
-        // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-        // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-        if (transactionID !== carouselTransactions.at(index)?.transactionID) {
+        // Looked up when the delay ends, so the carousel scrolls to where the transaction is now, even if it moved during the delay.
+        // Only a transaction that was already new when this delay started counts, so one that became new later waits for its own delay.
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID) && newTransactionIDsWhenDelayStarted.has(transaction.transactionID));
+        if (index < 0) {
+            return;
+        }
+        const transactionID = carouselTransactions.at(index)?.transactionID;
+        if (!transactionID || transactionID === scrolledToNewTransactionIDRef.current) {
             return;
         }
 
@@ -189,19 +193,12 @@ function useReportPreviewCarousel({
         if (scrolledToNewTransactionIDRef.current && !newTransactionIDs?.has(scrolledToNewTransactionIDRef.current)) {
             scrolledToNewTransactionIDRef.current = undefined;
         }
-        if (!isScreenVisible) {
+        if (!isScreenVisible || !newTransactionIDs?.size) {
             return;
         }
-        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
-
-        if (index < 0) {
-            return;
-        }
-        const newTransaction = carouselTransactions.at(index);
-        setTimeout(() => scrollToNewTransaction(index, newTransaction?.transactionID), CONST.PENDING_TRANSACTION_SCROLL_DELAY);
-
-        // We only want to scroll to a new transaction when the set of new transaction IDs changes, or when the chat is uncovered.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Not cleared when the effect runs again: the set of new IDs is rebuilt on every write to the report's transactions, so clearing would keep postponing the scroll.
+        // A timer that fires after unmount finds no carousel and does nothing.
+        setTimeout(() => scrollToNewTransaction(newTransactionIDs), CONST.PENDING_TRANSACTION_SCROLL_DELAY);
     }, [newTransactionIDs, isScreenVisible]);
 
     const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {

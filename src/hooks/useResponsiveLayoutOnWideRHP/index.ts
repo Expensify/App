@@ -2,16 +2,12 @@ import {getRHPRouteWidth, subscribeToRHPRouteKeys, WideRHPStateContext} from '@c
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useRouteFromContext from '@hooks/useRouteFromContext';
 
-import type {Route} from '@react-navigation/native';
-
-import {NavigationRouteContext, useRoute} from '@react-navigation/native';
-import {createContext, use, useContext, useSyncExternalStore} from 'react';
+import {useRoute} from '@react-navigation/native';
+import {use, useSyncExternalStore} from 'react';
 
 import type ResponsiveLayoutOnWideRHPResult from './types';
-
-// Tests that mock @react-navigation/native partially leave this undefined.
-const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
 /**
  * Reads the Wide RHP state only inside the RHP, so screens outside it don't re-render when that state changes.
@@ -33,8 +29,7 @@ function useIsDisplayedInWideRHP({isSmallScreenWidth, isInNarrowPaneModal}: Pick
  * In this hook this value is modified when the screen is displayed in Wide/Super Wide RHP, then in wide screen this value is false.
  */
 export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRHPResult {
-    // Read from context rather than useRoute, which throws when a caller renders outside a navigator screen.
-    const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
+    const route = useRouteFromContext();
 
     const responsiveLayoutValues = useResponsiveLayout();
 

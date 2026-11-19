@@ -1,4 +1,5 @@
 import {deletePendingNewTransactionFlags} from '@libs/actions/IOU/PendingNewTransactions';
+import getNextNewTransactionsDiff, {EMPTY_TRANSACTION_IDS, getInitialNewTransactionsDiff} from '@libs/getNextNewTransactionsDiff';
 
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
@@ -9,21 +10,9 @@ import {useEffect, useState} from 'react';
 import useDeliveredReportTransactions from './useDeliveredReportTransactions';
 
 const EMPTY_TRANSACTIONS: Transaction[] = [];
-const EMPTY_TRANSACTION_IDS: string[] = [];
 
 /** Sweeps already scheduled, keyed `railReportID:flagKey`. Module-level because every preview in a chat reads the same rail. */
 const scheduledSweeps = new Set<string>();
-
-type DiffState = {
-    /** A different report restarts the diff. */
-    reportID: string | undefined;
-
-    /** `undefined` until the report's full list arrives. */
-    sourceIDs: string[] | undefined;
-
-    /** Emptied when their highlight window ends. */
-    addedIDs: string[];
-};
 
 type UseNewTransactionsParams = {
     hasOnceLoadedReportActions: boolean | undefined;
@@ -62,52 +51,21 @@ function useNewTransactions({
     railReportID,
     isReportVisible,
 }: UseNewTransactionsParams): Transaction[] {
-    const [hasSettledAfterInitialLoad, setHasSettledAfterInitialLoad] = useState(() => !!hasOnceLoadedReportActions);
-    const [diffState, setDiffState] = useState<DiffState>(() => ({reportID: transactionsReportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS}));
+    const [diff, setDiff] = useState(() => getInitialNewTransactionsDiff(transactionsReportID, !!hasOnceLoadedReportActions));
     const deliveredTransactions = useDeliveredReportTransactions({reportID: transactionsReportID, transactions, arrivedTransactionCount, expectedTransactionCount});
     const trackedTransactionIDs = hasOnceLoadedReportActions && deliveredTransactions ? deliveredTransactions.map(({transactionID}) => transactionID) : undefined;
-    const baselineSourceIDs = diffState.sourceIDs;
-    const baselineIDs = new Set(baselineSourceIDs);
-    const isReportSwitch = transactionsReportID !== diffState.reportID;
-    // A reorder is not an add.
-    const hasSameTransactionIDs =
-        trackedTransactionIDs !== undefined &&
-        baselineSourceIDs !== undefined &&
-        trackedTransactionIDs.length === baselineSourceIDs.length &&
-        trackedTransactionIDs.every((transactionID) => baselineIDs.has(transactionID));
-    if (isReportSwitch) {
-        // Only the new report's own list can set its baseline.
-        setDiffState({reportID: transactionsReportID, sourceIDs: undefined, addedIDs: EMPTY_TRANSACTION_IDS});
-        if (hasSettledAfterInitialLoad !== !!hasOnceLoadedReportActions) {
-            setHasSettledAfterInitialLoad(!!hasOnceLoadedReportActions);
-        }
-    } else if ((trackedTransactionIDs !== undefined || baselineSourceIDs !== undefined) && !hasSameTransactionIDs) {
-        let addedIDs = EMPTY_TRANSACTION_IDS;
-        if (baselineSourceIDs !== undefined && trackedTransactionIDs !== undefined && trackedTransactionIDs.length > baselineSourceIDs.length) {
-            if (!hasSettledAfterInitialLoad) {
-                setHasSettledAfterInitialLoad(true);
-            } else {
-                // Every missing row is an add, even all of them: that is what a split looks like.
-                addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineIDs.has(transactionID));
-            }
-        } else if (diffState.addedIDs.length && trackedTransactionIDs !== undefined) {
-            // The same array, so a reorder or removal doesn't restart the highlight window.
-            addedIDs = diffState.addedIDs;
-        }
-        setDiffState({reportID: transactionsReportID, sourceIDs: trackedTransactionIDs, addedIDs});
+    const nextDiff = getNextNewTransactionsDiff(diff, {transactionsReportID, trackedTransactionIDs, hasOnceLoadedReportActions: !!hasOnceLoadedReportActions});
+    if (nextDiff !== diff) {
+        setDiff(nextDiff);
     }
-
-    // An unloaded report cannot have settled, even if the loaded flag lags a report switch.
-    if (!hasOnceLoadedReportActions && hasSettledAfterInitialLoad) {
-        setHasSettledAfterInitialLoad(false);
-    }
+    const {addedIDs: latchedAddedIDs, hasSettledAfterInitialLoad} = diff;
 
     const activeFlagKeys = pendingNewTransactions?.activeFlagKeys;
     const railTransactions = railReportID && activeFlagKeys && transactions.length ? transactions.filter(({transactionID}) => activeFlagKeys[transactionID]) : EMPTY_TRANSACTIONS;
 
     let diffTransactions = EMPTY_TRANSACTIONS;
-    if (diffState.addedIDs.length && transactions.length) {
-        const addedIDs = new Set(diffState.addedIDs);
+    if (latchedAddedIDs.length && transactions.length) {
+        const addedIDs = new Set(latchedAddedIDs);
         diffTransactions = transactions.filter(({transactionID}) => addedIDs.has(transactionID));
     }
 
@@ -148,10 +106,8 @@ function useNewTransactions({
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [isReportVisible, pendingNewTransactions, newTransactions, railReportID]);
 
-    // Compared by identity, so a later add of the same size gets its own window.
-    const latchedAddedIDs = diffState.addedIDs;
-    // Starts when the rows are first visible and never restarts, so covering them can't prolong it.
-    const [visibleAddedIDs, setVisibleAddedIDs] = useState<string[] | undefined>(undefined);
+    // Compared by identity, so a later add of the same size gets its own window. Starts when the rows are first visible and never restarts, so covering them can't prolong it.
+    const [visibleAddedIDs, setVisibleAddedIDs] = useState<readonly string[] | undefined>(undefined);
     if (isReportVisible && latchedAddedIDs.length && visibleAddedIDs !== latchedAddedIDs) {
         setVisibleAddedIDs(latchedAddedIDs);
     }
@@ -160,7 +116,7 @@ function useNewTransactions({
             return;
         }
         const timer = setTimeout(() => {
-            setDiffState((previousDiffState) => (previousDiffState.addedIDs === visibleAddedIDs ? {...previousDiffState, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiffState));
+            setDiff((previousDiff) => (previousDiff.addedIDs === visibleAddedIDs ? {...previousDiff, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiff));
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
         return () => clearTimeout(timer);
     }, [visibleAddedIDs]);
@@ -169,8 +125,7 @@ function useNewTransactions({
         if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {
             return;
         }
-        // A report that loads without adding transactions never grows, so the diff above never settles it, and it settles here instead.
-        // This waits a microtask and a frame, so transactions that arrive in the same Onyx update as the loaded flag still count as the baseline, not as adds.
+        // A report that loads without growing settles here, a microtask and a frame later, so transactions in the same Onyx update as the loaded flag join the baseline, not the adds.
         let frame: number | undefined;
         let isStale = false;
         new Promise<void>((resolve) => {
@@ -180,7 +135,7 @@ function useNewTransactions({
                 return;
             }
             frame = requestAnimationFrame(() => {
-                setHasSettledAfterInitialLoad(true);
+                setDiff((previousDiff) => (previousDiff.hasSettledAfterInitialLoad ? previousDiff : {...previousDiff, hasSettledAfterInitialLoad: true}));
             });
         });
         // Cancelled on cleanup, so a frame queued for the previous report cannot undo the reset.
