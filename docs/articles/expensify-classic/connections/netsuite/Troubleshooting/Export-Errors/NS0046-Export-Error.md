@@ -28,8 +28,6 @@ NetSuite requires all billable expenses to be linked to an active customer or pr
 
 ---
 
-## How to Fix the NS0046 Export Error
-
 ## How to enable NetSuite Customers for billable expenses
 
 If an expense should be billed to a customer, make sure the workspace imports the customer or project coding it needs.
@@ -43,6 +41,8 @@ If an expense should be billed to a customer, make sure the workspace imports th
 Learn how to [configure NetSuite customer and project imports](/articles/expensify-classic/connections/netsuite/Configure-Netsuite).
 
 ---
+
+## How to Fix the NS0046 Export Error
 
 ### Step One: Confirm All Billable Expenses Have a Customer or Project
 

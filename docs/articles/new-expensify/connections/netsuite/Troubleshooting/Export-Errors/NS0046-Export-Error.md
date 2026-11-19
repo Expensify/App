@@ -45,7 +45,7 @@ If an expense should be billed to a customer, make sure the workspace imports th
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
 2. Select **Configure** next to NetSuite, then select **Import**.
 3. Enable **Customers** if disabled, and confirm customers or projects are imported at the level needed for your billable expenses.
-4. Select **More (⋮) > Sync now**.
+4. Select **More (⋮)**, then select **Sync now**.
 5. Apply a valid imported **Customer** or **Project** to each billable expense before retrying the export.
 
 Learn how to [configure NetSuite customer and project imports](/articles/new-expensify/connections/netsuite/Configure-Netsuite).
