@@ -11,7 +11,9 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import Clipboard from '@libs/Clipboard';
 import DebugUtils from '@libs/DebugUtils';
 
-import React, {useMemo} from 'react';
+import CONST from '@src/CONST';
+
+import React from 'react';
 import {View} from 'react-native';
 
 type DebugJSONProps = {
@@ -24,7 +26,7 @@ function DebugJSON({data}: DebugJSONProps) {
     const {translate} = useLocalize();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);
+    const json = DebugUtils.stringifyJSON(data);
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (
@@ -33,6 +35,7 @@ function DebugJSON({data}: DebugJSONProps) {
             contentContainerStyle={[styles.gap5, styles.ph5]}
         >
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DEBUG.JSON_COPY}
                 isDisabled={!isThrottledButtonActive}
                 onPress={() => {
                     Clipboard.setString(json);

@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import shouldEnableAttachmentModalKeyboardAvoidance from '@libs/shouldEnableAttachmentModalKeyboardAvoidance';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 
 import CONST from '@src/CONST';
@@ -19,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 
@@ -46,7 +47,18 @@ import PDFPasswordForm from './PDFPasswordForm';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps) {
+function PDFView({
+    onToggleKeyboard,
+    onLoadComplete,
+    fileName,
+    onPress,
+    isFocused,
+    onScaleChanged,
+    sourceURL,
+    onLoadError,
+    isUsedAsChatAttachment,
+    isUsedInAttachmentModal,
+}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -61,6 +73,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
     const {insets} = useSafeAreaPaddings();
+    const shouldAvoidKeyboardForPasswordForm = !!isUsedInAttachmentModal && !shouldEnableAttachmentModalKeyboardAvoidance();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -77,7 +90,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * invalid.
      */
 
-    const initiatePasswordChallenge = useCallback(() => {
+    const initiatePasswordChallenge = () => {
         setShouldShowLoadingIndicator(false);
 
         // Render password form, and don't render PDF and loading indicator.
@@ -90,7 +103,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         if (password) {
             setIsPasswordInvalid(true);
         }
-    }, [password]);
+    };
 
     const handleFailureToLoadPDF = ((error: Error) => {
         if (error.message.match(/password/i)) {
@@ -138,21 +151,18 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * Handle press link event on native apps.
      */
-    const handlePressLink = useCallback(
-        (url: string) => {
-            if (!isAllowedPDFLink(url)) {
-                return;
-            }
+    const handlePressLink = (url: string) => {
+        if (!isAllowedPDFLink(url)) {
+            return;
+        }
 
-            if (isTravelLink(url) && activePolicyID) {
-                const postLoginPath = getRelativeUrl(url);
-                openTravelDotLink(activePolicyID, postLoginPath);
-                return;
-            }
-            Linking.openURL(url);
-        },
-        [activePolicyID],
-    );
+        if (isTravelLink(url) && activePolicyID) {
+            const postLoginPath = getRelativeUrl(url);
+            openTravelDotLink(activePolicyID, postLoginPath);
+            return;
+        }
+        Linking.openURL(url);
+    };
 
     function renderPDFView() {
         // Insets are used to adjust the maxWidth of the PDF view in landscape mode
@@ -182,6 +192,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                 {shouldAttemptPDFLoad && (
                     <PDF
                         fitPolicy={0}
+                        enableDoubleTapZoom
                         trustAllCerts={false}
                         renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
@@ -195,7 +206,11 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     />
                 )}
                 {shouldRequestPassword && (
-                    <KeyboardAvoidingView style={themeStyles.flex1}>
+                    <KeyboardAvoidingView
+                        style={themeStyles.flex1}
+                        behavior={shouldAvoidKeyboardForPasswordForm ? 'padding' : undefined}
+                        automaticOffset={shouldAvoidKeyboardForPasswordForm}
+                    >
                         <PDFPasswordForm
                             isFocused={!!isFocused}
                             onSubmit={attemptPDFLoadWithPassword}

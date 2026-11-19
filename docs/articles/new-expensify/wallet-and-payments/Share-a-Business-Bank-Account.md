@@ -21,12 +21,13 @@ If you've already added and verified a business bank account, you can share it w
 
 ## How to share a business bank account
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
-2. In the **Bank accounts** section, find the verified business bank account and select the three dots **(⋮)** next to the account.
-3. Select **Share**.
-4. Select the admins you want to share the account with. 
-5. Click **Share**.
-6. You'll see a confirmation once the process is complete.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. In the **Bank accounts** section, find the verified business bank account and select **More (⋮)** next to the account.
+4. Select **Share**.
+5. Select the admins you want to share the account with. 
+6. Select **Share**.
+7. You'll see a confirmation once the process is complete.
 
 **Note:** You can only share with Workspace Admins and Payments Admins from Workspaces where you also have admin access.
 

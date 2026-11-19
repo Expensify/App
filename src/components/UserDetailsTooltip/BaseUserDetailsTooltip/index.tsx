@@ -1,12 +1,12 @@
 import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
 import UserAvatar from '@components/Avatar/UserAvatar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -14,14 +14,15 @@ import {getUserDetailTooltipText} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector([accountID, delegateAccountID]));
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
@@ -56,48 +57,25 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     if (CONST.RESTRICTED_ACCOUNT_IDS.includes(userAccountID) || CONST.RESTRICTED_EMAILS.includes(userLogin.trim())) {
         subtitle = '';
     }
-    const renderTooltipContent = useCallback(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
-                <View style={styles.emptyAvatar}>
-                    {icon ? (
-                        <AvatarFromIcon
-                            containerStyles={styles.actionAvatar}
-                            icon={{...icon, id: icon.id ?? userAccountID, name: icon.name ?? userLogin}}
-                        />
-                    ) : (
-                        <UserAvatar
-                            containerStyles={styles.actionAvatar}
-                            source={userAvatar}
-                            accountID={userAccountID}
-                        />
-                    )}
-                </View>
-                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
+    const renderTooltipContent = () => (
+        <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
+            <View style={styles.emptyAvatar}>
+                {icon ? (
+                    <AvatarFromIcon
+                        containerStyles={styles.actionAvatar}
+                        icon={{...icon, id: icon.id ?? userAccountID, name: icon.name ?? userLogin}}
+                    />
+                ) : (
+                    <UserAvatar
+                        containerStyles={styles.actionAvatar}
+                        source={userAvatar}
+                        accountID={userAccountID}
+                    />
+                )}
             </View>
-        ),
-
-        [
-            styles.alignItemsCenter,
-            styles.ph2,
-            styles.pv2,
-            styles.emptyAvatar,
-            styles.actionAvatar,
-            styles.mt2,
-            styles.textMicroBold,
-            styles.textReactionSenders,
-            styles.textAlignCenter,
-            styles.textMicro,
-            styles.fontColorReactionLabel,
-            styles.breakWord,
-            icon,
-            userAvatar,
-            userAccountID,
-            userLogin,
-            title,
-            subtitle,
-        ],
+            <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
+        </View>
     );
 
     if (!icon && !userDisplayName && !userLogin) {

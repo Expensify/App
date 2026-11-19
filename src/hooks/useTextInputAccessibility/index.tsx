@@ -1,5 +1,3 @@
-import {useMemo} from 'react';
-
 import type TextInputAccessibilityResult from './type';
 
 /**
@@ -8,7 +6,7 @@ import type TextInputAccessibilityResult from './type';
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useTextInputAccessibility(value: string | undefined, _accessibilityLabel: string): TextInputAccessibilityResult {
-    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const accessibilityValue = {text: value ?? ''};
     return {
         accessibilityValue,
         accessibilityLabelledBy: undefined,

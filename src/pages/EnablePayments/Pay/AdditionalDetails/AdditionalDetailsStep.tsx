@@ -155,6 +155,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                 <View style={[styles.ph5]}>
                     <Text style={styles.mb3}>{translate('additionalDetailsStep.helpText')}</Text>
                     <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.PAY_ADDITIONAL_DETAILS_HELP_LINK}
                         style={styles.mb3}
                         href={CONST.HELP_LINK_URL}
                     >
@@ -192,6 +193,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <AddressFormFields
+                        containerStyles={styles.mt6}
                         inputKeys={{
                             street: 'addressStreet',
                             city: 'addressCity',

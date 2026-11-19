@@ -4,9 +4,10 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
+import type {DynamicFormSavedValues} from './DynamicFormField';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WiseKYCRequirement} from './WiseKYCReview';
 
@@ -262,6 +263,15 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     };
 };
 
+/** One source of the company's money, as Wise's BUSINESS_SOURCE_OF_WEALTH_INFO takes it */
+type WiseSourceOfWealthEntry = {
+    /** Wise's source of wealth value, such as REVENUE */
+    businessSourceOfWealthInfo: string;
+
+    /** Whether the source funds the business's daily operations. Missing until the user answers it. */
+    isSourceOfFund?: boolean;
+};
+
 /** Wise onboarding data, stored under additionalData.wise */
 type WiseBusinessOnboarding = {
     /** Onboarding status */
@@ -270,37 +280,10 @@ type WiseBusinessOnboarding = {
     /** The bank account's currency */
     currency?: string;
 
-    /** Last saved step */
-    step?: string;
+    /** The answers of each saved intake page, by page key. A key a later save dropped comes back as null. */
+    pages?: Record<string, DynamicFormSavedValues | {sourceOfWealthList?: WiseSourceOfWealthEntry[]}>;
 
-    /** Business page answers */
-    business?: {
-        /** The legal form, prefilled from the account's incorporation type where it maps cleanly */
-        companyType: ValueOf<typeof CONST.WISE.COMPANY_TYPE>;
-
-        companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
-        industryCategories: Array<TupleToUnion<typeof CONST.WISE.INDUSTRY_CATEGORIES>>;
-        description: string;
-    };
-
-    /** Representative page answers. The full SSN stays on the server */
-    representative?: {
-        /** Last four digits of the SSN */
-        ssnLast4?: string;
-
-        /** The representative has no SSN or ITIN */
-        hasNoSSN?: boolean;
-    };
-
-    /** KYC requirement answers, by requirement then by Wise's field name */
-    requirements?: {
-        ID_DOCUMENT?: {
-            issuingCountry: string;
-            documentType: string;
-        };
-    } & Record<string, Record<string, unknown>>;
-
-    /** Uploaded file keys, by requirement then by field */
+    /** Uploaded file keys, by page key then by field */
     documents?: Record<string, Record<string, string[]>>;
 
     /**
@@ -346,6 +329,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the beneficial owners data via the API (non USD flow Step 4) */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
+    /** The Wise onboarding pages whose last save has not succeeded, by step. The shared `errors` hold only the newest failure, so these keep Confirm blocked until each page saves. */
+    wiseOnboardingUnsavedPages?: Record<string, boolean>;
+
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;
 
@@ -357,6 +343,12 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
     isFinishingCorpayBankAccountOnboarding?: boolean;
+
+    /** Whether the Wise business onboarding is being submitted from the terms page */
+    isSubmittingWiseBusinessOnboarding?: boolean;
+
+    /** Whether the last Wise business onboarding submission succeeded. Kept apart from `isSuccess`, which the other bank account flows read. */
+    isWiseBusinessOnboardingSubmitSuccessful?: boolean;
 
     /** Whether we are sending a reminder about filling signer information via the API */
     isSendingReminderForCorpaySignerInformation?: boolean;
@@ -388,4 +380,14 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, WiseBusinessOnboarding, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {
+    Corpay,
+    WiseBusinessOnboarding,
+    WiseSourceOfWealthEntry,
+    BankAccountStep,
+    BankAccountSubStep,
+    ACHData,
+    ReimbursementAccountStep,
+    ReimbursementAccountSubStep,
+    ACHDataReimbursementAccount,
+};

@@ -16,6 +16,7 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
+import type {MaterialTopTabNavigationOptions} from '@react-navigation/material-top-tabs';
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 
@@ -44,6 +45,7 @@ const mockOnDiscard = jest.fn<ReturnType<TabSwitchGuard['onDiscard']>, Parameter
 const mockDispatch = jest.fn<ReturnType<NavigationProp<ParamListBase>['dispatch']>, Parameters<NavigationProp<ParamListBase>['dispatch']>>();
 let mockScreenListeners: MockScreenListeners | undefined;
 let mockInitialRouteName: TabName | undefined;
+let mockLazyPlaceholder: MaterialTopTabNavigationOptions['lazyPlaceholder'];
 
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
@@ -57,10 +59,17 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
 
-jest.mock('@hooks/useThemeStyles', () => ({
-    __esModule: true,
-    default: () => ({fullScreenLoading: {}, w100: {}, h100: {}}),
-}));
+jest.mock('@hooks/useThemeStyles', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const context = ReactModule.createContext({fullScreenLoading: {}, w100: {}, h100: {}});
+    function useMockThemeStyles() {
+        return ReactModule.useContext(context);
+    }
+    return {
+        __esModule: true,
+        default: useMockThemeStyles,
+    };
+});
 
 jest.mock('@userActions/Tab', () => ({setSelectedTab: jest.fn()}));
 
@@ -84,9 +93,20 @@ jest.mock('@libs/getPlatform', () => ({
 
 jest.mock('@react-navigation/material-top-tabs', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const Navigator = ({children, screenListeners, initialRouteName}: {children: React.ReactNode; screenListeners: MockScreenListeners; initialRouteName?: TabName}) => {
+    const Navigator = ({
+        children,
+        screenListeners,
+        initialRouteName,
+        screenOptions,
+    }: {
+        children: React.ReactNode;
+        screenListeners: MockScreenListeners;
+        initialRouteName?: TabName;
+        screenOptions: MaterialTopTabNavigationOptions;
+    }) => {
         mockScreenListeners = screenListeners;
         mockInitialRouteName = initialRouteName;
+        mockLazyPlaceholder = screenOptions.lazyPlaceholder;
         return ReactModule.createElement(ReactModule.Fragment, null, children);
     };
     const Screen = ({children}: {children?: React.ReactNode | (() => React.ReactNode)}) => {
@@ -119,6 +139,55 @@ function renderTabNavigator(hasUnsavedChanges: boolean, shouldDismissKeyboardBef
         </OnyxTabNavigator>,
     );
 }
+
+function LazyScene({isVisible, renderPlaceholder}: {isVisible: boolean; renderPlaceholder: () => React.ReactNode}) {
+    React.useRef(null);
+    return isVisible ? renderPlaceholder() : null;
+}
+
+describe('OnyxTabNavigator lazy placeholder', () => {
+    it('keeps placeholder hooks out of the scene when lazy content becomes visible', () => {
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            // Given React Navigation invokes its lazy-placeholder callback directly, and initially hides an unmeasured scene.
+            renderFiniteNavigator({lazyLoadEnabled: true});
+            const renderPlaceholder = mockLazyPlaceholder;
+            if (!renderPlaceholder) {
+                throw new Error('Expected a lazy placeholder callback');
+            }
+            const scene = render(
+                <LazyScene
+                    isVisible={false}
+                    renderPlaceholder={renderPlaceholder}
+                />,
+            );
+
+            // When layout makes that inactive scene visible, then hides it again.
+            scene.rerender(
+                <LazyScene
+                    isVisible
+                    renderPlaceholder={renderPlaceholder}
+                />,
+            );
+            expect(scene.toJSON()).not.toBeNull();
+            scene.rerender(
+                <LazyScene
+                    isVisible={false}
+                    renderPlaceholder={renderPlaceholder}
+                />,
+            );
+
+            // Then its own hook order stays unchanged; the placeholder owns its theme subscription.
+            expect(scene.toJSON()).toBeNull();
+            const hookOrderWarnings = errorSpy.mock.calls.filter((args) =>
+                args.some((arg) => typeof arg === 'string' && /change in the order of Hooks|Rendered (more|fewer) hooks/.test(arg)),
+            );
+            expect(hookOrderWarnings).toHaveLength(0);
+        } finally {
+            errorSpy.mockRestore();
+        }
+    });
+});
 
 function pressTargetTab(): MockTabPressEvent {
     if (!mockScreenListeners) {

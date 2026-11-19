@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {getSettingsMessage, useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
+import {getSettingsMessage, getSettingsRoute, useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -8,6 +8,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
@@ -37,6 +38,21 @@ describe('useDebugTabViewHeight', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    it('maps UK fuel VAT errors to a localized message and the affected workspace settings', () => {
+        // Given a fuel VAT indicator associated with a specific workspace
+        const status = CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR;
+        const policyID = 'fuelWorkspace';
+
+        // When either Settings or Workspaces resolves the debug banner content and destination
+        const message = getSettingsMessage(status);
+        const route = getSettingsRoute(status, undefined, policyID);
+
+        // Then the banner is not hidden and View opens the warning's settings, without changing the generic custom-unit route
+        expect(message).toBe('debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors');
+        expect(route).toBe(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
+        expect(getSettingsRoute(CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, undefined, policyID)).toBe(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
     });
 
     it('returns debugTabViewHeight on wide layout with debug mode and a mapped indicator status', async () => {

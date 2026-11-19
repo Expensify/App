@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
@@ -40,18 +40,15 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const canUseTagsForLocations = canImportLocationsAsTags(qboConfig);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
-    const updateQuickbooksOnlineSyncLocations = useCallback(
-        (settingValue: IntegrationEntityMap) => {
-            if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
-                );
-                return;
-            }
-            updateQuickbooksOnlineSyncLocationsAction(policyID, settingValue, qboConfig?.syncLocations);
-        },
-        [policy, policyID, qboConfig?.syncLocations],
-    );
+    const updateQuickbooksOnlineSyncLocations = (settingValue: IntegrationEntityMap) => {
+        if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
+            );
+            return;
+        }
+        updateQuickbooksOnlineSyncLocationsAction(policyID, settingValue, qboConfig?.syncLocations);
+    };
     // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
     useEffect(() => {
         if (!shouldSwitchLocationsToReportFields(qboConfig)) {
@@ -76,6 +73,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.locations')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_LOCATIONS_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     updateQuickbooksOnlineSyncLocations(
@@ -98,6 +96,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.LOCATIONS_DISPLAYED_AS}
                             onPress={canUseTagsForLocations ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)) : undefined}
                         >
                             <MenuItemField.Row

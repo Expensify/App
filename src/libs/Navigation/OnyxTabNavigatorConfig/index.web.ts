@@ -1,3 +1,5 @@
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {TabRouterOptions} from '@react-navigation/native';
 import type {ViewStyle} from 'react-native';
 
@@ -11,6 +13,6 @@ const defaultScreenOptions = {
  */
 const backBehavior: NonNullable<TabRouterOptions['backBehavior']> = 'none';
 
-const pagerContainerStyle: ViewStyle = {overflow: 'clip'};
+const pagerContainerStyle: ViewStyle = toViewStyle({overflow: 'clip'});
 
 export {defaultScreenOptions, backBehavior, pagerContainerStyle};

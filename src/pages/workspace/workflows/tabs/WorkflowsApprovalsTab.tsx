@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,7 +44,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useDeferredValue, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -104,6 +105,53 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
     );
 }
 
+// The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+// on a member too (each member belongs to exactly one workflow).
+function getWorkflowAnchor(workflow: ApprovalWorkflow) {
+    return {approverEmail: workflow.approvers.at(0)?.email ?? '', memberEmail: workflow.members.at(0)?.email ?? ''};
+}
+
+type WorkflowRowProps = {
+    workflow: ApprovalWorkflow;
+    onEdit?: (workflow: ApprovalWorkflow) => void;
+    onShowAllMembers?: (workflow: ApprovalWorkflow) => void;
+    currency?: string;
+    isDisabled: boolean;
+    providerName?: string;
+    isHRAdvancedModeEnabled: boolean;
+    isRecruitingAdvancedModeEnabled: boolean;
+    hrFinalApproverEmail?: string;
+};
+
+// Its own component so each workflow keeps the same press handlers while the admin types in Find workflow.
+function WorkflowRow({
+    workflow,
+    onEdit,
+    onShowAllMembers,
+    currency,
+    isDisabled,
+    providerName,
+    isHRAdvancedModeEnabled,
+    isRecruitingAdvancedModeEnabled,
+    hrFinalApproverEmail,
+}: WorkflowRowProps) {
+    return (
+        <OfflineWithFeedback pendingAction={workflow.pendingAction}>
+            <ApprovalWorkflowSection
+                approvalWorkflow={workflow}
+                onPress={onEdit ? () => onEdit(workflow) : undefined}
+                onShowAllMembersPress={onShowAllMembers ? () => onShowAllMembers(workflow) : undefined}
+                currency={currency}
+                isDisabled={isDisabled}
+                providerName={providerName}
+                isHRAdvancedMode={isHRAdvancedModeEnabled}
+                isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
+                hrFinalApproverEmail={hrFinalApproverEmail}
+            />
+        </OfflineWithFeedback>
+    );
+}
+
 function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -121,6 +169,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const accountManagerReportID = account?.accountManagerReportID;
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {
         canWrite: canWriteApprovals,
@@ -134,27 +183,29 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const confirmDisableApprovals = useCallback(() => {
+    const confirmDisableApprovals = () => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
             transactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
+            // Optional approval mode has no approvers, so personalDetailsByLogins isn't needed.
+            personalDetailsByLogins: undefined,
         });
-    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+    };
 
     const approvalWorkflowSource = getApprovalWorkflowSource(policy, policyID);
     const isWorkflowFromIntegration = !!approvalWorkflowSource;
     const workflowSourceName = approvalWorkflowSource?.providerName ?? '';
     const workflowSourceSettingsRoute = approvalWorkflowSource?.settingsRoute;
 
-    const navigateToWorkflowSourceSettings = useCallback(() => {
+    const navigateToWorkflowSourceSettings = () => {
         if (!workflowSourceSettingsRoute) {
             return;
         }
         Navigation.navigate(workflowSourceSettingsRoute);
-    }, [workflowSourceSettingsRoute]);
+    };
 
-    const promptConfigureApprovalsInIntegration = useCallback(async () => {
+    const promptConfigureApprovalsInIntegration = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
             prompt: translate('workflowsPage.integrationApprovalWorkflowLockedPrompt', {
@@ -169,14 +220,14 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             return;
         }
         navigateToWorkflowSourceSettings();
-    }, [navigateToWorkflowSourceSettings, workflowSourceName, showConfirmModal, translate]);
+    };
 
-    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+    const navigateToSubmitWorkspaceApprovalsUpgrade = () => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
-    }, [policyID]);
+    };
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
-    const addApprovalAction = useCallback(() => {
+    const addApprovalAction = () => {
         setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers,
@@ -200,7 +251,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         }
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-    }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    };
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const isRecruitingAdvancedModeEnabled = isRecruitingAdvancedMode(policy);
@@ -236,7 +287,25 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;
     };
 
-    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
+    const editWorkflow = (workflow: ApprovalWorkflow) => {
+        // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
+        clearApprovalWorkflow();
+        const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, approverEmail, memberEmail));
+    };
+
+    const showAllWorkflowMembers = (workflow: ApprovalWorkflow) => {
+        selectApprovalWorkflowForEdit({
+            workflow,
+            defaultWorkflowMembers: availableMembers,
+            usedApproverEmails,
+            defaultApprovalWorkflow: approvalWorkflows.find((approvalWorkflow) => approvalWorkflow.isDefault),
+            isFastEdit: true,
+        });
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
+    };
+
+    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows, workflowSearchQuery] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
     const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
     useEffect(() => {
@@ -254,13 +323,16 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     // Searching reveals every match, so pagination is bypassed while a query is active. Pressing "Load more" reveals all remaining workflows at once.
     // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
-    const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
+    const isSearchingWorkflows = workflowSearchQuery.trim().length > 0;
     // Memoize so a stable reference reaches the render below; otherwise the slice() allocates a new array each render.
-    const displayedWorkflows = useMemo(
-        () => (isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)),
-        [isWorkflowListExpanded, isSearchingWorkflows, searchFilteredWorkflows],
-    );
+    const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
+    // Defer these together so each key updates the input first, and the list, Load more and no results always agree.
+    const deferredWorkflowList = useDeferredValue({
+        workflows: displayedWorkflows,
+        hiddenCount: hiddenWorkflowsCount,
+        hasNoMatches: searchFilteredWorkflows.length === 0,
+    });
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     // A loaded non-Submit group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
@@ -271,22 +343,22 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
-    const approvalSubtitle = useMemo(() => {
-        if (!isWorkflowFromIntegration) {
-            return translate('workflowsPage.addApprovalsDescription');
-        }
-
-        return (
-            <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
-                {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToWorkflowSourceSettings}>
-                    {translate('workflowsPage.configureViaProvider', {
-                        provider: workflowSourceName,
-                    })}
-                </TextLink>
-            </Text>
-        );
-    }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    const isWorkflowEditingDisabled = shouldBlockApprovalWorkflowEditing || !canWriteApprovals;
+    const approvalSubtitle = !isWorkflowFromIntegration ? (
+        translate('workflowsPage.addApprovalsDescription')
+    ) : (
+        <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
+            {translate('workflowsPage.addApprovalsDescription')}{' '}
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_CONFIGURE_VIA_PROVIDER_LINK}
+                onPress={navigateToWorkflowSourceSettings}
+            >
+                {translate('workflowsPage.configureViaProvider', {
+                    provider: workflowSourceName,
+                })}
+            </TextLink>
+        </Text>
+    );
 
     const approvalOptionSubtitle = isWorkflowFromIntegration || !isApprovalsLockedBySmartLimit ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
@@ -305,6 +377,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             switchAccessibilityLabel={
                 isApprovalsLockedBySmartLimit ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')
             }
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVALS_SWITCH}
             onToggle={(isEnabled: boolean) => {
                 if (!canWriteApprovals) {
                     showReadOnlyModal();
@@ -344,6 +417,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                         transactionViolations,
                         isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
                         personalDetailsList: personalDetails,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     },
                 );
             }}
@@ -379,58 +453,30 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                             )}
                             <WorkflowNoResultsView
                                 message={translate('common.noResultsFoundMatching', workflowSearchInput)}
-                                shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                                shouldShow={deferredWorkflowList.hasNoMatches && workflowSearchInput.length > 0}
                                 searchValue={workflowSearchInput}
                             />
-                            {displayedWorkflows.map((workflow) => {
-                                const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-                                // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
-                                // on a member too (each member belongs to exactly one workflow).
-                                const firstMemberEmail = workflow.members.at(0)?.email ?? '';
+                            {deferredWorkflowList.workflows.map((workflow) => {
+                                const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
 
                                 return (
-                                    <OfflineWithFeedback
-                                        key={`${firstApproverEmail}-${firstMemberEmail}`}
-                                        pendingAction={workflow.pendingAction}
-                                    >
-                                        <ApprovalWorkflowSection
-                                            approvalWorkflow={workflow}
-                                            onPress={
-                                                shouldBlockApprovalWorkflowEditing || !canWriteApprovals
-                                                    ? undefined
-                                                    : () => {
-                                                          // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-                                                          clearApprovalWorkflow();
-                                                          Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, firstMemberEmail));
-                                                      }
-                                            }
-                                            onShowAllMembersPress={
-                                                shouldBlockApprovalWorkflowEditing
-                                                    ? undefined
-                                                    : () => {
-                                                          selectApprovalWorkflowForEdit({
-                                                              workflow,
-                                                              defaultWorkflowMembers: availableMembers,
-                                                              usedApproverEmails,
-                                                              defaultApprovalWorkflow: approvalWorkflows.find((approvalWorkflow) => approvalWorkflow.isDefault),
-                                                              isFastEdit: true,
-                                                          });
-                                                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-                                                      }
-                                            }
-                                            currency={policy?.outputCurrency}
-                                            isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                            providerName={approvalWorkflowSource?.providerName}
-                                            isHRAdvancedMode={isHRAdvancedModeEnabled}
-                                            isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
-                                            hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
-                                        />
-                                    </OfflineWithFeedback>
+                                    <WorkflowRow
+                                        key={`${approverEmail}-${memberEmail}`}
+                                        workflow={workflow}
+                                        onEdit={isWorkflowEditingDisabled ? undefined : editWorkflow}
+                                        onShowAllMembers={shouldBlockApprovalWorkflowEditing ? undefined : showAllWorkflowMembers}
+                                        currency={policy?.outputCurrency}
+                                        isDisabled={isWorkflowEditingDisabled}
+                                        providerName={approvalWorkflowSource?.providerName}
+                                        isHRAdvancedModeEnabled={isHRAdvancedModeEnabled}
+                                        isRecruitingAdvancedModeEnabled={isRecruitingAdvancedModeEnabled}
+                                        hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
+                                    />
                                 );
                             })}
-                            {hiddenWorkflowsCount > 0 && (
+                            {deferredWorkflowList.hiddenCount > 0 && (
                                 <WorkflowsLoadMoreCard
-                                    count={hiddenWorkflowsCount}
+                                    count={deferredWorkflowList.hiddenCount}
                                     onPress={() => setIsWorkflowListExpanded(true)}
                                 />
                             )}

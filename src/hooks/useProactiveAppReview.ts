@@ -5,6 +5,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {useState} from 'react';
 
 import useOnyx from './useOnyx';
+import useShouldShowRequire2FAPage from './useShouldShowRequire2FAPage';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
@@ -38,13 +39,15 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     // The record survives sign-out, so it only counts for the account that wrote it.
     const localLastPrompt = !!sessionAccountID && localPromptRecord?.accountID === sessionAccountID ? localPromptRecord.lastPrompt : undefined;
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
 
     // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cool-down gate.
     const [timeAtMount] = useState(Date.now);
 
     let shouldShowModal = true;
-    if (shouldSuppressPromotionalUI) {
+    if (shouldSuppressPromotionalUI || shouldShowRequire2FAPage) {
         // Supportal agents and copilots should not leave reviews on behalf of another account.
+        // We shouldn't also show the modal if the user is required to set up 2FA, since that is a higher priority action than leaving a review.
         shouldShowModal = false;
     } else if (!proactiveAppReview?.trigger) {
         // Don't show if the trigger is not set

@@ -4,10 +4,12 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionReportGroupListItemType,
+    TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -34,9 +36,11 @@ type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undef
       ? TaskListItemType[]
       : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
         ? TransactionReportGroupListItemType[]
-        : G extends SearchGroupBy
-          ? TransactionGroupListItemType[]
-          : TransactionListItemType[];
+        : C extends typeof CONST.SEARCH.DATA_TYPES.TRIP
+          ? TripListItemType[] | TransactionListItemType[]
+          : G extends SearchGroupBy
+            ? TransactionGroupListItemType[]
+            : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -83,6 +87,9 @@ type SearchResultsInfo = {
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
 
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
+
     /** The number of results */
     count?: number;
 
@@ -105,6 +112,21 @@ type SearchResultsInfo = {
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+/** Model of a trip room returned by a trip search sent with shouldReturnTripRooms */
+type SearchTrip = Report & {
+    /** When the trip starts */
+    startDate?: string;
+
+    /** When the trip ends */
+    endDate?: string;
+
+    /** The trip's status, worked out by the backend */
+    status?: ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
+
+    /** The account ID of the traveler, who created the trip room */
+    travelerAccountID?: number;
+};
 
 /** Model of tasks search result */
 type SearchTask = {
@@ -161,6 +183,9 @@ type SearchGroupBase = {
 type SearchMemberGroup = SearchGroupBase & {
     /** Account ID */
     accountID: number;
+
+    /** Average time the member's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
 };
 
 /** Model of card grouped search result */
@@ -247,50 +272,111 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
+};
+
+/** Average time a time bucket's reports spent in each workflow stage, in seconds. Only Insights returns them, and each is null when no report completed that stage. */
+type SearchWorkflowStageDurations = {
+    /** From creation to submission */
+    submitAverageTime?: number | null;
+
+    /** From submission to approval */
+    approveAverageTime?: number | null;
+
+    /** From approval to payment */
+    reimburseAverageTime?: number | null;
 };
 
 /** Model of day grouped search result */
-type SearchDayGroup = SearchGroupBase & {
-    /** Date in YYYY-MM-DD format */
-    day: string;
-};
+type SearchDayGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Date in YYYY-MM-DD format */
+        day: string;
+    };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchMonthGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Month (1-12) */
-    month: number;
-};
+        /** Month (1-12) */
+        month: number;
+    };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = SearchGroupBase & {
-    /** Week start date in YYYY-MM-DD format */
-    week: string;
-};
+type SearchWeekGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Week start date in YYYY-MM-DD format */
+        week: string;
+    };
 
 /** Model of year grouped search result */
-type SearchYearGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
-};
+type SearchYearGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
+    };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchQuarterGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Quarter (1-4) */
-    quarter: number;
+        /** Quarter (1-4) */
+        quarter: number;
+    };
+
+/** Model of approver grouped search result */
+type SearchApproverGroup = SearchGroupBase & {
+    /** Account ID of the approver */
+    accountID: number;
+
+    /** Average time the approver's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
+};
+
+/** Model of violation type grouped search result */
+type SearchViolationGroup = SearchGroupBase & {
+    /** Violation name, e.g. `missingComment` */
+    violation: string;
+};
+
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
+};
+
+/** Model of an expense in the search results */
+type SearchTransaction = Transaction & {
+    /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** Model of a report in the search results */
+type SearchReport = Report & {
+    /** Whether the expense report was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
 };
 
 /** SearchResultDataType */
-type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    // Trip rooms returned by a trip search carry the trip's fields on top of the report
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchTrip> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
@@ -307,6 +393,9 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchWeekGroup
         | SearchYearGroup
         | SearchQuarterGroup
+        | SearchApproverGroup
+        | SearchViolationGroup
+        | SearchWorkflowStageGroup
     >;
 
 /** Model of search results */
@@ -326,6 +415,9 @@ export default SearchResults;
 export type {
     ListItemDataType,
     SearchTask,
+    SearchTrip,
+    SearchTransaction,
+    SearchReport,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,
@@ -339,7 +431,11 @@ export type {
     SearchTagGroup,
     SearchDayGroup,
     SearchMonthGroup,
+    SearchWorkflowStageDurations,
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
+    SearchApproverGroup,
+    SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

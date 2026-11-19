@@ -24,4 +24,7 @@ const shouldPolyfillListFormat: (locale: Locale) => boolean = () => false;
 
 const shouldPolyfillPluralRules: (locale: Locale) => boolean = () => false;
 
-export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules};
+/** Browsers ship `Intl.DateTimeFormat.prototype.formatRange`, so web never installs its polyfill. */
+const shouldPolyfillDateTimeFormatRange: (locale: Locale) => boolean = () => false;
+
+export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillDateTimeFormatRange};

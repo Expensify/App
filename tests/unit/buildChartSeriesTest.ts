@@ -1,10 +1,13 @@
 import type {ChartDataPoint} from '@components/Charts/types';
+import {processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {ChartComparisonPeriods} from '@components/Search/comparisonBuckets';
+import applyRunningTotal from '@components/Search/runningTotal';
 import type {
     TransactionDayGroupListItemType,
+    TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
@@ -35,7 +38,7 @@ function merchantGroup(merchant: string, total: number, count = 1, percentOfTota
 }
 
 /** A grouped quarter result, the shape of group the search still returns without a share of the total. */
-function quarterGroup(quarter: number, total: number, year = 2026): TransactionQuarterGroupListItemType {
+function quarterGroup(quarter: number, total: number, year = 2026, count = 1): TransactionQuarterGroupListItemType {
     return {
         groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
         year,
@@ -44,14 +47,43 @@ function quarterGroup(quarter: number, total: number, year = 2026): TransactionQ
         shortFormattedQuarter: `Q${quarter}`,
         sortKey: quarter,
         keyForList: `group_${year}_Q${quarter}`,
-        count: 1,
+        count,
         total,
         currency: CONST.CURRENCY.USD,
         transactions: [],
     };
 }
 
-const getLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '');
+/** Fields every grouped bucket carries besides its own date */
+const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
+
+function dayGroup(day: string): TransactionDayGroupListItemType {
+    return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
+}
+
+/** A grouped submitter result, carrying how long the member's reports took to complete the charted workflow stage */
+function memberGroup(name: string, averageDuration: number | null, total = 100000, percentOfTotal?: number): TransactionMemberGroupListItemType {
+    return {
+        groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+        accountID: name.length,
+        displayName: name,
+        formattedFrom: name,
+        keyForList: `member_${name}`,
+        count: 1,
+        total,
+        currency: CONST.CURRENCY.USD,
+        percentOfTotal,
+        averageDuration,
+        transactions: [],
+    };
+}
+
+const getLabel = (item: GroupedItem) => {
+    if (item.groupedBy === CONST.SEARCH.GROUP_BY.FROM) {
+        return item.formattedFrom ?? '';
+    }
+    return item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '';
+};
 const getCurrencyDecimals = () => 2;
 
 /** A point as the chart reads it, plotting one series. */
@@ -60,6 +92,10 @@ function point(label: string, total: number, percentOfTotal?: number): ChartData
 }
 
 describe('buildChartSeries', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
     it('turns group totals in cents into plotted values, keeping the search order', () => {
         // Given merchant groups whose totals arrive from the search as cents
         const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
@@ -211,6 +247,61 @@ describe('buildChartSeries', () => {
         expect(rows.at(0)?.point.color).toBe(VictoryTheme.colors.getColor(2));
     });
 
+    it('keeps tag slices visible when untagged spend makes every reported share tiny', () => {
+        // Given matching child tags under two parents, each below 0.05% of all workspace spend
+        const data: GroupedItem[] = [
+            {
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: 'Marketing',
+                formattedTagName: 'Marketing',
+                tagLevel: 2,
+                parentTagPath: 'US',
+                keyForList: 'tag_US',
+                count: 3,
+                total: 30000,
+                currency: CONST.CURRENCY.USD,
+                percentOfTotal: 0.03,
+                transactions: [],
+            },
+            {
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: 'Marketing',
+                formattedTagName: 'Marketing',
+                tagLevel: 2,
+                parentTagPath: 'EU',
+                keyForList: 'tag_EU',
+                count: 1,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                percentOfTotal: 0.01,
+                transactions: [],
+            },
+        ];
+
+        // When those tagged groups alone are turned into the Top tags donut
+        const {rows} = buildChartSeries({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            view: CONST.SEARCH.VIEW.PIE,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.TAG].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+        });
+        const slices = processDataIntoSlices(
+            rows.map((row) => row.point),
+            CHART_SERIES_KEY.PRIMARY,
+            {centerX: 0, centerY: 0, radius: 100, innerRadius: 50},
+        );
+
+        // Then both slices and swatches remain visible without redistributing the reported shares
+        expect(slices.map((slice) => slice.percentage)).toEqual([75, 25]);
+        expect(rows.map((row) => row.point.color)).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1)]);
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([0.03, 0.01]);
+        expect(rows.map((row) => row.item?.keyForList)).toEqual(['tag_US', 'tag_EU']);
+    });
+
     it('ranks pie colors by magnitude, so a large refund is not treated as the smallest slice', () => {
         // Given a group with a large negative total, which a refund produces
         const data = [merchantGroup('Refund', -900000), merchantGroup('Target', 190000)];
@@ -298,26 +389,26 @@ describe('buildChartSeries', () => {
     });
 
     it('plots each compared row against the group stored under the same key', () => {
-        // Given three quarters and the average the search returned for each of them, as cents, out of order
+        // Given three quarters and the compared total the search returned for each of them, as cents, out of order
         const data = [quarterGroup(1, 30000), quarterGroup(2, 60000), quarterGroup(3, 0)];
-        const averages = [quarterGroup(3, 30000), quarterGroup(1, 30000), quarterGroup(2, 30000)];
+        const compared = [quarterGroup(3, 30000), quarterGroup(1, 30000), quarterGroup(2, 30000)];
 
-        // When the series is built for a line chart compared against the average
+        // When the series is built for a line chart compared against those rows
         const {series, rows} = buildChartSeries({
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {data: averages, label: 'Average', color: themeColors.green200},
+            comparison: {data: compared, color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
         });
 
-        // Then each point carries its own quarter's average in dollars, and the compared series is named for the tooltip
+        // Then each point carries its own quarter's compared total in dollars, drawn in the compared color
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([300, 300, 300]);
-        expect(series).toEqual([{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200, label: 'Average'}]);
+        expect(series).toEqual([{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200}]);
     });
 
     it('leaves the compared value off a group the compared rows have nothing for', () => {
@@ -331,7 +422,7 @@ describe('buildChartSeries', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {data: [quarterGroup(1, 45000)], label: 'Average', color: themeColors.green200},
+            comparison: {data: [quarterGroup(1, 45000)], color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -363,14 +454,40 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2400, 0]);
     });
 
+    it('keeps every compared bar of a ranking compared against the previous period', () => {
+        // Given this month's top merchants compared against the previous period
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+        const previousMonth = [merchantGroup('Person', 240000), merchantGroup('Target', 90000)];
+
+        // When the series is built for a bar chart compared against the previous period
+        const {rows} = buildChartSeries({
+            data,
+            comparison: {
+                data: previousMonth,
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-10-01', end: '2026-10-31'}, comparison: {start: '2026-09-01', end: '2026-09-30'}},
+            },
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each merchant keeps last month's bar, since a ranking has no line that ends
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2400, 900]);
+    });
+
     it("shades each compared bar with its own bar's color", () => {
-        // Given this month's top two merchants compared against the average amounts
+        // Given this month's top two merchants compared against last month
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a bar chart
         const {rows} = buildChartSeries({
             data,
-            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Average', color: themeColors.green200},
+            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -385,6 +502,29 @@ describe('buildChartSeries', () => {
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400, [CHART_SERIES_KEY.COMPARISON]: themeColors.yellow200},
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400, [CHART_SERIES_KEY.COMPARISON]: themeColors.tangerine200},
         ]);
+    });
+
+    it('draws the average of a ranked chart as one line instead of a shaded bar per group', () => {
+        // Given this period's top merchants and the all-merchant average, as cents
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+
+        // When the series is built for a bar chart compared against the average
+        const {series, rows} = buildChartSeries({
+            data,
+            comparison: {amount: 43000},
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then every group carries the average in dollars, and the average series is marked to be drawn as a line, so no group gets a shaded bar for it
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([430, 430]);
+        expect(series.at(1)).toEqual({key: CHART_SERIES_KEY.COMPARISON, label: 'All-merchant average', isAverage: true});
+        expect(rows.map((row) => row.point.seriesColors)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400}, {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400}]);
     });
 
     it('names each series by the period it covers when comparing periods', () => {
@@ -459,11 +599,483 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true, true]);
         expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026', 'Q3 so far', 'Q4 2026']);
     });
+
+    it('plots empty periods up to today as $0 but leaves out the empty periods after it', () => {
+        // Given an empty finished quarter, an empty quarter in progress, and two later quarters with no expenses yet
+        const data = [1, 2, 3, 4].map((quarter) => ({...quarterGroup(quarter, 0), count: 0}));
+
+        // When the series is built knowing which quarter is in progress and which come later
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then the finished and current quarters are real $0s, while the later ones have no data yet, so the line doesn't reach them
+        expect(rows.map((row) => row.point.label)).toEqual(['Q1 2026', 'Q2 2026']);
+        expect(rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 0}]);
+    });
+
+    it('keeps an empty later period that comes before a later period with expenses', () => {
+        // Given two later quarters, where only the last one holds future-dated expenses
+        const data = [quarterGroup(2, 100000), {...quarterGroup(3, 0), count: 0}, quarterGroup(4, 5000)];
+
+        // When the series is built knowing which quarters come later
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then Q3 stays as $0, since the line passes through it on its way to Q4
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([1000, 0, 50]);
+    });
+
+    it('leaves out the empty later periods of a running total, whose counts carry earlier expenses forward', () => {
+        // Given a Q2 with expenses followed by two empty quarters after today, plotted as a running total
+        const data = [quarterGroup(2, 100000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const emptyLaterKeys = new Set(data.filter((item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count).map((item) => item.keyForList));
+        const runningTotalData = applyRunningTotal({data, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}).data;
+
+        // When the series is built from the running total, with emptiness read from the rows before it
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data: runningTotalData,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        });
+
+        // Then the line ends at Q2, rather than staying flat through quarters that haven't started
+        expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026']);
+    });
+
+    it('keeps the compared period through the periods after today while the current line ends at today', () => {
+        // Given this year in its third quarter with nothing dated later, against last year, which spent in every quarter
+        const rows = [quarterGroup(3, 300000), {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(3, 30000, 2025), quarterGroup(4, 40000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildChartSeries({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4 && !item.count,
+        });
+
+        // Then last year's Q4 is still plotted so the user sees how last year ended, but this year's line stops at Q3
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300}, {[CHART_SERIES_KEY.COMPARISON]: 400}]);
+    });
+
+    it('keeps the compared line through the whole date range when the compared period has no expenses at its end', () => {
+        // Given this year in its second quarter with nothing dated later, against last year, which had expenses only until Q3
+        const rows = [quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025), {...quarterGroup(4, 0, 2025), count: 0}];
+
+        // When the two periods are plotted against each other
+        const model = buildChartSeries({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then last year's line runs through Q4 so the date range stays the same as it fills in, while this year's line stops at Q2
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+            {[CHART_SERIES_KEY.COMPARISON]: 300},
+            {[CHART_SERIES_KEY.COMPARISON]: 0},
+        ]);
+    });
+
+    it('keeps the compared running total through the whole date range when the compared period has no expenses at its end', () => {
+        // Given the same two years plotted as running totals, where last year's empty Q4 carries its earlier total and count forward
+        const rows = [quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025), {...quarterGroup(4, 0, 2025), count: 0}];
+        const emptyLaterKeys = new Set(rows.filter((item) => !item.count).map((item) => item.keyForList));
+        const runningTotal = applyRunningTotal({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+        });
+
+        // When the series is built from the running totals, with expenses read from the rows before them
+        const model = buildChartSeries({
+            data: runningTotal.data,
+            comparison: runningTotal.comparison,
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        });
+
+        // Then last year's running total stays flat through its empty Q4, while this year's line stops at Q2
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+            {[CHART_SERIES_KEY.COMPARISON]: 500},
+            {[CHART_SERIES_KEY.COMPARISON]: 500},
+        ]);
+    });
+
+    it('keeps the compared days the current period has no day for', () => {
+        // Given February so far plotted by day against January, with February's later days empty and January's 29th to 31st unpaired
+        const {rows} = buildChartSeries({
+            data: [dayGroup('2026-02-15'), {...dayGroup('2026-02-16'), total: 0, count: 0}, {...dayGroup('2026-02-28'), total: 0, count: 0}],
+            comparison: {
+                data: ['2026-01-15', '2026-01-16', '2026-01-28', '2026-01-29', '2026-01-30', '2026-01-31'].map(dayGroup),
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-02-01', end: '2026-02-28'}, comparison: {start: '2026-01-01', end: '2026-01-31'}, monthsApart: 1},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15' && !item.count,
+        });
+
+        // Then January runs to its 31st, while February's line stops at today
+        expect(rows.map((row) => row.point.label)).toEqual(['15th', '16th', '28th', '29th', '30th', '31st']);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([1000, undefined, undefined, undefined, undefined, undefined]);
+    });
+});
+
+describe('buildChartSeries with the count metric', () => {
+    it('plots how many expenses each group holds instead of what it totals', () => {
+        // Given merchant groups the search ranked by spend, where the bigger spender is not the busier merchant
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each value is the group's own count, untouched, because a count has no currency to scale down from
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([12, 41]);
+    });
+
+    it('stops carrying the expense count beside the value, since the value is already that count', () => {
+        // Given merchant groups plotted by how many expenses they hold
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries one, because the tooltip prints it as a second line and would read "41" above "41 expenses"
+        expect(rows.every((row) => row.point.count === undefined)).toBe(true);
+    });
+
+    it('counts the compared rows too, so a baseline is read in the same metric as the chart', () => {
+        // Given two quarters and the compared rows for each, where the compared counts and totals rank differently
+        const data = [quarterGroup(1, 30000, 2026, 9), quarterGroup(2, 60000, 2026, 4)];
+        const compared = [quarterGroup(1, 30000, 2026, 6), quarterGroup(2, 30000, 2026, 5)];
+
+        // When the series is built for a line chart comparing counts against the compared rows
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: compared, color: themeColors.green200},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then both series read counts, because a baseline drawn in dollars against a line drawn in expenses
+        // would put the two on one axis that measures neither, and the delta between them would mean nothing
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([9, 4]);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([6, 5]);
+    });
+
+    it('draws a count average as the expense count itself, naming the average amount beside it', () => {
+        // Given merchant groups plotted by how many expenses they hold, and the average number of expenses and amount per merchant
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a bar chart plotting counts against the average
+        const {series, rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {count: 26.5, amount: 335000},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then every group carries the fractional count as is, since dividing it like cents would sink the line below the counts, and the average amount for the tooltip to name
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([26.5, 26.5]);
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.COMPARISON])).toEqual(['$3350', '$3350']);
+        expect(series.at(1)).toEqual({key: CHART_SERIES_KEY.COMPARISON, label: 'All-merchant average', isAverage: true});
+    });
+
+    it('names the money each group totals beside its count, since a count says nothing about the spend behind it', () => {
+        // Given merchant groups plotted by how many expenses they hold
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts, with a formatter for the money a group totals
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then each point carries its group's total, which the tooltip and the table write in the parentheses the share would have held
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$4800', '$1900']);
+    });
+
+    it("names the compared period's own total too, so each row in a comparison says what it was worth", () => {
+        // Given two quarters plotted by count against the compared rows for each
+        const data = [quarterGroup(1, 30000, 2026, 9), quarterGroup(2, 60000, 2026, 4)];
+        const compared = [quarterGroup(1, 30000, 2026, 6), quarterGroup(2, 45000, 2026, 5)];
+
+        // When the series is built for a line chart comparing counts against the compared rows
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: compared, color: themeColors.green200},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then both series carry their own totals, because a row quoting the other series' spend would misname its own count
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$300', '$600']);
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.COMPARISON])).toEqual(['$300', '$450']);
+    });
+
+    it('leaves the totals off an amount chart, whose values are already the money', () => {
+        // Given merchant groups plotted by what they total, with no formatter for a second reading of that money
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting amounts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries one, because the tooltip would print the value it already shows a second time in parentheses
+        expect(rows.every((row) => row.point.seriesTotals === undefined)).toBe(true);
+    });
+
+    it('keeps the share the search reports on every point of a count chart', () => {
+        // Given groups the search reported shares of the expense count for, like Compliance's share of submitted expenses with violations
+        const data = [merchantGroup('Person', 480000, 1, 10), merchantGroup('Target', 190000, 3, 30)];
+
+        // When the series is built for a chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each point carries the share, for the tooltip to quote beside the count
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([10, 30]);
+    });
+});
+
+describe('buildChartSeries with the duration metric', () => {
+    const DAY = CONST.DATE.SECONDS_PER_DAY;
+
+    /** Builds a member chart plotting durations, the way the Efficiency dashboard draws one */
+    const buildDurationSeries = (params: Partial<Parameters<typeof buildChartSeries>[0]> & {data: GroupedItem[]}) =>
+        buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.FROM,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            ...params,
+        });
+
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    it('plots how long each group took, in seconds, instead of what it totals', () => {
+        // Given members ranked by how long their reports took, where the slower member spent less
+        const data = [memberGroup('Alice', 4 * DAY, 10000), memberGroup('Bob', DAY, 90000)];
+
+        // When the series is built for a chart plotting durations
+        const {rows} = buildDurationSeries({data});
+
+        // Then each value is the member's average duration, untouched, because scales, sorting and deltas all work in seconds
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([4 * DAY, DAY]);
+    });
+
+    it('leaves out a group none of whose reports completed the stage', () => {
+        // Given a member with no duration, next to members who have one
+        const data = [memberGroup('Alice', 2 * DAY), memberGroup('Bob', null), memberGroup('Carol', DAY)];
+
+        // When the series is built for a chart plotting durations
+        const {rows} = buildDurationSeries({data});
+
+        // Then that member is not drawn, because a bar at 0 days would read as reports that took no time at all
+        expect(rows.map((row) => row.point.label)).toEqual(['Alice', 'Carol']);
+    });
+
+    it('leaves durations without a share, since averages do not add up to a whole', () => {
+        // Given members the search reported shares of total spend for, and one with no duration
+        const data = [memberGroup('Alice', 3 * DAY, 10000, 10), memberGroup('Bob', DAY, 90000, 90), memberGroup('Carol', null, 0, 0)];
+
+        // When the series is built for a donut plotting durations
+        const {rows} = buildDurationSeries({data, view: CONST.SEARCH.VIEW.PIE});
+
+        // Then no member gets a share, because the share of spend says nothing about time and a share of summed averages shifts when other members change
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([undefined, undefined]);
+    });
+
+    it('compares each group against its own duration in the compared rows', () => {
+        // Given members and their durations in the previous period, where one member has no compared duration
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', 2 * DAY), memberGroup('Bob', null)];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then the compared values are in seconds too, so the delta between them is a change in time,
+        // and a member with no compared duration has nothing to compare rather than a drop from 0
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
+    });
+
+    it('leaves a compared group with no expenses in that period with nothing to compare', () => {
+        // Given members and the previous period, which reports a member it has no expenses for with a count and duration of 0
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', 2 * DAY), {...memberGroup('Bob', 0), count: 0}];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then that member has no compared value, because a bar at 0 days would read as reports that took no time at all
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
+    });
+
+    it('leaves the compared durations without a share too', () => {
+        // Given members and their durations in the previous period
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', DAY), memberGroup('Bob', DAY)];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then neither series reports a share, so the tooltip shows only the times being compared
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.PRIMARY])).toEqual([undefined, undefined]);
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.COMPARISON])).toEqual([undefined, undefined]);
+    });
+
+    it('draws the average in seconds, without converting it like an amount', () => {
+        // Given members and the average duration the dashboard returned for the chart
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+
+        // When the series is built for a bar chart compared against the average
+        const {series, rows} = buildDurationSeries({data, comparison: {[CONST.SEARCH.CHART_METRIC.DURATION]: 3 * DAY}});
+
+        // Then the average line sits at the same seconds the bars do, because dividing it into dollars would put it on a scale the bars don't use
+        expect(series.at(1)?.isAverage).toBe(true);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([3 * DAY, 3 * DAY]);
+    });
+
+    it('still converts amounts and reads the share of spend when the chart plots the amount', () => {
+        // Given members carrying both a duration and the share of spend the search reported
+        const data = [memberGroup('Alice', 3 * DAY, 10000, 10), memberGroup('Bob', null, 90000, 90)];
+
+        // When the series is built for a chart plotting amounts
+        const {rows} = buildDurationSeries({data, metric: CONST.SEARCH.CHART_METRIC.AMOUNT});
+
+        // Then the duration is ignored, so adding it to the member rows leaves amount charts as they were
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([100, 900]);
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([10, 90]);
+    });
 });
 
 describe('getSliceColorsByDataIndex', () => {
     it('leaves a group the donut does not draw without a color', () => {
-        // Given a group whose share the table prints as ~0%, so the donut leaves its slice out
+        // Given a group too small relative to the plotted total to draw as a slice
         const points: ChartDataPoint[] = [point('Large', 10000, 99.99), point('Sliver', 1, 0.01)];
 
         // When the colors are resolved back to the order the data came in
@@ -476,9 +1088,8 @@ describe('getSliceColorsByDataIndex', () => {
     });
 
     it('ranks the palette over the drawn slices only', () => {
-        // Given a dropped group that is not the smallest slice by absolute value, so ranking before dropping would
-        // hand the drawn slices the wrong palette entries
-        const points: ChartDataPoint[] = [point('Spend', 5000, 5000), point('Rounding', 400, 0.01), point('Refund', -4900, -4900)];
+        // Given a thin slice between two drawn groups in the original data order
+        const points: ChartDataPoint[] = [point('Spend', 5000, 5000), point('Rounding', 1, 0.01), point('Refund', -4900, -4900)];
 
         // When the colors are resolved back to the order the data came in
         const colors = getSliceColorsByDataIndex(points);
@@ -504,8 +1115,9 @@ describe('buildChartSeries with a compared period', () => {
     const PERIODS = {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}};
 
     /** Builds the model of a chart plotting one period against the one before it. */
-    function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy) {
+    function buildComparison(rows: GroupedItem[], previousRows: GroupedItem[], groupBy: SearchGroupBy, trackedFrom?: string) {
         return buildChartSeries({
+            trackedFrom,
             data: rows,
             comparison: {data: previousRows, color: themeColors.green200, periods: PERIODS},
             view: CONST.SEARCH.VIEW.BAR,
@@ -533,15 +1145,84 @@ describe('buildChartSeries with a compared period', () => {
             {[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300},
         ]);
     });
+
+    it('plots nothing for a compared bucket that ends before the data was tracked', () => {
+        // Given this year against last year, where last year's data only starts on June 1 and has no row for Q1
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000)];
+        const previousRows = [quarterGroup(2, 20000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER, '2025-06-01');
+
+        // Then last year's Q1 is left blank rather than drawn as 0, since nothing was recorded then
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: undefined},
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+        ]);
+    });
+
+    it('plots 0 for a compared bucket that runs into the first tracked day without a row', () => {
+        // Given this year against last year, where last year's data starts on June 1 and has no row for Q2, which ends after it
+        const rows = [quarterGroup(2, 200000), quarterGroup(3, 300000)];
+        const previousRows = [quarterGroup(3, 30000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER, '2025-06-01');
+
+        // Then last year's Q2 is drawn as 0, since its tracked days had no expenses
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300},
+        ]);
+    });
+
+    it('plots 0 for a compared bucket without a row when the data has no first tracked day', () => {
+        // Given this year against last year, where last year has no row for Q1 and every day was tracked
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000)];
+        const previousRows = [quarterGroup(2, 20000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildComparison(rows, previousRows, CONST.SEARCH.GROUP_BY.QUARTER);
+
+        // Then last year's Q1 is drawn as 0, since it had no expenses
+        expect(model.rows.map((row) => row.point.values)).toEqual([
+            {[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 0},
+            {[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200},
+        ]);
+    });
+});
+
+describe('buildChartSeries without a compared period', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    it('ends the chart at the last period so far, dropping the empty periods still to come', () => {
+        // Given this year in its second quarter, with Q3 and Q4 still to come and no expenses dated in them
+        const rows = [quarterGroup(1, 100000), quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+
+        // When the series is built with nothing to compare against
+        const model = buildChartSeries({
+            data: rows,
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then the chart stops at Q2 instead of drawing $0 through the quarters that haven't come yet
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 1000}, {[CHART_SERIES_KEY.PRIMARY]: 2000}]);
+    });
 });
 
 describe('buildChartSeries labels for compared time buckets', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
     });
-
-    /** Fields every grouped bucket carries besides its own date */
-    const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
 
     function monthGroup(year: number, month: number): TransactionMonthGroupListItemType {
         return {
@@ -560,10 +1241,6 @@ describe('buildChartSeries labels for compared time buckets', () => {
         return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, lineChartFormattedWeek: week, keyForList: `week_${week}`};
     }
 
-    function dayGroup(day: string): TransactionDayGroupListItemType {
-        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
-    }
-
     /** Builds the labels of a chart plotting the window on screen against the one before it. */
     function buildLabels(rows: GroupedItem[], groupBy: SearchGroupBy, current: {start: string; end: string}, previous: {start: string; end: string}) {
         return buildChartSeries({
@@ -579,6 +1256,19 @@ describe('buildChartSeries labels for compared time buckets', () => {
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
         }).rows.map((row) => [row.point.label, row.point.shortLabel]);
     }
+
+    it('numbers a current month the compared period has no month for like the months before it', () => {
+        // Given July 31 to October 2, compared with the 64 days before it, which touch only May, June and July
+        const labels = buildLabels(
+            [monthGroup(2026, 7), monthGroup(2026, 8), monthGroup(2026, 9), monthGroup(2026, 10)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-07-31', end: '2026-10-02'},
+            {start: '2026-05-28', end: '2026-07-30'},
+        );
+
+        // Then October, which no compared month pairs with, is numbered like the months before it rather than named "Oct"
+        expect(labels.map(([label]) => label)).toEqual(['Month 1', 'Month 2', 'Month 3', 'Month 4']);
+    });
 
     it('names months without their year, since the same month of each year is compared', () => {
         // Given year to date plotted against the year before
@@ -754,7 +1444,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
         const labels = buildSeriesLabels([weekGroup('2026-08-30')], CONST.SEARCH.GROUP_BY.WEEK, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
 
         // Then the tooltip names the days each period actually adds up, rather than the period names
-        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1 - Sep 5, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1\u2009–\u20095, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
     });
 
     it("names each period's row by its year when the same month of two years is compared", () => {

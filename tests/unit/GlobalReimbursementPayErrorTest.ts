@@ -1,3 +1,4 @@
+import {followGlobalReimbursementsBulkPay} from '@libs/actions/GlobalReimbursementsBulkPay';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import globalReimbursementPayError from '@libs/Middleware/GlobalReimbursementPayError';
 
@@ -8,6 +9,11 @@ import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const IOU_REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
@@ -49,13 +55,13 @@ function buildPayRequest(overrides: PayRequestOverrides = {}): Request<OnyxKey> 
     } as Request<OnyxKey>;
 }
 
-function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE.EXP_ERROR): Response<OnyxKey> {
+function buildEnableGlobalReimbursementsModalResponse(jsonCode: number | string = CONST.JSON_CODE.EXP_ERROR): Response<OnyxKey> {
     return {
         jsonCode,
         onyxData: [
             {
                 onyxMethod: 'set',
-                key: ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
+                key: ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
                 value: {
                     bankAccountID: 100,
                     bankCountry: CONST.COUNTRY.CA,
@@ -71,9 +77,9 @@ function findFailureUpdate(request: Request<OnyxKey>, key: string) {
 }
 
 describe('GlobalReimbursementPayError middleware', () => {
-    it('replaces optimistic PAY action error with null in failureData when payment fails with corpayPayModal', async () => {
+    it('replaces optimistic PAY action error with null in failureData when payment fails with enableGlobalReimbursementsModal', async () => {
         const request = buildPayRequest();
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -85,9 +91,105 @@ describe('GlobalReimbursementPayError middleware', () => {
         });
     });
 
+    describe('Search bulk pay', () => {
+        const BANK_ACCOUNT = {bankAccountID: 100, bankCountry: CONST.COUNTRY.US, bankCurrency: CONST.CURRENCY.USD};
+        const OTHER_IOU_REPORT_ID = '54321';
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('holds back the backend signal and lists the rejected report once every payment of the click has a response', async () => {
+            // Given a bulk pay click that pays two reports
+            followGlobalReimbursementsBulkPay({
+                bankAccount: BANK_ACCOUNT,
+                pendingReportNames: new Map([
+                    [IOU_REPORT_ID, 'Rejected report'],
+                    [OTHER_IOU_REPORT_ID, 'Paid report'],
+                ]),
+                skippedReportNames: [],
+                hasPaidReports: false,
+            });
+            const request = buildPayRequest();
+            const response = buildEnableGlobalReimbursementsModalResponse();
+
+            // When the backend rejects the first payment because the account needs global reimbursements
+            const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
+            await waitForBatchedUpdates();
+
+            // Then the signal doesn't open the global reimbursements intro for this single rejection, and nothing shows while the other payment is in flight
+            expect(result).toBe(response);
+            expect(response.onyxData?.some((update) => update.key === ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+            // And the failed PAY action is still dropped, the same as for a single payment
+            expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`)?.value).toEqual({
+                [REPORT_ACTION_ID]: null,
+                [OTHER_REPORT_ACTION_ID]: {errors: {error: 'Other error'}},
+            });
+
+            // When the other payment goes through
+            const otherRequest = buildPayRequest({data: {iouReportID: OTHER_IOU_REPORT_ID, reportActionID: REPORT_ACTION_ID}});
+            await globalReimbursementPayError(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: []}), otherRequest, false);
+            await waitForBatchedUpdates();
+
+            // Then the rejected report is listed next to the paid one
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Rejected report']});
+        });
+    });
+
+    it('keeps the backend signal for a payment outside of bulk pay', async () => {
+        // Given a pay request that isn't part of a bulk pay run
+        const request = buildPayRequest();
+        const response = buildEnableGlobalReimbursementsModalResponse();
+
+        // When the backend rejects the payment because the account needs global reimbursements
+        await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+        // Then the signal stays, so the global reimbursements intro opens right away as before
+        expect(response.onyxData?.some((update) => update.key === ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBe(true);
+    });
+
+    it('drops the generic report error that Search pay adds to failureData when payment fails with enableGlobalReimbursementsModal', async () => {
+        // Given a pay request from Search, whose failureData puts a generic error on the report
+        const request = buildPayRequest();
+        const reportUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+        expect(reportUpdate).toBeDefined();
+        if (reportUpdate) {
+            reportUpdate.value = {statusNum: CONST.REPORT.STATUS_NUM.OPEN, errors: {error: 'Generic error'}};
+        }
+        const response = buildEnableGlobalReimbursementsModalResponse();
+
+        // When the backend rejects the payment because the account needs global reimbursements
+        await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+        // Then the report keeps its other failure updates but not the error, because the global reimbursements setup explains the rejection
+        expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`)?.value).toEqual({statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+    });
+
+    it('keeps the generic report error when the payment fails for another reason', async () => {
+        // Given a pay request from Search, whose failureData puts a generic error on the report
+        const request = buildPayRequest();
+        const reportUpdate = findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`);
+        expect(reportUpdate).toBeDefined();
+        if (reportUpdate) {
+            reportUpdate.value = {statusNum: CONST.REPORT.STATUS_NUM.OPEN, errors: {error: 'Generic error'}};
+        }
+        const response: Response<OnyxKey> = {jsonCode: CONST.JSON_CODE.EXP_ERROR, onyxData: []};
+
+        // When the payment fails without the global reimbursements signal
+        await globalReimbursementPayError(Promise.resolve(response), request, false);
+
+        // Then the error stays, because nothing else tells the admin the payment failed
+        expect(findFailureUpdate(request, `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`)?.value).toEqual({statusNum: CONST.REPORT.STATUS_NUM.OPEN, errors: {error: 'Generic error'}});
+    });
+
     it('works identically for PAY_MONEY_REQUEST_WITH_WALLET command', async () => {
         const request = buildPayRequest({command: WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET});
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -101,7 +203,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
     it('leaves failureData untouched if response is successful (jsonCode 200)', async () => {
         const request = buildPayRequest();
-        const response = buildCorpayPayModalResponse(CONST.JSON_CODE.SUCCESS);
+        const response = buildEnableGlobalReimbursementsModalResponse(CONST.JSON_CODE.SUCCESS);
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -114,7 +216,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
     it('leaves failureData untouched for non-payment commands', async () => {
         const request = buildPayRequest({command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST});
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -125,7 +227,7 @@ describe('GlobalReimbursementPayError middleware', () => {
         });
     });
 
-    it('leaves failureData untouched if response does not contain RAM_ONLY_CORPAY_PAY_MODAL', async () => {
+    it('leaves failureData untouched if response does not contain RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL', async () => {
         const request = buildPayRequest();
         const response: Response<OnyxKey> = {
             jsonCode: CONST.JSON_CODE.EXP_ERROR,
@@ -148,7 +250,7 @@ describe('GlobalReimbursementPayError middleware', () => {
     });
 
     it('handles missing or corrupt data fields gracefully', async () => {
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         // Missing iouReportID
         const requestWithoutIou = buildPayRequest({data: {reportActionID: REPORT_ACTION_ID}});

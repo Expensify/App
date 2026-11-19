@@ -8,6 +8,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import type {PartialReportAction} from './ReportUtils';
 
+import {replaceAttachmentAnchorsWithText} from './AttachmentAnchorUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 
@@ -34,15 +35,21 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
 
-function getReportActionText(reportAction: PartialReportAction): string {
+/**
+ * @param reportIDToName - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
+ */
+function getReportActionText(reportAction: PartialReportAction, reportIDToName?: Record<string, string>): string {
     const message = getReportActionMessage(reportAction);
     // Sometime html can be an empty string
     const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
-    return text ? Parser.htmlToText(text) : '';
+    return text ? Parser.htmlToText(text, {reportIDToName}) : '';
 }
 
-function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(html) : '';
+/**
+ * @param reportIDToName - names for the rooms the HTML mentions by reportID, so they aren't shown as #Hidden
+ */
+function getTextFromHtml(html?: string, reportActionID?: string, reportIDToName?: Record<string, string>): string {
+    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html, reportActionID), {reportIDToName}) : '';
 }
 
 export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};

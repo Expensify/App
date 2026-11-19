@@ -1,19 +1,26 @@
 import {
+    getCurrentGovernmentMileageRate,
+    getDefaultEuroDistanceRateCountry,
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateCountryForCurrency,
     getDistanceRateNameError,
     getDistanceRateValueError,
     getDistanceRateValueErrorMessage,
+    getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    getGovernmentRateSeries,
+    getNoGovernmentRateNote,
     isCurrencySupportedForAutoUpdate,
+    isGovernmentRateCountry,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -134,6 +141,106 @@ describe('PolicyDistanceRatesUtils', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
         });
+
+        describe('tax reclaimable amount', () => {
+            // A 14p fuel band where a sixth of the rate is reclaimable, which the edit page shows as 0.0233
+            const fuelBandGovernmentRate = {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01', rate: 14, startDate: '2026-06-01', taxClaimablePercentage: 1 / 6};
+            const buildFuelBandRate = (taxClaimablePercentage?: number) =>
+                buildRate({rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate: fuelBandGovernmentRate}}, fuelBandGovernmentRate);
+
+            // The edit page saves the entered amount as a fraction of the rate
+            const getSavedTaxClaimablePercentage = (enteredAmount: string, rate: number) => (Number(enteredAmount) * 100) / rate;
+
+            it('should return true when the reclaimable amount matches the snapshot', () => {
+                // Given a fuel band copied with the government reclaimable fraction
+                const rate = buildFuelBandRate(1 / 6);
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is, so the lightning bolt shows
+                expect(isUnmodified).toBe(true);
+            });
+
+            it.each(['0.1', '0.10', '0.1000', '0.123', '0.1234'])('matches a restored reclaimable amount of %s regardless of padding', (enteredAmount) => {
+                // Given a government snapshot whose reclaimable amount uses two to four meaningful decimals
+                const taxClaimablePercentage = getSavedTaxClaimablePercentage(enteredAmount, 14);
+                const governmentRate = {...fuelBandGovernmentRate, taxClaimablePercentage};
+                const rate = buildRate({rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage, governmentRate}}, governmentRate);
+
+                // When checking a rate restored through the editor's amount-to-percentage conversion
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then reducing display padding does not remove its government-managed status
+                expect(isUnmodified).toBe(true);
+
+                // When the reclaimable amount changes in the fourth decimal place
+                const modifiedRate = {...rate, attributes: {...rate.attributes, taxClaimablePercentage: getSavedTaxClaimablePercentage('0.1001', 14)}};
+
+                // Then meaningful precision is still compared rather than rounded to two decimals
+                expect(isGovernmentRateUnmodified(modifiedRate)).toBe(false);
+            });
+
+            it('should return false when the reclaimable amount was edited', () => {
+                // Given a fuel band whose reclaimable amount an admin changed to 0.03
+                const rate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.03', 14));
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is not, because the edit page would show a different amount than the government value
+                expect(isUnmodified).toBe(false);
+            });
+
+            it('should return false when the reclaimable amount was cleared', () => {
+                // Given a fuel band whose snapshot has a reclaimable fraction but the rate has none
+                const rate = buildFuelBandRate(undefined);
+
+                // When checking whether it is unmodified
+                const isUnmodified = isGovernmentRateUnmodified(rate);
+
+                // Then it is not, because a missing reclaimable amount counts as zero
+                expect(isUnmodified).toBe(false);
+            });
+
+            it('should return true when the admin restores the reclaimable amount the edit page showed', () => {
+                // Given a fuel band edited away from its government value
+                const editedRate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.03', 14));
+                expect(isGovernmentRateUnmodified(editedRate)).toBe(false);
+
+                // When the admin re-enters the shown 0.0233, which saves 2.33p rather than the government's 2.3333p
+                const restoredRate = buildFuelBandRate(getSavedTaxClaimablePercentage('0.0233', 14));
+
+                // Then the rate is unmodified again, since amounts are compared at the precision the edit page shows
+                expect(isGovernmentRateUnmodified(restoredRate)).toBe(true);
+            });
+
+            it('should ignore the reclaimable amount when the snapshot has none', () => {
+                // Given a US rate and a fuel band whose snapshots have no reclaimable fraction, where an admin set one on the rate
+                const usRate = buildRate({attributes: {taxClaimablePercentage: 0.1, governmentRate: baseGovernmentRate}});
+                const fuelBandGovernmentRateWithoutPercentage = {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01', rate: 14, startDate: '2026-06-01'};
+                const fuelBandRate = buildRate(
+                    {rate: 14, startDate: '2026-06-01', endDate: undefined, attributes: {taxClaimablePercentage: 0.1, governmentRate: fuelBandGovernmentRateWithoutPercentage}},
+                    fuelBandGovernmentRateWithoutPercentage,
+                );
+
+                // When checking whether they are unmodified
+                // Then both are, because there is no government reclaimable amount to compare against
+                expect(isGovernmentRateUnmodified(usRate)).toBe(true);
+                expect(isGovernmentRateUnmodified(fuelBandRate)).toBe(true);
+            });
+        });
+    });
+
+    describe('getGovernmentRateSeries', () => {
+        it('should strip only the trailing start date from the sourceRateID', () => {
+            // Given a standard rate, a fuel band whose name contains underscores, and an ID without a date
+            // When getting their series
+            // Then only the part after the last underscore is removed
+            expect(getGovernmentRateSeries('GB_2026-04-06')).toBe('GB');
+            expect(getGovernmentRateSeries('GB_PETROL_UP_TO_1400_2026-06-01')).toBe('GB_PETROL_UP_TO_1400');
+            expect(getGovernmentRateSeries('GB')).toBe('GB');
+        });
     });
 
     describe('getGovernmentRateCountryForCurrency', () => {
@@ -165,6 +272,25 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isCurrencySupportedForAutoUpdate('ZAR')).toBe(true);
             expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
             expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
+        });
+    });
+
+    describe('getExpectedUnitForCountry', () => {
+        it('should return the unit a saved government rate switches the workspace to', () => {
+            // Given countries whose governments publish their rates in different units
+            // When the Add rate page shows a government rate for each of them
+            // Then the amount is shown in the unit the save applies, even when the workspace uses the other unit
+            expect(getExpectedUnitForCountry('US')).toBe('mi');
+            expect(getExpectedUnitForCountry('CA')).toBe('km');
+            expect(getExpectedUnitForCountry('DE')).toBe('km');
+        });
+
+        it('should return undefined when there is no government rate country', () => {
+            // Given no country or a country without a government rate
+            // When the unit is looked up
+            // Then there is no unit to switch to, so the page keeps the workspace unit
+            expect(getExpectedUnitForCountry(undefined)).toBeUndefined();
+            expect(getExpectedUnitForCountry('NZ')).toBeUndefined();
         });
     });
 
@@ -327,6 +453,113 @@ describe('PolicyDistanceRatesUtils', () => {
             // Then each reason maps to the form's copy, so the two surfaces cannot drift
             expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.INVALID)).toBe(translateLocal('common.error.invalidRateError'));
             expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.TOO_LOW)).toBe(translateLocal('common.error.lowRateError'));
+        });
+    });
+
+    describe('getDistanceRateCountryForCurrency', () => {
+        const currencyList: CurrencyList = {
+            JPY: {symbol: '¥', name: 'Japanese Yen', ISO4217: '392', countries: ['JP']},
+            XOF: {symbol: 'CFA', name: 'West African CFA Franc', ISO4217: '952', countries: ['BJ', 'BF', 'CI', 'ML', 'NE', 'SN', 'TG']},
+        };
+
+        it('uses the government rate country for a supported currency', () => {
+            // Given a currency Expensify publishes a government rate for
+            // When we look up its country
+            // Then it maps to the publishing country without needing the currency list
+            expect(getDistanceRateCountryForCurrency(CONST.CURRENCY.GBP, undefined)).toBe('GB');
+        });
+
+        it('uses the only country of a single-country currency', () => {
+            // Given a currency used by one country
+            // When we look up its country
+            // Then that country is returned
+            expect(getDistanceRateCountryForCurrency('JPY', currencyList)).toBe('JP');
+        });
+
+        it('returns undefined for a currency shared by several countries', () => {
+            // Given a currency used by several countries
+            // When we look up its country
+            // Then there is no single country, so the page shows "Other country"
+            expect(getDistanceRateCountryForCurrency('XOF', currencyList)).toBeUndefined();
+        });
+    });
+
+    describe('getDefaultEuroDistanceRateCountry', () => {
+        it('keeps the auto-update country when the workspace already has a government rate', () => {
+            // Given an EUR workspace auto-updating German rates with a French company address
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                outputCurrency: CONST.CURRENCY.EUR,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                autoUpdateGovernmentRateCountry: 'DE',
+                address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'FR'},
+            };
+
+            // When we pick the default country
+            // Then the government rate's country wins, so Add rate matches Settings
+            expect(getDefaultEuroDistanceRateCountry(policy, 'IE')).toBe('DE');
+        });
+
+        it('prefers the company address, then the IP address, then Austria', () => {
+            // Given an EUR workspace without a government rate
+            const policy: Policy = {...createRandomPolicy(1), outputCurrency: CONST.CURRENCY.EUR, shouldAutoUpdateGovernmentDistanceRates: false};
+            const policyInFrance: Policy = {...policy, address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'FR'}};
+            const policyInUS: Policy = {...policy, address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'US'}};
+
+            // When we pick the default country
+            // Then a euro company address wins, a non-euro one falls through to the IP country, and Austria is the last resort
+            expect(getDefaultEuroDistanceRateCountry(policyInFrance, 'IE')).toBe('FR');
+            expect(getDefaultEuroDistanceRateCountry(policyInUS, 'IE')).toBe('IE');
+            expect(getDefaultEuroDistanceRateCountry(policyInUS, 'US')).toBe('AT');
+        });
+    });
+
+    describe('isGovernmentRateCountry', () => {
+        it('only accepts the countries Expensify publishes government rates for', () => {
+            // Given a supported single-currency country, a supported euro country and an unsupported euro country
+            // When we check each one
+            // Then only the supported ones are accepted
+            expect(isGovernmentRateCountry('US')).toBe(true);
+            expect(isGovernmentRateCountry('DE')).toBe(true);
+            expect(isGovernmentRateCountry('IE')).toBe(false);
+            expect(isGovernmentRateCountry(undefined)).toBe(false);
+        });
+    });
+
+    describe('getCurrentGovernmentMileageRate', () => {
+        const rates: GovernmentMileageRate[] = [
+            {sourceRateID: 'GB_2025-04-06', currency: 'GBP', name: '2025 UK', rate: 45, startDate: '2025-04-06'},
+            {sourceRateID: 'GB_2026-04-06', currency: 'GBP', name: '2026 UK', rate: 55, startDate: '2026-04-06'},
+            {sourceRateID: 'GB_2027-04-06', currency: 'GBP', name: '2027 UK', rate: 60, startDate: '2027-04-06'},
+            {sourceRateID: 'GB_PETROL_1400CC_2026-04-06', currency: 'GBP', name: 'UK petrol', rate: 12, startDate: '2026-04-06'},
+            {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01'},
+        ];
+
+        it('picks the latest rate that has already started and skips fuel bands', () => {
+            // Given past, current and future UK rates plus a UK fuel band
+            // When we look up the rate in effect on a date in 2026
+            const currentRate = getCurrentGovernmentMileageRate(rates, 'GBP', 'GB', '2026-11-11');
+
+            // Then the 2026 car rate is used, not the future rate or the fuel band
+            expect(currentRate?.sourceRateID).toBe('GB_2026-04-06');
+        });
+
+        it('returns undefined when the country has no loaded rate', () => {
+            // Given rates that were loaded for other countries only
+            // When we look up a euro country with no rate in the list
+            // Then nothing is returned, so the page keeps its skeleton and Save stays disabled
+            expect(getCurrentGovernmentMileageRate(rates, 'EUR', 'NL', '2026-11-11')).toBeUndefined();
+        });
+    });
+
+    describe('getNoGovernmentRateNote', () => {
+        it('explains the missing government rate for each kind of country', () => {
+            // Given a country with its own note, a country without one, and an unknown country
+            // When we build the note
+            // Then each one gets the matching copy
+            expect(getNoGovernmentRateNote(translateLocal, 'FR')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateNotes.FR'));
+            expect(getNoGovernmentRateNote(translateLocal, 'IE')).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForCountry', translateLocal('allCountries.IE')));
+            expect(getNoGovernmentRateNote(translateLocal, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.noGovernmentRateForOtherCountry'));
         });
     });
 });

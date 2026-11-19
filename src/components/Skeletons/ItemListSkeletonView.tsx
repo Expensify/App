@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 type ListItemSkeletonProps = {
@@ -55,57 +55,67 @@ function ItemListSkeletonView({
 
     const totalItemHeight = itemViewHeight + getVerticalMargin(itemViewStyle);
 
-    const handleLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            onLayout?.(event);
+    const handleLayout = (event: LayoutChangeEvent) => {
+        onLayout?.(event);
 
-            if (fixedNumItems) {
-                return;
-            }
-
-            const totalHeight = event.nativeEvent.layout.height;
-            const newNumItems = Math.ceil(totalHeight / totalItemHeight);
-            if (newNumItems !== numItems) {
-                setNumItems(newNumItems);
-            }
-        },
-        [fixedNumItems, numItems, onLayout, totalItemHeight],
-    );
-
-    const skeletonViewItems = useMemo(() => {
-        const items = [];
-        for (let i = 0; i < numItems; i++) {
-            const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
-            const loader = (
-                <SkeletonViewContentLoader
-                    speed={speed}
-                    key={`skeletonContainer${i}`}
-                    animate={shouldAnimate}
-                    height={itemViewHeight}
-                    backgroundColor={theme.skeletonLHNIn}
-                    foregroundColor={theme.skeletonLHNOut}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}, {minHeight: itemViewHeight}]}
-                >
-                    {renderSkeletonItem({itemIndex: i})}
-                </SkeletonViewContentLoader>
-            );
-
-            if (itemContainerStyle) {
-                const isLastItem = i === numItems - 1;
-                items.push(
-                    <View
-                        key={`skeletonContainer${i}`}
-                        style={[itemContainerStyle, isLastItem && {borderBottomWidth: 0}]}
-                    >
-                        {loader}
-                    </View>,
-                );
-            } else {
-                items.push(loader);
-            }
+        if (fixedNumItems) {
+            return;
         }
-        return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle, speed, itemContainerStyle]);
+
+        const totalHeight = event.nativeEvent.layout.height;
+        const newNumItems = Math.ceil(totalHeight / totalItemHeight);
+        if (newNumItems !== numItems) {
+            setNumItems(newNumItems);
+        }
+    };
+
+    const items = [];
+    for (let i = 0; i < numItems; i++) {
+        const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
+        const loader = (
+            <SkeletonViewContentLoader
+                speed={speed}
+                key={`skeletonContainer${i}`}
+                animate={shouldAnimate}
+                height={itemViewHeight}
+                backgroundColor={theme.skeletonLHNIn}
+                foregroundColor={theme.skeletonLHNOut}
+                style={[
+                    themeStyles.mr5,
+                    itemViewStyle,
+                    {
+                        opacity,
+                    },
+                    {
+                        minHeight: itemViewHeight,
+                    },
+                ]}
+            >
+                {renderSkeletonItem({
+                    itemIndex: i,
+                })}
+            </SkeletonViewContentLoader>
+        );
+        if (itemContainerStyle) {
+            const isLastItem = i === numItems - 1;
+            items.push(
+                <View
+                    key={`skeletonContainer${i}`}
+                    style={[
+                        itemContainerStyle,
+                        isLastItem && {
+                            borderBottomWidth: 0,
+                        },
+                    ]}
+                >
+                    {loader}
+                </View>,
+            );
+        } else {
+            items.push(loader);
+        }
+    }
+    const skeletonViewItems = items;
 
     return (
         <View

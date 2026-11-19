@@ -5,17 +5,19 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
-type BadgeProps = {
+// `pressable`, not `onPress`, decides whether the badge renders a pressable: onPress defaults to a noop.
+type BadgeProps = WithSentryLabelWhenPressable<'pressable'> & {
     success?: boolean;
     error?: boolean;
 
@@ -61,7 +63,7 @@ function Badge({
     error = false,
     isStrong = false,
     isCondensed = false,
-    pressable = false,
+    pressable,
     text,
     environment = CONST.ENVIRONMENT.DEV,
     badgeStyles,
@@ -72,6 +74,7 @@ function Badge({
     iconFill,
     style,
     shouldUseXXSmallIcon = false,
+    sentryLabel,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -83,26 +86,25 @@ function Badge({
 
     const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
-    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [
-            styles.defaultBadge,
-            isCondensed && styles.condensedBadge,
-            styles.alignSelfCenter,
-            styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
-            badgeStyles,
-        ],
-        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
-    );
+    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = ({pressed}) => [
+        styles.defaultBadge,
+        isCondensed && styles.condensedBadge,
+        styles.alignSelfCenter,
+        styles.ml2,
+        StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
+        badgeStyles,
+    ];
 
     if (!text && !icon) {
         return null;
     }
 
+    const pressProps = pressable ? {sentryLabel, onPress} : {};
+
     return (
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
-            onPress={onPress}
+            {...pressProps}
             role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
             accessibilityLabel={pressable ? text : undefined}
             // Deliberately no aria-label here for the non-pressable case: a global ARIA property makes the browser

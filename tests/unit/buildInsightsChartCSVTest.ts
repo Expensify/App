@@ -1,4 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {ChartStackStage} from '@components/Search/buildStackedSeries';
+import {getStageDuration} from '@components/Search/chartMetricValue';
 import type {GroupedItem} from '@components/Search/types';
 
 import {translate as translatePhrase} from '@libs/Localize';
@@ -10,40 +12,46 @@ import IntlStore from '@src/languages/IntlStore';
 
 const translate: LocalizedTranslate = (key, ...parameters) => translatePhrase(CONST.LOCALES.EN, key, ...parameters);
 const getCurrencyDecimals = (currency: string) => (currency === 'JPY' ? 0 : 2);
+/** A today after every exported period, so none counts as after today */
+const AFTER_EVERY_PERIOD = '2030-01-01';
 const GROUP_FIELDS = {keyForList: 'group_test', count: 2, total: 12345, currency: CONST.CURRENCY.USD, transactions: []};
 
-const TIME_GROUPS: Array<{item: GroupedItem; start: string; end: string; dates: string[]}> = [
-    {
-        item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day: '2026-01-02', formattedDay: 'Jan 2', shortFormattedDay: '2', lineChartFormattedDay: 'Jan 2'},
-        start: '2026-01-01',
-        end: '2026-01-03',
-        dates: ['2026-01-01', '2026-01-02', '2026-01-03'],
-    },
+const TIME_GROUPS: Array<{item: GroupedItem; date: string}> = [
+    {item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day: '2026-01-02', formattedDay: 'Jan 2', shortFormattedDay: '2', lineChartFormattedDay: 'Jan 2'}, date: '2026-01-02'},
     {
         item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week: '2026-01-04', formattedWeek: 'Jan 4–10', shortFormattedWeek: 'Jan 4–10', lineChartFormattedWeek: 'Jan 4'},
-        start: '2026-01-01',
-        end: '2026-01-11',
-        dates: ['2025-12-28', '2026-01-04', '2026-01-11'],
+        date: '2026-01-04',
     },
     {
         item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 2, formattedMonth: 'February 2026', shortFormattedMonth: 'Feb', sortKey: 202602},
-        start: '2026-01-15',
-        end: '2026-03-15',
-        dates: ['2026-01-01', '2026-02-01', '2026-03-01'],
+        date: '2026-02-01',
     },
     {
         item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.QUARTER, year: 2026, quarter: 2, formattedQuarter: 'Q2 2026', shortFormattedQuarter: 'Q2', sortKey: 20262},
-        start: '2026-02-01',
-        end: '2026-08-01',
-        dates: ['2026-01-01', '2026-04-01', '2026-07-01'],
+        date: '2026-04-01',
     },
-    {
-        item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.YEAR, year: 2026, formattedYear: '2026', sortKey: 2026},
-        start: '2025-06-01',
-        end: '2027-06-01',
-        dates: ['2025-01-01', '2026-01-01', '2027-01-01'],
-    },
+    {item: {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.YEAR, year: 2026, formattedYear: '2026', sortKey: 2026}, date: '2026-01-01'},
 ];
+
+function quarterGroup(year: number, quarter: number, count: number): GroupedItem {
+    return {
+        ...GROUP_FIELDS,
+        groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+        year,
+        quarter,
+        formattedQuarter: `Q${quarter} ${year}`,
+        shortFormattedQuarter: `Q${quarter}`,
+        sortKey: year * 10 + quarter,
+        keyForList: `quarter_${year}_${quarter}`,
+        count,
+        total: count ? GROUP_FIELDS.total : 0,
+    };
+}
+
+/** Exports quarters as of October 28, 2026 */
+function exportQuarters(data: GroupedItem[], shouldShowRunningTotal = false) {
+    return buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.QUARTER, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: '2026-10-28', shouldShowRunningTotal});
+}
 
 describe('buildInsightsChartCSV', () => {
     beforeAll(async () => {
@@ -51,15 +59,59 @@ describe('buildInsightsChartCSV', () => {
         await IntlStore.load(CONST.LOCALES.FR);
     });
 
-    it.each(TIME_GROUPS)('includes empty $item.groupedBy periods across the selected range', ({item, start, end, dates}) => {
-        // Given a filtered time range with spend only in its middle period
+    it.each(TIME_GROUPS)('names $item.groupedBy rows by the date their period starts', ({item, date}) => {
+        // Given a time group the chart plots
         const data = [item];
 
-        // When the loaded groups are exported without fetching their expenses
-        const csv = buildInsightsChartCSV({data, groupBy: item.groupedBy, dateRange: {start, end}, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate});
+        // When it is exported
+        const csv = buildInsightsChartCSV({data, groupBy: item.groupedBy, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: AFTER_EVERY_PERIOD});
 
-        // Then partial boundary periods and empty periods remain in chronological order
-        expect(csv).toBe(`\uFEFFDate,Expenses,Total,Currency\r\n${dates.at(0)},0,0.00,USD\r\n${dates.at(1)},2,123.45,USD\r\n${dates.at(2)},0,0.00,USD`);
+        // Then its row is named by a date a spreadsheet can sort, rather than by its display label
+        expect(csv).toBe(`\uFEFFDate,Expenses,Total,Currency\r\n${date},2,123.45,USD`);
+    });
+
+    it('exports the empty periods up to today as the chart plots them', () => {
+        // Given an empty Q1, a Q2 with expenses and an empty Q3, all before today
+        const data = [quarterGroup(2026, 1, 0), quarterGroup(2026, 2, 2), quarterGroup(2026, 3, 0)];
+
+        // When the quarters are exported
+        const csv = exportQuarters(data);
+
+        // Then the empty quarters stay as $0 rows, like the chart's $0 points
+        expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-01-01,0,0.00,USD\r\n2026-04-01,2,123.45,USD\r\n2026-07-01,0,0.00,USD');
+    });
+
+    it('leaves out the empty periods after today that no period with expenses comes after', () => {
+        // Given Q4 in progress, followed by two quarters of next year with no expenses yet
+        const data = [quarterGroup(2026, 4, 2), quarterGroup(2027, 1, 0), quarterGroup(2027, 2, 0)];
+
+        // When the quarters are exported
+        const csv = exportQuarters(data);
+
+        // Then the export ends at Q4, where the chart's line ends
+        expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-10-01,2,123.45,USD');
+    });
+
+    it('leaves out the empty periods after today from a running total', () => {
+        // Given Q3 and Q4 with expenses, followed by a quarter of next year with no expenses yet
+        const data = [quarterGroup(2026, 3, 2), quarterGroup(2026, 4, 2), quarterGroup(2027, 1, 0)];
+
+        // When the quarters are exported as a running total, whose counts carry earlier expenses forward
+        const csv = exportQuarters(data, true);
+
+        // Then the export ends at Q4 with the totals so far, where the chart's line ends
+        expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-07-01,2,123.45,USD\r\n2026-10-01,4,246.90,USD');
+    });
+
+    it('keeps an empty period after today that comes before a period with expenses', () => {
+        // Given an empty Q1 of next year followed by a Q2 holding future-dated expenses
+        const data = [quarterGroup(2026, 4, 2), quarterGroup(2027, 1, 0), quarterGroup(2027, 2, 2)];
+
+        // When the quarters are exported
+        const csv = exportQuarters(data);
+
+        // Then Q1 stays as a $0 row, since the chart's line passes through it
+        expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-10-01,2,123.45,USD\r\n2027-01-01,0,0.00,USD\r\n2027-04-01,2,123.45,USD');
     });
 
     it('exports only the supplied ranking groups in chart order', () => {
@@ -69,14 +121,14 @@ describe('buildInsightsChartCSV', () => {
             {...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'Refund', formattedMerchant: 'Refund', total: -150, count: 1},
         ];
 
-        // When the ranking is exported for a date range that includes empty days
+        // When the ranking is exported
         const csv = buildInsightsChartCSV({
             data,
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-            dateRange: {start: '2026-01-01', end: '2026-01-03'},
             currency: CONST.CURRENCY.USD,
             getCurrencyDecimals,
             translate,
+            today: AFTER_EVERY_PERIOD,
         });
 
         // Then no empty ranking groups or expense rows are added, and refunds stay numeric
@@ -89,7 +141,14 @@ describe('buildInsightsChartCSV', () => {
         const data: GroupedItem[] = names.map((merchant) => ({...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant, formattedMerchant: merchant}));
 
         // When user-controlled names are written into the spreadsheet
-        const csv = buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, dateRange: {}, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate});
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+        });
 
         // Then each name stays in one cell and cannot execute as a formula
         expect(csv).toBe('\uFEFFMerchant,Expenses,Total,Currency\r\n"Shop, ""Central""\nBranch",2,123.45,USD\r\n\'=1+1,2,123.45,USD\r\n\' @SUM(A1:A2),2,123.45,USD');
@@ -101,7 +160,14 @@ describe('buildInsightsChartCSV', () => {
         const translateFrench: LocalizedTranslate = (key, ...parameters) => translatePhrase(CONST.LOCALES.FR, key, ...parameters);
 
         // When its grouped totals are exported
-        const csv = buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, dateRange: {}, currency: 'JPY', getCurrencyDecimals, translate: translateFrench});
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+            currency: 'JPY',
+            getCurrencyDecimals,
+            translate: translateFrench,
+            today: AFTER_EVERY_PERIOD,
+        });
 
         // Then amounts use currency precision, without symbols or thousands separators
         expect(csv).toBe(
@@ -114,9 +180,107 @@ describe('buildInsightsChartCSV', () => {
         const data: GroupedItem[] = [{...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.FROM, accountID: 1, formattedFrom: 'Alex Smith'}];
 
         // When the chart is exported
-        const csv = buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.FROM, dateRange: {}, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate});
+        const csv = buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.FROM, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: AFTER_EVERY_PERIOD});
 
         // Then the CSV names the person rather than exposing only their internal account ID
         expect(csv).toBe('\uFEFFFrom,Expenses,Total,Currency\r\nAlex Smith,2,123.45,USD');
+    });
+
+    it('exports selected-level names, ancestors, and shares of all spend in chart order', () => {
+        // Given tag rows with the same display labels as the chart
+        const data: GroupedItem[] = [
+            {
+                ...GROUP_FIELDS,
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: 'R&D: West',
+                formattedTagName: 'R&D: West',
+                tagLevel: 2,
+                parentTagPath: 'US',
+                percentOfTotal: 40,
+            },
+            {
+                ...GROUP_FIELDS,
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: '=1+1',
+                formattedTagName: '=1+1',
+                tagLevel: 2,
+                parentTagPath: '',
+                percentOfTotal: -5,
+                total: -150,
+            },
+        ];
+
+        // When the tag ranking is exported
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+        });
+
+        // Then parents stay separate, untagged spend is not redistributed, and formulas cannot execute
+        expect(csv).toBe("\uFEFFTag,Parent,Total,Share of total (%),Expenses,Currency\r\nR&D: West,US,123.45,40,2,USD\r\n'=1+1,,-1.50,-5,2,USD");
+    });
+
+    it('exports the average days a duration chart plots instead of the amount', () => {
+        // Given submitter groups whose reports took 2.5 days on average to submit
+        const data: GroupedItem[] = [{...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.FROM, accountID: 1, formattedFrom: 'Alex Smith', averageDuration: 2.5 * CONST.DATE.SECONDS_PER_DAY}];
+
+        // When a duration chart is exported
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.FROM,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+            countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+        });
+
+        // Then the CSV carries the durations the chart shows, not a money total the chart never draws
+        expect(csv).toBe('\uFEFFFrom,Reports,Average days\r\nAlex Smith,2,2.5');
+    });
+
+    it('writes a stacked chart one column per stage, leaving unavailable stages empty', () => {
+        // Given a month whose reports took no time to approve and were never paid, charted with the submit, approve and pay stages
+        const month: GroupedItem = {
+            ...GROUP_FIELDS,
+            groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+            year: 2026,
+            month: 2,
+            formattedMonth: 'February 2026',
+            shortFormattedMonth: 'Feb',
+            sortKey: 202602,
+            submitAverageTime: 1.5 * CONST.DATE.SECONDS_PER_DAY,
+            approveAverageTime: 0,
+            reimburseAverageTime: null,
+        };
+        const toStage = (label: string, durationField: 'submitAverageTime' | 'approveAverageTime' | 'reimburseAverageTime'): ChartStackStage => ({
+            key: label,
+            label,
+            color: '',
+            comparisonColor: '',
+            getValue: (item) => getStageDuration(item, durationField),
+        });
+        const stages = [toStage('Created → Submitted', 'submitAverageTime'), toStage('Submitted → Approved', 'approveAverageTime'), toStage('Approved → Paid', 'reimburseAverageTime')];
+
+        // When the chart is exported
+        const csv = buildInsightsChartCSV({
+            data: [month],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+            countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            stages,
+        });
+
+        // Then each stage gets its own column in days, an instant approval reads 0.0, and the unpaid stage is left empty rather than read as 0 days
+        expect(csv).toBe('\uFEFFDate,Reports,Created → Submitted,Submitted → Approved,Approved → Paid\r\n2026-02-01,2,1.5,0.0,');
     });
 });

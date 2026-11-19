@@ -19,8 +19,7 @@ You can troubleshoot most Expensify Card issues in just a few steps. This guide 
 
 ## Cardholders
 
-- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
-- **On mobile:** Tap the navigation tabs at the bottom and go to **Wallet > Expensify Card**.
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon. Then select **Wallet > Expensify Card**.
 
 ## Workspace Admins
 
@@ -35,8 +34,7 @@ You can troubleshoot most Expensify Card issues in just a few steps. This guide 
 
 To check if your card is active:
 
-- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
-- **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon. Then select **Wallet > Expensify Card**.
 
 Then, click on your card. If it hasn’t been activated yet, you’ll see an **Activate physical card** prompt at the bottom of the screen. Follow the steps to complete activation.
 
@@ -46,8 +44,7 @@ Each Expensify Card has a spending limit set by your Workspace Admin. If your av
 
 To check your card’s remaining limit:
 
-- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
-- **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon. Then select **Wallet > Expensify Card**.
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
 
@@ -65,14 +62,13 @@ Your Workspace Admin may have set a Spend Rule on your card that declines transa
 
 To check whether a Spend Rule caused the decline:
 
-- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
-- **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon. Then select **Wallet > Expensify Card**.
 
 Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
 ## What the Pending and Inactive statuses on your Expensify Card in Wallet mean
 
-In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account > Wallet**. Under **Cards**, each Expensify Card shows one of these statuses:
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon. Then select **Wallet**. Under **Cards**, each Expensify Card shows one of these statuses:
 
 - **Active** — The card is ready to use.
 - **Pending** — The physical card is waiting to be issued or activated and can't be used for purchases yet.

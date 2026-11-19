@@ -48,12 +48,13 @@ function TransactionItemRow({
     isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
-    shouldShowCheckbox = false,
+    shouldShowCheckbox,
     columns,
     onButtonPress = () => {},
     style,
@@ -67,6 +68,7 @@ function TransactionItemRow({
     radioButtonContainerStyle,
     radioButtonWrapperStyle,
     shouldShowErrors = true,
+    shouldShowCategoryOnNarrowLayout = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
@@ -144,10 +146,12 @@ function TransactionItemRow({
     if (shouldUseNarrowLayout) {
         const description = getDescription(transactionItem);
         const merchantOrDescription = merchant || description;
-        const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+        const categoryForDisplay = !shouldShowCategoryOnNarrowLayout || isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
         // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
+        // A narrow row needs a checkbox label only when it shows the checkbox.
+        const checkboxProps = shouldShowCheckbox ? {shouldShowCheckbox, checkboxSentryLabel} : {};
         const narrowForwardedProps = {
             transactionItem,
             report,
@@ -155,7 +159,6 @@ function TransactionItemRow({
             isSelected,
             shouldShowTooltip,
             onCheckboxPress,
-            shouldShowCheckbox,
             style,
             dataSet,
             isInSingleTransactionReport,
@@ -170,12 +173,12 @@ function TransactionItemRow({
             shouldShowBottomBorder,
             onArrowRightPress,
             shouldShowArrowRightOnNarrowLayout,
-            checkboxSentryLabel,
         };
 
         return (
             <TransactionItemRowNarrow
                 {...narrowForwardedProps}
+                {...checkboxProps}
                 bgActiveStyles={bgActiveStyles}
                 merchant={merchant}
                 merchantOrDescription={merchantOrDescription}
@@ -202,6 +205,7 @@ function TransactionItemRow({
         isDateColumnCreated,
         submittedColumnSize,
         approvedColumnSize,
+        paidColumnSize,
         postedColumnSize,
         exportedColumnSize,
         amountColumnSize,

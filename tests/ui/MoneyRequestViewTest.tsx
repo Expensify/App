@@ -11,7 +11,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {StyleProp, TextStyle} from 'react-native';
@@ -25,6 +25,9 @@ import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
+jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
 
 type MockMenuItemWithTopDescriptionProps = {
     description?: string;
@@ -247,6 +250,94 @@ describe('MoneyRequestView edit fields', () => {
         return transaction;
     };
 
+    it('shows additional fields from the default report table', async () => {
+        // Given an expense whose MCC appears in the default report table.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {mcc: '0012'});
+        });
+
+        // When the expense is opened before the user has saved a column preference.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the detail view shows the MCC without dropping the existing expense editor.
+        expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+    });
+
+    it('shows additional fields in the saved column order and updates them when the preference changes', async () => {
+        // Given an expense whose report column preference puts Exchange rate before MCC and omits Merchant.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {mcc: '0012', currency: CONST.CURRENCY.EUR, currencyConversionRate: '1.2345'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+
+        // When the expense detail view renders the configured columns.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it shows the new rows in preference order and keeps the existing Merchant and Amount editors available.
+        const additionalFields = screen.getAllByLabelText(/^(common\.exchangeRate|common\.mcc),/);
+        expect(additionalFields).toHaveLength(2);
+        expect(additionalFields.at(0)).toBe(screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'));
+        expect(additionalFields.at(1)).toBe(screen.getByLabelText('common.mcc, 0012'));
+        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+
+        // When the user turns off Exchange rate in the report's column settings.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Exchange rate disappears even though the transaction still has conversion data.
+        expect(screen.queryByLabelText(fieldLabel('common.exchangeRate'))).not.toBeOnTheScreen();
+        expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+    });
+
+    it('keeps workspace column preferences out of personal IOUs', async () => {
+        // Given a personal IOU and an account-wide preference to display MCC in workspace expense reports.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {type: CONST.REPORT.TYPE.IOU});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {mcc: '0012'});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+
+        // When the personal expense is opened.
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount renders without the configured workspace field.
+        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+        expect(screen.queryByLabelText(fieldLabel('common.mcc'))).not.toBeOnTheScreen();
+    });
+
+    it('includes the report owner in the per-attendee total when no attendees are listed', async () => {
+        // Given a $100 expense with no explicit attendees in a workspace that tracks them.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const attendeePolicy = {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, attendeePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: -10000});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        });
+
+        // When the configured per-attendee field renders.
+        renderMoneyRequestView(threadReport, attendeePolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the report owner's share is the full expense, as it is in the table.
+        expect(screen.getByLabelText('iou.totalPerAttendee, USD10000')).toBeOnTheScreen();
+    });
+
     it('should show amount and merchant as editable when report is open', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -387,6 +478,93 @@ describe('MoneyRequestView edit fields', () => {
         });
         expect(screen.queryByLabelText(fieldLabel('common.category'))).not.toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
+    });
+
+    const renderOtherUsersUnreportedExpenseWithTag = async (transactionOverrides: Partial<Transaction> = {}) => {
+        const selfDMReportID = 'self_dm_mrv_tags';
+        const otherUserAccountID = 20;
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: selfDMReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: otherUserAccountID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [parentReportActionID]: {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    reportActionID: parentReportActionID,
+                    reportID: selfDMReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: otherUserAccountID,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                        IOUTransactionID: transactionID,
+                        amount: 5000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                tag: 'Engineering:Berlin:Floor 2',
+                ...transactionOverrides,
+            });
+
+            // The viewer's own default workspace has a single, unrelated tag list
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Tag: {name: 'Tag', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                    <MoneyRequestView
+                        transactionThreadReport={threadReport}
+                        parentReportID={selfDMReportID}
+                        expensePolicy={undefined}
+                        shouldShowAnimatedBackground={false}
+                    />
+                </ScreenWrapperStatusContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    it("shows another user's full unreported expense tag in a single row instead of the viewer's own workspace tag lists", async () => {
+        // Given an unreported self-DM expense with a three-level tag that was created by another user
+        // When the viewer opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag();
+
+        // Then a single generic tag row shows every level of the expense's tag, since the viewer can't see the owner's tag list names
+        await waitFor(() => {
+            expect(screen.getAllByTestId('menu-item-common.tag')).toHaveLength(1);
+        });
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Tag')).not.toBeOnTheScreen();
+    });
+
+    it("keeps the full tag row read-only when a domain admin views another user's unreported managed card expense", async () => {
+        // Given another user's unreported managed card expense, which a domain admin is allowed to edit
+        // When the domain admin opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag({managedCard: true});
+
+        // Then the full tag row can't be pressed, because editing it would use the admin's own unrelated tag lists and could clear the owner's tag
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.tag')).toHaveTextContent('readonly');
+        });
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
     });
 
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {

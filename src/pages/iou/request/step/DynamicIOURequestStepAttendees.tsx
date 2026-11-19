@@ -29,7 +29,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -80,7 +80,7 @@ function DynamicIOURequestStepAttendees({
         backPathRef.current = backPath;
     }, [backPath]);
 
-    const saveAttendees = useCallback(() => {
+    const saveAttendees = () => {
         if (attendees.length <= 0) {
             return;
         }
@@ -114,30 +114,7 @@ function DynamicIOURequestStepAttendees({
         }
 
         Navigation.goBack(backPathRef.current, {shouldSkipFocusRestore: true});
-    }, [
-        isVendorMatchingBetaEnabled,
-        attendees,
-        previousAttendees,
-        isEditing,
-        transactionID,
-        report,
-        parentReport,
-        iouReportOwnerLogin,
-        policy,
-        policyTags,
-        policyCategories,
-        allTransactionViolations,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        isOffline,
-        delegateAccountID,
-        reportPolicyTags,
-        isTrackIntentUser,
-        getCurrencyDecimals,
-        getCurrencySymbol,
-        rules,
-    ]);
+    };
 
     const navigateBack = () => {
         Navigation.goBack(backPathRef.current);

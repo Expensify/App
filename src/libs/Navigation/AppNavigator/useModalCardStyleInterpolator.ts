@@ -1,11 +1,11 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
-
-import variables from '@styles/variables';
+import {getSidePanelInsetStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -27,7 +27,8 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded, sidePanelWidth, isSidePanelResizable} = useSidePanelState();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
@@ -45,7 +46,8 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {
-            cardStyle.paddingRight = sidePanelOffset.current;
+            // A resizable panel's inset is left to CSS, so dragging its edge moves the page without rendering the cards.
+            cardStyle.paddingRight = isSidePanelResizable ? getSidePanelInsetStyleValue(sidePanelWidth) : sidePanelOffset.current;
         }
 
         // Suppress card entry animation while the side panel is mid-transition on narrow layout — keeps the
@@ -63,7 +65,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             return {cardStyle: {...cardStyle, opacity: progress}};
         }
 
-        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.rhpWidth;
+        const widthFallback = shouldUseNarrowLayout ? screen.width : singleRHPWidth;
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
         const translateX = Animated.multiply(

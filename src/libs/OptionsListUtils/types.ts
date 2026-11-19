@@ -206,7 +206,7 @@ type GetValidOptionsSharedConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     action?: IOUAction;
     shouldBoldTitleByDefault?: boolean;
-    selectedOptions?: Option[];
+    selectedOptions?: readonly Option[];
 };
 
 type GetValidReportsConfig = {
@@ -217,6 +217,7 @@ type GetValidReportsConfig = {
     forcePolicyNamePreview?: boolean;
     includeSelfDM?: boolean;
     includeOwnedWorkspaceChats?: boolean;
+    excludeWorkspacesWithoutCreateExpensePermission?: boolean;
     includeThreads?: boolean;
     includeTasks?: boolean;
     includeMoneyRequests?: boolean;
@@ -250,6 +251,7 @@ type IsValidReportsConfig = Pick<
     | 'isDefaultRoomsBetaEnabled'
     | 'includeMultipleParticipantReports'
     | 'includeOwnedWorkspaceChats'
+    | 'excludeWorkspacesWithoutCreateExpensePermission'
     | 'includeThreads'
     | 'includeTasks'
     | 'includeMoneyRequests'
@@ -294,7 +296,7 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];

@@ -36,6 +36,7 @@ import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import deferNavigate from '@libs/Navigation/deferNavigate';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -46,7 +47,7 @@ import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, ExpensifyCardManualBilling, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
@@ -242,7 +243,7 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  * back to, so it sends no `backTo`.
  */
 function navigateToAddCardToDigitalWallet(cardID: number) {
-    const isOpenedOverCardDetails = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID))}`;
+    const isOpenedOverCardDetails = Navigation.getActiveRouteWithoutParams() === `/${createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(cardID)), ROUTES.SETTINGS_WALLET)}`;
     const backTo = isOpenedOverCardDetails ? undefined : Navigation.getActiveRoute();
 
     // Called straight from a press handler, so defer it and let the touch finish before the RHP mounts.
@@ -578,7 +579,7 @@ function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: st
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    scrapeMinDate: oldStartDate,
+                    scrapeMinDate: oldStartDate ?? null,
                     pendingFields: {
                         scrapeMinDate: null,
                     },
@@ -706,7 +707,6 @@ function updateSettlementFrequency(
         },
     ];
 
-    // The backend assumes the US program when no feedCountry is sent, which silently fails for UK/EU workspaces
     const parameters = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,

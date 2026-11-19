@@ -21,9 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {activeModalKindSelector} from '@selectors/Modal';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
@@ -31,7 +32,8 @@ import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
-    shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
+    /** The one tooltip allowed to render right now, or null when no registered tooltip may show */
+    visibleTooltipName: ProductTrainingTooltipName | null;
     registerTooltip: (tooltipName: ProductTrainingTooltipName) => void;
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
@@ -44,10 +46,27 @@ type ProductTrainingContextConfig = {
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
-    shouldRenderTooltip: () => false,
+    visibleTooltipName: null,
     registerTooltip: () => {},
     unregisterTooltip: () => {},
 });
+
+/**
+ * Picks the highest-priority registered tooltip that passes the eligibility check, or null. Ties go to the one registered first.
+ */
+function getVisibleTooltipName(activeTooltips: Map<ProductTrainingTooltipName, number>, isEligible: (tooltipName: ProductTrainingTooltipName) => boolean): ProductTrainingTooltipName | null {
+    let visibleTooltipName: ProductTrainingTooltipName | null = null;
+    let highestPriority = -Infinity;
+    for (const tooltipName of activeTooltips.keys()) {
+        const priority = TOOLTIPS[tooltipName]?.priority ?? 0;
+        if (priority <= highestPriority || !isEligible(tooltipName)) {
+            continue;
+        }
+        visibleTooltipName = tooltipName;
+        highestPriority = priority;
+    }
+    return visibleTooltipName;
+}
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -61,175 +80,103 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
-    const isUserPolicyEmployee = useMemo(() => {
-        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
-            return false;
-        }
-        return getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
-    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+    const isUserPolicyEmployee =
+        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
 
-    const isUserPolicyAdmin = useMemo(() => {
-        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
-            return false;
-        }
-        return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
-    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+    const isUserPolicyAdmin =
+        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
+    const [activeModalKind = 'none'] = useOnyx(ONYXKEYS.MODAL, {selector: activeModalKindSelector});
+    const isModalVisible = activeModalKind !== 'none';
 
-    const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
+    const [activeTooltips, setActiveTooltips] = useState<Map<ProductTrainingTooltipName, number>>(() => new Map());
 
-    const unregisterTooltip = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            setActiveTooltips((prev) => {
-                const next = new Set(prev);
+    // Counts consumers per tooltip name, since several can share one. Both callbacks must only call the setter:
+    // consumers list them as effect dependencies, so a new identity would re-register every tooltip.
+    const registerTooltip = (tooltipName: ProductTrainingTooltipName) => {
+        setActiveTooltips((prev) => new Map(prev).set(tooltipName, (prev.get(tooltipName) ?? 0) + 1));
+    };
+
+    const unregisterTooltip = (tooltipName: ProductTrainingTooltipName) => {
+        setActiveTooltips((prev) => {
+            const count = prev.get(tooltipName);
+            if (!count) {
+                return prev;
+            }
+            const next = new Map(prev);
+            if (count === 1) {
                 next.delete(tooltipName);
-                return next;
-            });
-        },
-        [setActiveTooltips],
-    );
+            } else {
+                next.set(tooltipName, count - 1);
+            }
+            return next;
+        });
+    };
 
-    const determineVisibleTooltip = useCallback(() => {
-        if (activeTooltips.size === 0) {
-            return null;
-        }
+    const isUserInPaidPolicy = !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && hasAnyPaidPolicy(allPolicies);
 
-        const sortedTooltips = Array.from(activeTooltips)
-            .map((name) => ({
-                name,
-                priority: TOOLTIPS[name]?.priority ?? 0,
-            }))
-            .sort((a, b) => b.priority - a.priority);
-
-        const highestPriorityTooltip = sortedTooltips.at(0);
-
-        if (!highestPriorityTooltip) {
-            return null;
-        }
-
-        return highestPriorityTooltip.name;
-    }, [activeTooltips]);
-
-    const isUserInPaidPolicy = useMemo(() => {
-        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+    const shouldTooltipBeVisible = (tooltipName: ProductTrainingTooltipName) => {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
             return false;
         }
-        return hasAnyPaidPolicy(allPolicies);
-    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
-    const shouldTooltipBeVisible = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
-                return false;
-            }
+        const tooltipConfig = TOOLTIPS[tooltipName];
 
-            const tooltipConfig = TOOLTIPS[tooltipName];
+        const isDismissed = isProductTrainingElementDismissed(tooltipName, dismissedProductTraining);
 
-            const isDismissed = isProductTrainingElementDismissed(tooltipName, dismissedProductTraining);
+        // Tooltips with a reappear window are shown again once that long has passed since the last dismissal.
+        const canReappear = !!tooltipConfig.reappearsAfterMs && hasDismissalExpired(tooltipName, dismissedProductTraining, tooltipConfig.reappearsAfterMs);
 
-            // Tooltips with a reappear window are shown again once that long has passed since the last dismissal.
-            const canReappear = !!tooltipConfig.reappearsAfterMs && hasDismissalExpired(tooltipName, dismissedProductTraining, tooltipConfig.reappearsAfterMs);
+        if (isDismissed && !canReappear) {
+            return false;
+        }
 
-            if (isDismissed && !canReappear) {
-                return false;
-            }
+        // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
+            return false;
+        }
+        if (isOnboardingCompleted === false) {
+            return false;
+        }
 
-            // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
-            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
-                return false;
-            }
-            if (isOnboardingCompleted === false) {
-                return false;
-            }
+        // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
+        // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
+        if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && activeModalKind === 'popover') {
+            return false;
+        }
 
-            // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
-            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
-            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
-                return false;
-            }
+        // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
+        if (
+            tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
+            tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
+            tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
+            tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
+            isModalVisible
+        ) {
+            return false;
+        }
 
-            // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
-            if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
-                isModalVisible
-            ) {
-                return false;
-            }
-
-            return tooltipConfig.shouldShow({
-                shouldUseNarrowLayout,
-                isUserPolicyEmployee,
-                isUserPolicyAdmin,
-                hasBeenAddedToNudgeMigration,
-                isUserInPaidPolicy,
-            });
-        },
-        [
-            isOnboardingCompletedMetadata,
-            isLoadingApp,
-            dismissedProductTraining,
-            hasBeenAddedToNudgeMigration,
-            isOnboardingCompleted,
-            isModalVisible,
-            modal?.isPopover,
+        return tooltipConfig.shouldShow({
             shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
+            hasBeenAddedToNudgeMigration,
             isUserInPaidPolicy,
-        ],
-    );
+        });
+    };
 
-    const registerTooltip = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            const shouldRegister = shouldTooltipBeVisible(tooltipName);
-            if (!shouldRegister) {
-                return;
-            }
-            setActiveTooltips((prev) => new Set([...prev, tooltipName]));
-        },
-        [shouldTooltipBeVisible],
-    );
+    // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
+    const visibleTooltipName = shouldSuppressPromotionalUI ? null : getVisibleTooltipName(activeTooltips, shouldTooltipBeVisible);
 
-    const shouldRenderTooltip = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            // Supportal agents and copilots should not see product-training tooltips on behalf of another account.
-            if (shouldSuppressPromotionalUI) {
-                return false;
-            }
-            // First check base conditions
-            const shouldShow = shouldTooltipBeVisible(tooltipName);
-            if (!shouldShow) {
-                return false;
-            }
-            const visibleTooltip = determineVisibleTooltip();
-
-            // If this is the highest priority visible tooltip, show it
-            if (tooltipName === visibleTooltip) {
-                return true;
-            }
-
-            return false;
-        },
-        [shouldSuppressPromotionalUI, shouldTooltipBeVisible, determineVisibleTooltip],
-    );
-
-    const contextValue = useMemo(
-        () => ({
-            shouldRenderTooltip,
-            registerTooltip,
-            unregisterTooltip,
-        }),
-        [shouldRenderTooltip, registerTooltip, unregisterTooltip],
-    );
+    const contextValue = {
+        visibleTooltipName,
+        registerTooltip,
+        unregisterTooltip,
+    };
 
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
@@ -246,7 +193,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
     }
 
-    const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
+    const {visibleTooltipName, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
         if (!shouldShow) {
@@ -258,23 +205,17 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
-    const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
-    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
+    const shouldShowProductTrainingTooltip = shouldShow && tooltipName === visibleTooltipName && !shouldHideToolTip;
 
-    const hideTooltip = useCallback(
-        (isDismissedUsingCloseButton = false) => {
-            if (!shouldShowProductTrainingTooltip) {
-                return;
-            }
-            const tooltip = TOOLTIPS[tooltipName];
-            tooltip.onHideTooltip(isDismissedUsingCloseButton);
-            unregisterTooltip(tooltipName);
-        },
-        [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip],
-    );
+    const hideTooltip = (isDismissedUsingCloseButton = false) => {
+        if (!shouldShowProductTrainingTooltip) {
+            return;
+        }
+        const tooltip = TOOLTIPS[tooltipName];
+        tooltip.onHideTooltip(isDismissedUsingCloseButton);
+    };
 
-    const renderProductTrainingTooltip = useCallback(() => {
+    const renderProductTrainingTooltip = () => {
         const tooltip = TOOLTIPS[tooltipName];
         const content = typeof tooltip.content === 'function' ? tooltip.content() : tooltip.content;
 
@@ -309,30 +250,11 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 </View>
             </View>
         );
-    }, [
-        tooltipName,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.justifyContentCenter,
-        styles.textAlignCenter,
-        styles.gap3,
-        styles.pv2,
-        styles.ph2,
-        styles.renderHTML,
-        styles.dFlex,
-        styles.flexShrink1,
-        theme.tooltipHighlightText,
-        theme.icon,
-        translate,
-        config.onShown,
-        hideTooltip,
-        expensifyIcons.Close,
-        expensifyIcons.Lightbulb,
-    ]);
+    };
 
-    const hideProductTrainingTooltip = useCallback(() => {
+    const hideProductTrainingTooltip = () => {
         hideTooltip(false);
-    }, [hideTooltip]);
+    };
 
     return {
         renderProductTrainingTooltip,

@@ -9,17 +9,24 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
+import getRoutePath from '@libs/Navigation/helpers/getRoutePath';
+import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {DistributedOmit, ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+
+/** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
+type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
 
 function GenericPressable({
     children,
@@ -50,8 +57,9 @@ function GenericPressable({
     dataSet,
     forwardedFSClass,
     accessibilityState,
+    linkRoute,
     ...rest
-}: PressableProps) {
+}: BaseGenericPressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -63,7 +71,7 @@ function GenericPressable({
     // A button role normally means "not selectable, exclude from copy". Callers whose content is selectable text opt out.
     const shouldSuppressSelection = isRoleButton && !shouldAllowTextSelection;
     const internalRef = useRef<ComponentRef<typeof View> | null>(null);
-    const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
+    const composedRef = mergeRefs(ref, internalRef);
     const routeKey = useRouteKey();
     // `||` so empty strings skip — never key off an empty prop.
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
@@ -75,25 +83,18 @@ function GenericPressable({
         return registerPressable(routeKey, focusIdentifier, internalRef);
     }, [screenReaderState, routeKey, focusIdentifier]);
 
-    const isDisabled = useMemo(() => {
-        let shouldBeDisabledByScreenReader = false;
-        if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.ACTIVE) {
-            shouldBeDisabledByScreenReader = !isScreenReaderActive;
-        }
+    let shouldBeDisabledByScreenReader = false;
+    if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.ACTIVE) {
+        shouldBeDisabledByScreenReader = !isScreenReaderActive;
+    }
+    if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.DISABLED) {
+        shouldBeDisabledByScreenReader = isScreenReaderActive;
+    }
+    const isDisabled = disabled || shouldBeDisabledByScreenReader || isExecuting;
 
-        if (enableInScreenReaderStates === CONST.SCREEN_READER_STATES.DISABLED) {
-            shouldBeDisabledByScreenReader = isScreenReaderActive;
-        }
+    const shouldUseDisabledCursor = isDisabled && !isExecuting;
 
-        return disabled || shouldBeDisabledByScreenReader || isExecuting;
-    }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
-
-    const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
-
-    /**
-     * Returns the cursor style based on the state of Pressable
-     */
-    const cursorStyle = useMemo(() => {
+    const getCursorStyle = () => {
         if (!interactive) {
             return styles.cursorDefault;
         }
@@ -109,63 +110,75 @@ function GenericPressable({
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [onPress, interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
+    };
+    const cursorStyle = getCursorStyle();
 
-    const onLongPressHandler = useCallback(
-        (event: GestureResponderEvent) => {
-            if (isDisabled) {
-                return;
-            }
-            if (!onLongPress) {
-                return;
-            }
-            if (shouldUseHapticsOnLongPress) {
-                HapticFeedback.longPress();
-            }
-            if (ref && 'current' in ref && nextFocusRef) {
-                ref.current?.blur();
-                Accessibility.moveAccessibilityFocus(nextFocusRef);
-            }
-            notifyPressedTrigger(internalRef, focusIdentifier);
-            onLongPress(event);
-        },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled, focusIdentifier],
-    );
+    const onLongPressHandler = (event: GestureResponderEvent) => {
+        if (isDisabled) {
+            return;
+        }
+        if (!onLongPress) {
+            return;
+        }
+        if (shouldUseHapticsOnLongPress) {
+            HapticFeedback.longPress();
+        }
+        if (ref && 'current' in ref && nextFocusRef) {
+            ref.current?.blur();
+            Accessibility.moveAccessibilityFocus(nextFocusRef);
+        }
+        notifyPressedTrigger(internalRef, focusIdentifier);
+        onLongPress(event);
+    };
 
-    const onPressHandler = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (isDisabled || !interactive) {
-                return;
-            }
-            if (!onPress) {
-                return;
-            }
-            if (shouldUseHapticsOnPress) {
-                HapticFeedback.press();
-            }
-            if (ref && 'current' in ref && nextFocusRef) {
-                ref.current?.blur();
-                Accessibility.moveAccessibilityFocus(nextFocusRef);
-            }
-            notifyPressedTrigger(internalRef, focusIdentifier);
-            return onPress(event);
-        },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive, focusIdentifier],
-    );
+    const onPressHandler = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (isDisabled || !interactive) {
+            return;
+        }
+        if (!onPress) {
+            return;
+        }
+        if (shouldUseHapticsOnPress) {
+            HapticFeedback.press();
+        }
+        if (ref && 'current' in ref && nextFocusRef) {
+            ref.current?.blur();
+            Accessibility.moveAccessibilityFocus(nextFocusRef);
+        }
+        notifyPressedTrigger(internalRef, focusIdentifier);
+        return onPress(event);
+    };
 
-    const voidOnPressHandler = useCallback(
-        (...args: Parameters<typeof onPressHandler>) => {
-            onPressHandler(...args);
-        },
-        [onPressHandler],
-    );
+    const voidOnPressHandler = (...args: Parameters<typeof onPressHandler>) => {
+        onPressHandler(...args);
+    };
 
-    const onKeyboardShortcutPressHandler = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            onPressHandler(event);
-        },
-        [onPressHandler],
-    );
+    const onKeyboardShortcutPressHandler = (event?: GestureResponderEvent | KeyboardEvent) => {
+        onPressHandler(event);
+    };
+
+    const pressOnce = (event?: GestureResponderEvent) => singleExecution(onPressHandler)(event);
+
+    const hasHref = !!linkRoute && !isDisabled && !fullDisabled && interactive;
+
+    // The browser follows the href unless the click is prevented, so only Cmd, Ctrl or Shift clicks on an enabled link reach it and open a new tab or window.
+    const pressLink = (event?: GestureResponderEvent) => {
+        if (hasHref && isNewTabOrWindowMousePress(event)) {
+            return;
+        }
+        event?.preventDefault();
+        if (isDisabled) {
+            return;
+        }
+        pressOnce(event);
+    };
+
+    const getPressHandler = () => {
+        if (linkRoute) {
+            return pressLink;
+        }
+        return !isDisabled ? pressOnce : undefined;
+    };
 
     const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
     useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
@@ -181,21 +194,19 @@ function GenericPressable({
      * If a custom onKeyDown handler is provided, it delegates to that handler.
      * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     * An element with an href is skipped, because the browser turns Enter into a click that keeps its modifier keys for pressLink.
      */
-    const handleKeyDown = useCallback(
-        (event: React.KeyboardEvent) => {
-            if (onKeyDown) {
-                onKeyDown(event as unknown as React.KeyboardEvent<Element>);
-                return;
-            }
+    const handleKeyDown = (event: ViewKeyDownEvent) => {
+        if (onKeyDown) {
+            onKeyDown(event);
+            return;
+        }
 
-            if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                event.preventDefault();
-                onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
-            }
-        },
-        [onKeyDown, isRoleLink, onPressHandler],
-    );
+        if (isRoleLink && !hasHref && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            event.preventDefault();
+            onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+        }
+    };
 
     return (
         <Pressable
@@ -203,7 +214,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={composedRef}
             disabled={fullDisabled || undefined}
-            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
+            onPress={getPressHandler()}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
@@ -234,6 +245,7 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
+            href={hasHref && linkRoute ? getRoutePath(linkRoute) : undefined}
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

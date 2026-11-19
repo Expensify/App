@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -12,7 +13,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
+import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule, TransactionViolations} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -58,6 +59,8 @@ type SelectPaymentTypeParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type BusinessBankAccountOption = {
@@ -162,6 +165,14 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns the account data only when it belongs to a bank account.
+ * Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account.
+ */
+function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
+    return accountData && 'type' in accountData ? accountData : undefined;
+}
+
+/**
  * Returns whether a payment method's bank currency matches the given currency.
  * When no currency is provided, all methods are considered a match.
  */
@@ -172,9 +183,10 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
 /**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
-    return formattedPaymentMethods
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
+    const options = formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
                 return false;
@@ -183,6 +195,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
             return (
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                !accountData.additionalData?.isForABA &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&
@@ -197,6 +210,13 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             iconSize: formattedPaymentMethod?.iconSize,
             methodID: formattedPaymentMethod?.methodID,
         }));
+
+    const defaultOption = defaultBankAccountID === undefined ? undefined : options.find((option) => option.methodID === defaultBankAccountID);
+    if (!defaultOption) {
+        return options;
+    }
+
+    return [defaultOption, ...options.filter((option) => option !== defaultOption)];
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
@@ -234,6 +254,8 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isTrackIntentUser,
         ownerLogin,
         getCurrencyDecimals,
+        allTransactionViolations,
+        personalDetailsByLogins,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -271,6 +293,8 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateAccountID,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                allTransactionViolations,
+                personalDetailsByLogins,
             });
         }
         return;
@@ -281,7 +305,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
-type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
+type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType | typeof CONST.PAYMENT_METHODS.ABA}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
 type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
@@ -327,8 +351,9 @@ function getActivePaymentType(
     // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
-    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid" or "Pay via ABA", don't require payment method selection since payment happens outside of Expensify
+    const isPaidOutsideExpensify = paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA;
+    const shouldSelectPaymentMethod = !isPaidOutsideExpensify && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,
@@ -342,6 +367,7 @@ export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBankAccountData,
     getBusinessBankAccountOptions,
     matchesCurrency,
     calculateWalletTransferBalanceFee,

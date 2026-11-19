@@ -186,6 +186,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 // backdrop by default, so the report behind them would not be dimmed.
                 shouldEnableMonthYearBackdropInNarrowPane={isInNarrowPaneModal}
                 textInputContainerStyles={textInputContainerStyles}
+                shouldShowLabelTooltipWhenTruncated
             />,
         );
     }
@@ -273,6 +274,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                                 // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
                                 caretHidden
                                 textInputContainerStyles={textInputContainerStyles}
+                                shouldShowLabelTooltipWhenTruncated
                             />
                         </View>
                     );
@@ -298,6 +300,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             onSubmitEditing={() => textInputRef.current?.blur()}
             ref={textInputRef}
             textInputContainerStyles={textInputContainerStyles}
+            shouldShowLabelTooltipWhenTruncated
         />,
     );
 }

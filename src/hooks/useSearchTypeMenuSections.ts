@@ -1,4 +1,4 @@
-import {createTypeMenuSections, omitInsightsPageMenuItems} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, omitInsightsPageMenuItems, omitTravelApprovalMenuItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -43,18 +43,24 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
         areRulesEnabled: policy.areRulesEnabled,
+        travelSettings: policy.travelSettings,
     };
+
+// The draft IDs are only used by an empty state button, which needs a focused screen. An unfocused consumer ignores draft
+// writes, so starting a Create expense flow (which writes a draft) does not re-render a hidden tab.
+const noDraftTransactionIDsSelector = (): string[] => [];
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
+    authTokenType: session?.authTokenType,
 });
 
 /**
  * Get a list of all search groupings, along with their search items.
  *
- * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
- * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
+ * `isScreenFocused` gates the reports-awaiting-approval watch and the draft transaction IDs so an off-screen consumer stops
+ * recomputing them. It defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
  */
 const useSearchTypeMenuSections = (isScreenFocused = true) => {
@@ -66,7 +72,9 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: isScreenFocused ? validTransactionDraftIDsSelector : noDraftTransactionIDsSelector,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
     // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
@@ -80,17 +88,14 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         null,
     );
 
-    const handlePendingConfirm = useCallback(
-        (shouldDismissEmptyReportsConfirmation: boolean) => {
-            pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
-            setPendingReportCreation(null);
-        },
-        [pendingReportCreation, setPendingReportCreation],
-    );
-
-    const handlePendingCancel = useCallback(() => {
+    const handlePendingConfirm = (shouldDismissEmptyReportsConfirmation: boolean) => {
+        pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
         setPendingReportCreation(null);
-    }, [setPendingReportCreation]);
+    };
+
+    const handlePendingCancel = () => {
+        setPendingReportCreation(null);
+    };
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
@@ -106,39 +111,22 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
-    const typeMenuSections = useMemo(
-        () =>
-            createTypeMenuSections({
-                currentUserEmail: currentUserLoginAndAccountID?.email,
-                currentUserAccountID: currentUserLoginAndAccountID?.accountID,
-                cardFeedsByPolicy,
-                defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
-                policies: allPolicies,
-                savedSearches,
-                isOffline,
-                defaultExpensifyCard,
-                activeExpensifyCardFeedID,
-                draftTransactionIDs,
-                isTrackIntentUser: isTrackIntentUser ?? false,
-                hasReportAwaitingApproval,
-                policyCategories: allPolicyCategories,
-            }),
-        [
-            currentUserLoginAndAccountID?.email,
-            currentUserLoginAndAccountID?.accountID,
-            cardFeedsByPolicy,
-            defaultCardFeed,
-            defaultExpensifyCard,
-            activeExpensifyCardFeedID,
-            allPolicies,
-            savedSearches,
-            isOffline,
-            draftTransactionIDs,
-            isTrackIntentUser,
-            hasReportAwaitingApproval,
-            allPolicyCategories,
-        ],
-    );
+    const typeMenuSections = createTypeMenuSections({
+        currentUserEmail: currentUserLoginAndAccountID?.email,
+        currentUserAccountID: currentUserLoginAndAccountID?.accountID,
+        cardFeedsByPolicy,
+        defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+        policies: allPolicies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        activeExpensifyCardFeedID,
+        draftTransactionIDs,
+        isTrackIntentUser: isTrackIntentUser ?? false,
+        hasReportAwaitingApproval,
+        policyCategories: allPolicyCategories,
+        session: currentUserLoginAndAccountID,
+    });
 
     return typeMenuSections;
 };
@@ -147,11 +135,12 @@ const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
     const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
     const {isBetaEnabled} = usePermissions();
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        return typeMenuSections;
+    let sections = typeMenuSections;
+    if (!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL)) {
+        sections = omitTravelApprovalMenuItems(sections);
     }
 
-    return omitInsightsPageMenuItems(typeMenuSections);
+    return omitInsightsPageMenuItems(sections);
 };
 
 export default useSearchTypeMenuSections;

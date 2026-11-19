@@ -30,9 +30,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -61,23 +60,20 @@ function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translat
 
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [addNewCard, addNewCardMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const feedDomainAccountID = addNewCard?.data?.domainAccountID ?? workspaceAccountID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${feedDomainAccountID}`);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const generatedLayoutType = useMemo(
-        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards),
-        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
-    );
+    const generatedLayoutType = prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards);
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -100,10 +96,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return;
         }
 
-        if (isLoadingOnyxValue(workspaceCardFeedsMetadata, addNewCardMetadata)) {
-            return;
-        }
-
         if (!spreadsheet?.data) {
             return;
         }
@@ -117,7 +109,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             savedColumnMappings,
             columnRoles.map((role) => role.value),
         );
-    }, [spreadsheet?.data, savedColumnMappings, columnRoles, workspaceCardFeedsMetadata, addNewCardMetadata]);
+    }, [spreadsheet?.data, savedColumnMappings, columnRoles]);
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -226,10 +218,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {

@@ -1,3 +1,5 @@
+import type {SearchColumnAlignment} from '@styles/utils';
+
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -28,6 +30,9 @@ type TableData = {
 type TableColumnStyling = {
     /** Optional flex value to control the column's width relative to other columns. */
     flex?: number;
+
+    /** Where the heading's label sits. The column menu's caret takes the side away from it. Defaults to the start. */
+    alignment?: SearchColumnAlignment;
 
     /** Optional custom styles for the column container. */
     containerStyles?: StyleProp<ViewStyle>;
@@ -69,6 +74,12 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
 
     /** Smallest width this column may be squeezed to, capped at its content width. Defaults to a readable width. */
     minWidth?: number;
+
+    /**
+     * Narrowest width a drag may give this column. Set when the cell keeps content that does not truncate, so the
+     * usual drag bound would paint it over the next column. Omitted to use the usual drag bound.
+     */
+    dragMinWidth?: number;
 
     /**
      * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather

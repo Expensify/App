@@ -2,7 +2,8 @@ import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -11,16 +12,21 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
@@ -56,6 +62,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 }: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(() => {
         if (defaultStatementPeriodEndDay) {
@@ -68,35 +75,29 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [error, setError] = useState<string | undefined>(undefined);
     const {isLoading, startWithLoading} = usePressLoading();
 
-    const title = useMemo(
-        () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
-        [translate, isChoosingCustomDate],
-    );
+    const title = isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle');
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         if (isChoosingCustomDate) {
             setIsChoosingCustomDate(false);
             return;
         }
 
         onBackButtonPress();
-    }, [isChoosingCustomDate, onBackButtonPress]);
+    };
 
-    const selectDateAndClearError = useCallback((item: StatementCloseDateListItem) => {
+    const selectDateAndClearError = (item: StatementCloseDateListItem) => {
         setSelectedDate(item.value);
         setError(undefined);
-    }, []);
+    };
 
-    const selectCustomDateAndClearError = useCallback(
-        (day: number) => {
-            setSelectedCustomDate(day);
-            setError(undefined);
-            goBack();
-        },
-        [goBack],
-    );
+    const selectCustomDateAndClearError = (day: number) => {
+        setSelectedCustomDate(day);
+        setError(undefined);
+        goBack();
+    };
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!selectedDate) {
             setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
             return;
@@ -115,7 +116,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
             onSubmit(selectedDate, undefined);
         });
-    }, [selectedDate, selectedCustomDate, onSubmit, translate, startWithLoading]);
+    };
 
     return (
         <ScreenWrapper
@@ -160,14 +161,19 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                                     />
                                 ))}
                                 {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        title={selectedCustomDate?.toString()}
-                                        description={translate('workspace.companyCards.customCloseDate')}
-                                        onPress={() => setIsChoosingCustomDate(true)}
-                                        viewMode={CONST.OPTION_MODE.COMPACT}
-                                    />
+                                    <MenuItem.Root
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.STATEMENT_CLOSE_CUSTOM_DATE}
+                                        onPress={callIfAuthenticated(() => setIsChoosingCustomDate(true), session)}
+                                        isCompact
+                                    >
+                                        <MenuItemField.Row
+                                            name={translate('workspace.companyCards.customCloseDate')}
+                                            value={selectedCustomDate?.toString()}
+                                        >
+                                            {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            <MenuItem.Chevron />
+                                        </MenuItemField.Row>
+                                    </MenuItem.Root>
                                 )}
                             </View>
                         </OfflineWithFeedback>
@@ -183,6 +189,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                             />
                         )}
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.STATEMENT_CLOSE_DATE_SAVE}
                             buttonText={confirmText}
                             onSubmit={submit}
                             enabledWhenOffline={enabledWhenOffline}

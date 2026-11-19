@@ -1,20 +1,29 @@
-import useEnvironment from '@hooks/useEnvironment';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 
-import {getZohoBooksSetupLink} from '@libs/actions/connections/ZohoBooks';
+import Navigation from '@libs/Navigation/Navigation';
 
-import {openLink} from '@userActions/Link';
+import useStartZohoBooksOAuth from '@pages/workspace/accounting/zohoBooks/useStartZohoBooksOAuth';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import {useEffect} from 'react';
 
-import type {ConnectToZohoBooksFlowProps} from './types';
+type ConnectToZohoBooksFlowProps = {
+    policyID: string;
+};
 
 function ConnectToZohoBooksFlow({policyID}: ConnectToZohoBooksFlowProps) {
-    const {environmentURL} = useEnvironment();
+    const hasReusablePoliciesConnectedToZohoBooks = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, policyID);
+    const startZohoBooksOAuth = useStartZohoBooksOAuth();
 
     useEffect(() => {
-        // On web the OAuth setup opens in a new browser tab. Open it inline here (within the connect click's
-        // user-gesture window) instead of navigating to a setup screen, otherwise the popup blocker stops the tab.
-        openLink(getZohoBooksSetupLink(policyID), environmentURL);
+        if (hasReusablePoliciesConnectedToZohoBooks) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS.getRoute(policyID));
+            return;
+        }
+        startZohoBooksOAuth(policyID);
+        // This needs to run once as it starts the connection flow
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

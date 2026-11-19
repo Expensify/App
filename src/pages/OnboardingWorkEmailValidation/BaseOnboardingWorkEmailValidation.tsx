@@ -41,7 +41,7 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useEffectEvent, useRef} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -226,7 +226,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         );
     };
 
-    const handleConciergeTaskExit = useCallback(() => {
+    const handleConciergeTaskExit = () => {
         shouldContinueAfterAccountMerge.current = false;
         setOnboardingErrorMessage(null);
         if (!isConciergeTaskFlow) {
@@ -258,16 +258,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [
-        account?.delegatedAccess?.delegate,
-        conciergeChat,
-        delegateAccountID,
-        isConciergeTaskFlow,
-        onboardingValues?.isMergingAccountBlocked,
-        returnToOriginReport,
-        validateEmailTaskReport,
-        workEmail,
-    ]);
+    };
 
     return (
         <ScreenWrapper

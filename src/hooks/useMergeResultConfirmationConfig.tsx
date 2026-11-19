@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
@@ -51,7 +51,7 @@ function DescriptionHTML({html}: {html: string}) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
             <RenderHTML html={html} />
         </View>
     );
@@ -62,11 +62,12 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
     const {translate} = useLocalize();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
@@ -92,7 +93,12 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
             descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />,
             ctaComponent: (
                 <Text style={[styles.textAlignCenter, styles.mt2, styles.textSupporting]}>
-                    <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_RESULT_2FA_LEARN_MORE_LINK}
+                        href={CONST.MERGE_ACCOUNT_HELP_URL}
+                    >
+                        {translate('mergeAccountsPage.mergeFailure2FA.learnMore')}
+                    </TextLink>
                 </Text>
             ),
         },

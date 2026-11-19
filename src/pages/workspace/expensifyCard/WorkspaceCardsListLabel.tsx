@@ -64,6 +64,7 @@ function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimit
     return (
         <View style={[styles.flexRow, styles.mt3]}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.REQUEST_LIMIT_INCREASE}
                 onPress={() => onRequest(closePopover)}
                 style={buttonStyle}
             >
@@ -202,6 +203,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 isSettleBalanceButtonDisplayed && (
                     <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTLE_BALANCE}
                             onPress={handleSettleBalanceButtonClick}
                             innerStyles={[styles.buttonSmall]}
                         >
@@ -214,6 +216,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 <>
                     {isCurrentBalanceType && (
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.VIEW_TRANSACTIONS_LINK}
                             onPress={handleViewTransactionsPress}
                             style={styles.mt1}
                         >

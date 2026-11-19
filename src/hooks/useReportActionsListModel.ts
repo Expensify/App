@@ -3,7 +3,7 @@ import {canUserPerformWriteAction, isReportTransactionThread as isReportTransact
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
-import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -11,7 +11,9 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 
 import {useRoute} from '@react-navigation/native';
 
+import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
+import useInitial from './useInitial';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -23,9 +25,9 @@ import useReportIsArchived from './useReportIsArchived';
 
 /**
  * Single read/derive pipeline for the report-actions list: the subscriptions and derivations the skeleton
- * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry/
- * session-start). The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext`
- * and `ReportActionsListActionsContext` so the content doesn't re-subscribe.
+ * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry).
+ * The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext` and
+ * `ReportActionsListActionsContext` so the content doesn't re-subscribe.
  */
 function useReportActionsListModel(reportID: string, isReportLoadPending: boolean) {
     const {isOffline} = useNetworkWithOfflineStatus();
@@ -38,6 +40,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         reportActions,
         allReportActions,
         allReportActionIDs,
+        persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,
@@ -55,13 +58,19 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
     });
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    // Cached actions displayed offline must stay mounted when queued loads resume.
+    const hasUsableReportActions = reportLoadingState?.hasOnceLoadedReportActions || (isOffline && reportActions.length > 0);
+    const hasOnceLoadedReportActions = useInitial(hasUsableReportActions ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
-    const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
+    const {setShowFullHistory: setConciergeShowFullHistory} = useConciergeChatHistoryActions();
+    const {
+        shouldShowWelcome: shouldShowConciergeWelcome,
+        isHistoryExpanded: isConciergeHistoryExpanded,
+        hasUnreadMessageFromOthers: hasUnreadConciergeMessageFromOthers,
+    } = useConciergeAskState(reportID);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -83,37 +92,22 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
-    const {
-        sortedReportActions,
-        sortedVisibleReportActions,
-        isConciergeMainDM,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
-        showFullHistory,
-        hasPreviousMessages,
-        handleShowPreviousMessages,
-    } = useReportActionsVisibility({
-        reportID,
-        reportActions,
-        allReportActions,
-        canPerformWriteAction,
-        hasOlderActions,
-        loadOlderChats,
-        mainDMSessionStartTime: sessionStartTime,
-        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute,
-        setConciergeShowFullHistory,
-        conciergeHadMessagesAtSessionStart,
-        setConciergeHadMessagesAtSessionStart,
-    });
+    const {sortedReportActions, sortedVisibleReportActions, isConciergeHiddenHistory, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
+        useReportActionsVisibility({
+            reportID,
+            reportActions,
+            allReportActions,
+            canPerformWriteAction,
+            hasOlderActions,
+            loadOlderChats,
+            setConciergeShowFullHistory,
+        });
 
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
-    // allReportActions excludes the synthetic CREATED action always injected for Concierge, so this is
-    // false only on a genuinely cold load with no cached history.
-    const hasCachedReportActions = allReportActions.length > 0;
 
     // Readiness signals for the skeleton decision (some also read by the guard's effect hooks). Off the
-    // context so their churn (loading, app-load, concierge-session, navigation) never re-renders the list.
+    // context so their churn (loading, app-load, navigation) never re-renders the list.
     const readinessSignals = {
         report,
         reportResult,
@@ -137,18 +131,19 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isSingleExpenseReport,
         isMissingReportActions,
         isConciergeHiddenHistory,
-        isConciergeMainDM,
-        hasCachedReportActions,
         showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
+        hasUnreadConciergeMessageFromOthers,
     };
 
     // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.
-    // Ambient state (network, route, archived, concierge session) is read locally in the content instead
+    // Ambient state (network, route, archived, concierge chat history) is read locally in the content instead
     // of carried here.
     const state = {
         report,
         hasOnceLoadedReportActions,
+        // Pagination reports no older actions until a load stores pages, so a pending report load may still bring some.
+        isWaitingForOlderActions: hasOlderActions || isReportLoadPending,
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
@@ -161,7 +156,9 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
-        allReportActionIDs,
+        persistedReportActionIDs,
+        shouldShowConciergeWelcome,
+        isConciergeHistoryExpanded,
     };
 
     // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only

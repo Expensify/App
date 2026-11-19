@@ -23,10 +23,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 // eslint-disable-next-line no-restricted-imports
-import type {CSSProperties, ReactNode} from 'react';
+import type {ComponentRef, CSSProperties, ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
@@ -134,7 +134,7 @@ function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanv
                     canvasSize={canvasSize}
                     contentSize={canvasSize}
                     zoomRange={PDF_ZOOM_RANGE}
-                    pagerRef={state?.pagerRef}
+                    pagerGesture={state?.pagerGesture}
                     isUsedInCarousel={!!state?.pagerRef}
                     shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
                     isTransformGestureActive={isTransformGestureActive}
@@ -165,23 +165,20 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
     const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
      *
      * @param isKBOpen True if keyboard is open
      */
-    const toggleKeyboardOnSmallScreens = useCallback(
-        (isKBOpen: boolean) => {
-            if (!shouldUseNarrowLayout) {
-                return;
-            }
-            setIsKeyboardOpen(isKBOpen);
-            onToggleKeyboard?.(isKBOpen);
-        },
-        [shouldUseNarrowLayout, onToggleKeyboard],
-    );
+    const toggleKeyboardOnSmallScreens = (isKBOpen: boolean) => {
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+        setIsKeyboardOpen(isKBOpen);
+        onToggleKeyboard?.(isKBOpen);
+    };
 
     /**
      * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
@@ -320,4 +317,4 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     );
 }
 
-export default memo(PDFView);
+export default PDFView;

@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -47,7 +46,7 @@ function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceC
     const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [preview, previewMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW);
+    const [preview] = useOnyx(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW);
     const programKey = getCardProgramKey(cardSettings);
 
     const isPartial = preview?.settlementType === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL;
@@ -59,7 +58,7 @@ function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceC
     // On a fresh load this runs before the navigation container is ready, so the navigation waits for it.
     // Confirming clears the preview too, while this page is still mounted for the closing animation, so only a focused page goes back.
     const amountPageRoute = ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE.getRoute(policyID);
-    const isPreviewMissing = !isLoadingOnyxValue(previewMetadata) && !hasPreview;
+    const isPreviewMissing = !hasPreview;
     useEffect(() => {
         if (!isPreviewMissing || !isFocused) {
             return;
@@ -118,6 +117,7 @@ function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceC
                     {!!roundingMessage && <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{roundingMessage}</Text>}
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTLE_BALANCE_CONFIRM_SUBMIT}
                             isDisabled={!hasPreview}
                             onSubmit={settleBalance}
                             buttonText={translate('workspace.expensifyCard.settleBalance')}

@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -46,11 +47,13 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'UserEye',
     'Folder',
     'Basket',
+    'Tag',
     'CalendarSolid',
     'Document',
     'Pencil',
     'ThumbsUp',
     'CheckCircle',
+    'Plane',
 ] as const satisfies readonly ExpensifyIconName[];
 
 type SearchTypeMenuItem = {
@@ -67,8 +70,10 @@ type SearchTypeMenuItem = {
     emptyState?: {
         title: TranslationPaths;
         subtitle: TranslationPaths;
+        shouldShowResetFilters?: boolean;
         buttons?: Array<{
             buttonText: TranslationPaths;
+            sentryLabel: SentryLabel;
             buttonAction: () => void;
             buttonVariant?: ButtonVariant;
             icon?: IconAsset;
@@ -83,10 +88,11 @@ type SearchTypeMenuItem = {
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
+    icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'Tag'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
+    tagLevel?: number,
 ): SearchTypeMenuItem {
     const defaultSortBy = CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL;
     const defaultSortOrder = CONST.SEARCH.SORT_ORDER.DESC;
@@ -97,6 +103,7 @@ function createTopSearchMenuItem(
             groupBy,
             dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             ...(view && {view}),
+            ...(tagLevel !== undefined && {tagLevel: String(tagLevel)}),
         },
         {
             sortBy: defaultSortBy,
@@ -429,6 +436,15 @@ function getSuggestedSearches(
             CONST.SEARCH.TOP_SEARCH_LIMIT,
             CONST.SEARCH.VIEW.BAR,
         ),
+        [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: createTopSearchMenuItem(
+            CONST.SEARCH.SEARCH_KEYS.TOP_TAGS,
+            'search.tabs.topTags',
+            'Tag',
+            CONST.SEARCH.GROUP_BY.TAG,
+            CONST.SEARCH.TOP_SEARCH_LIMIT,
+            CONST.SEARCH.VIEW.BAR,
+            CONST.INSIGHTS.DEFAULT_TAG_LEVEL,
+        ),
         [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
             'search.tabs.topMerchants',
@@ -486,6 +502,25 @@ function getSuggestedSearches(
                     sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
                 },
             ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.TRIPS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.TRIPS,
+            translationPath: 'search.tabs.trips',
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            icon: 'Plane',
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },

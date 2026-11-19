@@ -1,5 +1,5 @@
 /** Executes Composer platform refs, animated clearing and focus-command consumers. */
-import {act, render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, waitFor} from '@testing-library/react-native';
 
 import type * as ImplementationModule from '@components/Composer/implementation/index';
 import type * as ImplementationNativeModule from '@components/Composer/implementation/index.native';
@@ -10,6 +10,7 @@ import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type * as UseBlurOnKeyboardHideModule from '@hooks/useBlurOnKeyboardHide';
 import type * as UseHtmlPasteModule from '@hooks/useHtmlPaste/index.ts';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import type * as UsePersonalDetailsModule from '@hooks/usePersonalDetails';
 
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus/index.web';
 import {getBrowser, isMobileChrome} from '@libs/Browser';
@@ -30,13 +31,15 @@ import type * as UseDebouncedSaveDraftModule from '@pages/inbox/report/useDeboun
 import type * as UseDebouncedSaveReportActionDraftModule from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 
 import type * as ReportModule from '@userActions/Report';
+import {saveReportActionDraft} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
+import type {Modal, PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import type * as MarkdownTextInputWebModule from '@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web';
 import type * as ReactNavigationModule from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import type * as UseAnimatedRefModule from 'react-native-reanimated/lib/typescript/hook/useAnimatedRef';
 
@@ -46,10 +49,13 @@ import Onyx from 'react-native-onyx';
 import {dispatchCommand, useAnimatedRef} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockShouldMountComposer = true;
 let mockShouldUseNativeComposer = false;
-let mockMarkdownInput: TextInput | (HTMLDivElement & Pick<TextInput, 'clear' | 'isFocused'>) | null = null;
+let mockMarkdownInput: ComponentRef<typeof TextInput> | (HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'clear' | 'isFocused'>) | null = null;
+let mockLastEditableAction: ReportAction | undefined;
+let mockPersonalDetailsList: PersonalDetailsList | undefined;
 const WebComposer = jest.requireActual<typeof ImplementationModule>('@components/Composer/implementation/index.tsx').default;
 const {forceClearInput: clearWebInput} = jest.requireActual<typeof ComponentUtilsModule>('@libs/ComponentUtils/index.ts');
 const mockResetScroll = jest.fn<
@@ -84,13 +90,17 @@ jest.mock('@hooks/useIsScrollBarVisible', () => () => false);
 jest.mock('@hooks/useBlurOnKeyboardHide', () => jest.fn<ReturnType<typeof UseBlurOnKeyboardHideModule.default>, Parameters<typeof UseBlurOnKeyboardHideModule.default>>());
 jest.mock('@hooks/useIsInLandscapeMode', () => jest.fn(() => false));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
+// The real selector runs on this list, so the ArrowUp test can check which users the composer resolves
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<typeof UsePersonalDetailsModule>('@hooks/usePersonalDetails'),
+    useAllPersonalDetails: (selector?: (personalDetailsList: PersonalDetailsList | undefined) => unknown) => [selector ? selector(mockPersonalDetailsList) : mockPersonalDetailsList],
+}));
 jest.mock('@hooks/useHtmlPaste', () => jest.requireActual<typeof UseHtmlPasteModule>('@hooks/useHtmlPaste/index.ts'));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useIsInSidePanel', () => () => false);
 jest.mock('@hooks/useKeyboardState', () => () => ({isKeyboardShown: false}));
 jest.mock('@hooks/useLocalize', () => () => ({preferredLocale: 'en'}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
-jest.mock('@hooks/useReportIDToNameMap', () => () => ({}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
 jest.mock('@hooks/useSidePanelState', () => () => ({isSidePanelHiddenOrLargeScreen: true, shouldHideSidePanel: false}));
 jest.mock('@react-navigation/native', () => ({
@@ -105,6 +115,15 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({runAfterTransitions: jes
 jest.mock('@libs/canFocusInputOnScreenFocus', () => () => false);
 jest.mock('@libs/willBlurTextInputOnTapOutside', () => () => false);
 jest.mock('@pages/Share/getFileSize', () => () => Promise.resolve(7));
+const mockGetImageSize = jest.fn<Promise<{width: number; height: number; rotation?: number}>, [string]>(() => Promise.resolve({width: 640, height: 480}));
+jest.mock('react-native-image-size', () => ({
+    __esModule: true,
+    default: {getSize: (uri: string) => mockGetImageSize(uri)},
+}));
+// Jest resolves the iOS/web variant, which leaves the reported size as is, so use the Android one that applies the rotation.
+jest.mock('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize', () =>
+    jest.requireActual<Record<string, unknown>>('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android'),
+);
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
         setEditingMessage: jest.fn<
@@ -159,7 +178,7 @@ jest.mock('@pages/inbox/report/ReportActionCompose/useComposerSuggestions', () =
 jest.mock('@pages/inbox/report/ReportActionCompose/useEditComposerToggle', () =>
     jest.fn<ReturnType<typeof UseEditComposerToggleModule.default>, Parameters<typeof UseEditComposerToggleModule.default>>(),
 );
-jest.mock('@pages/inbox/report/ReportActionCompose/useLastEditableAction', () => () => undefined);
+jest.mock('@pages/inbox/report/ReportActionCompose/useLastEditableAction', () => () => mockLastEditableAction);
 jest.mock('@pages/inbox/report/ReportActionCompose/Suggestions', () => () => null);
 jest.mock('@pages/inbox/report/ReportActionCompose/SilentCommentUpdater', () => () => null);
 jest.mock('@userActions/Report', () => ({
@@ -175,6 +194,16 @@ function markdownProps() {
         throw new Error('Expected actual Composer to render markdown input');
     }
     return props;
+}
+
+function renderNativeComposerForPaste(onPasteFile: NonNullable<ComposerProps['onPasteFile']>) {
+    mockMarkdownInput = createMock<ComponentRef<typeof TextInput>>({isFocused: () => false});
+    render(<NativeComposer onPasteFile={onPasteFile} />, {createNodeMock: () => mockMarkdownInput});
+    const paste = markdownProps().onPaste;
+    if (!paste) {
+        throw new Error('Expected native paste callback');
+    }
+    return paste;
 }
 
 function webMarkdownInput(value?: string) {
@@ -229,14 +258,18 @@ describe('Composer imperative refs', () => {
         jest.clearAllMocks();
         mockShouldMountComposer = true;
         mockShouldUseNativeComposer = false;
+        mockLastEditableAction = undefined;
+        mockPersonalDetailsList = undefined;
         jest.mocked(useIsInLandscapeMode).mockReturnValue(false);
         jest.mocked(useAnimatedRef).mockImplementation(jest.requireActual<typeof UseAnimatedRefModule>('react-native-reanimated/src/hook/useAnimatedRef.ts').useAnimatedRef);
         jest.mocked(isMobileChrome).mockReturnValue(false);
         jest.mocked(getBrowser).mockReturnValue(CONST.BROWSER.CHROME);
         jest.spyOn(Onyx, 'set').mockResolvedValue();
     });
-    afterEach(() => {
+    afterEach(async () => {
         jest.restoreAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
         document.body.replaceChildren();
         ReportActionComposeFocusManager.composerRef.current = null;
         ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
@@ -334,15 +367,18 @@ describe('Composer imperative refs', () => {
 
     it('preserves raw native identity, top-level commands and non-null callback timing', () => {
         // Given the native markdown input owns the real input commands at its top level.
-        const inputClear = jest.fn<ReturnType<TextInput['clear']>, Parameters<TextInput['clear']>>();
-        const inputSetNativeProps = jest.fn<ReturnType<TextInput['setNativeProps']>, Parameters<TextInput['setNativeProps']>>();
-        const inputPreventFocusOnFirstResponderOnce = jest.fn<ReturnType<TextInput['preventFocusOnFirstResponderOnce']>, Parameters<TextInput['preventFocusOnFirstResponderOnce']>>();
-        const input = createMock<TextInput>({
+        const inputClear = jest.fn<ReturnType<ComponentRef<typeof TextInput>['clear']>, Parameters<ComponentRef<typeof TextInput>['clear']>>();
+        const inputSetNativeProps = jest.fn<ReturnType<ComponentRef<typeof TextInput>['setNativeProps']>, Parameters<ComponentRef<typeof TextInput>['setNativeProps']>>();
+        const inputPreventFocusOnFirstResponderOnce = jest.fn<
+            ReturnType<ComponentRef<typeof TextInput>['preventFocusOnFirstResponderOnce']>,
+            Parameters<ComponentRef<typeof TextInput>['preventFocusOnFirstResponderOnce']>
+        >();
+        const input = createMock<ComponentRef<typeof TextInput>>({
             clear: inputClear,
-            blur: jest.fn<ReturnType<TextInput['blur']>, Parameters<TextInput['blur']>>(),
-            focus: jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>(),
+            blur: jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>(),
+            focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>(),
             isFocused: () => false,
-            setSelection: jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>(),
+            setSelection: jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>(),
             setNativeProps: inputSetNativeProps,
             preventFocusOnFirstResponderOnce: inputPreventFocusOnFirstResponderOnce,
         });
@@ -369,9 +405,9 @@ describe('Composer imperative refs', () => {
 
     it('keeps the landscape proxy focus suppression and object-ref behavior', () => {
         // Given native landscape mode suppresses programmatic focus through its existing proxy.
-        const inputFocus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
-        const inputClear = jest.fn<ReturnType<TextInput['clear']>, Parameters<TextInput['clear']>>();
-        const input = createMock<TextInput>({
+        const inputFocus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const inputClear = jest.fn<ReturnType<ComponentRef<typeof TextInput>['clear']>, Parameters<ComponentRef<typeof TextInput>['clear']>>();
+        const input = createMock<ComponentRef<typeof TextInput>>({
             focus: inputFocus,
             clear: inputClear,
             isFocused: () => false,
@@ -408,13 +444,13 @@ describe('Composer imperative refs', () => {
     it('keeps the outer commands tied to the current input and safely handles an absent input', () => {
         // Given the outer handle exposes only the commands its consumers use.
         mockShouldUseNativeComposer = true;
-        const firstBlur = jest.fn<ReturnType<TextInput['blur']>, Parameters<TextInput['blur']>>();
-        const firstFocus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
-        const firstSetSelection = jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>();
-        const firstIsFocused = jest.fn<ReturnType<TextInput['isFocused']>, Parameters<TextInput['isFocused']>>(() => false);
-        const first = createMock<TextInput>({blur: firstBlur, focus: firstFocus, isFocused: firstIsFocused, setSelection: firstSetSelection});
-        const secondBlur = jest.fn<ReturnType<TextInput['blur']>, Parameters<TextInput['blur']>>();
-        const second = createMock<TextInput>({blur: secondBlur, isFocused: () => false});
+        const firstBlur = jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>();
+        const firstFocus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const firstSetSelection = jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>();
+        const firstIsFocused = jest.fn<ReturnType<ComponentRef<typeof TextInput>['isFocused']>, Parameters<ComponentRef<typeof TextInput>['isFocused']>>(() => false);
+        const first = createMock<ComponentRef<typeof TextInput>>({blur: firstBlur, focus: firstFocus, isFocused: firstIsFocused, setSelection: firstSetSelection});
+        const secondBlur = jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>();
+        const second = createMock<ComponentRef<typeof TextInput>>({blur: secondBlur, isFocused: () => false});
         mockMarkdownInput = first;
         const ref = React.createRef<ComposerWithSuggestionsRef>();
         const props = forwardingProps(ref);
@@ -464,7 +500,7 @@ describe('Composer imperative refs', () => {
 
     it('preserves native clear values and MIME-derived attachment filenames', async () => {
         // Given clipboard files without extensions rely on their MIME type, while plain text is ignored.
-        mockMarkdownInput = createMock<TextInput>({isFocused: () => false});
+        mockMarkdownInput = createMock<ComponentRef<typeof TextInput>>({isFocused: () => false});
         const onClear = jest.fn<ReturnType<NonNullable<ComposerProps['onClear']>>, Parameters<NonNullable<ComposerProps['onClear']>>>();
         const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
         render(
@@ -486,13 +522,44 @@ describe('Composer imperative refs', () => {
             clear(createMock<Parameters<typeof clear>[0]>({nativeEvent: {text: 'draft'}}));
             paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'text/plain', data: 'hello'}]}}));
             paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/png', data: 'file:///photo'}]}}));
-            await Promise.resolve();
         });
 
-        // Then text absence is not coerced and the attachment keeps its MIME-derived extension and observed size.
+        // Then text absence is not coerced and the attachment keeps its MIME-derived extension, observed size and image dimensions.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
         expect(onClear).toHaveBeenCalledWith('draft');
-        expect(onPasteFile).toHaveBeenCalledTimes(1);
+        expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7, width: 640, height: 480});
+    });
+
+    it('passes a pasted image on without dimensions when they cannot be read', async () => {
+        // Given a pasted image whose dimensions can't be read.
+        mockGetImageSize.mockRejectedValueOnce(new Error('Unreadable image'));
+        const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
+        const paste = renderNativeComposerForPaste(onPasteFile);
+
+        // When the image is pasted.
+        await act(async () => {
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/png', data: 'file:///photo'}]}}));
+        });
+
+        // Then the attachment is still passed on, only without dimensions.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
         expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7});
+    });
+
+    it('applies the platform orientation rule to the dimensions of a pasted photo', async () => {
+        // Given a pasted photo that the image size library reports as rotated by 90 degrees.
+        mockGetImageSize.mockResolvedValueOnce({width: 640, height: 480, rotation: 90});
+        const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
+        const paste = renderNativeComposerForPaste(onPasteFile);
+
+        // When the photo is pasted.
+        await act(async () => {
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/jpeg', data: 'file:///photo.jpg'}]}}));
+        });
+
+        // Then its dimensions describe the image as displayed.
+        await waitFor(() => expect(onPasteFile).toHaveBeenCalledTimes(1));
+        expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo.jpg', name: 'photo.jpg', type: 'image/jpeg', size: 7, width: 480, height: 640});
     });
 
     it.each([
@@ -517,6 +584,34 @@ describe('Composer imperative refs', () => {
         if (calls) {
             expect(onKeyPress).toHaveBeenCalledWith(event);
         }
+    });
+
+    it('seeds the ArrowUp edit draft with the names of the mentioned user and room', async () => {
+        // Given the last editable message mentions a user and a room, and both exist in Onyx, because ArrowUp converts that message back to markdown
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}42`, {reportID: '42', reportName: '#admins'});
+        const aliceAccountID = 123;
+        mockPersonalDetailsList = {[aliceAccountID]: {accountID: aliceAccountID, login: 'alice@example.com'}};
+        await waitForBatchedUpdates();
+        mockLastEditableAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: `hi <mention-user accountID="${aliceAccountID}"/> see <mention-report reportID="42"/>`, text: ''}],
+        });
+        webMarkdownInput('');
+        render(<ComposerWithSuggestions {...forwardingProps(React.createRef<ComposerWithSuggestionsRef>())} />, {createNodeMock: () => mockMarkdownInput});
+        await waitForBatchedUpdates();
+        const preventDefault = jest.fn<void, []>();
+        const event = Object.assign(createMock<TextInputKeyPressEvent>({nativeEvent: {key: CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey}}), {
+            key: CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey,
+            preventDefault,
+        });
+
+        // When ArrowUp is pressed in the empty composer, because ArrowUp only opens the last message for editing when the composer is empty
+        act(() => markdownProps().onKeyPress?.(event));
+
+        // Then the default is prevented right away and the draft is saved with both names, which only resolve when the composer passes the name maps
+        expect(preventDefault).toHaveBeenCalled();
+        await waitFor(() => expect(saveReportActionDraft).toHaveBeenCalledWith('1', mockLastEditableAction, undefined, 'hi @alice@example.com see #admins', false));
     });
 
     it('retains paste ownership for another input and accepts attachments from the composer itself', () => {
@@ -651,7 +746,9 @@ describe('composerFocusKeepFocusOn actual focus commands', () => {
 
     it('updates Onyx before immediate focus and safely skips a missing ref', () => {
         // Given the helper consumes only a focus command, not a DOM element.
-        const ref = {focus: jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>()} satisfies NonNullable<Parameters<typeof composerFocusKeepFocusOn>[0]>;
+        const ref = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()} satisfies NonNullable<
+            Parameters<typeof composerFocusKeepFocusOn>[0]
+        >;
 
         // When initial focus executes and a missing ref reaches the same immediate branch.
         composerFocusKeepFocusOn(ref, true, hiddenModal, false);
@@ -671,8 +768,8 @@ describe('composerFocusKeepFocusOn actual focus commands', () => {
 
     it('defers focus against the latest saved command object and respects modal/manager gates', () => {
         // Given a saved composer loses focus while all modals are hidden.
-        const first = {focus: jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>()};
-        const second = {focus: jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>()};
+        const first = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()};
+        const second = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()};
         composerFocusKeepFocusOn(first, true, hiddenModal, true);
         composerFocusKeepFocusOn(null, false, {isVisible: true}, false);
         composerFocusKeepFocusOn(null, false, {willAlertModalBecomeVisible: true}, false);

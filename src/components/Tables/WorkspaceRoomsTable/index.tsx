@@ -1,8 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import RenderHTML from '@components/RenderHTML';
 import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,6 +14,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -45,12 +48,25 @@ type WorkspaceRoomsTableProps = {
 
     /** Content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** Whether the workspace is archived, in which case all of its rooms are archived and hidden */
+    isPolicyArchived?: boolean;
 };
 
-function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStringChange, onEndReached, onSortingChange, headerComponent}: WorkspaceRoomsTableProps) {
+function WorkspaceRoomsTable({
+    rooms,
+    policyID,
+    highlightedReportID,
+    onSearchStringChange,
+    onEndReached,
+    onSortingChange,
+    headerComponent,
+    isPolicyArchived = false,
+}: WorkspaceRoomsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {environmentURL} = useEnvironment();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
     const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
@@ -93,7 +109,13 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
         {key: 'name', label: translate('common.name'), sortable: true},
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
+        {
+            key: 'actions',
+            label: '',
+            width: variables.workspaceRoomsActionsColumnWidth,
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
+            sortable: false,
+        },
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
@@ -154,6 +176,21 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            {isPolicyArchived ? (
+                <Table.EmptyState
+                    title={translate('workspace.common.emptyRoomsArchivedTitle')}
+                    subtitleText={
+                        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
+                            <RenderHTML html={translate('workspace.common.emptyRoomsArchivedSubtitle', `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)}`)} />
+                        </View>
+                    }
+                />
+            ) : (
+                <Table.EmptyState
+                    title={translate('workspace.common.emptyRoomsTitle')}
+                    subtitle={translate('workspace.common.emptyRoomsSubtitle')}
+                />
+            )}
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

@@ -1,26 +1,27 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import {getAverageDuration} from '@components/Search/chartMetricValue';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
 
 import CONST from '@src/CONST';
-import type {SearchResults} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
+import {isStackedChart, keepEnabledStageGroups} from './dashboardSpecs';
 import resolveComparisonPeriods from './insightsCompare';
+import {getTrackedFrom, isBucketTracked} from './insightsTrackedFrom';
+import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -31,62 +32,103 @@ type InsightsChartData = {
     /** What the chart shows: its data, or a loading, empty, error or offline state */
     state: InsightsChartState;
 
-    /** Rows the chart is compared against, set once both they and the chart's own rows are ready */
-    comparison: ChartComparison | undefined;
-};
-
-/** What a chart is compared against: the query and snapshot of the compared rows, and what names the compared series */
-type ComparedChart = Pick<ChartComparison, 'label' | 'periods'> & {
-    queryJSON: Readonly<SearchQueryJSON> | undefined;
-    snapshot: OnyxEntry<SearchResults>;
+    /** What the chart is compared against, set once both it and the chart's own rows are ready */
+    comparison?: ChartComparison;
 };
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
 
-/** Returns what the chart is compared against for the page's Compare mode, or nothing when it doesn't compare */
-function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilters, translate: LocaleContextProps['translate']): ComparedChart | undefined {
-    switch (filters.compare) {
-        case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
-            const periods = resolveComparisonPeriods(filters.date);
-            return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
-        }
-        case CONST.SEARCH.COMPARE.AVERAGE:
-            return {queryJSON: chart.averageQueryJSON, snapshot: chart.averageSnapshot, label: translate('insightsPage.compare.average')};
-        default:
-            return undefined;
-    }
+/** Returns the mean of the groups' average durations, leaving out groups with no duration */
+function getMeanDuration(data: GroupedItem[]): number | undefined {
+    const durations = data.flatMap((item) => {
+        const duration = getAverageDuration(item);
+        return duration === undefined ? [] : [duration];
+    });
+    return durations.length > 0 ? durations.reduce((sum, duration) => sum + duration, 0) / durations.length : undefined;
 }
 
-/** Resolves a chart's rows, and the rows it is compared against when the page compares. */
+/** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {queryJSON, snapshot} = dashboardChart;
+    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
 
-    const sortedData = useGroupedItems(snapshot, queryJSON);
-    const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
-
-    const comparedChart = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? getComparedChart(dashboardChart, filters, translate) : undefined;
+    const groupedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
+    const compare = filters.compare;
+    const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
+    const isTagAverage = compare === CONST.SEARCH.COMPARE.AVERAGE && dashboardChart.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
+    let comparedSnapshot = isPreviousPeriod ? previousPeriodSnapshot : undefined;
+    if (isTagAverage) {
+        comparedSnapshot = averageSnapshot;
+    }
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
-    const comparedSortedData = useGroupedItems(comparedChart?.snapshot, queryJSON && {...queryJSON, limit: undefined});
+    const comparedGroupedData = useGroupedItems(normalizeInsightsSnapshot(comparedSnapshot, queryJSON?.groupBy), queryJSON && {...queryJSON, limit: undefined});
+    const isStacked = isStackedChart(chart);
+    // A stacked chart's buckets hold a duration per stage rather than one of their own, and a bucket whose stages are all unavailable is still drawn
+    const rowMetric = isStacked ? undefined : chart.metric;
+    const sortedData = keepEnabledStageGroups(groupedData, stages);
+    const comparedSortedData = keepEnabledStageGroups(comparedGroupedData, stages);
 
-    if (!comparedChart || current.state !== INSIGHTS_CHART_STATE.READY) {
-        return {...current, comparison: undefined};
+    const trackedFrom = getTrackedFrom(snapshot);
+    const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
+    const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
+
+    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, metric: rowMetric, isOffline});
+    const trackedData = keepTrackedBuckets(resolvedCurrent.data);
+    const current: InsightsChartData =
+        resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
+
+    if (current.state !== INSIGHTS_CHART_STATE.READY) {
+        return current;
     }
 
-    const compared = resolveInsightsChartData({snapshot: comparedChart.snapshot, queryJSON: comparedChart.queryJSON, sortedData: comparedSortedData, isOffline});
-    // A compared chart waits for both sets of rows.
-    if (BLOCKING_STATES.has(compared.state)) {
-        return {data: current.data, state: compared.state, comparison: undefined};
-    }
+    switch (compare) {
+        case CONST.SEARCH.COMPARE.AVERAGE: {
+            if (isTagAverage) {
+                const compared = resolveInsightsChartData({snapshot: averageSnapshot, queryJSON: averageQueryJSON, sortedData: comparedSortedData, isOffline});
+                if (BLOCKING_STATES.has(compared.state)) {
+                    return {data: current.data, state: compared.state};
+                }
+                const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
+                return {...current, comparison: {data: compared.data, color, label: translate('insightsPage.compare.tagAverage')}};
+            }
+            if (!isDashboardLoaded) {
+                return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
+            }
+            // The stage chart averages the stages it shows, so the line follows the stages the workspaces in scope have enabled
+            const chartAverage = chart.groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? {[CONST.SEARCH.CHART_METRIC.DURATION]: getMeanDuration(current.data)} : average;
+            // A stacked chart works its average out from its own buckets
+            if (!isStacked && chartAverage?.[chart.metric ?? CONST.SEARCH.CHART_METRIC.AMOUNT] === undefined) {
+                return current;
+            }
+            return {...current, comparison: chartAverage};
+        }
+        case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
+            const periods = resolveComparisonPeriods(filters.date);
+            // A compared period that ends before the chart's data starts has nothing to compare against
+            if (!periods || (!!trackedFrom && periods.comparison.end < trackedFrom)) {
+                return current;
+            }
 
-    const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
-    return {
-        ...current,
-        comparison: {data: compared.data, color, label: comparedChart.label, periods: comparedChart.periods},
-    };
+            const compared = resolveInsightsChartData({
+                snapshot: previousPeriodSnapshot,
+                queryJSON: previousPeriodQueryJSON,
+                sortedData: comparedSortedData,
+                metric: rowMetric,
+                isOffline,
+            });
+            // A compared chart waits for both sets of rows.
+            if (BLOCKING_STATES.has(compared.state)) {
+                return {data: current.data, state: compared.state};
+            }
+
+            const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
+            return {...current, comparison: {data: keepTrackedBuckets(compared.data), color, periods}};
+        }
+        default:
+            return current;
+    }
 }
 
 export default useInsightsChartData;

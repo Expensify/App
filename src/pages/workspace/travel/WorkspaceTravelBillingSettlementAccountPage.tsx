@@ -115,7 +115,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
                 return translate('workspace.expensifyCard.verifyingHeader');
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
-                return translate('workspace.moreFeatures.travel.travelInvoicing.enabled');
+                return translate('workspace.moreFeatures.travel.travelBilling.enabled');
             default:
                 return translate('workspace.expensifyCard.settlementAccount');
         }
@@ -141,8 +141,8 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
                     <BankAccountVerificationView
                         verificationState={verificationState}
                         onVerifiedButtonPress={() => Navigation.goBack()}
-                        verifiedTitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabled')}
-                        verifiedSubtitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabledDescription')}
+                        verifiedTitle={translate('workspace.moreFeatures.travel.travelBilling.enabled')}
+                        verifiedSubtitle={translate('workspace.moreFeatures.travel.travelBilling.enabledDescription')}
                     >
                         <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                             <SettlementAccountSelector

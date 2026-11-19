@@ -1,7 +1,12 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+import {COLLAPSE_SURFACE, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,11 +17,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
+import variables from '@styles/variables';
+
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -25,16 +32,19 @@ import {View} from 'react-native';
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
 function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const navigationBarWidth = useNavigationBarWidth();
+    const {isPeeking: isNavigationBarPeeking} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
-    // Screens also render the tab bar via bottomContent for swipe-back animations.
+    // Tab root screens draw their own copy of the tab bar while this one is hidden.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,
@@ -63,11 +73,18 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
 
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 
+    const setIsNavigatorTabBarVisible = useContext(SetNavigatorTabBarVisibleContext);
+    // isHidden depends on this bar's own animation state, so the tab root's copy, which renders in a sibling subtree,
+    // can only learn it through context. A layout effect swaps the two bars before paint, so they never show together.
+    useLayoutEffect(() => {
+        setIsNavigatorTabBarVisible(!isHidden);
+    }, [isHidden, setIsNavigatorTabBarVisible]);
+
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
@@ -79,12 +96,21 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     }
 
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
+    // The container also spans the sidebar next to the bar, so floating content such as the debug view is not clipped.
+    // tabNavigatorBarContainer's negative margin gives that width back, leaving only the bar's width as layout space.
+    // The width is what holds the central pane off the left edge, so it eases with the bar instead of snapping to the new width.
+    // A peeking bar is raised even over a blocking view, since it is drawn over the content.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            style={[
+                styles.tabNavigatorBarContainer,
+                shouldUseFlatNavigationBar && layoutTransitionStyle,
+                StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth),
+                (!isBlockingViewVisible || isNavigationBarPeeking) && styles.zIndex1,
+            ]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}
         </View>
     );
 }

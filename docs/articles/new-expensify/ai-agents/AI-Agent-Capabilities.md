@@ -294,17 +294,19 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that manage workspace settings and members
 
-**Goal:** Inspects workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for workspace admins — adds or removes members, lists and assigns company cards from a connected card feed, and modifies workspace settings such as categories and approval rules.
+**Goal:** Inspects workspace configuration, answers membership questions, reads the Expensify Card limit and remaining spend for anyone allowed to see the Expensify Card, and — for workspace admins — adds or removes members, changes member roles, lists and assigns company cards from a connected card feed, modifies workspace settings such as categories and approval rules, and saves or replaces the workspace expense policy document from a PDF the admin attaches in chat.
 
 To accomplish this, include phrases like:
 - Add new employees to the workspace when they join
 - Remove members from the workspace when they leave the company
+- Make jane@example.com an admin on the workspace
 - Add a new expense category when requested
 - Show me who is on this workspace
 - What is the current approval mode for this workspace?
 - Copy the category list from one workspace to another
 - Assign all unassigned company cards to the matching members
 - How much of our Expensify Card limit is left?
+- Use the PDF I just attached as our workspace expense policy document
 
 ---
 

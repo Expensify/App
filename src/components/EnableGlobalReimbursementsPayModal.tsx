@@ -1,15 +1,19 @@
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
-import {getEnableGlobalReimbursementsBusinessNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
+import formatReportNamesAsBulletList from '@libs/formatReportNamesAsBulletList';
+import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearCorpayPayModal} from '@userActions/App';
+import {clearEnableGlobalReimbursementsModal, showEnableGlobalReimbursementsModal as showEnableGlobalReimbursementsModalAction} from '@userActions/App';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type CorpayPayModal from '@src/types/onyx/CorpayPayModal';
+import type EnableGlobalReimbursementsModal from '@src/types/onyx/EnableGlobalReimbursementsModal';
 
 import {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -18,18 +22,56 @@ import {ModalActions} from './Modal/Global/ModalContext';
 
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
-    const [corpayPayModal] = useOnyx(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
+    const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const {isBetaEnabled} = usePermissions();
     const isModalOpenRef = useRef(false);
 
-    const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
+    const showEnableGlobalReimbursementsModal = useEffectEvent(async (modalData: EnableGlobalReimbursementsModal) => {
         if (isModalOpenRef.current) {
             return;
         }
-        isModalOpenRef.current = true;
+
+        // Search bulk pay paid some reports and left these unpaid. It lists them here rather than in Search, because the responses can arrive after the admin left the Search page
+        const {unpaidReportNames, accountNumber, ...bankAccount} = modalData;
+        if (unpaidReportNames?.length) {
+            clearEnableGlobalReimbursementsModal();
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showConfirmModal({
+                    title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(accountNumber ?? '')),
+                    subtitle: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.description'),
+                    prompt: formatReportNamesAsBulletList(unpaidReportNames),
+                    confirmText: translate('walletPage.wiseGlobalReimbursementsIntro.getStarted'),
+                    cancelText: translate('common.notNow'),
+                    shouldEnablePromptScroll: true,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    showEnableGlobalReimbursementsModalAction(bankAccount);
+                });
+            });
+            return;
+        }
+
         const navigationPathAtSignal = Navigation.getActiveRoute();
+
+        // The signal arrives after a pay attempt, so betas are loaded. An unknown beta state should take the Corpay path.
+        if (isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+            } else {
+                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal, modalData.isPayingMultipleReports), {
+                    skipMatchingFullScreenRoute: true,
+                });
+            }
+            clearEnableGlobalReimbursementsModal();
+            return;
+        }
+
+        isModalOpenRef.current = true;
         const result = await showConfirmModal({
             id: 'corpayPayModal',
             title: translate('common.corpayPayModalTitle'),
@@ -58,15 +100,15 @@ function EnableGlobalReimbursementsPayModal() {
                 );
             }
         }
-        clearCorpayPayModal();
+        clearEnableGlobalReimbursementsModal();
     });
 
     useEffect(() => {
-        if (!corpayPayModal) {
+        if (!enableGlobalReimbursementsModal) {
             return;
         }
-        showCorpayPayModal(corpayPayModal);
-    }, [corpayPayModal]);
+        showEnableGlobalReimbursementsModal(enableGlobalReimbursementsModal);
+    }, [enableGlobalReimbursementsModal]);
 
     return null;
 }

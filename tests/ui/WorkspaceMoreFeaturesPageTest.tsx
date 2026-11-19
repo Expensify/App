@@ -6,7 +6,6 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -26,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -45,8 +43,6 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
     return MockReanimatedModal;
 });
-
-jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
     const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
@@ -122,7 +118,6 @@ const isSmartLimitEnabledMock = jest.mocked(CardUtils.isSmartLimitEnabled);
 const getCompanyFeedsMock = jest.mocked(CardUtils.getCompanyFeeds);
 const hasAccountingConnectionsMock = jest.mocked(PolicyUtils.hasAccountingConnections);
 const hasAccountingFeatureConnectionMock = jest.mocked(PolicyUtils.hasAccountingFeatureConnection);
-const useIsUberConnectedMock = jest.mocked(useIsPolicyConnectedToUberReceiptPartner);
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => undefined);
 const navigateToConciergeChatSpy = jest.spyOn(ReportActions, 'navigateToConciergeChat').mockImplementation(() => Promise.resolve());
@@ -160,7 +155,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         getCompanyFeedsMock.mockReturnValue({});
         hasAccountingConnectionsMock.mockReturnValue(false);
         hasAccountingFeatureConnectionMock.mockReturnValue(false);
-        useIsUberConnectedMock.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -348,45 +342,6 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
-    describe('Accounting toggle (locked when an integration is connected)', () => {
-        it('locks the Accounting switch when the policy has an active connection', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
-                await Onyx.merge(ONYXKEYS.BETAS, []);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-
-            await expect(findLockedSwitch('workspace.moreFeatures.connections.subtitle')).resolves.toBeOnTheScreen();
-        });
-
-        it('routes confirm to the accounting page', async () => {
-            await TestHelper.signInWithTestUser();
-            hasAccountingConnectionsMock.mockReturnValue(true);
-            await act(async () => {
-                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
-                await Onyx.merge(ONYXKEYS.BETAS, []);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.connections.subtitle'));
-
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.connectionsWarningModal.manageSettings')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
-        });
-    });
-
     describe('Concierge-routed disable flows', () => {
         it('opens Concierge chat when the user confirms the Expensify Card disable warning', async () => {
             await TestHelper.signInWithTestUser();
@@ -433,66 +388,22 @@ describe('WorkspaceMoreFeaturesPage', () => {
         });
     });
 
-    describe('Receipt partners (informational warning, no confirm action)', () => {
-        it('opens the disconnect-Uber info modal without a Cancel button when locked', async () => {
-            await TestHelper.signInWithTestUser();
-            useIsUberConnectedMock.mockReturnValue(true);
-            await act(async () => {
-                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
-                await Onyx.merge(ONYXKEYS.BETAS, []);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
-            });
-
-            renderPage({policyID: POLICY_ID});
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.receiptPartners.subtitle'));
-
-            await waitFor(() => {
-                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'))).toBeOnTheScreen();
-            });
-            expect(screen.queryByText(TestHelper.translateLocal('common.cancel'))).toBeNull();
-
-            fireEvent.press(await screen.findByLabelText(TestHelper.translateLocal('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(navigateSpy).not.toHaveBeenCalled();
-            expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
-        });
-    });
-
     describe('Integrate section', () => {
-        const renderWithBetas = async (betas: Beta[]) => {
+        it('does not show the integration toggles', async () => {
+            // Given a workspace
             await TestHelper.signInWithTestUser();
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.BETAS, betas);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
+
+            // When More Features renders
             renderPage({policyID: POLICY_ID});
             await waitForBatchedUpdatesWithAct();
-        };
 
-        const accountingSwitchQuery = () =>
-            screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.connections.subtitle')), 'i')});
-
-        it('shows the Accounting toggle without the unified Connections beta', async () => {
-            // Given a workspace
-            // When More Features renders without the beta
-            await renderWithBetas([]);
-
-            // Then the integration features can still be turned on here, since their pages are only reachable once they are on
-            expect(accountingSwitchQuery()).toBeOnTheScreen();
-        });
-
-        it('hides the integration toggles with the unified Connections beta', async () => {
-            // Given a workspace
-            // When More Features renders with the beta
-            await renderWithBetas([CONST.BETAS.UNIFIED_CONNECTIONS]);
-
-            // Then the toggles are gone, because Connections turns each feature on as its first integration connects
-            expect(accountingSwitchQuery()).toBeNull();
+            // Then the Accounting toggle is gone, because Connections turns each feature on as its first integration connects
+            expect(screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.connections.subtitle')), 'i')})).toBeNull();
         });
     });
-
     describe('Vendors row (visibility gated on a supported integration)', () => {
         const renderWithVendorMatching = async (connections: Record<string, unknown>, isBetaEnabled = true) => {
             await TestHelper.signInWithTestUser();
@@ -657,6 +568,27 @@ describe('WorkspaceMoreFeaturesPage', () => {
             }
         });
 
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Zoho Books Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Zoho Books connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta, because Zoho Books vendor matching is GA, and is only on once Zoho Books is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
         // Business Central is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
             // Given a configured Business Central connection
@@ -700,6 +632,92 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await renderWithVendorMatching(connections, true);
 
             // Then the Vendors row should be hidden because PSA does not support vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        // QBD is beta-gated and has no discovery state: the row is absent unless beta + Codat + CREDIT_CARD_CHARGE are all true.
+        it('shows the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is enabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, and the vendorMatching beta enabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is visible and active
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            expect(vendorsSwitch).toBeChecked();
+        });
+
+        it('hides the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is disabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, but the vendorMatching beta disabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders without the beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden — QBD has no discovery state, so it never shows without the beta
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a CHECK export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is CHECK, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT, export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a VENDOR_BILL export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is VENDOR_BILL, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a legacy (non-Codat) QBD connection even when the beta is enabled', async () => {
+            // Given a QBD connection without an apiProvider (legacy pre-Codat connection)
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because legacy QBD connections lack the Codat apiProvider
             expect(vendorsSwitchQuery()).toBeNull();
         });
     });

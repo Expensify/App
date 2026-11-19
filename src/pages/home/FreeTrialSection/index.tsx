@@ -82,7 +82,7 @@ function FreeTrialSection() {
                 accessibilityLabel={bodyText}
                 onPress={onCtaPress}
                 role={CONST.ROLE.BUTTON}
-                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.FREE_TRIAL_WIDGET}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, cardPaddingHorizontal]}>
                     <Icon
@@ -95,6 +95,7 @@ function FreeTrialSection() {
                         {!!countdownSubtitle && <Text style={[styles.widgetItemSubtitle, {color: theme.trialTimer}]}>{countdownSubtitle}</Text>}
                     </View>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.FREE_TRIAL_BUTTON}
                         onPress={onCtaPress}
                         size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
