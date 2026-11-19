@@ -744,7 +744,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length; ) {
+    for (let index = 0; index < chronologicalActions.length;) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
@@ -1806,7 +1806,7 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    if (isActionableReportMentionWhisper(reportAction) && !(!policy || canCreateRoomsOnPolicy(policy, currentUserEmail ?? ''))) {
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
         return false;
     }
 

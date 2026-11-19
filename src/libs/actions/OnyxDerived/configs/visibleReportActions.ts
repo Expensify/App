@@ -72,7 +72,7 @@ function computeReportVisibility(
 
 /**
  * Updates cached visibility only for `ACTIONABLE_REPORT_MENTION_WHISPER` entries on a report when
- * only its workspace policy changed, avoiding a full recompute of every action on the workspace.
+ * only its workspace changed, avoiding a full recompute of every action on the workspace.
  */
 function updateReportMentionWhispersVisibility(
     policy: OnyxEntry<Policy>,
