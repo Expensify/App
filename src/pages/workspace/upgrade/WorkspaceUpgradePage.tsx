@@ -104,6 +104,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
     const rawUpgradePlanType = route.params?.upgradePlanType;
     const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
+    // The euro country picked in Add rate also comes from the URL, and wins over the one stored from an earlier time auto-update was on
+    const pickedGovernmentRateCountry = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES.find((country) => country === route.params?.governmentRateCountry);
+    const governmentRateCountry = pickedGovernmentRateCountry ?? getAutoUpdateGovernmentRateCountry(policy);
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -207,12 +210,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             });
             return;
         }
-        if (
-            feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id &&
-            policyID &&
-            isSharedGovernmentRateCurrency(policy?.outputCurrency) &&
-            !getAutoUpdateGovernmentRateCountry(policy)
-        ) {
+        if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id && policyID && isSharedGovernmentRateCurrency(policy?.outputCurrency) && !governmentRateCountry) {
             Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID), {forceReplace: true});
             return;
         }
@@ -310,12 +308,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
-                const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
                 const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
-                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !governmentRateCountry)) {
                     break;
                 }
-                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? governmentRateCountry : undefined);
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:

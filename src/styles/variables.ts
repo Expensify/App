@@ -56,6 +56,7 @@ export default {
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
+    contentHeaderCompactHeight: getValueUsingPixelRatio(48, 66),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -140,6 +141,8 @@ export default {
     nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
+    /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */
+    nativeTabIconTrailingInsetIOSLandscape: 8,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
     iosNativeTabBarHorizontalInset: 25,
     // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
@@ -174,6 +177,7 @@ export default {
     rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
+    growlNotificationMaxWidth: 400,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
@@ -184,6 +188,11 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     insightsAICardWidth: 250,
+    insightsRankingTableBarHeight: 8,
+    insightsRankingTableBarMinWidth: 4,
+    insightsRankingTableShareLabelSpace: 56,
+    insightsRankingTableAverageMarkerWidth: 2,
+    insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -199,13 +208,24 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
+    // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
+    flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarAccountItemHeight: 56,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     flatNavigationBarRowInset: 8,
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
+    // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
+    flatNavigationBarItemGap: 12,
     flatNavigationBarHeaderHeight: 72,
+    // Subnav rows are shorter than the destination rows above them, so a group of searches reads as one block.
+    flatNavigationBarSubnavItemHeight: 36,
+    // The header row includes the gap above its label, so a new group reads as a new block.
+    flatNavigationBarSubnavHeaderHeight: 32,
+    // The marker beside the active subnav row is shorter than the row, so it reads as a pill and not as a border.
+    flatNavigationBarSubnavMarkerHeight: 16,
+    flatNavigationBarSubnavMarkerWidth: 3,
     flatNavigationBarCreateButtonHeight: 32,
     // Centers the design's 204px wide Create button in the bar.
     flatNavigationBarCreateButtonInset: 14,

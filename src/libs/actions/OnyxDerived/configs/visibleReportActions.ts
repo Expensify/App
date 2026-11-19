@@ -1,4 +1,10 @@
-import {isActionableWhisperRequiringWritePermission, isActionOfType, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {
+    isActionableWhisperRequiringWritePermission,
+    isActionOfType,
+    isConciergeCategoryOptions,
+    isPaymentActionHiddenOutsideInvoices,
+    shouldReportActionBeVisible,
+} from '@libs/ReportActionsUtils';
 import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -10,10 +16,17 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, or sibling actions.
+ * such as write permissions, policy settings, the type of its report, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+    // A payment action hidden outside invoices depends on its report's type. The cache doesn't pass a reportID, so it
+    // can't tell that the report is an invoice and would hide the action there.
+    return (
+        isActionableWhisperRequiringWritePermission(action) ||
+        isConciergeCategoryOptions(action) ||
+        isPaymentActionHiddenOutsideInvoices(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)
+    );
 }
 
 /**
@@ -66,19 +79,18 @@ export default createOnyxDerivedValueConfig({
 
         const currentUserAccountID = session?.accountID;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS];
 
-        // Recompute only the reports whose actions or NVPs changed when we have a usable delta.
-        // Otherwise recompute everything: on first load, when there's no delta, or on a SESSION or
-        // REPORT change. SESSION is checked via triggeredKeys, not sourceValues, so a session cleared
-        // to `undefined` still forces the full recompute.
-        const isIncremental =
-            !!(reportActionsUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT) && !!currentValue;
+        // A report only changes its own actions' visibility, through its support ticket type, so only changed reports are recomputed.
+        // SESSION is read from triggeredKeys so a session cleared to `undefined` still forces a full recompute.
+        const isIncremental = !!(reportActionsUpdates ?? reportUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !!currentValue;
 
         const result: VisibleReportActionsDerivedValue = isIncremental ? {...currentValue} : {};
         const reportIDsToProcess = isIncremental
             ? new Set([
                   ...Object.keys(reportActionsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')),
+                  ...Object.keys(reportUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, '')),
                   ...Object.keys(reportNameValuePairsUpdates ?? {})
                       .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''))
                       .filter((reportID) => isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),

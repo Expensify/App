@@ -35,6 +35,7 @@ import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBac
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
+import CollapsibleReportHeader from './report/CollapsibleReportHeader';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
@@ -123,7 +124,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
                             <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
-                                <DeleteTransactionNavigateBackHandler />
+                                <DeleteTransactionNavigateBackHandler reportID={reportIDFromRoute} />
                                 <ReportRouteParamHandler />
                                 <OneTransactionThreadRedirectHandler />
                                 <ReportFetchHandler />
@@ -135,9 +136,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                         <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
                                             <ReportLifecycleHandler reportID={reportIDFromRoute} />
                                         </ReportNonEssentialsDeferredMount>
-                                        <CollapsibleHeaderOnKeyboard>
-                                            <ReportHeader />
-                                        </CollapsibleHeaderOnKeyboard>
+                                        <CollapsibleReportHeader>
+                                            <CollapsibleHeaderOnKeyboard>
+                                                <ReportHeader />
+                                            </CollapsibleHeaderOnKeyboard>
+                                        </CollapsibleReportHeader>
                                         <OfflineWithFeedback
                                             pendingAction={reportPendingAction}
                                             errors={reportErrors}

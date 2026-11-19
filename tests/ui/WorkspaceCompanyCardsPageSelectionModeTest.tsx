@@ -66,8 +66,6 @@ jest.mock('@hooks/useCompanyCards', () => ({
         selectedFeed: undefined,
         bankName: undefined,
         isFeedPending: false,
-        isFeedAdded: false,
-        onyxMetadata: {cardListMetadata: {status: 'loaded'}},
     }),
 }));
 
@@ -165,11 +163,6 @@ jest.mock('@pages/workspace/WorkspacePageWithSections', () => {
 jest.mock('@userActions/CompanyCards', () => ({
     openPolicyCompanyCardsFeed: jest.fn(),
     openPolicyCompanyCardsPage: jest.fn(),
-}));
-
-jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
-    __esModule: true,
-    default: () => false,
 }));
 
 type WorkspaceCompanyCardsPageScreenProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
