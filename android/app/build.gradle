@@ -234,6 +234,8 @@ dependencies {
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
 
+    testImplementation 'junit:junit:4.13.2'
+
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
     implementation 'androidx.multidex:multidex:2.0.1'
 

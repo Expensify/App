@@ -125,5 +125,7 @@ dependencies {
 
   // Add a dependency on NitroModules
   implementation project(":react-native-nitro-modules")
+
+  testImplementation "junit:junit:4.13.2"
 }
 
