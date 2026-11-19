@@ -51,6 +51,19 @@ describe('reauthenticate', () => {
         expect(setAuthToken).toHaveBeenCalledWith('newToken');
     });
 
+    test('should compare against the current authToken when called without a flow-start token', async () => {
+        // Given a caller outside the request middleware, such as the attachment image reauthenticator, which passes no arguments
+        jest.mocked(post).mockResolvedValueOnce({jsonCode: 200, authToken: 'newToken', encryptedAuthToken: 'newEncryptedToken'});
+
+        // When it reauthenticates while the session still holds the expired token
+        const result = await reauthenticate();
+
+        // Then the session is treated as unchanged and the new token is saved
+        expect(result).toEqual({wasSuccessful: true});
+        expect(post).toHaveBeenCalledTimes(1);
+        expect(setAuthToken).toHaveBeenCalledWith('newToken');
+    });
+
     test('should keep a copilot token the session switched to while Authenticate was in flight', async () => {
         // Given the user connects as a copilot while Authenticate for their own account is still in flight
         jest.mocked(post).mockImplementationOnce(() => {

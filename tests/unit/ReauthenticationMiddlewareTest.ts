@@ -550,6 +550,78 @@ describe('Reauthentication middleware', () => {
         expect(response?.jsonCode).toBe(CONST.JSON_CODE.SUCCESS);
     });
 
+    test('reauthenticates instead of retrying when the session has no authToken by the time the 407 arrives', async () => {
+        // Given the session loses its token while a request sent with the previous token is in flight
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, authToken: 'expiredToken'});
+        await waitForBatchedUpdates();
+        Request.addMiddleware(Reauthentication);
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
+            NetworkStore.setAuthToken(null);
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+        });
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
+
+        // When the 407 is handled
+        await Request.processWithMiddleware({
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+        });
+
+        // Then there is no token to retry with, so re-authentication decides what happens next
+        expect(reauthenticate).toHaveBeenCalledTimes(1);
+        expect(xhrSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('replays a DeprecatedAPI request through the main queue when another request already replaced its authToken', async () => {
+        // Given a DeprecatedAPI request is sent with a token that another request's re-authentication replaces before its 407 arrives
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, authToken: 'expiredToken'});
+        await waitForBatchedUpdates();
+        Request.addMiddleware(Reauthentication);
+        jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() => {
+            NetworkStore.setAuthToken('newToken');
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+        });
+        const replaySpy = jest.spyOn(MainQueue, 'replay').mockImplementation(() => {});
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {command: 'TestCommand', data: {shouldRetry: true}, resolve: jest.fn()};
+
+        try {
+            // When the 407 is handled
+            await Request.processWithMiddleware(request);
+
+            // Then the main queue sends it again with the current token without another re-authentication
+            expect(reauthenticate).not.toHaveBeenCalled();
+            expect(replaySpy).toHaveBeenCalledWith(request);
+        } finally {
+            replaySpy.mockRestore();
+        }
+    });
+
+    test('resolves a DeprecatedAPI request sent for another account with the original 407', async () => {
+        // Given a DeprecatedAPI request is sent with the user's own token and they connect as a copilot before its 407 arrives
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, authToken: 'expiredToken'});
+        await waitForBatchedUpdates();
+        Request.addMiddleware(Reauthentication);
+        jest.spyOn(HttpUtils, 'xhr').mockImplementationOnce(() =>
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: 2, authToken: 'copilotToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE})
+                .then(waitForBatchedUpdates)
+                .then(() => ({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})),
+        );
+        const replaySpy = jest.spyOn(MainQueue, 'replay').mockImplementation(() => {});
+        const resolve = jest.fn();
+
+        try {
+            // When the 407 is handled
+            await Request.processWithMiddleware({command: 'TestCommand', data: {shouldRetry: true}, resolve});
+
+            // Then its caller receives the 407 and the request is not sent again under the copilot account
+            expect(resolve).toHaveBeenCalledWith(expect.objectContaining({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}));
+            expect(replaySpy).not.toHaveBeenCalled();
+            expect(reauthenticate).not.toHaveBeenCalled();
+        } finally {
+            replaySpy.mockRestore();
+        }
+    });
+
     test('should give each reauthentication flow a fresh retry budget', async () => {
         // Given three separate expired-session flows where each Authenticate fails 4 times before it succeeds,
         // so the failures add up to more than MAX_REQUEST_RETRIES across the session but not within one flow
