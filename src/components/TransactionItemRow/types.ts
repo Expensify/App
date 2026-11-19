@@ -45,6 +45,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
 
+    /** Violation messages for the Violations column */
+    formattedViolations?: string;
+
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 

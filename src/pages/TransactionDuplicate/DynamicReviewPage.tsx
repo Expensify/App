@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
@@ -56,6 +57,7 @@ function DynamicReviewPage() {
     const styles = useThemeStyles();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
 
@@ -246,6 +248,7 @@ function DynamicReviewPage() {
             rules,
             currentTransactionViolations,
             isTrackIntentUser,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         Navigation.goBack();
     };

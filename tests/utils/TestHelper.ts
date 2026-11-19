@@ -51,7 +51,7 @@ type MockFetch = jest.Mock<ReturnType<typeof fetch>, FetchMockParameters> & {
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
 type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 type APIWriteOnyxData = OnyxData<OnyxKey>;
-type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
+type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'finallyData' | 'optimisticData' | 'successData'>;
 type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
 type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
 type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
