@@ -2237,6 +2237,14 @@ const staticStyles = (theme: ThemeColors) =>
             top: variables.floatingTabBarLandscapeHeight - 2 * variables.componentSizeLarge - 12,
         },
 
+        // Takes the debug row out of the flow, so the floating buttons beside the landscape bar stay anchored to the
+        // bar's top, and keeps it from reaching under them.
+        debugTabViewMobileWebLandscape: {
+            position: 'absolute',
+            bottom: '100%',
+            marginRight: 2 * variables.floatingTabBarHorizontalInset + variables.componentSizeLarge,
+        },
+
         floatingGpsButton: {
             position: 'absolute',
             top: -variables.componentSizeSmall - 16,

@@ -25,7 +25,7 @@ function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
     }
 
     return (
-        <View style={[styles.floatingTabBarBottomInset, isNavigatorTabBarVisible && styles.opacity0]}>
+        <View style={[styles.floatingTabBarBottomInset, styles.pointerEventsBoxNone, isNavigatorTabBarVisible && styles.opacity0]}>
             <AlwaysPaintedView inert={isNavigatorTabBarVisible}>
                 <NavigationTabBar
                     selectedTab={selectedTab}
