@@ -3,6 +3,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -70,9 +72,9 @@ function ConnectionStatusMessage({
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
     let statusIcon;
     if (isPendingStatus) {
-        statusIcon = {src: icons.Hourglass, fill: theme.textSupporting};
+        statusIcon = {src: icons.Hourglass, fill: theme.textSupporting, size: variables.iconSizeSmall};
     } else if (isDangerStatus || isSuccessStatus) {
-        statusIcon = {src: icons.DotIndicator, fill: isDangerStatus ? theme.danger : theme.iconSuccessFill};
+        statusIcon = {src: icons.DotIndicator, fill: isDangerStatus ? theme.danger : theme.iconSuccessFill, size: variables.iconSizeNormal};
     }
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
@@ -81,6 +83,8 @@ function ConnectionStatusMessage({
                     <Icon
                         src={statusIcon.src}
                         fill={statusIcon.fill}
+                        width={statusIcon.size}
+                        height={statusIcon.size}
                     />
                 </View>
             )}
