@@ -392,7 +392,7 @@ function ProfilePage() {
                                     {privateOptions.map((detail) => (
                                         <MenuItemSectionRoot
                                             key={detail.testID}
-                                            onPress={callIfAuthenticated(detail.action, session)}
+                                            onPress={() => callIfAuthenticated(detail.action, session)()}
                                             testID={detail.testID}
                                             sentryLabel={detail.sentryLabel}
                                         >
