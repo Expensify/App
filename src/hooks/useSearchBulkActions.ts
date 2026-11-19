@@ -766,8 +766,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    // The backend runs a Select all bulk action only on an expense or report search.
-    const isExpenseOrReportSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Download',
         'Export',
@@ -3332,7 +3330,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               queryJSON?.type,
                           ),
                       );
-            if (!isOffline && isExpenseOrReportSearch && hasLoadedDeletableItem) {
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && hasLoadedDeletableItem) {
                 allMatchingOptions.push({
                     icon: expensifyIcons.Trashcan,
                     text: translate('search.bulkActions.delete'),
@@ -3842,7 +3840,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateReportOptionVisible,
         invokeDuplicateReportHandler,
         isExpenseReportType,
-        isExpenseOrReportSearch,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
         theme.icon,

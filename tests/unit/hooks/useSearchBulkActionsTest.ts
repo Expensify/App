@@ -2129,6 +2129,21 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         expect(mockShowDecisionModal).toHaveBeenCalled();
     });
 
+    it('hides Delete when a deselected group cannot be left out of the query', async () => {
+        // Given "Select all" on a grouped expenses search, with a collapsed group deselected that has no filter to exclude it
+        mockExcludedTransactions = {[`${CONST.SEARCH.GROUP_PREFIX}123`]: makeSelectedTransaction()};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered, since the backend would delete the deselected group too
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
     it('deletes nothing when the user cancels the confirmation', async () => {
         // Given "Select all" and a user who cancels the delete confirmation
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
