@@ -112,6 +112,11 @@ function isOptionalOverLimitApprover(approver: Approver | undefined): boolean {
     return approver?.overLimitAmount !== undefined;
 }
 
+/** Whether approval workflow rules send a report for `amount` to the approver, which skips an optional over-limit approver the report isn't over */
+function doesApproverGetReport(approver: Approver, amount: number): boolean {
+    return approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
+}
+
 /**
  * The approvers of a workflow imported from a spreadsheet. A spreadsheet lists an over-limit approver along with the approver
  * whose approval limit adds them, and they get the reports over it right after that approver.
@@ -358,12 +363,31 @@ function addEmployeeRouteApprovers({approvers, route, overLimitAmount, buildAppr
     }
 }
 
+type GetForkBranchesParams = {
+    /** Where the fork's approver is among the workflow's approvers */
+    forkIndex: number;
+
+    approvers: Approver[];
+
+    routes: RouteApprover[][];
+
+    /** The report total each route is for */
+    routeAmounts: number[];
+
+    approvalLimits: number[];
+
+    buildApprover: (email: string) => Approver;
+};
+
 /**
- * Where employee settings send the reports that reach a fork's approver once the approver approves them, by report total,
- * lowest totals first. No report in the totals of a route that doesn't reach the approver gets to them, so a branch can
- * also cover those totals where that makes its range simpler.
+ * Where employee settings send the reports that leave the workflow right after a fork's approver, by report total, lowest
+ * totals first. A report that goes on to the approver the workflow has next isn't part of the fork: the workflow shows where
+ * it goes, and if it leaves the workflow later, that's the fork of the approver it leaves from. No report in the totals of a
+ * route that doesn't reach the approver gets to them, so a branch can also cover those totals where that makes its range
+ * simpler.
  */
-function getForkBranches(forkEmail: string, routes: RouteApprover[][], approvalLimits: number[], buildApprover: (email: string) => Approver): ApproverForkBranch[] {
+function getForkBranches({forkIndex, approvers, routes, routeAmounts, approvalLimits, buildApprover}: GetForkBranchesParams): ApproverForkBranch[] {
+    const forkEmail = approvers.at(forkIndex)?.email;
     const emailsAfterForkByRoute = routes.map((route) => {
         const forkPosition = route.findIndex(({email, isCircularReference}) => email === forkEmail && !isCircularReference);
         if (forkPosition === -1) {
@@ -373,9 +397,14 @@ function getForkBranches(forkEmail: string, routes: RouteApprover[][], approvalL
         return route.slice(forkPosition + 1, circularPosition === -1 ? undefined : circularPosition).map(({email}) => email);
     });
 
+    // Who approval workflow rules send a report for `amount` to after the fork's approver. A flagged circular reference
+    // doesn't get it, since the report's approvals end before them.
+    const getNextWorkflowEmail = (amount: number) =>
+        approvers.find((approver, index) => index > forkIndex && !approver.isCircularReference && doesApproverGetReport(approver, amount))?.email;
+
     const routeIndexesByEmailsAfterFork = new Map<string, {emails: string[]; routeIndexes: number[]}>();
     for (const [routeIndex, emails] of emailsAfterForkByRoute.entries()) {
-        if (!emails) {
+        if (!emails || emails.at(0) === getNextWorkflowEmail(routeAmounts.at(routeIndex) ?? 0)) {
             continue;
         }
         const key = JSON.stringify(emails);
@@ -437,12 +466,14 @@ function buildApproversFromRoutes({
 
     // An approval limit only shows up once a report reaches its approver, so the routes are walked again until they find no new one
     let sortedLimits: number[] = [];
+    let routeAmounts: number[] = [];
     let routes: RouteApprover[][] = [];
     let limitCount: number;
     do {
         limitCount = limits.size;
         sortedLimits = [...limits].sort((a, b) => a - b);
-        routes = [...sortedLimits, (sortedLimits.at(-1) ?? 0) + 1].map(getRoute);
+        routeAmounts = [...sortedLimits, (sortedLimits.at(-1) ?? 0) + 1];
+        routes = routeAmounts.map(getRoute);
     } while (limits.size > limitCount);
 
     const [routeWithinLimits = [], ...routesOverLimits] = routes;
@@ -452,7 +483,11 @@ function buildApproversFromRoutes({
         for (const [routeIndex, route] of routesOverLimits.entries()) {
             addEmployeeRouteApprovers({approvers, route, overLimitAmount: sortedLimits.at(routeIndex), buildApprover, forkApprovers});
         }
-        return approvers.map((approver) => (forkApprovers.has(approver) ? {...approver, forkBranches: getForkBranches(approver.email, routes, sortedLimits, buildApprover)} : approver));
+        return approvers.map((approver, index) =>
+            forkApprovers.has(approver)
+                ? {...approver, forkBranches: getForkBranches({forkIndex: index, approvers, routes, routeAmounts, approvalLimits: sortedLimits, buildApprover})}
+                : approver,
+        );
     }
 
     for (const [routeIndex, route] of routesOverLimits.entries()) {
@@ -1179,7 +1214,7 @@ function getApprovalWorkflowRoutes(approvers: Approver[]): {approvalLimits: numb
         const route: number[] = [];
         const approvedEmails = new Set<string>();
         for (const [index, approver] of approvers.entries()) {
-            const getsReport = approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
+            const getsReport = doesApproverGetReport(approver, amount);
 
             // A report skips an approver who already approved it
             if (getsReport && !approvedEmails.has(approver.email)) {

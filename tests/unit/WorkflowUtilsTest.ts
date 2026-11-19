@@ -1991,16 +1991,7 @@ describe('WorkflowUtils', () => {
                     '3@example.com': {email: '3@example.com'},
                 },
                 '1@example.com',
-                [
-                    {
-                        upTo: 100000,
-                        approvers: [
-                            {email: '2@example.com', displayName: '2@example.com User'},
-                            {email: '3@example.com', displayName: '3@example.com User'},
-                        ],
-                    },
-                    {over: 100000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]},
-                ],
+                [{over: 100000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]}],
             ],
             [
                 'goes back to an approver who already approved them',
@@ -2010,17 +2001,15 @@ describe('WorkflowUtils', () => {
                     '3@example.com': {email: '3@example.com'},
                 },
                 '2@example.com',
-                [
-                    {upTo: 5000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]},
-                    {over: 5000, approvers: []},
-                ],
+                [{over: 5000, approvers: []}],
             ],
         ])('Should fork the workflow at an approver whose reports over their limit %s', (_description, employees: PolicyEmployeeList, forkApproverEmail, expectedForkBranches) => {
             // Given an approver who sends the reports over their limit somewhere the workflow doesn't go after them
             // When the approvers are calculated
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
-            // Then the workflow shows the approvers of the reports within the limit, and the fork is on that approver
+            // Then the workflow shows the approvers of the reports within the limit, and the fork is on that approver, with only
+            // the reports over the limit, since the workflow already shows where the others go
             expect(approvers.map(({email}) => email)).toEqual(['1@example.com', '2@example.com', '3@example.com']);
             expect(approvers.find((approver) => approver.email === forkApproverEmail)?.forkBranches).toEqual(expectedForkBranches);
             expect(approvers.filter((approver) => !!approver.forkBranches)).toHaveLength(1);
@@ -2040,24 +2029,50 @@ describe('WorkflowUtils', () => {
             // When the approvers are calculated
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
-            // Then 5@example.com stays in the workflow for the reports over 5,000.00, since rules can send those the same way, and
-            // only 3@example.com's branch is left to 2@example.com's fork
+            // Then 5@example.com stays in the workflow for the reports over 5,000.00, since rules can send those the same way, so
+            // 2@example.com's fork only has 3@example.com's branch
             expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
                 {email: '1@example.com', overLimitAmount: undefined},
                 {email: '2@example.com', overLimitAmount: 200000},
                 {email: '5@example.com', overLimitAmount: 500000},
                 {email: '4@example.com', overLimitAmount: undefined},
             ]);
-            expect(approvers.at(1)?.forkBranches).toEqual([
-                {upTo: 500000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]},
+            expect(approvers.at(1)?.forkBranches).toEqual([{upTo: 500000, approvers: [{email: '3@example.com', displayName: '3@example.com User'}]}]);
+        });
+
+        it('Should leave a route out of a fork when it only leaves the workflow at a later approver', () => {
+            // Given 1@example.com sends reports over 1,000.00 straight to 3@example.com, skipping 2@example.com, and 3@example.com
+            // sends the ones over 500.00 to 5@example.com, who approves them instead of sending them on to 4@example.com
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '2@example.com', approvalLimit: 100000, overLimitForwardsTo: '3@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '4@example.com', approvalLimit: 50000, overLimitForwardsTo: '5@example.com'},
+                '4@example.com': {email: '4@example.com'},
+                '5@example.com': {email: '5@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            // Then 1@example.com's fork only has the reports over 1,000.00, since the ones up to it go on to 2@example.com and only
+            // leave the workflow at 5@example.com, whose fork has every report that reaches them
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: undefined},
+                {email: '3@example.com', overLimitAmount: undefined},
+                {email: '5@example.com', overLimitAmount: 50000},
+                {email: '4@example.com', overLimitAmount: undefined},
+            ]);
+            expect(approvers.at(0)?.forkBranches).toEqual([
                 {
-                    over: 500000,
+                    over: 100000,
                     approvers: [
+                        {email: '3@example.com', displayName: '3@example.com User'},
                         {email: '5@example.com', displayName: '5@example.com User'},
-                        {email: '4@example.com', displayName: '4@example.com User'},
                     ],
                 },
             ]);
+            expect(approvers.at(3)?.forkBranches).toEqual([{approvers: []}]);
         });
     });
 

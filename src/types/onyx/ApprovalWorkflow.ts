@@ -76,14 +76,15 @@ type Approver = {
     overLimitAmount?: number;
 
     /**
-     * Where the reports that reach the approver go next, by report total, when the approver's own employee settings send
-     * some of them where the workflow doesn't. Approval workflow rules can only send a report along the workflow, so the
-     * workflow keeps routing by employee settings until an admin removes its forks. Undefined when every report follows it.
+     * Who gets the reports that leave the workflow right after the approver, by report total, since the approver's own
+     * employee settings send them somewhere other than the approver the workflow has next. Approval workflow rules can only
+     * send a report along the workflow, so the workflow keeps routing by employee settings until an admin removes its
+     * forks. Undefined when every report follows it.
      */
     forkBranches?: ApproverForkBranch[];
 };
 
-/** Where an approver's employee settings send the reports of a range of totals once the approver approves them */
+/** Where employee settings send the reports of a range of totals once the approver approves them */
 type ApproverForkBranch = {
     /** Report total, in cents, the branch gets the reports over. Undefined when it gets the lowest totals that reach the approver. */
     over?: number;
