@@ -1,9 +1,18 @@
 /* cspell:disable */
 import DateUtils from '@libs/DateUtils';
-import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+import {
+    formatTransitLocationLabel,
+    getAirReservations,
+    getPNRReservationDataFromTripReport,
+    getReservationDetailsFromSequence,
+    getReservationsFromTripReport,
+    isPnrCancelled,
+} from '@libs/TripReservationUtils';
+import type {ReservationData} from '@libs/TripReservationUtils';
 
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
+import type {Reservation} from '@src/types/onyx/Transaction';
 import type {HotelPnr, Pnr, RailPnr, TripData} from '@src/types/onyx/TripData';
 
 import cloneDeep from 'lodash/cloneDeep';
@@ -3313,6 +3322,90 @@ describe('TripReservationUtils', () => {
                 },
             };
             expect(isPnrCancelled(cancelledOneWayRail)).toBe(true);
+        });
+    });
+
+    describe('getReservationDetailsFromSequence', () => {
+        const icons = {} as Parameters<typeof getReservationDetailsFromSequence>[0];
+
+        const buildFlight = (reservationID: string, legId: number, startDate: string, endDate: string): Reservation => ({
+            type: CONST.RESERVATION_TYPE.FLIGHT,
+            reservationID,
+            legId,
+            start: {date: startDate},
+            end: {date: endDate},
+        });
+
+        // Mirrors a round trip with a hotel stay in between: outbound flight, hotel, then a direct return flight.
+        const outboundFlight = buildFlight('2333585128', 0, '2026-11-17T14:10:00', '2026-11-17T17:25:00');
+        const hotel: Reservation = {
+            type: CONST.RESERVATION_TYPE.HOTEL,
+            reservationID: '5453124981',
+            start: {date: '2026-11-17T15:00:00'},
+            end: {date: '2026-11-20T12:00:00'},
+        };
+        const returnFlight = buildFlight('2333585128', 1, '2026-11-20T18:10:00', '2026-11-20T19:55:00');
+
+        const toReservationData = (reservations: Reservation[]): ReservationData[] =>
+            reservations.map((reservation, index) => ({
+                reservation,
+                transactionID: '1',
+                reportID: '1',
+                reservationIndex: index,
+                sequenceIndex: index,
+            }));
+
+        it('does not treat a hotel stay before a flight as a layover', () => {
+            const tripReservations = toReservationData([outboundFlight, hotel, returnFlight]);
+
+            const {reservation, prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 2);
+
+            expect(reservation).toBe(returnFlight);
+            expect(prevConnectingFlight).toBeUndefined();
+        });
+
+        it('does not treat the flight from a previous leg as a layover', () => {
+            const tripReservations = toReservationData([outboundFlight, returnFlight]);
+
+            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+
+            expect(prevConnectingFlight).toBeUndefined();
+        });
+
+        it('does not treat a flight from a different PNR with the same leg index as a layover', () => {
+            const otherBookingFlight = buildFlight('9999999999', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
+            const tripReservations = toReservationData([otherBookingFlight, outboundFlight]);
+
+            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+
+            expect(prevConnectingFlight).toBeUndefined();
+        });
+
+        it('returns the previous flight when it is a connection in the same leg', () => {
+            const firstSegment = buildFlight('2333585128', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
+            const connectingSegment = buildFlight('2333585128', 0, '2026-11-17T12:00:00', '2026-11-17T14:00:00');
+            const tripReservations = toReservationData([firstSegment, connectingSegment]);
+
+            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
+
+            expect(prevConnectingFlight).toBe(firstSegment);
+        });
+
+        it('returns the closest earlier flight of the same leg when other reservations sit in between', () => {
+            const firstSegment = buildFlight('2333585128', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
+            const secondSegment = buildFlight('2333585128', 0, '2026-11-17T12:00:00', '2026-11-17T20:00:00');
+            const overnightHotel: Reservation = {
+                type: CONST.RESERVATION_TYPE.HOTEL,
+                reservationID: '5453124981',
+                start: {date: '2026-11-17T21:00:00'},
+                end: {date: '2026-11-18T06:00:00'},
+            };
+            const thirdSegment = buildFlight('2333585128', 0, '2026-11-18T09:00:00', '2026-11-18T11:00:00');
+            const tripReservations = toReservationData([firstSegment, secondSegment, overnightHotel, thirdSegment]);
+
+            const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 3);
+
+            expect(prevConnectingFlight).toBe(secondSegment);
         });
     });
 });

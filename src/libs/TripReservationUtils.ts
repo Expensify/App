@@ -564,17 +564,34 @@ function getTripTotal(
     return getMoneyRequestSpendBreakdown(tripReport);
 }
 
+/**
+ * Whether `prevReservation` is a flight in the same leg of the same PNR as `reservation`, i.e. part of the same connecting journey.
+ * Separate legs (e.g. the outbound and return of a round trip) and non-flight reservations (e.g. a hotel stay) are not connections.
+ */
+function isConnectingFlight(reservation: Reservation | undefined, prevReservation: Reservation | undefined): boolean {
+    return (
+        reservation?.type === CONST.RESERVATION_TYPE.FLIGHT &&
+        prevReservation?.type === CONST.RESERVATION_TYPE.FLIGHT &&
+        prevReservation.reservationID === reservation.reservationID &&
+        prevReservation.legId === reservation.legId
+    );
+}
+
 function getReservationDetailsFromSequence(icons: TripReservationIcons, tripReservations: ReservationData[], sequenceIndex: number) {
     const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === sequenceIndex);
     const reservationData = tripReservations.at(reservationDataIndex);
-    const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
     const reservation = reservationData?.reservation;
-    const prevReservation = prevReservationData?.reservation;
+    // Other reservations (e.g. an overnight hotel during a connection) can sit between two flights of the same leg in the start-date order,
+    // so search back for the closest earlier flight of that leg.
+    const prevConnectingFlight =
+        Number(reservationData?.reservationIndex) > 0
+            ? tripReservations.slice(0, reservationDataIndex).findLast((prevReservationData) => isConnectingFlight(reservation, prevReservationData.reservation))?.reservation
+            : undefined;
     const reservationType = reservation?.type;
     const reservationIcon = getTripReservationIcon(icons, reservation?.type, reservationData?.isCancelled);
     return {
         reservation,
-        prevReservation,
+        prevConnectingFlight,
         reservationType,
         reservationIcon,
         isCancelled: reservationData?.isCancelled,

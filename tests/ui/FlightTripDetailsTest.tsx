@@ -59,7 +59,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservation}
-                prevReservation={undefined}
+                prevConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -73,7 +73,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={mockFlightReservation}
-                prevReservation={undefined}
+                prevConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -92,7 +92,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservationWithoutSeat}
-                prevReservation={undefined}
+                prevConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
@@ -110,7 +110,7 @@ describe('FlightTripDetailsTest', () => {
         render(
             <FlightTripDetails
                 reservation={reservationWithoutSeat}
-                prevReservation={undefined}
+                prevConnectingFlight={undefined}
                 personalDetails={undefined}
             />,
         );
