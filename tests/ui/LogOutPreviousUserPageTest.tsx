@@ -13,7 +13,7 @@ import Navigation from '@navigation/Navigation';
 
 import LogOutPreviousUserPage from '@pages/LogOutPreviousUserPage';
 
-import {signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -126,6 +126,7 @@ describe('LogOutPreviousUserPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(signInWithShortLivedAuthToken).mockResolvedValue(undefined);
         mockInitialURL = SUPPORT_TRANSITION_URL;
         await act(async () => {
             await Onyx.clear();
@@ -254,5 +255,25 @@ describe('LogOutPreviousUserPage', () => {
 
         // Then the prompt is closed, so it cannot sign out whatever session is current later
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
+    });
+
+    it('goes Home for an old mobile link that names its token shortLivedToken', async () => {
+        // Given an account signed in to NewDot that was launched from an old mobile link for the same account, which names its token shortLivedToken
+        mockInitialURL = `${CONST.DEEPLINK_BASE_URL}/${ROUTES.TRANSITION_BETWEEN_APPS}?${new URLSearchParams({
+            email: OUTGOING_EMAIL,
+            shortLivedToken: 'legacy-token',
+            exitTo: ROUTES.HOME,
+        }).toString()}`;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+
+        // When the transition page opens for that link
+        renderPage({shortLivedToken: 'legacy-token', email: OUTGOING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page processes the link and goes Home instead of showing the not-found page
+        expect(screen.queryByTestId('NotFoundPage')).toBeNull();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
     });
 });

@@ -44,13 +44,14 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const isAccountLoading = account?.isLoading;
-    const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
+    const {authTokenType, shortLivedAuthToken = '', shortLivedToken = '', exitTo} = route?.params ?? {};
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
 
     // Linking.getInitialURL() only ever resolves the URL that launched the app, so only process this route when that URL carries its token.
-    // HybridApp doesn't update its launch URL for later links, so we skip this check there.
-    const isInitialURLForRoute = !!initialURL && (CONFIG.IS_HYBRID_APP || (!!shortLivedAuthToken && initialURL.includes(shortLivedAuthToken)));
+    // HybridApp doesn't update its launch URL for later links, so we skip this check there. The old mobile app names the token shortLivedToken.
+    const linkToken = shortLivedAuthToken || shortLivedToken;
+    const isInitialURLForRoute = !!initialURL && (CONFIG.IS_HYBRID_APP || (!!linkToken && initialURL.includes(linkToken)));
 
     useEffect(() => {
         if (!initialURL || !isInitialURLForRoute) {
