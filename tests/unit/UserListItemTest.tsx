@@ -102,6 +102,20 @@ describe('UserListItem', () => {
         });
     });
 
+    it.each([
+        [undefined, 1],
+        [2, 2],
+    ])('uses titleNumberOfLines %s with an effective limit of %s', (titleNumberOfLines, expectedNumberOfLines) => {
+        // Given existing rows must stay on one line unless their page explicitly opts into wrapping.
+        const item = buildItem();
+
+        // When the row renders with the page's line limit.
+        renderItem(item, {titleNumberOfLines});
+
+        // Then the default remains unchanged and an explicit limit reaches the text.
+        expect(screen.getByText('Test User')).toHaveProp('numberOfLines', expectedNumberOfLines);
+    });
+
     it('renders item.rightElement as a plain child', () => {
         renderItem(buildItem({rightElement: <View testID="right-element" />}));
 

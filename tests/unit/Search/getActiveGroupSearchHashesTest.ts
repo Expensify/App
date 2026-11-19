@@ -100,7 +100,7 @@ describe('getActiveGroupSearchHashes', () => {
         [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, {entryID: 5, accountNumber: '1234', bankName: CONST.BANK_NAMES.GENERIC_BANK, debitPosted: '2026-09-11', state: 1}],
         [CONST.SEARCH.GROUP_BY.CATEGORY, {category: ''}],
         [CONST.SEARCH.GROUP_BY.MERCHANT, {merchant: 'Acme'}],
-        [CONST.SEARCH.GROUP_BY.TAG, {tag: CONST.SEARCH.TAG_UNTAGGED_VALUE}],
+        [CONST.SEARCH.GROUP_BY.TAG, {tag: CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE}],
     ])('returns the same search a %s section opens for %o', (groupBy, groupFields) => {
         // Given a value-grouped search with one group in the snapshot, including an ID of 0, which only a presence check keeps
         const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${groupBy}`);

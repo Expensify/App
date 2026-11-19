@@ -1,11 +1,5 @@
-import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
-import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
-import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionList/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,10 +13,10 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 
 import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
+import InsightsGroupByPopup from './InsightsGroupByPopup';
 
 type GroupByValue = InsightsFilters['groupBy'];
 
@@ -36,30 +30,44 @@ type InsightsGroupByDropdownProps = {
     /** Grouping the dashboard starts from, which Reset returns to */
     defaultGroupBy: GroupByValue;
 
+    /** Whether Running total is offered, which it isn't for charts that can't plot it */
+    shouldShowRunningTotalOption: boolean;
+
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, shouldShowRunningTotalOption, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const label = translate('search.display.groupBy');
     const runningTotalText = translate('insightsPage.runningTotal');
-    const isRunningTotal = groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY;
+    const isRunningTotal = shouldShowRunningTotalOption && groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY;
     // The stored bucket may no longer fit the date range, so the pill and radio follow the one it fits to.
     const fittedGroupBy = getFittingGroupBy(groupBy, options);
     const selectedValue: GroupByValue = isRunningTotal ? INSIGHTS_RUNNING_TOTAL_GROUP_BY : fittedGroupBy;
     const pillText = translate(`search.filters.groupBy.${fittedGroupBy}`);
 
+    const optionGroups: Array<Array<{value: GroupByValue; label: string}>> = [
+        options.map((value) => ({
+            value,
+            label: translate(`search.filters.groupBy.${value}`),
+        })),
+    ];
+    if (shouldShowRunningTotalOption) {
+        optionGroups.push([{value: INSIGHTS_RUNNING_TOTAL_GROUP_BY, label: runningTotalText}]);
+    }
+
     const groupByPopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsGroupByPopup
-            options={options}
-            runningTotalText={runningTotalText}
+            optionGroups={optionGroups}
             selectedValue={selectedValue}
-            defaultGroupBy={defaultGroupBy}
+            defaultValue={defaultGroupBy}
             label={label}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY}
             closeOverlay={closeOverlay}
-            onChange={onChange}
+            onChange={(value: GroupByValue) => onChange({groupBy: value})}
         />
     );
 
@@ -76,79 +84,6 @@ function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: I
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}
         />
-    );
-}
-
-type InsightsGroupByPopupProps = {
-    options: InsightsTimeGroupBy[];
-    runningTotalText: string;
-    selectedValue: GroupByValue;
-    defaultGroupBy: GroupByValue;
-    label: string;
-    closeOverlay: () => void;
-    onChange: (update: Partial<InsightsFilters>) => void;
-};
-
-function InsightsGroupByPopup({options, runningTotalText, selectedValue, defaultGroupBy, label, closeOverlay, onChange}: InsightsGroupByPopupProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const [selected, setSelected] = useState<GroupByValue>(selectedValue);
-
-    const groupByItems = options.map<ListItem<GroupByValue>>((option) => ({
-        text: translate(`search.filters.groupBy.${option}`),
-        keyForList: option,
-        isSelected: option === selected,
-    }));
-    const runningTotalItems: Array<ListItem<GroupByValue>> = [
-        {text: runningTotalText, keyForList: INSIGHTS_RUNNING_TOTAL_GROUP_BY, isSelected: selected === INSIGHTS_RUNNING_TOTAL_GROUP_BY},
-    ];
-
-    // A divider sits above the Running total section, the same way the generic Group by menu separates its sections.
-    const sections = [groupByItems, runningTotalItems].map((data, index) => ({
-        sectionIndex: index,
-        ...(index > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
-        data,
-    }));
-
-    const itemCount = groupByItems.length + runningTotalItems.length + 1;
-
-    const updateSelectedItem = (item: ListItem<GroupByValue>) => {
-        setSelected(item.keyForList);
-    };
-
-    const applyChanges = () => {
-        onChange({groupBy: selected});
-        closeOverlay();
-    };
-
-    const resetChanges = () => {
-        onChange({groupBy: defaultGroupBy});
-        closeOverlay();
-    };
-
-    return (
-        <BasePopup
-            onReset={resetChanges}
-            onApply={applyChanges}
-            label={label}
-            showLabel={false}
-            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY}
-            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY}
-        >
-            <ListFilterHeightContextProvider>
-                <ListFilterWrapper
-                    itemCount={itemCount}
-                    hasHeader
-                >
-                    <SelectionListWithSections
-                        sections={sections}
-                        shouldSingleExecuteRowSelect
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={updateSelectedItem}
-                    />
-                </ListFilterWrapper>
-            </ListFilterHeightContextProvider>
-        </BasePopup>
     );
 }
 

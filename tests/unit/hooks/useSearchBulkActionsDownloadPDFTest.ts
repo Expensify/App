@@ -28,6 +28,11 @@ import {makeSearchData, makeSelectedTransaction, makeSettlementGroup} from '../.
 jest.mock('@libs/actions/Export', () => ({
     exportReportsToPDF: jest.fn(() => 'mock-export-id'),
 }));
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
 }));
