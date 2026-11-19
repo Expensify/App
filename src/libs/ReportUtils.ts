@@ -9368,6 +9368,8 @@ function buildOptimisticMergedReportsAction(
         actorAccountID: currentUserPersonalDetails.accountID,
         avatar: currentUserPersonalDetails.avatar,
         created: DateUtils.getDBTime(),
+        // The server sends MERGED_REPORTS actions with originalMessage, so the optimistic action uses the same field for the server update to replace it cleanly
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage: {sourceReports, movedTransactionCount},
         message: [
             {
