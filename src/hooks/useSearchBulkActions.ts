@@ -71,6 +71,7 @@ import {
     canEditMultipleTransactions,
     canIOUBePaid,
     canMergeReports,
+    canReassignAsApprover,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
     getReportOrDraftReport,
@@ -84,6 +85,8 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -107,10 +110,12 @@ import {
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
     getTransactionsByReportID,
+    getViolationsFromSearchData,
     getValidGroupBy,
     insertColumnBeforeTotalAmount,
     isGroupEntry,
     navigateToSearchRHP,
+    replaceIncludedFilterValues,
     shouldShowDeleteOption,
 } from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
@@ -135,7 +140,10 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import confirmApproveViolationsThenProceed from '@libs/Violations/confirmApproveViolationsThenProceed';
 import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
+import getReportApprovalWarningData from '@libs/Violations/getReportApprovalWarningData';
+import getReportApproveViolationSummary from '@libs/Violations/getReportApproveViolationSummary';
 import {getReportSubmitViolationSummary, mergeReportSubmitViolationSummaries} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import variables from '@styles/variables';
@@ -197,6 +205,7 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
+import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
@@ -401,11 +410,11 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     if (!filterKey) {
         return undefined;
     }
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
-    newFlatFilters.push({
-        key: filterKey,
-        filters: filterEntries.map((e) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: e.value})),
-    });
+    const newFlatFilters = replaceIncludedFilterValues(
+        queryJSON.flatFilters,
+        filterKey,
+        filterEntries.map((e) => e.value),
+    );
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters}));
 }
@@ -451,6 +460,7 @@ const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.CATEGORY,
     CONST.SEARCH.GROUP_BY.MERCHANT,
     CONST.SEARCH.GROUP_BY.TAG,
+    CONST.SEARCH.GROUP_BY.VIOLATION,
 ]);
 
 /**
@@ -638,6 +648,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -1448,81 +1459,100 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
-        if (areAllMatchingItemsSelected) {
-            if (!queryJSON) {
-                Log.info('[BulkApprove] Dropping bulk approve: no search query');
-                return;
-            }
-            const allMatchingQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
-            if (!allMatchingQuery) {
-                Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
-                return;
-            }
-            queueBulkApproveReports(serializeQueryJSONForBackend(allMatchingQuery));
-            playSound(SOUNDS.SUCCESS);
-            clearSelectedTransactions();
-            return;
-        }
-
-        const reportIDList = !selectedReports.length
-            ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-            : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
+        const reportIDList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction.reportID) : selectedReports.map((report) => report.reportID);
         const uniqueReportIDs = [...new Set(reportIDList.filter((reportID): reportID is string => reportID !== undefined))];
         const searchData = searchResults?.data;
-        const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-
-        let approvedReportCount = 0;
-        for (const reportID of uniqueReportIDs) {
+        const snapshotTransactionsByReportID = getTransactionsByReportID(searchData ?? {});
+        const snapshotViolations = getViolationsFromSearchData(searchData ?? {});
+        const perReportSummaries = uniqueReportIDs.map((reportID) => {
             const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
-            if (!expenseReport) {
-                Log.info('[BulkApprove] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID});
-                continue;
-            }
+            const reportPolicy = getPolicyFromSearchSnapshot(expenseReport?.policyID, searchData, policies);
+            const liveTransactions = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {});
+            const warningData = getReportApprovalWarningData(reportID, snapshotTransactionsByReportID.get(reportID), liveTransactions, snapshotViolations, allTransactionViolations);
+            return getReportApproveViolationSummary(warningData.transactions, warningData.violations, expenseReport, reportPolicy, email ?? '', accountID);
+        });
+        const summary = mergeReportSubmitViolationSummaries(perReportSummaries);
 
-            const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
-            const policyToUpgrade = reportPolicy;
-            const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
-            const wouldNavigateToRestricted =
-                !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
-
-            approveMoneyRequest({
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                getCurrencyDecimals,
-                expenseReport,
-                expenseReportPolicy: reportPolicy,
-                rules,
-                currentUserAccountIDParam: accountID,
-                currentUserEmailParam: email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
-                delegateEmail,
-                delegateAccountID,
-                full: true,
-                additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
-                shouldPlaySuccessSound: false,
-                isTrackIntentUser,
-                allTransactionViolations,
-            });
-
-            if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
-                approvedReportCount += 1;
-            }
-        }
-
-        if (approvedReportCount > 0) {
-            playSound(SOUNDS.SUCCESS);
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
+        // As with submit, warnings use local violations; reports not loaded by Select all cannot contribute bullets.
+        confirmApproveViolationsThenProceed({
+            summary,
+            showConfirmModal,
+            translate,
+            dateFnsLocale,
+            convertToDisplayString,
+            onProceed: () => {
+                // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
+                if (areAllMatchingItemsSelected) {
+                    if (!queryJSON) {
+                        Log.info('[BulkApprove] Dropping bulk approve: no search query');
+                        return;
+                    }
+                    const allMatchingQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+                    if (!allMatchingQuery) {
+                        Log.info('[BulkApprove] Dropping bulk approve: report exclusion has no reportID');
+                        return;
+                    }
+                    queueBulkApproveReports(serializeQueryJSONForBackend(allMatchingQuery));
+                    playSound(SOUNDS.SUCCESS);
                     clearSelectedTransactions();
-                },
-            });
-        }
+                    return;
+                }
+
+                const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+                let approvedReportCount = 0;
+                for (const reportID of uniqueReportIDs) {
+                    const expenseReport = getReportFromSearchSnapshot(reportID, searchData, allReports);
+                    if (!expenseReport) {
+                        Log.info('[BulkApprove] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID});
+                        continue;
+                    }
+
+                    const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
+                    const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
+                    const policyToUpgrade = reportPolicy;
+                    const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
+                    const wouldNavigateToRestricted =
+                        !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
+
+                    approveMoneyRequest({
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
+                        getCurrencyDecimals,
+                        expenseReport,
+                        expenseReportPolicy: reportPolicy,
+                        rules,
+                        currentUserAccountIDParam: accountID,
+                        currentUserEmailParam: email ?? '',
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        userBillingGracePeriodEnds,
+                        amountOwed,
+                        ownerBillingGracePeriodEnd,
+                        ownerLogin: getLoginByAccountID(expenseReport.ownerAccountID, personalDetails),
+                        delegateEmail,
+                        delegateAccountID,
+                        full: true,
+                        additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
+                        shouldPlaySuccessSound: false,
+                        isTrackIntentUser,
+                        allTransactionViolations,
+                    });
+
+                    if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
+                        approvedReportCount += 1;
+                    }
+                }
+
+                if (approvedReportCount > 0) {
+                    playSound(SOUNDS.SUCCESS);
+                    TransitionTracker.runAfterTransitions({
+                        callback: () => {
+                            clearSelectedTransactions();
+                        },
+                    });
+                }
+            },
+        });
     }, [
         isOffline,
         showOfflineModal,
@@ -1555,6 +1585,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         delegateAccountID,
         getCurrencyDecimals,
         rules,
+        allReportsTransactionsAndViolations,
+        showConfirmModal,
+        translate,
+        dateFnsLocale,
+        convertToDisplayString,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -3366,7 +3401,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.canChangeApprover);
+            selectedReports.every((selectedReport) => {
+                if (selectedReport.canChangeApprover) {
+                    return true;
+                }
+                const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
+                // Current approvers can reassign without workspace admin access when strict policy rules are off.
+                const canReassignCurrentReport = canReassignAsApprover({
+                    report,
+                    currentUserAccountID: accountID,
+                    isLoadingSecurityGroup,
+                    areStrictPolicyRulesEnabled,
+                });
+                if (!canReassignCurrentReport || !isExpenseReportUtil(report) || !isProcessingReport(report) || isMoneyRequestReportPendingDeletion(report)) {
+                    return false;
+                }
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                return !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            });
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -3666,6 +3718,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return buildResult(options);
     }, [
         selectedTransactionsKeys,
+        areStrictPolicyRulesEnabled,
+        isLoadingSecurityGroup,
         showOfflineModal,
         showDownloadErrorModal,
         cardList,

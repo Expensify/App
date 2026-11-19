@@ -478,6 +478,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <MenuItemField
                                         name={translate('cardPage.physicalCardPin')}
                                         value={maskPin(revealedPIN)}
+                                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                     >
                                         {canRevealPIN && (
                                             <ButtonDisabledWhenOffline

@@ -19,6 +19,7 @@ import type {
     SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
+    SearchSortBy,
     SearchWithdrawalType,
     SelectedTransactions,
     SyntaxFilterKey,
@@ -240,8 +241,8 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 
-/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
-const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]);
+/** Group-bys only Insights queries use, because the Search command doesn't return data for them */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]);
 
 function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
     return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
@@ -920,15 +921,40 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
     );
 }
 
+function isHasFilterValue(value: string): value is HasFilterValue {
+    return Object.values<string>(CONST.SEARCH.HAS_VALUES).includes(value);
+}
+
+/**
+ * Returns the `has` values the query includes, leaving out negated ones such as `-has:submitted-violation`.
+ */
+function getPositiveHasFilterValues(queryJSON: SearchQueryJSON | undefined): HasFilterValues {
+    const hasValues: HasFilterValues = [];
+    for (const filterGroup of queryJSON?.flatFilters ?? []) {
+        if (filterGroup.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            continue;
+        }
+        for (const filter of filterGroup.filters) {
+            const value = filter.value.toString();
+            if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && isHasFilterValue(value)) {
+                hasValues.push(value);
+            }
+        }
+    }
+    return hasValues;
+}
+
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `anySubmission:`, `submitted:` or `approved:` filter, or a
- * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
- * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
+ * must refetch it: grouping by approver or violation, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter,
+ * or a `submitted-violation` or `approved-violation` filter. Violation groups count the violations saved when a report is
+ * submitted or approved, so those actions change them even with no `has:` filter. Negated filters count too, because
+ * submitting or approving a report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */
 function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
     return (
         queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION ||
         queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
         queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES, true)
     );
@@ -939,6 +965,22 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
     return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
+}
+
+/**
+ * Returns the column the rows are sorted by on the client. Like the backend, it sorts by violations only for expense
+ * searches with a positive `has:*-violation` filter, since only those rows carry violation labels, and by date otherwise.
+ */
+function getEffectiveSortBy(queryJSON: SearchQueryJSON | undefined): SearchSortBy | undefined {
+    if (queryJSON?.sortBy !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) {
+        return queryJSON?.sortBy;
+    }
+
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasViolationFilter(queryJSON)) {
+        return queryJSON.sortBy;
+    }
+
+    return CONST.SEARCH.TABLE_COLUMNS.DATE;
 }
 
 /**
@@ -1395,12 +1437,29 @@ const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
     const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
-
-    return buildSearchQueryString({
+    const resetQueryJSON: SearchQueryJSON = {
         ...currentQueryJSON,
         type: defaultQueryJSON?.type ?? currentQueryJSON.type,
         flatFilters: [...resetFilters, ...keptFilters],
-    });
+    };
+
+    // The filters UI pairs the violation grouping with a violation has value (see useUpdateFilterQuery), so resetting
+    // the Has pill away also drops the grouping, along with the sorting and columns that only exist for it.
+    if (
+        currentQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        queryHasHasFilter(currentQueryJSON, VIOLATION_HAS_VALUES) &&
+        !queryHasHasFilter(resetQueryJSON, VIOLATION_HAS_VALUES)
+    ) {
+        return buildSearchQueryString({
+            ...resetQueryJSON,
+            groupBy: undefined,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            columns: undefined,
+        });
+    }
+
+    return buildSearchQueryString(resetQueryJSON);
 }
 
 function getDisplayDefaultQueryJSON(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
@@ -3673,7 +3732,10 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     doesQueryMatchSearchContext,
     queryHasViolationFilter,
+    getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
+    VIOLATION_HAS_VALUES,
     shouldRefetchSearchOnReportActionChange,
     getViolationDisplayName,
     VIOLATION_FILTER_VALUES,
