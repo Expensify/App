@@ -23,7 +23,7 @@ index bc62e29..abad36c 100644
   * Tell the controller that react provided tabs have changed (count / instances) & the child
   * view controllers need to be updated.
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index f14c43f..91d1373 100644
+index 4a36738..6c5c733 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -89,6 +89,12 @@ @implementation RNSTabBarController {
@@ -203,7 +203,7 @@ index f14c43f..91d1373 100644
  // The iOS 26 tab bar starts moving its selection lens to an item on touch down, before it asks whether the tab can be
  // selected, so a tap on a tab with `preventNativeSelection` pulls the lens to it and lets it spring back. A view over
  // each such item, outside the tab bar, takes the tap instead and reports it the way the prevented selection does.
-@@ -452,6 +608,7 @@ - (void)performContainerUpdate
+@@ -458,6 +614,7 @@ - (void)performContainerUpdate
    [self updateTabBarAppearanceIfNeeded];
    [self updateTabBarA11yIfNeeded];
    [self updateOrientationIfNeeded];
@@ -211,7 +211,7 @@ index f14c43f..91d1373 100644
    [self updatePreventedSelectionTouchViews];
  }
  
-@@ -484,6 +641,7 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
+@@ -490,6 +647,7 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
      return YES;
    }
  
@@ -219,7 +219,7 @@ index f14c43f..91d1373 100644
    [self setSelectedViewController:nextSelectedViewController];
    return YES;
  }
-@@ -620,6 +778,7 @@ - (BOOL)tabBarController:(UITabBarController *)tabBarController
+@@ -626,6 +784,7 @@ - (BOOL)tabBarController:(UITabBarController *)tabBarController
    }
  
    _isHandlingExplicitSelectionUpdate = YES;
