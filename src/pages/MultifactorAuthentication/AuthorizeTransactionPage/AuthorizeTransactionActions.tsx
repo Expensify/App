@@ -16,11 +16,7 @@ type MultifactorAuthenticationAuthorizeTransactionActionsProps = {
     onAuthorize: () => void;
     onDeny: () => void;
     isLoading: boolean | undefined;
-
-    /** Label of the deny button */
     denyText: string;
-
-    /** Label of the authorize button */
     authorizeText: string;
 
     /** Sentry label of the deny button, so each review screen is tracked on its own */
