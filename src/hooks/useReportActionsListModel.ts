@@ -12,6 +12,7 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import {useRoute} from '@react-navigation/native';
 
 import useConciergeAskState from './useConciergeAskState';
+import useConciergePageReportID from './useConciergePageReportID';
 import {useIsAppLoadPending} from './useInFlightRequests';
 import useInitial from './useInitial';
 import useLoadReportActions from './useLoadReportActions';
@@ -72,8 +73,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasUnreadMessageFromOthers: hasUnreadConciergeMessageFromOthers,
     } = useConciergeAskState(reportID);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergeReportID);
+    const conciergePageReportID = useConciergePageReportID();
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergePageReportID);
 
     const isReportArchived = useReportIsArchived(reportID);
     const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);

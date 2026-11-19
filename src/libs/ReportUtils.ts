@@ -123,7 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
-import {isConciergePageThread, isConciergeThread} from './isInConciergeConversation';
+import isInConciergeConversation, {isConciergePageThread} from './isInConciergeConversation';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -2690,7 +2690,7 @@ function findLastAccessedReport(
             return false;
         }
 
-        if (excludedConciergeReportID && (report?.reportID === excludedConciergeReportID || isConciergePageThread(report, excludedConciergeReportID))) {
+        if (excludedConciergeReportID && isInConciergeConversation(report?.reportID, excludedConciergeReportID, reportsCollection)) {
             return false;
         }
 
@@ -2979,11 +2979,13 @@ function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Re
 }
 
 /**
- * Checks if a report aligns its action list to the top (transaction threads, Concierge threads, money request / invoice reports).
+ * Checks if a report aligns its action list to the top (transaction threads, Concierge page threads, money request / invoice reports).
+ *
+ * @param conciergePageReportID - The Concierge DM, when its threads open on the Concierge page
  */
-function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, conciergeReportID?: string): boolean {
+function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, conciergePageReportID?: string): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isConciergeThread(report, conciergeReportID) || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isConciergePageThread(report, conciergePageReportID) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**

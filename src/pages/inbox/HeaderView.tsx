@@ -116,7 +116,9 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
-import ConciergeHeaderActions from './ConciergeHeaderActions';
+import ConciergeNewChatIconButton from './ConciergeNewChatIconButton';
+import ConciergePageHistoryButton from './ConciergePageHistoryButton';
+import ConciergeSidePanelHistoryButton from './ConciergeSidePanelHistoryButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -558,13 +560,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                {(isInNarrowConciergePage || isInConciergeSidePanel) && (
-                                    <ConciergeHeaderActions
-                                        reportID={reportID}
-                                        isInNarrowConciergePage={isInNarrowConciergePage}
-                                        isInConciergeSidePanel={isInConciergeSidePanel}
-                                    />
-                                )}
+                                {isInNarrowConciergePage && !isConciergeChat && <ConciergeNewChatIconButton />}
+                                {isInNarrowConciergePage && <ConciergePageHistoryButton />}
+                                {isInConciergeSidePanel && <ConciergeSidePanelHistoryButton />}
                                 <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>

@@ -1,0 +1,46 @@
+import Icon from '@components/Icon';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+import type SidePanelButtonProps from './types';
+
+type HelpButtonProps = SidePanelButtonProps & {
+    /** Opens help */
+    onPress: () => void;
+};
+
+/** The Concierge icon button that opens help */
+function HelpButton({style, onPress}: HelpButtonProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
+
+    return (
+        <Tooltip text={translate('common.help')}>
+            <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
+                accessibilityLabel={translate('common.help')}
+                role={CONST.ROLE.BUTTON}
+                style={[styles.flexRow, styles.touchableButtonImage, style]}
+                onPress={onPress}
+            >
+                <Icon
+                    src={Concierge}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
+}
+
+export default HelpButton;

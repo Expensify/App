@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isUnreadConciergeMessage} from '@libs/ConciergeConversationUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {isUnread} from '@libs/ReportUtils';
@@ -20,6 +21,7 @@ import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {getReportLastReadTime} from '@selectors/Report';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -57,9 +59,6 @@ type ConciergeThreadRowProps = {
 type ConciergeMessageRowProps = {
     /** The Concierge message without a thread that the row shows */
     reportActionID: string;
-
-    /** When Concierge posted the message */
-    created: string;
 
     onPress: (message: ReportAction) => void;
 };
@@ -171,14 +170,13 @@ function ConciergeThreadRow({reportID, isSelected, onPress}: ConciergeThreadRowP
     );
 }
 
-function ConciergeMessageRow({reportActionID, created, onPress}: ConciergeMessageRowProps) {
+function ConciergeMessageRow({reportActionID, onPress}: ConciergeMessageRowProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const messageSelector = (reportActions: OnyxEntry<ReportActions>) => reportActions?.[reportActionID];
     const [message] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: messageSelector});
 
-    // A message posted after the user last read the DM stays unread until they open it, which turns it into a thread row
-    const isMessageUnreadSelector = (report: OnyxEntry<Report>) => !report?.lastReadTime || created > report.lastReadTime;
-    const [isMessageUnread = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: isMessageUnreadSelector});
+    const [conciergeLastReadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: getReportLastReadTime});
+    const isMessageUnread = isUnreadConciergeMessage(message, conciergeLastReadTime);
 
     const messageText = getReportActionMessageText(message);
     const title = getFirstLine(messageText);

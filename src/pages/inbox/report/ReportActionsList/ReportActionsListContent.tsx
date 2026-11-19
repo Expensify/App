@@ -6,6 +6,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useInitial from '@hooks/useInitial';
+import useIsConciergeNewChatOnly from '@hooks/useIsConciergeNewChatOnly';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -86,6 +87,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
 
     const {isOffline} = useNetwork();
+    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
@@ -149,6 +151,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedVisibleReportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
+        // Where the Concierge chat only starts new conversations, each Concierge message stays unread until the user opens it
+        areMessagesHidden: shouldShowConciergeWelcome && isConciergeNewChatOnly,
     });
 
     const reportActionsListData = useReportActionsListData({

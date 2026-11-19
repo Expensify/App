@@ -1,3 +1,4 @@
+/** Where a report header that may show a Concierge conversation sits, which decides the Concierge controls it offers. */
 import {isConciergePageThread} from '@libs/isInConciergeConversation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,6 @@ function parentAndTypeSelector(report: OnyxEntry<Report>) {
     return report ? {parentReportID: report.parentReportID, type: report.type} : undefined;
 }
 
-/** Where a report header that may show a Concierge conversation sits, which decides the Concierge controls it offers. */
 function useConciergeHeaderPlacement(reportID: string | undefined): ConciergeHeaderPlacement {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInConciergePage = useIsInConciergePage();

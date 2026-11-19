@@ -64,7 +64,8 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    const isHistoryExpanded = isConciergeDM && !isConciergeNewChatOnly && (showFullHistory || !!route.params?.reportActionID);
+    // A link to a message in the Concierge chat shows that message, even where the chat only starts new conversations
+    const isHistoryExpanded = isConciergeDM && (!!route.params?.reportActionID || (showFullHistory && !isConciergeNewChatOnly));
     const shouldShowWelcome = isConciergeDM && !isHistoryExpanded && (isConciergeNewChatOnly || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
 
     return {

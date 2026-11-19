@@ -96,6 +96,9 @@ type UseMarkAsReadParams = {
 
     /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
     shouldRequireScreenFocus?: boolean;
+
+    /** Whether something else is shown in place of the messages, so the user can't read them */
+    areMessagesHidden?: boolean;
 };
 
 type UseMarkAsReadResult = {
@@ -116,6 +119,7 @@ function useMarkAsRead({
     hasNewerActions,
     scopeKey = 'default',
     shouldRequireScreenFocus = false,
+    areMessagesHidden = false,
 }: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -126,7 +130,7 @@ function useMarkAsRead({
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
     // A preloaded tab or a hidden wide submit pre-mount mounts this screen before the user sees it. Marking read assumes the
     // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
-    const isHiddenFromUser = useIsReportOutOfSight();
+    const isHiddenFromUser = useIsReportOutOfSight() || areMessagesHidden;
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
     const {markRead, cancelPendingRead} = useMarkReadAfterReveal(reportID, report?.lastReadTime);
 

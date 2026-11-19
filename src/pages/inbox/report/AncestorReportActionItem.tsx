@@ -1,22 +1,13 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import useOpenAncestorReport from '@hooks/useOpenAncestorReport';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isTripPreview} from '@libs/ReportActionsUtils';
-import {
-    canCurrentUserOpenReport,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    hasExpensifyGuidesEmails,
-    isArchivedReport,
-    navigateToLinkedReportAction,
-} from '@libs/ReportUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -33,7 +24,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
-import ThreadDivider from './ThreadDivider';
 
 type AncestorReportActionItemProps = {
     /** Report for this action */
@@ -64,13 +54,14 @@ type AncestorReportActionItemProps = {
 
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
-    /** Leaves out the thread divider under this message */
-    shouldHideThreadDivider?: boolean;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
 
     /** Parent links of the thread and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
+
+    /** Shown above the message, such as the divider between the message and the thread */
+    children?: React.ReactNode;
 };
 
 function AncestorReportActionItem({
@@ -88,19 +79,15 @@ function AncestorReportActionItem({
     hasCompletedGuidedSetupFlow,
     linkedTransactionRouteError,
     parentReportAction,
-    shouldHideThreadDivider = false,
     shouldUseThreadDividerLine,
     transactionThreadReport,
     reportsParentHierarchy,
+    children,
 }: AncestorReportActionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
-    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
-    const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
-
-    const {isBetaEnabled} = usePermissions();
 
     const ancestorReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const isConciergeFeedbackThread = !!ancestorReportNameValuePairs?.conciergeFeedbackForReportActionID;
@@ -117,33 +104,7 @@ function AncestorReportActionItem({
         selector: getLatestFeedbackActionIDByAuthorSelector(canAuthorCollectFeedback ? authorAccountID : undefined),
     });
 
-    const shouldDisplayThreadDivider = !isTripPreview(reportAction) && !shouldHideThreadDivider;
-    const isAncestorReportArchived = isArchivedReport(ancestorReportNameValuePairs);
-    const canOpenAncestorReport = canCurrentUserOpenReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isAncestorReportArchived);
-
-    const {isOffline} = useNetwork();
-    const {isInNarrowPaneModal} = useResponsiveLayout();
-
-    const openLinkedAncestorReport = (isArchived: boolean) => {
-        navigateToLinkedReportAction(
-            {
-                report,
-                reportAction,
-                shouldDisplayNewMarker,
-            },
-            isInNarrowPaneModal,
-            canUserPerformWriteActionReportUtils(report, isArchived),
-            isOffline,
-        );
-    };
-
-    const openAncestorReport = () => {
-        openLinkedAncestorReport(isReportArchived);
-    };
-
-    const openAncestorReportFromThreadDivider = () => {
-        openLinkedAncestorReport(isAncestorReportArchived);
-    };
+    const {canOpenAncestorReport, openAncestorReport} = useOpenAncestorReport(report, reportAction, shouldDisplayNewMarker, isArchivedReport(ancestorReportNameValuePairs));
 
     const deleteAncestorReportAndNavigateToConcierge = () => {
         navigateToConciergeChatAndDeleteReport(
@@ -167,16 +128,11 @@ function AncestorReportActionItem({
             errorRowStyles={styles.ml10}
             onClose={deleteAncestorReportAndNavigateToConcierge}
         >
-            {shouldDisplayThreadDivider && (
-                <ThreadDivider
-                    shouldDisplayNewMarker={shouldDisplayNewMarker}
-                    onPress={canOpenAncestorReport ? openAncestorReportFromThreadDivider : undefined}
-                />
-            )}
+            {children}
             <ReportActionItem
                 report={report}
                 action={reportAction}
-                onPress={canOpenAncestorReport ? openAncestorReport : undefined}
+                onPress={canOpenAncestorReport ? () => openAncestorReport(isReportArchived) : undefined}
                 parentReportAction={parentReportAction}
                 transactionThreadReport={transactionThreadReport}
                 chatReport={chatReport}

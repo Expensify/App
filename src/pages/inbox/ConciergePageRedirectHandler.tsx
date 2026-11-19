@@ -24,7 +24,7 @@ import type {Report} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 function hasReportSelector(report: OnyxEntry<Report>): boolean {
     return !!report;
@@ -48,15 +48,20 @@ function ConciergePageRedirectHandler() {
     const shouldOpenInConciergePage = !isInConciergePage && !!isConciergePageEnabled && isConciergeConversation;
     const shouldOpenInInbox = isInConciergePage && (isConciergePageEnabled === false || (hasReport && !isConciergeConversation));
 
+    // Moving to another tab opens the report on top of this screen, so going back shows this screen again. It redirects
+    // only once for each report, so the user can go back past it.
+    const redirectedReportIDRef = useRef<string | undefined>(undefined);
     useEffect(() => {
-        if (!isFocused || isInSidePanel || !reportID) {
+        if (!isFocused || isInSidePanel || !reportID || redirectedReportIDRef.current === reportID) {
             return;
         }
         if (shouldOpenInConciergePage) {
+            redirectedReportIDRef.current = reportID;
             Navigation.navigate(ROUTES.CONCIERGE_CONVERSATION.getRoute(reportID, reportActionID), {forceReplace: true});
             return;
         }
         if (shouldOpenInInbox) {
+            redirectedReportIDRef.current = reportID;
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID), {forceReplace: true});
         }
     }, [isFocused, isInSidePanel, reportActionID, reportID, shouldOpenInConciergePage, shouldOpenInInbox]);

@@ -160,4 +160,4 @@ export {
     isUnreadConciergeThread,
     sortConciergeConversations,
 };
-export type {ConciergeConversation, ConciergeThreadConversation};
+export type {ConciergeConversation};

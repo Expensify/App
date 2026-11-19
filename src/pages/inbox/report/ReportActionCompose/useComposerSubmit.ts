@@ -1,7 +1,7 @@
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useIsInConciergePage from '@hooks/useIsInConciergePage';
+import useIsConciergeNewChatOnly from '@hooks/useIsConciergeNewChatOnly';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -33,7 +33,7 @@ import useSidePanelContext from './useSidePanelContext';
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
-    const isInConciergePage = useIsInConciergePage();
+    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
     const sidePanelContext = useSidePanelContext(reportID);
     const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
@@ -109,8 +109,8 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
-        // On the Concierge page every message to Concierge starts a thread, tasks included, and Concierge handles it there
-        const shouldStartThread = shouldRespondInThread && isInConciergePage;
+        // Where the Concierge chat only starts new conversations, every message to Concierge starts a thread, tasks included, and Concierge handles it there
+        const shouldStartThread = shouldRespondInThread && isConciergeNewChatOnly;
         if (
             !shouldStartThread &&
             createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})

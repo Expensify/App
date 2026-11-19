@@ -45,13 +45,7 @@ function ConciergeSidebarScreen() {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.CONCIERGE);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // The cursor of the page already asked for, so a list end reached twice doesn't load that page twice
-    const requestedCursorRef = useRef<string | undefined>(undefined);
-    const reloadFirstPage = () => {
-        requestedCursorRef.current = undefined;
-        loadConciergeThreads();
-    };
-    const {isOffline} = useNetwork({onReconnect: reloadFirstPage});
+    const {isOffline} = useNetwork({onReconnect: () => loadConciergeThreads()});
     const conversations = useConciergeConversations();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -73,15 +67,15 @@ function ConciergeSidebarScreen() {
     }, []);
 
     const loadNextPage = () => {
-        if (!nextCursor || isLoading || isOffline || requestedCursorRef.current === nextCursor) {
+        if (!nextCursor || isLoading || isOffline) {
             return;
         }
-        requestedCursorRef.current = nextCursor;
         loadConciergeThreads(nextCursor);
     };
 
     const navigation = useNavigation();
     const goBack = () => {
+        // The list was opened over a Concierge chat from its history button, so going back returns to that chat
         if (navigation.getState()?.index) {
             navigation.goBack();
             return;
@@ -152,7 +146,6 @@ function ConciergeSidebarScreen() {
                             ) : (
                                 <ConciergeMessageRow
                                     reportActionID={item.reportActionID}
-                                    created={item.lastActivity}
                                     onPress={openMessage}
                                 />
                             )
