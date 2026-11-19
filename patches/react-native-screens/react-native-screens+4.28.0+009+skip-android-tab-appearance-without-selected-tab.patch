@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+index aa8e895..a2b93b0 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -489,6 +489,11 @@ class TabsContainer internal constructor(
+     }
+ 
+     private fun updateBottomNavigationViewAppearanceIfNeeded() {
++        // The appearance comes from the selected tab. A host whose tabs React removes, as it does when unmounting the
++        // host, still gets the mount callback with its selected tab gone, so the update waits for a selected tab.
++        if (getFragmentForScreenKey(navState.selectedScreenKey) == null) {
++            return
++        }
+         if (invalidationFlags.isNavigationMenuAppearanceInvalidated) {
+             invalidationFlags.isNavigationMenuAppearanceInvalidated = false
+             updateBottomNavigationViewAppearance()

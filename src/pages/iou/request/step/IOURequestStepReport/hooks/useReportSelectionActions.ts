@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
@@ -126,6 +127,7 @@ function useReportSelectionActions({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
@@ -232,6 +234,7 @@ function useReportSelectionActions({
                         delegateAccountID,
                         getCurrencyDecimals,
                         getCurrencySymbol,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     });
                     removeTransaction(transaction.transactionID, {isDeleted: false});
                 }
@@ -266,6 +269,7 @@ function useReportSelectionActions({
                     delegateAccountID,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
                 removeTransaction(transaction.transactionID, {isDeleted: false});
             },
