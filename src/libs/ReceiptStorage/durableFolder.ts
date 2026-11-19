@@ -33,4 +33,42 @@ function isInDurableFolder(storedPath: unknown): boolean {
     }
 }
 
-export {toDurableName, isInDurableFolder};
+/** Where a receipt source points, coarse enough to send to Sentry in place of the path. */
+type ReceiptSourceKind = 'receiptsFolder' | 'imageManipulatorCache' | 'otherTemp' | 'remote';
+
+// expo-image-manipulator saves every result into this folder inside the app cache, on iOS and on Android. The OS can
+// clear it at any time, so a receipt left there can be gone by the time its upload runs.
+const IMAGE_MANIPULATOR_CACHE_FOLDER = '/ImageManipulator/';
+
+/** Says where a receipt source points without exposing the path. Undefined for an empty source and on platforms with no receipts folder. */
+function getReceiptSourceKind(source: unknown): ReceiptSourceKind | undefined {
+    if (typeof source !== 'string' || !source) {
+        return undefined;
+    }
+
+    let receiptsFolderPath: string;
+    try {
+        receiptsFolderPath = getReceiptsUploadFolderPath();
+    } catch {
+        // getReceiptsUploadFolderPath reaches the native filesystem module, which is not always available.
+        return undefined;
+    }
+
+    // Web keeps receipts as object URLs, not files, so none of these kinds apply there.
+    if (!receiptsFolderPath) {
+        return undefined;
+    }
+    if (source.startsWith('http:') || source.startsWith('https:')) {
+        return 'remote';
+    }
+    if (isInDurableFolder(source)) {
+        return 'receiptsFolder';
+    }
+    if (source.includes(IMAGE_MANIPULATOR_CACHE_FOLDER)) {
+        return 'imageManipulatorCache';
+    }
+    return 'otherTemp';
+}
+
+export {toDurableName, isInDurableFolder, getReceiptSourceKind};
+export type {ReceiptSourceKind};

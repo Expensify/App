@@ -5,7 +5,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {isInDurableFolder} from '@libs/ReceiptStorage/durableFolder';
+import {getReceiptSourceKind, isInDurableFolder} from '@libs/ReceiptStorage/durableFolder';
 
 import type {SignOutReason} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -22,6 +22,9 @@ type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share' 
 
 /** Which validation step made a new file from the picked one. */
 type ReceiptDerivingStep = 'convert' | 'resize';
+
+/** Which edit in the receipt viewer failed. */
+type ReceiptImageEditStep = 'crop' | 'rotate';
 
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
@@ -51,7 +54,7 @@ type QueuedReceipt = {
 
 /** Inputs for the enqueued milestone, taken when the receipt request reaches the write queue. */
 type ReceiptEnqueuedParams = {
-    receiptTraceId: string | undefined;
+    receipt: QueuedReceipt;
     transactionID: string | undefined;
     command: string;
     persistedQueueLength: number;
@@ -154,7 +157,7 @@ function logReceiptSubmitted({
  * existing network "sent" log is the window where the queue is blocked, which is what we want to see. It records the
  * offline state and queue depth so we can tell a normal offline wait apart from a stuck queue.
  */
-function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
+function logReceiptEnqueued({receipt, transactionID, command, persistedQueueLength}: ReceiptEnqueuedParams) {
     if (transactionID) {
         // Re-insert so this key becomes the newest, then drop the oldest entries past the cap. This keeps the map
         // bounded even when no snapshot ever runs to drain it.
@@ -169,6 +172,8 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
         }
     }
 
+    const {receiptTraceId} = receipt;
+    const sourceKind = getReceiptSourceKind(getQueuedReceiptPath(receipt));
     Log.info(`${RECEIPT_LOG_PREFIX} enqueued`, true, {
         event: 'enqueued',
         receiptTraceId,
@@ -177,7 +182,21 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
         isOffline: String(getIsOffline()),
         persistedQueueLength,
         platform: getPlatform(),
+        sourceKind,
     });
+
+    // Every flow moves its file into the receipts folder before the request is queued (the share flow only at submit),
+    // so a queued receipt still outside it can be cleared by the OS before the upload runs. Flagging it here, rather
+    // than when a draft is set, names the code path that skipped the move without reporting drafts that are moved later.
+    if (sourceKind === 'imageManipulatorCache' || sourceKind === 'otherTemp') {
+        Log.alert(`${RECEIPT_LOG_PREFIX} nonDurableSource`, {
+            event: 'nonDurableSource',
+            receiptTraceId,
+            transactionID,
+            command,
+            sourceKind,
+        });
+    }
 }
 
 /**
@@ -213,6 +232,7 @@ function logReceiptDropped({
         source,
         localUri,
         fileName,
+        sourceKind: getReceiptSourceKind(source),
         statErrorCode: statError?.code,
         statError: statError?.message,
         receiptsFolderExists: String(receiptsFolder.exists),
@@ -260,6 +280,18 @@ function logReceiptAdoptFailed({error, captureSource, step}: {error: unknown; ca
         captureSource,
         step,
         error: error instanceof Error ? error.message : String(error),
+    });
+}
+
+/**
+ * A crop or rotate in the receipt viewer failed, so the user's edit was not saved. Only the error name is kept: the
+ * native message can carry the file path.
+ */
+function logReceiptImageEditFailed({step, error}: {step: ReceiptImageEditStep; error?: unknown}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} cropFailed`, {
+        event: 'cropFailed',
+        step,
+        errorName: error instanceof Error ? error.name : undefined,
     });
 }
 
@@ -405,10 +437,11 @@ export {
     logReceiptGaveUp,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
+    logReceiptImageEditFailed,
     logCameraCaptureFailed,
     logCameraRuntimeError,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,
 };
-export type {ReceiptCaptureSource, ReceiptDerivingStep};
+export type {ReceiptCaptureSource, ReceiptDerivingStep, ReceiptImageEditStep, QueuedReceipt};
