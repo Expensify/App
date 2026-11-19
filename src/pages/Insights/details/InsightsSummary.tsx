@@ -120,7 +120,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
             case CONST.SEARCH.GROUP_BY.DAY:
                 return format(start, 'MMM d', {locale: dateFnsLocale});
             case CONST.SEARCH.GROUP_BY.WEEK:
-                return translate('insightsPage.summary.weekOf', format(start, 'MMM d', {locale: dateFnsLocale}));
+                return translate('search.weekOf', {date: format(start, 'MMM d', {locale: dateFnsLocale})});
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return format(start, 'LLLL', {locale: dateFnsLocale});
             case CONST.SEARCH.GROUP_BY.QUARTER:
@@ -176,7 +176,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
         if (comparison.type === 'new') {
             return (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap, styles.gap2]}>
-                    <Text>{translate('insightsPage.summary.new')}</Text>
+                    <Text>{translate('common.new')}</Text>
                     <Text variant="label">{translate('insightsPage.summary.noSpendBefore')}</Text>
                 </View>
             );
@@ -219,7 +219,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
             <>
                 <View style={[styles.flexRow, styles.gap5, styles.p4, styles.borderBottom]}>
                     <SummaryTile
-                        label={isSpendOverTime ? translate('insightsPage.summary.spend') : translate('insightsPage.summary.periodSpend', getPeriodName())}
+                        label={isSpendOverTime ? translate('common.spend') : translate('insightsPage.summary.periodSpend', getPeriodName())}
                         value={convertToDisplayString(summary.total, currency)}
                     />
                     <SummaryTile
@@ -229,7 +229,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                 </View>
                 <View style={[styles.flexRow, styles.gap5, styles.p4]}>
                     <SummaryTile
-                        label={translate('insightsPage.summary.expenses')}
+                        label={translate('common.expenses')}
                         value={formatNumber(preferredLocale, summary.count)}
                     />
                     <SummaryTile
@@ -248,7 +248,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                     variant="label"
                     style={styles.textSupporting}
                 >
-                    {isPeriodInProgress ? translate('insightsPage.summary.periodSoFar', periodTitle) : periodTitle}
+                    {isPeriodInProgress ? translate('search.periodSoFar', {period: periodTitle}) : periodTitle}
                 </Text>
             </View>
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
@@ -264,7 +264,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                             variant="label"
                             style={styles.textSupporting}
                         >
-                            {translate('insightsPage.summary.average')}
+                            {translate('insightsPage.compare.average')}
                         </Text>
                         {renderAverageRow()}
                     </View>
