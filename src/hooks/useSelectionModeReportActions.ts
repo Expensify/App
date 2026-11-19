@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
@@ -36,6 +37,7 @@ import useOnyx from './useOnyx';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
+import useStrictPolicyRules from './useStrictPolicyRules';
 
 type UseSelectionModeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -58,6 +60,7 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -108,7 +111,7 @@ function useSelectionModeReportActions({
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
-    const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void) => {
+    const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void, paymentMethod?: PaymentMethod) => {
         // Wait one frame so the current touch animation finishes before the modal opens
         requestAnimationFrame(() => {
             showHoldMenu({
@@ -116,6 +119,7 @@ function useSelectionModeReportActions({
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 ...getHoldMenuAmounts(report, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: () => {
@@ -180,6 +184,8 @@ function useSelectionModeReportActions({
             return [];
         }
         return getSecondaryReportActions({
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             submitterLogin,
@@ -233,7 +239,7 @@ function useSelectionModeReportActions({
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType, paymentType, methodID}) => openHoldMenu(requestType, paymentType, methodID),
+        onHoldMenuOpen: ({requestType, paymentType, paymentMethod, methodID}) => openHoldMenu(requestType, paymentType, methodID, undefined, paymentMethod),
         onPaymentComplete: () => {
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();

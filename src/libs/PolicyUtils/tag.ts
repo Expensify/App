@@ -2,7 +2,7 @@
  * Helpers for a policy's tags: tag-list lookup, parent-tag matching for dependent tags, tag names, and GL codes.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
-import {getTagArrayFromName} from '@libs/TransactionUtils';
+import getTagArrayFromName from '@libs/TransactionUtils/getTagArrayFromName';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyTagLists, PolicyTags} from '@src/types/onyx';
