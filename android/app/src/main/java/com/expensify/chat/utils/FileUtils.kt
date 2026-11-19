@@ -9,7 +9,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 
 object FileUtils {
     private const val tag = "FileUtils"
@@ -58,9 +57,8 @@ object FileUtils {
     fun saveFileFromProviderUri(fileUri: Uri, destinationFile: File?, context: Context) {
         val inputStream: InputStream = context.contentResolver.openInputStream(fileUri)
             ?: throw IOException("Couldn't open the shared file")
-        val outputStream: OutputStream = FileOutputStream(destinationFile)
         inputStream.use { input ->
-            outputStream.use { output ->
+            FileOutputStream(destinationFile).use { output ->
                 input.copyTo(output)
             }
         }
