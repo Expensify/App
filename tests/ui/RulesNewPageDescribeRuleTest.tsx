@@ -32,8 +32,10 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
-const mockScrollTo = jest.fn();
 const mockScrollToEnd = jest.fn();
+const mockScrollWithKeyboard = jest.fn();
+
+jest.mock('@hooks/useKeyboardDrivenScroll', () => () => mockScrollWithKeyboard);
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -132,9 +134,9 @@ jest.mock('@components/Form/FormProvider', () => {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
-        ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
+        ref: React.Ref<{scrollToEnd: () => void}>;
     }) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
+        ReactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
             ReactModule.Fragment,
             null,
@@ -267,8 +269,8 @@ describe('New rule describe section', () => {
         // When the admin taps the describe box, which opens the keyboard
         fireEvent(input, 'focus');
 
-        // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
-        expect(mockScrollTo).toHaveBeenCalledWith(420);
+        // Then the box top goes to the keyboard-driven scroll, because iOS and Android do not scroll it above the keyboard
+        expect(mockScrollWithKeyboard).toHaveBeenCalledWith(420);
     });
 
     it('hides the describe section when New rule opens for a category', async () => {

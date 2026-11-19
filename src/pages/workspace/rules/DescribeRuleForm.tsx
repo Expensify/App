@@ -7,6 +7,8 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import ImpossibleRuleNotice from './ImpossibleRuleNotice';
 import useSuggestionButtonRow from './useSuggestionButtonRow';
@@ -140,6 +143,8 @@ function DescribeRuleForm({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useAnimatedRef<KeyboardScrollable>();
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
@@ -283,7 +288,7 @@ function DescribeRuleForm({
 
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
-    const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+    const scrollToInput = () => scrollWithKeyboard(inputTopOffsetRef.current);
 
     const describeSuggestedRule = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
@@ -296,6 +301,7 @@ function DescribeRuleForm({
     return (
         <FormProvider
             ref={formRef}
+            scrollViewRef={scrollViewRef}
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}
