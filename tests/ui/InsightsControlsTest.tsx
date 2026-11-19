@@ -233,6 +233,7 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -313,6 +314,7 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.QUARTER}
                 defaultGroupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -354,6 +356,7 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.WEEK}
                 defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions(date)}
                 onChange={jest.fn()}
             />,
@@ -376,6 +379,7 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.DAY}
                 defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions(date)}
                 onChange={onChange}
             />,
@@ -397,6 +401,7 @@ describe('Insights controls', () => {
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -412,12 +417,33 @@ describe('Insights controls', () => {
         expect(onChange).toHaveBeenCalledWith({groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
     });
 
+    it('hides running total for a chart that cannot plot it', async () => {
+        // Given a headline chart that isn't a line chart, like the stacked Workflow efficiency bars, with running total saved as the grouping
+        renderWithProviders(
+            <InsightsGroupByDropdown
+                groupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption={false}
+                options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // When the user opens the control, whose pill reads the month the chart is plotted by instead of Running total
+        await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
+
+        // Then Running total isn't offered, since picking it wouldn't change the chart
+        expect(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/)).toBeOnTheScreen();
+        expect(screen.queryByText(/^(Running total|insightsPage\.runningTotal)$/)).toBeNull();
+    });
+
     it('labels the pill Running total when it is the selection', async () => {
         // Given the headline chart with running total as the grouping
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
                 defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                shouldShowRunningTotalOption
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={jest.fn()}
             />,

@@ -63,6 +63,9 @@ const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'insightsPage.compare.allMerchantAverage',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'insightsPage.compare.allCategoryAverage',
     [CONST.SEARCH.GROUP_BY.VIOLATION]: 'insightsPage.compare.allViolationAverage',
+    [CONST.SEARCH.GROUP_BY.APPROVER]: 'insightsPage.compare.allApproverAverage',
+    [CONST.SEARCH.GROUP_BY.PAID_BY]: 'insightsPage.compare.allPayerAverage',
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'insightsPage.compare.allStageAverage',
 };
 
 /** Returns the label naming the average a chart grouped by `groupBy` is compared against */

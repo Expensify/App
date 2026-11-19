@@ -9,6 +9,7 @@ import VictoryTheme, {
     MAX_X_AXIS_LABEL_WIDTH,
     SIN_45,
     WRAPPED_LABEL_ELLIPSIS,
+    X_AXIS_LABEL_MIN_GAP,
 } from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
@@ -562,6 +563,38 @@ function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepPa
     return candidates.find(fits) ?? Math.max(1, pointXs.length);
 }
 
+type SteppedLabelLayoutParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    lineHeight: number;
+
+    ellipsisWidth: number;
+};
+
+/**
+ * Label layout for a time axis whose labels stay horizontal and untruncated, labeling only every Nth point so they don't overlap.
+ * It has the same shape as `useChartLabelLayout`'s result, so a chart can use either one.
+ */
+function getSteppedLabelLayout({labelWidths, pointXs, steps, lineHeight, ellipsisWidth}: SteppedLabelLayoutParams) {
+    return {
+        labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+        labelSkipInterval: getAxisLabelStep({labelWidths, pointXs, steps, minGap: X_AXIS_LABEL_MIN_GAP}),
+        truncatedLabelWidths: labelWidths,
+        xAxisLabelHeight: lineHeight,
+        regularLabelMaxWidth: Infinity,
+        firstLabelMaxWidth: Infinity,
+        lastLabelMaxWidth: Infinity,
+        ellipsisWidth,
+    };
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -615,4 +648,5 @@ export {
     getBarLayout,
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,
+    getSteppedLabelLayout,
 };

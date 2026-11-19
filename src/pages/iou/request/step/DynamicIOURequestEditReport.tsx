@@ -12,6 +12,7 @@ import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTransactionsByID from '@hooks/useTransactionsByID';
@@ -96,6 +97,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const selectReport = async (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -136,6 +138,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -180,6 +183,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
