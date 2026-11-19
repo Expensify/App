@@ -2999,8 +2999,12 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return originalMessage?.debitBankAccountLast4
                 ? translate('report.actions.type.reimbursementRefunded', {bankAccountLastFour: originalMessage.debitBankAccountLast4})
                 : translate('report.actions.type.reimbursementRefundedWithoutBankAccount');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED:
-            return translate('report.actions.type.reimbursementReleased');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED: {
+            const formattedExpectedDate = originalMessage?.expectedDate ? formatReimbursementDate(originalMessage.expectedDate) : '';
+            return formattedExpectedDate
+                ? translate('report.actions.type.reimbursementReleased', {expectedDate: formattedExpectedDate})
+                : translate('report.actions.type.reimbursementReleasedWithoutDate');
+        }
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
