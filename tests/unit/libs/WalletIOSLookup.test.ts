@@ -89,6 +89,18 @@ describe('isCardInWallet on iOS', () => {
         expect(mockLogInfo).toHaveBeenCalledWith('Card status: active (lookup: suffix fallback, passes: 1 local 0 remote, last4 pass: yes, id matches: yes)');
     });
 
+    it('does not treat a deactivated pass found by last digits as in Wallet', async () => {
+        // Given the identifier lookup misses and the pass found by last digits is deactivated.
+        mockByIdentifier.mockResolvedValue('not found');
+        mockList.mockResolvedValue([createPass({lastDigits: LAST_FOUR, primaryAccountIdentifier: PASS_IDENTIFIER, activationState: 'deactivated'})]);
+
+        // When checking whether the card is in Wallet.
+        const result = await isCardInWallet(card);
+
+        // Then the card can be added again.
+        expect(result).toBe(false);
+    });
+
     it('reports the card as missing when no listed pass matches', async () => {
         // Given the identifier lookup misses and the listed passes belong to other cards.
         mockByIdentifier.mockResolvedValue('not found');
