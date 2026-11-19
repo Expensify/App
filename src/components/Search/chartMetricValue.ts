@@ -1,10 +1,22 @@
 import CONST from '@src/CONST';
+import type {SearchWorkflowStageDurations} from '@src/types/onyx/SearchResults';
 
 import type {GroupedItem, SearchChartMetric} from './types';
 
 /** Returns how long a group's reports spent in the charted workflow stage, in seconds, or undefined when the group doesn't report one */
 function getAverageDuration(item: GroupedItem): number | undefined {
     return 'averageDuration' in item ? (item.averageDuration ?? undefined) : undefined;
+}
+
+const STAGE_DURATION_GETTERS: Record<keyof SearchWorkflowStageDurations, (item: GroupedItem) => number | null | undefined> = {
+    submitAverageTime: (item) => ('submitAverageTime' in item ? item.submitAverageTime : undefined),
+    approveAverageTime: (item) => ('approveAverageTime' in item ? item.approveAverageTime : undefined),
+    reimburseAverageTime: (item) => ('reimburseAverageTime' in item ? item.reimburseAverageTime : undefined),
+};
+
+/** Returns how long a time bucket's reports spent in one workflow stage, in seconds, or null or undefined when none of them completed it */
+function getStageDuration(item: GroupedItem, durationField: keyof SearchWorkflowStageDurations): number | null | undefined {
+    return STAGE_DURATION_GETTERS[durationField](item);
 }
 
 /**
@@ -16,4 +28,4 @@ function hasChartedValue(item: GroupedItem, metric: SearchChartMetric | undefine
     return metric !== CONST.SEARCH.CHART_METRIC.DURATION || (!!item.count && getAverageDuration(item) !== undefined);
 }
 
-export {getAverageDuration, hasChartedValue};
+export {getAverageDuration, getStageDuration, hasChartedValue};
