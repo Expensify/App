@@ -3671,7 +3671,7 @@ ${amount} dla ${merchant} - ${date}`,
         underAmount: ({amount}: {amount: string}) => `poniżej ${amount}`,
         overAmount: ({amount}: {amount: string}) => `powyżej ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `od ${lowerAmount} do ${upperAmount}`,
-        removeFork: 'Usuń to rozgałęzienie',
+        removeFork: 'Usuń rozgałęzienie',
         removeForks: 'Usuń rozgałęzienia',
     },
     workflowsPayerPage: {

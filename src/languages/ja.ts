@@ -3594,7 +3594,7 @@ ${date} の ${merchant} への ${amount}`,
         underAmount: ({amount}: {amount: string}) => `${amount}未満`,
         overAmount: ({amount}: {amount: string}) => `${amount}超`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount}〜${upperAmount}`,
-        removeFork: 'この分岐を削除',
+        removeFork: '分岐を削除',
         removeForks: '分岐を削除',
     },
     workflowsPayerPage: {

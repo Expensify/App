@@ -3650,7 +3650,7 @@ ${amount} für ${merchant} – ${date}`,
         underAmount: ({amount}: {amount: string}) => `unter ${amount}`,
         overAmount: ({amount}: {amount: string}) => `über ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `zwischen ${lowerAmount} und ${upperAmount}`,
-        removeFork: 'Diese Verzweigung entfernen',
+        removeFork: 'Verzweigung entfernen',
         removeForks: 'Verzweigungen entfernen',
     },
     workflowsPayerPage: {

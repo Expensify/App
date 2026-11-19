@@ -3636,7 +3636,7 @@ ${amount} voor ${merchant} - ${date}`,
         underAmount: ({amount}: {amount: string}) => `onder ${amount}`,
         overAmount: ({amount}: {amount: string}) => `boven ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tussen ${lowerAmount} en ${upperAmount}`,
-        removeFork: 'Deze vertakking verwijderen',
+        removeFork: 'Vertakking verwijderen',
         removeForks: 'Vertakkingen verwijderen',
     },
     workflowsPayerPage: {

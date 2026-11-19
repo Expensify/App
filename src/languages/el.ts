@@ -3700,7 +3700,7 @@ ${amount} για ${merchant} - ${date}`,
         underAmount: ({amount}: {amount: string}) => `κάτω από ${amount}`,
         overAmount: ({amount}: {amount: string}) => `πάνω από ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `μεταξύ ${lowerAmount} και ${upperAmount}`,
-        removeFork: 'Κατάργηση αυτής της διακλάδωσης',
+        removeFork: 'Κατάργηση διακλάδωσης',
         removeForks: 'Κατάργηση διακλαδώσεων',
     },
     workflowsPayerPage: {

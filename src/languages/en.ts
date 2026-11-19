@@ -3802,7 +3802,7 @@ const translations = {
         underAmount: ({amount}: {amount: string}) => `under ${amount}`,
         overAmount: ({amount}: {amount: string}) => `over ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `between ${lowerAmount} and ${upperAmount}`,
-        removeFork: 'Remove this fork',
+        removeFork: 'Remove fork',
         removeForks: 'Remove forks',
     },
     workflowsPayerPage: {

@@ -3497,7 +3497,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         underAmount: ({amount}: {amount: string}) => `低于 ${amount} 的`,
         overAmount: ({amount}: {amount: string}) => `超过 ${amount} 的`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `介于 ${lowerAmount} 和 ${upperAmount} 之间的`,
-        removeFork: '移除此分支',
+        removeFork: '移除分支',
         removeForks: '移除分支',
     },
     workflowsPayerPage: {

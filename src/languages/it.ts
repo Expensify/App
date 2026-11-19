@@ -3632,7 +3632,7 @@ ${amount} per ${merchant} - ${date}`,
         underAmount: ({amount}: {amount: string}) => `sotto ${amount}`,
         overAmount: ({amount}: {amount: string}) => `oltre ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tra ${lowerAmount} e ${upperAmount}`,
-        removeFork: 'Rimuovi questa biforcazione',
+        removeFork: 'Rimuovi biforcazione',
         removeForks: 'Rimuovi biforcazioni',
     },
     workflowsPayerPage: {
