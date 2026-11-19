@@ -12,6 +12,7 @@ import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useS
 import useSignedInLinkRoute from '@components/Navigation/NavigationTabBar/useSignedInLinkRoute';
 import useStoredSearchTabRoute from '@components/Navigation/NavigationTabBar/useStoredSearchTabRoute';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
+import PeekSurfaceContext from '@components/Navigation/PeekSurfaceContext';
 import {
     COLLAPSE_SURFACE,
     getCollapseFadeStyle,
@@ -57,6 +58,7 @@ import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
+import FlatNavSpendSubnav from './FlatNavSpendSubnav';
 
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -96,6 +98,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
     const barContainerRef = useRef<ComponentRef<typeof View>>(null);
+    // Menus inside the bar, such as a saved search's, open partly outside it. While one is open the pointer leaving the bar must not end the peek.
+    const openMenuCountRef = useRef(0);
+    const isMenuOpen = () => isCreateMenuVisible || openMenuCountRef.current > 0;
 
     // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
     const hasKeyboardFocusInside = () => {
@@ -116,21 +121,21 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const endPeekIfPointerAndFocusLeft = () => {
         const element = barContainerRef.current;
         const isHovered = isHTMLElement(element) && element.matches(':hover');
-        if (isCreateMenuVisible || isHovered || hasKeyboardFocusInside()) {
+        if (isMenuOpen() || isHovered || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekIfIdle = () => {
-        if (isCreateMenuVisible || hasKeyboardFocusInside()) {
+        if (isMenuOpen() || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekUnlessStaying = (event: NativeSyntheticEvent<TargetedEvent>) => {
-        if (isCreateMenuVisible) {
+        if (isMenuOpen()) {
             return;
         }
         const currentTarget = event.currentTarget;
@@ -147,10 +152,20 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         endPeek();
     };
 
+    const holdPeek = () => {
+        openMenuCountRef.current += 1;
+    };
+
+    // A menu closes once its modal is gone, which is when the pointer can be read against the bar again.
+    const releasePeek = () => {
+        openMenuCountRef.current = Math.max(0, openMenuCountRef.current - 1);
+        endPeekIfPointerAndFocusLeft();
+    };
+
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
     return (
-        <>
+        <PeekSurfaceContext.Provider value={{holdPeek, releasePeek}}>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
             {/* The layout box reserves the room the content is offset by. Peeking only widens the bar drawn over it. */}
             <Animated.View style={[styles.h100, getFlatNavigationBarLayoutWidthStyle(isCollapsed)]}>
@@ -240,6 +255,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 onHoverIn={() => setIsSearchTabHovered(true)}
                                                 onHoverOut={() => setIsSearchTabHovered(false)}
                                             />
+                                            {selectedTab === NAVIGATION_TABS.SEARCH && <FlatNavSpendSubnav isVisuallyCollapsed={isVisuallyCollapsed} />}
                                             <FlatNavItem
                                                 isCollapsed={isVisuallyCollapsed}
                                                 label={translate('common.insights')}
@@ -295,7 +311,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     )}
                 </Hoverable>
             </Animated.View>
-        </>
+        </PeekSurfaceContext.Provider>
     );
 }
 

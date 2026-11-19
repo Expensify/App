@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import type {PeekSurfaceContextValue} from '@components/Navigation/PeekSurfaceContext';
 import {FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH} from '@components/Navigation/SearchSidebarCollapseStore';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -62,6 +63,18 @@ let mockCreateButtonProps: MockCreateButtonProps | undefined;
 jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateButton', () => (props: MockCreateButtonProps) => {
     mockCreateButtonProps = props;
     return null;
+});
+let mockPeekHold: PeekSurfaceContextValue | undefined;
+// Reads the peek hold from the same context a saved search's menu does, and still draws the real subnav.
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSpendSubnav', () => (props: Record<string, unknown>) => {
+    // The factory is hoisted above the imports, so it loads what it needs itself.
+    /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+    const {useContext, createElement} = require('react');
+    const PeekSurfaceContext = require('@components/Navigation/PeekSurfaceContext').default;
+    const RealSpendSubnav = jest.requireActual('@components/Navigation/FlatNavigationBar/FlatNavSpendSubnav').default;
+    mockPeekHold = useContext(PeekSurfaceContext);
+    return createElement(RealSpendSubnav, props);
+    /* eslint-enable */
 });
 let mockIsElementHovered = false;
 let mockIsFocusMovingInside = false;
@@ -137,6 +150,7 @@ describe('FlatNavigationBar', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockCreateButtonProps = undefined;
+        mockPeekHold = undefined;
         mockIsElementHovered = false;
         mockIsFocusMovingInside = false;
         mockHasKeyboardFocusInside = false;
@@ -677,9 +691,193 @@ describe('FlatNavigationBar', () => {
         });
     });
 
+    describe('menus inside the bar', () => {
+        function getBarWidth() {
+            const style: unknown = screen.getByTestId('FlatNavigationBar').props.style;
+            return isStyleProp(style) ? StyleSheet.flatten(style)?.width : undefined;
+        }
+
+        async function renderPeekingBarOnSpend() {
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        }
+
+        it('keeps the bar peeking when the pointer leaves it while a menu holds the peek', async () => {
+            // Given a peeking bar with a saved search's menu open, which opens partly outside the bar
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekHold?.holdPeek();
+            });
+
+            // When the pointer leaves the bar, for example by moving onto the menu or just past its edge
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so the menu is not collapsed out from under the pointer
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('collapses the bar once the menu is gone if the pointer is outside, as after Share closes the menu by itself', async () => {
+            // Given a peeking bar with a menu open and the pointer already off the bar
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekHold?.holdPeek();
+            });
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+
+            // When the menu's modal is gone without the pointer moving
+            act(() => {
+                mockPeekHold?.releasePeek();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses without waiting for the pointer to enter and leave it again
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking once the menu is gone if the pointer is still over the bar', async () => {
+            // Given a peeking bar with a menu open
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekHold?.holdPeek();
+            });
+
+            // When the menu's modal is gone with the pointer still over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockPeekHold?.releasePeek();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, because the pointer is genuinely inside it
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+
+        it('keeps the bar peeking until every open menu is gone', async () => {
+            // Given a peeking bar with two menus holding the peek
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekHold?.holdPeek();
+                mockPeekHold?.holdPeek();
+            });
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+
+            // When one of them is gone
+            act(() => {
+                mockPeekHold?.releasePeek();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the other still holds the peek
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the other is gone too
+            act(() => {
+                mockPeekHold?.releasePeek();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar collapses
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking when focus moves from the bar into an open menu', async () => {
+            // Given a peeking bar with a menu open
+            await renderPeekingBarOnSpend();
+            act(() => {
+                mockPeekHold?.holdPeek();
+            });
+
+            // When focus leaves the bar's items for the menu, which sits outside the bar
+            fireEvent(screen.getByTestId('FlatNavPeekBody'), 'blur', {nativeEvent: {relatedTarget: null}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, since the focus went to the menu it opened
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+        });
+    });
+
+    describe('Spend subnav', () => {
+        function getSubnav() {
+            return screen.getByTestId('FlatNavSubnav', {
+                includeHiddenElements: true,
+            });
+        }
+
+        it.each([NAVIGATION_TABS.HOME, NAVIGATION_TABS.INBOX, NAVIGATION_TABS.INSIGHTS])('has no subnav on the %s tab', async (selectedTab) => {
+            // Given the bar on a tab other than Spend
+            // When the bar renders
+            renderBar(selectedTab);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Spend searches are not there, so other tabs stay short and none of their data is read
+            expect(screen.queryByTestId('FlatNavSubnav', {includeHiddenElements: true})).toBeNull();
+        });
+
+        it('shows the subnav on the Spend tab', async () => {
+            // Given the bar on the Spend tab
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Spend searches are listed under the Spend row and can be reached
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(false);
+            expect(getSubnav().props.pointerEvents).toBe('auto');
+        });
+
+        it('hides the subnav while the bar is a rail', async () => {
+            // Given a collapsed bar on the Spend tab
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the rail has no room for the subnav, so it is closed
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(true);
+        });
+
+        it('shows the subnav while a collapsed bar peeks and hides it again after the peek', async () => {
+            // Given a collapsed bar on the Spend tab
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.SEARCH);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the pointer moves onto the rows
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+
+            // Then the bar widens over the page and the subnav shows with the labels, so every search is one click away
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(false);
+
+            // When the pointer leaves the bar
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+
+            // Then the subnav closes with the rest of the labels
+            expect(getSubnav().props.accessibilityElementsHidden).toBe(true);
+        });
+    });
+
     it('sends an anonymous user to sign in instead of Account', async () => {
         // Given an anonymous session
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+        await Onyx.set(ONYXKEYS.SESSION, {
+            authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+        });
         renderBar(NAVIGATION_TABS.INBOX);
         await waitForBatchedUpdatesWithAct();
 

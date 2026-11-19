@@ -7,25 +7,19 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import Tooltip from '@components/Tooltip';
 
-import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
-
-import type {ParamListBase} from '@react-navigation/native';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -41,49 +35,24 @@ import {
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
+import useSearchLoadingBarVisibility from './useSearchLoadingBarVisibility';
 
-type SearchSidebarProps = {
-    state: PlatformStackNavigationState<ParamListBase>;
-};
-
-function SearchSidebar({state}: SearchSidebarProps) {
+/** The Spend column, which users outside the flat nav beta see beside wide Search. */
+function SpendColumn() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
-    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
+    const shouldShowLoadingBar = useSearchLoadingBarVisibility();
     const sidebarRef = useRef<HTMLElement>(null);
     const openMenuCountRef = useRef(0);
 
-    const route = state.routes.at(-1);
-    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
-    const {setLastSearchType} = useSearchResultsActions();
-
-    const searchType = currentSearchResults?.search?.type;
-    const isSearchLoading = currentSearchResults?.search?.isLoading;
-
-    useEffect(() => {
-        if (!searchType) {
-            return;
-        }
-
-        setLastSearchType(searchType);
-    }, [lastSearchType, setLastSearchType, searchType]);
-
-    useEffect(() => {
-        if (shouldUseNarrowLayout) {
-            endPeek();
-        }
-
-        return endPeek;
-    }, [endPeek, shouldUseNarrowLayout]);
+    // The hover-out event never fires if the column unmounts while hovered, so end the peek here.
+    useEffect(() => endPeek, [endPeek]);
 
     // A saved search's menu opens partly outside the sidebar. Ending the peek while it is open would collapse the list and unmount the menu.
     const endPeekUnlessMenuOpen = () => {
@@ -125,13 +94,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
         document.addEventListener('focusin', endPeekIfFocusLeft);
         return () => document.removeEventListener('focusin', endPeekIfFocusLeft);
     }, [endPeek, isPeeking]);
-
-    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
-
-    if (shouldUseNarrowLayout) {
-        return null;
-    }
-
     const toggleButtonLabel = translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse');
     const toggleButton = (
         <Tooltip text={toggleButtonLabel}>
@@ -163,14 +125,13 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                         <View style={styles.flex1}>
                             <TopBar
-                                shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                                shouldShowLoadingBar={shouldShowLoadingBar}
                                 breadcrumbLabel={translate('common.spend')}
                                 breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
                                 shouldDisplaySearch={false}
                                 shouldDisplayHelpButton={false}
                             >
-                                {/* The flat navigation bar has its own toggle for the one flag both share. */}
-                                {!shouldUseFlatNavigationBar && toggleButton}
+                                {toggleButton}
                             </TopBar>
                             <Hoverable onHoverIn={startPeek}>
                                 <View style={styles.flex1}>
@@ -183,6 +144,32 @@ function SearchSidebar({state}: SearchSidebarProps) {
             </Animated.View>
         </PeekSurfaceContext.Provider>
     );
+}
+
+/**
+ * Keeps the last search type up to date. Draws the Spend column only outside the flat nav beta, since the bar and the Search page replace it.
+ */
+function SearchSidebar() {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const {lastSearchType, currentSearchResults} = useSearchResultsContext();
+    const {setLastSearchType} = useSearchResultsActions();
+
+    const searchType = currentSearchResults?.search?.type;
+
+    useEffect(() => {
+        if (!searchType) {
+            return;
+        }
+
+        setLastSearchType(searchType);
+    }, [lastSearchType, setLastSearchType, searchType]);
+
+    if (shouldUseNarrowLayout || shouldUseFlatNavigationBar) {
+        return null;
+    }
+
+    return <SpendColumn />;
 }
 
 export default SearchSidebar;

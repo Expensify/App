@@ -4,11 +4,7 @@ import type {PeekSurfaceContextValue} from '@components/Navigation/PeekSurfaceCo
 import SearchSidebar from '@components/Navigation/SearchSidebar';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type {ParamListBase} from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -40,8 +36,7 @@ jest.mock(
 );
 jest.mock('@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
-jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
-jest.mock('@hooks/useInFlightRequests', () => ({useLoadingBarVisibility: () => false}));
+jest.mock('@components/Navigation/useSearchLoadingBarVisibility', () => () => false);
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({lastSearchType: undefined, currentSearchResults: undefined}),
     useSearchResultsActions: () => ({setLastSearchType: () => {}}),
@@ -87,10 +82,8 @@ jest.mock('@components/Hoverable', () => {
     };
 });
 
-const NAVIGATION_STATE: PlatformStackNavigationState<ParamListBase> = {key: 'Search', index: 0, routeNames: [], routes: [], type: 'stack', stale: false, preloadedRoutes: []};
-
 async function renderPeekingSidebar() {
-    render(<SearchSidebar state={NAVIGATION_STATE} />);
+    render(<SearchSidebar />);
     const collapse = renderHook(() => useSearchSidebarCollapse());
     await waitForBatchedUpdatesWithAct();
     act(() => {
