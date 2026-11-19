@@ -13385,7 +13385,9 @@ describe('actions/Report', () => {
 
             // The MERGED_REPORTS action is no longer pending once the merge succeeds
             const destinationActionsAfterSuccess = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
-            expect(destinationActionsAfterSuccess?.[mergedReportsAction?.reportActionID ?? '']?.pendingAction).toBeFalsy();
+            const mergedReportsActionAfterSuccess = Object.values(destinationActionsAfterSuccess ?? {}).find((action) => action?.reportActionID === mergedReportsAction?.reportActionID);
+            expect(mergedReportsActionAfterSuccess).toBeDefined();
+            expect(mergedReportsActionAfterSuccess?.pendingAction).toBeFalsy();
 
             // Verify success state in Onyx
             // Source reports deleted (null)
@@ -13441,7 +13443,7 @@ describe('actions/Report', () => {
 
             // A failed merge removes its optimistic MERGED_REPORTS action, because no merge happened
             const destinationActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${DESTINATION_REPORT_ID}`);
-            expect(destinationActionsAfterFailure?.[mergedReportsActionID ?? '']).toBeFalsy();
+            expect(Object.values(destinationActionsAfterFailure ?? {}).some((action) => action?.reportActionID === mergedReportsActionID)).toBe(false);
 
             // Verify failure state in Onyx
             // Transactions rolled back to source reports
