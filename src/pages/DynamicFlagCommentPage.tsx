@@ -162,7 +162,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
                             size={CONST.ICON_SIZE.MEDIUM}
                         />
                         <Text
-                            style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                            style={[styles.furtherDetailsText, styles.pl2, styles.pt1]}
                             numberOfLines={2}
                         >
                             {item.furtherDetails}
