@@ -49,6 +49,7 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
             }
             const isUnderADay = chip.value < CONST.DATE.SECONDS_PER_DAY;
             const duration = chip.value / (isUnderADay ? SECONDS_PER_HOUR : CONST.DATE.SECONDS_PER_DAY);
+            // Use "<0.1 hours" so rounding doesn't hide small but real changes.
             const isBelowPrecision = isUnderADay && duration > 0 && duration < MINIMUM_HOURS;
             const formattedDuration = numberFormat(isBelowPrecision ? MINIMUM_HOURS : duration, {
                 style: 'unit',
