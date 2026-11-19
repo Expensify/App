@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -38,6 +39,7 @@ function SessionExpiredPage() {
                     <Text style={styles.textAlignCenter}>
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.SESSION_EXPIRED_SIGN_IN_LINK}
                             onPress={() => {
                                 clearSignInData();
                                 Navigation.goBack(ROUTES.HOME);

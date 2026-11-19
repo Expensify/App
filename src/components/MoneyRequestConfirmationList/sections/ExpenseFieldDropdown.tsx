@@ -84,8 +84,11 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     /** Whether the list opens in the container. A field that can't answer in place falls back to `onPress`. */
     shouldOpenInDropdown: boolean;
 
-    /** Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out */
-    onPress: () => void;
+    /**
+     * Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out. A field without one has no
+     * page to fall back to, so its list opens in place even where the room is short.
+     */
+    onPress?: () => void;
 
     /** Height of a header the list shows above its options, e.g. an add button, added to the container's limits so it still fits as many options */
     listHeaderHeight?: number;
@@ -141,7 +144,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
             const shouldOpenAbove = spaceBelow < maxContainerHeight && spaceAbove > spaceBelow;
             const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
 
-            if (availableHeight < minUsableHeight) {
+            if (availableHeight < minUsableHeight && onPress) {
                 onPress();
                 return;
             }
@@ -160,7 +163,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {
-            onPress();
+            onPress?.();
             return;
         }
         if (isVisible) {
@@ -173,7 +176,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
     useImperativeHandle(ref, () => ({
         open: () => {
             if (!shouldOpenInDropdown) {
-                onPress();
+                onPress?.();
                 return;
             }
             if (!isVisible) {

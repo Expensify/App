@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
@@ -42,33 +44,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
-    personalPolicyOutputCurrency?: string;
-    selfDMReportActions?: OnyxEntry<ReportActions>;
-    isTrackIntentUser: boolean | undefined;
-};
-
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: getCurrencyDecimalsLocal,
-        getCurrencySymbol: getCurrencySymbolLocal,
-        rules: undefined,
-        ...rest,
-    });
-}
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -141,6 +116,45 @@ const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const RORY_CASH_CARD_ID = 777;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
+    personalPolicyOutputCurrency?: string;
+    selfDMReportActions?: OnyxEntry<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
+};
+
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+        ...rest,
+    });
+}
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport({reportID});
@@ -2098,6 +2112,7 @@ describe('actions/Transaction', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             });
             await waitForBatchedUpdates();
         };

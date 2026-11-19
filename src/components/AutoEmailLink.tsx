@@ -1,5 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, TextStyle} from 'react-native';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -49,6 +51,7 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
                         key={`email-${index}`}
                         href={`mailto:${email}`}
                         style={styles.emailLink}
+                        sentryLabel={CONST.SENTRY_LABEL.AUTO_EMAIL_LINK.EMAIL}
                     >
                         {email}
                     </TextLink>,

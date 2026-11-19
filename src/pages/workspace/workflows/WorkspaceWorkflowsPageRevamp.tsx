@@ -150,6 +150,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const tabs: Array<TabSelectorBaseItem<WorkflowsTab>> = [
         {
             key: WORKFLOWS_TAB.SUBMISSIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.SUBMISSIONS,
             title: translate('workflowsPage.submissionFrequency'),
             icon: expensifyIcons.Send,
             isDisabled: !canAccessSubmissions,
@@ -157,12 +158,14 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         },
         {
             key: WORKFLOWS_TAB.APPROVALS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.APPROVALS,
             title: translate('workflowsPage.addApprovalsTitle'),
             icon: expensifyIcons.ThumbsUp,
             shouldShowRedDotIndicator: hasBrokenApprovalWorkflow,
         },
         {
             key: WORKFLOWS_TAB.PAYMENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.PAYMENTS,
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             icon: expensifyIcons.MoneyBag,
             isDisabled: !canReadPayments,
@@ -170,6 +173,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         },
         {
             key: WORKFLOWS_TAB.ADVANCED,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.ADVANCED,
             title: translate('workspace.rules.expenseReportRules.title'),
             icon: expensifyIcons.Wrench,
         },
@@ -266,6 +270,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             text: translate('spreadsheet.importWorkflows'),
             onSelected: importWorkflowsAction,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_MENU_IMPORT_SPREADSHEET,
         });
     }
     // Downloading is read-only, so the read-only HR modes keep it. Hiding the workflow drops it too, because the
@@ -276,6 +281,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             text: translate('spreadsheet.downloadWorkflows'),
             onSelected: downloadWorkflowsAction,
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_MENU_DOWNLOAD_CSV,
         });
     }
 

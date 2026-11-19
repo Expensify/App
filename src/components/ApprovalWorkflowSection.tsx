@@ -6,7 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import sortAlphabetically from '@libs/sortAlphabetically';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
@@ -72,32 +72,38 @@ function ApprovalWorkflowSection({
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
-    const approverTitle = (index: number) => {
-        if (isHRAdvancedMode) {
-            const isLast = index === approvalWorkflow.approvers.length - 1;
-            const approver = approvalWorkflow.approvers.at(index);
-            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
-            if (isLast && isConfiguredFinalApprover) {
-                return translate('workflowsPage.finalApprover');
+    const approverTitles = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (isHRAdvancedMode) {
+                const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+                if (isLast && isConfiguredFinalApprover) {
+                    return translate('workflowsPage.finalApprover');
+                }
+                if (count <= 1) {
+                    return translate('workflowsPage.approver');
+                }
+                return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
             }
+
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
-            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
-        }
 
-        if (approvalWorkflow.approvers.length <= 1) {
-            return translate('workflowsPage.approver');
-        }
+            const title =
+                position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+            if (isRecruitingAdvancedMode && position === 0) {
+                return `${title}${fromProviderSuffix}`;
+            }
+            return title;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
-        const title = `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
-        if (isRecruitingAdvancedMode && index === 0) {
-            return `${title}${fromProviderSuffix}`;
-        }
-        return title;
-    };
-
-    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
+    // Sort a copy, since the Approvals list keys each workflow by its first member.
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically([...approvalWorkflow.members], 'displayName', localeCompare);
 
     // Mirror the approver row's pending opacity on the "Expenses from" row so both fade together while
     // the workflow (e.g. a member invited offline) is still pending server confirmation.
@@ -198,7 +204,7 @@ function ApprovalWorkflowSection({
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />
                             <MenuItem
-                                title={approverTitle(index)}
+                                title={approverTitles.at(index)}
                                 style={styles.p0}
                                 titleStyle={styles.textLabelSupportingNormal}
                                 descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
@@ -221,8 +227,6 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
-                                helperTextStyle={styles.workflowApprovalLimitText}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
                             <FormHelpMessage

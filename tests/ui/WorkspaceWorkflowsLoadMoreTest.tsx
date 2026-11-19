@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
-import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ApprovalWorkflowSectionComponent from '@components/ApprovalWorkflowSection';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
@@ -33,6 +33,15 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+const mockRenderApprovalWorkflowSection = jest.fn();
+jest.mock('@components/ApprovalWorkflowSection', () => {
+    const {default: ApprovalWorkflowSection} = jest.requireActual<{default: typeof ApprovalWorkflowSectionComponent}>('@components/ApprovalWorkflowSection');
+    return (props: React.ComponentProps<typeof ApprovalWorkflowSectionComponent>) => {
+        mockRenderApprovalWorkflowSection();
+        return <ApprovalWorkflowSection {...props} />;
+    };
+});
 
 jest.mock('react-native-render-html', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -194,7 +203,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then Everyone is first, the broken workflow is second, and the tab has its own error dot
-        const cards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        const cards = screen.UNSAFE_getAllByType(ApprovalWorkflowSectionComponent);
         expect(cards).toHaveLength(BATCH);
         expect(within(cards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
         expect(within(cards[1]).getByText('Member 9 User')).toBeOnTheScreen();
@@ -253,7 +262,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then hidden errors do not promote workflows into the initial batch
-        const initialCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        const initialCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSectionComponent);
         expect(initialCards).toHaveLength(BATCH);
         expect(initialCards.every((card) => card.props.isDisabled)).toBe(true);
         expect(within(initialCards[0]).getByText(TestHelper.translateLocal('workspace.common.everyone'))).toBeOnTheScreen();
@@ -264,7 +273,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the broken workflow remains in its original position and its error stays hidden
-        const allCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSection);
+        const allCards = screen.UNSAFE_getAllByType(ApprovalWorkflowSectionComponent);
         expect(allCards).toHaveLength(11);
         expect(within(allCards[9]).getByText('Member 9 User')).toBeOnTheScreen();
         expect(screen.queryByText(TestHelper.translateLocal('workflowsPage.approverNotWorkspaceMember'))).not.toBeOnTheScreen();
@@ -295,5 +304,43 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
             expect(countWorkflowCards()).toBe(10);
         });
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
+    });
+
+    it('keeps the initial batch until the search applies', async () => {
+        // Given a workspace with more workflows than the initial batch
+        await setupPolicy(10);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin types in Find workflow and the search hasn't applied yet
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('workflowsPage.findWorkflow')), 'M');
+
+        // Then the list still shows the initial batch instead of every workflow unfiltered
+        expect(countWorkflowCards()).toBe(BATCH);
+    });
+
+    it('does not render the shown workflows again while the admin keeps typing', async () => {
+        // Given the search already shows every workflow matching "Member"
+        await setupPolicy(10);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        const searchInput = screen.getByLabelText(TestHelper.translateLocal('workflowsPage.findWorkflow'));
+        fireEvent.changeText(searchInput, 'Member');
+        await waitFor(() => {
+            expect(countWorkflowCards()).toBe(10);
+        });
+        mockRenderApprovalWorkflowSection.mockClear();
+
+        // When the admin types a key that keeps the same matches and the search applies it
+        fireEvent.changeText(searchInput, 'Member ');
+        await act(async () => {
+            await new Promise((resolve) => {
+                setTimeout(resolve, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME + 100);
+            });
+        });
+
+        // Then none of the shown workflows render again, so each key stays fast in big workspaces
+        expect(countWorkflowCards()).toBe(10);
+        expect(mockRenderApprovalWorkflowSection).not.toHaveBeenCalled();
     });
 });
