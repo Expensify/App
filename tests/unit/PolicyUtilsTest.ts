@@ -3164,7 +3164,7 @@ describe('PolicyUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                     approver: categoryApprover1Email,
                 };
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(categoryApprover1AccountID);
             });
@@ -3178,7 +3178,7 @@ describe('PolicyUtils', () => {
                     owner: '',
                 };
 
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(-1);
             });
@@ -3196,7 +3196,7 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const result = getManagerAccountID(policy, employeeEmail, undefined);
+                const result = getManagerAccountID(policy, employeeEmail, undefined, personalDetailsByLogins);
 
                 expect(result).toBe(adminAccountID);
             });
@@ -3232,7 +3232,7 @@ describe('PolicyUtils', () => {
                     approver: categoryApprover1Email,
                 };
 
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(categoryApprover1AccountID);
             });
@@ -3501,7 +3501,7 @@ describe('PolicyUtils', () => {
             });
 
             it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
-                expect(getManagerAccountID(policy, employeeEmail, rulesCollection)).toBe(adminAccountID);
+                expect(getManagerAccountID(policy, employeeEmail, rulesCollection, personalDetailsByLogins)).toBe(adminAccountID);
             });
 
             it('getForwardsToAccount follows the rules for the next hop', () => {

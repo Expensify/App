@@ -8591,18 +8591,33 @@ function buildOptimisticExpenseReport({
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(
-    reportID: string,
-    accountID: number,
-    login: string | undefined,
-    parentReport: OnyxEntry<Report>,
-    parentReportActionID: string,
-    policy: OnyxEntry<Policy>,
-    timeOfCreation: string,
-    isASAPSubmitBetaEnabled: boolean,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-) {
+type BuildOptimisticEmptyReportParams = {
+    reportID: string;
+    accountID: number;
+    login: string | undefined;
+    parentReport: OnyxEntry<Report>;
+    parentReportActionID: string;
+    policy: OnyxEntry<Policy>;
+    timeOfCreation: string;
+    isASAPSubmitBetaEnabled: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+};
+
+function buildOptimisticEmptyReport({
+    reportID,
+    accountID,
+    login,
+    parentReport,
+    parentReportActionID,
+    policy,
+    timeOfCreation,
+    isASAPSubmitBetaEnabled,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
+}: BuildOptimisticEmptyReportParams) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, true);
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
@@ -8624,7 +8639,7 @@ function buildOptimisticEmptyReport(
         parentReportID: parentReport?.reportID,
         parentReportActionID,
         chatReportID: parentReport?.reportID,
-        managerID: getManagerAccountID(policy, login, rules),
+        managerID: getManagerAccountID(policy, login, rules, personalDetailsByLogins),
     };
 
     // Compute optimistic report name if applicable

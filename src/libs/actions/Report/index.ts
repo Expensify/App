@@ -4847,6 +4847,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
     reportName?: string;
 };
 
@@ -4861,23 +4862,25 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     reportName,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(
+    const optimisticReportData = buildOptimisticEmptyReport({
         reportID,
         accountID,
         login,
         parentReport,
-        reportPreviewReportActionID,
+        parentReportActionID: reportPreviewReportActionID,
         policy,
         timeOfCreation,
         isASAPSubmitBetaEnabled,
         getCurrencyDecimals,
         rules,
-    );
+        personalDetailsByLogins,
+    });
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -5099,20 +5102,35 @@ function buildNewReportOptimisticData({
     };
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
+type CreateNewReportParams = {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+    shouldNotifyNewAction?: boolean;
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    managedCardTransactionID?: string;
+    reportName?: string;
+};
+
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    policy,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
     shouldNotifyNewAction = false,
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
-    const {managedCardTransactionID, reportName} = options;
+    shouldDismissEmptyReportsConfirmation,
+    managedCardTransactionID,
+    reportName,
+}: CreateNewReportParams) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -5123,11 +5141,12 @@ function createNewReport(
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
-        hasViolationsParam,
+        hasViolationsParam: hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         reportName,
     });
 

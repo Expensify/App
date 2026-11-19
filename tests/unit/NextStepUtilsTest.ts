@@ -35,6 +35,11 @@ describe('libs/NextStepUtils', () => {
         const strangeAccountID = 50;
         const ownerEmail = 'owner@expensify.com';
         const ownerAccountID = 99;
+        const personalDetailsByLogins: PersonalDetailsByLogin = {
+            [strangeEmail]: {accountID: strangeAccountID, login: strangeEmail},
+            [currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail},
+            [ownerEmail]: {accountID: ownerAccountID, login: ownerEmail},
+        };
         const policyID = '1';
         const policy: Policy = {
             // Important props
@@ -96,18 +101,19 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates and optimistic nextStep once a report has been created', () => {
             test('Correct next steps message', () => {
-                const emptyReport = buildOptimisticEmptyReport(
-                    'fake-empty-report-id-2',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {reportID: 'fake-parent-report-id-3'},
-                    'fake-parent-report-action-id-4',
+                const emptyReport = buildOptimisticEmptyReport({
+                    reportID: 'fake-empty-report-id-2',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {reportID: 'fake-parent-report-id-3'},
+                    parentReportActionID: 'fake-parent-report-action-id-4',
                     policy,
-                    '2025-03-31 13:23:11',
-                    true,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    timeOfCreation: '2025-03-31 13:23:11',
+                    isASAPSubmitBetaEnabled: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins,
+                });
 
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
