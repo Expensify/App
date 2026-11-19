@@ -104,4 +104,20 @@ describe('Clipboard.setHtml', () => {
         expect(mockSetString).toHaveBeenCalledWith('hello');
         expect(mockWrite).not.toHaveBeenCalled();
     });
+
+    it('removes the Safari copy node and keeps plain text when there is no selection', () => {
+        // Given Safari has no selection to restore after the deprecated copy command
+        mockGetBrowser.mockReturnValue(CONST.BROWSER.SAFARI);
+        const spanCount = document.body.querySelectorAll('span').length;
+        const getSelection = jest.spyOn(window, 'getSelection').mockReturnValue(null);
+
+        // When HTML copy cannot select the temporary node
+        WebClipboard.setHtml('<b>hello</b>', 'hello');
+
+        // Then the temporary node is gone and the plain-text flavor is still written
+        expect(document.body.querySelectorAll('span')).toHaveLength(spanCount);
+        expect(mockSetString).toHaveBeenCalledWith('hello');
+        expect(mockExecCommand).not.toHaveBeenCalled();
+        getSelection.mockRestore();
+    });
 });
