@@ -3367,42 +3367,55 @@ describe('TripReservationUtils', () => {
             }));
 
         it('does not treat a hotel stay before a flight as a layover', () => {
+            // Given a round trip where the reservation right before the return flight is a hotel stay, not a flight
             const tripReservations = toReservationData([outboundFlight, hotel, returnFlight]);
 
+            // When the details of the return flight are computed
             const {reservation, prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 2);
 
+            // Then no layover is shown, because a hotel stay is not a connecting flight
             expect(reservation).toBe(returnFlight);
             expect(prevConnectingFlight).toBeUndefined();
         });
 
         it('does not treat the flight from a previous leg as a layover', () => {
+            // Given the outbound (leg 0) and return (leg 1) flights of the same booking placed next to each other
             const tripReservations = toReservationData([outboundFlight, returnFlight]);
 
+            // When the details of the return flight are computed
             const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
+            // Then no layover is shown, because the time between two legs is a stay at the destination, not a connection
             expect(prevConnectingFlight).toBeUndefined();
         });
 
         it('does not treat a flight from a different PNR with the same leg index as a layover', () => {
+            // Given a flight from another booking that shares leg index 0 and departs just before the outbound flight
             const otherBookingFlight = buildFlight('9999999999', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
             const tripReservations = toReservationData([otherBookingFlight, outboundFlight]);
 
+            // When the details of the outbound flight are computed
             const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
+            // Then no layover is shown, because flights from separate bookings are not connections of the same leg
             expect(prevConnectingFlight).toBeUndefined();
         });
 
         it('returns the previous flight when it is a connection in the same leg', () => {
+            // Given two segments of the same booking and the same leg, with a two-hour gap between them
             const firstSegment = buildFlight('2333585128', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
             const connectingSegment = buildFlight('2333585128', 0, '2026-11-17T12:00:00', '2026-11-17T14:00:00');
             const tripReservations = toReservationData([firstSegment, connectingSegment]);
 
+            // When the details of the second segment are computed
             const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 1);
 
+            // Then the first segment is returned so the layover between them can be shown
             expect(prevConnectingFlight).toBe(firstSegment);
         });
 
         it('returns the closest earlier flight of the same leg when other reservations sit in between', () => {
+            // Given three segments of the same leg, with an overnight hotel between the second and third segments
             const firstSegment = buildFlight('2333585128', 0, '2026-11-17T08:00:00', '2026-11-17T10:00:00');
             const secondSegment = buildFlight('2333585128', 0, '2026-11-17T12:00:00', '2026-11-17T20:00:00');
             const overnightHotel: Reservation = {
@@ -3414,8 +3427,10 @@ describe('TripReservationUtils', () => {
             const thirdSegment = buildFlight('2333585128', 0, '2026-11-18T09:00:00', '2026-11-18T11:00:00');
             const tripReservations = toReservationData([firstSegment, secondSegment, overnightHotel, thirdSegment]);
 
+            // When the details of the third segment are computed
             const {prevConnectingFlight} = getReservationDetailsFromSequence(icons, tripReservations, 3);
 
+            // Then the second segment is returned, because it is the closest earlier flight in the same leg, even with the hotel in between
             expect(prevConnectingFlight).toBe(secondSegment);
         });
     });
