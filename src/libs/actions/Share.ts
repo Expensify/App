@@ -174,8 +174,8 @@ function openPendingNativeShare({afterOnboarding = false}: {afterOnboarding?: bo
 
     // A share deferred by onboarding belongs to the onboarding exit alone: the router re-evaluates as soon as onboarding
     // completes, before the exit has navigated to the landing screen.
-    const canTakeShare = pendingNativeShare === 'pending' || (afterOnboarding && pendingNativeShare === 'deferredUntilOnboardingExit');
-    if (!canTakeShare) {
+    const shouldOpenShare = pendingNativeShare === 'pending' || (afterOnboarding && pendingNativeShare === 'deferredUntilOnboardingExit');
+    if (!shouldOpenShare) {
         return false;
     }
 
