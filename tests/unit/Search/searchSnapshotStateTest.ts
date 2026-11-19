@@ -225,6 +225,7 @@ describe('search snapshot terminal state', () => {
     it.each([
         ['type:expense-report groupBy:category', 'search.searchResults.unsupportedGrouping'],
         ['type:expense-report view:bar', 'search.searchResults.unsupportedGrouping'],
+        ['type:expense-report group-by:violation', 'search.searchResults.unsupportedGrouping'],
         ['type:expense status:drafts reportID:0', 'search.searchResults.invalidReportID'],
         ['type:expense is:unreported', 'search.searchResults.unsupportedFilter'],
         [`type:expense-report ${Array.from({length: 77}, (_, index) => `R00${String(index).padStart(9, '0')}`).join(' ')}`, 'search.searchResults.tooManyKeywords'],
@@ -252,7 +253,7 @@ describe('search snapshot terminal state', () => {
     it.each([
         Array.from({length: CONST.SEARCH.MAX_KEYWORD_TOKENS}, (_, index) => `word${index}`).join(' '),
         'type:EXPENSE groupBy:category',
-        'type:expense-report group-by:violation',
+        'type:expense-report group-by:paid-by',
         'type:CHAT is:unread',
     ])('sends supported query %s to the server', async (inputQuery) => {
         // Given a supported query, including the keyword boundary and suggested alternatives
