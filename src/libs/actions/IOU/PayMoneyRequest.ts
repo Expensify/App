@@ -935,10 +935,14 @@ function getBankAccountToSetUpBeforePaying({
 /**
  * Whether the backend may still reject this payment until the paying account is set up for global reimbursements.
  * The pre-check above can't catch every such payment, because only the backend knows the submitter's deposit account.
+ * For a payment from the workspace reimbursement account the next step flag already answers, and the pre-check stops every payment it flags.
  */
 function canGlobalReimbursementsRejectPayment(
-    params: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'policy' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>,
+    params: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'policy' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>,
 ): boolean {
+    if (params.iouReport?.nextStep && !!params.methodID && params.methodID === params.policy?.achAccount?.bankAccountID) {
+        return false;
+    }
     return shouldSetUpGlobalReimbursementsBeforePaying(getBusinessBankAccountForPayment(params));
 }
 
@@ -1062,7 +1066,10 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 
     // Offline the payment is queued and has to show as paid right away, and a partial payment creates the report for the held expenses optimistically
     const shouldHoldOptimisticPayment =
-        full && !getIsOffline() && !!iouReport?.reportID && canGlobalReimbursementsRejectPayment({paymentType, policy, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+        full &&
+        !getIsOffline() &&
+        !!iouReport?.reportID &&
+        canGlobalReimbursementsRejectPayment({paymentType, iouReport, policy, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
     const requestOnyxData = shouldHoldOptimisticPayment && iouReport?.reportID ? holdOptimisticPayOnyxDataUntilResponse(onyxData, iouReport.reportID) : onyxData;
 
     // A held payment may still be rejected, so it doesn't celebrate before the backend answers

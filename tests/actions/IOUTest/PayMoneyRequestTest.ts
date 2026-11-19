@@ -3111,11 +3111,11 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('keeps the report unpaid with a loading state until the backend answers a payment it may still reject', async () => {
-            // Given a payment the pre-check can't stop, from a USD business account that has not enabled global reimbursements, so the backend may reject it
+            // Given a payment the pre-check can't stop, from a USD business account other than the workspace one that has not enabled global reimbursements, so the backend may reject it
             mockFetch?.pause?.();
 
             // When the admin pays the report
-            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
             await waitForBatchedUpdates();
 
             // Then the report isn't shown as paid yet, because rolling a rejected payment back makes it drop out of the lists and come back, and it shows a loading state instead
@@ -3135,9 +3135,9 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('ends the loading state when the backend accepts a held payment', async () => {
-            // Given a held payment from an account that has not enabled global reimbursements
+            // Given a held payment from an account other than the workspace one that has not enabled global reimbursements
             mockFetch?.pause?.();
-            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
             await waitForBatchedUpdates();
 
             // When the backend accepts it
@@ -3147,6 +3147,22 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the loading state ends, and the last used payment method is saved since the backend doesn't send it back
             expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(false);
             expect(await getOnyxValue(ONYXKEYS.NVP_LAST_PAYMENT_METHOD)).toBeTruthy();
+        });
+
+        it('shows the report as paid right away when the backend does not flag a report paid from the workspace account', async () => {
+            // Given a report the backend does not flag for global reimbursements, like one for a US employee, and a workspace USD account that has not enabled them
+            mockFetch?.pause?.();
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When the admin pays the report from the workspace account
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            await waitForBatchedUpdates();
+
+            // Then the report is shown as paid before the backend answers, because the flag already says the backend won't reject it, and there is no loading state
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBeUndefined();
+            await mockFetch?.resume?.();
         });
 
         it('shows the report as paid right away when the account has global reimbursements enabled', async () => {
