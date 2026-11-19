@@ -18,18 +18,18 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {
-    getAxisLabelStep,
     getCartesianPlotBounds,
     getDomainPaddingForEdgeSpace,
     getLineRuns,
-    getWholeNumberTickCount,
+    getSteppedLabelLayout,
     getXAxisLabel,
     getYAxisLabelWidth,
+    getYAxisTickLayout,
     labelOverhang,
 } from '@components/Charts/utils';
 import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import type {LineRun} from '@components/Charts/utils/getLineRuns';
-import VictoryTheme, {CARTESIAN_Y_AXIS, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -51,9 +51,6 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
-    /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
-    labelSteps?: readonly number[];
-
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;
 };
@@ -71,7 +68,8 @@ function LineChartCanvas({
     yAxisUnit,
     yAxisUnitPosition = 'left',
     formatValue: formatValueOverride,
-    shouldUseWholeNumberTicks = false,
+    countDimension,
+    yAxisTickStep,
     onPointPress,
     onTooltipPress,
     tooltipFooter,
@@ -125,8 +123,8 @@ function LineChartCanvas({
         formatValue: formatValueOverride,
     });
 
-    const yAxisTickCount = shouldUseWholeNumberTicks ? getWholeNumberTickCount(yAxisDomain, CARTESIAN_Y_AXIS.tickCount) : CARTESIAN_Y_AXIS.tickCount;
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding, yAxisTickCount);
+    const {ticks: yAxisTicks, tickCount: yAxisTickCount, domain: yAxisTickDomain} = getYAxisTickLayout(yAxisDomain, yAxisTickStep);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding, yAxisTickCount, yAxisTicks);
 
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const {left: boundsLeft, right: boundsRight, width: plotAreaWidth} = getCartesianPlotBounds(chartWidth, chartPaddingRight);
@@ -175,17 +173,7 @@ function LineChartCanvas({
         const firstPointX = boundsLeft + domainPadding.left * paddingScale;
         const lastPointX = boundsRight - domainPadding.right * paddingScale;
         const pointXs = data.map((_, index) => (data.length > 1 ? firstPointX + (index * (lastPointX - firstPointX)) / (data.length - 1) : (firstPointX + lastPointX) / 2));
-        const step = getAxisLabelStep({labelWidths, pointXs, steps: labelSteps, minGap: X_AXIS_LABEL_MIN_GAP});
-        return {
-            labelRotation: LABEL_ROTATIONS.HORIZONTAL,
-            labelSkipInterval: step,
-            truncatedLabelWidths: labelWidths,
-            xAxisLabelHeight: lineHeight,
-            regularLabelMaxWidth: Infinity,
-            firstLabelMaxWidth: Infinity,
-            lastLabelMaxWidth: Infinity,
-            ellipsisWidth: measurements.ellipsisWidth,
-        };
+        return getSteppedLabelLayout({labelWidths, pointXs, steps: labelSteps, lineHeight, ellipsisWidth: measurements.ellipsisWidth});
     })();
 
     const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
@@ -325,6 +313,7 @@ function LineChartCanvas({
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
+                        canvasWidth={args.canvasSize.width}
                     />
                 )}
                 <ChartYAxisLabels
@@ -399,7 +388,7 @@ function LineChartCanvas({
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, domain: yAxisDomain}]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, tickValues: yAxisTicks, domain: yAxisTickDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
@@ -418,6 +407,7 @@ function LineChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}

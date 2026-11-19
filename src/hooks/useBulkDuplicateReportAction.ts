@@ -20,6 +20,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
@@ -32,12 +33,13 @@ type UseBulkDuplicateReportActionParams = {
 function useBulkDuplicateReportAction({selectedReports, allReports, allTransactions, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -58,7 +60,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
     const handleDuplicateReports = () => {
         bulkDuplicateReports({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             selectedReports,
             allReports: allReports ?? {},
             searchData,

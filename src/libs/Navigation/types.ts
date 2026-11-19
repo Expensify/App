@@ -1149,15 +1149,17 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
         policyID: string;
         approverIndex: number;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
-        policyID: string;
-        approverIndex: number;
+
+        /** Whether the page was reached by picking a new approver, rather than by opening an approver already in the workflow */
+        isAddingApprover?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_REIMBURSEMENT_COUNTRIES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
@@ -1358,6 +1360,9 @@ type TabNavigatorParamList = {
               dashboardID: string;
           }
         | undefined;
+    [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.REPORTS]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.MORE]: undefined;
 };
 
 type SharedScreensParamList = {
@@ -1542,6 +1547,7 @@ type SearchReportActionsParamList = {
         reportID: string;
     };
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.SEARCH_CHANGE_WORKSPACE_RHP]: Record<string, never>;
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
         /** Selected transactions' report ID  */
         reportID: string;
@@ -1609,11 +1615,20 @@ type InsightsDetailsParamList = {
         /** Chart the clicked point was plotted on */
         graphKey: string;
 
-        /** The clicked member's account ID, merchant, category, or the first day of the clicked period */
+        /** The clicked member's account ID, merchant, category, tag, or the first day of the clicked period */
         item: string;
 
         /** Last day of the clicked period, trimmed to the date range like the chart's label */
         end?: string;
+
+        /** Tag level of the clicked tag, absent when the chart groups by every level of the tag together */
+        level?: string;
+
+        /** Encoded parent tags of the clicked dependent tag */
+        parent?: string;
+
+        /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
+        asOf?: string;
     };
 };
 

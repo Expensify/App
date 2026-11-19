@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,8 +71,10 @@ type IOURequestEditReportCommonProps = {
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
-    removeFromReport?: () => void;
+    removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
+    /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
+    isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
@@ -120,6 +122,7 @@ function IOURequestEditReportCommon({
     transactionPolicyID,
     removeFromReport,
     isEditing = false,
+    isCreatingExpense = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
@@ -236,6 +239,9 @@ function IOURequestEditReportCommon({
                       }
                       if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                           return false;
+                      }
+                      if (isCreatingExpense) {
+                          return canAddTransaction(report, rules);
                       }
                       if (canAddTransaction(report, rules, undefined, true)) {
                           return true;
@@ -422,7 +428,7 @@ function IOURequestEditReportCommon({
     } else {
         autoReportOption = (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}
+                onPress={callIfAuthenticated(handleAutoReport, session)}
                 sentryLabel={autoReportSentryLabel}
             >
                 <MenuItem.Row>

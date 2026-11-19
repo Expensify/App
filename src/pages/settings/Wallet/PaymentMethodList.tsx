@@ -61,6 +61,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
 import {updateSelectedFeed} from '@userActions/Card';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,6 +80,7 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -235,6 +237,7 @@ function PaymentMethodList({
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isActingAsDelegateSelector,
     });
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -717,13 +720,20 @@ function PaymentMethodList({
     };
 
     const renderListFooterComponent = () => (
-        <MenuItem
-            onPress={onPressItem}
-            title={translate('bankAccount.addBankAccount')}
-            icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
+        <MenuItem.Root
+            onPress={callIfAuthenticated(onPressItem, session)}
+            style={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Plus} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('bankAccount.addBankAccount')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const hasPersonalBank = filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);

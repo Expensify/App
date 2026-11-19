@@ -112,7 +112,7 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => () => ({transact
 jest.mock('@userActions/Session', () => ({
     isAnonymousUser: () => false,
     signOutAndRedirectToSignIn: jest.fn(),
-    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+    callIfAuthenticated: (fn: () => void) => fn,
 }));
 
 const mockShowDeleteModal = jest.fn<void, unknown[]>();
@@ -120,6 +120,7 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     hideContextMenu: jest.fn((_: boolean, onHideCallback?: () => void) => onHideCallback?.()),
     showContextMenu: jest.fn(),
     showDeleteModal: (...args: unknown[]) => mockShowDeleteModal(...args),
+    handleHoldEducationalModal: jest.fn((performHold: () => void) => performHold()),
 }));
 
 // Defaults to the real implementation so the hold flow still navigates; the unhold test swaps it for a spy.

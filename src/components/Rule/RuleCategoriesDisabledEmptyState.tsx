@@ -71,6 +71,7 @@ function RuleCategoriesDisabledEmptyState({policyID}: RuleCategoriesDisabledEmpt
             </ScrollView>
             <FixedFooter style={[styles.pt5]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ENABLE_CATEGORIES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

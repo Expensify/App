@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -49,6 +50,7 @@ import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
+    canEditSearchColumns,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -120,6 +122,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
+import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
@@ -129,6 +132,7 @@ import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './Searc
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
+import SortableColumnMenu from './SortableColumnMenu';
 import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
@@ -192,6 +196,7 @@ function Search({
     const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -211,6 +216,9 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
+    const canEditColumns = canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -463,7 +471,7 @@ function Search({
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
-        if (isInPreloadedTab) {
+        if (isLoadingApp || isInPreloadedTab) {
             return;
         }
 
@@ -540,10 +548,10 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset, isLoadingApp]);
 
     useEffect(() => {
-        if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
+        if (isLoadingApp || !shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
             return;
         }
 
@@ -575,6 +583,7 @@ function Search({
         shouldCalculateTotals,
         validGroupBy,
         searchRequestOffset,
+        isLoadingApp,
     ]);
 
     useEffect(() => {
@@ -1006,6 +1015,7 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
+    const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1535,6 +1545,7 @@ function Search({
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
+                    isScreenFocused={isFocused}
                 />
             </View>
         );
@@ -1627,7 +1638,15 @@ function Search({
                 // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
-            />
+            >
+                {shouldShowColumnMenu && (
+                    <SortableColumnMenu
+                        columnEditing={canEditColumns ? columnEditing : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
+                        itemSentryLabels={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM}
+                    />
+                )}
+            </SearchTableHeader>
         </View>
     );
 

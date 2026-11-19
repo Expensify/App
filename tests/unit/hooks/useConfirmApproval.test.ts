@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmApproval from '@components/MoneyReportHeaderPrimaryAction/useConfirmApproval';
 
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -23,6 +24,13 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     __esModule: true,
     useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+}));
+let mockIsAccountLocked = false;
+const mockShowLockedAccountModal = jest.fn();
+jest.mock('@components/LockedAccountModalProvider', () => ({
+    __esModule: true,
+    useLockedAccountState: () => ({isAccountLocked: mockIsAccountLocked}),
+    useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
 }));
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: () => 2}),
@@ -57,6 +65,13 @@ const heldTransaction: Transaction = {...createRandomTransaction(2), transaction
 
 const mockedUseTransactionsAndViolationsForReport = jest.mocked(useTransactionsAndViolationsForReport);
 const mockedApproveMoneyRequest = jest.mocked(approveMoneyRequest);
+const mockShowConfirmModal = jest.fn();
+jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: () => ({showConfirmModal: mockShowConfirmModal})}));
+jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
+jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({
+    __esModule: true,
+    default: (showConfirmModal: (options: unknown) => Promise<unknown>, options: unknown) => showConfirmModal(options),
+}));
 
 function mockLiveTransactions(transactions: Transaction[]) {
     mockedUseTransactionsAndViolationsForReport.mockReturnValue({
@@ -74,6 +89,8 @@ describe('useConfirmApproval', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockShowConfirmModal.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
+        mockIsAccountLocked = false;
         mockLiveTransactions([]);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
@@ -118,5 +135,70 @@ describe('useConfirmApproval', () => {
         // Then the button and the approval both use the snapshot report, so the shown options match what gets approved
         expect(result.current.moneyRequestReport).toEqual(snapshotReport);
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReport: snapshotReport, full: false}));
+    });
+
+    it('shows the locked account modal and does not approve when the account is locked', async () => {
+        // Given a locked account viewing a report it can approve
+        mockIsAccountLocked = true;
+        const startApprovedAnimation = jest.fn();
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, startApprovedAnimation, {fallbackReport: snapshotReport}));
+        await act(waitForBatchedUpdates);
+
+        // When the user approves the report
+        act(() => {
+            result.current.onApprove(true);
+        });
+
+        // Then the locked account modal explains why, instead of the server rejecting the approval with a generic error
+        expect(mockShowLockedAccountModal).toHaveBeenCalledTimes(1);
+        expect(startApprovedAnimation).not.toHaveBeenCalled();
+        expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it.each([ModalActions.CLOSE, ModalActions.CONFIRM])('requires confirmation for snapshot-only violations and handles %s', async (action) => {
+        // Given an unopened Search report whose transaction and warning exist only in its snapshot
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unheldTransaction.transactionID}` as const;
+        mockShowConfirmModal.mockResolvedValue({action});
+        const startApprovedAnimation = jest.fn();
+        const {result} = renderHook(() =>
+            useConfirmApproval(REPORT_ID, startApprovedAnimation, {
+                fallbackReport: snapshotReport,
+                fallbackTransactions: [unheldTransaction],
+                fallbackViolations: {[violationKey]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}]},
+            }),
+        );
+        await act(waitForBatchedUpdates);
+
+        // When approval is requested, the snapshot warning must gate all approval side effects
+        await act(async () => {
+            result.current.onApprove(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+            expect(startApprovedAnimation).not.toHaveBeenCalled();
+        });
+
+        // Then only an explicit confirmation approves the report
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledTimes(action === ModalActions.CONFIRM ? 1 : 0);
+    });
+
+    it('prefers a live empty violation array over an old snapshot warning', async () => {
+        // Given an unopened transaction whose warning has already been cleared in live Onyx
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unheldTransaction.transactionID}` as const;
+        await Onyx.set(violationKey, []);
+        const {result} = renderHook(() =>
+            useConfirmApproval(REPORT_ID, jest.fn(), {
+                fallbackReport: snapshotReport,
+                fallbackTransactions: [unheldTransaction],
+                fallbackViolations: {[violationKey]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}]},
+            }),
+        );
+        await act(waitForBatchedUpdates);
+
+        // When the report is approved
+        act(() => result.current.onApprove(true));
+
+        // Then stale Search data cannot resurrect the cleared warning
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledTimes(1);
     });
 });

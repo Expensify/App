@@ -27,6 +27,17 @@ type WorkspaceSettingsParamList = {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY]: {
+        policyID: string;
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
+        policyID: string;
+        currencyCode: string;
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;
         country?: Country | '';
@@ -116,10 +127,6 @@ type WorkspaceSettingsParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: {
-        policyID: string;
-        categoryName: string;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: {
         policyID: string;
         categoryName: string;
@@ -190,6 +197,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
@@ -199,6 +207,9 @@ type WorkspaceSettingsParamList = {
         categoryId?: string;
         reportID?: string;
         upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
+        /** Euro country picked in Add rate, which the government rate is turned on for once the upgrade completes */
+        governmentRateCountry?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: {
         policyID?: string;
@@ -1222,6 +1233,12 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_OAUTH]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
@@ -1273,6 +1290,24 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_DEFAULT_COMPANY_CARD_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_COMPANY_CARD_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
@@ -1632,9 +1667,6 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         categoryName?: string;
     };
-    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;
@@ -1683,6 +1715,19 @@ type WorkspaceSettingsParamList = {
         ruleID?: undefined;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH]: {
         policyID: string;
         ruleID?: undefined;
     };
@@ -1839,6 +1884,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
         policyID: string;
         ruleID: string;
@@ -1852,9 +1901,9 @@ type WorkspaceSettingsParamList = {
         ruleID: string;
         categoryName?: string;
     };
-    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
+    [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;

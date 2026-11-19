@@ -22,13 +22,6 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-/**
- * Link previews are temporarily disabled.
- */
-function canUseLinkPreviews(): boolean {
-    return false;
-}
-
 /** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
     if (canApplyBetaOverrides(environment)) {
@@ -68,7 +61,6 @@ function canUsePrivateNotes(): boolean {
 
 // usePermissions calls every member of this object with no arguments, so only no-argument checks belong here
 export default {
-    canUseLinkPreviews,
     canUseTrackFlows,
     canUsePrivateNotes,
     isBetaEnabled,

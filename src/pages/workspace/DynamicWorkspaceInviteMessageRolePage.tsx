@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -31,17 +30,15 @@ type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoading
 
 function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [roleFromOnyx, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
+    const [roleFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
     // Submit workspaces only allow inviting editors. Keep this default aligned with WorkspaceInviteMessageComponent so the
     // role row pre-selects Editor before the user picks anything.
     const role = roleFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
-    const isOnyxLoading = isLoadingOnyxValue(roleResult);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: backPath,
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
-        shouldDeferRedirect: isOnyxLoading,
     });
 
     return (
@@ -60,7 +57,6 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
                 <WorkspaceMemberRoleList
                     role={role}
                     policy={policy}
-                    isLoading={isOnyxLoading}
                     onSelectRole={({value}) => {
                         if (!canMemberAssignRole(policy, currentUserLogin, value)) {
                             return;

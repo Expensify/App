@@ -32,6 +32,8 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ENTER_SIGNER_INFO}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ENTER_SIGNER_INFO}
             icon={icons.Bank}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}

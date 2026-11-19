@@ -3,6 +3,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
@@ -72,7 +73,7 @@ function usePerDiemSubmission({
     backToReport,
     onExpenseWriteWillStart,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
-    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -80,6 +81,7 @@ function usePerDiemSubmission({
 
     const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportTransactions = useReportTransactions(report?.reportID);
     const {transactionViolations} = useSubmissionViolations();
 
@@ -132,7 +134,6 @@ function usePerDiemSubmission({
                 const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
                 submitPerDiemExpenseForSelfDM({
-                    dateFnsLocale,
                     getCurrencyDecimals,
                     writeBarrier,
                     selfDMReport,
@@ -197,7 +198,6 @@ function usePerDiemSubmission({
 
         const result = submitPerDiemExpenseIOUActions({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             getCurrencyDecimals,
             writeBarrier,
             report,
@@ -229,6 +229,7 @@ function usePerDiemSubmission({
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             },
             policyTags: perDiemExpensePolicyTags ?? {},
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.login ?? '',

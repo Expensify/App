@@ -1,10 +1,12 @@
 ---
 title: Configure NetSuite
 description: Learn how to configure the import, export, and advanced settings for Expensify's integration with NetSuite.
-keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export, Split exports by posting period, Export to next open period]
+keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export, Split exports by posting period, Export to next open period, When to Export, Accrual, Cash, export after approval without payment]
+internalScope: Audience is workspace admins. Covers configuring an existing NetSuite connection, including automatic export timing. Does not cover connecting NetSuite or troubleshooting export errors.
 order: 2
 ---
 
+# Configure NetSuite
 
 Expensify’s integration with NetSuite streamlines expense management by automatically syncing reports. This reduces manual work, improves visibility, and supports accurate compliance and budgeting.
 
@@ -16,7 +18,7 @@ With this integration, you can:
 
 ---
 
-# Access NetSuite Configuration Settings
+## How to access NetSuite configuration settings
 
 Each Expensify Workspace has its own configuration with NetSuite.
 
@@ -27,7 +29,7 @@ To access:
 
 ---
 
-# Step 1: Configure Import Settings
+## How to configure NetSuite import settings
 
 To control what data is imported from NetSuite:
 
@@ -53,7 +55,7 @@ To control what data is imported from NetSuite:
 
 ---
 
-# Step 2: Configure Export Settings
+## How to configure NetSuite export settings
 
 To manage how reports are exported from Expensify to NetSuite:
 
@@ -91,7 +93,9 @@ To manage how reports are exported from Expensify to NetSuite:
 
 ---
 
-# Step 3: Configure Advanced Settings
+<a id="step-3-configure-advanced-settings"></a>
+
+## How to configure NetSuite advanced settings
 
 For additional control:
 
@@ -100,7 +104,7 @@ For additional control:
 3. Select **Advanced**.
 4. Configure the following options:
 
-- **Auto-sync** – Enable for daily syncing of NetSuite data
+- **Auto-sync** – Enable to sync NetSuite data daily and export reports automatically. For reimbursable expenses, **Accrual** exports after final approval; **Cash** waits until the report is paid or marked as paid. Learn [how to choose when reimbursable expenses export to NetSuite](#how-to-choose-when-reimbursable-expenses-export-to-netsuite).
 - **Sync Reimbursed Reports** – Automatically updates status between systems
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
@@ -110,6 +114,10 @@ For additional control:
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+- **Currency conversion fee account** – Select the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+  - Debits the selected currency conversion fee account and credits cash
+  - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
+  - Only exports if this account is mapped
 
 **Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
 
@@ -117,7 +125,30 @@ For additional control:
 
 ---
 
+## How to choose when reimbursable expenses export to NetSuite
+
+The accounting method controls when reimbursable (out-of-pocket) expenses export automatically to NetSuite. In New Expensify, this setting is labeled **When to Export**:
+
+- **Accrual** – Expenses export after the report receives final approval. You don't need to pay the report in Expensify or mark it as paid before export.
+- **Cash** – Expenses export after the report is paid in Expensify or marked as paid.
+
+To configure automatic exports:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to **NetSuite**.
+3. Select **Advanced > Auto-sync**.
+4. Enable **Auto-sync**.
+5. Select **When to Export** and choose **Accrual** or **Cash**.
+
+---
+
 # FAQ
+
+## Can I export reports automatically after approval without paying them in Expensify?
+
+Yes. Enable **Auto-sync** and set **When to Export** to **Accrual**. Reimbursable expenses export after final approval, so you can process payment outside Expensify afterward without first paying the report in Expensify or marking it as paid.
+
+Follow the steps to [choose when reimbursable expenses export to NetSuite](#how-to-choose-when-reimbursable-expenses-export-to-netsuite).
 
 ## How do I import new tags (departments, classes, locations) from NetSuite?
 
@@ -137,9 +168,7 @@ Yes. When enabled:
 
 ## Why do company card expenses export immediately, but reimbursable expenses don’t?
 
-- **Reimbursable expenses** export after reimbursement
-- **Company card expenses** export after approval
-- **Auto-sync** ensures reimbursement status updates automatically
+With **Auto-sync** enabled, company card expenses export after approval. Reimbursable expenses follow **When to Export**: **Cash** waits until the report is paid or marked as paid, while **Accrual** exports after final approval without requiring payment first.
 
 
 ## How do I configure corporate card exports in NetSuite?
@@ -187,4 +216,3 @@ When **Split exports by posting period** is on, a report with non-reimbursable e
 
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
-

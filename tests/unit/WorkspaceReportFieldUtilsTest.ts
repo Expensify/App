@@ -1,10 +1,4 @@
-import {
-    getExistingReportFieldByName,
-    getUnsupportedReportFieldFormulaParts,
-    hasFormulaPartsInInitialValue,
-    isReportFieldImportedFromIntegration,
-    isReportFieldNameExisting,
-} from '@libs/WorkspaceReportFieldUtils';
+import {getExistingReportFieldByName, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -90,36 +84,6 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
         expect(getUnsupportedReportFieldFormulaParts('{report:submit:invalid}')).toEqual(['{report:submit:invalid}']);
         expect(getUnsupportedReportFieldFormulaParts('{report:autoreporting:invalid}')).toEqual(['{report:autoreporting:invalid}']);
         expect(getUnsupportedReportFieldFormulaParts('{report:approve:invalid}')).toEqual(['{report:approve:invalid}']);
-    });
-});
-
-describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
-    const fieldList: Record<string, PolicyReportField> = {
-        field1: createMock<PolicyReportField>({name: 'Field1', type: 'text'}),
-        field2: createMock<PolicyReportField>({name: 'Field2', type: 'date'}),
-    };
-
-    it('should return false when field name does not exist', () => {
-        expect(isReportFieldNameExisting(fieldList, 'Field3')).toBe(false);
-    });
-
-    it('should return true when field name exists with exact case match', () => {
-        expect(isReportFieldNameExisting(fieldList, 'Field1')).toBe(true);
-    });
-
-    it('should return true when field name exists with different case', () => {
-        expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
-        expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
-    });
-
-    it('should return true across targets when no expectedTarget is passed, since the backend keys fields by name regardless of target', () => {
-        const mixedTargetFieldList: Record<string, PolicyReportField> = {
-            invoiceField: createMock<PolicyReportField>({name: 'Test', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE}),
-            expenseField: createMock<PolicyReportField>({name: 'Other', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE}),
-        };
-
-        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Test')).toBe(true);
-        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Other')).toBe(true);
     });
 });
 

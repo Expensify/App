@@ -1,5 +1,6 @@
 import LinkButton from '@components/Button/composed/LinkButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import SortableColumnMenu from '@components/Search/SortableColumnMenu';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,6 +9,7 @@ import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
@@ -19,15 +21,12 @@ import {getReportRowPolicy, getReportRowReport} from '@libs/MoneyRequestReportUt
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
-import Navigation from '@navigation/Navigation';
-
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import {resolveLayoutSpacing} from '@styles/layoutSpacing';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
@@ -54,6 +53,7 @@ import useMoneyRequestReportLayout from './useMoneyRequestReportLayout';
 import useMoneyRequestReportPendingExpense from './useMoneyRequestReportPendingExpense';
 import useMoneyRequestReportSortedTransactions from './useMoneyRequestReportSortedTransactions';
 import useMoneyRequestReportTransactionSelection from './useMoneyRequestReportTransactionSelection';
+import useReportColumnEditing from './useReportColumnEditing';
 
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
@@ -215,6 +215,7 @@ function MoneyRequestReportTransactionList({
     // header, and with it every row of the list, on each render.
     const {Columns: columnsIcon} = useMemoizedLazyExpensifyIcons(['Columns']);
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -325,9 +326,7 @@ function MoneyRequestReportTransactionList({
         navigateToTransactionRef.current(transactionID);
     };
 
-    const openColumnsPage = () => {
-        Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(report.reportID));
-    };
+    const columnEditing = useReportColumnEditing(report.reportID, columnsToShow);
 
     useCopySelectionEvent();
     useMoneyRequestReportActiveTransactionIDs(visualOrderTransactionIDs, report?.reportID);
@@ -433,7 +432,7 @@ function MoneyRequestReportTransactionList({
                     <LinkButton
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.COLUMNS_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={openColumnsPage}
+                        onPress={columnEditing.editColumns}
                     >
                         <LinkButton.Icon
                             src={columnsIcon}
@@ -465,7 +464,15 @@ function MoneyRequestReportTransactionList({
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}
                 shouldScrollHorizontally={shouldScrollHorizontally}
-            />
+            >
+                {isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && (
+                    <SortableColumnMenu
+                        columnEditing={isExpenseReportViewFromIOUReport ? undefined : columnEditing}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.COLUMN_MENU}
+                        itemSentryLabels={CONST.SENTRY_LABEL.REPORT.COLUMN_MENU_ITEM}
+                    />
+                )}
+            </MoneyRequestReportTableHeaderRow>
         );
 
     const afterListContent = isEmptyTransactions ? null : (

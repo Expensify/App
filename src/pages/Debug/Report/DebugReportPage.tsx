@@ -37,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -56,6 +57,7 @@ type Metadata = {
     action?: {
         name: string;
         callback: () => void;
+        sentryLabel: SentryLabel;
     };
 };
 
@@ -155,6 +157,7 @@ function DebugReportPage({
                     hasGBR && reportActionGBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.GBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -173,6 +176,7 @@ function DebugReportPage({
                     hasRBR && reportActionRBR
                         ? {
                               name: translate('common.view'),
+                              sentryLabel: CONST.SENTRY_LABEL.DEBUG.REPORT_REASON_VIEW.RBR,
                               callback: () =>
                                   Navigation.navigate(
                                       ROUTES.REPORT_WITH_ID.getRoute(
@@ -224,13 +228,17 @@ function DebugReportPage({
                         </View>
                         {!!message && <Text style={styles.textSupporting}>{message}</Text>}
                         {!!action && (
-                            <Button onPress={action.callback}>
+                            <Button
+                                onPress={action.callback}
+                                sentryLabel={action.sentryLabel}
+                            >
                                 <Button.Text>{action.name}</Button.Text>
                             </Button>
                         )}
                     </View>
                 ))}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_REPORT}
                     onPress={() => {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                     }}
@@ -240,6 +248,7 @@ function DebugReportPage({
                 </Button>
                 {!!transactionID && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DEBUG.REPORT_VIEW_TRANSACTION}
                         onPress={() => {
                             Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
                         }}

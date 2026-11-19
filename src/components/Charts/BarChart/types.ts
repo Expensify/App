@@ -6,7 +6,7 @@ type BarChartProps = CartesianChartProps & {
     /** Whether each bar's label is drawn below it. Turn off when something outside the chart already names the bars. */
     shouldShowLabels?: boolean;
 
-    /** Whether each bar's label wraps to two centered lines beneath its column instead of the single-line axis treatment (rotation/skip). Used for named bars (merchants, categories, spenders). */
+    /** Whether each bar's label wraps to two centered lines beneath its column instead of the single-line axis treatment (rotation/skip). Used for named bars (merchants, categories, spenders). Takes precedence over `labelSteps`. */
     shouldWrapLabels?: boolean;
 };
 
