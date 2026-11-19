@@ -175,6 +175,7 @@ function ReportFetchHandler() {
     const parentReportAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const shouldRedirectToParentReport = shouldRedirectLinkedActionToParentReport({report, parentReport, parentReportAction, reportActionIDFromRoute, isOffline});
+    const hasParentDataForRedirectDecision = !!parentReport && !!parentReportAction;
 
     // Track whether the current route is an own workspace chat. See issue #84248.
     const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
@@ -609,7 +610,8 @@ function ReportFetchHandler() {
             return;
         }
         if (!shouldRedirectToParentReport) {
-            if (reportLoadingState.hasOnceLoadedReportActions) {
+            // The loaded flag can be left over from an earlier visit, so "stay" is only final once the parent data it depends on is here.
+            if (reportLoadingState.hasOnceLoadedReportActions && hasParentDataForRedirectDecision) {
                 decidedParentReportRedirectKeyRef.current = redirectKey;
             }
             return;
@@ -628,6 +630,7 @@ function ReportFetchHandler() {
         report?.parentReportID,
         reportActionIDFromRoute,
         reportLoadingState.hasOnceLoadedReportActions,
+        hasParentDataForRedirectDecision,
         route.key,
         route.name,
         route.params?.backTo,
