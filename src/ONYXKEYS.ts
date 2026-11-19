@@ -996,7 +996,7 @@ const ONYXKEYS = {
     /** Width the user dragged the Concierge side panel to. Per device, since the ideal width depends on window size. */
     SIDE_PANEL_WIDTH: 'sidePanelWidth',
 
-    /** Whether the Concierge side panel is docked, floating or minimized on a wide layout. Per device, so it survives a refresh. */
+    /** Whether the Concierge side panel is docked or floating on a wide layout. Per device, so it survives a refresh. */
     SIDE_PANEL_MODE: 'sidePanelMode',
 
     /** Partial transaction data used for MFA authorize transaction preview */

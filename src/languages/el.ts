@@ -455,7 +455,6 @@ const translations: TranslationDeepObject<typeof en> = {
         help: 'Βοήθεια',
         collapsed: 'Συμπτυγμένο',
         expanded: 'Αναπτυγμένο',
-        minimize: 'Ελαχιστοποίηση',
         popOut: 'Αποσύνδεση',
         dockToSide: 'Πρόσδεση στο πλάι',
         expenseReport: 'Έκθεση εξόδων',

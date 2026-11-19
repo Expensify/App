@@ -51,7 +51,7 @@ type SidePanelStateContextProps = {
     sidePanelNVP?: SidePanel;
     sessionStartTime: string | null;
 
-    /** Narrow layouts always dock, so this is only floating or minimized on a wide layout. */
+    /** Narrow layouts always dock, so this is only floating on a wide layout. */
     sidePanelMode: SidePanelMode;
 };
 
@@ -104,12 +104,14 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     } = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
-    const [selectedSidePanelMode = CONST.SIDE_PANEL_MODE.DOCKED] = useOnyx(ONYXKEYS.SIDE_PANEL_MODE);
+    // The panel opens as a floating popover until the user docks it, and remembers that choice on this device.
+    const [selectedSidePanelMode = CONST.SIDE_PANEL_MODE.FLOATING] = useOnyx(ONYXKEYS.SIDE_PANEL_MODE);
     const setSidePanelMode = SidePanelActions.setSidePanelMode;
-    const sidePanelMode: SidePanelMode = shouldUseNarrowLayout ? 'docked' : selectedSidePanelMode;
+    // A mode saved before minimizing was removed still opens as the floating popover.
+    const sidePanelMode: SidePanelMode = shouldUseNarrowLayout || selectedSidePanelMode === CONST.SIDE_PANEL_MODE.DOCKED ? CONST.SIDE_PANEL_MODE.DOCKED : CONST.SIDE_PANEL_MODE.FLOATING;
     const isSidePanelDocked = sidePanelMode === 'docked';
 
-    // A floating or minimized panel sits over the page like a launcher, so it neither insets the page nor blocks it with a backdrop.
+    // A floating panel sits over the page like a support chat popover, so it neither insets the page nor blocks it with a backdrop.
     const shouldHideSidePanelBackdrop = shouldHideDockedSidePanelBackdrop || !isSidePanelDocked;
     const isSidePanelHiddenOrLargeScreen = isDockedSidePanelHiddenOrLargeScreen || !isSidePanelDocked;
 
@@ -208,9 +210,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
-        if (selectedSidePanelMode === 'minimized') {
-            setSidePanelMode('floating');
-        }
         SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
     };
 

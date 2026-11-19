@@ -454,7 +454,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Réduit',
         expand: 'Agrandir',
         expanded: 'Développé',
-        minimize: 'Réduire',
         popOut: 'Détacher',
         dockToSide: 'Ancrer sur le côté',
         expenseReport: 'Note de frais',

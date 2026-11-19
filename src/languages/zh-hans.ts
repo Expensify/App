@@ -454,7 +454,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: '已折叠',
         expand: '展开',
         expanded: '已展开',
-        minimize: '最小化',
         popOut: '弹出',
         dockToSide: '停靠到侧边',
         expenseReport: '报销报告',

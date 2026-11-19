@@ -6,13 +6,12 @@ import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/t
 
 import React from 'react';
 
-import SidePanelLauncher from './SidePanelLauncher';
 import SidePanelModal from './SidePanelModal';
 import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
 function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
-    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, sidePanelMode} = useSidePanelState();
+    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop} = useSidePanelState();
     const reportID = useSidePanelReportID();
     const {closeSidePanel} = useSidePanelActions();
 
@@ -29,10 +28,6 @@ function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
 
     if (isSidePanelTransitionEnded && shouldHideSidePanel) {
         return null;
-    }
-
-    if (sidePanelMode === 'minimized') {
-        return shouldHideSidePanel ? null : <SidePanelLauncher />;
     }
 
     return (

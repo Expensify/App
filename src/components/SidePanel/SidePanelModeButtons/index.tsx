@@ -1,6 +1,6 @@
 /**
- * Header buttons that move the side panel between docked, floating and minimized.
- * Docked shows "pop out", floating shows "minimize" and "dock to side".
+ * Header button that moves the side panel between docked and floating.
+ * Docked shows "pop out", floating shows "dock to side".
  */
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -34,7 +34,7 @@ function SidePanelModeButtons() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Minus', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'NewWindow']);
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {sidePanelMode} = useSidePanelState();
@@ -47,12 +47,6 @@ function SidePanelModeButtons() {
     const buttons: ModeButton[] =
         sidePanelMode === 'floating'
             ? [
-                  {
-                      targetMode: 'minimized',
-                      icon: icons.Minus,
-                      label: 'common.minimize',
-                      sentryLabel: CONST.SENTRY_LABEL.SIDE_PANEL.MINIMIZE_BUTTON,
-                  },
                   {
                       targetMode: 'docked',
                       icon: icons.Expand,

@@ -7739,23 +7739,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 boxShadow: theme.shadow,
                 backgroundColor: theme.modalBackground,
             }),
-        sidePanelLauncher: (right: DimensionValue): ViewStyle =>
-            toViewStyle({
-                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-                right,
-                bottom: variables.rhpFloatingCardMargin + variables.sidePanelLauncherInset,
-                width: variables.componentSizeLarge,
-                height: variables.componentSizeLarge,
-                borderRadius: variables.componentBorderRadiusCircle,
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: theme.shadow,
-            }),
-        // Sits on the launcher's top-right edge, where the round avatar's border meets its bounding box diagonally.
-        sidePanelLauncherIndicator: (): ViewStyle => ({
-            top: 0,
-            right: 0,
-        }),
 
         searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,

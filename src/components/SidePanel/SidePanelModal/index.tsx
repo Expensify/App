@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -39,7 +38,6 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
     const {sidePanelWidth, sidePanelMode} = useSidePanelState();
-    const {setSidePanelMode} = useSidePanelActions();
     const {windowHeight} = useWindowDimensions();
     const isFloating = sidePanelMode === 'floating';
 
@@ -70,10 +68,6 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         CONST.KEYBOARD_SHORTCUTS.ESCAPE,
         () => {
             if (!areAllModalsHidden()) {
-                return;
-            }
-            if (isFloating) {
-                setSidePanelMode('minimized');
                 return;
             }
             closeSidePanel();

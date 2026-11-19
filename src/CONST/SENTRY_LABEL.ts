@@ -2987,9 +2987,7 @@ const SENTRY_LABEL = {
         HELP: 'SidePanel-Help',
         OVERLAY: 'SidePanel-Overlay',
         POP_OUT_BUTTON: 'SidePanel-PopOutButton',
-        MINIMIZE_BUTTON: 'SidePanel-MinimizeButton',
         DOCK_BUTTON: 'SidePanel-DockButton',
-        LAUNCHER: 'SidePanel-Launcher',
     },
     PRODUCT_TRAINING: {
         TOOLTIP: 'ProductTraining-Tooltip',
