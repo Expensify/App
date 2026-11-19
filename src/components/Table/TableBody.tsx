@@ -214,6 +214,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
+    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing);
 
     const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
     const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
@@ -484,6 +485,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     tableBodyContentContainerStyle,
                     contentContainerStyle,
                     isBulkActionBarVisible && styles.bulkActionBarListSpacing,
+                    // The reserved space is padding, so it shrinks the content box a fixed minimum height describes.
+                    // Grow that height to match, or a footer the page pins to the bottom of the content jumps up when
+                    // a selection shows the bar.
+                    isBulkActionBarVisible &&
+                        typeof contentMinHeight === 'number' &&
+                        typeof bulkActionBarBottomSpacing === 'number' && {
+                            minHeight: contentMinHeight + bulkActionBarBottomSpacing,
+                        },
                     // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
