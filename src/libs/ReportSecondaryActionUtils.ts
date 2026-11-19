@@ -90,6 +90,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportManuallyReimbursed,
     isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
@@ -455,6 +456,20 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
+/**
+ * Whether the current user can undo their own "Received payment" confirmation on a Submit workspace report. Submit
+ * workspaces have no payer, so this is the only way to cancel a payment there. Auth only allows it while that
+ * confirmation is the latest payment on the report.
+ */
+function canSubmitterUndoPaymentReceived(report: Report, policy: Policy | undefined, currentAccountID: number): boolean {
+    if (!isSubmitPolicy(policy) || !isCurrentUserSubmitter(report, currentAccountID) || !isReportManuallyReimbursed(report)) {
+        return false;
+    }
+
+    const latestPayAction = getLatestPayAction(getReportPayActions(report.reportID));
+    return isPayAction(latestPayAction) && !!getOriginalMessage(latestPayAction)?.isSubmitterMarkedPaymentReceived;
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -472,6 +487,10 @@ function isCancelPaymentAction(
 
     if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
+    }
+
+    if (isExpenseReport && canSubmitterUndoPaymentReceived(report, policy, currentAccountID)) {
+        return true;
     }
 
     const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
