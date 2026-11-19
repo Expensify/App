@@ -1,0 +1,347 @@
+diff --git a/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt b/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
+index dfa1a39..5f6a87f 100644
+--- a/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
++++ b/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
+@@ -365,6 +365,10 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
+     // no-op
+   }
+ 
++  override fun listAppleWalletPasses(promise: Promise) {
++    // no-op
++  }
++
+   override fun addListener(eventType: String?) {
+     // no-op
+   }
+diff --git a/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java b/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
+index 999f0cb..466b490 100644
+--- a/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
++++ b/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
+@@ -65,6 +65,10 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+   @DoNotStrip
+   public abstract void listTokens(Promise promise);
+ 
++  @ReactMethod
++  @DoNotStrip
++  public abstract void listAppleWalletPasses(Promise promise);
++
+   @ReactMethod
+   @DoNotStrip
+   public abstract void IOSPresentAddPaymentPassView(ReadableMap cardData, Promise promise);
+diff --git a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+index 4981b78..3fc9914 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
++++ b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+@@ -123,6 +123,13 @@ - (instancetype)init {
+   resolve([walletManager getCardStatusByIdentifierWithIdentifier:identifier]);
+ }
+ 
++RCT_REMAP_METHOD(listAppleWalletPasses,
++                 listAppleWalletPasses:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  resolve([walletManager listAppleWalletPasses]);
++}
++
+ - (void)addCardToGoogleWallet:
+ #ifdef RCT_NEW_ARCH_ENABLED
+   (JS::NativeWallet::AndroidCardData &)cardData
+diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+index 6b3e4c3..fdaf280 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+@@ -213,6 +213,63 @@ open class WalletManager: UIViewController {
+     }
+   }
+   
++  @objc public func listAppleWalletPasses() -> [NSDictionary] {
++    let localPasses = passLibrary.passes(of: .secureElement).compactMap { pass -> NSDictionary? in
++      guard pass.isRemotePass == false,
++            let secureElementPass = pass.secureElementPass else {
++        return nil
++      }
++
++      return makeAppleWalletPassDictionary(
++        passTypeIdentifier: pass.passTypeIdentifier,
++        serialNumber: pass.serialNumber,
++        primaryAccountIdentifier: secureElementPass.primaryAccountIdentifier,
++        lastDigits: secureElementPass.primaryAccountNumberSuffix,
++        activationState: secureElementPass.passActivationState.rawValue,
++        isRemote: pass.isRemotePass
++      )
++    }
++
++    let remotePasses = passLibrary.remoteSecureElementPasses.map { pass in
++      makeAppleWalletPassDictionary(
++        passTypeIdentifier: pass.passTypeIdentifier,
++        serialNumber: pass.serialNumber,
++        primaryAccountIdentifier: pass.primaryAccountIdentifier,
++        lastDigits: pass.primaryAccountNumberSuffix,
++        activationState: pass.passActivationState.rawValue,
++        isRemote: true
++      )
++    }
++
++    return localPasses + remotePasses
++  }
++
++  private func makeAppleWalletPassDictionary(
++    passTypeIdentifier: String,
++    serialNumber: String,
++    primaryAccountIdentifier: String?,
++    lastDigits: String?,
++    activationState: Int,
++    isRemote: Bool
++  ) -> NSDictionary {
++    let result = NSMutableDictionary(dictionary: [
++      "passTypeIdentifier": passTypeIdentifier,
++      "serialNumber": serialNumber,
++      "activationState": activationState,
++      "isRemote": isRemote
++    ])
++
++    if let primaryAccountIdentifier = primaryAccountIdentifier, !primaryAccountIdentifier.isEmpty {
++      result["primaryAccountIdentifier"] = primaryAccountIdentifier
++    }
++
++    if let lastDigits = lastDigits, !lastDigits.isEmpty {
++      result["lastDigits"] = lastDigits
++    }
++
++    return result
++  }
++
+   private func isPassKitAvailable() -> Bool {
+     return PKAddPaymentPassViewController.canAddPaymentPass()
+   }
+diff --git a/node_modules/@expensify/react-native-wallet/lib/commonjs/index.js b/node_modules/@expensify/react-native-wallet/lib/commonjs/index.js
+index a960e51..280020d 100644
+--- a/node_modules/@expensify/react-native-wallet/lib/commonjs/index.js
++++ b/node_modules/@expensify/react-native-wallet/lib/commonjs/index.js
+@@ -16,6 +16,7 @@ exports.checkWalletAvailability = checkWalletAvailability;
+ exports.getCardStatusByIdentifier = getCardStatusByIdentifier;
+ exports.getCardStatusBySuffix = getCardStatusBySuffix;
+ exports.getSecureWalletInfo = getSecureWalletInfo;
++exports.listAppleWalletPasses = listAppleWalletPasses;
+ exports.listTokens = listTokens;
+ exports.removeListener = removeListener;
+ exports.resumeAddCardToGoogleWallet = resumeAddCardToGoogleWallet;
+@@ -126,6 +127,21 @@ async function listTokens() {
+   }
+   return _NativeWallet.default.listTokens();
+ }
++async function listAppleWalletPasses() {
++  if (_reactNative.Platform.OS === 'android') {
++    return Promise.resolve([]);
++  }
++  if (!_NativeWallet.default) {
++    return getModuleLinkingRejection();
++  }
++  const passes = await _NativeWallet.default.listAppleWalletPasses();
++  return passes.map(pass => ({
++    ...pass,
++    primaryAccountIdentifier: pass.primaryAccountIdentifier || undefined,
++    lastDigits: pass.lastDigits || undefined,
++    activationState: (0, _utils.getCardState)(pass.activationState)
++  }));
++}
+ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+   if (_reactNative.Platform.OS === 'android') {
+     throw new Error('addCardToAppleWallet is not available on Android');
+diff --git a/node_modules/@expensify/react-native-wallet/lib/module/index.js b/node_modules/@expensify/react-native-wallet/lib/module/index.js
+index 52d8760..3cdc039 100644
+--- a/node_modules/@expensify/react-native-wallet/lib/module/index.js
++++ b/node_modules/@expensify/react-native-wallet/lib/module/index.js
+@@ -102,6 +102,21 @@ async function listTokens() {
+   }
+   return Wallet.listTokens();
+ }
++async function listAppleWalletPasses() {
++  if (Platform.OS === 'android') {
++    return Promise.resolve([]);
++  }
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++  const passes = await Wallet.listAppleWalletPasses();
++  return passes.map(pass => ({
++    ...pass,
++    primaryAccountIdentifier: pass.primaryAccountIdentifier || undefined,
++    lastDigits: pass.lastDigits || undefined,
++    activationState: getCardState(pass.activationState)
++  }));
++}
+ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+   if (Platform.OS === 'android') {
+     throw new Error('addCardToAppleWallet is not available on Android');
+@@ -127,5 +142,5 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+   const status = await addPaymentPassToWallet(passData);
+   return getTokenizationStatus(status);
+ }
+-export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, addCardToAppleWallet, addListener, removeListener };
++export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, listAppleWalletPasses, addCardToAppleWallet, addListener, removeListener };
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts b/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
+index e204212..7f1cea1 100644
+--- a/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
++++ b/node_modules/@expensify/react-native-wallet/lib/typescript/src/NativeWallet.d.ts
+@@ -49,6 +49,14 @@ type IOSEncryptPayload = {
+     activationData: string;
+     ephemeralPublicKey: string;
+ };
++type IOSWalletPassNative = {
++    passTypeIdentifier: string;
++    serialNumber: string;
++    primaryAccountIdentifier?: string;
++    lastDigits?: string;
++    activationState: number;
++    isRemote: boolean;
++};
+ type TokenizationStatus = 'canceled' | 'success' | 'error';
+ type TokenInfo = {
+     identifier: string;
+@@ -64,6 +72,7 @@ export interface Spec extends TurboModule {
+     addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
+     resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
+     listTokens(): Promise<TokenInfo[]>;
++    listAppleWalletPasses(): Promise<IOSWalletPassNative[]>;
+     IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
+     IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
+     addListener: (eventType: string) => void;
+@@ -73,5 +82,5 @@ declare const PACKAGE_NAME = "@expensify/react-native-wallet";
+ declare let Wallet: Spec | undefined;
+ export default Wallet;
+ export { PACKAGE_NAME };
+-export type { AndroidCardData, AndroidResumeCardData, IOSCardData, AndroidWalletData, CardStatus, UserAddress, onCardActivatedPayload, Platform, IOSAddPaymentPassData, IOSEncryptPayload, TokenizationStatus, TokenInfo, };
++export type { AndroidCardData, AndroidResumeCardData, IOSCardData, AndroidWalletData, CardStatus, UserAddress, onCardActivatedPayload, Platform, IOSAddPaymentPassData, IOSEncryptPayload, IOSWalletPassNative, TokenizationStatus, TokenInfo, };
+ //# sourceMappingURL=NativeWallet.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-wallet/lib/typescript/src/index.d.ts b/node_modules/@expensify/react-native-wallet/lib/typescript/src/index.d.ts
+index cba33e5..96445c0 100644
+--- a/node_modules/@expensify/react-native-wallet/lib/typescript/src/index.d.ts
++++ b/node_modules/@expensify/react-native-wallet/lib/typescript/src/index.d.ts
+@@ -16,7 +16,16 @@ declare function getCardStatusByIdentifier(identifier: string, tsp: string): Pro
+ declare function addCardToGoogleWallet(cardData: AndroidCardData): Promise<TokenizationStatus>;
+ declare function resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<TokenizationStatus>;
+ declare function listTokens(): Promise<TokenInfo[]>;
++type IOSWalletPass = {
++    passTypeIdentifier: string;
++    serialNumber: string;
++    primaryAccountIdentifier?: string;
++    lastDigits?: string;
++    activationState: CardStatus;
++    isRemote: boolean;
++};
++declare function listAppleWalletPasses(): Promise<IOSWalletPass[]>;
+ declare function addCardToAppleWallet(cardData: IOSCardData, issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[]) => Promise<IOSEncryptPayload>): Promise<TokenizationStatus>;
+-export type { AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, onCardActivatedPayload, TokenizationStatus, TokenInfo };
+-export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, addCardToAppleWallet, addListener, removeListener, };
++export type { AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, IOSWalletPass, onCardActivatedPayload, TokenizationStatus, TokenInfo };
++export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, listAppleWalletPasses, addCardToAppleWallet, addListener, removeListener, };
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+index f15df6e..0e3cffa 100644
+--- a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
++++ b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+@@ -61,6 +61,15 @@ type IOSEncryptPayload = {
+   ephemeralPublicKey: string;
+ };
+ 
++type IOSWalletPassNative = {
++  passTypeIdentifier: string;
++  serialNumber: string;
++  primaryAccountIdentifier?: string;
++  lastDigits?: string;
++  activationState: number;
++  isRemote: boolean;
++};
++
+ type TokenizationStatus = 'canceled' | 'success' | 'error';
+ 
+ type TokenInfo = {
+@@ -78,6 +87,7 @@ export interface Spec extends TurboModule {
+   addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
+   resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
+   listTokens(): Promise<TokenInfo[]>;
++  listAppleWalletPasses(): Promise<IOSWalletPassNative[]>;
+   IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
+   IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
+   addListener: (eventType: string) => void;
+@@ -110,6 +120,7 @@ export type {
+   Platform,
+   IOSAddPaymentPassData,
+   IOSEncryptPayload,
++  IOSWalletPassNative,
+   TokenizationStatus,
+   TokenInfo,
+ };
+diff --git a/node_modules/@expensify/react-native-wallet/src/index.tsx b/node_modules/@expensify/react-native-wallet/src/index.tsx
+index d1801ff..935e911 100644
+--- a/node_modules/@expensify/react-native-wallet/src/index.tsx
++++ b/node_modules/@expensify/react-native-wallet/src/index.tsx
+@@ -12,11 +12,21 @@ import type {
+   AndroidWalletData,
+   onCardActivatedPayload,
+   IOSAddPaymentPassData,
++  IOSWalletPassNative,
+   TokenInfo,
+ } from './NativeWallet';
+ import {getCardState, getTokenizationStatus} from './utils';
+ import AddToWalletButton from './AddToWalletButton';
+ 
++type IOSWalletPass = {
++  passTypeIdentifier: string;
++  serialNumber: string;
++  primaryAccountIdentifier?: string;
++  lastDigits?: string;
++  activationState: CardStatus;
++  isRemote: boolean;
++};
++
+ function getModuleLinkingRejection() {
+   return Promise.reject(new Error(`Failed to load Wallet module, make sure to link ${PACKAGE_NAME} correctly`));
+ }
+@@ -131,6 +141,24 @@ async function listTokens(): Promise<TokenInfo[]> {
+   return Wallet.listTokens();
+ }
+ 
++async function listAppleWalletPasses(): Promise<IOSWalletPass[]> {
++  if (Platform.OS === 'android') {
++    return Promise.resolve([]);
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  const passes = await Wallet.listAppleWalletPasses();
++  return passes.map((pass: IOSWalletPassNative) => ({
++    ...pass,
++    primaryAccountIdentifier: pass.primaryAccountIdentifier || undefined,
++    lastDigits: pass.lastDigits || undefined,
++    activationState: getCardState(pass.activationState),
++  }));
++}
++
+ async function addCardToAppleWallet(
+   cardData: IOSCardData,
+   issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[]) => Promise<IOSEncryptPayload>,
+@@ -164,7 +192,7 @@ async function addCardToAppleWallet(
+   return getTokenizationStatus(status);
+ }
+ 
+-export type {AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, onCardActivatedPayload, TokenizationStatus, TokenInfo};
++export type {AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, IOSWalletPass, onCardActivatedPayload, TokenizationStatus, TokenInfo};
+ export {
+   AddToWalletButton,
+   checkWalletAvailability,
+@@ -174,6 +202,7 @@ export {
+   addCardToGoogleWallet,
+   resumeAddCardToGoogleWallet,
+   listTokens,
++  listAppleWalletPasses,
+   addCardToAppleWallet,
+   addListener,
+   removeListener,
