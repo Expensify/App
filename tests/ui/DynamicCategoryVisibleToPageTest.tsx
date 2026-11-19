@@ -12,6 +12,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
+import type * as ActiveSpans from '@libs/telemetry/activeSpans';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -37,7 +38,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/telemetry/activeSpans', () => ({
-    ...jest.requireActual('@libs/telemetry/activeSpans'),
+    ...jest.requireActual<typeof ActiveSpans>('@libs/telemetry/activeSpans'),
     endSpan: jest.fn(),
     cancelSpan: jest.fn(),
 }));
