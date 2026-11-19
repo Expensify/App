@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -10,6 +10,7 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
@@ -56,11 +57,19 @@ const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WOR
         </ComposeProviders>,
     );
 
+const saveName = async () => {
+    fireEvent.changeText(screen.getByLabelText('First name'), 'Jane');
+    fireEvent.changeText(screen.getByLabelText('Last name'), 'Doe');
+    fireEvent.press(screen.getByText('Save'));
+    await waitForBatchedUpdatesWithAct();
+};
+
 describe('WorkspaceMemberDisplayNamePage', () => {
     const selfAccountID = 1206;
     const selfEmail = 'self@example.com';
     const invitedAccountID = 5555;
     const invitedEmail = 'newmember@example.com';
+    const unloadedEmail = 'unloaded@example.com';
     const outsiderEmail = 'outsider@example.com';
 
     const policy = {
@@ -72,6 +81,7 @@ describe('WorkspaceMemberDisplayNamePage', () => {
         employeeList: {
             [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN},
             [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER},
+            [unloadedEmail]: {email: unloadedEmail, role: CONST.POLICY.ROLE.USER},
         },
     };
 
@@ -86,6 +96,7 @@ describe('WorkspaceMemberDisplayNamePage', () => {
         await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            // The member with unloadedEmail gets no entry, like a member the backend returned no personal details for.
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [selfAccountID]: TestHelper.buildPersonalDetails(selfEmail, selfAccountID, 'Self'),
                 [invitedAccountID]: invitedPersonalDetails,
@@ -106,9 +117,11 @@ describe('WorkspaceMemberDisplayNamePage', () => {
             isInLandscapeMode: false,
         };
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(responsiveLayout);
+        jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
         jest.restoreAllMocks();
         await act(async () => {
             await Onyx.clear();
@@ -117,19 +130,15 @@ describe('WorkspaceMemberDisplayNamePage', () => {
 
     it('shows the form and updates the real account when the route keeps the optimistic invite ID', async () => {
         // Given a route that still holds the ID generated from the login while the invite was pending, which has no personal details entry
-        jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         const staleOptimisticAccountID = generateAccountID(invitedEmail);
         const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
         await waitForBatchedUpdatesWithAct();
 
         // Then the editor opens, because the member is resolved by login like on Member details
-        await waitFor(() => expect(screen.getByLabelText('First name')).toBeOnTheScreen());
+        expect(await screen.findByLabelText('First name')).toBeOnTheScreen();
 
-        // When the admin saves a name
-        fireEvent.changeText(screen.getByLabelText('First name'), 'Jane');
-        fireEvent.changeText(screen.getByLabelText('Last name'), 'Doe');
-        fireEvent.press(screen.getByText('Save'));
-        await waitForBatchedUpdatesWithAct();
+        // When the admin saves a name while the route still holds the optimistic ID
+        await saveName();
 
         // Then the name is written to the member's real personal details entry, not to the stale ID
         const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -139,13 +148,57 @@ describe('WorkspaceMemberDisplayNamePage', () => {
         unmount();
     });
 
+    it('shows the form and saves by login for a member whose personal details did not load', async () => {
+        // Given a route with the ID the members list generates for a member that has no personal details
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(unloadedEmail))});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the editor opens, because the login is recovered from the workspace
+        expect(await screen.findByLabelText('First name')).toBeOnTheScreen();
+
+        // When the admin saves a name for a member the page only knows by login
+        await saveName();
+
+        // Then the request names the member by login, which is how the server finds them
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME, 0, {policyID: policy.id, email: unloadedEmail, firstName: 'Jane', lastName: 'Doe'});
+        unmount();
+    });
+
+    it('shows the form for a member opened with their real account ID', async () => {
+        // Given a route with the member's real account ID, the path that already worked
+        // When the page opens with that ID, so the member is found without the login fallback
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the editor still opens
+        expect(await screen.findByLabelText('First name')).toBeOnTheScreen();
+        unmount();
+    });
+
+    it('stays blocked when the member found by login already has a name', async () => {
+        // Given a stale optimistic route while the member's real entry already has a name
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[invitedAccountID]: {firstName: 'Jane'}});
+        });
+
+        // When the page opens on the stale ID, so the name check has to use the entry found by login
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(invitedEmail))});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the not found page shows, because an admin can only set a name the member has not set
+        expect(await screen.findByText("Hmm... it's not here")).toBeOnTheScreen();
+        expect(screen.queryByLabelText('First name')).not.toBeOnTheScreen();
+        unmount();
+    });
+
     it('stays blocked for an account that is not a workspace member', async () => {
         // Given a route for an account whose login is not in the workspace
-        // When the page opens
+        // When the page opens, so the login fallback searches the workspace and finds no member
         const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(outsiderEmail))});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the editor is not shown, so the login fallback does not open the page for non-members
+        // Then the not found page shows, so the login fallback does not open the page for non-members
+        expect(await screen.findByText("Hmm... it's not here")).toBeOnTheScreen();
         expect(screen.queryByLabelText('First name')).not.toBeOnTheScreen();
         unmount();
     });
