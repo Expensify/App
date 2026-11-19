@@ -1,5 +1,5 @@
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
-import {chatIncludesConcierge, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {chatIncludesConcierge, isDM, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,12 +64,12 @@ const getChatFSClass: GetChatFSClass = (report) => {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
-    // DMs / Groups / Rooms should be unmasked only if Concierge or a custom agent is in the chat. Custom agents
-    // are treated like Concierge because they act as Expensify system users, not as people.
+    // DMs / Groups / Rooms should be unmasked only if Concierge is in the chat, or if it's the user's DM with a custom agent.
+    // Custom agents act as Expensify system users like Concierge, but a chat between people stays masked even when an agent is in it.
     const participantAccountIDs = getReportParticipantAccountIDs(report);
     if (participantAccountIDs.length > 0) {
-        const hasCustomAgent = getCustomAgentParticipantAccountID(participantAccountIDs)(getAllPersonalDetails()) !== undefined;
-        return chatIncludesConcierge(report) || hasCustomAgent ? CONST.FULLSTORY.CLASS.UNMASK : CONST.FULLSTORY.CLASS.MASK;
+        const isCustomAgentDM = isDM(report) && participantAccountIDs.length <= 2 && getCustomAgentParticipantAccountID(participantAccountIDs)(getAllPersonalDetails()) !== undefined;
+        return chatIncludesConcierge(report) || isCustomAgentDM ? CONST.FULLSTORY.CLASS.UNMASK : CONST.FULLSTORY.CLASS.MASK;
     }
 
     return CONST.FULLSTORY.CLASS.UNMASK;
