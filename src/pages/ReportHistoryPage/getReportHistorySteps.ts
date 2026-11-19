@@ -8,7 +8,6 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
-    getExportIntegrationLastMessageText,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSortedReportActions,
@@ -109,7 +108,7 @@ function getCompletedStep(
         if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return undefined;
         }
-        return {...step, icon: 'Export', label: getExportIntegrationLastMessageText(translate, reportAction, label).trim()};
+        return {...step, icon: 'Export', label: translate('report.actions.type.exportedToIntegration.automatic', label ?? '')};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
         return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};
