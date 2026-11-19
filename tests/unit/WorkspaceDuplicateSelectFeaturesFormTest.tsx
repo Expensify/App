@@ -244,6 +244,18 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(rules).toBeUndefined();
     });
 
+    it('shows Rules when public receipt visibility is the only configured rule', async () => {
+        // Given a Control workspace with public receipts and all other Rules settings at their defaults.
+        await renderForm(false, {isReceiptVisibilityPublic: true});
+
+        // When the settings selection is submitted.
+        pressContinue();
+
+        // Then Rules is available and included in the request so public receipt visibility is copied.
+        expect(getRow('rules')?.isSelected).toBe(true);
+        expect(getSentParts()).toContain('rules');
+    });
+
     it('shows Rules when Agent rules are the only configured rules', async () => {
         // Given a Control workspace with only one saved Agent rule.
         await renderForm(false, {rules: {agentRules: {agent: {ruleID: 'agent', prompt: 'Require receipts', created: '2026-11-01'}}}});
