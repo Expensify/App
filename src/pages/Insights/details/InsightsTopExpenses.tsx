@@ -51,20 +51,17 @@ type InsightsTopExpensesProps = {
     /** Hash of the snapshot the expenses are stored under */
     snapshotHash: number;
 
-    /** Hash of the panel's GetInsightsDetails entry, absent when the expenses come from Search */
-    detailsHash: number | undefined;
-
-    /** Requests the panel's sections again */
+    /** Requests the expenses again */
     onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, snapshotHash, detailsHash, onRetry}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash, detailsHash);
+    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

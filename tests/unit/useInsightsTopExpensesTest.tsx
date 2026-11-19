@@ -33,8 +33,6 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 const QUERY = 'type:expense view:table date>=2026-01-01 date<=2026-03-31';
 const TOP_EXPENSES_QUERY_JSON = buildTopExpensesQueryJSON(QUERY);
 const SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.SNAPSHOT}${TOP_EXPENSES_QUERY_JSON?.hash}` as const;
-const DETAILS_HASH = 1;
-const DETAILS_KEY = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${DETAILS_HASH}` as const;
 const ACCOUNT_ID = 1;
 
 /** Builds a snapshot with one expense report per expense, the expense with ID `n` costing `n` dollars. */
@@ -91,8 +89,8 @@ function buildSearchMetadata() {
     };
 }
 
-function renderTopExpenses(query: string, detailsHash: number | undefined = DETAILS_HASH) {
-    return renderHook((props: {query: string}) => useInsightsTopExpenses(props.query, TOP_EXPENSES_QUERY_JSON?.hash ?? 0, detailsHash), {
+function renderTopExpenses(query: string) {
+    return renderHook((props: {query: string}) => useInsightsTopExpenses(props.query, TOP_EXPENSES_QUERY_JSON?.hash ?? 0), {
         initialProps: {query},
         wrapper: ({children}) => <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>{children}</ComposeProviders>,
     });
@@ -152,9 +150,9 @@ describe('useInsightsTopExpenses', () => {
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
 
-        it('is stale when the request got no response', async () => {
-            // Given a request that failed without reaching the server
-            await Onyx.set(DETAILS_KEY, {errors: {error: 'No response'}, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE});
+        it('is stale when the Search got no response', async () => {
+            // Given a graph GetInsightsDetails doesn't support, whose Top expenses Search failed without reaching the server
+            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});
 
             // When the panel renders
             const {result} = renderTopExpenses(QUERY);
@@ -164,9 +162,9 @@ describe('useInsightsTopExpenses', () => {
             expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.STALE);
         });
 
-        it('is an error when the server rejected the request', async () => {
-            // Given a request the server answered with an error
-            await Onyx.set(DETAILS_KEY, {errors: {error: 'Server error'}, responseJsonCode: CONST.JSON_CODE.EXP_ERROR});
+        it('is an error when the server rejected the Search', async () => {
+            // Given a Top expenses Search the server answered with an error
+            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'Server error'}, search: buildSearchMetadata()});
 
             // When the panel renders
             const {result} = renderTopExpenses(QUERY);
@@ -174,18 +172,6 @@ describe('useInsightsTopExpenses', () => {
 
             // Then it shows the error state
             expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.ERROR);
-        });
-
-        it('is stale when the Search fallback got no response', async () => {
-            // Given a graph GetInsightsDetails doesn't support, whose Top expenses Search failed without reaching the server
-            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});
-
-            // When the panel renders without a Details entry
-            const {result} = renderTopExpenses(QUERY, undefined);
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it reads the failure from the snapshot and asks the user to refresh
-            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.STALE);
         });
 
         it('is offline when offline and nothing is stored for the query', async () => {

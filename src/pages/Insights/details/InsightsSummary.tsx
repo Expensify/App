@@ -19,20 +19,19 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsGraphKey} from '@src/types/onyx';
+import type {InsightsDetailsSummary, InsightsGraphKey} from '@src/types/onyx';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
 import type {InsightsDetailsQuery} from './buildInsightsDetailsQuery';
+import type {InsightsDetailsSectionState} from './insightsDetailsSectionState';
 
 import getInsightsAverageComparison, {MIN_AVERAGE_PERIOD_COUNT} from './getInsightsAverageComparison';
 import {getPeriodTitle} from './insightsDetailsItem';
-import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummarySkeleton from './InsightsSummarySkeleton';
-import useInsightsSummary from './useInsightsSummary';
 
 const VERSUS_AVERAGE_PERIOD_KEYS = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.summary.versusAverageDay',
@@ -68,8 +67,11 @@ type InsightsSummaryProps = {
     /** Currency the amounts are converted to */
     currency: string;
 
-    /** Requests the panel's sections again */
-    onRetry: () => void;
+    /** Summary stored for the request, absent until it loads */
+    summary: InsightsDetailsSummary | undefined;
+
+    /** What the section shows: its data, a skeleton, or the offline state */
+    state: InsightsDetailsSectionState;
 };
 
 type SummaryTileProps = {
@@ -99,7 +101,7 @@ function SummaryTile({label, value}: SummaryTileProps) {
 }
 
 /** Describes the summarized period and how it compares to the item's own average. */
-function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryProps) {
+function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSummaryProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -107,18 +109,8 @@ function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryPr
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
     const illustrations = useMemoizedLazyIllustrations(['CalendarMonthlyMuted']);
-    const {summary, state} = useInsightsSummary(query);
     const {period, periodGroupBy, isPeriodInProgress} = query;
     const isSpendOverTime = graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME;
-
-    if (state === INSIGHTS_DETAILS_SECTION_STATE.STALE || state === INSIGHTS_DETAILS_SECTION_STATE.ERROR) {
-        return (
-            <InsightsDetailsSectionError
-                isStale={state === INSIGHTS_DETAILS_SECTION_STATE.STALE}
-                onRetry={onRetry}
-            />
-        );
-    }
 
     const periodTitle = getPeriodTitle(periodGroupBy, period, dateFnsLocale);
 

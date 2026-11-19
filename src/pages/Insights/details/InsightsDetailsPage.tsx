@@ -30,8 +30,11 @@ import {View} from 'react-native';
 
 import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
+import InsightsDetailsSectionError from './InsightsDetailsSectionError';
+import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
+import useInsightsSummary from './useInsightsSummary';
 import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
@@ -77,6 +80,8 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             ? buildInsightsDetailsQuery({graphKey: chartSpec.graphKey, filters, itemGroupBy: chartSpec.groupBy, itemKey, periodEnd, topExpensesSnapshotHash})
             : undefined;
     const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
+    const {summary, state: detailsState} = useInsightsSummary(detailsQuery);
+    const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -110,21 +115,30 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    {!!detailsQuery && (
-                        <InsightsSummary
-                            query={detailsQuery}
-                            graphKey={chartSpec.graphKey}
-                            currency={filters.groupCurrency}
+                    {hasDetailsFailed ? (
+                        <InsightsDetailsSectionError
+                            isStale={detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE}
                             onRetry={requestDetails}
                         />
-                    )}
-                    {topExpensesSnapshotHash !== undefined && (
-                        <InsightsTopExpenses
-                            query={drillDownQuery}
-                            snapshotHash={topExpensesSnapshotHash}
-                            detailsHash={detailsQuery?.hash}
-                            onRetry={requestDetails}
-                        />
+                    ) : (
+                        <>
+                            {!!detailsQuery && (
+                                <InsightsSummary
+                                    query={detailsQuery}
+                                    graphKey={chartSpec.graphKey}
+                                    currency={filters.groupCurrency}
+                                    summary={summary}
+                                    state={detailsState}
+                                />
+                            )}
+                            {topExpensesSnapshotHash !== undefined && (
+                                <InsightsTopExpenses
+                                    query={drillDownQuery}
+                                    snapshotHash={topExpensesSnapshotHash}
+                                    onRetry={requestDetails}
+                                />
+                            )}
+                        </>
                     )}
                 </ScrollView>
             )}

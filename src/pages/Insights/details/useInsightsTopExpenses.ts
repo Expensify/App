@@ -26,22 +26,20 @@ type TopExpenses = {
 };
 
 /** Returns the largest expenses stored for a Spend table query, as Spend rows sorted by amount. */
-function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number, detailsHash: number | undefined): TopExpenses {
+function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number): TopExpenses {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const session = useSession();
-    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsHash}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
     const queryJSON = buildTopExpensesQueryJSON(query);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
-    // A failed GetInsightsDetails stores its errors on the panel's entry, a failed Search on the snapshot
-    const hasErrors = !isEmptyObject(details?.errors) || !isEmptyObject(snapshot?.errors);
+    const hasErrors = !isEmptyObject(snapshot?.errors);
 
-    const state = getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode: details?.responseJsonCode ?? snapshot?.search?.responseJsonCode});
+    const state = getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode: snapshot?.search?.responseJsonCode});
 
     if (!queryJSON || !snapshot?.data || state !== INSIGHTS_DETAILS_SECTION_STATE.READY) {
         return {expenses: [], queryJSON, state};

@@ -16,9 +16,9 @@ type InsightsSummary = {
 };
 
 /** Returns the Details panel's stored summary with the state the section is in. */
-function useInsightsSummary(query: InsightsDetailsQuery): InsightsSummary {
+function useInsightsSummary(query: InsightsDetailsQuery | undefined): InsightsSummary {
     const {isOffline} = useNetwork();
-    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${query.hash}`);
+    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${query?.hash}`);
 
     const summary = details?.summary;
     const state = getInsightsDetailsSectionState({
