@@ -162,19 +162,15 @@ describe('ShareRootPage', () => {
         expect(await Onyx.get(ONYXKEYS.SHARE_TEMP_FILE)).toBeUndefined();
     });
 
-    it('shows an attachment error when the shared data cannot be read', async () => {
+    it('shows that the attachment was not found when the shared data cannot be read', async () => {
         // Given the native handler rejects because the shared file is missing or unreadable
         jest.mocked(ShareActionHandler.processFiles).mockRejectedValue(new Error('The shared file is missing or unreadable'));
 
         // When the Share screen opens
         await renderShareRootPage();
 
-        // Then the user sees the attachment error and nothing is stored
-        expect(Alert.alert).toHaveBeenCalledWith(
-            translateLocal('attachmentPicker.attachmentError'),
-            translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
-            expect.any(Array),
-        );
+        // Then the user is told the attachment is missing rather than corrupted, because a read fails when the file or its folder is gone
+        expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.attachmentError'), translateLocal('attachmentView.attachmentNotFound'), expect.any(Array));
         expect(await Onyx.get(ONYXKEYS.SHARE_TEMP_FILE)).toBeUndefined();
     });
 

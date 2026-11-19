@@ -171,7 +171,7 @@ function ShareRootPage() {
                     return;
                 }
                 setErrorTitle(translate('attachmentPicker.attachmentError'));
-                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                setErrorMessage(translate('attachmentView.attachmentNotFound'));
             });
     };
 
