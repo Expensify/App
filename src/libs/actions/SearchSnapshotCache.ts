@@ -10,8 +10,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** When the focused Search page opened its query. Snapshots used since then (the query and its expanded groups) are on screen and can't be evicted */
-let currentPageOpenedAt = Infinity;
+/** How many mounted views show each snapshot. A frozen tab stays mounted, so what it shows survives a switch to another tab */
+const shownSnapshotCounts = new Map<string, number>();
 
 /** Each update reads the access record the previous one wrote, so calls fired together don't overwrite each other */
 let accessQueue = Promise.resolve();
@@ -19,7 +19,7 @@ let accessQueue = Promise.resolve();
 /** Snapshots outside the most recently used ones of their kind. Pinned and ordinary snapshots are capped separately */
 function getEvictedHashes(access: SearchSnapshotAccess): string[] {
     const newestFirst = Object.keys(access)
-        .filter((hash) => access[hash].lastAccessed < currentPageOpenedAt)
+        .filter((hash) => !shownSnapshotCounts.has(hash))
         .sort((a, b) => access[b].lastAccessed - access[a].lastAccessed);
     const evictedPinned = newestFirst.filter((hash) => access[hash].isPinned).slice(CONST.SEARCH.MAX_CACHED_PINNED_SNAPSHOTS);
     const evictedOrdinary = newestFirst.filter((hash) => !access[hash].isPinned).slice(CONST.SEARCH.MAX_CACHED_SNAPSHOTS);
@@ -56,15 +56,23 @@ function trackSearchSnapshotAccess(hashes: number[], isPinned = false) {
     return accessQueue;
 }
 
-/** Same as trackSearchSnapshotAccess, for the query the Search page shows */
-function trackSearchPageSnapshotAccess(hash: number, isPinned: boolean) {
-    currentPageOpenedAt = Date.now();
-    return trackSearchSnapshotAccess([hash], isPinned);
+/** Marks snapshots as used and keeps them from eviction until the returned function hides them */
+function showSearchSnapshots(hashes: number[], isPinned = false) {
+    for (const hash of hashes) {
+        shownSnapshotCounts.set(String(hash), (shownSnapshotCounts.get(String(hash)) ?? 0) + 1);
+    }
+    trackSearchSnapshotAccess(hashes, isPinned);
+
+    return () => {
+        for (const hash of hashes) {
+            const count = shownSnapshotCounts.get(String(hash)) ?? 0;
+            if (count > 1) {
+                shownSnapshotCounts.set(String(hash), count - 1);
+            } else {
+                shownSnapshotCounts.delete(String(hash));
+            }
+        }
+    };
 }
 
-/** Lets the snapshots the Search page used be evicted again once it shows another query or loses focus */
-function leaveSearchPage() {
-    currentPageOpenedAt = Infinity;
-}
-
-export {trackSearchSnapshotAccess, trackSearchPageSnapshotAccess, leaveSearchPage};
+export {trackSearchSnapshotAccess, showSearchSnapshots};

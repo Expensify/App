@@ -2,6 +2,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
@@ -455,6 +456,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     const cardGroupQueryJSON = displayableCards.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID)) : undefined;
     const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
+    useShowSearchSnapshots([approvalQueryJSON?.hash, paymentQueryJSON?.hash, cardGroupQueryJSON?.hash].filter((hash): hash is number => hash !== undefined));
 
     const cardRows: YourSpendCardRow[] = displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
         const totals = cardTotalsByCardID?.[card.cardID];

@@ -3,7 +3,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {clearPageRequestedSearch, isFirstPageSearchInFlight, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
-import {leaveSearchPage, trackSearchPageSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
@@ -21,6 +20,7 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
+import useShowSearchSnapshots from './useShowSearchSnapshots';
 
 // Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
@@ -102,17 +102,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // An unmodified saved or suggested search keeps its snapshot outside the cache cap
     const isSavedOrSuggestedQuery = hash !== undefined && currentDefaultSearchQueryJSON?.hash === hash;
 
-    // A cached query is shown without a new request, so opening it has to mark its snapshot as used here.
-    // Scoped to focus: a frozen tab stays mounted, and would otherwise shield everything tracked from other tabs.
-    function trackFocusedPageSnapshot() {
-        if (hash === undefined || isInPreloadedTab) {
-            return;
-        }
-        trackSearchPageSnapshotAccess(hash, isSavedOrSuggestedQuery);
-        return leaveSearchPage;
-    }
-
-    useFocusEffect(trackFocusedPageSnapshot);
+    // A cached query is shown without a new request, so showing it has to mark its snapshot as used here
+    useShowSearchSnapshots(hash === undefined || isInPreloadedTab ? undefined : [hash], isSavedOrSuggestedQuery);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.

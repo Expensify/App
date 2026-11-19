@@ -1,4 +1,4 @@
-import {leaveSearchPage, trackSearchPageSnapshotAccess, trackSearchSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
+import {showSearchSnapshots, trackSearchSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
 import ClearUntrackedSearchSnapshots from '@libs/migrations/ClearUntrackedSearchSnapshots';
 
 import CONST from '@src/CONST';
@@ -53,10 +53,6 @@ describe('trackSearchSnapshotAccess', () => {
         await waitForBatchedUpdates();
     });
 
-    afterEach(() => {
-        leaveSearchPage();
-    });
-
     it('evicts the least recently used snapshots past the cap', async () => {
         // Given An empty cache
         // When More distinct searches run at once than the cap allows, each newer than the last
@@ -93,26 +89,29 @@ describe('trackSearchSnapshotAccess', () => {
         expect(hashes).toHaveLength(MAX + 1);
     });
 
-    it('keeps the snapshots the Search page uses until it shows another query', async () => {
-        // Given The page shows a query
-        await writeSnapshot(500);
-        await trackSearchPageSnapshotAccess(500, false);
+    it('keeps the snapshots a view shows, even after the user switches to another tab', async () => {
+        // Given Spend shows a query and a dashboard shows more snapshots than the cap, both staying mounted in frozen tabs
+        await Promise.all([500, ...range(2000, MAX + 5)].map(writeSnapshot));
+        const hideSpend = showSearchSnapshots([500]);
+        const hideDashboard = showSearchSnapshots(range(2000, MAX + 5));
 
-        // When More groups are expanded than the cap allows, each running its own search
+        // When Many other searches run elsewhere
         await cacheSearches(range(1, MAX + 5));
 
-        // Then Neither the query nor its expanded groups are removed from under the page
-        expect(await getSnapshotHashes()).toEqual([...range(1, MAX + 5), 500]);
+        // Then Nothing either view shows is removed from under it, while everything else stays capped
+        let hashes = await getSnapshotHashes();
+        expect(hashes).toEqual(expect.arrayContaining([500, ...range(2000, MAX + 5)]));
+        expect(hashes.filter((hash) => hash < 500)).toHaveLength(MAX);
 
-        // When The page moves on to another query
-        leaveSearchPage();
-        await writeSnapshot(999);
-        await trackSearchPageSnapshotAccess(999, false);
+        // When Both views move on and another search runs
+        hideSpend();
+        hideDashboard();
+        await cacheSearches([MAX + 10]);
 
-        // Then The previous page's snapshots are evictable again, so the cap holds besides the new page
-        const hashes = await getSnapshotHashes();
-        expect(hashes).toContain(999);
-        expect(hashes).toHaveLength(MAX + 1);
+        // Then Their snapshots are evictable again, so the cap holds
+        hashes = await getSnapshotHashes();
+        expect(hashes).toContain(MAX + 10);
+        expect(hashes).toHaveLength(MAX);
     });
 
     it('caps pinned searches separately, so pins of deleted or edited saved searches age out', async () => {
