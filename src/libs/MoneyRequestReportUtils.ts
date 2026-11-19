@@ -5,7 +5,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {CardList, OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
