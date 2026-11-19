@@ -82,16 +82,23 @@ For more details on configuring card restriction rules, see [Expensify Card Spen
 
 ## How to apply expense defaults on the Expense defaults tab
 
-The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Each rule matches on a merchant, a merchant type, or a category, and then updates fields such as the category, tag, description, or tax rate.
+The **Expense defaults** tab holds rules that fill in expense fields automatically, so members don't have to. Create rules that match a merchant, category, tag, or a combination of these conditions, then apply defaults such as the category, tag, description, tax rate, or amount. Expense defaults require the Control plan.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Rules**.
-3. Select **Add rule**.
-4. Choose **Apply expense defaults**.
-5. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
-6. Configure the rule and select **Save rule**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Rules**.
+2. Open the **Expense defaults** tab and select **Add rule**.
+3. Select **Apply expense defaults**.
+4. Under **If any expense matches:**, set at least one condition:
+   - **Merchant**: Enter a merchant name and choose **Contains** or **Exactly matches**.
+   - **Category**: Select one or more categories to match.
+   - **Tag**: Select one or more tags to match.
+5. Under **Then apply the following defaults:**, select at least one field to update. For example, match a **Category** and set a **Tax** default, or match a **Merchant** and set an **Amount** default. Available fields depend on your workspace settings.
+6. (Optional) Select **Preview** to open **Preview matches** and review matching unsubmitted expenses. Previewing does not change expenses.
+7. (Optional) Enable **Apply to existing unsubmitted expenses** to also update matching expenses that haven't been submitted yet.
+8. Select **Save rule**.
 
-A category default tax rate applies only to new expenses in that category. Expenses that already exist don't change.
+An expense must match every condition you set. For example, a rule with a merchant and a category condition only matches expenses with both. Within a category or tag condition, matching any selected value is enough. You can also create a category-only or tag-only rule without a merchant condition.
+
+Expense defaults apply to matching new expenses. **Apply to existing unsubmitted expenses** is disabled by default. Saving without this option does not retroactively update existing expenses, and enabling it does not update submitted expenses. **Amount** sets a default amount; it is not an amount-matching condition.
 
 Default categories based on the merchant's MCC (Merchant Category Code) also live on this tab. They appear as rules with a condition of **Merchant type is** and a rule of **Update category to**. You can change the category a merchant type maps to, but you can't edit the merchant type or delete these rules.
 

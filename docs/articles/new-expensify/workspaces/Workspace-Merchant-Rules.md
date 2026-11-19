@@ -17,16 +17,19 @@ Merchant Rules live on the **Expense defaults** tab of the **Rules** page and ar
 
 To create a Merchant Rule:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
-2. Click **Rules**.
-3. Open the **Expense defaults** tab, click **Add rule**, then select **Apply expense defaults**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Rules**.
+2. Open the **Expense defaults** tab.
+3. Select **Add rule**, then select **Apply expense defaults**.
 4. Select **Merchant**, then enter the merchant name and choose how it should match:
    - **Contains**
-   - **Matches exactly**
-5. Select the fields you want the rule to update. 
-6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
-7. (Optional) Click **Preview matches** to review which unsubmitted expenses match the rule.
-8. Click **Save rule**.
+   - **Exactly matches**
+5. (Optional) Add **Category** or **Tag** conditions to narrow which expenses match the merchant.
+6. Select the fields you want the rule to update, such as **Category**, **Tax**, or **Amount**.
+7. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
+8. (Optional) Select **Preview** to review matching unsubmitted expenses without changing them.
+9. Select **Save rule**.
+
+Every condition must match. If you select multiple categories or tags within one condition, matching any selected value is enough. Learn how to [configure combined expense-default conditions](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab), including rules without a merchant condition.
 
 ---
 
@@ -56,9 +59,9 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
 
 ## How Merchant Rules are applied
 
-Each Merchant Rule matches expenses using either **Matches exactly** or **Contains**.
+Each Merchant Rule matches merchant names using either **Exactly matches** or **Contains**, along with any category or tag conditions you set.
 
-When an expense is created and its merchant matches a rule, Expensify automatically updates the fields configured in that rule.
+When an expense is created and matches a rule's conditions, Expensify automatically updates the fields configured in that rule.
 
 Keep these behaviors in mind:
 
@@ -75,12 +78,12 @@ Use these best practices to ensure predictable results:
 
 **Use specific merchant names**
 
-- Start with **exactly matches** for common vendors (e.g., "Uber", "Slack") to avoid false matches.
+- Start with **Exactly matches** for common vendors (e.g., "Uber", "Slack") to avoid false matches.
 - Use **contains** carefully, since broad terms can match unintended merchants.
 
 **Test Merchant Rules before rollout**
 
-- Use **Preview matches** during setup.
+- Use **Preview** during setup.
 - Start with narrow rules and expand as needed.
 
 ---
@@ -121,6 +124,7 @@ The message identifies which fields were updated and that the changes were made 
 
 Common reasons include:
 - The merchant name didn't match the rule criteria.
+- The expense didn't match an additional category or tag condition.
 - The rule is disabled.
 - Another rule matched first.
 - A field was manually set during expense creation.
@@ -161,4 +165,4 @@ Merchant Rules can update:
    - Reimbursable status
    - Billable status
    - Tax
-
+   - Amount
