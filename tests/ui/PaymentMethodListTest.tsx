@@ -352,7 +352,7 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
         // Then the row shows the setup is in progress, and Continue opens the intro, which picks the onboarding up where the admin left it
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
@@ -368,7 +368,7 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
         // Then Continue opens the status page, since the onboarding is already with Wise and only waits on the admin's answers
         expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
@@ -386,7 +386,7 @@ describe('PaymentMethodList', () => {
 
         // Then the row shows the setup is in progress, with nothing to continue, since the answers are already with Wise
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(screen.queryByText('Continue.')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Continue')).not.toBeOnTheScreen();
     });
 
     it('hides the Wise onboarding row without the Wise beta', async () => {
