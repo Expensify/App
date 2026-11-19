@@ -103,7 +103,6 @@ function CreateDistanceRatePage({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const formRef = useRef<FormRef>(null);
-    const shouldFocusNameOnMountRef = useRef(false);
 
     // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
     const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
@@ -158,9 +157,6 @@ function CreateDistanceRatePage({
         // Android keeps the keyboard open when the focused Name input unmounts
         if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
             KeyboardUtils.dismiss();
-        } else if (kind !== selectedKind) {
-            // Name mounts after this switch, which is too late for the screen's autofocus
-            shouldFocusNameOnMountRef.current = true;
         }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
@@ -372,15 +368,10 @@ function CreateDistanceRatePage({
                                             {translate('common.details')}
                                         </Text>
                                         <InputWrapper
-                                            ref={(el) => {
-                                                inputCallbackRef(el);
-                                                if (!el || !shouldFocusNameOnMountRef.current) {
-                                                    return;
-                                                }
-                                                shouldFocusNameOnMountRef.current = false;
-                                                el.focus();
-                                            }}
+                                            ref={inputCallbackRef}
                                             InputComponent={TextInput}
+                                            // Name mounts when the user switches to Custom, after the screen's autofocus has run
+                                            autoFocus={pickedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM}
                                             inputID={INPUT_IDS.NAME}
                                             label={translate('common.name')}
                                             accessibilityLabel={translate('common.name')}
