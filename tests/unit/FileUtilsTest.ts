@@ -671,6 +671,33 @@ describe('FileUtils', () => {
             // Then the result keeps the resized dimensions, so the optimistic thumbnail doesn't jump from a square to the real aspect ratio
             expect(result).toEqual({uri: 'file://resized.jpg', name: 'large.jpg', type: 'image/jpeg', width: 3000, height: 2000});
         });
+
+        it('should resize a 12 MiB image when given the receipt limit', async () => {
+            // Given a 12 MiB receipt: over the 10 MiB receipt limit, under the 24 MiB attachment limit
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 8000, height: 6000});
+            jest.mocked(getImageManipulator).mockResolvedValue(Object.assign(new File(['resized'], 'receipt.jpg', {type: 'image/jpeg'}), {uri: 'file://resized.jpg'}));
+            const file = {uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg', size: 12 * 1024 * 1024};
+
+            // When it is resized against the receipt limit
+            const result = await resizeImageIfNeeded(file, CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
+
+            // Then it is resized instead of being uploaded over the receipt limit
+            expect(getImageManipulator).toHaveBeenCalled();
+            expect(result.uri).toBe('file://resized.jpg');
+        });
+
+        it('should not resize a 12 MiB image when no limit is given', async () => {
+            // Given a 12 MiB image sent as a regular attachment
+            const file = {uri: 'file://photo.jpg', name: 'photo.jpg', type: 'image/jpeg', size: 12 * 1024 * 1024};
+
+            // When it is resized without a limit
+            const result = await resizeImageIfNeeded(file);
+
+            // Then it is returned untouched, because attachments still use the 24 MiB limit
+            expect(getImageManipulator).not.toHaveBeenCalled();
+            expect(result).toBe(file);
+        });
     });
 
     describe('isHighResolutionImage', () => {
