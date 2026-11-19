@@ -48,6 +48,7 @@ function SelectionProbe() {
         <Text
             testID="probe"
             onPress={() => selectAllMatchingItems(true)}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         >
             {areAllMatchingItemsSelected ? 'all-matching' : 'nothing'}
         </Text>

@@ -4,7 +4,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBankAccountData, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -19,7 +19,7 @@ import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -31,6 +31,7 @@ import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
@@ -49,6 +50,10 @@ type UseBulkPayOptionProps = {
     currency: string | undefined;
     formattedAmount: string;
     onlyShowPayElsewhere: boolean;
+    hasMultipleCurrencies?: boolean;
+
+    /** Whether the selection can be paid via ABA, i.e. it's from a single workspace that can pay via ABA */
+    shouldShowPayViaABAOption?: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -69,11 +74,14 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
+    hasMultipleCurrencies = false,
+    shouldShowPayViaABAOption = false,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
@@ -107,7 +115,7 @@ function useBulkPayOptions({
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
-                const accountData = method?.accountData as AccountData;
+                const accountData = getBankAccountData(method.accountData);
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
                 return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
@@ -140,11 +148,25 @@ function useBulkPayOptions({
                   value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
               }))
             : undefined;
-    const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+    const personalBankAccountList = formattedPaymentMethods.filter((ba) => getBankAccountData(ba.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+
+    const payViaABAOption = {
+        ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_VIA_ABA,
+        // The file is downloaded straight from the API, which can't be queued for when the user is back online
+        disabled: isOffline,
+        additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+    };
 
     let bulkPayButtonOptions;
     if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [{...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_ELSEWHERE}];
+    } else if (hasMultipleCurrencies) {
+        // An ABA file pays every report in AUD, so it still works when the reports are in different currencies
+        bulkPayButtonOptions = [
+            ...(shouldShowPayViaABAOption && isExpenseReport ? [payViaABAOption] : []),
+            {...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_ELSEWHERE},
+        ];
     } else if (!selectedReportID || !selectedPolicyID) {
         bulkPayButtonOptions = undefined;
     } else {
@@ -152,7 +174,10 @@ function useBulkPayOptions({
 
         if (shouldShowBusinessBankAccountOptions) {
             if (businessBankAccountOptionList.length === 0) {
-                bulkPayButtonOptions.push({...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.BUSINESS});
+                // An ABA account is also a business account, so no need to show the generic pay via business account option
+                if (!shouldShowPayViaABAOption) {
+                    bulkPayButtonOptions.push({...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.BUSINESS});
+                }
             } else {
                 for (const account of businessBankAccountOptionList) {
                     bulkPayButtonOptions.push({
@@ -204,6 +229,10 @@ function useBulkPayOptions({
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_WITH_WORKSPACE,
                 });
             }
+        }
+
+        if (shouldShowPayViaABAOption && isExpenseReport) {
+            bulkPayButtonOptions.push(payViaABAOption);
         }
 
         if (shouldShowPayElsewhereOption) {
