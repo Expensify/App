@@ -101,7 +101,6 @@ function useComposerSubmit(reportID: string) {
                 conciergeReportID,
                 conciergeThreadReportID,
                 shouldNavigateToConciergeThread: !isInSidePanel,
-                isInConciergePage,
             });
             if (conciergeThreadReportID && isInSidePanel) {
                 openSidePanel({reportID: conciergeThreadReportID});
@@ -155,7 +154,6 @@ function useComposerSubmit(reportID: string) {
             conciergeReportID,
             conciergeThreadReportID,
             shouldNavigateToConciergeThread: !isInSidePanel,
-            isInConciergePage,
         });
         if (conciergeThreadReportID && isInSidePanel) {
             openSidePanel({reportID: conciergeThreadReportID});

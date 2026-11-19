@@ -1,11 +1,10 @@
 /** Loads the Concierge conversations listed on the Concierge page, and opens them. */
 import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -34,17 +33,15 @@ function loadConciergeThreads(cursor?: string) {
     read(READ_COMMANDS.GET_CONCIERGE_THREADS, {cursor}, {optimisticData, finallyData});
 }
 
-/** Opens the Concierge page on the given conversation, or on its new conversation screen */
-function openConciergePage(conversationReportID?: string) {
-    Navigation.navigate(conversationReportID ? ROUTES.CONCIERGE_CONVERSATION.getRoute(conversationReportID) : ROUTES.CONCIERGE);
-}
-
-/** Opens a Concierge conversation on the Concierge page */
-function openConciergeConversation(reportID: string) {
+/** Opens a Concierge conversation on the Concierge page. The Concierge DM is where a new conversation starts. */
+function openConciergeConversation(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
     Navigation.navigate(ROUTES.CONCIERGE_CONVERSATION.getRoute(reportID));
 }
 
-type OpenConciergeMessageParams = {
+type CreateConciergeMessageThreadParams = {
     /** A message Concierge posted in its DM that has no thread yet */
     message: ReportAction;
     conciergeReport: OnyxEntry<Report>;
@@ -66,7 +63,7 @@ function createConciergeMessageThread({
     isSelfTourViewed,
     participantsPersonalDetails,
     delegateAccountID,
-}: OpenConciergeMessageParams): string {
+}: CreateConciergeMessageThreadParams): string {
     const thread = createChildReport(
         undefined,
         message,
@@ -81,19 +78,4 @@ function createConciergeMessageThread({
     return thread.reportID;
 }
 
-/** Opens a Concierge message as its own conversation */
-function openConciergeMessage(params: OpenConciergeMessageParams) {
-    openConciergeConversation(createConciergeMessageThread(params));
-}
-
-/** On narrow layouts Concierge opens on top of the screen the user was on, so closing it returns there */
-function closeConciergePage(fallbackRoute: Route) {
-    const rootState = navigationRef.getRootState();
-    if (rootState?.index) {
-        Navigation.pop(rootState.key);
-        return;
-    }
-    Navigation.goBack(fallbackRoute);
-}
-
-export {closeConciergePage, createConciergeMessageThread, loadConciergeThreads, openConciergeConversation, openConciergeMessage, openConciergePage};
+export {createConciergeMessageThread, loadConciergeThreads, openConciergeConversation};

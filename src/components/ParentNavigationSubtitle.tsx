@@ -16,6 +16,8 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 
+import {openConciergeConversation} from '@userActions/ConciergeThreads';
+
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -155,7 +157,7 @@ function ParentNavigationSubtitle({
 
         // The Concierge DM is the new chat screen of the Concierge page
         if (isInConciergePage && parentReportID === conciergeReportID) {
-            Navigation.navigate(ROUTES.CONCIERGE);
+            openConciergeConversation(conciergeReportID);
             return;
         }
 

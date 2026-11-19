@@ -12,12 +12,10 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
 
 import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
-import {openConciergePage} from '@userActions/ConciergeThreads';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -27,6 +25,8 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import type SidePanelButtonProps from './types';
+
+import ConciergePageButton from './ConciergePageButton';
 
 function SidePanelButton({style}: SidePanelButtonProps) {
     const styles = useThemeStyles();
@@ -43,10 +43,12 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
-    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
-
     if (shouldHideHelpButton) {
         return null;
+    }
+
+    if (isBetaEnabled(CONST.BETAS.FLAT_NAV)) {
+        return <ConciergePageButton style={style} />;
     }
 
     return (
@@ -57,11 +59,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
-                    if (isBetaEnabled(CONST.BETAS.FLAT_NAV)) {
-                        openConciergePage(getUnreadConciergeConversationReportID());
-                        return;
-                    }
-
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it
                     // after we navigate away. This is the only entry that threads a source report, so context is scoped
                     // to Concierge opened via this sidebar button. Search, LHN, and deep links never carry it.

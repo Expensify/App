@@ -31,6 +31,7 @@ import type ReportScreenNavigationProps from './types';
 import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
+import ConciergePageRedirectHandler from './ConciergePageRedirectHandler';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
@@ -127,6 +128,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <DeleteTransactionNavigateBackHandler reportID={reportIDFromRoute} />
                                 <ReportRouteParamHandler />
                                 <OneTransactionThreadRedirectHandler />
+                                <ConciergePageRedirectHandler />
                                 <ReportFetchHandler />
                                 <ReportNavigateAwayHandler />
                             </ReportNonEssentialsDeferredMount>

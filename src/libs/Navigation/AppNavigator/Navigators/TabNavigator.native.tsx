@@ -28,8 +28,7 @@ import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 import ConciergeSplitNavigator from './ConciergeSplitNavigator';
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
-import {isNativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
-import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey, isNativeTabItemName} from './NativeTabNavigator/nativeTabItemUtils';
+import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey, isNativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
@@ -76,7 +75,7 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
     // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
     // slot, inside the first item with no item shown as selected. The Concierge page has no glyph, so it never has a bar item.
     const getScreenOptions = ({route, navigation}: {route: {name: keyof TabNavigatorParamList}; navigation: {getState: () => NavigationState}}) =>
-        route.name in tabLabels && (isNativeTabName(route.name) || isNativeTabItemName(route.name))
+        route.name in tabLabels && isNativeTabRouteName(route.name)
             ? {
                   ...screenOptions,
                   ...getTabOptions(route.name),

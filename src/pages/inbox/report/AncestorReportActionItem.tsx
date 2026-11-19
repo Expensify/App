@@ -64,6 +64,7 @@ type AncestorReportActionItemProps = {
 
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
+    /** Leaves out the thread divider under this message */
     shouldHideThreadDivider?: boolean;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;

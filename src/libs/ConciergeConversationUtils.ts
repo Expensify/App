@@ -11,65 +11,78 @@ import {isConciergePageThread} from './isInConciergeConversation';
 import {isDeletedAction, isWhisperAction} from './ReportActionsUtils';
 import {isHiddenForCurrentUser, isUnread} from './ReportUtils';
 
-type ConciergeConversation = {
+type ConciergeConversationBase = {
     /** Unique across both kinds, for list keys */
     key: string;
-
-    /** Set for a thread */
-    reportID?: string;
-
-    /** Set for a Concierge message without a thread */
-    reportActionID?: string;
 
     /** When the conversation last changed, which orders the list */
     lastActivity: string;
 };
 
+type ConciergeThreadConversation = ConciergeConversationBase & {
+    reportID: string;
+};
+
+type ConciergeMessageConversation = ConciergeConversationBase & {
+    /** The Concierge message without a thread */
+    reportActionID: string;
+};
+
+type ConciergeConversation = ConciergeThreadConversation | ConciergeMessageConversation;
+
+type ConciergeDMConversations = {
+    /** The messages Concierge posted in its DM that nobody opened a thread on yet */
+    messageConversations: ConciergeMessageConversation[];
+
+    /** When each thread of the DM last changed, by the thread's reportID */
+    threadLastActivities: Record<string, string>;
+};
+
+function buildThreadConversation(report: Report): ConciergeThreadConversation {
+    return {
+        key: `thread-${report.reportID}`,
+        reportID: report.reportID,
+        lastActivity: report.lastVisibleActionCreated ?? report.created ?? '',
+    };
+}
+
 /** The threads of the Concierge DM the user has not left, without support tickets */
-function getConciergeThreadConversations(reports: OnyxCollection<Report>, conciergeReportID: string | undefined): ConciergeConversation[] {
+function getConciergeThreadConversations(reports: OnyxCollection<Report>, conciergeReportID: string | undefined): ConciergeThreadConversation[] {
     if (!conciergeReportID) {
         return [];
     }
-    const conversations: ConciergeConversation[] = [];
+    const conversations: ConciergeThreadConversation[] = [];
     for (const report of Object.values(reports ?? {})) {
         if (!report || !isConciergePageThread(report, conciergeReportID) || isHiddenForCurrentUser(report)) {
             continue;
         }
-        conversations.push({
-            key: `thread-${report.reportID}`,
-            reportID: report.reportID,
-            lastActivity: report.lastVisibleActionCreated ?? report.created ?? '',
-        });
+        conversations.push(buildThreadConversation(report));
     }
     return conversations;
 }
 
-/** The messages Concierge posted in its DM that nobody opened a thread on yet */
-function getConciergeMessageConversations(reportActions: OnyxEntry<ReportActions>): ConciergeConversation[] {
-    const conversations: ConciergeConversation[] = [];
+/**
+ * The messages Concierge posted in its DM that nobody opened a thread on yet, and when each thread of the DM last changed.
+ * A thread created by opening a Concierge message is newer than the message, so its time comes from the message.
+ */
+function getConciergeDMConversations(reportActions: OnyxEntry<ReportActions>): ConciergeDMConversations {
+    const messageConversations: ConciergeMessageConversation[] = [];
+    const threadLastActivities: Record<string, string> = {};
     for (const reportAction of Object.values(reportActions ?? {})) {
+        if (reportAction?.childReportID) {
+            threadLastActivities[reportAction.childReportID] = reportAction.childLastVisibleActionCreated ?? reportAction.created;
+            continue;
+        }
         if (!isConciergeMessageWithoutThread(reportAction)) {
             continue;
         }
-        conversations.push({
+        messageConversations.push({
             key: `message-${reportAction.reportActionID}`,
             reportActionID: reportAction.reportActionID,
             lastActivity: reportAction.created,
         });
     }
-    return conversations;
-}
-
-/** A thread created by opening a Concierge message is newer than the message, so its time comes from the message */
-function getConciergeThreadLastActivities(reportActions: OnyxEntry<ReportActions>): Record<string, string> {
-    const lastActivities: Record<string, string> = {};
-    for (const reportAction of Object.values(reportActions ?? {})) {
-        if (!reportAction?.childReportID) {
-            continue;
-        }
-        lastActivities[reportAction.childReportID] = reportAction.childLastVisibleActionCreated ?? reportAction.created;
-    }
-    return lastActivities;
+    return {messageConversations, threadLastActivities};
 }
 
 /** Whether a thread listed on the Concierge page has a reply the user hasn't read */
@@ -83,18 +96,18 @@ function isUnreadConciergeMessage(reportAction: OnyxEntry<ReportAction>, concier
 }
 
 /** The listed thread with the most recent unread reply */
-function getLatestUnreadConciergeThread(reports: OnyxCollection<Report>, conciergeReportID: string | undefined): ConciergeConversation | undefined {
+function getLatestUnreadConciergeThread(reports: OnyxCollection<Report>, conciergeReportID: string | undefined): ConciergeThreadConversation | undefined {
     if (!conciergeReportID) {
         return undefined;
     }
-    let latestThread: ConciergeConversation | undefined;
+    let latestThread: ConciergeThreadConversation | undefined;
     for (const report of Object.values(reports ?? {})) {
         if (!report || !isUnreadConciergeThread(report, conciergeReportID)) {
             continue;
         }
-        const lastActivity = report.lastVisibleActionCreated ?? report.created ?? '';
-        if (!latestThread || lastActivity > latestThread.lastActivity) {
-            latestThread = {key: `thread-${report.reportID}`, reportID: report.reportID, lastActivity};
+        const thread = buildThreadConversation(report);
+        if (!latestThread || thread.lastActivity > latestThread.lastActivity) {
+            latestThread = thread;
         }
     }
     return latestThread;
@@ -131,12 +144,10 @@ function sortConciergeConversations(conversations: ConciergeConversation[]): Con
 }
 
 export {
-    getConciergeMessageConversations,
+    getConciergeDMConversations,
     getConciergeThreadConversations,
-    getConciergeThreadLastActivities,
     getLatestUnreadConciergeMessage,
     getLatestUnreadConciergeThread,
-    isConciergeMessageWithoutThread,
     isUnreadConciergeMessage,
     isUnreadConciergeThread,
     sortConciergeConversations,

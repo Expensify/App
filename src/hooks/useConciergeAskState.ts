@@ -39,7 +39,8 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeDM = isConciergeInboxDM || (isInSidePanel && isConciergeNewChatOnly && !!reportID && reportID === conciergeReportID);
+    // The side panel shows the Concierge DM's history, unless the DM only starts new conversations there, as it does with the flat navigation
+    const isConciergeDM = isConciergeInboxDM || (isConciergeNewChatOnly && !!reportID && reportID === conciergeReportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();

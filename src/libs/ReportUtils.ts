@@ -123,7 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
-import {isConciergePageThread} from './isInConciergeConversation';
+import {isConciergePageThread, isConciergeThread} from './isInConciergeConversation';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -2662,6 +2662,8 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
  * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
  * `reports` let a caller pass its own subscribed collections and fall back to the
  * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ *
+ * @param excludedConciergeReportID - The Concierge DM whose conversations are skipped, because the Concierge page shows them instead of the Inbox
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
@@ -2671,7 +2673,6 @@ function findLastAccessedReport(
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
-    // The Concierge DM whose conversations are skipped, because the Concierge page shows them instead of the Inbox
     excludedConciergeReportID?: string,
 ): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
@@ -2982,8 +2983,7 @@ function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Re
  */
 function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, conciergeReportID?: string): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
-    return isTransactionThreadReport || isConciergeThread || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isConciergeThread(report, conciergeReportID) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**

@@ -9,7 +9,6 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 
-import {getConciergeConversationPath} from './conciergeNavigation';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
@@ -23,7 +22,7 @@ import normalizePath from './normalizePath';
  */
 function getStateFromPath(path: string): PartialState<NavigationState> {
     const normalizedPath = normalizePath(path);
-    const normalizedPathAfterRedirection = getConciergeConversationPath(getMatchingNewRoute(normalizedPath) ?? normalizedPath);
+    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Collect all syntactic matches and validate each one against entryScreens.
     // This prevents false-positive greedy matches where a user-defined name (e.g. a tag

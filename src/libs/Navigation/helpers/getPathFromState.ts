@@ -7,7 +7,6 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
-import {getConciergeDisplayPath} from './conciergeNavigation';
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
@@ -202,8 +201,7 @@ function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
-    const path = hasKey(normalizedConfigs, screenName) && isDynamicRouteScreen(screenName) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
-    return getConciergeDisplayPath(path);
+    return hasKey(normalizedConfigs, screenName) && isDynamicRouteScreen(screenName) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
 }
 
 export default getPathFromState;

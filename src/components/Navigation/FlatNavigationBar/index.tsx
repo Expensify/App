@@ -30,7 +30,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import isHTMLElement from '@libs/isHTMLElement';
@@ -73,14 +72,12 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {status: inboxStatus, indicatorColor: inboxIndicatorColor} = useInboxTabIndicatorStatus();
     const {status: workspacesStatus, indicatorColor: workspacesIndicatorColor} = useWorkspacesTabIndicatorStatus();
     const {status: accountStatus} = useAccountTabIndicatorStatus();
-    const conciergeIndicatorColor = useConciergeTabIndicatorStatus();
+    const {hasUnreadConversation: hasUnreadConciergeConversation, indicatorColor: conciergeIndicatorColor} = useConciergeTabIndicatorStatus();
 
     const isHomeSelected = selectedTab === NAVIGATION_TABS.HOME;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
 
-    const navigateToConciergeConversation = useConciergeTabNavigation(selectedTab === NAVIGATION_TABS.CONCIERGE);
-    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
-    const navigateToConcierge = () => navigateToConciergeConversation(getUnreadConciergeConversationReportID());
+    const navigateToConcierge = useConciergeTabNavigation(selectedTab === NAVIGATION_TABS.CONCIERGE);
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);
@@ -222,8 +219,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 label={translate('common.concierge.title')}
                                                 icon={icons.Concierge}
                                                 isSelected={selectedTab === NAVIGATION_TABS.CONCIERGE}
-                                                statusIndicatorColor={conciergeIndicatorColor}
-                                                accessibilityLabel={getTabAccessibilityLabel(translate('common.concierge.title'), !!conciergeIndicatorColor, translate)}
+                                                statusIndicatorColor={hasUnreadConciergeConversation ? conciergeIndicatorColor : undefined}
+                                                accessibilityLabel={getTabAccessibilityLabel(translate('common.concierge.title'), hasUnreadConciergeConversation, translate)}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.CONCIERGE}
                                                 onPress={navigateToConcierge}
                                             />

@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isConciergeThread} from '@libs/isInConciergeConversation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
@@ -88,7 +89,9 @@ function ReportActionItemParentAction({
     });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
+    // A Concierge thread reads as one conversation that opens with Concierge's message, so that message has no
+    // background or divider setting it apart from the replies
+    const isConciergeConversationThread = isConciergeThread(report, conciergeReportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -112,7 +115,7 @@ function ReportActionItemParentAction({
 
     return (
         <View style={[styles.pRelative]}>
-            {!isConciergeThread && <AnimatedEmptyStateBackground />}
+            {!isConciergeConversationThread && <AnimatedEmptyStateBackground />}
             <OfflineWithFeedback
                 shouldDisableOpacity
                 errors={
@@ -124,7 +127,7 @@ function ReportActionItemParentAction({
                 {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}, index) => (
                     <AncestorReportActionItem
                         key={ancestorReportAction.reportActionID}
-                        shouldHideThreadDivider={isConciergeThread && index === 0}
+                        shouldHideThreadDivider={isConciergeConversationThread && index === 0}
                         report={ancestorReport}
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}

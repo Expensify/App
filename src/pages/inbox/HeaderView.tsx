@@ -6,7 +6,6 @@ import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
-import useConciergeTabNavigation from '@components/Navigation/NavigationTabBar/useConciergeTabNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -21,12 +20,12 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useConciergeHeaderPlacement from '@hooks/useConciergeHeaderPlacement';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
-import useIsConciergeNewChatOnly from '@hooks/useIsConciergeNewChatOnly';
 import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
@@ -42,7 +41,6 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -99,17 +97,15 @@ import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
-import {closeConciergePage} from '@userActions/ConciergeThreads';
 import {joinRoom} from '@userActions/Report';
 import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
 import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import {getStableReportSelector} from '@selectors/Report';
@@ -120,7 +116,7 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
-import ConciergeHistoryButton from './ConciergeHistoryButton';
+import ConciergeHeaderActions from './ConciergeHeaderActions';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -187,39 +183,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     // The Concierge page starts new conversations from the New button of its list
     const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
-    const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
-    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
-    const isInConciergeSidePanel = isInSidePanel && isConciergeNewChatOnly && (isConciergeChat || isConciergeThread);
-    const shouldShowConciergeHistoryButton = isInNarrowConciergePage || isInConciergeSidePanel;
-    const {closeSidePanel} = useSidePanelActions();
-    const openConciergeNewChat = useConciergeTabNavigation(false);
-    const navigation = useNavigation();
-    // The list goes on top of this chat, so its back button returns here
-    const openConciergeHistory = () => {
-        navigation.dispatch((state) =>
-            CommonActions.reset({
-                ...state,
-                routes: [...state.routes, {name: SCREENS.CONCIERGE_SIDEBAR, key: `${SCREENS.CONCIERGE_SIDEBAR}-${Date.now()}`}],
-                index: state.routes.length,
-            }),
-        );
-    };
-    const openConciergePageFromSidePanel = () => {
-        closeSidePanel();
-        // Wide layouts already show the list beside the new chat
-        if (!isSmallScreenWidth) {
-            openConciergeNewChat();
-            return;
-        }
-        Navigation.navigate(ROUTES.CONCIERGE_CHATS);
-    };
-    const goBackFromConciergePage = () => {
-        if (isConciergeChat) {
-            closeConciergePage(ROUTES.CONCIERGE_CHATS);
-            return;
-        }
-        Navigation.goBack(ROUTES.CONCIERGE_CHATS);
-    };
+    const {isInNarrowConciergePage, isInConciergeSidePanel} = useConciergeHeaderPlacement(reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -338,6 +302,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
+    // Each Concierge conversation is its own thread on the Concierge page, so its threads offer a human too. A support ticket already has one.
     const shouldShowTalkToHuman = isConciergeChat || ((isInConciergePage || isInConciergeSidePanel) && isConciergeThread && !isSupportTicketReport);
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
@@ -476,7 +441,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
-                                    onPress={isInNarrowConciergePage ? goBackFromConciergePage : onNavigationMenuButtonClicked}
+                                    onPress={onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, contentHeaderHeightStyle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
@@ -593,28 +558,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                {isInNarrowConciergePage && !isConciergeChat && (
-                                    <Tooltip text={translate('common.concierge.newChat')}>
-                                        <PressableWithoutFeedback
-                                            onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
-                                            style={[styles.touchableButtonImage]}
-                                            role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={translate('common.concierge.newChat')}
-                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_NEW_CHAT_ICON_BUTTON}
-                                        >
-                                            <Icon
-                                                src={icons.Plus}
-                                                fill={theme.icon}
-                                            />
-                                        </PressableWithoutFeedback>
-                                    </Tooltip>
-                                )}
-                                {shouldShowConciergeHistoryButton && (
-                                    <ConciergeHistoryButton
-                                        onPress={isInConciergeSidePanel ? openConciergePageFromSidePanel : openConciergeHistory}
-                                        shouldShowProductTrainingTooltip={isInNarrowConciergePage}
-                                    />
-                                )}
+                                <ConciergeHeaderActions reportID={reportID} />
                                 <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>

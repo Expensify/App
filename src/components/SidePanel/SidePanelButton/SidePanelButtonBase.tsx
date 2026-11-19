@@ -10,15 +10,14 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
-
-import {openConciergePage} from '@userActions/ConciergeThreads';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
 import type SidePanelButtonProps from './types';
+
+import ConciergePageButton from './ConciergePageButton';
 
 function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const styles = useThemeStyles();
@@ -30,10 +29,12 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldOpenConciergePage = shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.FLAT_NAV);
-    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
-
     if (shouldHideHelpButton) {
         return null;
+    }
+
+    if (shouldOpenConciergePage) {
+        return <ConciergePageButton style={style} />;
     }
 
     return (
@@ -43,7 +44,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 accessibilityLabel={translate('common.help')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={shouldOpenConciergePage ? () => openConciergePage(getUnreadConciergeConversationReportID()) : openSidePanel}
+                onPress={openSidePanel}
             >
                 <Icon
                     src={Concierge}

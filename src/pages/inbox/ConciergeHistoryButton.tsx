@@ -17,11 +17,11 @@ import ConciergeHistoryIcon from './ConciergeHistoryIcon';
 type ConciergeHistoryButtonProps = {
     onPress: () => void;
 
-    /** Shows the one time tooltip that points out the history icon */
-    shouldShowProductTrainingTooltip: boolean;
+    /** Whether the one time tooltip that points out the history icon may show here */
+    canShowProductTrainingTooltip: boolean;
 };
 
-function ConciergeHistoryButton({onPress, shouldShowProductTrainingTooltip: canShowProductTrainingTooltip}: ConciergeHistoryButtonProps) {
+function ConciergeHistoryButton({onPress, canShowProductTrainingTooltip}: ConciergeHistoryButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();

@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 
 import useConciergeTabIndicatorStatus from '@hooks/useConciergeTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,8 +13,9 @@ import {View} from 'react-native';
 function ConciergeHistoryIcon() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['History']);
-    const statusIndicatorColor = useConciergeTabIndicatorStatus();
+    const {hasUnreadConversation, indicatorColor} = useConciergeTabIndicatorStatus();
 
     return (
         <View>
@@ -21,7 +23,7 @@ function ConciergeHistoryIcon() {
                 src={icons.History}
                 fill={theme.icon}
             />
-            {!!statusIndicatorColor && <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), {borderColor: theme.appBG}]} />}
+            {hasUnreadConversation && <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(indicatorColor), StyleUtils.getBorderColorStyle(theme.appBG)]} />}
         </View>
     );
 }

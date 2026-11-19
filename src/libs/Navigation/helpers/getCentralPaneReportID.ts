@@ -1,9 +1,8 @@
 import navigationRef from '@libs/Navigation/navigationRef';
 
-import NAVIGATORS from '@src/NAVIGATORS';
-
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
 import getTopmostReportParams from './getTopmostReportParams';
+import {isReportSplitNavigatorName} from './isNavigatorName';
 
 /**
  * The reportID of the report shown in the central pane, or undefined. getTopmostReportParams only descends into
@@ -14,8 +13,7 @@ import getTopmostReportParams from './getTopmostReportParams';
  * routes, so a report left open on an inactive Inbox tab would otherwise leak through as a stale central report.
  */
 function getCentralPaneReportID(): string | undefined {
-    const topmostFullScreenRouteName = getTopmostFullScreenRoute()?.name;
-    if (topmostFullScreenRouteName !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && topmostFullScreenRouteName !== NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR) {
+    if (!isReportSplitNavigatorName(getTopmostFullScreenRoute()?.name)) {
         return undefined;
     }
     return getTopmostReportParams(navigationRef.getRootState())?.reportID;

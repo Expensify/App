@@ -4,14 +4,13 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
-import TopBar from '@components/Navigation/TopBar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConciergeConversations from '@hooks/useConciergeConversations';
+import useCreateConciergeMessageThread from '@hooks/useCreateConciergeMessageThread';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,12 +19,10 @@ import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getConciergeConversationReportID} from '@libs/isInConciergeConversation';
-import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import closeConciergePage from '@libs/Navigation/helpers/closeConciergePage';
 
-import {closeConciergePage, loadConciergeThreads, openConciergeConversation, openConciergeMessage} from '@userActions/ConciergeThreads';
+import {loadConciergeThreads, openConciergeConversation} from '@userActions/ConciergeThreads';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,13 +30,11 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {getStableReportSelector} from '@selectors/Report';
 import {FlashList} from '@shopify/flash-list';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import ConciergeConversationRow from './ConciergeConversationRow';
+import {ConciergeMessageRow, ConciergeThreadRow} from './ConciergeConversationRows';
 
 // Loads the next page when the user is within three quarters of a screen of the end of the list
 const LOAD_NEXT_PAGE_THRESHOLD = 0.75;
@@ -60,14 +55,9 @@ function ConciergeSidebarScreen() {
     const conversations = useConciergeConversations();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: getStableReportSelector});
     const [nextCursor] = useOnyx(ONYXKEYS.CONCIERGE_THREADS_NEXT_CURSOR);
     const [isLoading = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_CONCIERGE_THREADS);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const delegateAccountID = useDelegateAccountID();
-    const personalDetails = usePersonalDetails();
+    const createConciergeMessageThread = useCreateConciergeMessageThread();
     const {currentReportID} = useCurrentReportIDState();
     const currentReportParentHierarchy = useReportsParentHierarchy(currentReportID);
     const selectedConversationReportID = getConciergeConversationReportID(currentReportID, conciergeReportID, currentReportParentHierarchy);
@@ -100,19 +90,11 @@ function ConciergeSidebarScreen() {
     };
 
     const startNewChat = () => {
-        Navigation.navigate(ROUTES.CONCIERGE);
+        openConciergeConversation(conciergeReportID);
     };
 
     const openMessage = (message: ReportAction) => {
-        openConciergeMessage({
-            message,
-            conciergeReport,
-            currentUserAccountID,
-            introSelected,
-            isSelfTourViewed,
-            participantsPersonalDetails: getParticipantsPersonalDetails([currentUserAccountID, Number(message.actorAccountID)], personalDetails),
-            delegateAccountID,
-        });
+        openConciergeConversation(createConciergeMessageThread(message));
     };
 
     const newChatButton = (
@@ -142,32 +124,43 @@ function ConciergeSidebarScreen() {
                     {newChatButton}
                 </HeaderWithBackButton>
             ) : (
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.concierge.title')}
                     shouldDisplaySearch={false}
                 >
                     {/* The top bar keeps a 12px right margin of its own, so 8px here lands the button 20px from the edge. */}
                     <View style={styles.mr2}>{newChatButton}</View>
-                </TopBar>
+                </TopBarWithLoadingBar>
             )}
             <View style={styles.flex1}>
-                <FlashList
-                    data={conversations}
-                    contentContainerStyle={styles.pt1}
-                    keyExtractor={(conversation) => conversation.key}
-                    extraData={selectedConversationReportID}
-                    renderItem={({item}) => (
-                        <ConciergeConversationRow
-                            conversation={item}
-                            isSelected={!!item.reportID && item.reportID === selectedConversationReportID}
-                            onOpenThread={openConciergeConversation}
-                            onOpenMessage={openMessage}
-                        />
-                    )}
-                    onEndReached={loadNextPage}
-                    onEndReachedThreshold={LOAD_NEXT_PAGE_THRESHOLD}
-                    ListFooterComponent={isLoading && !isOffline ? <ActivityIndicator style={styles.pv4} /> : undefined}
-                />
+                {isLoading && conversations.length === 0 ? (
+                    <OptionsListSkeletonView shouldAnimate />
+                ) : (
+                    <FlashList
+                        data={conversations}
+                        contentContainerStyle={styles.pt1}
+                        keyExtractor={(conversation) => conversation.key}
+                        extraData={selectedConversationReportID}
+                        renderItem={({item}) =>
+                            'reportID' in item ? (
+                                <ConciergeThreadRow
+                                    reportID={item.reportID}
+                                    isSelected={item.reportID === selectedConversationReportID}
+                                    onPress={openConciergeConversation}
+                                />
+                            ) : (
+                                <ConciergeMessageRow
+                                    reportActionID={item.reportActionID}
+                                    created={item.lastActivity}
+                                    onPress={openMessage}
+                                />
+                            )
+                        }
+                        onEndReached={loadNextPage}
+                        onEndReachedThreshold={LOAD_NEXT_PAGE_THRESHOLD}
+                        ListFooterComponent={isLoading && !isOffline ? <ActivityIndicator style={styles.pv4} /> : undefined}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
