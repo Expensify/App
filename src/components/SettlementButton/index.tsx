@@ -29,7 +29,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getActivePaymentType, getBankAccountData, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -52,7 +52,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, Fund, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -65,11 +65,6 @@ import Onyx from 'react-native-onyx';
 import type SettlementButtonProps from './types';
 
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
-
-/** Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account. */
-function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
-    return accountData && 'type' in accountData ? accountData : undefined;
-}
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
