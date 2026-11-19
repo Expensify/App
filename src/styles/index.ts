@@ -815,6 +815,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
+            alignSelf: 'flex-start',
+            marginRight: 2 * variables.floatingTabBarHorizontalInset + variables.componentSizeLarge,
         },
 
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
@@ -2223,6 +2225,16 @@ const staticStyles = (theme: ThemeColors) =>
             top: -variables.componentSizeLarge - 16,
             right: 16,
             zIndex: 10,
+        },
+
+        // Lines the button's bottom up with the bottom of the landscape tab bar it sits beside.
+        floatingActionButtonPositionLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - variables.componentSizeLarge,
+        },
+
+        // Keeps the same 12px gap above the floating action button as in portrait.
+        floatingCameraButtonLandscape: {
+            top: variables.floatingTabBarLandscapeHeight - 2 * variables.componentSizeLarge - 12,
         },
 
         floatingGpsButton: {
