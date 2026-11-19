@@ -7,6 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import type * as SingleExecution from '@hooks/useSingleExecution';
 
 import * as AgentActions from '@libs/actions/Agent';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -39,7 +40,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Web intentionally allows repeated navigation; exercise the native guard that these rows must preserve.
-jest.mock('@hooks/useSingleExecution', () => jest.requireActual('@hooks/useSingleExecution/index.native'));
+jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof SingleExecution>('@hooks/useSingleExecution/index.native'));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
