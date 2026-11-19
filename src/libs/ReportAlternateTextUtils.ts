@@ -86,6 +86,7 @@ import {
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
+    getMergedReportsMessage,
     getMccGroupCategoryMessage,
     getMessageTextOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -805,6 +806,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION)) {
         lastMessageTextFromReport = translate('iou.undeletedExpense');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS)) {
+        lastMessageTextFromReport = getMergedReportsMessage(translate, lastReportAction);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -1655,6 +1658,8 @@ function getReportAlternateText({
             alternateText = translate('iou.reopened');
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
             alternateText = translate('iou.undeletedExpense');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS)) {
+            alternateText = getMergedReportsMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             alternateText = getTravelUpdateMessage(translate, lastAction);
         } else if (
