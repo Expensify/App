@@ -836,6 +836,11 @@ describe('export destination autocomplete selection', () => {
         ['-exported-to:NetSuite,Net', 'template:NetSuite', '-exported-to:NetSuite -exported-to-template:NetSuite'],
         ['exported-to:template:Bud', 'template:template:Budget', 'exported-to-template:template:Budget'],
         ['exported-to:Net', 'NetSuite', 'exported-to:NetSuite'],
+        ['-exported-to:NetSuite,All Data', 'template:All Data - Expense Level Export', '-exported-to:NetSuite -exported-to-template:"All Data - Expense Level Export"'],
+        ['exported-to:"Budget, F"', 'template:Budget, FY2026', 'exported-to-template:"Budget, FY2026"'],
+        ['exported-to:NetSuite,"Budget, F"', 'template:Budget, FY2026', 'exported-to:NetSuite exported-to-template:"Budget, FY2026"'],
+        ['exported-to : Net', 'template:NetSuite', 'exported-to-template:NetSuite'],
+        ['-exported-to = Net', 'template:NetSuite', '-exported-to-template:NetSuite'],
     ])('selects %s as %s', (input, selectedValue, expected) => {
         // Given a partial exported-to query and a destination selected from the picker
         // When inserting the suggestion through the router helper
