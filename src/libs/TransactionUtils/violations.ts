@@ -5,7 +5,8 @@
 import {isPersonalCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy, isInstantSubmitEnabled, isPolicyAdmin, isPolicyMember as isPolicyMemberPolicyUtils} from '@libs/PolicyUtils';
-import {isCurrentUserSubmitter, isIOUReport, isOpenExpenseReport, isProcessingReport, isReportManager, isSettled} from '@libs/ReportStateUtils';
+import {isCurrentUserSubmitter, isReportManager} from '@libs/ReportRoles';
+import {isIOUReport, isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportTypeAndStatus';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

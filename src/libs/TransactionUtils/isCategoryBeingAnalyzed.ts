@@ -1,5 +1,5 @@
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isInvoiceReport} from '@libs/ReportStateUtils';
+import {isInvoiceReport} from '@libs/ReportTypeAndStatus';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
