@@ -437,22 +437,19 @@ function createDigitalGoogleWallet(
 }
 
 /** Second call of Unified Push Provisioning, rejects without a Google OPC so the TSP OPC never goes to Google alone */
-function createGoogleOpaquePaymentCard(
-    {
-        walletAccountID,
-        deviceID,
-        cardID,
-        serverSessionID,
-        tokenRequestorID,
-    }: {
-        deviceID: string;
-        walletAccountID: string;
-        cardID: number;
-        serverSessionID: string;
-        tokenRequestorID?: string;
-    },
-    authentication?: WalletAuthentication,
-): Promise<AndroidPaymentCredentialsResponse> {
+function createGoogleOpaquePaymentCard({
+    walletAccountID,
+    deviceID,
+    cardID,
+    serverSessionID,
+    tokenRequestorID,
+}: {
+    deviceID: string;
+    walletAccountID: string;
+    cardID: number;
+    serverSessionID: string;
+    tokenRequestorID?: string;
+}): Promise<AndroidPaymentCredentialsResponse> {
     const params: CreateDigitalWalletParams = {
         platform: 'android',
         appVersion: pkg.version,
@@ -463,10 +460,7 @@ function createGoogleOpaquePaymentCard(
         ...(tokenRequestorID ? {tokenRequestorID} : {}),
     };
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the OPCs in the response go straight to Google Wallet, they are not stored in Onyx
-    return API.makeRequestWithSideEffects(
-        SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
-        authentication ? {...params, signedChallenge: JSON.stringify(authentication.signedChallenge), authenticationMethod: authentication.authenticationMethod} : params,
-    ).then((response) => {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, params).then((response) => {
         const googleOpaquePaymentCard: unknown = response && 'googleOpaquePaymentCard' in response ? response.googleOpaquePaymentCard : undefined;
         const opaquePaymentCard: unknown = response && 'opaquePaymentCard' in response ? response.opaquePaymentCard : undefined;
         if (

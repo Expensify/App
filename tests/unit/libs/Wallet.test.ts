@@ -406,7 +406,7 @@ describe('Android Unified Push Provisioning', () => {
         ['has no Google OPC', {jsonCode: 200, opaquePaymentCard: 'opaque'}],
         ['has no TSP OPC', {jsonCode: 200, googleOpaquePaymentCard: 'google-opaque'}],
         ['is a backend failure', {jsonCode: 500, ...credentials}],
-    ])('fails the flow when the second response %s', async (_name, response) => {
+    ])('rejects the credentials request when the second response %s', async (_name, response) => {
         // Given a second response that cannot complete Unified Push Provisioning.
         const handler = await startProvisioning(usCard);
         mockRequest.mockResolvedValueOnce(createMock<APIResponse>(response));
@@ -418,7 +418,7 @@ describe('Android Unified Push Provisioning', () => {
         await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
     });
 
-    it('fails the flow when the second request does not reach the backend', async () => {
+    it('rejects the credentials request when the second request does not reach the backend', async () => {
         // Given a transport failure on the second call.
         const handler = await startProvisioning(usCard);
         mockRequest.mockRejectedValueOnce(new Error('transport failed'));
