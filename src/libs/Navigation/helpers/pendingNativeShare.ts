@@ -12,11 +12,11 @@ import type {NavigationState} from '@react-navigation/native';
 /**
  * A native share (`share/root`) whose link reached JS before it is known whether onboarding comes first. It is parked in
  * memory and opened once:
- * - `pending`: opened by useOnboardingFlowRouter once it rules onboarding out.
- * - `deferredUntilOnboardingExit`: opened by the onboarding exit, on top of the landing screen.
+ * - `waitingForOnboardingCheck`: opened by useOnboardingFlowRouter once it rules onboarding out.
+ * - `waitingForOnboardingExit`: opened by the onboarding exit, on top of the landing screen.
  * - `opening`: pushed; consumed once ShareModalNavigator is in the root state.
  */
-type PendingNativeShare = 'none' | 'pending' | 'deferredUntilOnboardingExit' | 'opening';
+type NativeShareStatus = 'none' | 'waitingForOnboardingCheck' | 'waitingForOnboardingExit' | 'opening';
 
 /** Root modals a navigation guard redirects the share push into, or blocks it behind, until the user dismisses them. */
 const WELCOME_MODAL_NAVIGATORS = new Set<string>([NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR, NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]);
@@ -24,7 +24,7 @@ const WELCOME_MODAL_NAVIGATORS = new Set<string>([NAVIGATORS.MIGRATED_USER_MODAL
 /** One push plus one retry per welcome modal the guards can chain; anything beyond that is a loop, not a modal. */
 const MAX_SHARE_FLOW_PUSH_ATTEMPTS = 3;
 
-let pendingNativeShare: PendingNativeShare = 'none';
+let nativeShareStatus: NativeShareStatus = 'none';
 let stopWatchingNavigationState: (() => void) | undefined;
 
 /** Whether onboarding has been ruled out, or has finished, for the current session. */
@@ -45,23 +45,23 @@ function stopWatchingShareFlowPush() {
 
 function setPendingNativeShare() {
     // DeepLinkHandler processes the same link again on later runs; an existing share must not start over.
-    if (pendingNativeShare !== 'none') {
+    if (nativeShareStatus !== 'none') {
         return;
     }
-    pendingNativeShare = 'pending';
+    nativeShareStatus = 'waitingForOnboardingCheck';
 }
 
 function clearPendingNativeShare() {
-    pendingNativeShare = 'none';
+    nativeShareStatus = 'none';
     stopWatchingShareFlowPush();
 }
 
 /** Keeps a pending share parked until onboarding exits, so it opens on top of the landing screen. */
 function deferPendingNativeShareUntilOnboardingExit() {
-    if (pendingNativeShare !== 'pending') {
+    if (nativeShareStatus !== 'waitingForOnboardingCheck') {
         return;
     }
-    pendingNativeShare = 'deferredUntilOnboardingExit';
+    nativeShareStatus = 'waitingForOnboardingExit';
 }
 
 function hasRootRoute(state: NavigationState, name: string): boolean {
@@ -83,7 +83,7 @@ function pushShareFlow() {
 /** Called by OnboardingGuard when its redirect is about to drop the share flow: keep the share for the onboarding exit. */
 function keepNativeShareForOnboardingExit() {
     stopWatchingShareFlowPush();
-    pendingNativeShare = 'deferredUntilOnboardingExit';
+    nativeShareStatus = 'waitingForOnboardingExit';
 }
 
 /**
@@ -91,14 +91,14 @@ function keepNativeShareForOnboardingExit() {
  * guard redirects or blocks the push, it is retried when that modal closes.
  */
 function openShareFlowOnceAccepted() {
-    pendingNativeShare = 'opening';
+    nativeShareStatus = 'opening';
     let attempts = 1;
     let shouldRetryAfterWelcomeModal = isWelcomeModalFocused();
 
     stopWatchingShareFlowPush();
     stopWatchingNavigationState = navigationRef.addListener('state', () => {
         // Cleared on sign-out, or parked again for the onboarding exit.
-        if (pendingNativeShare !== 'opening') {
+        if (nativeShareStatus !== 'opening') {
             stopWatchingShareFlowPush();
             return;
         }
@@ -147,14 +147,14 @@ function openPendingNativeShare({afterOnboarding = false}: {afterOnboarding?: bo
     isOnboardingSettled = true;
 
     // A deferred share belongs to the onboarding exit alone.
-    const shouldOpenShare = pendingNativeShare === 'pending' || (afterOnboarding && pendingNativeShare === 'deferredUntilOnboardingExit');
+    const shouldOpenShare = nativeShareStatus === 'waitingForOnboardingCheck' || (afterOnboarding && nativeShareStatus === 'waitingForOnboardingExit');
     if (!shouldOpenShare) {
         return false;
     }
 
     // Before the container is ready there is no state to watch; Navigation.navigate replays the push once it is.
     if (!navigationRef.isReady()) {
-        pendingNativeShare = 'none';
+        nativeShareStatus = 'none';
         pushShareFlow();
         return true;
     }
