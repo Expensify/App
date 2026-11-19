@@ -86,6 +86,12 @@ To enable strict compliance:
 
 # FAQ
 
+## Why does an expense show Category not allowed?
+
+A workspace admin has restricted which categories the member can use in New Expensify, and the expense uses a category outside that selection.
+
+Expensify Classic still displays the workspace’s category choices, but flags a category the member is not allowed to use. Select an allowed category, or ask a workspace admin to update the member’s **Category visibility** in New Expensify. [Learn how to set a member’s Category visibility](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#how-to-set-a-members-category-visibility).
+
 ## Why can’t my employees see the categories on their expenses?
 
 Employees may have their default workspace set to their personal workspace. Check the **Details** section at the top right of the report to ensure it is being reported under the correct workspace.
@@ -98,4 +104,3 @@ GL account numbers are only visible to **Workspace Admins** when part of a Contr
 
 - An expense is categorized under a category that is not included in the workspace settings.
 - If workspace categories are imported from an accounting system and updated there but not in Expensify, old categories may still be assigned, leading to violations. Re-select the correct category to resolve the issue.
-
