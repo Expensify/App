@@ -573,9 +573,12 @@ describe('NativeBottomTabView', () => {
     it('leaves a tab in its place when the focused route needs it, and hides the route that named it', () => {
         useTabsThatTradePlaces();
         // Given Workspaces focused in More while Spend, drawn in Expenses, names More too, as a saved search does
-        const screen = renderFlatNav('Workspaces', {options: getFlatNavOptionsWithSpendHost('More')});
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
 
-        // When the bar is laid out
+        // When Workspaces is focused and Spend names More
+        screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+
         // Then no tab trades places, since More has to show Workspaces under its own item
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('More');
         expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
@@ -584,7 +587,8 @@ describe('NativeBottomTabView', () => {
     });
 
     it('sends no tab order when no route has an explicit host', () => {
-        // Given the tabs without the flat nav placeholders
+        useTabsThatTradePlaces();
+        // Given the tabs without the flat nav placeholders, on a platform where tabs can trade places
         render(renderTabView(buildTabState('Inbox-key-1'), buildNavigation()));
 
         // When the native host is configured

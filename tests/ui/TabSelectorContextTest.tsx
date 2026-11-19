@@ -33,24 +33,23 @@ function buildLayoutEvent(x: number, width: number) {
     return createMock<LayoutChangeEvent>({nativeEvent: {layout: {x, y: 0, width, height: 40}}});
 }
 
-function renderRow(activeTabKey: string) {
-    const view = render(
+function buildRow(activeTabKey: string) {
+    return (
         <TabSelectorContextProvider activeTabKey={activeTabKey}>
             <ActionsProbe />
-        </TabSelectorContextProvider>,
+        </TabSelectorContextProvider>
     );
+}
+
+function renderRow(activeTabKey: string) {
+    const view = render(buildRow(activeTabKey));
     act(() => {
         actionsRef.current?.onContainerLayout(buildLayoutEvent(0, CONTAINER_WIDTH));
         for (const [index, tabKey] of TAB_KEYS.entries()) {
             actionsRef.current?.onTabLayout(tabKey, buildLayoutEvent(index * TAB_WIDTH, TAB_WIDTH));
         }
     });
-    return (nextActiveTabKey: string) =>
-        view.rerender(
-            <TabSelectorContextProvider activeTabKey={nextActiveTabKey}>
-                <ActionsProbe />
-            </TabSelectorContextProvider>,
-        );
+    return (nextActiveTabKey: string) => view.rerender(buildRow(nextActiveTabKey));
 }
 
 describe('TabSelectorContextProvider', () => {

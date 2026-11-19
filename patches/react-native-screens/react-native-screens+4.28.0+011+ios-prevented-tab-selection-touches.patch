@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 2be6a93..4a36738 100644
+index 2be6a93..3acce90 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -89,6 +89,9 @@ @implementation RNSTabBarController {
@@ -20,7 +20,7 @@ index 2be6a93..4a36738 100644
      _tabScreenControllers = nil;
      _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
      _tabsHostComponentView = nil;
-@@ -186,6 +190,126 @@ - (void)viewDidLayoutSubviews
+@@ -186,6 +190,127 @@ - (void)viewDidLayoutSubviews
    if (_tabBarItemSelectionHidden) {
      [self updateTabBarItemSelectionIn:self.view];
    }
@@ -33,9 +33,10 @@ index 2be6a93..4a36738 100644
 +- (void)updatePreventedSelectionTouchViews
 +{
 +  NSArray<UIView *> *tabButtons = @[];
++  NSArray<UIViewController *> *viewControllers = self.viewControllers;
 +  // Nothing is looked up or added for a tab bar with no such tab, which is every tab bar that does not ask for it.
 +  BOOL hasInterceptedTab = NO;
-+  for (UIViewController *viewController in self.viewControllers) {
++  for (UIViewController *viewController in viewControllers) {
 +    if ([self shouldInterceptPreventedSelectionTapOf:viewController]) {
 +      hasInterceptedTab = YES;
 +      break;
@@ -56,7 +57,6 @@ index 2be6a93..4a36738 100644
 +    [self.tabBar layoutIfNeeded];
 +    tabButtons = [self tabButtonsIn:self.tabBar];
 +  }
-+  NSArray<UIViewController *> *viewControllers = self.viewControllers;
 +  if (tabButtons.count != viewControllers.count) {
 +    tabButtons = @[];
 +  }
@@ -104,11 +104,12 @@ index 2be6a93..4a36738 100644
 +
 +- (BOOL)shouldInterceptPreventedSelectionTapOf:(nonnull UIViewController *)viewController
 +{
-+  if (![viewController isKindOfClass:RNSTabsScreenViewController.class] ||
-+      ![self shouldPreventNativeTabSelection:viewController]) {
++  if (![viewController isKindOfClass:RNSTabsScreenViewController.class]) {
 +    return NO;
 +  }
-+  return static_cast<RNSTabsScreenViewController *>(viewController).tabScreenComponentView.interceptsPreventedSelectionTaps;
++  auto *screenViewController = static_cast<RNSTabsScreenViewController *>(viewController);
++  return screenViewController.isPreventNativeSelectionEnabled &&
++      screenViewController.tabScreenComponentView.interceptsPreventedSelectionTaps;
 +}
 +
 +- (void)didTapPreventedSelectionTouchView:(UIControl *)touchView
@@ -147,7 +148,7 @@ index 2be6a93..4a36738 100644
  }
  
  - (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
-@@ -334,6 +458,7 @@ - (void)performContainerUpdate
+@@ -334,6 +459,7 @@ - (void)performContainerUpdate
    [self updateTabBarAppearanceIfNeeded];
    [self updateTabBarA11yIfNeeded];
    [self updateOrientationIfNeeded];
@@ -155,7 +156,7 @@ index 2be6a93..4a36738 100644
  }
  
  /**
-@@ -517,6 +642,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
+@@ -517,6 +643,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
  
    [self userDidSelectViewController:viewController];
    _isHandlingExplicitSelectionUpdate = NO;

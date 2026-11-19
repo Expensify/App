@@ -50,6 +50,8 @@ let liveSearchKey: string | undefined;
 let liveSearchTabParams: Record<string, unknown> | undefined;
 // The key of the Search navigator's state, which it has once it is mounted
 let liveSearchNavigatorStateKey: string | undefined;
+// A screen pushed over the Search page in the Search navigator
+let liveScreenOverSearchPage: string | undefined;
 
 function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state' | 'descriptors'> {
     const routes = ROUTE_NAMES.map((name) => ({key: `${name}-key`, name}));
@@ -75,7 +77,13 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                                     {
                                         name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                                         params: liveSearchTabParams,
-                                        state: {key: liveSearchNavigatorStateKey, routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}}]},
+                                        state: {
+                                            key: liveSearchNavigatorStateKey,
+                                            routes: [
+                                                {name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}},
+                                                ...(liveScreenOverSearchPage ? [{name: liveScreenOverSearchPage}] : []),
+                                            ],
+                                        },
                                     },
                                 ],
                             }),
@@ -124,6 +132,7 @@ describe('FlatNavTabPressListeners', () => {
         stateListeners.clear();
         liveSearchTabParams = undefined;
         liveSearchNavigatorStateKey = undefined;
+        liveScreenOverSearchPage = undefined;
         await Onyx.set(ONYXKEYS.SEARCH_FILTERS, {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: {timestamp: '2026-11-10 12:00:00', query: LAST_REPORTS_QUERY}});
     });
 
@@ -183,6 +192,20 @@ describe('FlatNavTabPressListeners', () => {
             expect(navigateToSpendTab).not.toHaveBeenCalled();
         },
     );
+
+    it('opens the search route when another screen is on top of the Search page', async () => {
+        // Given the Search navigator mounted with a report pushed over the Search page, which shows Expenses
+        liveSearchNavigatorStateKey = 'search-state-key';
+        liveScreenOverSearchPage = SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+        await renderListeners(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+        // When the user presses Reports
+        press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+
+        // Then Reports opens through the search route, since new params would only change the page under the report
+        expect(navigateToSpendTab).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.REPORTS, LAST_REPORTS_QUERY, expect.any(Function));
+        expect(showSpendTabSearchOnMountedSearchPage).not.toHaveBeenCalled();
+    });
 
     it('navigates once on a quick double tap', async () => {
         // Given Home focused

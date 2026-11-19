@@ -53,7 +53,9 @@ function showSpendTabSearchOnMountedSearchPage(
     setSearchContext(false);
     navigationRef.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-        payload: {params: {q: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey))), name: undefined, rawQuery: undefined, searchKey}},
+        payload: {
+            params: {q: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey), searchKey)), name: undefined, rawQuery: undefined, searchKey},
+        },
         target: searchNavigatorStateKey,
     });
     if (tabNavigatorStateKeyToFocusSearchIn) {

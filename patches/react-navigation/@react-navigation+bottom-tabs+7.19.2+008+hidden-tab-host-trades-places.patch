@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 62dc1c3..4ac0bba 100644
+index 62dc1c3..3845c4c 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -32,23 +32,84 @@ export function NativeBottomTabView({
@@ -103,7 +103,7 @@ index 62dc1c3..4ac0bba 100644
    const shownHostedRouteKeysRef = React.useRef(new Map());
    if (isFocusedRouteHostedExplicitly) {
 -    shownHostedRouteKeysRef.current.set(nativeSelectedRouteKey, focusedRouteKey);
-+    shownHostedRouteKeysRef.current.set(getHostRouteKey(nativeSelectedRoute), nativeSelectedRoute.key);
++    shownHostedRouteKeysRef.current.set(getContentHostRouteKey(nativeSelectedRoute), nativeSelectedRoute.key);
    }
 +  // The hidden route an item opens when pressed, when that route is drawn in another tab than the one with this item.
 +  // Selecting such a tab natively would show it empty until JS answers, so the press is taken in JS instead.
@@ -118,7 +118,7 @@ index 62dc1c3..4ac0bba 100644
 +  };
 +  // The press of a pending item press is sent in a task of its own after the bar is committed. Native mounts a commit
 +  // when the task that made it ends, so sent in the same task, the render of the navigation the press starts would
-+  // hold the bar back. A press that starts no navigation leaves the bar as it was.
++  // hold the bar back. After a press that starts no navigation the bar is put back.
 +  const sentItemPressRef = React.useRef(null);
 +  const itemPressTimeoutsRef = React.useRef(new Set());
 +  React.useEffect(() => {
@@ -239,7 +239,7 @@ index 62dc1c3..4ac0bba 100644
      navigation.emit({
        type: 'tabPress',
 -      target: getRouteForScreenKey(preventedScreenKey)?.key ?? preventedScreenKey
-+      target: preventedScreenRoute ? getItemRoute(preventedScreenRoute).key : preventedScreenKey
++      target: preventedItemRoute?.key ?? preventedScreenKey
      });
    };
    const currentOptions = descriptors[state.routes[state.index].key]?.options;
@@ -251,14 +251,12 @@ index 62dc1c3..4ac0bba 100644
        colorScheme: dark ? 'dark' : 'light',
        nativeContainerStyle: {
          backgroundColor: colors.background
-@@ -275,10 +404,15 @@ export function NativeBottomTabView({
+@@ -275,10 +404,13 @@ export function NativeBottomTabView({
            return null;
          }
          const {
 -          options,
-+          options: {
-+            lazy = false
-+          },
++          options: contentOptions,
            render,
            navigation
          } = descriptors[route.key];
@@ -268,7 +266,7 @@ index 62dc1c3..4ac0bba 100644
          const isFocused = state.index === index;
          const isPreloaded = state.preloadedRouteKeys.includes(route.key);
          // Only the tab the hidden routes are drawn in is drawn unselected, so a tab the user taps natively shows as
-@@ -286,7 +420,6 @@ export function NativeBottomTabView({
+@@ -286,7 +418,6 @@ export function NativeBottomTabView({
          const isSelectionHidden = isFocusedRouteSelectionHidden && route.key === nativeSelectedRouteKey;
          const {
            title,
@@ -276,7 +274,7 @@ index 62dc1c3..4ac0bba 100644
            tabBarLabel,
            tabBarAccessibilityLabel,
            tabBarSelectionEnabled,
-@@ -295,8 +428,7 @@ export function NativeBottomTabView({
+@@ -295,8 +426,7 @@ export function NativeBottomTabView({
            tabBarBadge,
            tabBarSystemItem,
            tabBarBlurEffect = dark ? 'systemMaterialDark' : 'systemMaterial',
@@ -286,7 +284,7 @@ index 62dc1c3..4ac0bba 100644
          } = options;
          const {
            backgroundColor: tabBarBackgroundColor,
-@@ -308,7 +440,7 @@ export function NativeBottomTabView({
+@@ -308,7 +438,7 @@ export function NativeBottomTabView({
          Platform.OS === 'ios' && tabBarSystemItem != null ? tabBarLabel : getLabel({
            label: tabBarLabel,
            title
@@ -295,7 +293,7 @@ index 62dc1c3..4ac0bba 100644
          const badgeBackgroundColor = tabBarBadgeStyle?.backgroundColor ?? colors.notification;
          const badgeTextColor = tabBarBadgeStyle?.color ?? (typeof badgeBackgroundColor === 'string' ? Color(badgeBackgroundColor).isLight() ? 'black' : 'white' : undefined);
          const tabItemAppearance = {
-@@ -355,7 +487,11 @@ export function NativeBottomTabView({
+@@ -355,7 +485,11 @@ export function NativeBottomTabView({
              route
            }),
            screenKey: route.name,
@@ -308,25 +306,28 @@ index 62dc1c3..4ac0bba 100644
            badgeValue: tabBarBadge?.toString(),
            title: tabTitle,
            tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,
-@@ -420,7 +556,7 @@ export function NativeBottomTabView({
+@@ -420,17 +554,17 @@ export function NativeBottomTabView({
                  normal: tabItemAppearance
                }
              },
 -            overrideScrollViewContentInsetAdjustmentBehavior
-+            overrideScrollViewContentInsetAdjustmentBehavior: descriptors[route.key].options.overrideScrollViewContentInsetAdjustmentBehavior
++            overrideScrollViewContentInsetAdjustmentBehavior: contentOptions.overrideScrollViewContentInsetAdjustmentBehavior
            },
            // Keyed by route key, so a re-keyed route still remounts its content inside the same native tab.
            children: [/*#__PURE__*/_jsx(Deferred, {
-@@ -430,7 +566,7 @@ export function NativeBottomTabView({
+-            lazy: lazy,
++            lazy: contentOptions.lazy ?? false,
+             visible: isFocused || isPreloaded,
+             children: /*#__PURE__*/_jsx(ScreenWithHeader, {
                isFocused: isFocused,
                route: route,
                navigation: navigation,
 -              options: options,
-+              options: descriptors[route.key].options,
++              options: contentOptions,
                children: /*#__PURE__*/_jsx(NavigationMetaContext.Provider, {
                  value: meta,
                  children: render()
-@@ -442,8 +578,9 @@ export function NativeBottomTabView({
+@@ -442,8 +576,9 @@ export function NativeBottomTabView({
      }, "native-tabs-host")]
    });
    function renderHiddenRoutes(hostRouteKey) {
@@ -338,7 +339,7 @@ index 62dc1c3..4ac0bba 100644
        if (!isRouteHidden(route) || getHostRouteKey(route) !== hostRouteKey) {
          return null;
        }
-@@ -459,7 +596,15 @@ export function NativeBottomTabView({
+@@ -459,7 +594,15 @@ export function NativeBottomTabView({
          navigation
        } = descriptors[route.key];
        const isFocused = state.index === index;
@@ -355,7 +356,7 @@ index 62dc1c3..4ac0bba 100644
        const screen = /*#__PURE__*/_jsx(ScreenWithHeader, {
          isFocused: isFocused,
          route: route,
-@@ -482,6 +627,18 @@ export function NativeBottomTabView({
+@@ -482,6 +625,18 @@ export function NativeBottomTabView({
          }) : screen
        }, route.key);
      });
@@ -375,10 +376,10 @@ index 62dc1c3..4ac0bba 100644
  }
  const styles = StyleSheet.create({
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
-index 7dfbd2e..703722a 100644
+index 7dfbd2e..653fbc5 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
-@@ -84,12 +84,21 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
+@@ -84,12 +84,20 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
       */
      tabBarItemHidden?: boolean;
      /**
@@ -389,9 +390,8 @@ index 7dfbd2e..703722a 100644
 +     * Name of the visible tab whose item shows as selected while a `tabBarItemHidden` tab is focused. The hidden tab is
 +     * drawn inside the first tab named here and mounts ahead of its first visit the way a visible tab does. Naming
 +     * another tab keeps the hidden tab mounted: on iOS that tab shows the native view of the hidden tab while it is
-+     * selected, elsewhere the two tabs trade their places and items in the tab bar. The hidden tab
-+     * a tab last showed stays laid out in it, so it shows as soon as native selects that tab. Ignored when no visible tab
-+     * has this name.
++     * selected, elsewhere the two tabs trade their places and items in the tab bar. The hidden tab a tab last showed
++     * stays laid out in it, so it shows as soon as native selects that tab. Ignored when no visible tab has this name.
       */
      tabBarItemHostRouteName?: string;
 +    /**

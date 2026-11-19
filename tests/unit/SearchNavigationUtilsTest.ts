@@ -280,10 +280,6 @@ describe('SearchNavigationUtils', () => {
     describe('showSpendTabSearchOnMountedSearchPage', () => {
         const LAST_REPORTS_QUERY = 'type:expense-report sortBy:date sortOrder:desc status:drafts';
 
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('hands the mounted Search page the last Reports query as params, with no route opened', () => {
             // Given a mounted Search navigator, the query the user last left Reports with, and Search focused
             const clearSelection = jest.fn();
