@@ -4,7 +4,16 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {
+    BankAccountMenuItem,
+    BulkPaySelectionData,
+    PaymentData,
+    SearchFooterTotal,
+    SearchQueryJSON,
+    SearchQueryString,
+    SelectedReports,
+    SelectedTransactions,
+} from '@components/Search/types';
 
 import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -93,6 +102,7 @@ import type {
     BankAccountList,
     BillingGraceEndPeriod,
     ExportTemplate,
+    InsightsSearchKey,
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
@@ -1043,6 +1053,19 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
     ];
 
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
+}
+
+/** Stores the query a Spend tab or Insights dashboard reopens with, for changes that make no request that would save it. */
+function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey, query: SearchQueryString) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {[searchKey]: {query}},
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
 }
 
 function deleteSavedSearch(savedSearchID: string) {
@@ -2953,6 +2976,7 @@ function setOptimisticDataForTransactionThreadPreview(
 
 export {
     queueBulkExpenseAction,
+    saveSearchFilters,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,

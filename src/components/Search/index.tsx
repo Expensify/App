@@ -1020,7 +1020,7 @@ function Search({
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
     const hideSearchColumn = useHideSearchColumn(queryJSON, columnsToShow);
-    const pinSearchColumn = usePinSearchColumn(queryJSON);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
     const shouldPinColumns = shouldShowColumnMenu && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.

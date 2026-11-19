@@ -1,7 +1,9 @@
 /** Reads the column pins a Spend query holds, and turns the column menu's pin and unpin choices into a new query. */
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
+import {saveSearchFilters} from '@libs/actions/Search';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {PinnedColumns, PinnedColumnSide} from '@libs/SearchPinnedColumnsUtils';
 import {getPinnedColumns, getQueryWithPinnedColumns, setColumnPin} from '@libs/SearchPinnedColumnsUtils';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
@@ -22,7 +24,7 @@ type PinSearchColumn = {
     pinColumn: (column: SearchColumnType, side: PinnedColumnSide | undefined) => void;
 };
 
-function usePinSearchColumn(queryJSON: SearchQueryJSON): PinSearchColumn {
+function usePinSearchColumn(queryJSON: SearchQueryJSON, searchKey: SearchKey | undefined): PinSearchColumn {
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const pinnedColumns = getPinnedColumns(queryJSON);
 
@@ -30,6 +32,9 @@ function usePinSearchColumn(queryJSON: SearchQueryJSON): PinSearchColumn {
         const query = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, setColumnPin(pinnedColumns, column, side), queryHasViolationFilter(queryJSON)));
         // A new route would remount Search and send the search again, though pins only reorder the columns.
         navigation.setParams({q: query, rawQuery: undefined});
+        if (searchKey) {
+            saveSearchFilters(searchKey, query);
+        }
     };
 
     return {canPinColumns: !getValidGroupBy(queryJSON.groupBy), pinnedColumns, pinColumn};
