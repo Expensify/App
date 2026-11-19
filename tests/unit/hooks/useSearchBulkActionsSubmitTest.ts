@@ -263,6 +263,7 @@ function makeSelectedReport(reportID: string, policyID = POLICY_ID): SelectedRep
         canApprove: false,
         canSubmit: true,
         canChangeApprover: false,
+        canReject: false,
         total: 100,
         currency: 'USD',
         chatReportID: `chat-${reportID}`,
