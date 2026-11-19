@@ -29,7 +29,7 @@ function createPaymentCredentialsHandler(card: Card, walletData: AndroidWalletDa
             if (signal?.aborted) {
                 throw new Error('Wallet attempt canceled');
             }
-            return await createGoogleOpaquePaymentCard(
+            const credentials = await createGoogleOpaquePaymentCard(
                 {
                     cardID: card.cardID,
                     serverSessionID: serverSessionId,
@@ -38,6 +38,10 @@ function createPaymentCredentialsHandler(card: Card, walletData: AndroidWalletDa
                 },
                 authentication,
             );
+            if (signal?.aborted) {
+                throw new Error('Wallet attempt canceled');
+            }
+            return credentials;
         } catch (error) {
             Log.warn(`createPaymentCredentialsHandler error: ${getErrorMessage(error)}`);
             throw error;

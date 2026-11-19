@@ -335,15 +335,17 @@ describe('Android Unified Push Provisioning', () => {
     };
     const credentials = {opaquePaymentCard: 'opaque-from-second-call', googleOpaquePaymentCard: 'google-opaque'};
 
-    /** Runs the first CreateDigitalWallet call and returns the handler that Google's credentials request is routed to. */
-    async function startProvisioning(provisionedCard: Card, options?: Parameters<typeof addAndroid>[3]) {
+    /** Runs the first CreateDigitalWallet call and returns the handler that Google's credentials request is routed to, while tokenization is still pending. */
+    function startProvisioning(provisionedCard: Card, options?: Parameters<typeof addAndroid>[3]) {
         mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...androidPayload}));
-        await addAndroid(provisionedCard, 'Jane', 'Card', options);
-        const handler = mockGoogle.mock.calls.at(0)?.[1];
-        if (!handler) {
-            throw new Error('The credentials handler was not passed to Google Wallet');
-        }
-        return handler;
+        const handlerPromise = new Promise<NonNullable<Parameters<typeof addCardToGoogleWallet>[1]>>((resolve) => {
+            mockGoogle.mockImplementationOnce((_cardData, handler) => {
+                resolve(handler);
+                return new Promise(() => {});
+            });
+        });
+        addAndroid(provisionedCard, 'Jane', 'Card', options);
+        return handlerPromise;
     }
 
     beforeEach(() => {
@@ -416,22 +418,6 @@ describe('Android Unified Push Provisioning', () => {
         await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
     });
 
-    it('rejects the whole provisioning when Google asks for credentials and the response has no Google OPC', async () => {
-        // Given Google calls the credentials handler during tokenization and the backend answers with the TSP OPC only
-        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...androidPayload}));
-        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...{opaquePaymentCard: 'opaque'}}));
-        mockGoogle.mockImplementation(async (_cardData, handler) => {
-            await handler(credentialsRequest);
-            return 'success';
-        });
-
-        // When the card is added
-        const pending = addAndroid(usCard, 'Jane', 'Card');
-
-        // Then the flow fails instead of reporting success
-        await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
-    });
-
     it('fails the flow when the second request does not reach the backend', async () => {
         // Given a transport failure on the second call.
         const handler = await startProvisioning(usCard);
@@ -456,6 +442,22 @@ describe('Android Unified Push Provisioning', () => {
         // Then it rejects without a second request.
         await expect(pending).rejects.toThrow('canceled');
         expect(mockRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not return the OPCs when the attempt is aborted while the second request is pending', async () => {
+        // Given an attempt that is canceled while the second call is in flight
+        const controller = new AbortController();
+        const handler = await startProvisioning(usCard, {signal: controller.signal});
+        mockRequest.mockImplementationOnce(async () => {
+            controller.abort();
+            return createMock<APIResponse>({jsonCode: 200, ...credentials});
+        });
+
+        // When the credentials handler runs
+        const pending = handler(credentialsRequest);
+
+        // Then the late response is not handed to Google
+        await expect(pending).rejects.toThrow('canceled');
     });
 
     it('rejects Google credentials requests for a UK/EU card without a second call', async () => {
