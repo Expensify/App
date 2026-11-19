@@ -150,7 +150,7 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
 
     it('makes a new approver an optional over-limit approver for the report total the admin enters', async () => {
         // Given Bob was just added after Alice to a new workflow, so he gets every report
-        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.CREATE);
+        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.CREATE, {}, undefined, true);
         expect(screen.getByText(translateLocal('workflowsApprovalLimitPage.whenShouldApprove', {approverName: 'bob'}))).toBeOnTheScreen();
         expect(screen.queryByText(translateLocal('workflowsApprovalLimitPage.reportTotal'))).toBeNull();
 
@@ -173,8 +173,8 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
     });
 
     it('asks for a report total before saving an optional over-limit approver', async () => {
-        // Given Bob gets every report in a new workflow
-        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.CREATE);
+        // Given Bob was just added to a new workflow, where he gets every report
+        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.CREATE, {}, undefined, true);
 
         // When the admin has him approve only the reports over an amount, without entering one
         fireEvent.press(screen.getByText(translateLocal('workflowsApprovalLimitPage.overSetAmount')));
@@ -202,7 +202,7 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
                 ],
             });
         });
-        await renderPageForApprover(2);
+        await renderPageForApprover(2, true);
 
         // When the admin has Carol approve only the reports over 500.00
         fireEvent.press(screen.getByText(translateLocal('workflowsApprovalLimitPage.overSetAmount')));
@@ -244,6 +244,28 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
         // Then Carol takes his place right after Alice, and the admin goes back to the workflow
         expect((await getApprovers())?.map((approver) => approver?.email)).toEqual([ALICE_EMAIL, CAROL_EMAIL]);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(POLICY_ID, ALICE_EMAIL, undefined), {compareParams: false});
+    });
+
+    it('edits an approver opened from a new workflow the same way as in an existing workflow', async () => {
+        // Given Bob only gets the reports over 1,000.00, followed by Carol, in a new workflow, and the admin opened him from it
+        await renderPageForBob(CONST.APPROVAL_WORKFLOW.ACTION.CREATE, {overLimitAmount: 100000}, {email: CAROL_EMAIL, displayName: 'carol'});
+
+        // Then the page edits Bob rather than walking the admin through adding him again
+        expect(screen.getByText(translateLocal('workflowsApprovalLimitPage.removeApprover'))).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('workflowsApprovalLimitPage.next'))).toBeNull();
+
+        // When the admin lowers his amount to 500.00 and saves
+        fireEvent.changeText(screen.getByLabelText(translateLocal('workflowsApprovalLimitPage.reportTotal')), '500');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Bob gets the reports over 500.00, Carol still approves after him, and the admin goes back to the new workflow they came from
+        const approvers = await getApprovers();
+        expect(approvers?.map((approver) => approver?.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, CAROL_EMAIL]);
+        expect(approvers?.at(1)?.overLimitAmount).toBe(50000);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(POLICY_ID));
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('asks about an approver added to an edited workflow the same way as in a new workflow', async () => {
