@@ -5,6 +5,7 @@ import requestKeyboardForFocusedComposer from '@libs/focusComposerWithDelay/requ
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 
 import createMock from '../utils/createMock';
@@ -52,6 +53,50 @@ describe('focusComposerWithDelay', () => {
 
         expect(focus).toHaveBeenCalled();
     });
+
+    it('focuses an editor that mounts after the delayed focus request', async () => {
+        // Given an edit transition that requests focus before the input ref is attached.
+        const {input, focus} = createInput();
+        let currentInput: HTMLTextAreaElement | null = null;
+
+        // When the editor mounts before the focus delay ends.
+        await focusComposerWithDelay(() => currentInput)(true);
+        currentInput = input;
+        jest.runAllTimers();
+
+        // Then the mounted editor receives focus instead of losing the request.
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not focus an editor that unmounts before the delay ends', async () => {
+        // Given a focus request for an editor that is still mounted.
+        const {input, focus} = createInput();
+        let currentInput: HTMLTextAreaElement | null = input;
+        await focusComposerWithDelay(() => currentInput)(true);
+
+        // When navigation removes the editor before the delayed request runs.
+        currentInput = null;
+        jest.runAllTimers();
+
+        // Then the stale input does not take focus back.
+        expect(focus).not.toHaveBeenCalled();
+    });
+
+    it('focuses the replacement editor instead of the old input', async () => {
+        // Given a pending focus request while the composer is changing its layout.
+        const original = createInput();
+        const replacement = createInput();
+        let currentInput = original.input;
+        await focusComposerWithDelay(() => currentInput)(true);
+
+        // When the input ref changes before the focus delay ends.
+        currentInput = replacement.input;
+        jest.runAllTimers();
+
+        // Then only the current editor receives focus.
+        expect(original.focus).not.toHaveBeenCalled();
+        expect(replacement.focus).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('focusComposerWithDelay command categories', () => {
@@ -78,11 +123,11 @@ describe('focusComposerWithDelay command categories', () => {
 
     it('keeps native top-level selection and requests the keyboard for an already focused input', async () => {
         // Given native selection belongs to the input itself, without a wrapper.
-        const focus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
-        const input = createMock<TextInput>({
+        const focus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const input = createMock<ComponentRef<typeof TextInput>>({
             focus,
             isFocused: () => false,
-            setSelection: jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>(),
+            setSelection: jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>(),
         });
         const requestKeyboard = jest.mocked(requestKeyboardForFocusedComposer);
 

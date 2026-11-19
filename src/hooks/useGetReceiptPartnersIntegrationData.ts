@@ -1,7 +1,5 @@
 import CONST from '@src/CONST';
 
-import {useCallback} from 'react';
-
 import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -15,24 +13,21 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const shouldShowEnterCredentialsError = !!uber?.error;
 
-    const getReceiptPartnersIntegrationData = useCallback(
-        (receiptPartnerName: string) => {
-            switch (receiptPartnerName) {
-                case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    return {
-                        title: CONST.POLICY.RECEIPT_PARTNERS.NAME_USER_FRIENDLY[CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER],
-                        description: translate('workspace.receiptPartners.uber.subtitle', uber?.organizationName ?? ''),
-                        icon: icons.Uber,
-                        errorFields: uber?.errorFields,
-                        errors: uber?.errors,
-                    };
-                }
-                default:
-                    return undefined;
+    const getReceiptPartnersIntegrationData = (receiptPartnerName: string) => {
+        switch (receiptPartnerName) {
+            case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
+                return {
+                    title: CONST.POLICY.RECEIPT_PARTNERS.NAME_USER_FRIENDLY[CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER],
+                    description: translate('workspace.receiptPartners.uber.subtitle', uber?.organizationName ?? ''),
+                    icon: icons.Uber,
+                    errorFields: uber?.errorFields,
+                    errors: uber?.errors,
+                };
             }
-        },
-        [translate, uber?.errorFields, uber?.errors, uber?.organizationName, icons],
-    );
+            default:
+                return undefined;
+        }
+    };
 
     return {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected};
 }

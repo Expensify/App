@@ -3,7 +3,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,9 +22,8 @@ import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actio
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type BillingItem = {
@@ -40,15 +38,15 @@ function DynamicPayAndDowngradePage() {
 
     const {translate} = useLocalize();
 
-    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
+    const [billingDetails] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
     const prevIsLoading = usePrevious(billingDetails?.isLoading);
 
     const errorMessage = billingDetails?.errors;
 
-    const items: BillingItem[] = useMemo(() => {
-        if (isEmptyObject(billingDetails)) {
-            return [];
-        }
+    let items: BillingItem[];
+    if (isEmptyObject(billingDetails)) {
+        items = [];
+    } else {
         const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts].map((item) => {
             return {
                 key: item.description,
@@ -56,14 +54,13 @@ function DynamicPayAndDowngradePage() {
                 isTotal: false,
             };
         });
-
         results.push({
             key: translate('common.total'),
             value: billingDetails.formattedSubtotal,
             isTotal: true,
         });
-        return results;
-    }, [billingDetails, translate]);
+        items = results;
+    }
 
     useEffect(() => {
         if (billingDetails?.isLoading || !prevIsLoading || billingDetails?.errors) {
@@ -75,10 +72,6 @@ function DynamicPayAndDowngradePage() {
     useEffect(() => {
         clearBillingReceiptDetailsErrors();
     }, []);
-
-    if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath)} />;
-    }
 
     return (
         <ScreenWrapper
@@ -122,6 +115,7 @@ function DynamicPayAndDowngradePage() {
                             </View>
                         )}
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DOWNGRADE.PAY_AND_DOWNGRADE}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.DANGER}
                             onPress={payAndDowngrade}

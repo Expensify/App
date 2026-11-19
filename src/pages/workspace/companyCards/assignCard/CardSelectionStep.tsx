@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -12,6 +13,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCompanyCardNumberSearch, {normalizeCardNumber} from '@hooks/useCompanyCardNumberSearch';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +23,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber, splitCardFeedWithDomainID} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,9 +39,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -54,6 +57,12 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
+    // Split the route's domain-suffixed feed id into (plain feed, domainID) for the server-side number search.
+    const feedWithDomain = splitCardFeedWithDomainID(feed);
+    // This step only runs in the company-card flow, so narrow off the Expensify Card bank before passing.
+    const isCompanyCardFeed = (value: CardFeedWithNumber): value is CompanyCardFeedWithNumber => !value.startsWith(CONST.EXPENSIFY_CARD.BANK);
+    const companyCardFeedName = feedWithDomain?.feedName && isCompanyCardFeed(feedWithDomain.feedName) ? feedWithDomain.feedName : undefined;
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, companyCardFeedName, feedWithDomain?.domainID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -108,8 +117,23 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         setShouldShowError(false);
     };
 
+    // Full-number queries trust the server match, since masked names share digit suffixes; last-four matches are flagged as unverified.
+    const {resultsQuery, matchedEncryptedNumbers, lastFourEncryptedNumbers, isFullNumberQuery} = companyCardNumberSearch;
+    const hasCurrentResults = !!resultsQuery && normalizeCardNumber(searchText) === resultsQuery;
+    const lastFourWarning = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
+    let searchedListOptions;
+    if (isFullNumberQuery) {
+        searchedListOptions = hasCurrentResults
+            ? cardListOptions
+                  .filter((option) => matchedEncryptedNumbers.has(option.value))
+                  .map((option) => (lastFourEncryptedNumbers.has(option.value) ? {...option, alternateText: lastFourWarning} : option))
+            : [];
+    } else {
+        searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+    }
+
     const submit = () => {
-        if (!cardSelected) {
+        if (!cardSelected || !searchedListOptions.some((option) => option.value === cardSelected)) {
             setShouldShowError(true);
             return;
         }
@@ -134,22 +158,20 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
-    const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, cardListOptions]);
-
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
-            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
-            value: searchText,
-            onChangeText: setSearchText,
-            shouldBeInsideList: true,
-        }),
-        [cardListOptions.length, searchText, searchedListOptions.length, translate],
-    );
+    // Feed the typed text into the search hook from the input's own change handler rather than mirroring it
+    // through an effect; the search state only ever transitions in response to this user event.
+    const textInputOptions = {
+        headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching || companyCardNumberSearch.hasError ? undefined : translate('common.noResultsFound'),
+        label: translate('common.search'),
+        value: searchText,
+        onChangeText: (text: string) => {
+            setSearchText(text);
+            companyCardNumberSearch.setSearchValue(text);
+        },
+        shouldBeInsideList: true,
+    };
 
     const customListHeader = (
         <View>
@@ -202,11 +224,27 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
-                        shouldShowListEmptyContent={false}
+                        isLoadingNewOptions={companyCardNumberSearch.isSearching}
+                        shouldShowListEmptyContent={companyCardNumberSearch.hasError}
+                        listEmptyContent={
+                            companyCardNumberSearch.hasError ? (
+                                <BlockingView
+                                    icon={lazyIllustrations.BrokenMagnifyingGlass}
+                                    title={translate('common.genericErrorMessage')}
+                                    buttonTranslationKey="common.tryAgain"
+                                    onButtonPress={companyCardNumberSearch.retrySearch}
+                                />
+                            ) : undefined
+                        }
                         addBottomSafeAreaPadding
                         shouldUpdateFocusedIndex
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={
+                                    isEditing
+                                        ? CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_CONFIRM
+                                        : CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_NEXT
+                                }
                                 buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                                 onSubmit={submit}
                                 isAlertVisible={shouldShowError}

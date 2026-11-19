@@ -6,7 +6,6 @@ name: Verify Podfile.lock uses prebuilt react-native
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
     paths:
       - 'ios/Podfile.lock'
       - '.github/scripts/verifyPodfilePrebuilt.sh'
@@ -26,7 +25,7 @@ permissions:
 jobs:
   verify:
     if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       # Checks out the caller's own repo - App directly, or Mobile-Expensify via workflow_call -
       # since that's where the Podfile.lock to verify lives.

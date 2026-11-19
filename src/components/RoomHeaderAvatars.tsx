@@ -18,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AvatarFromIcon from './Avatar/AvatarFromIcon';
@@ -86,6 +86,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
             return (
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.AVATAR}
                     source={avatarSource}
                     avatar={roomAvatar}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
@@ -106,6 +107,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
 
         return (
             <PressableWithoutFocus
+                sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.VIEW_AVATAR}
                 style={styles.noOutline}
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
@@ -145,6 +147,7 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
                         <PressableWithoutFocus
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.VIEW_AVATAR}
                             style={[styles.mln4, getRoomHeaderAvatarBorderRadius(icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
@@ -179,4 +182,4 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     );
 }
 
-export default memo(RoomHeaderAvatars);
+export default RoomHeaderAvatars;

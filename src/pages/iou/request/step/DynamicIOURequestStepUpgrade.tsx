@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,7 +54,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
@@ -101,7 +102,7 @@ function DynamicIOURequestStepUpgrade({
     const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -113,6 +114,7 @@ function DynamicIOURequestStepUpgrade({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -126,7 +128,7 @@ function DynamicIOURequestStepUpgrade({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
-    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails, [personalDetails, ownerAccountID]);
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
@@ -140,7 +142,7 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const afterUpgradeAcknowledged = useCallback(() => {
+    const afterUpgradeAcknowledged = () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
@@ -167,6 +169,7 @@ function DynamicIOURequestStepUpgrade({
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
+                currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: newPolicy,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
@@ -184,6 +187,7 @@ function DynamicIOURequestStepUpgrade({
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 ...allMatchingQueryParams,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
 
             clearSelectedTransactions();
@@ -268,44 +272,7 @@ function DynamicIOURequestStepUpgrade({
             default:
                 Navigation.goBack();
         }
-    }, [
-        isVendorMatchingBetaEnabled,
-        action,
-        upgradeBackTo,
-        shouldReturnToConfirmation,
-        navigateWithMicrotask,
-        reportID,
-        shouldSubmitExpense,
-        transactionID,
-        upgradePath,
-        selectedTransactionsKeys,
-        clearSelectedTransactions,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        allPolicies,
-        allPolicyCategories,
-        session?.accountID,
-        session?.email,
-        ownerPersonalDetails,
-        transactions,
-        iouType,
-        isTrack,
-        allPolicyTags,
-        createReportForCurrentUser,
-        transactionViolations,
-        reports,
-        selfDMReportActions,
-        isTrackIntentUser,
-        delegateAccountID,
-        getCurrencyDecimals,
-        getCurrencySymbol,
-        rules,
-        cardList,
-        areAllMatchingItemsSelected,
-        currentSearchQueryJSON,
-        excludedTransactions,
-        isOffline,
-    ]);
+    };
 
     const participant = transaction?.participants?.[0];
     const adminParticipant =
@@ -408,6 +375,7 @@ function DynamicIOURequestStepUpgrade({
                     {!!isUpgraded && (
                         <UpgradeConfirmation
                             afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                            confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
                             isReporting={isReporting}
@@ -418,6 +386,7 @@ function DynamicIOURequestStepUpgrade({
                         <UpgradeIntro
                             feature={feature}
                             onUpgrade={onUpgrade}
+                            upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}

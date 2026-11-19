@@ -47,6 +47,8 @@ const PAGE_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path,
         testID: 'DynamicHRSyncResultsPage',
+        skippedEmployeesSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SKIPPED_EMPLOYEES_TOGGLE_HR,
+        confirmSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SYNC_RESULTS_CONFIRM.HR,
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedHRProvider(policy)?.displayName ?? '',
         shouldBeBlocked: () => false,
     },
@@ -54,6 +56,8 @@ const PAGE_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path,
         testID: 'DynamicRecruitingSyncResultsPage',
+        skippedEmployeesSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SKIPPED_EMPLOYEES_TOGGLE_RECRUITING,
+        confirmSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MERGE.SYNC_RESULTS_CONFIRM.RECRUITING,
         getProviderDisplayName: (policy: OnyxEntry<Policy>) => getConnectedATSProvider(policy)?.displayName ?? '',
         shouldBeBlocked: (isBetaEnabled: (beta: Beta) => boolean) => !isBetaEnabled(CONST.BETAS.MERGE_ATS),
     },
@@ -76,7 +80,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
 
-    const {featureName, dynamicRoutePath, testID, shouldBeBlocked, getProviderDisplayName} = PAGE_CONFIG[category];
+    const {featureName, dynamicRoutePath, testID, skippedEmployeesSentryLabel, confirmSentryLabel, shouldBeBlocked, getProviderDisplayName} = PAGE_CONFIG[category];
     const backPath = useDynamicBackPath(dynamicRoutePath);
 
     const [providerDisplayName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -135,7 +139,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
                     {renderResultSummary(translate('workspace.merge.syncResults.removed'), removedCount)}
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('workspace.merge.syncResults.skipped')}
-                        sentryLabel={`${testID}-SkippedEmployees`}
+                        sentryLabel={skippedEmployeesSentryLabel}
                         role={CONST.ROLE.BUTTON}
                         onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
                         style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
@@ -163,6 +167,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
+                        sentryLabel={confirmSentryLabel}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={goBack}

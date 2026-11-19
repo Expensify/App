@@ -1,18 +1,20 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -52,17 +54,19 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: getStableReportSelector});
-    const personalDetails = usePersonalDetails();
+    const participantAccountIDs = [currentUserAccountID, Number(reportAction.actorAccountID)];
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(participantAccountIDs));
 
     const isAgentProcessingInThread = !!processingAgentIDs?.length;
 
     // While an agent is still replying, the server can report zero replies, so count the in-progress reply
     const numberOfReplies = isAgentProcessingInThread ? Math.max(reportAction.childVisibleActionCount ?? 0, 1) : (reportAction.childVisibleActionCount ?? 0);
-    const childAccountIDs =
-        reportAction.childOldestFourAccountIDs
-            ?.split(',')
-            .map((accountID) => Number(accountID))
-            .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
+    // A thread with no replies yet has an empty `childOldestFourAccountIDs`, which must give an empty list so the processing agents are shown
+    const childAccountIDs = (reportAction.childOldestFourAccountIDs ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map((accountID) => Number(accountID))
+        .filter((accountID) => !Number.isNaN(accountID) && accountID !== CONST.DEFAULT_NUMBER_ID);
     const accountIDs = childAccountIDs.length === 0 && processingAgentIDs ? processingAgentIDs : childAccountIDs;
     const mostRecentReply = `${reportAction.childLastVisibleActionCreated}`;
 
@@ -77,7 +81,11 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
-                        const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
+                        if (isCreatedSupportTicketReportAction(reportAction)) {
+                            navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
+                            return;
+                        }
+                        const participantsPersonalDetails = getParticipantsPersonalDetails(participantAccountIDs, personalDetails);
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}
                     role={CONST.ROLE.BUTTON}

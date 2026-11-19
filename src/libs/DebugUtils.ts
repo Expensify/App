@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -453,6 +453,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'created':
         case 'submitted':
         case 'approved':
+        case 'paid':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -478,14 +479,18 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'billID':
         case 'conciergeFeedbackForReportActionID':
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
         case 'debitedCurrency':
         case 'creditedCurrency':
+        case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
+        case 'isHiddenForBillReceiver':
+        case 'isAwaitingActionFromCurrentUser':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
@@ -505,6 +510,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'managerID':
         case 'lastActorAccountID':
         case 'ownerAccountID':
+        case 'billSenderAccountID':
         case 'total':
         case 'unheldTotal':
         case 'nonReimbursableTotal':
@@ -585,6 +591,24 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             );
         case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'wiseQuote':
+            return validateObject<ObjectElement<Report, 'wiseQuote'>>(value, {
+                wiseQuoteID: 'string',
+                fee: 'number',
+                rate: 'number',
+                debitedAmount: 'number',
+                creditedAmount: 'number',
+                currency: 'string',
+                paymentCurrency: 'string',
+                expectedDate: 'string',
+                expiresAt: 'string',
+                tax: 'number',
+            });
+        case 'wiseQuoteRequest':
+            return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
+                full: 'boolean',
+                amount: 'number',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -593,6 +617,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eta: 'object',
                 iconFill: 'string',
                 requiredDepositCurrency: 'string',
+                requiresGlobalReimbursement: 'boolean',
+                depositCurrency: 'string',
+                autoExport: 'object',
             });
         case 'tripData':
             return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
@@ -600,6 +627,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
                 payload: 'object',
+                bookingApprovalState: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -625,6 +653,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
             return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
+                isAwaitingActionFromCurrentUser: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -638,6 +667,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -662,6 +694,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -671,6 +704,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 ownerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                billSenderAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -685,6 +719,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                paid: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -714,6 +749,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                billID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -760,6 +796,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'childOldestFourAccountIDs':
         case 'childLastVisibleActionCreated':
         case 'actor':
+        case 'submitterEmail':
         case 'avatar':
         case 'childLastMoneyRequestComment':
         case 'reportActionTimestamp':
@@ -804,6 +841,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 sequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actionName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 person: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1212,6 +1250,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     feedCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1279,6 +1318,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                forceReimbursable: 'boolean',
                 vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',
@@ -1374,6 +1414,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 sequenceNumber: 'number',
                 actionName: CONST.REPORT.ACTIONS.TYPE,
                 actorAccountID: 'number',
+                submitterEmail: 'string',
                 actor: 'string',
                 person: 'array',
                 shouldShow: 'boolean',
@@ -1636,21 +1677,37 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    isOffline: boolean,
-    currentUserAccountID: number,
+type GetReasonAndReportActionForRBRInLHNRowParams = {
+    report: Report;
+    policy: OnyxEntry<Policy>;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    transactions: OnyxCollection<Transaction>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    isArchivedReport?: boolean;
+};
+
+function getReasonAndReportActionForRBRInLHNRow({
+    report,
+    policy,
+    chatReport,
+    reportActions,
+    transactions,
+    transactionViolations,
+    hasViolations,
+    reportErrors,
+    isOffline,
+    currentUserAccountID,
     isArchivedReport = false,
-): RBRReasonAndReportAction | null {
+}: GetReasonAndReportActionForRBRInLHNRowParams): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
         SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
+            policy,
             chatReport,
             reportActions,
             hasViolations,

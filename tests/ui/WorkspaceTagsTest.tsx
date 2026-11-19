@@ -44,6 +44,21 @@ jest.mock('react-native-render-html', () => {
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in.
+ */
+const openBulkActions = async () => {
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+
+    if (moreButton) {
+        fireEvent.press(moreButton);
+    }
+
+    await waitForBatchedUpdatesWithAct();
+};
+
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -259,18 +274,14 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
-        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
+        const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'));
         const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
         fireEvent.press(disableMenuItem, mockEvent);
 
@@ -406,6 +417,42 @@ describe('WorkspaceTags', () => {
 
             // And the Display button is hidden, so the levels can't be re-sorted
             expect(screen.queryByLabelText(TestHelper.translateLocal('search.display.label'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('shows a row for each level when two levels share a name', async () => {
+            // Given a no-header import with GL codes in adjacent columns, which returned two levels named "Sub-projects"
+            // under the unique Onyx keys "Sub-projects" and "Sub-projects_2"
+            mockLayout(false);
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, {
+                    Clients: {name: 'Clients', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects': {name: 'Sub-projects', required: false, orderWeight: 1, tags: {'North America': {name: 'North America', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects_2': {name: 'Sub-projects', required: false, orderWeight: 2, tags: {'Project Apollo': {name: 'Project Apollo', enabled: true}}},
+                });
+            });
+
+            // When the tags page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then every level gets its own row, including both levels named "Sub-projects"
+            await waitFor(() => {
+                expect(screen.getByText('Clients')).toBeOnTheScreen();
+            });
+            expect(screen.getAllByText('Sub-projects')).toHaveLength(2);
 
             unmount();
             await waitForBatchedUpdatesWithAct();

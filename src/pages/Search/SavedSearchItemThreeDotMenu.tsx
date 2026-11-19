@@ -1,4 +1,5 @@
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import type {CollapseSurface} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
@@ -7,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boolean};
@@ -16,30 +17,29 @@ type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
     isCopied?: boolean;
+
+    /** The collapsible surface whose peek ends when an item is picked. Defaults to the Spend sidebar. */
+    collapseSurface?: CollapseSurface;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, collapseSurface}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
-    const {endPeek} = useSearchSidebarCollapse();
+    const {endPeek} = useSearchSidebarCollapse(collapseSurface);
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
-    const menuItemsWithPeekCleanup = useMemo(
-        () =>
-            menuItems.map((item) => {
-                if (item.shouldCloseModalOnSelect === false) {
-                    return item;
-                }
+    const menuItemsWithPeekCleanup = menuItems.map((item) => {
+        if (item.shouldCloseModalOnSelect === false) {
+            return item;
+        }
 
-                return {
-                    ...item,
-                    onSelected: () => {
-                        endPeek();
-                        item.onSelected?.();
-                    },
-                };
-            }),
-        [endPeek, menuItems],
-    );
+        return {
+            ...item,
+            onSelected: () => {
+                endPeek();
+                item.onSelected?.();
+            },
+        };
+    });
 
     useEffect(() => {
         if (!isCopied) {

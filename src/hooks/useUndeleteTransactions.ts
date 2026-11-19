@@ -1,4 +1,4 @@
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {undeleteTransactions} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 
 function useUndeleteTransactions() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -30,16 +31,18 @@ function useUndeleteTransactions() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
 
-        changeTransactionsReport({
+        undeleteTransactions({
             isVendorMatchingBetaEnabled,
             transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: currentUserPersonalDetails.email ?? '',
+            currentUserPersonalDetails,
             policy,
             policyTagList,
             transactions,
@@ -53,6 +56,7 @@ function useUndeleteTransactions() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
     };
 }

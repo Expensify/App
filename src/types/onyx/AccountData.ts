@@ -51,6 +51,9 @@ type AccountData = {
 
     /** List of policies this account is linked to */
     policyIDs?: string[];
+
+    /** Determines if the bank account is an Expensify Card settlement account */
+    isExpensifyCardSettlementAccount?: boolean;
 };
 
 export default AccountData;

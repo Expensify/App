@@ -1,7 +1,9 @@
+/** Displays a card limit or explains why an unassigned limit is under review. */
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -14,13 +16,14 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ExpensifyCardLimitDescriptionProps = {
+    /** Limit in cents; undefined displays Reviewing, while zero remains a numeric limit. */
     limit: number | undefined;
-    formattedLimit: string | undefined;
 };
 
-function ExpensifyCardLimitDescription({limit, formattedLimit}: ExpensifyCardLimitDescriptionProps) {
+function ExpensifyCardLimitDescription({limit}: ExpensifyCardLimitDescriptionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {windowWidth} = useWindowDimensions();
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
@@ -35,7 +38,11 @@ function ExpensifyCardLimitDescription({limit, formattedLimit}: ExpensifyCardLim
     }, [isPopoverVisible, windowWidth]);
 
     if (limit !== undefined && limit !== null) {
-        return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('workspace.expensifyCard.bankAccountSuccessLimit', formattedLimit ?? '')}</Text>;
+        return (
+            <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                {translate('workspace.expensifyCard.bankAccountSuccessLimit', convertToDisplayString(limit, CONST.CURRENCY.USD))}
+            </Text>
+        );
     }
 
     return (
@@ -47,7 +54,7 @@ function ExpensifyCardLimitDescription({limit, formattedLimit}: ExpensifyCardLim
                         accessibilityLabel={translate('workspace.expensifyCard.bankAccountSuccessReviewingStatus')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         onPress={() => setIsPopoverVisible(true)}
-                        sentryLabel="ExpensifyCard-ReviewingStatus"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.REVIEWING_STATUS}
                     >
                         <Text style={styles.textStrong}>{translate('workspace.expensifyCard.bankAccountSuccessReviewingStatus')}</Text>
                     </PressableWithFeedback>

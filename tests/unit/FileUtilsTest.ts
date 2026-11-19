@@ -7,13 +7,18 @@ import {
     appendTimeToFileName,
     canvasFallback,
     createFile,
+    getConvertedJpegFileName,
     getDownloadFileName,
     getExportFileName,
     getExtensionFromMimeType,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isErrorResponseForFileDownload,
     isHighResolutionImage,
+    isLabelledDng,
+    isLabelledTiff,
+    rejectWithFileDownloadError,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -148,6 +153,54 @@ describe('FileUtils', () => {
 
         it('honors a custom extension', () => {
             expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
+        });
+    });
+
+    describe('isErrorResponseForFileDownload', () => {
+        it.each(['report.csv', 'ABA_Report_123.aba'])('treats a JSON response to a %s download as an error', (fileName) => {
+            // Given the API responded to a CSV or ABA file download with JSON
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, fileName);
+
+            // Then it is, since the commands that return these files only respond with JSON when they fail
+            expect(isError).toBe(true);
+        });
+
+        it('treats the file content type as the file', () => {
+            // Given the API responded to an ABA file download with the file's own content type
+            const contentType = 'text/plain; charset=utf-8';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'ABA_Report_123.aba');
+
+            // Then it isn't, so the file gets saved
+            expect(isError).toBe(false);
+        });
+
+        it('does not treat JSON as an error for other files', () => {
+            // Given a JSON response to the download of a JSON file
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'attachment.json');
+
+            // Then it isn't, since JSON is what that file contains
+            expect(isError).toBe(false);
+        });
+    });
+
+    describe('rejectWithFileDownloadError', () => {
+        it('rejects with the error the API responded with', async () => {
+            // Given the API responded to a file download with an error
+            const response = createMock<Response>({json: () => Promise.resolve({jsonCode: 402, message: '402 Missing AU deposit account'})});
+
+            // When reading the error
+            const result = rejectWithFileDownloadError(response);
+
+            // Then it carries the API's code and message, so the caller can tell the user what went wrong
+            await expect(result).rejects.toMatchObject({status: '402', message: '402 Missing AU deposit account'});
         });
     });
 
@@ -557,6 +610,29 @@ describe('FileUtils', () => {
 
             expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg'});
         });
+
+        it('should keep the width and height when creating a file on native', () => {
+            // Given a native file that carries its dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            const file = Object.assign(new File(['content'], 'image.jpeg', {type: 'image/jpeg'}), {uri: 'file://image.jpeg', width: 4000, height: 3000});
+
+            const clonedFile = createFile(file);
+
+            // Then the dimensions are kept, because the optimistic attachment uses them to render at the right aspect ratio
+            expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg', width: 4000, height: 3000});
+        });
+
+        it('should not add width and height keys on native when the dimensions are missing', () => {
+            // Given a native file without dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.ANDROID);
+            const file = Object.assign(new File(['content'], 'image.jpeg', {type: 'image/jpeg'}), {uri: 'file://image.jpeg', width: undefined, height: undefined});
+
+            const clonedFile = createFile(file);
+
+            // Then the keys are absent, because the optimistic HTML would otherwise write data-expensify-width="undefined"
+            expect(clonedFile).not.toHaveProperty('width');
+            expect(clonedFile).not.toHaveProperty('height');
+        });
     });
 
     describe('resizeImageIfNeeded', () => {
@@ -579,6 +655,21 @@ describe('FileUtils', () => {
             // Then the result keeps the resized blob uri, so the attachment preview can load it instead of spinning forever
             expect(result).toBeInstanceOf(File);
             expect(result.uri).toBe('blob:http://localhost/resized');
+        });
+
+        it('should keep the resized width and height on native when the image is larger than the max size', async () => {
+            // Given an image on iOS that is larger than the max attachment size, and an image manipulator that returns the resized dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 6000, height: 4000});
+            jest.mocked(getImageManipulator).mockResolvedValue(
+                Object.assign(new File(['resized'], 'large.jpg', {type: 'image/jpeg'}), {uri: 'file://resized.jpg', width: 3000, height: 2000}),
+            );
+            const file = {uri: 'file://large.jpg', name: 'large.jpg', type: 'image/jpeg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1};
+
+            const result = await resizeImageIfNeeded(file);
+
+            // Then the result keeps the resized dimensions, so the optimistic thumbnail doesn't jump from a square to the real aspect ratio
+            expect(result).toEqual({uri: 'file://resized.jpg', name: 'large.jpg', type: 'image/jpeg', width: 3000, height: 2000});
         });
     });
 
@@ -630,11 +721,87 @@ describe('FileUtils', () => {
             expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
         });
 
+        it('should return the generic selection error for an unreadable file instead of the corrupted-file copy', () => {
+            // Given a file that could not be read, e.g. its OS file changed after it was pasted
+            // When the error text is built
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID});
+
+            // Then it asks the user to try again rather than calling the file corrupted
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.errorWhileSelectingAttachment');
+        });
+
         it('should return empty strings for null validation error', () => {
             const result = getFileValidationErrorText(mockTranslate, null);
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
+        });
+    });
+
+    describe('isLabelledTiff', () => {
+        it.each([
+            ['an Android gallery DNG', {name: 'PXL_20260101.dng', type: 'image/x-adobe-dng'}],
+            ['a document-picked DNG with an upper-case extension', {name: 'IMG_0001.DNG', type: 'image/x-adobe-dng'}],
+            ['a DNG the platform gave no MIME type', {name: 'PXL_20260101.dng', type: null}],
+            ['a TIFF by MIME type only', {name: 'scan', type: 'image/tiff'}],
+            ['a .tif by extension only', {name: 'scan.tif', type: null}],
+            ['a .tiff by extension only', {name: 'scan.tiff', type: undefined}],
+        ])('recognizes %s', (description, file) => {
+            // Given a file labelled as TIFF/DNG by at least one of its name or MIME type
+            // When checked
+            // Then it is treated as a TIFF/DNG so the picker transcodes it
+            expect(isLabelledTiff(file)).toBe(true);
+        });
+
+        it.each([
+            ['an iOS gallery pick relabelled as JPEG', {name: '1A2B.jpg', type: 'image/jpg'}],
+            ['a HEIC', {name: 'photo.heic', type: 'image/heic'}],
+            ['a PDF', {name: 'receipt.pdf', type: 'application/pdf'}],
+            ['a file with no name or type', {name: null, type: null}],
+            ['a file whose name merely contains the extension', {name: 'dng-notes.txt', type: 'text/plain'}],
+        ])('does not match %s', (description, file) => {
+            // Given a file that isn't labelled as TIFF/DNG (an iOS gallery pick has to be sniffed by magic bytes instead)
+            // When checked
+            // Then it is left alone
+            expect(isLabelledTiff(file)).toBe(false);
+        });
+    });
+
+    describe('isLabelledDng', () => {
+        it.each([
+            ['a DNG by extension', {name: 'IMG_0001.DNG', type: null}, true],
+            ['a DNG by MIME type', {name: 'photo', type: 'image/x-adobe-dng'}, true],
+            ['a plain TIFF', {name: 'scan.tiff', type: 'image/tiff'}, false],
+            ['a JPEG', {name: 'photo.jpg', type: 'image/jpeg'}, false],
+            ['nothing', {name: null, type: null}, false],
+        ])('returns %s for %s', (description, file, expected) => {
+            // Given a file label
+            // When checked for DNG specifically
+            // Then only DNGs match, since TIFFs are an accepted receipt format and must not be swept up with them
+            expect(isLabelledDng(file)).toBe(expected);
+        });
+    });
+
+    describe('getConvertedJpegFileName', () => {
+        it.each([
+            ['swaps a DNG extension for .jpg', 'IMG_0001.DNG', 'IMG_0001.jpg'],
+            ['swaps a HEIC extension for .jpg', 'photo.heic', 'photo.jpg'],
+            ['keeps a relabelled .jpg name as-is', 'D1F3.jpg', 'D1F3.jpg'],
+            ['appends .jpg to a name with no extension', 'raw', 'raw.jpg'],
+            ['keeps dots inside the base name', 'trip.day 2.dng', 'trip.day 2.jpg'],
+        ])('%s', (description, originalFileName, expected) => {
+            // Given the name the picker returned for an image about to be transcoded
+            // When the JPEG's name is derived from it
+            // Then the user's name is kept and only the extension changes, so the upload doesn't get the converter's random name
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe(expected);
+        });
+
+        it.each([undefined, null, ''])('falls back to the converted file name when the picker gave %p', (originalFileName) => {
+            // Given a picker that returned no file name
+            // When the JPEG's name is derived
+            // Then the name of the file the converter saved is used, since there is no picked name to keep
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe('ABCD.jpg');
         });
     });
 

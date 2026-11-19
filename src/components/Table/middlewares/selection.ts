@@ -7,10 +7,8 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
-import type {Dispatch, SetStateAction} from 'react';
-
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect} from 'react';
 
 import type {MiddlewareHookResult} from './types';
 
@@ -59,15 +57,81 @@ type SelectionMethods = {
 
     /** Clear all of the currently selected rows in the table */
     clearSelection: () => void;
-
-    /** Set whether or not the mobile selection modal is visible */
-    setMobileSelectionModalRowKey: Dispatch<SetStateAction<string | null>>;
 };
 
-type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
-    /** Whether or not the mobile selection modal is visible */
-    mobileSelectionModalRowKey: string | null;
+type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
+
+type SelectionState<DataType extends TableData> = {
+    /** The keys of the rows that can be selected, in table order */
+    selectableKeys: string[];
+
+    selectedKeys: string[];
+    selectedKeySet: Set<string>;
+
+    /** The data with each row's selected flag applied */
+    rows: Array<TableRow<DataType>>;
+
+    /** Where each row sits in `rows`, so a selection change can find the rows it touches */
+    indexByKey: Map<string, number>;
+
+    /** Whether two rows share a key. A key then maps to several rows, so a selection change can't be applied to just one of them */
+    hasDuplicateKeys: boolean;
 };
+
+// Cloning every row on each selection change is too slow for very large tables, so the last state is kept per data array.
+// While the data is unchanged, only the rows whose selected flag flipped are replaced.
+const selectionStateCache = new WeakMap<WeakKey, SelectionState<TableData>>();
+
+function getSelectionState<DataType extends TableData>(data: DataType[], selectedKeys: string[]): SelectionState<DataType> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its rows were built from the same item type
+    const cachedState = selectionStateCache.get(data) as SelectionState<DataType> | undefined;
+    if (cachedState?.selectedKeys === selectedKeys) {
+        return cachedState;
+    }
+
+    const selectedKeySet = new Set(selectedKeys);
+
+    if (!cachedState || cachedState.hasDuplicateKeys) {
+        const selectableKeys: string[] = [];
+        const indexByKey = new Map<string, number>();
+        let hasDuplicateKeys = false;
+        const rows = data.map((item, index) => {
+            hasDuplicateKeys = hasDuplicateKeys || indexByKey.has(item.keyForList);
+            indexByKey.set(item.keyForList, index);
+            if (!item.disabled && !item.isSelectionDisabled) {
+                selectableKeys.push(item.keyForList);
+            }
+            return {...item, selected: selectedKeySet.has(item.keyForList)};
+        });
+
+        const state = {selectableKeys, selectedKeys, selectedKeySet, rows, indexByKey, hasDuplicateKeys};
+        selectionStateCache.set(data, state);
+        return state;
+    }
+
+    const rows = [...cachedState.rows];
+    const updateRowSelection = (key: string) => {
+        const index = cachedState.indexByKey.get(key);
+        if (index !== undefined) {
+            rows[index] = {...rows[index], selected: selectedKeySet.has(key)};
+        }
+    };
+
+    for (const key of selectedKeySet) {
+        if (!cachedState.selectedKeySet.has(key)) {
+            updateRowSelection(key);
+        }
+    }
+    for (const key of cachedState.selectedKeySet) {
+        if (!selectedKeySet.has(key)) {
+            updateRowSelection(key);
+        }
+    }
+
+    const state = {...cachedState, selectedKeys, selectedKeySet, rows};
+    selectionStateCache.set(data, state);
+    return state;
+}
 
 export default function useSelection<DataType extends TableData>({
     data,
@@ -90,13 +154,7 @@ export default function useSelection<DataType extends TableData>({
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isFocused = useIsFocused();
 
-    // When a user long-presses a row on mobile, store the key of the row that will be selected if
-    // the user confirms the selection
-    const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
-
-    const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
-    const selectedKeySet = new Set(selectedKeys);
-    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeySet.has(item.keyForList)}));
+    const {selectableKeys, selectedKeySet, rows: tableRowData} = getSelectionState(data, selectedKeys);
 
     const rangeApi = useShiftRangeSelection<DataType>({
         items: data,
@@ -107,13 +165,13 @@ export default function useSelection<DataType extends TableData>({
     });
 
     // The shift anchor deliberately survives clears — a vanished anchor re-resolves and stale deselects are no-ops, so the next shift+click still ranges from the last click.
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         onRowSelectionChange?.([]);
-    }, [onRowSelectionChange]);
+    };
 
     // Disable selection mode when the Android hardware back button is pressed. A table that is always in selection mode
     // has none to leave, so the press has to fall through to navigation instead.
-    const androidBackButtonDisableSelectionMode = useCallback(() => {
+    const androidBackButtonDisableSelectionMode = () => {
         if (!isSelectionModeEnabled || shouldAlwaysEnableSelection) {
             return false;
         }
@@ -121,7 +179,7 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
         setSelectionModeEnabled(false);
         return true;
-    }, [isSelectionModeEnabled, shouldAlwaysEnableSelection, clearSelection, setSelectionModeEnabled]);
+    };
 
     useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
 
@@ -174,18 +232,14 @@ export default function useSelection<DataType extends TableData>({
      * rows in the table
      */
     const handleSelectAll = () => {
-        const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
-
-        const isSelectionEmpty = selectedKeys.length === 0;
-        const isSelectionFull = areAllSelectableRowsSelected;
-        const isSelectionIndeterminate = selectedKeys.length > 0 && !areAllSelectableRowsSelected;
-
-        if (isSelectionEmpty) {
-            onRowSelectionChange?.(selectableKeys);
-            rangeApi.seedFullRange();
-        } else if (isSelectionFull || isSelectionIndeterminate) {
+        // A partial selection is cleared too, so the header checkbox acts as a clear while it is indeterminate.
+        if (selectedKeys.length > 0) {
             onRowSelectionChange?.([]);
+            return;
         }
+
+        onRowSelectionChange?.(selectableKeys);
+        rangeApi.seedFullRange();
     };
 
     /**
@@ -200,11 +254,8 @@ export default function useSelection<DataType extends TableData>({
 
         rangeApi.notifyAnchor(item);
 
-        const keyIndex = selectedKeys.indexOf(keyForList);
-        const isCurrentlySelected = keyIndex !== -1;
-
-        if (isCurrentlySelected) {
-            onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+        if (selectedKeySet.has(keyForList)) {
+            onRowSelectionChange?.(selectedKeys.filter((key) => key !== keyForList));
             return;
         }
 
@@ -226,13 +277,11 @@ export default function useSelection<DataType extends TableData>({
 
     return {
         middleware,
-        mobileSelectionModalRowKey,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
-            setMobileSelectionModalRowKey,
         },
     };
 }

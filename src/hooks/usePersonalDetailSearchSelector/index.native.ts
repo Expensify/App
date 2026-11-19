@@ -44,4 +44,3 @@ function usePersonalDetailSearchSelector(config: UseSearchSelectorConfig): UseSe
 }
 
 export default usePersonalDetailSearchSelector;
-export type {ContactState};

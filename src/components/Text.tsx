@@ -12,18 +12,20 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Platform, Text as RNText, StyleSheet} from 'react-native';
 
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
-    ChildrenProps & {
+    ChildrenProps &
+    WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> & {
         /** The color of the text */
         color?: string;
 
@@ -54,6 +56,8 @@ function Text({
     style = {},
     shouldUseDefaultLineHeight = true,
     ref,
+    sentryLabel,
+    dataSet,
     ...props
 }: TextProps) {
     const theme = useTheme();
@@ -73,17 +77,13 @@ function Text({
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
 
-    const isOnlyCustomEmoji = useMemo(() => {
-        if (typeof children === 'string') {
-            return containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''));
-        }
-        if (Array.isArray(children)) {
-            return children.every((child) => {
-                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
-            });
-        }
-        return false;
-    }, [children]);
+    const isOnlyCustomEmoji =
+        typeof children === 'string'
+            ? containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''))
+            : Array.isArray(children) &&
+              children.every((child) => {
+                  return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+              });
 
     if (isOnlyCustomEmoji) {
         componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
@@ -101,6 +101,7 @@ function Text({
             // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
             // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
+            dataSet={sentryLabel ? {sentryLabel, sentryLabelExact: true, ...dataSet} : dataSet}
             {...props}
         >
             {displayedChildren}

@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type NationalityProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -37,12 +37,9 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
         onNext();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [nationalityInputID], translate);
-        },
-        [nationalityInputID, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, [nationalityInputID], translate);
+    };
 
     return (
         <FormProvider

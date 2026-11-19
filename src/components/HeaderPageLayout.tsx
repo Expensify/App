@@ -12,7 +12,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ReactNode} from 'react';
 import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
@@ -69,13 +69,11 @@ function HeaderPageLayout({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
-    const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
-        return {
-            titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
-            iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
-        };
-    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
+    const {titleColor, iconFill} = {
+        titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
+        iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
+    };
 
     return (
         <ScreenWrapper

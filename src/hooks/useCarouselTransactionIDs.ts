@@ -1,9 +1,8 @@
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isSplitContainerTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -40,11 +39,12 @@ function useCarouselTransactionIDs(): CarouselTransactionIDs {
                 // Nothing to inspect, so keep the ID only while a descriptor still vouches for the sibling.
                 return !!siblingDescriptors?.[transactionID];
             }
-            return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction);
+            // A split original lives on the hidden split report, so it is never a page the arrows can open.
+            return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction) && !isSplitContainerTransaction(transaction);
         });
-    const [validTransactionIDs = getEmptyArray<string>(), transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
+    const [validTransactionIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
 
-    return {transactionIDs: isLoadingOnyxValue(transactionsMetadata) ? seededTransactionIDs : validTransactionIDs, snapshot};
+    return {transactionIDs: validTransactionIDs, snapshot};
 }
 
 export default useCarouselTransactionIDs;

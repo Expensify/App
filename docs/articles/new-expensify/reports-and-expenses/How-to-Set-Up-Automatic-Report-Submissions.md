@@ -35,13 +35,13 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
 3. Toggle it on (green)
 4. Select your preferred **Frequency**:
    - **Instantly** — Expenses are submitted as soon as they’re created
-   - **Daily** — Reports are submitted each evening (Pacific Time)
-   - **Weekly** — Reports are submitted weekly on Sundays
-   - **Twice a month** — Reports are submitted on the 15th and last day of the month
+   - **Daily** — Reports are submitted each evening in the workspace timezone
+   - **Weekly** — Reports are submitted weekly on the day you select
+   - **Twice a month** — Reports are submitted on the two days of the month you select
    - **Monthly** — Reports are submitted once a month on the day you select
    - **By trip** — A report is submitted after two full days without new expenses
    - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually.
-5. Select **Save** to apply the frequency. Selecting a frequency updates the checkmark but does not take effect until you save.
+5. Select **Save** to apply the frequency. Selecting a frequency does not take effect until you save.
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
@@ -67,7 +67,7 @@ If Submissions is disabled or set to **Manually** on the Workspace, check the me
 
 ## What time of day does automatic submission happen?
 
-All scheduled report submissions occur in the **evening (Pacific Time)**, regardless of which frequency you choose.
+All scheduled report submissions occur in the **evening**, based on the workspace **Timezone** in **Workspaces > [workspace name] > Overview**, regardless of which frequency you choose.
 
 ## Can separate reports be created automatically for each employee credit card?
 

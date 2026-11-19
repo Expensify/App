@@ -7,6 +7,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
@@ -27,7 +28,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 // Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
@@ -48,79 +49,56 @@ function DynamicSageIntacctDefaultVendorPage() {
     const reimbursableMode =
         route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
     const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
-    const goBack = useCallback(() => {
+    const defaultVendor = isReimbursable ? exportConfig?.reimbursableExpenseReportDefaultVendor : getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+    const nonReimbursableSettingName =
+        exportConfig?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
+            ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
+            : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
+    const settingName: keyof Connections['intacct']['config']['export'] = isReimbursable ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR : nonReimbursableSettingName;
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
-
-    let defaultVendor;
-    let settingName: keyof Connections['intacct']['config']['export'];
-    if (!isReimbursable) {
-        const {nonReimbursable} = exportConfig ?? {};
-        defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
-        settingName =
-            nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
-                : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
-    } else {
-        const {reimbursableExpenseReportDefaultVendor} = exportConfig ?? {};
-        defaultVendor = reimbursableExpenseReportDefaultVendor;
-        settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
-    }
+    };
 
     // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
     const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
 
-    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor, localeCompare), [defaultVendor, localeCompare, policy]);
-    const clearOption: SelectorType = useMemo(
-        () => ({
-            value: CLEAR_DEFAULT_VENDOR,
-            text: translate('common.none'),
-            keyForList: CLEAR_DEFAULT_VENDOR,
-            isSelected: !defaultVendor,
-        }),
-        [translate, defaultVendor],
-    );
+    const vendorOptions: SelectorType[] = getSageIntacctVendors(policy, defaultVendor, localeCompare);
+    const clearOption: SelectorType = {
+        value: CLEAR_DEFAULT_VENDOR,
+        text: translate('common.none'),
+        keyForList: CLEAR_DEFAULT_VENDOR,
+        isSelected: !defaultVendor,
+    };
     const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
-    const vendorSelectorOptions = useMemo<SelectorType[]>(
-        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
-        [shouldShowClearOption, clearOption, vendorOptions],
+    const vendorSelectorOptions: SelectorType[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData, textInputOptions} = useSelectionListSearch(vendorSelectorOptions, translate('common.noResultsFound'), true);
+
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>
+                {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
+            </Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>
-                    {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
-                </Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+        if (isAlreadySelected) {
+            return;
+        }
+        updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+        goBack();
+    };
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
-            if (isAlreadySelected) {
-                return;
-            }
-            updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
-            goBack();
-        },
-        [defaultVendor, policyID, settingName, goBack],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
@@ -128,13 +106,16 @@ function DynamicSageIntacctDefaultVendorPage() {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctDefaultVendorPage"
-            data={vendorSelectorOptions ?? []}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             onSelectRow={updateDefaultVendor}
+            shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={goBack}
             title="workspace.sageIntacct.defaultVendor"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([settingName], config?.pendingFields)}

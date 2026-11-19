@@ -3,9 +3,11 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
@@ -21,7 +23,6 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -73,11 +74,14 @@ type UseReportSelectionActionsParams = {
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
-    /** Path of the screen this dynamic route was opened from (the dynamic base path, i.e. the current URL without the suffix). */
-    backPath: Route;
-
-    /** Caller-provided back-navigation handler — `handleRegularReportSelection` calls this before scheduling the change. */
+    /** Caller-provided back-navigation handler, called once a pick is made: the page goes back, the anchored dropdown closes. */
     handleGoBack: () => void;
+
+    /**
+     * Whether a regular pick writes only once the screen transition `handleGoBack` starts has ended, so the write never
+     * stalls the back animation. The anchored dropdown has no transition to wait for and writes straight away. Defaults to true.
+     */
+    shouldWriteAfterTransition?: boolean;
 };
 
 type UseReportSelectionActionsResult = {
@@ -105,8 +109,8 @@ function useReportSelectionActions({
     action,
     reportIDFromRoute,
     personalPolicyID,
-    backPath,
     handleGoBack,
+    shouldWriteAfterTransition = true,
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -123,6 +127,8 @@ function useReportSelectionActions({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -141,7 +147,7 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
-        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
+        const reportOrDraftReportFromValue = getReportOrDraftReport({reportID: item.value, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]});
         const participants = buildParticipants(reportOrDraftReportFromValue);
 
         const currentPolicyID = perDiemOriginalPolicy?.id;
@@ -179,7 +185,7 @@ function useReportSelectionActions({
             return;
         }
 
-        Navigation.goBack(backPath);
+        handleGoBack();
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
@@ -189,6 +195,7 @@ function useReportSelectionActions({
 
         handleGoBack();
         TransitionTracker.runAfterTransitions({
+            runImmediately: !shouldWriteAfterTransition,
             waitForUpcomingTransition: true,
             callback: () => {
                 const participants = buildParticipants(report);
@@ -211,6 +218,7 @@ function useReportSelectionActions({
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
+                        currentUserPersonalDetails,
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -226,8 +234,9 @@ function useReportSelectionActions({
                         delegateAccountID,
                         getCurrencyDecimals,
                         getCurrencySymbol,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     });
-                    removeTransaction(transaction.transactionID);
+                    removeTransaction(transaction.transactionID, {isDeleted: false});
                 }
             },
         });
@@ -246,6 +255,7 @@ function useReportSelectionActions({
                     isASAPSubmitBetaEnabled,
                     accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: session?.email ?? '',
+                    currentUserPersonalDetails,
                     policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                     policyTagList,
                     transactions: targetTransactions,
@@ -259,8 +269,9 @@ function useReportSelectionActions({
                     delegateAccountID,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
-                removeTransaction(transaction.transactionID);
+                removeTransaction(transaction.transactionID, {isDeleted: false});
             },
         });
     };

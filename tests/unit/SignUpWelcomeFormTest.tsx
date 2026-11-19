@@ -107,7 +107,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, true, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, true, undefined, undefined);
     });
 
     it('passes hasSMSMarketingConsent=false to signUpUser when checkbox is unchecked and Join is pressed', async () => {
@@ -117,7 +117,7 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined, undefined);
     });
 
     it('passes hasSMSMarketingConsent=false when checkbox is checked then unchecked', async () => {
@@ -129,7 +129,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false, undefined, undefined);
     });
 
     it('omits the consent param when signing up with an email', async () => {
@@ -139,7 +139,7 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, undefined, undefined);
     });
 
     it('passes the stored marketing attribution to signUpUser', async () => {
@@ -157,6 +157,6 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByText('Join'));
 
         // Then the attribution is passed to signUpUser
-        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, attribution);
+        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined, attribution, undefined);
     });
 });

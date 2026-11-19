@@ -12,6 +12,7 @@ import type {Route} from './ROUTES';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import UnreadIndicatorUpdater from './components/UnreadIndicatorUpdater';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
@@ -80,7 +81,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
+    const [initialUrl, setInitialUrl] = useState<string | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -307,6 +308,7 @@ function Expensify() {
             <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
+            {splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN && <UnreadIndicatorUpdater />}
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
                 is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
                 bridge), so we skip this guard to avoid blocking the app. */}

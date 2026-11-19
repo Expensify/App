@@ -68,7 +68,7 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
+    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void | Promise<void>;
 
     /** Children to build the KYC */
     children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<ComponentRef<typeof View> | null>) => void;

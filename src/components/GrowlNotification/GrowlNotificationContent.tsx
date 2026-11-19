@@ -137,7 +137,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
 
     return (
         <GrowlNotificationPortal>
-            <View style={styles.growlNotificationWrapper}>
+            <View
+                style={[styles.growlNotificationWrapper, useBottomPosition && styles.fullScreen]}
+                pointerEvents={useBottomPosition ? 'box-none' : undefined}
+            >
                 <GrowlNotificationContainer
                     progress={progress}
                     inactiveY={inactiveY}
@@ -150,7 +153,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
                                 readers and its press can't bubble into a dismiss. */}
                             <PressableWithoutFeedback
                                 accessibilityLabel={bodyText}
-                                sentryLabel="GrowlNotification-Dismiss"
+                                sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.DISMISS}
                                 onPress={triggerDismiss}
                                 style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                             >
@@ -163,7 +166,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
                             {!!action && (
                                 <Button
                                     accessibilityLabel={action.label}
-                                    sentryLabel="GrowlNotification-Action"
+                                    sentryLabel={CONST.SENTRY_LABEL.GROWL_NOTIFICATION.ACTION}
                                     onPress={() => {
                                         if (isActionPressedRef.current) {
                                             return;

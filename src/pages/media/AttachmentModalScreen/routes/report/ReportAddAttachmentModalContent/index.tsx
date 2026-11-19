@@ -28,7 +28,7 @@ import type {View} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
@@ -72,15 +72,13 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const submitRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
-    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
+    const reportActionID = attachmentID?.split('_')?.[0];
 
     const hasReportActions = !!reportActions;
 
-    const shouldFetchReport = useMemo(() => {
-        return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
-    }, [reportActions, reportActionID]);
+    const shouldFetchReport = isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
 
-    const fetchReport = useCallback(() => {
+    const fetchReport = () => {
         openReport({
             reportID,
             introSelected,
@@ -92,18 +90,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
-    }, [
-        reportID,
-        introSelected,
-        conciergeChat,
-        reportActionID,
-        hasReportActions,
-        currentUserAccountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-        reportPolicyID,
-        fullPolicySnapshotLastModified,
-    ]);
+    };
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {
@@ -127,82 +114,61 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     // set of object URLs at the exact moment the carousel decodes the same images for display — on
     // memory-constrained mobile Safari that doubled peak is enough to kill the WebContent process and
     // reload the tab, silently dropping the attachments. Trust the validated params and derive directly.
-    const validFiles = useMemo<FileObject[] | undefined>(() => {
-        if (!fileParam) {
-            return undefined;
-        }
-        return Array.isArray(fileParam) ? fileParam : [fileParam];
-    }, [fileParam]);
+    let validFiles: FileObject[] | undefined;
+    if (!fileParam) {
+        validFiles = undefined;
+    } else {
+        validFiles = Array.isArray(fileParam) ? fileParam : [fileParam];
+    }
 
-    const source = useMemo(() => (validFiles ? validFiles.at(0)?.uri : getValidatedImageSource(sourceParam)), [validFiles, sourceParam]);
+    const source = validFiles ? validFiles.at(0)?.uri : getValidatedImageSource(sourceParam);
 
     const modalType = useReportAttachmentModalType(source, validFiles);
     useNavigateToReportOnRefresh({source: sourceParam, file: validFiles, reportID});
 
-    const isLoading = useMemo(() => {
-        if (isOffline || isReportNotFound(report) || !reportID) {
-            return false;
-        }
+    let isLoading;
+    if (isOffline || isReportNotFound(report) || !reportID) {
+        isLoading = false;
+    } else {
         const isEmptyReport = isEmptyObject(report);
-        return (
-            !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(validFiles) && validFiles.length === 0)
-        );
-    }, [isOffline, report, reportID, isLoadingApp, reportLoadingState?.isLoadingInitialReportActions, shouldFetchReport, validFiles]);
+        isLoading =
+            !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(validFiles) && validFiles.length === 0);
+    }
 
-    const onConfirm = useCallback(
-        (f: FileObject | FileObject[]) => {
-            if (Array.isArray(validFiles) && validFiles.length > 0) {
-                onConfirmParam?.(validFiles);
-            } else {
-                onConfirmParam?.(f);
-            }
-        },
-        [validFiles, onConfirmParam],
-    );
+    const onConfirm = (f: FileObject | FileObject[]) => {
+        if (Array.isArray(validFiles) && validFiles.length > 0) {
+            onConfirmParam?.(validFiles);
+        } else {
+            onConfirmParam?.(f);
+        }
+    };
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
     });
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
-        if (validFiles === undefined || (Array.isArray(validFiles) && validFiles.length === 0)) {
-            return {
-                isLoading: true,
-            };
-        }
-
-        return {
-            file: validFiles,
-            source,
-            isLoading,
-            isAuthTokenRequired,
-            attachmentLink,
-            originalFileName,
-            attachmentID,
-            accountID,
-            headerTitle,
-            shouldDisableSendButton,
-            confirmLeavesScreen,
-            submitRef,
-            onConfirm,
-            onDownloadAttachment,
-            AttachmentContent: AddAttachmentModalCarouselView,
-        };
-    }, [
-        validFiles,
-        source,
-        isLoading,
-        isAuthTokenRequired,
-        attachmentLink,
-        originalFileName,
-        attachmentID,
-        accountID,
-        headerTitle,
-        shouldDisableSendButton,
-        confirmLeavesScreen,
-        onConfirm,
-        onDownloadAttachment,
-    ]);
+    const contentProps: AttachmentModalBaseContentProps =
+        validFiles === undefined || (Array.isArray(validFiles) && validFiles.length === 0)
+            ? {
+                  isLoading: true,
+              }
+            : {
+                  file: validFiles,
+                  source,
+                  isLoading,
+                  isAuthTokenRequired,
+                  attachmentLink,
+                  originalFileName,
+                  attachmentID,
+                  accountID,
+                  headerTitle,
+                  shouldDisableSendButton,
+                  confirmLeavesScreen,
+                  submitRef,
+                  onConfirm,
+                  onDownloadAttachment,
+                  AttachmentContent: AddAttachmentModalCarouselView,
+              };
 
     return (
         <AttachmentModalContainer

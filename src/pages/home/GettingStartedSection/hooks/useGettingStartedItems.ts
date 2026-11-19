@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,8 +24,6 @@ import {
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
@@ -38,12 +35,30 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 import {createHasExpenseDefaultRulesSelector} from '@selectors/Rule';
 import {accountIDSelector} from '@selectors/Session';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+
+import useAddFirstReceiptItem from './useAddFirstReceiptItem';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
+type GettingStartedItemKey =
+    | 'createWorkspace'
+    | 'addFirstReceipt'
+    | 'customizeExpenseCategories'
+    | 'customizeSpendCategories'
+    | 'customizeCategories'
+    | 'linkPersonalCard'
+    | 'linkCompanyCards'
+    | 'issueExpensifyCards'
+    | 'setupTravel'
+    | 'inviteAccountant'
+    | 'connectAccounting'
+    | 'configureApprovals'
+    | 'setupRules'
+    | 'addName'
+    | 'downloadApp';
+
 type GettingStartedItem = {
-    key: string;
+    key: GettingStartedItemKey;
     label: string;
     subText: string;
     isComplete: boolean;
@@ -92,10 +107,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
-    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => Object.values(transactions ?? {}).some((transaction) => !!transaction && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)),
-    });
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const {addFirstReceiptItem} = useAddFirstReceiptItem();
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
@@ -168,7 +180,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    // The Submit intent has exactly two to-dos and no "Create a workspace" step, because the workspace already exists here.
+    // The Submit intent has no "Create a workspace" step, because the workspace already exists here.
     if (isSubmitIntent) {
         const submitItems: GettingStartedItem[] = [];
 
@@ -183,6 +195,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        submitItems.push(addFirstReceiptItem);
 
         submitItems.push({
             key: 'linkPersonalCard',
@@ -219,13 +233,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             });
         }
 
-        items.push({
-            key: 'createExpense',
-            label: translate('homePage.gettingStartedSection.createExpense'),
-            subText: translate('homePage.gettingStartedSection.createExpenseSubText'),
-            isComplete: hasCreatedExpense,
-            onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
-        });
+        items.push(addFirstReceiptItem);
 
         items.push({
             key: 'linkPersonalCard',
@@ -248,6 +256,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
                 route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             });
         }
+
+        items.push(addFirstReceiptItem);
 
         if (policy.areCompanyCardsEnabled) {
             items.push({
@@ -296,7 +306,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
-            route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
+            route: ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({
@@ -363,4 +373,4 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 }
 
 export default useGettingStartedItems;
-export type {GettingStartedItem};
+export type {GettingStartedItem, GettingStartedItemKey};

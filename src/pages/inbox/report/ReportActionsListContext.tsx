@@ -40,8 +40,9 @@ function useReportActionsListActions(): ReportActionsListActions {
 /**
  * Pure derivation of the two skeleton states from the readiness signals: a loading skeleton and the
  * derived-value-timing skeleton. The guard uses these to decide whether to render the list.
+ * `hasDisplayedReportActions` tells whether the calling guard has already rendered this list since it mounted.
  */
-function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadinessSignals) {
+function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadinessSignals, hasDisplayedReportActions = false) {
     const {
         report,
         reportResult,
@@ -60,8 +61,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isSingleExpenseReport,
         isMissingReportActions,
         isConciergeHiddenHistory,
-        isConciergeMainDM,
-        hasCachedReportActions,
         showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
     } = readinessSignals;
@@ -70,7 +69,10 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // Before the first successful load, a missing loading-state entry means ReportFetchHandler has not
     // enqueued OpenReport yet. Once a terminal failure writes false, the stored state releases the gate.
-    const shouldKeepInitialReportLoadGated = isReportLoadPending || (!hasOnceLoadedReportActions && isLoadingInitialReportActions !== false);
+    // A list that is already on screen stays mounted when a queued OpenReport resumes on reconnect, because
+    // remounting it would discard the scroll position. A new mount still waits, even if the report loaded
+    // earlier in this session, so it can open at the first unread message.
+    const shouldKeepInitialReportLoadGated = !hasDisplayedReportActions && (isReportLoadPending || (!hasOnceLoadedReportActions && isLoadingInitialReportActions !== false));
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
@@ -92,20 +94,15 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForInitialLoad = isReportLoadPending && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
-    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
+    // Once the list is on screen, an app load that resumes on reconnect must not swap it for a skeleton,
+    // because remounting the list would discard the scroll position.
+    const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline && !hasDisplayedReportActions;
 
-    // Show skeleton for the Concierge chat (side panel or main DM) until report
-    // data has been loaded at least once. Before the first openReport response,
-    // hasOlderActions is unreliable, so we can't determine whether to show the
-    // greeting or onboarding messages. The skeleton avoids flashing wrong content.
-    // hasOnceLoadedReportActions is RAM-only and resets on a page refresh, but
-    // cached report actions persist in Onyx. For the main DM, render those cached
-    // actions immediately (matching production) instead of flashing a skeleton on
-    // every refresh; the side panel always opens fresh so it keeps gating on
-    // hasOnceLoadedReportActions only. hasCachedReportActions is false only on a
-    // genuinely cold load with no cached history (it excludes the synthetic CREATED
-    // action that is always injected for Concierge).
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && hasCachedReportActions) && !isOffline;
+    // Show skeleton for the Concierge side panel until report data has been loaded
+    // at least once. Before the first openReport response, hasOlderActions is
+    // unreliable, so we can't determine whether to show the greeting or onboarding
+    // messages. The skeleton avoids flashing wrong content.
+    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !isOffline;
 
     // When opening a linked message online, wait for the first load before rendering the list: the batch of
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.

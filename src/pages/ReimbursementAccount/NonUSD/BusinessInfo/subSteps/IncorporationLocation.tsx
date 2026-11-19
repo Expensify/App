@@ -19,24 +19,24 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type IncorporationLocationProps = SubPageProps;
 
 const {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY_CODE, COMPANY_STATE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE];
 
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+const PROVINCES_LIST_OPTIONS = Object.values(COMMON_CONST.PROVINCES).reduce(
+    (acc, province) => {
+        acc[province.provinceISO] = province.provinceName;
         return acc;
     },
     {} as Record<string, string>,
 );
 
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+const STATES_LIST_OPTIONS = Object.values(COMMON_CONST.STATES).reduce(
+    (acc, state) => {
+        acc[state.stateISO] = state.stateName;
         return acc;
     },
     {} as Record<string, string>,
@@ -50,19 +50,15 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const onyxValues = useMemo(
-        () =>
-            getSubStepValues(
-                {
-                    FORMATION_INCORPORATION_COUNTRY_CODE,
-                    FORMATION_INCORPORATION_STATE,
-                    COMPANY_COUNTRY: COMPANY_COUNTRY_CODE,
-                    COMPANY_STATE,
-                },
-                reimbursementAccountDraft,
-                reimbursementAccount,
-            ),
-        [reimbursementAccount, reimbursementAccountDraft],
+    const onyxValues = getSubStepValues(
+        {
+            FORMATION_INCORPORATION_COUNTRY_CODE,
+            FORMATION_INCORPORATION_STATE,
+            COMPANY_COUNTRY: COMPANY_COUNTRY_CODE,
+            COMPANY_STATE,
+        },
+        reimbursementAccountDraft,
+        reimbursementAccount,
     );
 
     const incorporationCountryInitialValue = onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] !== '' ? onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] : onyxValues[COMPANY_COUNTRY_CODE];
@@ -73,12 +69,9 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const [selectedState, setSelectedState] = useState<string>(incorporationStateInitialValue);
     const shouldGatherState = isCountryWithSelectableState(selectedCountry);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
-        },
-        [shouldGatherState, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

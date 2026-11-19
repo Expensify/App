@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTagGLCode, hasAnyTagGLCode, hasDependentTags} from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
 
@@ -66,6 +67,7 @@ function TagGLCodeCell({canEdit: canEditTag, onSave, shouldShowTooltip, transact
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
                     anchorAlignment={anchorAlignment}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     popoverHeight={popoverHeight}
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}

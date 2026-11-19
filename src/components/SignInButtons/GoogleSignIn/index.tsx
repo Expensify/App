@@ -13,7 +13,7 @@ import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribut
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type GoogleSignInProps = {
@@ -42,7 +42,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
     const styles = useThemeStyles();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
-    const loadScript = useCallback(() => {
+    const loadScript = () => {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
@@ -65,7 +65,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 width: '300px',
             });
         }
-    }, [preferredLocale, marketingAttribution]);
+    };
 
     React.useEffect(() => {
         const script = document.createElement('script');

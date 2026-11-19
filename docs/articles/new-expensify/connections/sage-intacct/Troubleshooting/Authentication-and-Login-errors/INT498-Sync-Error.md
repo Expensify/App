@@ -59,15 +59,17 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If the journals are configured correctly, the sync should complete successfully.
 

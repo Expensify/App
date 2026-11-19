@@ -27,7 +27,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspacePolicyOnyxProps = {
@@ -50,9 +50,9 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const policyID = params.policyID;
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-    }, [accountID, policyID]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

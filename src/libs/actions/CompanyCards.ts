@@ -12,7 +12,9 @@ import type {
     OpenPolicyCompanyCardsFeedParams,
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
+    SearchCompanyCardByNumberParams,
     SetCompanyCardExportAccountParams,
+    SetFeedReimbursableParams,
     SetFeedStatementPeriodEndDayParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
@@ -25,6 +27,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,9 +43,12 @@ import type {
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
+    FeedReimbursable,
+    SelectableFeedReimbursable,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
+import type {CompanyCardNumberSearchResult} from '@src/types/onyx/CompanyCardNumberSearch';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -74,6 +80,20 @@ type ImportCSVCompanyCardsData = {
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
     existingInstanceID?: string;
+};
+
+type StartCardFeedRefreshParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+
+    /**
+     * Country stored on the feed. Required, even when undefined, so every caller passes it: a Plaid feed reconnects in this
+     * country, and only falls back to a guess from outputCurrency and countryByIp when the feed has none.
+     */
+    feedCountry: string | undefined;
+    outputCurrency?: string;
+    currencyList?: CurrencyList;
+    countryByIp?: string;
 };
 
 type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
@@ -1329,6 +1349,89 @@ function setFeedStatementPeriodEndDay(
     });
 }
 
+function setFeedReimbursable(
+    policyID: string,
+    bankName: CompanyCardFeedWithNumber,
+    domainAccountID: number,
+    newForceReimbursable: SelectableFeedReimbursable,
+    oldForceReimbursable: FeedReimbursable | undefined,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            forceReimbursable: newForceReimbursable,
+                            pendingFields: {
+                                forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                forceReimbursable: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            pendingFields: {
+                                forceReimbursable: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            forceReimbursable: oldForceReimbursable ?? null,
+                            pendingFields: {
+                                forceReimbursable: null,
+                            },
+                            errorFields: {
+                                forceReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetFeedReimbursableParams = {
+        policyID,
+        bankName,
+        domainAccountID,
+        forceReimbursable: newForceReimbursable,
+    };
+
+    API.write(WRITE_COMMANDS.SET_FEED_REIMBURSABLE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function importCSVCompanyCards({
     policyID,
     domainAccountID,
@@ -1461,12 +1564,12 @@ function importCSVCompanyCards({
  *
  * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh({policyID, feed, feedCountry, outputCurrency, currencyList, countryByIp}: StartCardFeedRefreshParams) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
     if (isPlaidFeed) {
-        const selectedCountry = CardUtils.getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        const selectedCountry = CardUtils.getPlaidCountryForFeed(feedCountry, outputCurrency, currencyList, countryByIp);
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
@@ -1559,6 +1662,79 @@ function getExpensifyCardStatementPDF(policyID: string | undefined, feedCountry:
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF, params, {optimisticData, successData, failureData});
 }
 
+// Tracks the latest in-flight search per scoped key. The response for a request whose ID no longer matches
+// is dropped so an older search can never overwrite a newer one, and a clear bumps the ID so any pending
+// callback becomes a no-op.
+const pendingCompanyCardNumberSearchIDs = new Map<string, number>();
+
+function getCompanyCardNumberSearchKey(policyID: string, consumerID: string) {
+    return `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}_${consumerID}` as const;
+}
+
+/**
+ * Searches a policy's company card feed for a typed full card number. New Expensify never has the full
+ * number, so the backend does the match. Results go to a RAM-only Onyx key scoped by policyID and consumerID
+ * (one search surface, e.g. a table instance), so two surfaces open at once do not overwrite each other and
+ * nothing is written to disk. The typed number stays in component state.
+ */
+function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNumber: string, feed: CompanyCardFeedWithNumber, domainAccountID: number) {
+    const searchKey = getCompanyCardNumberSearchKey(policyID, consumerID);
+    const requestID = (pendingCompanyCardNumberSearchIDs.get(searchKey) ?? 0) + 1;
+    pendingCompanyCardNumberSearchIDs.set(searchKey, requestID);
+
+    // Correlate results to the typed input by a non-reversible hash so the raw card number is never written to Onyx.
+    const queryHash = hashText(cardNumber, 2 ** 32);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: searchKey,
+            value: {isLoading: true, queryHash, cards: [], hasError: false},
+        },
+    ];
+
+    const params: SearchCompanyCardByNumberParams = {
+        policyID,
+        cardNumber,
+        feed,
+        domainAccountID,
+    };
+
+    const setSearchError = () => {
+        if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+            return;
+        }
+        Onyx.merge(searchKey, {isLoading: false, queryHash, cards: [], hasError: true});
+    };
+
+    // makeRequestWithSideEffects is used so we can read the matching cards from the response and store them.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_COMPANY_CARD_BY_NUMBER, params, {optimisticData})
+        .then((response) => {
+            if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+                return;
+            }
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                setSearchError();
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const cards = (response as {cards?: CompanyCardNumberSearchResult[]} | undefined)?.cards ?? [];
+            Onyx.merge(searchKey, {isLoading: false, queryHash, cards, hasError: false});
+        })
+        .catch(setSearchError);
+}
+
+/**
+ * Clears a consumer's RAM-only company-card number search results and invalidates any in-flight request
+ * for that consumer so a late response cannot restore the results.
+ */
+function clearCompanyCardNumberSearch(policyID: string, consumerID: string) {
+    const searchKey = getCompanyCardNumberSearchKey(policyID, consumerID);
+    pendingCompanyCardNumberSearchIDs.set(searchKey, (pendingCompanyCardNumberSearchIDs.get(searchKey) ?? 0) + 1);
+    Onyx.set(searchKey, null);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -1584,10 +1760,13 @@ export {
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,
     setFeedStatementPeriodEndDay,
+    setFeedReimbursable,
     importCSVCompanyCards,
     clearErrorField,
     clearAssignCardErrors,
     linkCardFeedToPolicy,
     startCardFeedRefresh,
     getExpensifyCardStatementPDF,
+    searchCompanyCardByNumber,
+    clearCompanyCardNumberSearch,
 };

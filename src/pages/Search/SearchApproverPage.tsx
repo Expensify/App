@@ -14,12 +14,13 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
+import {canReassignAsApprover, getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +50,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const {isLoading, startWithLoading} = usePressLoading();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isLoadingReportData = selectedReports.some(
@@ -136,9 +138,21 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     };
     const allApprovers = getAllApprovers();
 
+    const canReassignAllReports = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+        const canReassignCurrentReport = canReassignAsApprover({
+            report,
+            currentUserAccountID: currentUserDetails.accountID,
+            isLoadingSecurityGroup,
+            areStrictPolicyRulesEnabled,
+        });
+        return !!policy && (isPolicyAdmin(policy) || canReassignCurrentReport) && !isPendingDeletePolicy(policy);
+    });
+
     const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
-        if (!selectedApproverEmail || !employeeAccountID) {
+        if ((isReassignment && !canReassignAllReports) || !selectedApproverEmail || !employeeAccountID) {
             return;
         }
 
@@ -175,6 +189,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
 
     const button = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.APPROVER_SAVE_BUTTON}
             isDisabled={!selectedApproverEmail}
             buttonText={translate('common.save')}
             onSubmit={addApprover}
@@ -200,11 +215,6 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
         });
     }, [selectedReports.length]);
 
-    const canReassignAllReports = selectedReports.every((selectedReport) => {
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-        return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
-    });
-
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
@@ -228,6 +238,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={isReassignment && !canReassignAllReports}
+            shouldRequirePolicyAdmin={!isReassignment || !canReassignAllReports}
             allApprovers={allApprovers}
             listEmptyContentSubtitle={translate(selectedReports.length === 1 ? 'workflowsPage.emptyContent.approverSubtitle' : 'workflowsPage.emptyContent.bulkApproverSubtitle')}
             allowMultipleSelection={false}

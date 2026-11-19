@@ -2,7 +2,7 @@ import {useAttachmentCarouselPagerState} from '@components/Attachments/Attachmen
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
@@ -64,19 +64,16 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
         },
     });
 
-    const Content = useMemo(
-        () => (
-            <BaseAttachmentViewPdf
-                {...props}
-                onScaleChanged={(newScale) => {
-                    // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
-                    // even though we're not pinching/zooming
-                    // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
-                    scale.set(Math.round(newScale * 1e2) / 1e2);
-                }}
-            />
-        ),
-        [props, scale],
+    const Content = (
+        <BaseAttachmentViewPdf
+            {...props}
+            onScaleChanged={(newScale) => {
+                // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
+                // even though we're not pinching/zooming
+                // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
+                scale.set(Math.round(newScale * 1e2) / 1e2);
+            }}
+        />
     );
 
     return (
@@ -100,4 +97,4 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     );
 }
 
-export default memo(AttachmentViewPdf);
+export default AttachmentViewPdf;

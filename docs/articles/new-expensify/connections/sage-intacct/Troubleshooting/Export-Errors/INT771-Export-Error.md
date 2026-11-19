@@ -55,7 +55,7 @@ If permissions are restricted, Sage Intacct may block exports to certain periods
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Locate the **Export date** setting.
 5. Change the selection:
    - From **Submitted date** or **Date of last expense**

@@ -1,4 +1,4 @@
-import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionFromCurrentUser, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -108,9 +108,17 @@ function useUnreadMarker({
     const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
-    for (let i = sortedReportActions.length - 1; i >= 0; i--) {
-        const message = sortedReportActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
+    // The money-report list is oldest-first and excludes hidden rows. Its offline boundary must use that same visible index domain.
+    const offlineBoundaryActions = isReversed ? sortedVisibleReportActions : sortedReportActions;
+    const offlineScanStartIndex = isReversed ? 0 : offlineBoundaryActions.length - 1;
+    const offlineScanStep = isReversed ? 1 : -1;
+    for (let i = offlineScanStartIndex; i >= 0 && i < offlineBoundaryActions.length; i += offlineScanStep) {
+        const message = offlineBoundaryActions.at(i);
+        if (
+            message &&
+            canReportActionTriggerUnreadMarker(message, currentUserAccountID) &&
+            wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)
+        ) {
             earliestReceivedOfflineMessageIndex = i;
             break;
         }
@@ -120,7 +128,14 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        if (visibleIndex >= 0) {
+        const visibleAction = visibleIndex >= 0 ? sortedVisibleReportActions.at(visibleIndex) : undefined;
+        // Pagination must not bypass the current-user or informational-message checks.
+        if (
+            visibleIndex >= 0 &&
+            visibleAction &&
+            !isReportActionFromCurrentUser(visibleAction, currentUserAccountID) &&
+            canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)
+        ) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }

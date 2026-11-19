@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import openBankConnection from './openBankConnection';
 
@@ -62,10 +62,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
-    );
+    const {isNewFeedConnected, newFeed} = checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed);
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
@@ -82,12 +79,12 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const onOpenBankConnectionFlow = useCallback(() => {
+    const onOpenBankConnectionFlow = () => {
         if (!url) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [url]);
+    };
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -114,7 +111,13 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
             {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, addNewCard?.data?.plaidConnectedFeedName ?? bankName)}
-            <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.PENDING_BANK_LINK}
+                onPress={onOpenBankConnectionFlow}
+            >
+                {translate('workspace.moreFeatures.companyCards.pendingBankLink')}
+            </TextLink>
+            .
         </Text>
     );
 
@@ -211,6 +214,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     illustration={illustrations.BrokenCompanyCardBankConnection}
                     illustrationStyle={styles.errorStateCardIllustration}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_LOAD_ERROR_CONFIRM}
                     onButtonPress={() => Navigation.closeRHPFlow()}
                 />
             );

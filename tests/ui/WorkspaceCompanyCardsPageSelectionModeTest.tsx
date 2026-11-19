@@ -22,7 +22,10 @@ let mockIsOffline = false;
 let mockPolicy: {name: string; policyAccountID?: number; employeeList: Record<string, unknown>} | undefined = {name: 'Acme', policyAccountID: 123, employeeList: {}};
 let mockAllCardFeeds: Record<string, unknown> | undefined = {feed: {}};
 
-jest.mock('@components/DecisionModal', () => () => null);
+const mockShowDecisionModal = jest.fn();
+const mockUseAssignCardProps: {current?: {onOfflineAssign: () => void}} = {};
+
+jest.mock('@hooks/useDecisionModal', () => () => ({showDecisionModal: mockShowDecisionModal}));
 
 jest.mock('@components/Tables/WorkspaceCompanyCardsTable', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -49,7 +52,10 @@ jest.mock('@components/Tables/WorkspaceCompanyCardsTable', () => {
 
 jest.mock('@hooks/useAssignCard', () => ({
     __esModule: true,
-    default: () => ({assignCard: jest.fn(), isAssigningCardDisabled: false}),
+    default: (props: {onOfflineAssign: () => void}) => {
+        mockUseAssignCardProps.current = props;
+        return {assignCard: jest.fn(), isAssigningCardDisabled: false};
+    },
 }));
 
 jest.mock('@hooks/useCompanyCards', () => ({
@@ -60,8 +66,6 @@ jest.mock('@hooks/useCompanyCards', () => ({
         selectedFeed: undefined,
         bankName: undefined,
         isFeedPending: false,
-        isFeedAdded: false,
-        onyxMetadata: {cardListMetadata: {status: 'loaded'}},
     }),
 }));
 
@@ -159,11 +163,6 @@ jest.mock('@pages/workspace/WorkspacePageWithSections', () => {
 jest.mock('@userActions/CompanyCards', () => ({
     openPolicyCompanyCardsFeed: jest.fn(),
     openPolicyCompanyCardsPage: jest.fn(),
-}));
-
-jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
-    __esModule: true,
-    default: () => false,
 }));
 
 type WorkspaceCompanyCardsPageScreenProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
@@ -299,5 +298,24 @@ describe('WorkspaceCompanyCardsPage isPageFetchPending', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(mockTableProps.current?.isPageFetchPending).toBe(false);
+    });
+});
+
+describe('WorkspaceCompanyCardsPage offline assign', () => {
+    beforeEach(resetMocks);
+
+    it('shows the offline alert when a card is assigned while offline', () => {
+        // Given the company cards page
+        render(getWorkspaceCompanyCardsPage());
+
+        // When the assign card hook reports an assignment attempt while offline
+        mockUseAssignCardProps.current?.onOfflineAssign();
+
+        // Then the global offline alert is shown
+        expect(mockShowDecisionModal).toHaveBeenCalledWith({
+            title: 'common.youAppearToBeOffline',
+            prompt: 'common.offlinePrompt',
+            secondOptionText: 'common.buttonConfirm',
+        });
     });
 });

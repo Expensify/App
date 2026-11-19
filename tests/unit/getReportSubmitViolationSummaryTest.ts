@@ -1,10 +1,17 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
+import getReportApproveViolationSummary from '@libs/Violations/getReportApproveViolationSummary';
+import {
+    buildSubmitViolationBullets,
+    getReportSubmitViolationSummary,
+    hasAnySubmitViolation,
+    mergeReportSubmitViolationSummaries,
+    shouldResolveAcknowledgedViolations,
+} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -15,6 +22,8 @@ const translate = jest.fn((key: string, ...params: unknown[]) => {
 }) as unknown as LocaleContextProps['translate'];
 
 const convertToDisplayString = jest.fn((amount: number | undefined, currency: string | undefined) => `${amount} ${currency}`);
+const APPROVER_EMAIL = 'approver@example.com';
+const SUBMITTER_EMAIL = 'submitter@example.com';
 
 // Not exercised by the violation types covered here (overCategoryLimit doesn't need a formatted date), but
 // required by buildSubmitViolationBullets's params shape.
@@ -33,12 +42,223 @@ function createMockViolation(name: TransactionViolation['name'], data?: Transact
     return createMock<TransactionViolation>({name, data});
 }
 
+function createMockExpenseReport(): Report {
+    return createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+}
+
+function createMockTransactionWithMerchant(merchant: string, overrides?: Partial<Transaction>): Transaction {
+    return createMock<Transaction>({transactionID: '1', merchant, ...overrides});
+}
+
+function createMockFailedScan(overrides?: Partial<Transaction>): Transaction {
+    return createMock<Transaction>({
+        transactionID: '1',
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        amount: 0,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+        ...overrides,
+    });
+}
+
+function createEmptySummary() {
+    return {hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, hasMissingMerchant: false, hasMissingAmount: false, otherViolations: new Map()};
+}
+
 function createMockRejectedReport(): Report {
     return createMock<Report>({
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
     });
 }
+
+describe('getReportApproveViolationSummary', () => {
+    it.each([true, false])('omits the auto-approval limit notice during approval (full: %s) without changing submission warnings', (full) => {
+        // Given a processing report whose only notice explains why an admin must approve it manually
+        const transaction = createMockTransactionWithMerchant('Merchant');
+        const report = createMock<Report>({
+            ...createMockExpenseReport(),
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 2,
+            managerID: 1,
+        });
+        const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+        const notice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const violations = {[getViolationsKey('1')]: [notice]};
+
+        // When the non-submitter admin reviews the same data for approval and submission
+        const approval = getReportApproveViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1, full);
+        const submission = getReportSubmitViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1);
+
+        // Then only approval omits the notice, without mutating the server data
+        expect(hasAnySubmitViolation(approval)).toBe(false);
+        expect(submission.otherViolations.get(CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)).toBe(notice);
+        expect(violations[getViolationsKey('1')]).toEqual([notice]);
+    });
+
+    it('keeps other review notices alongside the auto-approval limit notice', () => {
+        // Given an expense with another notice that still needs review
+        const transaction = createMockTransactionWithMerchant('Merchant');
+        const report = createMock<Report>({
+            ...createMockExpenseReport(),
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 2,
+            managerID: 1,
+        });
+        const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+        const autoApprovalNotice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const otherNotice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const violations = {[getViolationsKey('1')]: [autoApprovalNotice, otherNotice]};
+
+        // When the admin approves the report
+        const summary = getReportApproveViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1);
+
+        // Then only the auto-approval notice is excluded, and the other notice still triggers confirmation
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+        expect(summary.otherViolations.size).toBe(1);
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.MODIFIED_AMOUNT)).toBe(otherNotice);
+        expect(violations[getViolationsKey('1')]).toEqual([autoApprovalNotice, otherNotice]);
+    });
+
+    it('omits raw violations dismissed by the approver without modifying the source data', () => {
+        // Given raw violations from a header, hold menu or bulk approval input
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const violations = {[getViolationsKey('1')]: [violation]};
+
+        // When the current approver has already dismissed the only warning
+        const summary = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1);
+
+        // Then approval needs no warning and the dismissal remains local to this summary
+        expect(hasAnySubmitViolation(summary)).toBe(false);
+        expect(violations[getViolationsKey('1')]).toEqual([violation]);
+        expect(transaction.comment?.dismissedViolations?.[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]).toEqual({[APPROVER_EMAIL]: '2026-11-07 00:00:00'});
+    });
+
+    it('still warns the approver about violations dismissed only by the submitter', () => {
+        // Given a submitted report whose owner dismissed a violation, but its approver did not
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[SUBMITTER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const report = createMock<Report>({...createMockExpenseReport(), stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, ownerAccountID: 2, managerID: 1});
+
+        // When a different user approves the report
+        const summary = getReportApproveViolationSummary([transaction], {[getViolationsKey('1')]: [violation]}, report, undefined, APPROVER_EMAIL, 1);
+
+        // Then the submitter's dismissal does not hide the warning from the approver
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(violation);
+    });
+
+    it('deduplicates only after filtering each transaction dismissal', () => {
+        // Given two violations with the same name, only the first expense's instance is dismissed
+        const dismissedTransaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const visibleTransaction = createMockTransactionWithMerchant('Merchant', {transactionID: '2'});
+        const dismissedViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, {amount: 1000, currency: 'USD'});
+        const visibleViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, {amount: 2000, currency: 'USD'});
+
+        // When both expenses are summarized in report order
+        const summary = getReportApproveViolationSummary(
+            [dismissedTransaction, visibleTransaction],
+            {[getViolationsKey('1')]: [dismissedViolation], [getViolationsKey('2')]: [visibleViolation]},
+            undefined,
+            undefined,
+            APPROVER_EMAIL,
+            1,
+        );
+
+        // Then the remaining warning retains the second expense's message data
+        expect(summary.otherViolations.size).toBe(1);
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(visibleViolation);
+    });
+
+    it('keeps missing-field warnings when an unrelated server violation is dismissed', () => {
+        // Given an expense missing its merchant with a dismissed policy violation
+        const transaction = createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+
+        // When the approver reviews the raw violations
+        const summary = getReportApproveViolationSummary(
+            [transaction],
+            {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]},
+            createMockExpenseReport(),
+            undefined,
+            APPROVER_EMAIL,
+            1,
+        );
+
+        // Then only the independent missing merchant warning remains
+        expect(summary.otherViolations.size).toBe(0);
+        expect(summary.hasMissingMerchant).toBe(true);
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+    });
+
+    it('excludes dismissed violations during both full and partial approval', () => {
+        // Given a held expense whose only violation the approver dismissed
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {hold: 'hold-action', dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violations = {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
+
+        // When full approval includes the held expense and partial approval excludes it
+        const full = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1, true);
+        const partial = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1, false);
+
+        // Then neither mode warns about the dismissed violation
+        expect(hasAnySubmitViolation(full)).toBe(false);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+    });
+
+    it('warns about a held expense with a missing merchant when approving everything', () => {
+        // Given a held expense whose missing merchant is not represented by a server violation
+        const transaction = createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {comment: {hold: 'hold-action'}});
+        const report = createMockExpenseReport();
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, false);
+
+        // Then only full approval includes the held expense's missing field warning
+        expect(full.hasMissingMerchant).toBe(true);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+    });
+
+    it('does not show submitter-only rejection or pending card-match warnings', () => {
+        // Given a rejected report with rejected expenses and a pending card match
+        const violations = {
+            [getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE), createMockViolation(CONST.VIOLATIONS.RTER, {pendingPattern: true})],
+        };
+
+        // When an approver reviews its violations
+        const summary = getReportApproveViolationSummary([createMockTransaction('1')], violations, createMockRejectedReport(), undefined, '', 0);
+
+        // Then the submitter's acknowledgement warnings are not shown to the approver
+        expect(hasAnySubmitViolation(summary)).toBe(false);
+    });
+
+    it('includes held expenses only when approving the full report', () => {
+        // Given a held expense with a policy violation
+        const transaction = createMock<Transaction>({transactionID: '1', comment: {hold: 'hold-action'}});
+        const overLimit = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const violations = {[getViolationsKey('1')]: [overLimit]};
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, false);
+
+        // Then only the full approval warns about this expense, without mutating its violations
+        expect(full.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(overLimit);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+        expect(violations[getViolationsKey('1')]).toEqual([overLimit]);
+    });
+});
 
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {
@@ -47,7 +267,7 @@ describe('getReportSubmitViolationSummary', () => {
 
         // When the summary is built
         // Then the "Submit report?" modal has nothing to show, so every bucket must be empty
-        expect(summary).toEqual({hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()});
+        expect(summary).toEqual(createEmptySummary());
     });
 
     it('flags a rejected expense violation', () => {
@@ -150,7 +370,7 @@ describe('getReportSubmitViolationSummary', () => {
 
         // When the summary is built
         // Then it must not throw or treat the missing key as a violation, so a report just isn't flagged instead of crashing
-        expect(summary).toEqual({hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()});
+        expect(summary).toEqual(createEmptySummary());
     });
 
     it('flags a report-level rejection separately from a transaction-level rejected-expense violation', () => {
@@ -186,24 +406,474 @@ describe('getReportSubmitViolationSummary', () => {
         // Then it must not treat the report as currently rejected, since stateNum no longer reflects the rejected-and-reopened state
         expect(summary.hasReportBeenRejected).toBe(false);
     });
+
+    describe('missing merchant', () => {
+        it.each([
+            ['empty', ''],
+            ['the partial placeholder', CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT],
+            ['the default placeholder', CONST.TRANSACTION.DEFAULT_MERCHANT],
+        ])('flags an expense on an expense report whose merchant is %s', (_description, merchant) => {
+            // Given an expense whose merchant is a value the expense row treats as missing, with no violations entry,
+            // because the server never sends a violation for a missing merchant
+            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(merchant)], {}, createMockExpenseReport(), undefined, '', 0);
+
+            // When the summary is built
+            // Then it must flag the merchant, otherwise the report submits with no warning while the expense row shows an error
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it('flags a missing merchant when the expense has an empty violations list', () => {
+            // Given an expense with no merchant whose violations are known to be empty, a different Onyx state from an absent entry
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)],
+                {[getViolationsKey('1')]: []},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then the merchant must still be flagged, since it doesn't depend on the expense having violations
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it('lists the missing merchant alongside the violations of other expenses on the report', () => {
+            // Given a report like the one in the bug report: one expense with a policy violation, and another with no
+            // merchant that also has a violation of its own
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant('Merchant', {transactionID: '1'}), createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {transactionID: '2'})],
+                {
+                    [getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)],
+                    [getViolationsKey('2')]: [createMockViolation(CONST.VIOLATIONS.MISSING_CATEGORY)],
+                },
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the bullets are built from the summary
+            const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+            // Then the modal must show the merchant as well as both violations, since the bug was that the violations hid it
+            expect(bullets).toHaveLength(3);
+            expect(bullets).toContain('iou.missingMerchant');
+        });
+
+        it('does not flag a placeholder merchant that a valid modified merchant has replaced', () => {
+            // Given an expense created with the placeholder merchant and then edited to a real one, which is stored in modifiedMerchant
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {modifiedMerchant: 'Merchant'})],
+                {},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, since the user has already fixed the merchant
+            expect(summary.hasMissingMerchant).toBe(false);
+        });
+
+        it('flags a valid merchant that has been replaced by a placeholder modified merchant', () => {
+            // Given an expense whose modified merchant takes priority over its original merchant and is a placeholder
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant('Merchant', {modifiedMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT})],
+                {},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must warn, because the expense row reads the same modified merchant and shows the error
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it.each([
+            ['a distance expense', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE}],
+            ['a receipt waiting to be scanned', {receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}],
+            ['a receipt being scanned', {receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}],
+            ['an expense being deleted', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        ])('does not flag %s', (_description, overrides: Partial<Transaction>) => {
+            // Given an expense with a placeholder merchant that the expense row doesn't treat as an error
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, overrides)],
+                {},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, otherwise the modal would report a problem that no other screen shows
+            expect(summary.hasMissingMerchant).toBe(false);
+        });
+
+        it('does not flag a placeholder merchant on an IOU report, even when another required field is empty', () => {
+            // Given an IOU, where a merchant is optional, with a zero amount that makes hasMissingSmartscanFields true by itself
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {amount: 0})],
+                {},
+                createMock<Report>({type: CONST.REPORT.TYPE.IOU}),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn about the merchant, since only expense reports require one
+            expect(summary.hasMissingMerchant).toBe(false);
+        });
+
+        it('does not flag a held expense, because submitting moves it to a new draft report', () => {
+            // Given a clean expense and a held expense with no merchant, on a workflow that splits held expenses out when submitting
+            const summary = getReportSubmitViolationSummary(
+                [
+                    createMockTransactionWithMerchant('Merchant', {transactionID: '1'}),
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {transactionID: '2', comment: {hold: '123'}}),
+                ],
+                {},
+                createMockExpenseReport(),
+                createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, since nothing that is actually being submitted lacks a merchant
+            expect(summary.hasMissingMerchant).toBe(false);
+        });
+
+        it('flags a held expense on a dynamic external workflow, because held expenses stay on the report there', () => {
+            // Given a held expense with no merchant on a dynamic external workflow, which doesn't split held expenses out
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {comment: {hold: '123'}})],
+                {},
+                createMockExpenseReport(),
+                createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL}),
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must warn, because this expense is submitted along with the rest of the report
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it('flags an expense that is not held when another expense on the report is held', () => {
+            // Given two expenses with no merchant, where only one is held
+            const summary = getReportSubmitViolationSummary(
+                [
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {transactionID: '1', comment: {hold: '123'}}),
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {transactionID: '2'}),
+                ],
+                {},
+                createMockExpenseReport(),
+                createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must warn, since the expense that isn't held is still being submitted without a merchant
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it('does not add a second bullet for a failed scan that already has a smartscanFailed violation', () => {
+            // Given a failed scan with no merchant, whose smartscanFailed message already tells the submitter to enter the details
+            const summary = getReportSubmitViolationSummary(
+                [
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                    }),
+                ],
+                {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.SMARTSCAN_FAILED, {missingFields: ['merchant']})]},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the bullets are built from the summary
+            const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+            // Then only the scan failure is listed, because a separate merchant bullet would report the same problem twice
+            expect(summary.hasMissingMerchant).toBe(false);
+            expect(bullets).toHaveLength(1);
+            expect(bullets).not.toContain('iou.missingMerchant');
+        });
+
+        it('flags a different expense with no merchant on the same report as a failed scan', () => {
+            // Given a failed scan with a smartscanFailed violation, next to a separate manual expense with no merchant
+            const summary = getReportSubmitViolationSummary(
+                [
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {
+                        transactionID: '1',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                    }),
+                    createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {transactionID: '2'}),
+                ],
+                {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.SMARTSCAN_FAILED)]},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then the manual expense must still be flagged, because the scan failure only covers its own expense
+            expect(summary.hasMissingMerchant).toBe(true);
+        });
+
+        it('flags a failed scan with no merchant once its smartscanFailed violation is gone', () => {
+            // Given a failed scan with no merchant whose smartscanFailed violation was removed after the user entered the amount
+            const summary = getReportSubmitViolationSummary([createMockFailedScan({modifiedAmount: -1000})], {[getViolationsKey('1')]: []}, createMockExpenseReport(), undefined, '', 0);
+
+            // When the summary is built
+            // Then it must warn about the merchant only, since nothing else now tells the submitter it's missing and the amount has been entered
+            expect(summary.hasMissingMerchant).toBe(true);
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+
+        it('does not flag a placeholder merchant when the report is not available', () => {
+            // Given a report that hasn't loaded, so there is no way to tell whether a merchant is required
+            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)], {}, undefined, undefined, '', 0);
+
+            // When the summary is built
+            // Then it must not warn, rather than interrupt a submission over a merchant that may be optional
+            expect(summary.hasMissingMerchant).toBe(false);
+        });
+    });
+
+    describe('missing amount', () => {
+        it('flags a failed scan whose amount was never entered, once the merchant is fixed and smartscanFailed is gone', () => {
+            // Given a failed scan where the user entered only the merchant, which makes the server remove smartscanFailed while the amount stays 0
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan({modifiedMerchant: 'Merchant'})],
+                {[getViolationsKey('1')]: []},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the bullets are built from the summary
+            const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+            // Then the amount must be listed, because the expense row shows this error and nothing else in the modal would mention it
+            expect(summary.hasMissingAmount).toBe(true);
+            expect(summary.hasMissingMerchant).toBe(false);
+            expect(bullets).toEqual(['iou.missingAmount']);
+        });
+
+        it('flags both fields when a failed scan has neither and smartscanFailed is gone', () => {
+            // Given a failed scan with no merchant and no amount, and no smartscanFailed violation to mention them
+            const summary = getReportSubmitViolationSummary([createMockFailedScan()], {[getViolationsKey('1')]: []}, createMockExpenseReport(), undefined, '', 0);
+
+            // When the bullets are built from the summary
+            const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+            // Then both are listed, since the submitter has to fix each one
+            expect(bullets).toEqual(['iou.missingMerchant', 'iou.missingAmount']);
+        });
+
+        it('does not add a second bullet when the failed scan still has its smartscanFailed violation', () => {
+            // Given a failed scan whose smartscanFailed message already names the missing amount
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan()],
+                {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.SMARTSCAN_FAILED, {missingFields: ['amount']})]},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not flag the amount, because that would report the same problem twice
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+
+        it('does not flag a manual expense with a zero amount', () => {
+            // Given a manual expense for 0 on an expense report, which is a valid amount there
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant('Merchant', {amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL})],
+                {},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, otherwise a clean report with a zero amount would stop submitting immediately
+            expect(summary.hasMissingAmount).toBe(false);
+            expect(hasAnySubmitViolation(summary)).toBe(false);
+        });
+
+        it('flags only the merchant on a manual expense with a zero amount and no merchant', () => {
+            // Given a manual expense for 0, a valid amount on an expense report, whose missing merchant makes it pass the required fields check
+            const summary = getReportSubmitViolationSummary(
+                [createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT, {amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL})],
+                {},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not also report a missing amount, because only a failed scan's placeholder counts as one
+            expect(summary.hasMissingMerchant).toBe(true);
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+
+        it('does not flag a failed scan once the amount has been entered', () => {
+            // Given a failed scan where the user has entered the amount, which is stored in modifiedAmount
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan({modifiedMerchant: 'Merchant', modifiedAmount: -1000})],
+                {[getViolationsKey('1')]: []},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, since the user has already fixed the amount
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+
+        it('does not flag a held failed scan, because submitting moves it to a new draft report', () => {
+            // Given a held failed scan on a workflow that splits held expenses out when submitting
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan({modifiedMerchant: 'Merchant', comment: {hold: '123'}})],
+                {},
+                createMockExpenseReport(),
+                createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
+                '',
+                0,
+            );
+
+            // When the summary is built
+            // Then it must not warn, since this expense isn't part of the submission
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+
+        it('does not flag a failed scan on an IOU report', () => {
+            // Given a failed scan on an IOU, which this warning doesn't cover
+            const summary = getReportSubmitViolationSummary([createMockFailedScan({modifiedMerchant: 'Merchant'})], {}, createMock<Report>({type: CONST.REPORT.TYPE.IOU}), undefined, '', 0);
+
+            // When the summary is built
+            // Then it must not warn, because only expense reports go through these checks
+            expect(summary.hasMissingAmount).toBe(false);
+        });
+    });
+});
+
+describe('hasAnySubmitViolation', () => {
+    it('returns true when a missing merchant is the only thing to show', () => {
+        // Given a summary with no violations of any kind, only a missing merchant
+        const summary = {...createEmptySummary(), hasMissingMerchant: true};
+
+        // When deciding whether to show the modal
+        // Then the modal must open, otherwise the warning would only appear when an unrelated violation happens to exist
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+    });
+
+    it('returns true when a missing amount is the only thing to show', () => {
+        // Given a summary with no violations of any kind, only a missing amount
+        const summary = {...createEmptySummary(), hasMissingAmount: true};
+
+        // When deciding whether to show the modal
+        // Then the modal must open, otherwise an expense with no amount would be submitted with no warning
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+    });
+
+    it('returns false when the summary is empty', () => {
+        // Given a summary with nothing in any bucket
+        // When deciding whether to show the modal
+        // Then a clean report must keep submitting immediately, with no extra prompt
+        expect(hasAnySubmitViolation(createEmptySummary())).toBe(false);
+    });
+});
+
+describe('shouldResolveAcknowledgedViolations', () => {
+    it('does not resolve anything when a missing merchant is the only thing acknowledged', () => {
+        // Given a summary whose only entry is a missing merchant
+        const summary = {...createEmptySummary(), hasMissingMerchant: true};
+
+        // When the user confirms "Submit anyway"
+        // Then the flag must stay false, since acknowledging the modal doesn't fix the merchant and there is no rejected expense to resolve
+        expect(shouldResolveAcknowledgedViolations(summary)).toBe(false);
+    });
+
+    it('does not resolve anything when a missing amount is the only thing acknowledged', () => {
+        // Given a summary whose only entry is a missing amount
+        const summary = {...createEmptySummary(), hasMissingAmount: true};
+
+        // When the user confirms "Submit anyway"
+        // Then the flag must stay false, since acknowledging the modal doesn't fix the amount and there is no rejected expense to resolve
+        expect(shouldResolveAcknowledgedViolations(summary)).toBe(false);
+    });
+});
+
+describe('mergeReportSubmitViolationSummaries', () => {
+    it('keeps the missing merchant flag when only one of the selected reports has it', () => {
+        // Given a bulk submit where one report has a missing merchant and another is clean
+        const summaries = [createEmptySummary(), {...createEmptySummary(), hasMissingMerchant: true}];
+
+        // When the summaries are merged into the single modal for the selection
+        // Then the flag must survive, otherwise the warning would disappear in bulk submit
+        expect(mergeReportSubmitViolationSummaries(summaries).hasMissingMerchant).toBe(true);
+    });
+
+    it('keeps the missing amount flag when only one of the selected reports has it', () => {
+        // Given a bulk submit where one report has a missing amount and another is clean
+        const summaries = [createEmptySummary(), {...createEmptySummary(), hasMissingAmount: true}];
+
+        // When the summaries are merged into the single modal for the selection
+        // Then the flag must survive, otherwise the warning would disappear in bulk submit
+        expect(mergeReportSubmitViolationSummaries(summaries).hasMissingAmount).toBe(true);
+    });
+
+    it('leaves the missing merchant and amount flags off when no selected report has them', () => {
+        // Given a bulk submit of clean reports
+        const summaries = [createEmptySummary(), createEmptySummary()];
+
+        // When the summaries are merged
+        const merged = mergeReportSubmitViolationSummaries(summaries);
+
+        // Then both flags must stay false, so a clean bulk submit doesn't open the modal
+        expect(merged.hasMissingMerchant).toBe(false);
+        expect(merged.hasMissingAmount).toBe(false);
+    });
 });
 
 describe('buildSubmitViolationBullets', () => {
     it('returns an empty list when there is nothing to report', () => {
         // Given a summary where every bucket is empty
-        const summary = {hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()};
+        const summary = createEmptySummary();
 
         // When the bullets are built
         // Then there is nothing for the modal to show, so the list must be empty
         expect(buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString})).toEqual([]);
     });
 
-    it('orders bullets: other violations first, then report rejection, then expense rejection, then pending-card-match', () => {
+    it('orders bullets: other violations first, then a missing merchant and amount, then report rejection, then expense rejection, then pending-card-match', () => {
         // Given a summary with every kind of violation present at once
         const summary = {
             hasRejectedExpense: true,
             hasReportBeenRejected: true,
             hasPendingCardMatch: true,
+            hasMissingMerchant: true,
+            hasMissingAmount: true,
             otherViolations: new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]]),
         };
 
@@ -214,6 +884,8 @@ describe('buildSubmitViolationBullets', () => {
         // bullet must use the full violation message (with the interpolated amount), not the short label
         expect(bullets).toEqual([
             'violations.overCategoryLimit(0 USD)',
+            'iou.missingMerchant',
+            'iou.missingAmount',
             'iou.confirmSubmitReportViolations.reportRejected',
             'iou.confirmSubmitReportViolations.rejectedExpense',
             'iou.confirmSubmitReportViolations.pendingCardMatch',
@@ -224,9 +896,7 @@ describe('buildSubmitViolationBullets', () => {
         // Given a receipt-required violation whose data carries the policy's no-receipt amount threshold (e.g. $25)
         const receiptRequiredViolation = createMockViolation(CONST.VIOLATIONS.RECEIPT_REQUIRED, {amount: 2500, currency: 'USD'});
         const summary = {
-            hasRejectedExpense: false,
-            hasReportBeenRejected: false,
-            hasPendingCardMatch: false,
+            ...createEmptySummary(),
             otherViolations: new Map([[CONST.VIOLATIONS.RECEIPT_REQUIRED, receiptRequiredViolation]]),
         };
 
@@ -248,9 +918,7 @@ describe('buildSubmitViolationBullets', () => {
         const htmlTranslate = jest.fn(() => 'Bank connection broken. <a href="undefined">Reconnect to match receipt</a>') as unknown as LocaleContextProps['translate'];
         const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {brokenBankConnection: true, isAdmin: true});
         const summary = {
-            hasRejectedExpense: false,
-            hasReportBeenRejected: false,
-            hasPendingCardMatch: false,
+            ...createEmptySummary(),
             otherViolations: new Map([[CONST.VIOLATIONS.RTER, rterViolation]]),
         };
 
