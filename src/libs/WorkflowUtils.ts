@@ -280,6 +280,9 @@ type AddEmployeeRouteApproversParams = {
     /** Approval limit the route's reports are over */
     overLimitAmount: number | undefined;
 
+    /** The routes of the reports over the higher approval limits */
+    higherRoutes: RouteApprover[][];
+
     buildApprover: (email: string) => Approver;
 
     /** Approvers whose employee settings send some of the reports that reach them where the workflow doesn't */
@@ -291,13 +294,20 @@ function getNextApproverIndex(approvers: Approver[], previousIndex: number, appr
     return approvers.findIndex((approver, index) => index > previousIndex && !approver.isCircularReference && !approvedEmails.has(approver.email));
 }
 
+/** Whether the reports on the route get to the approver */
+function doesRouteGoThrough(route: RouteApprover[], email: string): boolean {
+    return route.some((routeApprover) => routeApprover.email === email);
+}
+
 /**
  * Add to the workflow's approvers the ones employee settings send a route's reports over an approval limit to. The
- * approvers new to the workflow that the route goes through before coming back to it are optional over-limit approvers.
- * A route that never comes back, or skips some of the workflow's approvers, forks from it. Its approvers are left out,
- * apart from the over-limit approver it leaves the workflow for, and the fork goes on whoever sends the reports away.
+ * approvers new to the workflow that the route goes through before coming back to it are optional over-limit approvers,
+ * as long as every bigger report that gets that far goes through them too. A route that never comes back, skips some of
+ * the workflow's approvers, or goes through approvers bigger reports skip, forks from it. Its approvers are left out,
+ * apart from the ones before the first approver bigger reports skip, or only the first of those when the route doesn't
+ * come back, and the fork goes on whoever sends the reports away.
  */
-function addEmployeeRouteApprovers({approvers, route, overLimitAmount, buildApprover, forkApprovers}: AddEmployeeRouteApproversParams) {
+function addEmployeeRouteApprovers({approvers, route, overLimitAmount, higherRoutes, buildApprover, forkApprovers}: AddEmployeeRouteApproversParams) {
     const approvedEmails = new Set(route.slice(0, 1).map(({email}) => email));
     let previousIndex = 0;
     let position = 1;
@@ -337,11 +347,30 @@ function addEmployeeRouteApprovers({approvers, route, overLimitAmount, buildAppr
             }
             detour.push(detourApprover);
         }
+        // The report skips the approver the workflow has next for one it already has, so it forks here
+        if (detour.length === 0) {
+            forkApprovers.add(previousApprover);
+            return;
+        }
+
+        // Approval workflow rules give an optional over-limit approver every report over their limit, so only the detour's
+        // approvers before the first one some bigger reports skip, of those that get to the approver before it, can join the
+        // workflow
+        const biggerRoutes = higherRoutes.filter((higherRoute) => doesRouteGoThrough(higherRoute, previousApprover.email));
+        const unsharedPosition = detour.findIndex((detourApprover) => !biggerRoutes.every((biggerRoute) => doesRouteGoThrough(biggerRoute, detourApprover.email)));
+        const sharedDetour = unsharedPosition === -1 ? detour : detour.slice(0, unsharedPosition);
+
         const returnApprover = route.at(position + detour.length);
         const returnEmail = returnApprover?.isCircularReference ? undefined : returnApprover?.email;
-        const firstDetourEmail = detour.at(0)?.email;
-        if (firstDetourEmail && returnEmail === nextEmail) {
-            approvers.splice(previousIndex + 1, 0, ...detour.map(({email}) => ({...buildApprover(email), isCircularReference: false, overLimitAmount})));
+        if (returnEmail === nextEmail) {
+            const sharedApprovers = sharedDetour.map(({email}) => ({...buildApprover(email), isCircularReference: false, overLimitAmount}));
+            approvers.splice(previousIndex + 1, 0, ...sharedApprovers);
+
+            // A detour that comes back after an approver some bigger reports skip forks away from the last approver they share
+            if (sharedApprovers.length < detour.length) {
+                forkApprovers.add(sharedApprovers.at(-1) ?? previousApprover);
+                return;
+            }
             for (const {email} of detour) {
                 approvedEmails.add(email);
             }
@@ -351,7 +380,8 @@ function addEmployeeRouteApprovers({approvers, route, overLimitAmount, buildAppr
         }
 
         // The over-limit approver new to the workflow still gets the reports over the limit, so the fork goes on them, unless
-        // the reports already fork away at the approver who sends them there
+        // bigger reports skip them, or the reports already fork away at the approver who sends them there
+        const firstDetourEmail = sharedDetour.at(0)?.email;
         if (firstDetourEmail && !forkApprovers.has(previousApprover)) {
             const forkApprover = {...buildApprover(firstDetourEmail), isCircularReference: false, overLimitAmount};
             approvers.splice(previousIndex + 1, 0, forkApprover);
@@ -481,7 +511,7 @@ function buildApproversFromRoutes({
     if (isRoutedByEmployeeSettings) {
         const forkApprovers = new Set<Approver>();
         for (const [routeIndex, route] of routesOverLimits.entries()) {
-            addEmployeeRouteApprovers({approvers, route, overLimitAmount: sortedLimits.at(routeIndex), buildApprover, forkApprovers});
+            addEmployeeRouteApprovers({approvers, route, overLimitAmount: sortedLimits.at(routeIndex), higherRoutes: routesOverLimits.slice(routeIndex + 1), buildApprover, forkApprovers});
         }
         return approvers.map((approver, index) =>
             forkApprovers.has(approver)

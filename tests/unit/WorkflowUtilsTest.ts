@@ -2074,6 +2074,43 @@ describe('WorkflowUtils', () => {
             ]);
             expect(approvers.at(3)?.forkBranches).toEqual([{approvers: []}]);
         });
+
+        it('Should fork a detour that comes back to the workflow when bigger reports skip one of its approvers', () => {
+            // Given 3@example.com gets the reports over 2,000.00 and sends the ones up to 5,000.00 to 6@example.com, who sends them
+            // on to 5@example.com, the final approver, and the ones over it to 4@example.com, who sends them to 5@example.com too
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', forwardsTo: '5@example.com', approvalLimit: 100000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '5@example.com', approvalLimit: 200000, overLimitForwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', forwardsTo: '6@example.com', approvalLimit: 500000, overLimitForwardsTo: '4@example.com'},
+                '4@example.com': {email: '4@example.com', forwardsTo: '5@example.com'},
+                '5@example.com': {email: '5@example.com'},
+                '6@example.com': {email: '6@example.com', forwardsTo: '5@example.com'},
+            };
+
+            // When the approvers are calculated
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            // Then 6@example.com stays out of the workflow, since rules would send them every report over 2,000.00 and the ones over
+            // 5,000.00 skip them, so the reports they get are 3@example.com's fork, while every report over 2,000.00 still gets to
+            // 3@example.com and the ones over 5,000.00 to 4@example.com
+            expect(approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual([
+                {email: '1@example.com', overLimitAmount: undefined},
+                {email: '2@example.com', overLimitAmount: 100000},
+                {email: '3@example.com', overLimitAmount: 200000},
+                {email: '4@example.com', overLimitAmount: 500000},
+                {email: '5@example.com', overLimitAmount: undefined},
+            ]);
+            expect(approvers.filter((approver) => !!approver.forkBranches).map(({email}) => email)).toEqual(['3@example.com']);
+            expect(approvers.at(2)?.forkBranches).toEqual([
+                {
+                    upTo: 500000,
+                    approvers: [
+                        {email: '6@example.com', displayName: '6@example.com User'},
+                        {email: '5@example.com', displayName: '5@example.com User'},
+                    ],
+                },
+            ]);
+        });
     });
 
     describe('getApprovalForkDescription', () => {
