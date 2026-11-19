@@ -1,4 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getInvoiceNextStep} from '@libs/NextStepUtils';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
@@ -34,7 +35,7 @@ function useMoneyReportHeaderMoreContentVisibility(reportID: string | undefined)
     const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isGroupPolicy(policy) && !isInvoiceReport && !shouldShowStatusBar;
+    const shouldShowNextStep = (isInvoiceReport ? !!getInvoiceNextStep(moneyRequestReport) : isGroupPolicy(policy)) && !shouldShowStatusBar;
 
     return {
         statusBarType,
