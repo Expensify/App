@@ -19,9 +19,10 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isConnectionInProgress} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getConnectedIntegration, isConnectPageConnectionName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, isConnectPageConnectionName} from '@libs/PolicyUtils';
 import type {ConnectPageConnectionName} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,10 +36,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -60,10 +59,6 @@ const FEATURES = [
     'workspace.accounting.connectPage.exportPaymentsAndSettlements',
 ] as const;
 
-function connectionNameSelector(syncProgress: OnyxEntry<PolicyConnectionSyncProgress>) {
-    return syncProgress?.connectionName;
-}
-
 type ConnectAccountingIntegrationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CONNECT>;
 
 function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingIntegrationPageProps) {
@@ -75,14 +70,17 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
     const {environment} = useEnvironment();
     const {startIntegrationFlow} = useAccountingActions();
     const icons = useMemoizedLazyExpensifyIcons(['QBOSquare', 'IntuitSquare', 'XeroSquare', 'CertiniaSquare', 'Checkmark']);
-    const [syncingConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {selector: connectionNameSelector});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
-    const syncingIntegration = accountingIntegrations.find((integrationName) => integrationName === syncingConnectionName);
+    const syncingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingIntegration;
+    // A failed first attempt leaves an unverified connection behind, which still needs connecting
+    const verifiedIntegration = getValidConnectedIntegration(policy, accountingIntegrations) ?? (isConnectionInProgress(connectionSyncProgress, policy) ? syncingIntegration : undefined);
     // QBO and Intuit Enterprise Suite share a connection, so one isn't connected while the workspace uses the other
-    const isConnectedToIntegration =
-        connectedIntegration === connectionName && (connectionName !== CONST.POLICY.CONNECTIONS.NAME.QBO || isIntuitEnterpriseSuiteConnection(policy) === isIntuitEnterpriseSuite);
+    const isThisIntegration = (integration: ConnectionName | undefined) =>
+        integration === connectionName && (connectionName !== CONST.POLICY.CONNECTIONS.NAME.QBO || isIntuitEnterpriseSuiteConnection(policy) === isIntuitEnterpriseSuite);
+    const isConnectedToIntegration = isThisIntegration(verifiedIntegration);
 
     const integrationConfig: Record<ConnectPageConnectionName, IntegrationConfig> = {
         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
@@ -113,7 +111,9 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
     }, [isConnectedToIntegration]);
 
     const connect = (isSandbox: boolean) => {
-        startIntegrationFlow(getActiveIntegrationToConnect({name: connectionName, isIntuitEnterpriseSuite, isSandbox}, connectedIntegration));
+        const integrationToConnect = {name: connectionName, isIntuitEnterpriseSuite, isSandbox};
+        // An unverified connection to this same integration is reconnected rather than replaced
+        startIntegrationFlow(isThisIntegration(connectedIntegration) ? integrationToConnect : getActiveIntegrationToConnect(integrationToConnect, connectedIntegration));
     };
 
     return (

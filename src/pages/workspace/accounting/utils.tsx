@@ -145,7 +145,10 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
         if (integrationToDisconnect) {
-            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, undefined, undefined, isSandbox);
+        }
+        if (isSandbox) {
+            return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox);
         }
         if (existingConnections.certinia) {
             return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -252,6 +255,8 @@ function getAccountingIntegrationData(
                                   integrationToDisconnect,
                                   shouldDisconnectIntegrationBeforeConnecting,
                                   true,
+                                  undefined,
+                                  isSandbox,
                               ),
                           },
                       }

@@ -145,6 +145,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 cardFeeds,
                 cardList: cardLists,
                 isIntuitEnterpriseSuiteOverride: newActiveIntegration.isIntuitEnterpriseSuite,
+                isSandbox: newActiveIntegration.isSandbox,
             },
         );
 

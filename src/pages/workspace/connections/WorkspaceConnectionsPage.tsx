@@ -75,6 +75,7 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
     tab?: ConnectionsTab;
+    isSandbox?: string;
 };
 
 const TAB_SENTRY_LABELS: Record<ConnectionsTab, SentryLabel> = {
@@ -195,6 +196,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const shouldConnectToIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === 'true';
+    const isSandbox = params?.isSandbox === undefined ? undefined : params.isSandbox === 'true';
 
     useFocusEffect(() => {
         if (!newConnectionName || !isControlPolicy(policy) || !canWriteAccounting) {
@@ -213,12 +215,14 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             isIntuitEnterpriseSuite: shouldConnectToIntuitEnterpriseSuite,
             integrationToDisconnect,
             shouldDisconnectIntegrationBeforeConnecting,
+            isSandbox,
         });
         navigation.setParams({
             newConnectionName: undefined,
             isIntuitEnterpriseSuite: undefined,
             integrationToDisconnect: undefined,
             shouldDisconnectIntegrationBeforeConnecting: undefined,
+            isSandbox: undefined,
         });
     });
 

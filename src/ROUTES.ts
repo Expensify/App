@@ -3770,6 +3770,7 @@ const ROUTES = {
             shouldDisconnectIntegrationBeforeConnecting?: boolean,
             isIntuitEnterpriseSuite?: boolean,
             tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>,
+            isSandbox?: boolean,
         ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
@@ -3790,6 +3791,9 @@ const ROUTES = {
                 }
                 if (isIntuitEnterpriseSuite !== undefined) {
                     queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
+                if (isSandbox !== undefined) {
+                    queryParams += `&isSandbox=${isSandbox}`;
                 }
             }
             return `workspaces/${policyID}/connections${queryParams}` as const;
