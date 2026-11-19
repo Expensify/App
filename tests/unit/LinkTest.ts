@@ -1,7 +1,7 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from '@libs/actions/Session';
-import {openPendingNativeShare} from '@libs/actions/Share';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {openPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';

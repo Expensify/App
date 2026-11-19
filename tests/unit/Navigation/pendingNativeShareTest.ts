@@ -1,9 +1,13 @@
-import shouldParkNativeShare from '@libs/Navigation/helpers/shouldParkNativeShare';
+import {
+    deferPendingNativeShareUntilOnboardingExit,
+    openPendingNativeShare,
+    parkShareFlowRemovedByOnboarding,
+    setPendingNativeShare,
+    shouldParkNativeShare,
+} from '@libs/Navigation/helpers/pendingNativeShare';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
-
-import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare, parkShareFlowRemovedByOnboarding, setPendingNativeShare} from '@userActions/Share';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';

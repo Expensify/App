@@ -3,10 +3,10 @@ import {renderHook} from '@testing-library/react-native';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import type * as NetworkStateModule from '@libs/NetworkState';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 
-import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@userActions/Share';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +27,7 @@ jest.mock('@libs/SessionUtils', () => ({
     didUserLogInDuringSession: jest.fn(() => true),
 }));
 
-jest.mock('@userActions/Share', () => ({
+jest.mock('@libs/Navigation/helpers/pendingNativeShare', () => ({
     deferPendingNativeShareUntilOnboardingExit: jest.fn(),
     openPendingNativeShare: jest.fn(),
 }));

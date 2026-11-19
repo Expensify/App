@@ -5,12 +5,12 @@ import {
     setDeepLinkToOpenAfterOnboarding,
 } from '@libs/navigateAfterOnboarding';
 import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
+import {clearPendingNativeShare, deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare, setPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import {clearPendingNativeShare, deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare, setPendingNativeShare} from '@userActions/Share';
 import SidePanelActions from '@userActions/SidePanel';
 
 import CONST from '@src/CONST';

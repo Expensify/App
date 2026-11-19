@@ -1,5 +1,5 @@
 import {hasAuthToken} from '@libs/CurrentUserStore';
-import {markOnboardingSettledForNativeShare} from '@libs/Navigation/helpers/shouldParkNativeShare';
+import {openPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
@@ -56,7 +56,7 @@ describe('linkingConfig.filter', () => {
     it('routes the native share deep link once onboarding is settled', () => {
         // Given a user who signed in during this session and for whom onboarding has been ruled out or has finished
         mockedHasAuthToken.mockReturnValue(true);
-        markOnboardingSettledForNativeShare();
+        openPendingNativeShare();
 
         // When they share a photo to the app later on
         const shouldRoute = linkingConfig.filter?.(shareDeepLink);

@@ -10,11 +10,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {setDisableDismissOnEscape} from './actions/Modal';
-import {openPendingNativeShare} from './actions/Share';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import Log from './Log';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import dismissOnboardingModalBeforeExit from './Navigation/helpers/OnboardingNavigationUtils';
+import {openPendingNativeShare} from './Navigation/helpers/pendingNativeShare';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';

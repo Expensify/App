@@ -12,8 +12,8 @@ import {hasJoinWorkspaceTaskParam} from '@libs/Navigation/helpers/isJoinWorkspac
 import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import {setPendingNativeShare, shouldParkNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
-import shouldParkNativeShare from '@libs/Navigation/helpers/shouldParkNativeShare';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import isNativeOAuthCallbackURL from '@libs/Navigation/linkingConfig/isNativeOAuthCallbackURL';
@@ -46,7 +46,6 @@ import Onyx from 'react-native-onyx';
 
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {setPendingNativeShare} from './Share';
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;

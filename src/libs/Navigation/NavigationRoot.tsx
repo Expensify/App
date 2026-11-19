@@ -16,7 +16,6 @@ import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 
 import {updateLastVisitedPath} from '@userActions/App';
-import {parkShareFlowRemovedByOnboarding} from '@userActions/Share';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -46,6 +45,7 @@ import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
 import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
+import {parkShareFlowRemovedByOnboarding} from './helpers/pendingNativeShare';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 

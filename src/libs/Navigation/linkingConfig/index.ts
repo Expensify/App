@@ -2,7 +2,7 @@ import {hasAuthToken} from '@libs/CurrentUserStore';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
-import shouldParkNativeShare from '@libs/Navigation/helpers/shouldParkNativeShare';
+import {shouldParkNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import type {LinkingOptions} from '@react-navigation/native';

@@ -2,12 +2,12 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
-import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@userActions/Share';
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 

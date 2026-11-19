@@ -1,4 +1,4 @@
-import shouldParkNativeShare, {markOnboardingSettledForNativeShare} from '@libs/Navigation/helpers/shouldParkNativeShare';
+import {openPendingNativeShare, shouldParkNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 
@@ -30,8 +30,9 @@ describe('shouldParkNativeShare', () => {
     });
 
     it('opens a share straight away once onboarding is settled', () => {
-        // Given the user signed in during this session and onboarding has been ruled out or has finished
-        markOnboardingSettledForNativeShare();
+        // Given the user signed in during this session and onboarding has been ruled out or has finished, which is when
+        // the parked share is opened
+        openPendingNativeShare();
 
         // When a later share arrives
         // Then it opens straight away, as for any signed-in user
@@ -49,7 +50,7 @@ describe('shouldParkNativeShare', () => {
 
     it('starts parking again after sign-out', () => {
         // Given onboarding was settled for the previous session
-        markOnboardingSettledForNativeShare();
+        openPendingNativeShare();
 
         // When the session is cleaned up and the next user signs in
         runSessionCleanupCallbacks();
