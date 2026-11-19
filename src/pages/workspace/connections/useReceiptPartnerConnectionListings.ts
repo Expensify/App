@@ -11,7 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -46,6 +46,15 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             ),
         );
     }, [prevIsUberConnected, isUberConnected, policyID, canWrite]);
+
+    // Disconnecting removes all of Uber's data, including the connectFormData that Connect needs, and this page only
+    // fetches it on mount. Fetch it again once Uber disconnects, whether from another device or from Uber's REVOKED webhook.
+    useEffect(() => {
+        if (!policyID || isUberConnected || !prevIsUberConnected) {
+            return;
+        }
+        openPolicyReceiptPartnersPage(policyID);
+    }, [policyID, isUberConnected, prevIsUberConnected]);
 
     const uberData = getReceiptPartnersIntegrationData(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
     if (!policyID || !uberData) {
