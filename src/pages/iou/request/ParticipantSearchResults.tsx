@@ -524,10 +524,6 @@ function ParticipantSearchResults({
         addSingleParticipant(option);
     };
 
-    const selectParticipant = (option: Participant) => {
-        addParticipant(option);
-    };
-
     // Android picks contacts with the system picker. Elsewhere, importing needs the contact permission, which is granted in the app's settings.
     const importContacts = contactState?.pickContact ?? goToSettings;
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
@@ -589,7 +585,7 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={selectParticipant}
+            onSelectRow={addParticipant}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={

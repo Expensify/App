@@ -189,10 +189,6 @@ function DynamicIOURequestStepDescription({
         armNavigateBack();
     };
 
-    const submitComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
-        updateComment(value);
-    };
-
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
@@ -222,7 +218,7 @@ function DynamicIOURequestStepDescription({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={submitComment}
+                onSubmit={updateComment}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

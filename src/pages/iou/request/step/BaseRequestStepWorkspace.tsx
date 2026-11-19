@@ -89,10 +89,6 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
         onSelectWorkspace(policy);
     };
 
-    const selectWorkspaceRow = (item: WorkspaceListItem) => {
-        selectWorkspace(item);
-    };
-
     return (
         <>
             {workspaceOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? (
@@ -110,7 +106,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             <SelectionList
                 key={initiallyFocusedKey}
                 data={filteredWorkspaceOptions}
-                onSelectRow={selectWorkspaceRow}
+                onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedItemKey={initiallyFocusedKey}

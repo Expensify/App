@@ -163,10 +163,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         dismissModalAndOpenReportInInboxTab(reportID, undefined, hasChatReportTransactions);
     };
 
-    const confirmSplitBill = () => {
-        completeSplit();
-    };
-
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
@@ -211,7 +207,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 reportID={reportID}
                                 reportActionID={reportAction?.reportActionID}
                                 transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={confirmSplitBill}
+                                onConfirm={completeSplit}
                                 isPolicyExpenseChat={isPolicyExpenseChat(report)}
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
