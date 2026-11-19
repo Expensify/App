@@ -6,7 +6,6 @@ const MIN_AVERAGE_PERIOD_COUNT = 3;
 
 type InsightsAverageComparison =
     | {
-          /** Too little history to compare against */
           type: 'notEnoughHistory';
       }
     | {

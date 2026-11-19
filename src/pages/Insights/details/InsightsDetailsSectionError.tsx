@@ -8,14 +8,13 @@ import variables from '@styles/variables';
 import React from 'react';
 
 type InsightsDetailsSectionErrorProps = {
-    /** Whether the request got no response, which asks for a refresh instead of reporting an error */
+    /** Whether the request got no response, in which case we ask the user to refresh instead of showing an error */
     isStale: boolean;
 
-    /** Requests the section again */
     onRetry: () => void;
 };
 
-/** Stands in for a Details panel section whose request failed. */
+/** Error state shown in place of the Details panel's content when its request fails */
 function InsightsDetailsSectionError({isStale, onRetry}: InsightsDetailsSectionErrorProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

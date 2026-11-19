@@ -58,30 +58,26 @@ const AVERAGE_TILE_KEYS = {
 } as const satisfies Record<InsightsTimeGroupBy, TranslationPaths>;
 
 type InsightsSummaryProps = {
-    /** Request for the panel the summary belongs to */
     query: InsightsDetailsQuery;
 
-    /** Graph the item was clicked on, which decides what the average is compared as */
+    /** The graph the item was clicked on, which decides the wording of the average comparison */
     graphKey: InsightsGraphKey;
 
-    /** Currency the amounts are converted to */
     currency: string;
 
-    /** Summary stored for the request, absent until it loads */
     summary: InsightsDetailsSummary | undefined;
 
-    /** What the section shows: its data, a skeleton, or the offline state */
     state: InsightsDetailsSectionState;
 };
 
 type SummaryTileProps = {
     label: string;
 
-    /** Figure to show, or nothing while there's not enough history for it */
+    /** The value to show, undefined when there's not enough history to compute it */
     value: string | undefined;
 };
 
-/** One labeled figure in the Summary's grid. */
+/** A labeled value in the Summary's grid */
 function SummaryTile({label, value}: SummaryTileProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -100,7 +96,7 @@ function SummaryTile({label, value}: SummaryTileProps) {
     );
 }
 
-/** Describes the summarized period and how it compares to the item's own average. */
+/** Card with the summarized period's spend and how it compares to the item's own average */
 function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSummaryProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

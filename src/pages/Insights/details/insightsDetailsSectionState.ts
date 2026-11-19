@@ -18,11 +18,11 @@ type GetInsightsDetailsSectionStateParams = {
     isLoaded: boolean;
     hasErrors: boolean;
 
-    /** JSON code stored with the errors, which tells a request that got no response from a backend error */
+    /** JSON code stored with the errors, to tell apart requests that got no response from backend errors */
     responseJsonCode: number | undefined;
 };
 
-/** Returns what a section shows. Offline, data already loaded stays on screen. */
+/** Returns which state a section should show. When offline, data that's already loaded stays on screen */
 function getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode}: GetInsightsDetailsSectionStateParams): InsightsDetailsSectionState {
     if (isOffline && (!isLoaded || hasErrors)) {
         return INSIGHTS_DETAILS_SECTION_STATE.OFFLINE;

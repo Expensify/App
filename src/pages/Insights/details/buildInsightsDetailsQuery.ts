@@ -17,10 +17,9 @@ import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date
 
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 
-/** Sections of the panel this request loads */
 const INSIGHTS_DETAILS_SECTIONS = ['summary', 'topExpenses'];
 
-/** Graphs GetInsightsDetails answers for, the backend rejects the rest */
+/** Graphs supported by GetInsightsDetails, the backend rejects requests for the other ones */
 const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
     CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
     CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
@@ -32,16 +31,16 @@ type InsightsDetailsQuery = {
     /** Request payload for GetInsightsDetails */
     jsonQuery: string;
 
-    /** Hash of the graph, filters, period and item, which the response is stored under */
+    /** Hash of the graph, filters, period and item, used as the key of the response */
     hash: number;
 
-    /** Hash of the snapshot the response stores the panel's Top expenses under */
+    /** Hash of the snapshot the backend fills with the Top expenses */
     topExpensesSnapshotHash: number;
 
-    /** Days the panel summarizes, trimmed to the Date range */
+    /** The period the panel summarizes, trimmed to the Date range */
     period: ChartPeriod;
 
-    /** Length of the summarized period, which the average is counted in */
+    /** Length of the summarized period, also used for the average */
     periodGroupBy: InsightsTimeGroupBy;
 
     /** Whether the period hasn't ended yet, so its spend may still grow */
@@ -52,7 +51,7 @@ type BuildInsightsDetailsQueryParams = {
     graphKey: InsightsGraphKey;
     filters: InsightsFilters;
 
-    /** What a ranking graph groups by, absent for Spend over time */
+    /** What the ranking graph groups by, undefined for Spend over time */
     itemGroupBy: SearchGroupBy | undefined;
 
     /** The member's account ID, the merchant, the category, or the first day of the clicked period */
@@ -61,7 +60,7 @@ type BuildInsightsDetailsQueryParams = {
     /** Last day of the clicked period on Spend over time */
     periodEnd: string | undefined;
 
-    /** Hash of the snapshot the panel's Top expenses are stored under */
+    /** Hash of the snapshot the backend fills with the Top expenses */
     topExpensesSnapshotHash: number;
 
     /** Last day the dashboard counts expenses through, as yyyy-MM-dd */
@@ -93,7 +92,7 @@ function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGrou
     }
 
     const range = getInsightsDateRange(params.filters.date);
-    // Ranges like This year end in the future, but the chart only has buckets through the last counted day
+    // Ranges like This year end in the future, but the chart only has buckets up to the last day, so we cut the range there
     const end = range.end && range.end > params.lastDay ? params.lastDay : range.end;
     if (!end || end < range.start) {
         return undefined;

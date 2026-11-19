@@ -48,10 +48,8 @@ type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
     query: SearchQueryString;
 
-    /** Hash of the snapshot the expenses are stored under */
     snapshotHash: number;
 
-    /** Requests the expenses again */
     onRetry: () => void;
 };
 

@@ -14,8 +14,6 @@ const LABEL_WIDTH = 80;
 const HEADLINE_HEIGHT = 16;
 const HEADLINE_WIDTH = 160;
 const TILE_VALUE_WIDTH = 96;
-
-/** Space between the two tiles in a row, matching gap5 */
 const TILE_GAP = 20;
 
 const AVERAGE_Y = 0;
@@ -24,7 +22,7 @@ const FIRST_TILE_ROW_Y = HEADLINE_Y + variables.lineHeightSizeH2 + variables.lin
 const TILE_ROW_HEIGHT = variables.lineHeightLarge * 2 + variables.lineHeightNormal;
 const HEIGHT = FIRST_TILE_ROW_Y + TILE_ROW_HEIGHT * 2;
 
-/** Stands in for the Summary card's contents while its data loads. */
+/** Loading skeleton of the Summary card's content */
 function InsightsSummarySkeleton() {
     const theme = useTheme();
     const {onLayout, containerWidth} = useContainerWidth();

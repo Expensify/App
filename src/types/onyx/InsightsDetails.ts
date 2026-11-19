@@ -1,11 +1,10 @@
 import type {Errors} from './OnyxCommon';
 
-/** How the summarized period compares to the item's own history */
+/** Summary of the period and the item's average over the previous periods */
 type InsightsDetailsSummary = {
     /** Spend in the period, in the group currency's smallest unit */
     total: number;
 
-    /** Number of expenses in the period */
     count: number;
 
     /** Percentage of all spend in the period, or in the Date range for Spend over time, that the item accounts for */
@@ -18,7 +17,7 @@ type InsightsDetailsSummary = {
     averagePeriodCount: number;
 };
 
-/** What the backend returns for one Details panel */
+/** Data of one Insights Details panel */
 type InsightsDetails = {
     summary?: InsightsDetailsSummary;
 

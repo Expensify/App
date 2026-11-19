@@ -13,7 +13,7 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type {InsightsDetailsQuery} from './buildInsightsDetailsQuery';
 
-/** Requests the Details panel's sections and returns a function that requests them again. Without a Details request, only Top expenses are loaded, through Search. */
+/** Fetches the Details panel's sections and returns a function to fetch them again. Without a Details request, only the Top expenses are fetched, using Search */
 function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined, topExpensesQueryJSON: Readonly<SearchQueryJSON> | undefined): () => void {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();

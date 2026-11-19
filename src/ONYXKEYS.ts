@@ -1153,7 +1153,7 @@ const ONYXKEYS = {
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
 
-        /** One entry per Insights Details panel, keyed by a hash of the graph, filters, period and item it describes */
+        /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
         INSIGHTS_DETAILS: 'insightsDetails_',
 
         // Shared NVPs

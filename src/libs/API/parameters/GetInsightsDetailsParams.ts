@@ -1,5 +1,5 @@
 type GetInsightsDetailsParams = {
-    /** Stringified JSON naming the graph, filters, period and item the Details panel describes, the sections to load, and the hash to store them under. */
+    /** Stringified JSON with the graph, filters, period and item of the Details panel, the sections to load and the hash to store them under */
     jsonQuery: string;
 };
 
