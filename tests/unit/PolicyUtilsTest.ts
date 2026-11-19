@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
+    formatTaxRateName,
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
     canAdminPayReport,
@@ -550,6 +551,46 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('formatTaxRateName', () => {
+        it('adds the percentage after a name that does not include it', () => {
+            // Given a tax rate whose name says nothing about its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT', '20%');
+
+            // Then the percentage follows the name, so the admin can tell rates apart by value
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('keeps a name that already ends with its percentage', () => {
+            // Given the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (20%)', '20%');
+
+            // Then the percentage isn't repeated
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('adds the percentage when the name ends with a different one', () => {
+            // Given a rate whose value changed after it was named, so the percentage in its name is out of date
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (15%)', '20%');
+
+            // Then the current percentage is still shown
+            expect(label).toBe('Standard VAT (15%) (20%)');
+        });
+
+        it('shows the name alone when the rate has no percentage', () => {
+            // Given rates with an empty or missing value
+            // When their labels are built
+            const emptyValueLabel = formatTaxRateName('Tax exempt', '');
+            const missingValueLabel = formatTaxRateName('Tax exempt', undefined);
+
+            // Then there's no empty pair of parentheses after the name
+            expect(emptyValueLabel).toBe('Tax exempt');
+            expect(missingValueLabel).toBe('Tax exempt');
         });
     });
 
