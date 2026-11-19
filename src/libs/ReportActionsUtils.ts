@@ -33,6 +33,7 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageMergedReports,
     OriginalMessageReimbursed,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
@@ -5456,12 +5457,18 @@ function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAct
 }
 
 /**
+ * Joins the names of the reports a merge deleted into the comma-separated list the MERGED_REPORTS message shows.
+ */
+function getMergedReportNames(sourceReports: OriginalMessageMergedReports['sourceReports']) {
+    return sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
+}
+
+/**
  * Builds the MERGED_REPORTS message. The merged report names are plain text because the merge deletes those reports.
  */
 function getMergedReportsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS>>) {
     const sourceReports = getOriginalMessage(reportAction)?.sourceReports ?? [];
-    const reportNames = sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
-    return translate('iou.mergedReports', {count: sourceReports.length, reportNames});
+    return translate('iou.mergedReports', {count: sourceReports.length, reportNames: getMergedReportNames(sourceReports)});
 }
 
 function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -6452,6 +6459,7 @@ export {
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
+    getMergedReportNames,
     getMergedReportsMessage,
     getDynamicExternalWorkflowRoutedMessage,
     getConciergeAutoSelectDistanceRateMessage,
