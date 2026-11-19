@@ -6189,7 +6189,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.onboardingAccountingItemBorderRadius,
             padding: 12,
             minHeight: 56,
             flexDirection: 'row',

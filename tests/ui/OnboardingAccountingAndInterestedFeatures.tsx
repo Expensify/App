@@ -6,7 +6,10 @@ import ComposeProviders from '@components/ComposeProviders';
 import Icon from '@components/Icon';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import BaseSearchBar from '@components/SearchBar/BaseSearchBar';
+import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -35,9 +38,12 @@ import type {Policy} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
+import type {ViewProps} from 'react-native';
+
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import {StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
@@ -194,6 +200,75 @@ describe('Onboarding interested features and accounting pages', () => {
         }
         expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(16);
         expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
+    });
+
+    it.each([false, true])('uses the Figma title and search spacing with narrow layout %s', async (shouldUseNarrowLayout) => {
+        // Given the accounting layout on either screen size
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            ...useResponsiveLayoutModule.default(),
+            shouldUseNarrowLayout,
+            isSmallScreenWidth: shouldUseNarrowLayout,
+            onboardingIsMediumOrLargerScreenWidth: !shouldUseNarrowLayout,
+        });
+        const result = renderAccountingPage();
+
+        // When the real compact search bar applies its shared defaults and local overrides
+        await waitForBatchedUpdatesWithAct();
+        const searchContainer = result
+            .UNSAFE_getByType(BaseSearchBar)
+            .findAll((node) => node.type === View)
+            .at(0);
+        const searchWrapper = result.UNSAFE_getByType(CompactSearchBar).parent;
+        const {style: searchContainerStyle}: Pick<ViewProps, 'style'> = searchContainer?.props ?? {};
+        const {style: searchWrapperStyle}: Pick<ViewProps, 'style'> = searchWrapper?.props ?? {};
+
+        // Then the title has 24px below it and only the wrapper supplies the 12px gap before the list
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.accounting.title'))).toHaveStyle({marginBottom: 24});
+        expect(StyleSheet.flatten(searchContainerStyle)).toMatchObject({marginBottom: 0});
+        expect(StyleSheet.flatten(searchWrapperStyle)).toMatchObject({marginBottom: 12});
+    });
+
+    it.each([false, true])('keeps 12px accounting card corners in normal, hover, and selected states with narrow layout %s', async (shouldUseNarrowLayout) => {
+        // Given a visible accounting card on either screen size
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            ...useResponsiveLayoutModule.default(),
+            shouldUseNarrowLayout,
+            isSmallScreenWidth: shouldUseNarrowLayout,
+            onboardingIsMediumOrLargerScreenWidth: !shouldUseNarrowLayout,
+        });
+        const result = renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        searchFor('Xero');
+        const getCardView = () => {
+            const card = result.UNSAFE_getByType(AccountingOptionRow).find((node) => node.type === PressableWithoutFeedback);
+            const cardView = card.findAll((node) => node.type === View).at(0);
+            if (!cardView) {
+                throw new Error('Accounting card view is missing');
+            }
+            return cardView;
+        };
+        const getCardStyle = () => {
+            const {style}: Pick<ViewProps, 'style'> = getCardView().props;
+            return StyleSheet.flatten(style);
+        };
+
+        // When hovering the unselected card and then selecting it
+        expect(getCardStyle()).toMatchObject({borderRadius: 12});
+        const unselectedBackground = getCardStyle().backgroundColor;
+        fireEvent(getCardView(), 'hoverIn');
+        expect(getCardStyle()).toMatchObject({borderRadius: 12});
+        expect(getCardStyle().backgroundColor).not.toBe(unselectedBackground);
+        fireEvent(getCardView(), 'hoverOut');
+        expect(getCardStyle().backgroundColor).toBe(unselectedBackground);
+        fireEvent.press(screen.getByRole(CONST.ROLE.RADIO, {name: 'Xero'}));
+        await waitForBatchedUpdatesWithAct();
+        const selectedStyle = getCardStyle();
+
+        // Then selection and subsequent hover preserve both the corners and selected background
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Xero'})).toBeChecked();
+        expect(selectedStyle).toMatchObject({borderRadius: 12});
+        fireEvent(getCardView(), 'hoverIn');
+        expect(getCardStyle()).toMatchObject({borderRadius: 12, backgroundColor: selectedStyle.backgroundColor});
     });
 
     it('filters by legacy aliases and restores all products with Clear', async () => {

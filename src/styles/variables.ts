@@ -406,6 +406,7 @@ export default {
     workspaceTypeIconWidth: 34,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
+    onboardingAccountingItemBorderRadius: 12,
     onboardingAccountingIllustrationWidth: 168,
     onboardingAccountingIllustrationHeight: 112,
     earlyRenewalOfferHeroWidth: 268,

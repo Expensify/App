@@ -165,7 +165,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 />
                 <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, cardPaddingHorizontal]}>
                     <Text
-                        style={[styles.textHeadlineH1, styles.mb5]}
+                        style={[styles.textHeadlineH1, styles.mb6]}
                         accessibilityRole={CONST.ROLE.HEADER}
                     >
                         {translate('onboarding.accounting.title')}
@@ -177,7 +177,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     label={translate('common.search')}
                     inputValue={searchQuery}
                     onChangeText={setSearchQuery}
-                    style={styles.mh0}
+                    style={[styles.mh0, styles.mb0]}
                 />
             </View>
             <ScrollView
