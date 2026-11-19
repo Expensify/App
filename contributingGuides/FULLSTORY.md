@@ -12,6 +12,7 @@ Masked:
 - Personal details: legal name, date of birth, phone number and address
 - Business and identity data: tax IDs, registration numbers, beneficial owners and signers, ID documents
 - 2FA, magic and validate codes, and card PINs
+- Passwords, API keys and other credentials, such as the accounting integration secrets
 
 Unmasked: everything else, including expenses, reports, Search (apart from the chat items of masked chats) and workspace settings. Displays that only show the last 4 digits of a card or account stay unmasked.
 
@@ -80,9 +81,10 @@ Limits:
 `useInputFSClass` decides, in this order:
 
 1. The `forwardedFSClass` passed to the input
-2. `MASK` when its autofill hints mark it as sensitive (`isSensitiveInput`: card, birthdate, address, postal code, phone and one-time-code values of `autoComplete` or `textContentType`)
-3. The class of the closest `FSClassView` (or `FormProvider`, `ScreenWrapper`, `Modal`, `PopoverWithoutOverlay`)
-4. `UNMASK`
+2. `MASK` when the input is declared with `secureTextEntry` (passwords, API keys), even after the eye toggle shows the value. `BaseTextInput` sets this from the declared prop (`getSecretInputFSClass`)
+3. `MASK` when its autofill hints mark it as sensitive (`isSensitiveInput`: card, birthdate, address, postal code, phone and one-time-code values of `autoComplete` or `textContentType`)
+4. The class of the closest `FSClassView` (or `FormProvider`, `ScreenWrapper`, `Modal`, `PopoverWithoutOverlay`)
+5. `UNMASK`
 
 So give inputs the right `autoComplete` value. It helps autofill and masks the input at the same time. Don't rely on the hints alone for a field they don't cover, such as a legal name or a tax ID.
 
