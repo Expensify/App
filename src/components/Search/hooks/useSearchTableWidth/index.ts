@@ -8,7 +8,7 @@ import {useLayoutEffect, useRef, useState} from 'react';
  *
  * On web the first measurement is taken synchronously in a layout effect, before the browser paints. Without it the
  * table paints once with unmeasured columns — the free-text columns sharing the row as `flex:1` and the Status column
- * pinned to its fixed fallback width — and then snaps to its measured widths a frame later once `onLayout` resolves.
+ * held at its fixed fallback width — and then snaps to its measured widths a frame later once `onLayout` resolves.
  * That snap reads as the columns (the Status column especially) jumping sideways every time a new list mounts, e.g.
  * when switching between the Spend page's sidebar links.
  *

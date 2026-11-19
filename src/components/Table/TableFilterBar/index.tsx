@@ -5,6 +5,8 @@ import {useTableContext} from '@components/Table/TableContext';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
@@ -63,6 +65,7 @@ export default function TableFilterBar({label, shouldShowResetFiltersButton, chi
         <View style={[styles.flexRow, styles.gap2, styles.flexWrap, styles.alignItemsCenter]}>
             {appliedFilters.map((filter) => (
                 <DropdownButton
+                    sentryLabel={CONST.SENTRY_LABEL.TABLE.ACTIVE_FILTER_CHIP}
                     key={filter.key}
                     label={filter.label}
                     value={filter.value}

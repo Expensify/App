@@ -1,6 +1,5 @@
 import type {ComposerRef} from '@components/Composer/types';
 
-import * as Browser from '@libs/Browser';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
@@ -34,6 +33,4 @@ function composerFocusKeepFocusOn(ref: Pick<ComposerRef, 'focus'> | null, isFocu
     }
 }
 
-const callback = (method: () => void) => !Browser.isMobile() && method();
-
-export {composerFocusKeepFocusOn, inputFocusChange, callback};
+export {composerFocusKeepFocusOn, inputFocusChange};

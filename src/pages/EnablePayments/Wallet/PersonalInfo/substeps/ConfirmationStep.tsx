@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
@@ -27,10 +27,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
 
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
-    const values = useMemo(
-        () => getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails),
-        [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
-    );
+    const values = getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails);
     // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]);
     const shouldShowSSNRowError = shouldAskForFullSSN && values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4].length < CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN;

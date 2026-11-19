@@ -16,6 +16,7 @@ import type {
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
+    ReportHistoryNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RoomMembersNavigatorParamList,
 } from '@navigation/types';
@@ -50,6 +51,7 @@ type WithReportOrNotFoundOnyxProps = {
 type ScreenProps =
     | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT>
     | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>
+    | PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>
@@ -74,7 +76,7 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) => ComponentType<TProps> {
     return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
         function WithReportOrNotFound(props: TProps) {
-            const params = props.route.params;
+            const params = props.route.params ?? {};
             // Most screens carry the report ID under `reportID`. The notification-preferences screen instead
             // owns its target report as a distinct path param (`notificationReportID`) so it never collides
             // with a `reportID` inherited from the surrounding report chain in the URL.
@@ -85,7 +87,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
             const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
             const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
             const isFocused = useIsFocused();

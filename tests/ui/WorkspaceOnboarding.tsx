@@ -37,6 +37,7 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -1192,6 +1193,9 @@ describe('OnboardingWorkspaces Page', () => {
             );
         });
 
+        // Then skipping still lands on Expenses, but onboarding doesn't open the side panel next to it
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
+
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
@@ -1261,7 +1265,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses in the admins room', async () => {
+    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses with the side panel closed', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -1318,6 +1322,10 @@ describe('OnboardingWorkspaces Page', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
             );
         });
+
+        // Then auto-joining a Submit workspace still lands on Expenses and stores the rhpAdminsRoom variant,
+        // but onboarding doesn't open the side panel
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
 
         onyxSetSpy.mockRestore();
         unmount();

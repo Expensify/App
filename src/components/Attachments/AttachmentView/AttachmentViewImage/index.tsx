@@ -6,12 +6,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAuthTokenRequired' | 'file' | 'onPress'> & {
-    url: string;
+    url: string | number;
 
     loadComplete: boolean;
 
@@ -48,4 +48,4 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
     );
 }
 
-export default memo(AttachmentViewImage);
+export default AttachmentViewImage;

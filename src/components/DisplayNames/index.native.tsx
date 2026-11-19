@@ -8,7 +8,7 @@ import StringUtils from '@libs/StringUtils';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type DisplayNamesProps from './types';
 
@@ -25,11 +25,9 @@ function DisplayNames({
     isSelectable = false,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
-    const title = useMemo(() => {
-        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
-        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
-    }, [fullTitle, shouldParseFullTitle, translate]);
+    const titleContainsTextAndCustomEmoji = containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle);
+    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+    const title = StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
 
     return (
         <Text

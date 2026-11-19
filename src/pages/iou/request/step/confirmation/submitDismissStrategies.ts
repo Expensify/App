@@ -71,7 +71,7 @@ function dismissSuperWideRHP(destinationReportID: string | undefined, runAfterDi
 }
 
 function dismissRHPToReport(reportID: string, runAfterDismiss: () => void, reportDraft: OnyxEntry<Report> | EmptyObject) {
-    const report = getReportOrDraftReport(reportID, undefined, undefined, reportDraft);
+    const report = getReportOrDraftReport({reportID, reportDraft});
     const hasExistingTransactions = isMoneyRequestReport(report) && report?.transactionCount !== 0;
 
     if (!hasExistingTransactions) {

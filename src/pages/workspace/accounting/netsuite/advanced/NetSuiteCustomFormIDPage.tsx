@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
@@ -45,28 +45,22 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
         (isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination) ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
     const customFormIDKey = isReimbursable ? CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE : CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> = {};
 
-            if (values[params.expenseType] && !isNumeric(values[params.expenseType])) {
-                addErrorMessage(errors, params.expenseType, translate('workspace.netsuite.advancedConfig.error.customFormID'));
-            }
+        if (values[params.expenseType] && !isNumeric(values[params.expenseType])) {
+            addErrorMessage(errors, params.expenseType, translate('workspace.netsuite.advancedConfig.error.customFormID'));
+        }
 
-            return errors;
-        },
-        [params.expenseType, translate],
-    );
+        return errors;
+    };
 
-    const updateCustomFormID = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>) => {
-            if (config?.customFormIDOptions?.[customFormIDKey]?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]] !== formValues[params.expenseType]) {
-                updateNetSuiteCustomFormIDOptions(policyID, formValues[params.expenseType], isReimbursable, exportDestination, config?.customFormIDOptions);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [config?.customFormIDOptions, customFormIDKey, exportDestination, isReimbursable, params.expenseType, policyID],
-    );
+    const updateCustomFormID = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>) => {
+        if (config?.customFormIDOptions?.[customFormIDKey]?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]] !== formValues[params.expenseType]) {
+            updateNetSuiteCustomFormIDOptions(policyID, formValues[params.expenseType], isReimbursable, exportDestination, config?.customFormIDOptions);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
 
     return (
         <ConnectionLayout

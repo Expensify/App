@@ -23,7 +23,7 @@ import type {MapState} from '@rnmapbox/maps';
 import {useFocusEffect} from '@react-navigation/native';
 import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {getForegroundPermissionsAsync} from 'expo-location';
-import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -35,6 +35,7 @@ import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useAccessToken from './useAccessToken';
+import useMapboxLanguage from './useMapboxLanguage';
 import utils from './utils';
 
 // Default is 1000ms which feels a bit too long for the animations when coming back from waypoints
@@ -68,7 +69,7 @@ function MapView({
     const cameraRef = useRef<Mapbox.Camera>(null);
     const pendingFramingRef = useRef<CancelHandle | null>(null);
     const [isIdle, setIsIdle] = useState(false);
-    const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
+    const initialLocation = initialState && {longitude: initialState.location[0], latitude: initialState.location[1]};
     const currentPosition = userLocation ?? initialLocation;
     const currentPositionLongitude = currentPosition?.longitude;
     const currentPositionLatitude = currentPosition?.latitude;
@@ -76,25 +77,20 @@ function MapView({
     const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
+    useMapboxLanguage(preferredLocale);
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(
-        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
-        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
-    );
+    const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0);
 
-    const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
-        (error) => {
-            if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
-                return;
-            }
-            clearUserLocation();
-        },
-        [initialLocation],
-    );
+    const setCurrentPositionToInitialState: GeolocationErrorCallback = (error) => {
+        if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
+            return;
+        }
+        clearUserLocation();
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -254,7 +250,7 @@ function MapView({
     // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.
     const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
 
-    const centerMap = useCallback(() => {
+    const centerMap = () => {
         pendingFramingRef.current?.cancel();
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
@@ -287,80 +283,64 @@ function MapView({
             animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [
-        allDirectionCoordinates,
-        canCenterOnCurrentPosition,
-        currentPositionLongitude,
-        currentPositionLatitude,
-        hasWaypointsTarget,
-        isWaypointsNextCenterTarget,
-        mapPadding,
-        singleWaypointCoordinate,
-        waypoints,
-    ]);
+    };
 
-    const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
+    const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
 
-    const waypointsBounds = useMemo(() => {
-        if (!waypoints) {
-            return undefined;
-        }
+    let waypointsBounds;
+    if (!waypoints) {
+        waypointsBounds = undefined;
+    } else {
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
             allDirectionCoordinates,
         );
-        return {ne: northEast, sw: southWest};
-    }, [waypoints, allDirectionCoordinates]);
+        waypointsBounds = {
+            ne: northEast,
+            sw: southWest,
+        };
+    }
 
     const hasWaypoints = !!waypoints?.length;
 
-    const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
-        if (interactive) {
-            // Start framed on the waypoints the same way the focus effect frames them, so the map does not fly in from the current location
-            if (waypoints?.length === 1) {
-                return {
-                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    centerCoordinate: waypoints.at(0)?.coordinate,
-                };
-            }
-            if (waypoints?.length && waypointsBounds) {
-                return {
-                    bounds: waypointsBounds,
-                    padding: utils.getCameraPadding(mapPadding),
-                };
-            }
-            if (!centerCoordinate) {
-                return undefined;
-            }
-            return {
-                zoomLevel: initialState?.zoom,
-                centerCoordinate,
+    let defaultSettings: Mapbox.CameraStop | undefined;
+    if (interactive) {
+        // Start framed on the waypoints the same way the focus effect frames them, so the map does not fly in from the current location
+        if (waypoints?.length === 1) {
+            defaultSettings = {
+                zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                centerCoordinate: waypoints.at(0)?.coordinate,
             };
+        } else if (waypoints?.length && waypointsBounds) {
+            defaultSettings = {
+                bounds: waypointsBounds,
+                padding: utils.getCameraPadding(mapPadding),
+            };
+        } else {
+            defaultSettings = !centerCoordinate
+                ? undefined
+                : {
+                      zoomLevel: initialState?.zoom,
+                      centerCoordinate,
+                  };
         }
-        if (!waypointsBounds) {
-            return undefined;
-        }
-        return {
-            bounds: waypointsBounds,
-        };
-    }, [interactive, waypoints, waypointsBounds, mapPadding, centerCoordinate, initialState?.zoom]);
+    } else {
+        defaultSettings = !waypointsBounds
+            ? undefined
+            : {
+                  bounds: waypointsBounds,
+              };
+    }
 
     // The controlled centerCoordinate is applied after defaultSettings, so skip it while waypoints are shown or it would pull the camera back to the current location
-    const initCenterCoordinate = useMemo(() => (interactive && !hasWaypoints ? centerCoordinate : undefined), [interactive, hasWaypoints, centerCoordinate]);
-    const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
-
-    // Localize the map labels to the user's preferred app locale so they match the rest of the app.
-    const localizeLabels = useMemo<{locale: string} | undefined>(() => {
-        const language = utils.getNativeMapboxLanguage(preferredLocale);
-        return language ? {locale: language} : undefined;
-    }, [preferredLocale]);
+    const initCenterCoordinate = interactive && !hasWaypoints ? centerCoordinate : undefined;
+    const initBounds = interactive ? undefined : waypointsBounds;
 
     return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
-                localizeLabels={localizeLabels}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
                 onTouchStart={() => {
@@ -441,6 +421,7 @@ function MapView({
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.CENTER_BUTTON}
                         onPress={centerMap}
                         accessibilityLabel={translate('common.center')}
                     >
@@ -462,4 +443,4 @@ function MapView({
     );
 }
 
-export default memo(MapView);
+export default MapView;

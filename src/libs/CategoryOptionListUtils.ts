@@ -258,7 +258,10 @@ function getCategoryListSections({
  */
 function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextProps['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
+    // Onyx can hold partial entries without a name (e.g. a merge keyed by a category that was renamed or deleted), so skip them.
+    const sortedCategories = Object.values(categories)
+        .filter((category) => typeof category?.name === 'string')
+        .sort((a, b) => localeCompare(a.name, b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};

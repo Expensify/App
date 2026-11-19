@@ -14,7 +14,7 @@ import {setLocale} from '@userActions/App';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type LanguageEntry = ListItem & {
     value: Locale;
@@ -26,18 +26,15 @@ function LanguagePage() {
     const [draftLocale, setDraftLocale] = useState<Locale>();
     const selectedLocale = draftLocale ?? preferredLocale;
 
-    const locales = useMemo(() => {
-        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
-
-        return sortedLocales.map((locale) => ({
-            value: locale,
-            text: LOCALE_TO_LANGUAGE_STRING[locale],
-            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
-            keyForList: locale,
-            isSelected: selectedLocale === locale,
-            lang: locale,
-        }));
-    }, [preferredLocale, selectedLocale]);
+    const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+    const locales = sortedLocales.map((locale) => ({
+        value: locale,
+        text: LOCALE_TO_LANGUAGE_STRING[locale],
+        accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: selectedLocale === locale,
+        lang: locale,
+    }));
 
     const saveAndGoBack = () => {
         if (selectedLocale && selectedLocale !== preferredLocale) {

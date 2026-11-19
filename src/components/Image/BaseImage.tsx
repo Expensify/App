@@ -1,15 +1,13 @@
-import type {AttachmentSource} from '@components/Attachments/types';
-
 import useCachedImageSource from '@hooks/useCachedImageSource';
 
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 
-import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
+import type {ImageLoadEventData} from 'expo-image';
 
 import {Image as ExpoImage} from 'expo-image';
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 
 import type {BaseImageProps} from './types';
 
@@ -20,11 +18,11 @@ function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}:
 
     const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
-        if (isAttachmentLoaded?.(source as AttachmentSource)) {
+        if (isAttachmentLoaded?.(source)) {
             return;
         }
 
-        setAttachmentLoaded?.(source as AttachmentSource, false);
+        setAttachmentLoaded?.(source, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -36,19 +34,16 @@ function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}:
         onLoadStart?.();
     }, [source, onLoadStart]);
 
-    const imageLoadedSuccessfully = useCallback(
-        (event: ImageLoadEventData) => {
-            setAttachmentLoaded?.(source as AttachmentSource, true);
-            if (!onLoad) {
-                return;
-            }
+    const imageLoadedSuccessfully = (event: ImageLoadEventData) => {
+        setAttachmentLoaded?.(source, true);
+        if (!onLoad) {
+            return;
+        }
 
-            // We override `onLoad`, so both web and native have the same signature
-            const {width, height} = event.source;
-            onLoad({nativeEvent: {width, height}});
-        },
-        [onLoad, source, setAttachmentLoaded],
-    );
+        // We override `onLoad`, so both web and native have the same signature
+        const {width, height} = event.source;
+        onLoad({nativeEvent: {width, height}});
+    };
 
     return (
         <ExpoImage
@@ -56,7 +51,7 @@ function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}:
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={resolvedSource}
             recyclingKey={getImageRecyclingKey(source)}
-            style={style as ExpoImageProps['style']}
+            style={style}
             {...props}
         />
     );

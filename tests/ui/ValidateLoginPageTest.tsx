@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
+import {setHasRadio} from '@libs/NetworkState';
 
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
 
@@ -277,6 +278,38 @@ describe('ValidateLoginPage', () => {
             expect(screen.queryByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeNull();
         } finally {
             jest.useRealTimers();
+        }
+    });
+
+    it('Should show the offline message instead of a bare loader while an exitTo sign-in waits for the network', async () => {
+        // Given a signed-out user who is offline, so the queued sign-in request can't be sent and the
+        // exitTo navigation waits for an authToken that won't arrive until the network returns
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN});
+        });
+        setHasRadio(false);
+
+        try {
+            // When they open a magic link carrying exitTo
+            renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they see why the page is stuck rather than a bare spinner
+            expect(screen.getByText(translateLocal('common.youAppearToBeOffline'))).toBeOnTheScreen();
+            expect(screen.queryByTestId('validate-login-loading')).toBeNull();
+
+            // When the network returns and the queued sign-in can be sent
+            act(() => {
+                setHasRadio(true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the loader is back while the sign-in completes
+            expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('common.youAppearToBeOffline'))).toBeNull();
+        } finally {
+            // Network state is module-level, so restore it even if an assertion fails
+            setHasRadio(true);
         }
     });
 

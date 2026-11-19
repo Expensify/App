@@ -1,3 +1,4 @@
+/** Validates limit request amounts, tax return files and submission eligibility. */
 import type Domain from '@src/types/onyx/Domain';
 import type {FileObject} from '@src/types/utils/Attachment';
 

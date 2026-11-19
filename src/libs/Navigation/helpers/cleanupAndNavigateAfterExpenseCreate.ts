@@ -36,7 +36,7 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     /** When false, runs cleanup only — use when dismiss/reveal already handled navigation.
      * IMPORTANT: Caller must own telemetry span lifecycle. SubmitExpenseOrchestrator starts
      * SPAN_SUBMIT_EXPENSE before calling createTransaction; when shouldNavigate=false, caller
-     * is responsible for ending the span (see useExpenseSubmission createTransaction).
+     * is responsible for ending the span (see the confirmation submission hooks' createTransaction).
      * Skips shouldWaitForUpcomingTransition, so transition never arrives (no 1s timeout).
      */
     shouldNavigate?: boolean;
@@ -73,7 +73,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     });
 
     const finalActiveReportID = navigationReportID ?? backToReport ?? report?.reportID ?? optimisticChatReportID;
-    const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
+    const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport({reportID: finalActiveReportID}));
     const shouldAddPendingNewTransactionIDs =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;
 

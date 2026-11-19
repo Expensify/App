@@ -140,7 +140,7 @@ In Sage Intacct, go to **Company > Subscriptions > Customization Services** to a
 
 # Step 6: Download the Expensify Package
 
-1. In Expensify, from the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
+1. In Expensify, select **Workspaces > [workspace name] > Connections** in the navigation tabs (on the left on web, on the bottom on mobile)
 2. Select **Sage Intacct > Connect to Sage Intacct**
 3. Click **Download Package**
 
@@ -169,8 +169,8 @@ Then:
 
 # Step 9: Enter credentials and connect to Sage Intacct
 
-1. In Expensify, go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Set up** next to Sage Intacct
+1. In Expensify, select **Workspaces > [workspace name] > Connections**
+2. Select **Sage Intacct**
 3. Enter your web services user credentials
 4. Click **Confirm**
 
@@ -186,8 +186,8 @@ If auto-export fails, the specific error will appear in the report’s comment s
 
 If you need to update your Web Services credentials (for example, after a password rotation):
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces** > **[Workspace Name]** > **Accounting**.
-2. Select the three dots **(⋮)** next to the Sage Intacct connection.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.
+2. Select **More (⋮)**.
 3. Click **Update credentials**.
 4. Enter your updated Web Services user credentials.
 5. Click **Confirm**.

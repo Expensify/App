@@ -1,10 +1,10 @@
+/** Collects limit increase details while keeping submission gated on backend availability. */
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FilePicker from '@components/FilePicker';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -29,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -40,7 +39,7 @@ type RequestLimitIncreasePageProps = PlatformStackScreenProps<SettingsNavigatorP
 
 function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitIncreasePageProps) {
     const {policyID, domainAccountID} = route.params;
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [isPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: hasLimitRequestInProgress});
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -50,8 +49,6 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
     const [taxReturnFile, setTaxReturnFile] = useState<FileObject>();
     const [hasAuthorized, setHasAuthorized] = useState(false);
     const [hasInvalidFile, setHasInvalidFile] = useState(false);
-    const isPending = hasLimitRequestInProgress(domain);
-    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
 
     // The existing command still uses the Concierge contract. Do not send this form (or expose an enabled
     // confirmation button) until Expensify/Expensify#676200 ships the new upload/underwriting contract.
@@ -62,7 +59,7 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
         taxReturnFile,
         hasAuthorized,
         isOffline,
-        isPending,
+        isPending: !!isPending,
         isSubmissionAvailable,
     });
 
@@ -82,8 +79,7 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
                     <Header.BackButton onPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))} />
                     <Header.Title title={translate('workspace.expensifyCard.requestLimitIncrease')} />
                 </Header>
-                {isLoadingDomain && <FullScreenLoadingIndicator />}
-                {!isLoadingDomain && isPending && (
+                {!!isPending && (
                     <ConfirmationPage>
                         <ConfirmationPage.Content>
                             <ConfirmationPage.Illustration illustration={icons.Hourglass} />
@@ -94,11 +90,12 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
                             <ConfirmationPage.PrimaryButton
                                 text={translate('workspace.expensifyCard.gotIt')}
                                 onPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.LIMIT_REQUEST_CLOSE}
                             />
                         </FixedFooter>
                     </ConfirmationPage>
                 )}
-                {!isLoadingDomain && !isPending && (
+                {!isPending && (
                     <>
                         <ScrollView
                             style={styles.flex1}
@@ -129,6 +126,7 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
                             <FilePicker acceptableFileTypes="application/pdf,.pdf">
                                 {({openPicker}) => (
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.LIMIT_REQUEST_CHOOSE_FILE}
                                         accessibilityLabel={translate('common.chooseFile')}
                                         isDisabled={isOffline}
                                         onPress={() =>
@@ -172,6 +170,7 @@ function WorkspaceExpensifyCardRequestLimitIncreasePage({route}: RequestLimitInc
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 isDisabled={!canSubmit}
                                 accessibilityLabel={translate('common.confirm')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.LIMIT_REQUEST_CONFIRM}
                             >
                                 <Button.Text>{translate('common.confirm')}</Button.Text>
                             </Button>

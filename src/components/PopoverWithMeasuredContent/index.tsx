@@ -4,7 +4,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import CONST from '@src/CONST';
 
-import {circularDeepEqual} from 'fast-equals';
 import React, {useEffect, useState, useTransition} from 'react';
 
 import type PopoverWithMeasuredContentProps from './types';
@@ -56,9 +55,4 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
 
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
-    if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
-        return true;
-    }
-    return circularDeepEqual(prevProps, nextProps);
-});
+export default PopoverWithMeasuredContent;

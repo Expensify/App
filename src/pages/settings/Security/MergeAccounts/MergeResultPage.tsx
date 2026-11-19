@@ -73,13 +73,15 @@ function MergeResultPage() {
                 <FixedFooter>
                     {!!shouldShowSecondaryButton && (
                         <ConfirmationPage.SecondaryButton
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_RESULT_GO_TO_CLASSIC}
                             text={secondaryButtonText ?? ''}
                             onPress={onSecondaryButtonPress}
                         />
                     )}
                     <ConfirmationPage.PrimaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_RESULT_CONFIRM}
                         text={translate('common.buttonConfirm')}
-                        onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY))}
+                        onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()))}
                     />
                 </FixedFooter>
             </ConfirmationPage>

@@ -29,6 +29,7 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
                         : `${translate('testDrive.banner.currentlyTestDrivingExpensify')}. ${translate('testDrive.banner.readyForTheRealThing')}`}
                 </Text>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_DRIVE.BANNER_GET_STARTED}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}

@@ -49,6 +49,8 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {isNavigationIntentOnlyQuery, matchesNavigationQuery, stripNavigationIntentPrefix} from './SearchRouterHelpers';
 
+const NO_CREATE_NAVIGATION_SUGGESTIONS: NavigationSuggestionSourceItem[] = [];
+
 /** Input used to build a Create action navigation suggestion. */
 type CreateNavigationItem = {
     visible: boolean;
@@ -91,7 +93,23 @@ function openBookTravel(policyID: string | undefined, isTravelEnabled: boolean) 
     Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(policyID));
 }
 
-function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
+// Own hook so React Compiler caches these arrays and the items built from them.
+function useCreateNavigationMatchTerms() {
+    const {translate} = useLocalize();
+
+    return {
+        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('iou.createAnExpense'), translate('homePage.gettingStartedSection.addFirstReceipt')],
+        createReport: [translate('report.newReport.createReport')],
+        trackDistance: [translate('iou.trackDistance')],
+        chat: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
+        invoice: [translate('workspace.invoices.sendInvoice')],
+        travel: [translate('travel.bookTravel')],
+        workspace: [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')],
+    };
+}
+
+function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): NavigationSuggestionSourceItem[] {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -114,30 +132,12 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
-    const isTravelVisible = !!activePolicy?.isTravelEnabled;
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isTravelEnabled =
-        !isBlockedFromSpotnanaTravel &&
-        !!primaryContactMethod &&
-        !Str.isSMSLogin(primaryContactMethod) &&
-        isPaidGroupPolicy(activePolicy) &&
-        hasAcceptedTravelTerms(activePolicy, travelSettings);
-
-    const createExpenseMatchTerms = [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')];
-    const createReportMatchTerms = [translate('report.newReport.createReport')];
-    const trackDistanceMatchTerms = [translate('iou.trackDistance')];
-    const chatMatchTerms = [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`];
-    const invoiceMatchTerms = [translate('workspace.invoices.sendInvoice')];
-    const bookTravelLabel = translate('travel.bookTravel');
-    const travelMatchTerms = [bookTravelLabel];
-    const workspaceMatchTerms = [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')];
+    const matchTerms = useCreateNavigationMatchTerms();
     const matchQuery = stripNavigationIntentPrefix(query);
     const shouldPrepareCreateReport =
         isNavigationIntentOnlyQuery(query) ||
-        [createExpenseMatchTerms, createReportMatchTerms, trackDistanceMatchTerms, chatMatchTerms, invoiceMatchTerms, workspaceMatchTerms].some((matchTerms) =>
-            matchesNavigationQuery(matchQuery, ...matchTerms),
+        [matchTerms.createExpense, matchTerms.createReport, matchTerms.trackDistance, matchTerms.chat, matchTerms.invoice, matchTerms.workspace].some((terms) =>
+            matchesNavigationQuery(matchQuery, ...terms),
         );
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
@@ -175,6 +175,21 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
         shouldSkipEmptyReportConfirmation: !shouldPrepareCreateReport,
     });
 
+    if (!shouldBuildItems) {
+        return NO_CREATE_NAVIGATION_SUGGESTIONS;
+    }
+
+    const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
+    const isTravelVisible = !!activePolicy?.isTravelEnabled;
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
+    const isTravelEnabled =
+        !isBlockedFromSpotnanaTravel &&
+        !!primaryContactMethod &&
+        !Str.isSMSLogin(primaryContactMethod) &&
+        isPaidGroupPolicy(activePolicy) &&
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
+
     const shouldShowNewWorkspaceButton =
         !isRestrictedPolicyCreation && !isLoading && Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, sessionEmail));
 
@@ -183,12 +198,12 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: true,
             text: translate('iou.createExpense'),
             icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
-            matchTerms: createExpenseMatchTerms,
+            matchTerms: matchTerms.createExpense,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_expense',
         },
@@ -196,7 +211,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: isCreateReportVisible,
             text: translate('report.newReport.createReport'),
             icon: icons.Document,
-            matchTerms: createReportMatchTerms,
+            matchTerms: matchTerms.createReport,
             action: () => replaceTopmostModalWithAction(createReport),
             keyForList: 'create_report',
         },
@@ -204,12 +219,12 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: true,
             text: translate('iou.trackDistance'),
             icon: icons.Location,
-            matchTerms: trackDistanceMatchTerms,
+            matchTerms: matchTerms.trackDistance,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_trackDistance',
         },
@@ -217,7 +232,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: true,
             text: translate('sidebarScreen.fabNewChat'),
             icon: icons.ChatBubble,
-            matchTerms: chatMatchTerms,
+            matchTerms: matchTerms.chat,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     // Support agents cannot create chats on a user's behalf, so block before the selector opens.
@@ -225,7 +240,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                         showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
                         return;
                     }
-                    interceptAnonymousUser(startNewChat);
+                    interceptAnonymousUser(startNewChat, session);
                 }),
             keyForList: 'create_chat',
         },
@@ -233,23 +248,23 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: isInvoiceVisible,
             text: translate('workspace.invoices.sendInvoice'),
             icon: icons.InvoiceGeneric,
-            matchTerms: invoiceMatchTerms,
+            matchTerms: matchTerms.invoice,
             action: () =>
                 replaceTopmostModalWithAction(() => {
                     interceptAnonymousUser(() => {
                         startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                    });
+                    }, session);
                 }),
             keyForList: 'create_invoice',
         },
         {
             visible: isTravelVisible,
-            text: bookTravelLabel,
+            text: translate('travel.bookTravel'),
             icon: icons.Suitcase,
-            matchTerms: travelMatchTerms,
+            matchTerms: matchTerms.travel,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled));
+                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled), session);
                 }),
             keyForList: 'create_travel',
         },
@@ -257,10 +272,10 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
             visible: shouldShowNewWorkspaceButton,
             text: translate('workspace.new.newWorkspace'),
             icon: icons.NewWorkspace,
-            matchTerms: workspaceMatchTerms,
+            matchTerms: matchTerms.workspace,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)));
+                    interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path)), session);
                 }),
             keyForList: 'create_workspace',
         },

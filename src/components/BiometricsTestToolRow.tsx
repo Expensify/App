@@ -35,6 +35,7 @@ function BiometricsTestToolRow() {
         <TestToolRow title={biometricsTitle}>
             <View style={[styles.flexRow, styles.gap2]}>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.BIOMETRICS_TEST}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         // When launched from the hidden Test Tools modal (4-finger tap), dismiss that modal so the MFA
@@ -50,6 +51,7 @@ function BiometricsTestToolRow() {
                 </ButtonDisabledWhenOffline>
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <ButtonDisabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.BIOMETRICS_REVOKE}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         isLoading={isMFARevokeLoading}
                         size={CONST.BUTTON_SIZE.SMALL}

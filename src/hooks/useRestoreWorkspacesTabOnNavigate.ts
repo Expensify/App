@@ -10,6 +10,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -30,6 +32,7 @@ function useRestoreWorkspacesTabOnNavigate() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     return () => {
         // Find the last route the user had open in the Workspaces tab (workspace, domain, or list).
@@ -74,6 +77,7 @@ function useRestoreWorkspacesTabOnNavigate() {
             domain: lastViewedDomain,
             lastWorkspacesTabNavigatorRoute,
             lastTabNavigatorRoute,
+            session,
         });
     };
 }

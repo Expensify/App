@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {WebViewNavigation} from 'react-native-webview';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 
@@ -65,10 +65,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
-    );
+    const {isNewFeedConnected, newFeed} = checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed);
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
@@ -223,6 +220,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         illustration={illustrations.BrokenCompanyCardBankConnection}
                         illustrationStyle={styles.errorStateCardIllustration}
                         buttonText={translate('common.buttonConfirm')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_LOAD_ERROR_CONFIRM}
                         onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
                 )}

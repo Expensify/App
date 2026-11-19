@@ -8,11 +8,13 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
@@ -67,14 +69,14 @@ function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overridePro
  * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
  * measured table width: a box spanning the scroll range has nothing to pin within, and a percentage resolves to it.
  */
-const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
+const columnScrollPageHeaderStyle = toViewStyle({position: 'sticky', left: 0});
 
 /**
  * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
  * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
  */
 function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
-    return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
+    return toViewStyle({position: 'sticky', top: -pageHeaderHeight, zIndex: 1});
 }
 
 type ViewabilityInfo = {
@@ -212,6 +214,15 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
+    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing) ?? {};
+
+    // The bar's reserved space is bottom padding that replaces the list's own rather than adding to it, so a fixed
+    // minimum height has to grow by the difference to keep the content box the size it was. Leaving it alone shrinks
+    // the box, which lifts a footer the page pins to the bottom of it as soon as a selection shows the bar.
+    const bulkActionBarContentMinHeight =
+        typeof contentMinHeight === 'number' && typeof tableBodyBottomPadding === 'number' && typeof bulkActionBarBottomSpacing === 'number'
+            ? contentMinHeight + (shouldUseNarrowTableLayout ? tableBodyBottomPadding : 0) + bulkActionBarBottomSpacing - tableBodyBottomPadding
+            : undefined;
 
     const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
     const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
@@ -257,38 +268,25 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         return () => cancelAnimationFrame(frame);
     }, [hasActivatedStickyHeader, hasRows, isListLoaded, shouldRenderColumnHeaderAsStickyRow]);
 
-    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
-        (current, previous) => {
-            setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
-            onChangeStickyIndex?.(current, previous);
-        },
-        [onChangeStickyIndex],
-    );
+    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = (current, previous) => {
+        setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
+        onChangeStickyIndex?.(current, previous);
+    };
 
-    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
-        (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
-        [onViewableItemsChanged, tableListMetadata],
-    );
+    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata));
 
-    const viewabilityConfigCallbackPairsForList = useMemo(
-        () =>
-            viewabilityConfigCallbackPairs?.map((pair) => ({
-                ...pair,
-                onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
-            })),
-        [tableListMetadata, viewabilityConfigCallbackPairs],
-    );
+    const viewabilityConfigCallbackPairsForList = viewabilityConfigCallbackPairs?.map((pair) => ({
+        ...pair,
+        onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
+    }));
 
-    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
-        (layout, item, index, maxColumns, extraData) => {
-            if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
-                return;
-            }
+    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = (layout, item, index, maxColumns, extraData) => {
+        if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
+            return;
+        }
 
-            overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
-        },
-        [overrideItemLayout, tableListMetadata],
-    );
+        overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
+    };
 
     const initialScrollIndexForList = initialScrollIndex == null ? initialScrollIndex : getListIndex(initialScrollIndex, tableListMetadata);
 
@@ -503,6 +501,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         typeof tableBodyBottomPadding === 'number' && {
                             minHeight: contentMinHeight + tableBodyBottomPadding,
                         },
+                    // Applied last so it wins at the in-between widths, where the narrow layout sets a minimum height
+                    // of its own and the bar is shown as well.
+                    isBulkActionBarVisible && bulkActionBarContentMinHeight !== undefined && StyleUtils.getMinimumHeight(bulkActionBarContentMinHeight),
                 ]}
                 keyboardShouldPersistTaps="handled"
                 onScrollBeginDrag={handleScrollBeginDrag}
@@ -529,7 +530,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty} = useTableContext<TableData>();
+    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty, noResultsStateElement} =
+        useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -538,7 +540,13 @@ function TableBody(props: TableBodyProps) {
         emptyMessage = translate('common.noResultsFound');
     }
 
-    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
+    const noResultsStateProps = noResultsStateElement?.props;
+    const isAsyncSearchInFlight =
+        typeof noResultsStateProps === 'object' &&
+        noResultsStateProps !== null &&
+        'shouldShowLoadingIndicator' in noResultsStateProps &&
+        noResultsStateProps.shouldShowLoadingIndicator === true;
+    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult && !isAsyncSearchInFlight, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
     if ((isEmptyResult || isDefaultViewEmpty || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {

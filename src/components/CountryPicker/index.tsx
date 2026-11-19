@@ -2,19 +2,23 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Option} from '@libs/searchOptions';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CountrySelectorModal from './CountrySelectorModal';
 
-type CountryPickerProps = {
+type CountryPickerProps = ForwardedFSClassProps & {
     value?: string;
 
     /** Callback when the list item is selected */
@@ -25,9 +29,13 @@ type CountryPickerProps = {
 
     /** Row title */
     label?: string;
+
+    /** The row cannot be opened for now, such as offline, and shows as dimmed */
+    disabled?: boolean;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}, label}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label, disabled = false, forwardedFSClass}: CountryPickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -42,10 +50,15 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label}: Coun
 
     return (
         <>
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}>
+            <MenuItem.Root
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
+                isDisabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
+            >
                 <MenuItemField.Row
                     name={label ?? translate('common.country')}
                     value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     <MenuItem.Chevron />

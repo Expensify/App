@@ -74,5 +74,9 @@ function latestCalendlyCallSelector(reportNameValuePairs: OnyxEntry<ReportNameVa
     return reportNameValuePairs?.calendlyCalls?.at(-1);
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
+function isLinkedToBillSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): boolean {
+    return !!reportNameValuePairs?.billID;
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, isLinkedToBillSelector, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

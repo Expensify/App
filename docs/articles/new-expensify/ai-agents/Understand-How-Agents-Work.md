@@ -1,8 +1,8 @@
 ---
 title: Understand How Agents Work
-description: Learn how AI agents work in Expensify, including the differences between personal agents, agent rules, RuleBot, and agent templates.
-keywords: [AI agents, Agents, Agent rules, RuleBot, Agent templates, AI automation, personal Agents, workspace automation]
-internalScope: Audience is members and workspace admins. Covers how AI agents work in Expensify, the differences between personal agents, agent rules, RuleBot, and agent templates, and when to use each. Does not cover creating agents, creating agent rules, or writing agent instructions.
+description: Learn how AI agents work in Expensify, including the differences between personal agents, company agents, agent rules, RuleBot, and agent templates.
+keywords: [AI agents, Agents, Agent rules, RuleBot, Agent templates, AI automation, personal Agents, company agents, workspace agents, workspace automation]
+internalScope: Audience is members and workspace admins. Covers how AI agents work in Expensify, the differences between personal agents, company agents, agent rules, RuleBot, and agent templates, and when to use each. Does not cover creating agents, creating agent rules, or writing agent instructions.
 retrievalIntent: What are AI agents in Expensify, and how are agents, agent rules, RuleBot, and templates different?
 contentType: topic
 order: 2
@@ -12,12 +12,13 @@ order: 2
 
 Expensify includes AI-powered agents that can automate tasks on your behalf.
 
-This article covers the two agent features in Expensify:
+This article covers the agent features in Expensify:
 
-- Agents, which help manage your own work.
+- Personal agents, which help manage your own work.
+- Company agents, which belong to a workspace or domain and handle shared work.
 - Agent rules, which automate how expenses and reports are handled in a workspace.
 
-Both use natural-language instructions to determine how they should behave. 
+All of them use natural-language instructions to determine how they should behave. 
 
 ---
 
@@ -28,6 +29,16 @@ Agents are AI assistants that work on your behalf in Expensify. Each agent is cr
 You can create multiple agents with different responsibilities, chat with them, update their instructions, and review their activity.
 
 To learn more about agents, see [Create and Use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+
+---
+
+## What are company agents?
+
+Company agents are agents that belong to a workspace or domain instead of to a person. Workspace admins create them from the workspace and choose the role each agent has in that workspace.
+
+Any admin of the owning workspace or domain can manage a company agent, so it keeps working even if the person who created it leaves. Unlike a personal agent, a company agent isn't added as a Copilot on its creator's account.
+
+To learn more about company agents, see [Create and Manage Company Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
 
 ---
 
@@ -100,20 +111,23 @@ Although they operate in different contexts, the same principles apply: write cl
 
 ## When should I use an agent or an agent rule?
 
-Use an agent when you want AI to help manage your own work.
+Use a personal agent when you want AI to help manage your own work.
+
+Use a company agent when you want an agent that does shared work for a workspace and is managed by its admins.
 
 Use agent rules when you want AI to automate how expenses and reports are handled across a workspace.
 
-Many organizations use both. For example, you might use a personal agent to help manage your own expenses while using agent rules to automate your organization's approval process.
+Many organizations use more than one. For example, you might use a personal agent to help manage your own expenses while using agent rules to automate your organization's approval process.
 
-| | **Agents** | **Agent rules** |
-| --- | --- | --- |
-| **Best for** | Automating your own work | Automating expense and report workflows in a workspace |
-| **Who sets it up** | Any member with access to agents | Workspace admins |
-| **Where it's managed** | **Account > Agents** | **Workspaces > [workspace name] > Rules** |
-| **What you create** | One or more personal agents | One or more agent rules |
-| **AI that follows your instructions** | Your agent | RuleBot |
-| **Applies to** | Your own account | The entire workspace |
+| | **Personal agents** | **Company agents** | **Agent rules** |
+| --- | --- | --- | --- |
+| **Best for** | Automating your own work | Shared work for a workspace | Automating expense and report workflows in a workspace |
+| **Who sets it up** | Any member with access to agents | Workspace admins | Workspace admins |
+| **Where it's created** | **Account > Agents** | **Workspaces > [workspace name] > Agents** | **Workspaces > [workspace name] > Rules** |
+| **What you create** | One or more personal agents | One or more company agents | One or more agent rules |
+| **AI that follows your instructions** | Your agent | The company agent | RuleBot |
+| **Owned by** | You | The workspace or domain | The workspace |
+| **Applies to** | Your own account | The workspace, based on the agent's role | The entire workspace |
 
 # FAQ
 

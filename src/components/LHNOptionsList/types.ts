@@ -25,6 +25,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Header rendered as the list's first item */
+    listHeaderComponent?: React.ReactNode;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;
@@ -46,6 +49,9 @@ type OptionRowLHNDataProps = {
 
     /** TestID of the row, indicating order */
     testID: number;
+
+    /** Whether the row takes the flat navigation bar's look. The list reads it once for all of its rows. */
+    shouldUseFlatNavigationBar?: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -68,6 +74,9 @@ type OptionRowLHNProps = {
     testID: number;
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
     shouldShowMarkAsDoneCopy?: boolean;
+
+    /** Whether the row takes the flat navigation bar's look. The list reads it once for all of its rows. */
+    shouldUseFlatNavigationBar?: boolean;
 };
 
 type RenderItemProps = {item: string; index: number};

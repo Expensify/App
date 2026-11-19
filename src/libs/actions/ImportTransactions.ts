@@ -45,7 +45,7 @@ type TransactionField = 'date' | 'merchant' | 'amount' | 'category' | 'tag';
  * Type guard to check if a string is a valid transaction field
  */
 function isTransactionField(value: string): value is TransactionField {
-    return CONST.CSV_IMPORT_COLUMNS.TRANSACTION_FIELDS.includes(value as TransactionField);
+    return CONST.CSV_IMPORT_COLUMNS.TRANSACTION_FIELDS.some((field) => field === value);
 }
 
 /**
@@ -238,7 +238,7 @@ function buildOptimisticCard(cardDisplayName: string, accountID: number, isReimb
             reimbursable: isReimbursable,
             nameValuePairs: {
                 cardTitle: cardDisplayName,
-            } as Card['nameValuePairs'],
+            },
         },
     };
 }
@@ -247,25 +247,22 @@ function buildOptimisticCard(cardDisplayName: string, accountID: number, isReimb
  * Creates optimistic transaction objects from the CSV data
  */
 function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: number, currency: string, isReimbursable: boolean): Transaction[] {
-    return transactionList.map(
-        (csvTransaction) =>
-            ({
-                transactionID: csvTransaction.transactionID,
-                cardID,
-                created: csvTransaction.created,
-                merchant: csvTransaction.merchant,
-                amount: csvTransaction.amount,
-                currency,
-                category: csvTransaction.category ?? '',
-                tag: csvTransaction.tag ?? '',
-                reimbursable: isReimbursable,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                comment: {
-                    comment: '',
-                },
-                reportID: '0',
-            }) as Transaction,
-    );
+    return transactionList.map((csvTransaction): Transaction => ({
+        transactionID: csvTransaction.transactionID,
+        cardID,
+        created: csvTransaction.created,
+        merchant: csvTransaction.merchant,
+        amount: csvTransaction.amount,
+        currency,
+        category: csvTransaction.category ?? '',
+        tag: csvTransaction.tag ?? '',
+        reimbursable: isReimbursable,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        comment: {
+            comment: '',
+        },
+        reportID: '0',
+    }));
 }
 
 /**

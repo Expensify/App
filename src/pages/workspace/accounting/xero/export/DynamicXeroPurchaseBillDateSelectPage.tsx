@@ -23,7 +23,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -45,28 +45,22 @@ function DynamicXeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsPr
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
+        </View>
     );
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.export?.billDate && policyID) {
-                updateXeroExportBillDate(policyID, row.value, config?.export?.billDate);
-            }
-            goBack();
-        },
-        [config?.export?.billDate, policyID, goBack],
-    );
+    const selectExportDate = (row: MenuListItem) => {
+        if (row.value !== config?.export?.billDate && policyID) {
+            updateXeroExportBillDate(policyID, row.value, config?.export?.billDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

@@ -11,6 +11,9 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getSteppedLabelLayout,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -23,8 +26,23 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getBarChartLoadingHeight, getCartesianChartHeight, getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    MAX_BAR_LABEL_LINES,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 const LINE_HEIGHT = 16;
 
@@ -265,6 +283,37 @@ describe('findSliceAtPosition', () => {
 });
 
 describe('processDataIntoSlices', () => {
+    it('keeps meaningful slices when reported shares round to zero and removes actual slivers', () => {
+        // Given two visible tag groups dwarfed by spend outside the chart, plus a genuinely thin slice
+        const data: ChartDataPoint[] = [
+            {
+                label: 'Small',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 10000},
+                percentOfTotal: 0,
+            },
+            {
+                label: 'Large',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 30000},
+                percentOfTotal: 0,
+            },
+            {label: 'Sliver', values: {[CHART_SERIES_KEY.PRIMARY]: 1}},
+        ];
+
+        // When visible slices are sized from the values actually plotted
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {
+            centerX: 0,
+            centerY: 0,
+            radius: 100,
+            innerRadius: 50,
+        });
+
+        // Then original indices survive sorting and the two surviving slices cover the donut
+        expect(slices.map((slice) => slice.label)).toEqual(['Large', 'Small']);
+        expect(slices.map((slice) => slice.originalIndex)).toEqual([1, 0]);
+        expect(slices.map((slice) => slice.percentage)).toEqual([75, 25]);
+        expect(slices.at(-1)?.endAngle).toBeCloseTo(VictoryTheme.pie.startAngle + 360);
+    });
+
     it('returns empty array for empty data', () => {
         expect(processDataIntoSlices([], CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
@@ -687,6 +736,67 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
+describe('getSteppedYAxisTicks', () => {
+    it('keeps a small count domain on whole numbers', () => {
+        // Given a domain of 0 to 2 expenses, which the default 5 ticks would split in halves
+        // When ticks are stepped by one expense
+        // Then they land on 0, 1 and 2 only
+        expect(getSteppedYAxisTicks([0, 2], 5, 1)).toEqual([0, 1, 2]);
+    });
+
+    it('gives a flat domain a tick one step above it, so the axis is not a single repeated label', () => {
+        // Given every value being zero
+        // When ticks are stepped by one
+        // Then the axis still spans one step
+        expect(getSteppedYAxisTicks([0, 0], 5, 1)).toEqual([0, 1]);
+    });
+
+    it('picks round numbers of steps, so seconds stepped by tenths of a day read as round days', () => {
+        // Given durations up to 11 days in seconds, stepped by a tenth of a day like the mockup's 0 to 10 days axis
+        // When the ticks are picked
+        const ticks = getSteppedYAxisTicks([0, 11 * CONST.DATE.SECONDS_PER_DAY], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS);
+
+        // Then they fall on every second day rather than on round numbers of seconds
+        expect(ticks.map((tick) => tick / CONST.DATE.SECONDS_PER_DAY)).toEqual([0, 2, 4, 6, 8, 10, 12]);
+    });
+
+    it('spans one step when every duration is below it, instead of repeating "0 days"', () => {
+        // Given durations of a few seconds, far below a tenth of a day
+        // When the ticks are picked
+        // Then the axis runs from 0 to one step
+        expect(getSteppedYAxisTicks([0, 19], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS)).toEqual([0, AVERAGE_DURATION_PRECISION_IN_SECONDS]);
+    });
+
+    it('covers negative domains too', () => {
+        // Given a domain running from -1 to 1
+        // When ticks are stepped by one
+        // Then they land on -1, 0 and 1
+        expect(getSteppedYAxisTicks([-1, 1], 5, 1)).toEqual([-1, 0, 1]);
+    });
+});
+
+describe('getYAxisTickLayout', () => {
+    it('leaves the axis to the default tick count over the data domain when no step is set', () => {
+        // Given an amount chart, which has no tick step
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 1234], undefined);
+
+        // Then the chart picks its own ticks over the data's domain
+        expect(layout).toEqual({ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain: [0, 1234]});
+    });
+
+    it('stretches the domain to the outermost stepped tick, so the axis ends on a label', () => {
+        // Given counts up to 11 expenses, stepped by one
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 11], 1);
+
+        // Then the ticks end on a round 12 and the domain reaches it
+        expect(layout.ticks?.at(-1)).toBe(12);
+        expect(layout.tickCount).toBe(layout.ticks?.length);
+        expect(layout.domain).toEqual([0, 12]);
+    });
+});
+
 describe('getBarLayout', () => {
     it('keeps a 16px gap and fills the rest of the plot with bars', () => {
         // Given a 300px plot with 4 bars, wide enough for the full gap
@@ -752,6 +862,99 @@ describe('getBarLayout', () => {
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
         expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getBarChartLoadingHeight', () => {
+    // ExpensifyNeue's ascent plus descent at the 12px label size, (950 + 230) / 1000 of the em, which Skia measures for each label line
+    const SKIA_LABEL_LINE_HEIGHT = 14.16;
+
+    it('should give the loading box the height of a chart whose labels wrap', () => {
+        // Given a bar chart with wrapped labels, which keeps two lines of label space whatever the names are
+        const loadedHeight = getBarChartHeight(true, MAX_BAR_LABEL_LINES * SKIA_LABEL_LINE_HEIGHT);
+
+        // When the loading box is sized before the chart has measured anything
+        const loadingHeight = getBarChartLoadingHeight(true, true);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadingHeight).toBeCloseTo(loadedHeight, 5);
+    });
+});
+
+describe('getPieChartLoadingHeight', () => {
+    // The narrowest card that fits the side legend: the 250px donut, the 24px gap and the 180px legend column
+    const SIDE_LEGEND_MIN_CARD_WIDTH = 454;
+
+    it('should reserve the donut height for a side legend once the card is measured', () => {
+        // Given a responsive legend in a card just wide enough for it to sit beside the donut, on the narrow layout
+        // When the loading box is sized from the measured card width
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH, true, true, true);
+
+        // Then it keeps the donut's height, since five legend rows fit beside it, and the measured width wins over the layout
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should reserve a full stacked legend under the donut when the card is too narrow for a side legend', () => {
+        // Given a responsive legend in a card 1px too narrow for the side legend, on the wide layout
+        // When the loading box is sized from the measured card width, before the slice count is known
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, false, true, true);
+
+        // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
+        const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
+        const legendHeight = rowCount * variables.lineHeightChartLabel + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
+    });
+
+    it('should reserve only the donut when the legend is hidden', () => {
+        // Given a responsive pie with its legend turned off, in a card too narrow for a side legend
+        // When the loading box is sized
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, false, true);
+
+        // Then it keeps the donut's height alone, since the chart draws no legend to stack
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should assume a stacked legend on the narrow layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the narrow layout, where phone cards are too narrow for a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, true, true, true);
+
+        // Then it matches the stacked height a phone card measures into, so the box does not change when the width lands
+        const stackedHeight = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, true, true);
+        expect(height).toBe(stackedHeight);
+    });
+
+    it('should assume a side legend on the wide layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the wide layout, where a typical desktop card fits a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, false, true, true);
+
+        // Then it keeps the donut's height that a desktop card measures into, so the box does not change when the width lands
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
     });
 });
 
@@ -890,5 +1093,22 @@ describe('getAxisLabelStep', () => {
 
         // Then the smallest step is used and the point stays labeled
         expect(step).toBe(1);
+    });
+});
+
+describe('getSteppedLabelLayout', () => {
+    it('keeps bar labels horizontal and untruncated, labeling every Nth bar so they do not overlap', () => {
+        // Given 31 daily bars whose 40px labels are wider than the space between neighboring bars
+        const {barWidth, gap, edgeSpace} = getBarLayout(600, 31);
+        const pointXs = Array.from({length: 31}, (_, index) => edgeSpace + index * (barWidth + gap));
+
+        // When laying out the labels with the daily steps
+        const layout = getSteppedLabelLayout({labelWidths: Array<number>(31).fill(40), pointXs, steps: [1, 2, 7, 14], lineHeight: LINE_HEIGHT, ellipsisWidth: 0});
+
+        // Then the labels stay horizontal at full width on one line, and only every 7th bar is labeled because a smaller step would overlap
+        expect(layout.labelRotation).toBe(LABEL_ROTATIONS.HORIZONTAL);
+        expect(layout.labelSkipInterval).toBe(7);
+        expect(layout.regularLabelMaxWidth).toBe(Infinity);
+        expect(layout.xAxisLabelHeight).toBe(LINE_HEIGHT);
     });
 });

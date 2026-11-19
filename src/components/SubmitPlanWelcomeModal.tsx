@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 
 import {setSubmitMigrationModalShown} from '@userActions/User';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
@@ -83,8 +84,15 @@ function SubmitPlanWelcomeModal() {
                             ))}
                         </View>
                     </FeatureTraining.BodyText>
-                    <FeatureTraining.HelpButton onPress={handleClose}>{translate('submitPlanWelcomeModal.dismissText')}</FeatureTraining.HelpButton>
-                    <FeatureTraining.ConfirmButton>{translate('submitPlanWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
+                    <FeatureTraining.HelpButton
+                        sentryLabel={CONST.SENTRY_LABEL.SUBMIT_PLAN_WELCOME_MODAL.DISMISS_BUTTON}
+                        onPress={handleClose}
+                    >
+                        {translate('submitPlanWelcomeModal.dismissText')}
+                    </FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.SUBMIT_PLAN_WELCOME_MODAL.CONFIRM_BUTTON}>
+                        {translate('submitPlanWelcomeModal.confirmText')}
+                    </FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>

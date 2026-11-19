@@ -22,7 +22,7 @@ import {updateSageIntacctNonreimbursableExpensesExportAccount} from '@userAction
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicSageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -34,34 +34,28 @@ function DynamicSageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPo
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const creditCardSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, exportConfig?.nonReimbursableAccount), [exportConfig?.nonReimbursableAccount, policy]);
+    const creditCardSelectorOptions: SelectorType[] = getSageIntacctCreditCards(policy, exportConfig?.nonReimbursableAccount);
 
-    const updateCreditCardAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (value !== exportConfig?.nonReimbursableAccount && policyID) {
-                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value, exportConfig?.nonReimbursableAccount);
-            }
-            goBack();
-        },
-        [policyID, exportConfig?.nonReimbursableAccount, goBack],
-    );
+    const updateCreditCardAccount = ({value}: SelectorType) => {
+        if (value !== exportConfig?.nonReimbursableAccount && policyID) {
+            updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value, exportConfig?.nonReimbursableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

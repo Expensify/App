@@ -19,12 +19,15 @@ import type {ValueOf} from 'type-fest';
 import {useEffect} from 'react';
 
 type UseReceiptPartnersSettingsOptions = {
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
+
+    /** Runs right after Uber's revoke page opens, so the panel can close before Uber's REVOKED webhook disconnects the workspace */
+    onRevokePageOpened?: () => void;
 };
 
-/** State and actions for the workspace's receipt partner connections, shared by the Receipt partners page and its Connections panel */
-function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: UseReceiptPartnersSettingsOptions = {}) {
+/** State and actions for the workspace's receipt partner connections, used by the Connections receipt partners panel */
+function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed, onRevokePageOpened}: UseReceiptPartnersSettingsOptions = {}) {
     const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Trashcan']);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -74,6 +77,8 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
     };
 
     const getOverflowMenu = (integration: string): PopoverMenuItem[] => {
+        const uberOrganizationID = integrations?.uber?.organizationID;
+        const uberRevokeFormData = integrations?.uber?.revokeFormData;
         switch (integration) {
             case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
                 if (shouldShowEnterCredentialsError) {
@@ -81,6 +86,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                         {
                             icon: icons.Key,
                             text: translate('workspace.accounting.enterCredentials'),
+                            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_ENTER_CREDENTIALS,
                             onSelected: () =>
                                 startIntegrationFlow({
                                     name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
@@ -92,10 +98,32 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                     ];
                 }
 
+                if (uberOrganizationID) {
+                    // Uber requires one of its org admins to confirm the revoke on its own page, which also shows the confirmation. We disconnect
+                    // on our side when Uber sends the REVOKED webhook, so nothing changes if the admin closes the page without confirming.
+                    // The item stays disabled until the server sends the revoke query, so a connected workspace never skips the revoke on Uber's side.
+                    return [
+                        {
+                            icon: icons.Trashcan,
+                            text: translate('workspace.accounting.disconnect'),
+                            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_DISCONNECT,
+                            onSelected: () => {
+                                // Safari blocks the new tab unless it opens before navigating away, so the link opens first
+                                openExternalLink(`${CONST.UBER_REVOKE_URL}?${uberRevokeFormData}&org_uuid=${encodeURIComponent(uberOrganizationID)}`);
+                                onRevokePageOpened?.();
+                            },
+                            shouldCallAfterModalHide: true,
+                            disabled: isOffline || !uberRevokeFormData,
+                            iconRight: icons.NewWindow,
+                        },
+                    ];
+                }
+
                 return [
                     {
                         icon: icons.Trashcan,
                         text: translate('workspace.accounting.disconnect'),
+                        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_DISCONNECT,
                         onSelected: () => {
                             showConfirmModal({
                                 title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
@@ -107,8 +135,12 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                                 if (action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                onDisconnectConfirmed?.();
-                                disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                const disconnect = () => disconnectPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                if (onDisconnectConfirmed) {
+                                    onDisconnectConfirmed(disconnect);
+                                    return;
+                                }
+                                disconnect();
                             });
                         },
                         shouldCallAfterModalHide: true,

@@ -12,7 +12,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+import {getTransactionID} from '@libs/TransactionUtils';
+import {compareDuplicateTransactionFields} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {FieldItemType} from './ReviewFields';
 
@@ -35,10 +36,7 @@ function DynamicReviewBillablePage() {
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const allDuplicateIDs = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
-    );
+    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
 
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
@@ -49,14 +47,10 @@ function DynamicReviewBillablePage() {
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'billable', route.params.reportID, route.params.backTo);
-    const options = useMemo(
-        () =>
-            compareResult.change.billable?.map((billable) => ({
-                text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable ?? false,
-            })),
-        [compareResult.change.billable, translate],
-    );
+    const options = compareResult.change.billable?.map((billable) => ({
+        text: billable ? translate('common.yes') : translate('common.no'),
+        value: billable ?? false,
+    }));
 
     const setBillable = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {

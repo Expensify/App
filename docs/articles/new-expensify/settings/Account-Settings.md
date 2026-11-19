@@ -1,15 +1,15 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
-internalScope: Audience is all members. Covers how to update profile, status, pronouns, timezone, language, theme, notification, and personal information settings in Account. Does not cover security, wallet, or subscription settings.
+keywords: [New Expensify, profile, account preferences, notifications, theme, high contrast mode, timezone, personal information, phone number, security code]
+internalScope: Audience is all members. Covers how to update profile, status, pronouns, timezone, theme, notification, and personal information settings in Account. Does not cover security, wallet, or subscription settings.
 ---
 
 # Account Settings
 
-Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from **Account**.
+Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, timezone, notification settings, and more—all from **Account**.
 
-You can access **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 ---
 
@@ -21,11 +21,11 @@ You can update the following profile settings:
 - **Custom avatar** – Select an avatar instead of a profile photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Update your account to your preferred language.
+- **Language** – Update your account to your preferred language. [Learn how to change your language](/articles/new-expensify/settings/Change-Your-Language).
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Switch between light mode, dark mode, or your device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
-- **Personal information** – Add or update your legal name, date of birth, phone number, and address.
+- **Personal information** – Add or update your legal name, date of birth, phone number, and home address.
 
 ---
 
@@ -33,7 +33,7 @@ You can update the following profile settings:
 
 To upload or update a profile photo:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Select the edit icon next to your profile image.
 4. Select **Upload photo** and choose a new photo.
@@ -44,7 +44,7 @@ To upload or update a profile photo:
 
 To use an avatar instead of a profile photo:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Select the edit icon next to your profile image.
 4. Scroll down to **Or choose a custom avatar**.
@@ -57,7 +57,7 @@ To use an avatar instead of a profile photo:
 
 To manually set or update your timezone:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Time zone**.
 3. Disable **Automatically determine your location**.
 4. Choose your timezone from the list.
@@ -65,43 +65,11 @@ To manually set or update your timezone:
 
 ---
 
-## How to set your language
-
-To set or change your language:
-
-1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2.  Select **Preferences > Language**.
-3. Choose your preferred language from the list.
-
-A checkmark confirms the selected language, and your account updates automatically to the new language.
-
-**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
-
----
-
-## What languages does Expensify support
-
-Expensify supports the following languages:
-
-   - English
-   - German (Deutsch)
-   - Spanish (Español)
-   - French (Français)
-   - Italian (Italiano)
-   - Dutch (Nederlands)
-   - Polish (Polski)
-   - Portuguese (Português – Brasil)
-   - Greek (Ελληνικά)
-   - Japanese (日本語)
-   - Chinese (中文 (简体))
-
----
-
 ## How to manage notification settings
 
 To manage notification settings:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences**.
 3. Under **App preferences**, enable or disable these toggles:
    - **Receive relevant feature updates and Expensify news**
@@ -113,7 +81,7 @@ To manage notification settings:
 
 Set your profile status with an emoji and optional message.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Status**.
 3. Enter your custom message.
 4. (Optional) Add an emoji.
@@ -126,7 +94,7 @@ Set your profile status with an emoji and optional message.
 
 To set or update your pronouns:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Pronouns**.
 3. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
 4. Select your pronouns from the search results.
@@ -138,7 +106,7 @@ To set or update your pronouns:
 
 To change the app’s appearance:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences > Theme**.
 3. Choose **Light**, **Dark**, or **Use device settings**.
 4. Select **Save**.
@@ -149,7 +117,7 @@ To change the app’s appearance:
 
 High contrast mode increases the visual contrast of UI elements, making text and controls easier to distinguish.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences > Theme**.
 3. Enable **High contrast mode**.
 4. Select **Save**.
@@ -160,12 +128,12 @@ You can also enable high contrast mode from the [login page](https://new.expensi
 
 ## How to update your personal information
 
-To update your legal name, date of birth, phone number, or address:
+To update your legal name, date of birth, phone number, or home address:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Scroll to the **Private** section.
-4. Select **Legal name**, **Date of birth**, **Phone number**, or **Address**.
+4. Select **Legal name**, **Date of birth**, **Phone number**, or **Home address**.
 5. Enter the updated information.
 6. Select **Save**.
 7. Enter the security code sent to your email or phone to verify the changes.
@@ -174,19 +142,23 @@ When typing in the **Address line 1** field, a list of address suggestions appea
 
 If no address is saved, the **Country** field is pre-filled based on your current location.
 
+Your home address remains private account information. If your workspace uses **Exclude usual commute** and you are office-based, you need a saved home address to create distance expenses. Expensify uses it with your office and work arrangement to calculate the reimbursable distance.
+
+[Learn how commute exclusions affect distance expenses](/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-the-exclude-commutes-setting-affects-distance-expenses).
+
 ---
 
 ## How to update your display name or legal name
 
 To edit your display name:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Display name**.
 3. Enter your preferred name and select **Save**.
 
 To edit your legal name:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Scroll to **Private** and select **Legal name**.
 4. Enter the updated information and select **Save**.
@@ -199,13 +171,10 @@ To edit your legal name:
 ## Why should I upload a profile photo?
 Your photo helps teammates identify you easily in chats, reports, and notifications.
 
-## Will changing my language affect reports?
-No. It only changes the language of your user interface, not the content of your reports.
-
 ## Can I disable all Expensify app notifications?
 Yes. To mute notifications:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences**.
 3. Disable **Receive relevant feature updates and Expensify news** and enable **Mute all sounds from Expensify**.
 

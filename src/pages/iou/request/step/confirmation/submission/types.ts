@@ -2,10 +2,10 @@ import type {WriteReadyBarrier} from '@libs/API';
 
 type CreateTransactionParams = {
     /** Whether the user granted the location permission, which decides if GPS coordinates are attached to a scan. */
-    locationPermissionGranted?: boolean;
+    locationPermissionGranted: boolean;
 
     /** Whether the submission handler should handle its own post-submit navigation. */
-    shouldHandleNavigation?: boolean;
+    shouldHandleNavigation: boolean;
 
     /** What the resulting API write waits on before applying its optimistic data. */
     writeBarrier?: WriteReadyBarrier;
@@ -26,13 +26,13 @@ type SendMoneyReportIDs = {
 
 type SendMoneyOptions = {
     /** Whether the send-money action should handle its own post-submit navigation. */
-    shouldHandleNavigation?: boolean;
+    shouldHandleNavigation: boolean;
 
     /** Pre-resolved report IDs to avoid redundant resolution when the caller already resolved them. */
     resolvedReportIDs?: SendMoneyReportIDs;
 
     /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
-    shouldStartTracking?: boolean;
+    shouldStartTracking: boolean;
 };
 
 export type {SubmissionHandle, SendMoneyOptions, CreateTransactionParams};

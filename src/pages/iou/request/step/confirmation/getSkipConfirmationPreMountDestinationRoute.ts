@@ -1,15 +1,20 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 /**
- * Returns the report route to pre-mount behind skip-confirmation RHP steps on narrow layout,
- * or undefined when pre-insert is not eligible.
+ * Returns the report route to pre-mount behind skip-confirmation RHP steps, or undefined when pre-insert is not eligible.
  *
- * Unlike getSubmitExpensePreMountDestinationRoute, this deliberately does not gate on getIsNarrowLayout():
- * usePreMountDestination owns the narrow-only gate (it skips the actual pre-insert on wide layout), and
- * skip-confirmation callers never invoke reveal(), so returning a route on wide layout is a harmless no-op.
+ * Applies to both layouts. Skip-confirmation callers never invoke reveal(). submitWithDismissFirst shows the pre-mount instead.
+ * On narrow the pre-mount already sits under the RHP, so closing the RHP shows it. On wide it is hidden in the tab navigator,
+ * so it is brought to the front first and the RHP closes after.
+ * Wide skips the pre-mount when the destination is already the report on screen in the focused Reports tab, because
+ * submitWithDismissFirst then only closes the RHP. Once this flow has pre-mounted the destination, getTopmostReportId returns it, so that check is ignored to
+ * keep returning the same route.
  *
  * Callers pass the result straight to usePreMountDestination without manual memoization (the React Compiler compiles those
  * screens). The impure isSearchTopmostFullScreenRoute() read is safe to run per render: the topmost fullscreen route can't
@@ -26,6 +31,10 @@ function getSkipConfirmationPreMountDestinationRoute(
     isSelfDMDestination = false,
 ): Route | undefined {
     if (!shouldSkipConfirmation || isSearchTopmostFullScreenRoute() || !reportID || (isLookingAroundUser && isSelfDMDestination)) {
+        return undefined;
+    }
+
+    if (!getIsNarrowLayout() && !Navigation.getIsFullscreenPreInsertedUnderRHP() && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() === reportID) {
         return undefined;
     }
 

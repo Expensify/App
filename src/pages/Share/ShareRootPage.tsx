@@ -26,8 +26,8 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
@@ -50,36 +50,32 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFileIfNecessary = useCallback(
-        (file: ShareTempFile) => {
-            if (!file || isTextShared || !shouldValidateFile(file)) {
-                return;
-            }
+    const validateFileIfNecessary = (file: ShareTempFile) => {
+        if (!file || isTextShared || !shouldValidateFile(file)) {
+            return;
+        }
 
-            getFileSize(file.content)
-                .catch((error: unknown) => {
-                    Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
-                    return undefined;
-                })
-                .then((size) => {
-                    validateFiles(
-                        [
-                            {
-                                name: file.id,
-                                uri: file.content,
-                                type: file.mimeType,
-                                size,
-                            },
-                        ],
-                        undefined,
-                        {isValidatingReceipts: false},
-                    );
-                });
-        },
-        [isTextShared, validateFiles],
-    );
+        getFileSize(file.content)
+            .catch((error: unknown) => {
+                Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
+                return undefined;
+            })
+            .then((size) => {
+                validateFiles(
+                    [
+                        {
+                            name: file.id,
+                            uri: file.content,
+                            type: file.mimeType,
+                            size,
+                        },
+                    ],
+                    undefined,
+                    {isValidatingReceipts: false},
+                );
+            });
+    };
 
-    const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
@@ -98,7 +94,7 @@ function ShareRootPage() {
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
-    const handleProcessFiles = useCallback(() => {
+    const handleProcessFiles = () => {
         ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (errorTitle) {
@@ -154,15 +150,16 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
+    };
 
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                handleProcessFiles();
+        // Re-read only on a new share. Foreground events also fire after permission dialogs, when the file may already be moved.
+        const subscription = Linking.addEventListener('url', ({url}) => {
+            if (!url.includes(ROUTES.SHARE_ROOT)) {
+                return;
             }
 
-            appState.current = nextAppState;
+            handleProcessFiles();
         });
 
         return () => {

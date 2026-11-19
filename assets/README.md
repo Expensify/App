@@ -77,7 +77,7 @@ To add or remove a font used in the web app:
           font-family: <new_font_family>;
           font-weight: 500;
           font-style: normal;
-          src: url('/fonts/<font-family-file>.woff2') format('woff2');
+          src: url('../fonts/web/<font-family-file>.woff2') format('woff2');
       }
       /* Add the other variants too. */
       ```

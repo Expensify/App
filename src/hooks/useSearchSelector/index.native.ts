@@ -1,8 +1,9 @@
 import useContactImport from '@hooks/useContactImport';
 
 import {canPickContacts} from '@libs/ContactPicker';
+import type {Option} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 
-import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
@@ -17,12 +18,12 @@ import useSearchSelectorBase from './base';
  * @param config - Configuration object for the hook
  * @returns Object with search and selection utilities
  */
-function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorReturn {
+function useSearchSelector<TSelected extends Option = OptionData>(config: UseSearchSelectorConfig<TSelected>): UseSearchSelectorReturn<TSelected> {
     const {enablePhoneContacts = false} = config;
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, pickContact, setContactPermissionState} = useContactImport();
-    const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
+    const memoizedContacts = contacts.length ? contacts : [];
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
     // Use base hook with contact options
@@ -50,4 +51,3 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 }
 
 export default useSearchSelector;
-export type {ContactState};

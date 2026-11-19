@@ -225,7 +225,7 @@ function WorkspacesListPage() {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session)}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('common.new')}</Button.Text>

@@ -20,8 +20,6 @@ import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {useMemo} from 'react';
-
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
@@ -51,32 +49,25 @@ function PersonalInfoPage() {
 
     const {submitPersonalDetails} = useWalletPhoneValidateCode();
 
-    const values = useMemo(
-        () => getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails),
-        [privatePersonalDetails, walletAdditionalDetails, walletAdditionalDetailsDraft],
-    );
+    const values = getPersonalInfoStepValues(walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails);
     // Snapshot the sources once Onyx has loaded. Filling a page writes the wallet draft immediately, and a live skip
     // list would make Back from the next page skip the page the user just completed.
     const initialWalletAdditionalDetails = useInitialOnyxValue(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const initialWalletAdditionalDetailsDraft = useInitialOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
     const initialPrivatePersonalDetails = useInitialOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const skipPages = useMemo(
-        () =>
-            getSkippedBankAccountOwnerPages(
-                getBankAccountOwnerDetails({
-                    walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
-                    walletAdditionalDetails: initialWalletAdditionalDetails,
-                    privatePersonalDetails: initialPrivatePersonalDetails,
-                }),
-            ),
-        [initialPrivatePersonalDetails, initialWalletAdditionalDetails, initialWalletAdditionalDetailsDraft],
+    const skipPages = getSkippedBankAccountOwnerPages(
+        getBankAccountOwnerDetails({
+            walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
+            walletAdditionalDetails: initialWalletAdditionalDetails,
+            privatePersonalDetails: initialPrivatePersonalDetails,
+        }),
     );
 
     const submit = () => {
         submitPersonalDetails(getWalletPersonalDetailsParams(values));
     };
 
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
+    const startFrom = getInitialSubstepForPersonalInfo(values);
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({
         pages: formPages,
