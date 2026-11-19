@@ -256,4 +256,44 @@ describe('usePayViaABA', () => {
         // Then the file they asked for is downloaded
         expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
     });
+
+    it('is loading until the ABA payment finishes, even after the download modal is closed', async () => {
+        // Given an ABA payment that takes a while, whose download modal the user closes straight away
+        let finishPayment: () => void = () => {};
+        jest.mocked(payViaABA).mockReturnValueOnce(
+            new Promise((resolve) => {
+                finishPayment = () => resolve(undefined);
+            }),
+        );
+        mockShowModal.mockResolvedValueOnce({action: 'CLOSE'});
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it's still loading, so the Pay button can't start a second payment for the same report
+        expect(result.current.isDownloadingABAFile).toBe(true);
+
+        // When the payment finishes
+        await act(async () => finishPayment());
+
+        // Then it stops loading
+        expect(result.current.isDownloadingABAFile).toBe(false);
+    });
+
+    it('stops loading when the ABA payment fails', async () => {
+        // Given an ABA payment that fails
+        jest.mocked(payViaABA).mockImplementationOnce(() => Promise.reject(new Error('Failed to download the ABA file')));
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Pay button is usable again, so the admin can retry
+        expect(result.current.isDownloadingABAFile).toBe(false);
+    });
 });

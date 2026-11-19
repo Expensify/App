@@ -17,6 +17,8 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import noop from 'lodash/noop';
+import {useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -34,6 +36,7 @@ type PayReportsViaABAOptions = {
 /**
  * Returns a function that pays reports by downloading their ABA file, showing its progress in a download modal.
  * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
+ * Also returns whether a payment is still in progress, so the Pay button keeps loading until it's done, even if the modal was closed.
  */
 function usePayViaABA() {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -50,6 +53,7 @@ function usePayViaABA() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume?: () => void) => resume?.());
+    const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
 
     const getDownloadFailedPrompt = (reports: ReportToPayViaABA[], error?: HttpsError) => {
         if (!error?.message.includes(CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT)) {
@@ -63,6 +67,7 @@ function usePayViaABA() {
     };
 
     const downloadABAFile = (reports: ReportToPayViaABA[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
+        setIsDownloadingABAFile(true);
         const abaFileRequest = payViaABA({
             reportIDs: reports.map((report) => report.reportID),
             policy,
@@ -92,6 +97,7 @@ function usePayViaABA() {
                 })
                 .catch(() => Log.warn('[usePayViaABA] Failed to pay via ABA or save the file after the download modal was closed'));
         });
+        abaFileRequest.catch(noop).finally(() => setIsDownloadingABAFile(false));
     };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed
@@ -107,7 +113,7 @@ function usePayViaABA() {
         downloadABAFile(reports, policy, options);
     };
 
-    return {payReportsViaABA};
+    return {payReportsViaABA, isDownloadingABAFile};
 }
 
 export default usePayViaABA;
