@@ -19,7 +19,7 @@ import HttpsError from './Errors/HttpsError';
 import {getAuthenticateErrorMessage, getErrorMessage} from './ErrorUtils';
 import Log from './Log';
 import {post} from './Network';
-import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
+import {getAuthToken, getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 import {checkIfShouldUseNewPartnerName, getPartnerCredentials} from './SessionUtils';
 import trackAuthenticationError from './telemetry/trackAuthenticationError';
@@ -182,9 +182,10 @@ function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
+ * @param [authTokenAtFlowStart] the session's authToken when the caller's re-authentication flow started, so retries of one flow share it. Defaults to the current authToken.
  * @return returns an object indicating if reauthentication was successful or restored the original session.
  */
-function reauthenticate(command = ''): Promise<ReauthenticationResult> {
+function reauthenticate(command = '', authTokenAtFlowStart?: string | null): Promise<ReauthenticationResult> {
     Log.hmmm('[Reauthenticate] Attempting re-authentication', {
         command,
     });
@@ -220,6 +221,28 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
     });
 
     return hasReadRequiredDataFromStorage().then(() => {
+        const authTokenAtStart = authTokenAtFlowStart === undefined ? getAuthToken() : authTokenAtFlowStart;
+
+        // The session can switch tokens while re-authentication runs, for example by connecting as a copilot or signing out. The result of
+        // Authenticate belongs to the session as it was when re-authentication started, so the current session is kept instead.
+        const getResultIfSessionChanged = (): ReauthenticationResult | undefined => {
+            const currentAuthToken = getAuthToken();
+            if (currentAuthToken === authTokenAtStart) {
+                return undefined;
+            }
+
+            setIsAuthenticating(false);
+            Log.hmmm('[Reauthenticate] Session changed during re-authentication. Keeping the current session.', {
+                command,
+            });
+            return {wasSuccessful: !!currentAuthToken};
+        };
+
+        const resultBeforeAuthenticate = getResultIfSessionChanged();
+        if (resultBeforeAuthenticate) {
+            return resultBeforeAuthenticate;
+        }
+
         // While connected as a delegate, ONYXKEYS.CREDENTIALS is wiped by clearOnyxForDelegateTransition; the original user's creds live in stashedCredentials.
         // ACCOUNT can lose `delegate` once access is revoked while SESSION still holds the restricted token
         const isDelegate =
@@ -273,6 +296,11 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
             .then((response) => {
                 if (!response) {
                     return {wasSuccessful: false};
+                }
+
+                const resultAfterAuthenticate = getResultIfSessionChanged();
+                if (resultAfterAuthenticate) {
+                    return resultAfterAuthenticate;
                 }
 
                 Log.hmmm('[Reauthenticate] Processing authentication result', {
@@ -359,6 +387,11 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
                 }
 
                 if (error instanceof HttpsError && !shouldRetryAuthenticateError(error)) {
+                    const resultAfterAuthenticateError = getResultIfSessionChanged();
+                    if (resultAfterAuthenticateError) {
+                        return resultAfterAuthenticateError;
+                    }
+
                     // Reuse the standard Authenticate response handling so HTTP
                     // failures and body-level failures produce the same UX.
                     const authenticationErrorResponse = getAuthenticationErrorResponse(error);
