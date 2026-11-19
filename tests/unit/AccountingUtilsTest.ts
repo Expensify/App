@@ -3,6 +3,7 @@ import {
     getExportLabelForConnection,
     getExportTemplateSearchValue,
     getExportedToDisplayName,
+    getExportedToPickerValue,
     getExportLabelsForConnection,
     getQBORefreshTokenExpiryDate,
     getQBORefreshTokenExpiryStatus,
@@ -206,10 +207,14 @@ describe('getExportTemplateSearchValue', () => {
         ['NetSuite QuickStart', 'template:NetSuite QuickStart'],
         ['Sage Accounting', 'template:Sage Accounting'],
         ['Odoo', 'template:Odoo'],
-        ['My export', 'My export'],
+        ['My export', 'template:My export'],
         ['template:NetSuite', 'template:template:NetSuite'],
     ])('keeps template %s distinct as %s', (label, expected) => {
-        expect(getExportTemplateSearchValue(label)).toBe(expected);
+        // Given a template name that may also be an accounting destination
+        // When preparing its picker value
+        const value = getExportTemplateSearchValue(label);
+        // Then keep its identity separate without changing the name
+        expect(value).toBe(expected);
     });
 });
 
@@ -220,6 +225,27 @@ describe('getExportedToDisplayName', () => {
         ['My export', 'My export'],
         ['template:template:NetSuite', 'template:NetSuite'],
     ])('keeps %s displayed as %s', (value, expected) => {
-        expect(getExportedToDisplayName(value)).toBe(expected);
+        // Given an integration or template picker value
+        // When preparing its visible name
+        const displayName = getExportedToDisplayName(value);
+        // Then preserve the original name, including a literal prefix
+        expect(displayName).toBe(expected);
+    });
+});
+
+describe('getExportedToPickerValue', () => {
+    it.each([
+        ['NetSuite', false, 'NetSuite'],
+        ['NetSuite', true, 'template:NetSuite'],
+        ['Budget', false, 'template:Budget'],
+        ['Budget', true, 'template:Budget'],
+        ['template:Budget', false, 'template:template:Budget'],
+        ['template:Budget', true, 'template:template:Budget'],
+    ])('maps %s with template=%s to %s', (label, isTemplate, expected) => {
+        // Given a query value from either the legacy or explicit template key
+        // When resolving its picker identity
+        const value = getExportedToPickerValue(label, isTemplate);
+        // Then preserve accounting destinations and complete literal template names
+        expect(value).toBe(expected);
     });
 });

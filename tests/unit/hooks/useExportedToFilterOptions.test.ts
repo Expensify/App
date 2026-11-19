@@ -91,10 +91,11 @@ describe('useExportedToFilterOptions', () => {
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
-        expect(result.current.exportedToFilterOptions).toContain(customName);
+        expect(result.current.exportedToFilterOptions).toContain(`template:${customName}`);
     });
 
     it('keeps an accounting destination and a same-named template separately selectable', async () => {
+        // Given a connected integration and template sharing a name
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
         mockGetExportTemplates.mockReturnValue({
             customTemplates: [
@@ -107,8 +108,10 @@ describe('useExportedToFilterOptions', () => {
             defaultTemplates: [],
         });
 
+        // When loading available export destinations
         const {result} = renderHook(() => useExportedToFilterOptions());
 
+        // Then both destinations remain selectable independently
         expect(result.current.exportedToFilterOptions).toContain('NetSuite');
         expect(result.current.exportedToFilterOptions).toContain('template:NetSuite');
     });
@@ -170,7 +173,7 @@ describe('useExportedToFilterOptions', () => {
         const {result} = renderHook(() => useExportedToFilterOptions({value, isNegated}));
 
         // Then both the CAD template and accounting integrations follow the override
-        expect(result.current.exportedToFilterOptions.includes(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(shouldIncludeMultipleTaxExport);
+        expect(result.current.exportedToFilterOptions.includes(`template:${CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT}`)).toBe(shouldIncludeMultipleTaxExport);
         expect(result.current.connectedIntegrationNames.has(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe(!value || value.includes('usd') !== isNegated);
         expect(result.current.connectedIntegrationNames.has(CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe(!value || value.includes('cad') !== isNegated);
     });
@@ -213,7 +216,7 @@ describe('useExportedToFilterOptions', () => {
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
-        expect(result.current.exportedToFilterOptions).toContain(expenseLevelLabel);
+        expect(result.current.exportedToFilterOptions).toContain(`template:${expenseLevelLabel}`);
     });
 
     it('returns connectedIntegrationNames from getConnectedIntegrationNamesForPolicies', async () => {

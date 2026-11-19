@@ -162,17 +162,20 @@ describe('useAutocompleteSuggestions', () => {
     });
 
     it('keeps accounting and template autocomplete values distinct after either is selected', () => {
+        // Given an integration and template both named NetSuite
         const originalImplementation = jest.mocked(useExportedToFilterOptions).getMockImplementation();
         jest.mocked(useExportedToFilterOptions).mockReturnValue({exportedToFilterOptions: ['NetSuite', 'template:NetSuite'], connectedIntegrationNames: new Set()});
         parseForAutocomplete.mockReturnValue({autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, value: 'Net'}, ranges: []});
+        // When searching for that destination
         const {result, rerender} = renderHook(({query}) => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}), {initialProps: {query: 'exported-to:Net'}});
+        // Then both are suggested, and selecting either leaves the other available
         expect(result.current.map(({text}) => text)).toEqual(['NetSuite', 'template:NetSuite']);
 
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, value: ''},
-            ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, value: 'template:NetSuite'}],
+            ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE, value: 'NetSuite'}],
         });
-        rerender({query: 'exported-to:template:NetSuite exported-to:'});
+        rerender({query: 'exported-to-template:NetSuite exported-to:'});
         expect(result.current.map(({text}) => text)).toEqual(['NetSuite']);
 
         parseForAutocomplete.mockReturnValue({

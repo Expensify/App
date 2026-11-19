@@ -75,11 +75,14 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
 
 describe('template export queries', () => {
     it.each([
-        ['exported-to:template:NetSuite -exported-to:NetSuite', '-exported-to:NetSuite'],
-        ['exported-to:NetSuite -exported-to:template:NetSuite', '-exported-to:template:NetSuite'],
+        ['exported-to-template:NetSuite -exported-to:NetSuite', '-exported-to:NetSuite'],
+        ['exported-to:NetSuite -exported-to-template:NetSuite', '-exported-to-template:NetSuite'],
     ])('keeps the remaining destination unchanged when editing %s', (originalQuery, editedQuery) => {
+        // Given an editable query with separate integration and template keys
         expect(getQueryWithSubstitutions(originalQuery, {})).toBe(originalQuery);
+        // When removing one destination
         const substitutions = getUpdatedSubstitutionsMap(editedQuery, {});
+        // Then the remaining destination keeps its identity
         expect(getQueryWithSubstitutions(editedQuery, substitutions)).toBe(editedQuery);
     });
 });

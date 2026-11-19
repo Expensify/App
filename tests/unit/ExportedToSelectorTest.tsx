@@ -31,6 +31,8 @@ jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({
 
 describe('ExportedToSelector', () => {
     it('keeps names unchanged while selecting integration and template values separately', () => {
+        // Given a workspace with an integration and template both named NetSuite
+        // When opening the picker with the template selected
         render(
             <ExportedToSelector
                 value={['template:NetSuite']}
@@ -40,6 +42,7 @@ describe('ExportedToSelector', () => {
         );
         const props = mockMultiSelect.mock.calls.at(-1)?.[0];
 
+        // Then retain both choices with their existing names and icons
         expect(props?.items.map(({text, value}) => ({text, value}))).toEqual([
             {text: 'NetSuite', value: 'NetSuite'},
             {text: 'NetSuite', value: 'template:NetSuite'},
