@@ -46,6 +46,14 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
      * compute starts from scratch instead of diffing rehydrated data against pre-clear state.
      */
     onReset?: () => void;
+
+    /**
+     * Write the value to storage once recomputes pause instead of on every recompute, which saves serializing and
+     * writing a large value over and over. The stored copy can then be a few seconds older than its dependencies
+     * after the app closes, so only enable it for configs whose first compute after a restart rebuilds the value
+     * from its dependencies instead of returning the restored value.
+     */
+    shouldDeferStorageWrite?: boolean;
 };
 
 export type {OnyxDerivedValueConfig, DerivedValueContext};

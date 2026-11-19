@@ -13,6 +13,8 @@ let transactionReportIDMapping: Record<string, string> = {};
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
+    // This value holds every transaction again, and the first compute after a restart rebuilds it from scratch, so a stored copy a few seconds old is never shown
+    shouldDeferStorageWrite: true,
     compute: ([transactions, violations], {sourceValues, currentValue}) => {
         if (!transactions) {
             return {};

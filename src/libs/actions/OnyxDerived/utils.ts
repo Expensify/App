@@ -19,9 +19,10 @@ const hasKeyTriggeredCompute = (key: OnyxKey, triggeredKeys: Set<OnyxKey> | unde
  * For derived values, we fully control their lifecycle and recompute them when any dependency changes - so we don’t need a deep comparison
  * Also, null may be a legitimate result of the computation, so pruning it is unnecessary
  */
-const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) =>
+const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>, shouldDeferStorageWrite = false) =>
     Onyx.set(key, value, {
         skipCacheCheck: true,
+        deferStorageWrite: shouldDeferStorageWrite,
     });
 
 export {hasKeyTriggeredCompute, setDerivedValue};

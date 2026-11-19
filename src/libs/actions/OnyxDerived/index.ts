@@ -46,7 +46,7 @@ function getSharedCollectionDelta(collectionKey: OnyxKey, current: OnyxCollectio
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
-    for (const [key, {compute, dependencies, onReset}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+    for (const [key, {compute, dependencies, onReset, shouldDeferStorageWrite}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
         let areAllConnectionsSet = false;
         let connectionsEstablishedCount = 0;
         const totalConnections = dependencies.length;
@@ -158,7 +158,7 @@ function init() {
                     }
                     Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                     derivedValue = newDerivedValue;
-                    setDerivedValue(key, derivedValue);
+                    setDerivedValue(key, derivedValue, shouldDeferStorageWrite);
                 } finally {
                     endSpan(spanId);
                 }
