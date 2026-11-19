@@ -793,7 +793,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addToWallet: {
             failedHeader: 'カードを追加できませんでした',
             failedTitle: 'カードをウォレットに追加できませんでした',
-            failedSubtitle: '本人確認は完了しましたが、カードの追加中に問題が発生しました。すでにウォレットに入っている場合は、そちらでご利用いただけます。',
+            failedSubtitle: 'カードの追加中に問題が発生しました。すでにウォレットに入っている場合は、そちらでご利用いただけます。',
         },
         revealCardDetail: {couldNotReveal: 'カード情報を表示できませんでした。もう一度お試しください。'},
     },

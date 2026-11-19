@@ -800,7 +800,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addToWallet: {
             failedHeader: 'Não foi possível adicionar o cartão',
             failedTitle: 'Não conseguimos adicionar seu cartão à carteira',
-            failedSubtitle: 'Sua identidade foi verificada, mas algo deu errado ao adicionar o cartão. Se ele já estiver na sua carteira, você pode usá-lo lá.',
+            failedSubtitle: 'Algo deu errado ao adicionar o cartão. Se ele já estiver na sua carteira, você pode usá-lo lá.',
         },
         revealCardDetail: {couldNotReveal: 'Não foi possível exibir os detalhes do seu cartão. Tente novamente.'},
     },

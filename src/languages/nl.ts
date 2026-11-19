@@ -801,7 +801,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addToWallet: {
             failedHeader: 'Kaart kon niet worden toegevoegd',
             failedTitle: 'We konden je kaart niet aan je wallet toevoegen',
-            failedSubtitle: 'Je identiteit is geverifieerd, maar er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
+            failedSubtitle: 'Er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
         },
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
