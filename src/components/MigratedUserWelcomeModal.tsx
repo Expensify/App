@@ -61,9 +61,12 @@ function MigratedUserWelcomeModal() {
 
     const handleClose = () => {
         const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS});
-        Navigation.goBack(undefined, {
-            afterTransition: () => Navigation.navigate(spendRoute),
-        });
+        // Dismissing this transparent modal does not start a tracked screen transition, so an `afterTransition` redirect
+        // would only fire on the TransitionTracker fallback timer (~1s), leaving the uncovered screen unresponsive.
+        // A plain GO_BACK first removes the modal (the guard only allows GO_BACK/DISMISS_MODAL while it is topmost),
+        // then the route-aware goBack uncovers or replaces to Reports on the same tick.
+        Navigation.goBack();
+        Navigation.goBack(spendRoute);
     };
 
     const onHelp = () => {
