@@ -1566,6 +1566,10 @@ const translations: TranslationDeepObject<typeof en> = {
         movedTransactionToAnotherReport: 'moveu esta despesa para outro relatório',
         movedTransactionFrom: (reportUrl: string, reportName: string) => `moveu esta despesa de <a href="${reportUrl}">${reportName}</a>`,
         movedTransactionFromAnotherReport: 'moveu esta despesa de outro relatório',
+        mergedReports: ({reportNames}: {reportNames: string}) => ({
+            one: `mesclou ${reportNames} neste relatório`,
+            other: (count: number) => `mesclou ${count} relatórios neste relatório: ${reportNames}`,
+        }),
         unreportedTransaction: (reportUrl: string) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

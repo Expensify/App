@@ -1613,6 +1613,10 @@ const translations: TranslationDeepObject<typeof en> = {
         movedTransactionToAnotherReport: 'μετέφερε αυτή τη δαπάνη σε άλλη αναφορά',
         movedTransactionFrom: (reportUrl: string, reportName: string) => `μετέφερε αυτή την δαπάνη από την αναφορά <a href="${reportUrl}">${reportName}</a>`,
         movedTransactionFromAnotherReport: 'μετακίνησε αυτήν τη δαπάνη από άλλη αναφορά',
+        mergedReports: ({reportNames}: {reportNames: string}) => ({
+            one: `συγχώνευσε ${reportNames} σε αυτήν την αναφορά`,
+            other: (count: number) => `συγχώνευσε ${count} αναφορές σε αυτήν την αναφορά: ${reportNames}`,
+        }),
         unreportedTransaction: (reportUrl: string) => `μετέφερε αυτήν την δαπάνη στον <a href="${reportUrl}">προσωπικό σας χώρο</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
