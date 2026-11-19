@@ -216,8 +216,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
-    const discountMessage =
-        cardView.showExpensifyCodeBadge && promoDiscountValue !== undefined ? getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles) : undefined;
+    // A secret code stays off the card, but the customer still sees the discount it gives them.
+    const discountMessage = promoDiscountValue !== undefined ? getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles) : undefined;
 
     const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
