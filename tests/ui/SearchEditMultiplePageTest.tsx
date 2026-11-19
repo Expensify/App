@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -10,8 +10,11 @@ import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+
 import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
@@ -57,6 +60,13 @@ jest.mock('@userActions/Policy/Tag', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Tag'),
     openPolicyTagsPage: jest.fn(),
 }));
+
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/DeviceCapabilities'),
+    canUseTouchScreen: jest.fn(() => true),
+}));
+
+jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
 
 jest.mock('@hooks/usePermissions', () => () => ({
     isBetaEnabled: () => false,
@@ -179,6 +189,8 @@ describe('SearchEditMultiplePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
         for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
             delete mockShouldOpenInDropdownByRow[rowName];
             delete mockValueByRow[rowName];
@@ -536,6 +548,75 @@ describe('SearchEditMultiplePage', () => {
 
         // Then the amount goes with that currency, as each expense would otherwise keep its own and read as a different amount
         expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {amount: 5000, currency: CONST.CURRENCY.EUR}}));
+    });
+
+    it("closes the keyboard from the amount's Done key", async () => {
+        // Given a selection whose amount can be edited
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Done blurs the amount input, because the page has no form that would close the keyboard on submit
+        expect(screen.getByLabelText('Amount').props.submitBehavior).toBe('blurAndSubmit');
+    });
+
+    it("saves from the description's Enter key when a hardware keyboard is used", async () => {
+        // Given a device with a hardware keyboard, where Shift+Enter still adds a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(false);
+        await selectTransactions([OPEN_TRANSACTION_ID], {comment: {comment: 'Team lunch'}});
+
+        // When Enter is pressed in the description
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent(screen.getByLabelText('Description'), 'submitEditing');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are saved, as they are from the expense form
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {comment: 'Team lunch'}}));
+    });
+
+    it('keeps Enter as a new line in the description on a touch device', async () => {
+        // Given a touch device, where Enter is the only way to add a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Enter adds a new line to the description instead of saving
+        expect(screen.getByLabelText('Description').props.submitBehavior).toBe('newline');
+    });
+
+    it('lets the first tap with the keyboard open reach the field under it', async () => {
+        // Given a selection on the Edit multiple page
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the scroll view hands taps to the field instead of using them only to close the keyboard
+        expect(screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).length).toBeGreaterThan(0);
+    });
+
+    it('moves Save into the scrolling fields in landscape with the keyboard open', async () => {
+        // Given a phone in landscape with the keyboard open, which leaves little room above the keyboard
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save scrolls with the fields, so it does not cover the field being edited
+        const scrollView = screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).at(0);
+        if (!scrollView) {
+            throw new Error('No scroll view');
+        }
+        expect(within(scrollView).getByText('Save')).toBeOnTheScreen();
     });
 
     it('accepts a negative amount when every selected expense allows one', async () => {

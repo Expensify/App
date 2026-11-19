@@ -24,10 +24,12 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import type {StartWithLoading} from '@hooks/usePressLoading';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -222,6 +224,10 @@ function SearchEditMultiplePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const currencyButtonRef = useRef<View>(null);
+    const shouldSaveButtonBeInScrollView = useShouldFooterBeInsideList();
+
+    // On touch devices Enter is the only way to add a new line to the description, so it saves only with a hardware keyboard.
+    const canUseHardwareKeyboard = !canUseTouchScreen();
 
     // The draft only holds a currency once one is picked; until then the amount is read in the workspace's currency.
     const currency = draftTransaction?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -440,6 +446,21 @@ function SearchEditMultiplePage() {
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
     const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
+    const saveButton = (
+        <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={save}
+            isLoading={isSaving}
+            isDisabled={isSaving}
+            style={[styles.m5]}
+        >
+            <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+            <Button.Text>{translate('common.save')}</Button.Text>
+        </Button>
+    );
+
     return (
         <ScreenWrapper
             testID="SearchEditMultiplePage"
@@ -458,7 +479,10 @@ function SearchEditMultiplePage() {
                 launcherRef={currencyButtonRef}
             />
             <View style={[styles.flex1]}>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     {isAmountDisabled ? (
                         <ExpenseFieldRow
@@ -479,6 +503,7 @@ function SearchEditMultiplePage() {
                                 <AmountFormField.Input
                                     label={translate('iou.amount')}
                                     prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                                    submitBehavior="blurAndSubmit"
                                 >
                                     <AmountFormField.SignFlipButton shouldUseBorderlessStyle />
                                     <AmountFormField.CurrencyPickerButton
@@ -495,6 +520,8 @@ function SearchEditMultiplePage() {
                         <TextInput
                             value={description}
                             onChangeText={saveDraftDescription}
+                            submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
+                            onSubmitEditing={canUseHardwareKeyboard ? () => save() : undefined}
                             label={translate('common.description')}
                             accessibilityLabel={translate('common.description')}
                             errorText={descriptionErrorText}
@@ -556,6 +583,7 @@ function SearchEditMultiplePage() {
                                 Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
                             }}
                             shouldOpenInDropdown={canOpenListInDropdown}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleCategoryDropdown
                                     {...dropdownProps}
@@ -620,6 +648,7 @@ function SearchEditMultiplePage() {
                             name={translate('common.reimbursable')}
                             value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
                             shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
                                     {...dropdownProps}
@@ -637,6 +666,7 @@ function SearchEditMultiplePage() {
                             name={translate('common.billable')}
                             value={getPendingBooleanTitle(draftTransaction?.billable)}
                             shouldOpenInDropdown={!isBillableDisabled}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
                                     {...dropdownProps}
@@ -670,18 +700,9 @@ function SearchEditMultiplePage() {
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
                         />
                     )}
+                    {shouldSaveButtonBeInScrollView && saveButton}
                 </ScrollView>
-                <Button
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={save}
-                    isLoading={isSaving}
-                    isDisabled={isSaving}
-                    style={[styles.m5]}
-                >
-                    <Button.Text>{translate('common.save')}</Button.Text>
-                </Button>
+                {!shouldSaveButtonBeInScrollView && saveButton}
             </View>
         </ScreenWrapper>
     );
