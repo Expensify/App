@@ -7880,6 +7880,8 @@ const translations = {
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
+            availableToMember: (memberName: string) => `Available to ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Not available to ${memberName}`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',

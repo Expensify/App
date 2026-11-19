@@ -7251,6 +7251,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             addCategory: 'Kategorie hinzufügen',
             createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
+            availableToMember: (memberName: string) => `Verfügbar für ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Nicht verfügbar für ${memberName}`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',

@@ -15468,6 +15468,54 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getSearchBulkEditExpenseOwnerAccountID', () => {
+        const memberReport: OnyxTypes.Report = {reportID: 'r2', ownerAccountID: 2};
+        const otherMemberReport: OnyxTypes.Report = {reportID: 'r3', ownerAccountID: 3};
+        const reports: OnyxCollection<OnyxTypes.Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${memberReport.reportID}`]: memberReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherMemberReport.reportID}`]: otherMemberReport,
+        };
+        const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t1`]: createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t2`]: createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t3`]: createMock<OnyxTypes.Transaction>({transactionID: 't3', reportID: 'r3'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t4`]: createMock<OnyxTypes.Transaction>({transactionID: 't4', reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+        };
+
+        it('returns the member who owns every selected expense', () => {
+            // Given an admin who selected two expenses on the same member's report
+            // When resolving whose categories the bulk-edit picker should compare against
+            const ownerAccountID = SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't2'], 1, transactions, reports);
+
+            // Then it's that member, so the picker can show which categories they can use
+            expect(ownerAccountID).toBe(2);
+        });
+
+        it('returns undefined when the selected expenses belong to different members', () => {
+            // Given an admin who selected expenses from two members
+            // When resolving the shared owner
+            const ownerAccountID = SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't3'], 1, transactions, reports);
+
+            // Then there's none, since one member's visibility can't describe both expenses
+            expect(ownerAccountID).toBeUndefined();
+        });
+
+        it('counts an unreported expense as the current user’s', () => {
+            // Given an unreported expense, which only its owner can see, selected alone and next to a member's expense
+            // When resolving the shared owner
+            // Then it belongs to the current user, so mixing it with a member's expense leaves no shared owner
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t4'], 1, transactions, reports)).toBe(1);
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't4'], 1, transactions, reports)).toBeUndefined();
+        });
+
+        it('returns undefined when nothing is selected', () => {
+            // Given no selected expenses
+            // When resolving the shared owner
+            // Then there's none
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID([], 1, transactions, reports)).toBeUndefined();
+        });
+    });
+
     describe('shouldShowDeleteOption', () => {
         it('should use the data from selectedTransactions when the data is not available from search result with group-by filter', async () => {
             const TEST_GROUP_KEY = 'group_123456';

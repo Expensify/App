@@ -48,6 +48,9 @@ type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'a
 
     /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
     ownerAccountID?: number;
+
+    /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+    submitterAccountID?: number;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
 
 function CategoryPickerModal({
@@ -60,6 +63,7 @@ function CategoryPickerModal({
     addCategorySentryLabel,
     onCreateCategory,
     ownerAccountID,
+    submitterAccountID,
     isVisible,
     onClose,
     ...popoverProps
@@ -139,6 +143,7 @@ function CategoryPickerModal({
                 shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                 searchInputThreshold={searchInputThreshold}
                 ownerAccountID={ownerAccountID}
+                submitterAccountID={submitterAccountID}
             />
         </AnchoredSelectionListPopover>
     );

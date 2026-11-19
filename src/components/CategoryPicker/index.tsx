@@ -11,16 +11,18 @@ import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
-import type {Category} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 
@@ -74,11 +76,27 @@ type CategoryPickerProps = {
     ownerAccountID?: number;
 
     /**
+     * The account the expense belongs to, passed when someone else owns it, such as an admin or approver recoding it.
+     * When that member can't use every enabled category, the list is split into the categories available to them and
+     * the ones that aren't, so the admin can tell when they're overriding the member's visibility.
+     */
+    submitterAccountID?: number;
+
+    /**
      * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
      * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
      * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
      */
     onRenderedRowCountChange?: (rowCount: number) => void;
+};
+
+/**
+ * Titles a group of sections built by getCategoryListSections: the first section with rows gets the group's title,
+ * since a section's title only shows when it has rows. Offsetting the indexes keeps the header keys unique across groups.
+ */
+const titleSectionGroup = (sections: CategoryTreeSection[], title: string, sectionIndexOffset: number): CategoryTreeSection[] => {
+    const titledSectionIndex = sections.findIndex((section) => section.data.length > 0);
+    return sections.map((section, index) => ({...section, title: index === titledSectionIndex ? title : '', sectionIndex: (section.sectionIndex ?? 0) + sectionIndexOffset}));
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -107,6 +125,7 @@ function CategoryPicker({
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onRenderedRowCountChange,
     ownerAccountID,
+    submitterAccountID,
 }: CategoryPickerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -124,7 +143,8 @@ function CategoryPicker({
     // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
     const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const [submitterPersonalDetails] = usePersonalDetailsByIDs([submitterAccountID]);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -133,16 +153,54 @@ function CategoryPicker({
     const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
     const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
     const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-    const sections = getCategoryListSections({
-        searchValue: debouncedSearchValue,
-        selectedOptions,
-        categories,
-        localeCompare,
-        recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-        translate,
-        shouldShowGLCode,
-        searchInputThreshold,
-    });
+    const unavailableCategories = submitterAccountID === undefined ? {} : getUnavailableCategories(allCategories, submitterAccountID);
+
+    let sections: CategoryTreeSection[];
+    if (submitterAccountID !== undefined && !isEmptyObject(unavailableCategories)) {
+        const submitterName = getDisplayNameForParticipant({
+            accountID: submitterAccountID,
+            personalDetailsData: submitterPersonalDetails,
+            formatPhoneNumber,
+            hiddenTranslation: translate('common.hidden'),
+        });
+        // The current category goes in the group it belongs to, so a category the member can't use isn't shown as available
+        const isSelectedCategoryUnavailable = !!selectedCategory && !!unavailableCategories[selectedCategory];
+        // Each group is one list under its title. Without the threshold, a long list would add its own "Recent" and
+        // "All" headings, which read as groups of their own and repeat recent categories inside the available group.
+        const availableSections = getCategoryListSections({
+            searchValue: debouncedSearchValue,
+            selectedOptions: isSelectedCategoryUnavailable ? [] : selectedOptions,
+            categories: getVisibleCategories(allCategories, submitterAccountID),
+            localeCompare,
+            translate,
+            shouldShowGLCode,
+            searchInputThreshold: Number.POSITIVE_INFINITY,
+        });
+        const unavailableSections = getCategoryListSections({
+            searchValue: debouncedSearchValue,
+            selectedOptions: isSelectedCategoryUnavailable ? selectedOptions : [],
+            categories: unavailableCategories,
+            localeCompare,
+            translate,
+            shouldShowGLCode,
+            searchInputThreshold: Number.POSITIVE_INFINITY,
+        });
+        sections = [
+            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), 0),
+            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), availableSections.length + 1),
+        ];
+    } else {
+        sections = getCategoryListSections({
+            searchValue: debouncedSearchValue,
+            selectedOptions,
+            categories,
+            localeCompare,
+            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+            translate,
+            shouldShowGLCode,
+            searchInputThreshold,
+        });
+    }
 
     const noneOption: OptionTree[] = shouldShowNoneOption
         ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({
