@@ -68,8 +68,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
                 // Like other row menus, a click outside only closes the menu and Tab stays in it.
                 // The backdrop also keeps a second menu from opening before this one is gone, which is why the sidebar tracks open menus with one flag.
                 shouldOverlay
-                // The menu is portaled outside the sidebar, so the pointer leaving the window from the backdrop sends the sidebar a hover-out and focus in the menu
-                // reads as focus outside the sidebar. The sidebar keeps its peek through both until the menu is gone.
+                // The menu is portaled outside the sidebar or the flat navigation bar, so the surface keeps its peek until the menu is gone.
                 onIconPress={holdPeekUntilMenuCloses}
                 // Share closes the menu later by itself, and Escape or a click outside close it without picking an item at all.
                 // The peek is settled once the menu is gone, however it closed, because the pointer may have left the sidebar meanwhile.
