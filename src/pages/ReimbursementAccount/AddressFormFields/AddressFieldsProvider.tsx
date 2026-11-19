@@ -86,4 +86,3 @@ function useAddressFields(): AddressFieldsContextValue {
 
 export default AddressFieldsProvider;
 export {useAddressFields};
-export type {AddressFieldsProviderProps};

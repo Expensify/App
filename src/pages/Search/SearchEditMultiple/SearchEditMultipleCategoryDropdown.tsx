@@ -1,5 +1,5 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import type {ListItem} from '@components/SelectionList/types';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
@@ -8,7 +8,7 @@ import React from 'react';
 
 import {getBulkEditCategoryChange} from './SearchEditMultipleUtils';
 
-type SearchEditMultipleCategoryDropdownProps = ExpenseFieldDropdownRenderProps & {
+type SearchEditMultipleCategoryDropdownProps = DropdownFieldRenderProps & {
     /** Workspace the categories belong to */
     policyID: string | undefined;
 

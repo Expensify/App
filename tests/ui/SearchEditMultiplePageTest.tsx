@@ -3,8 +3,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import type DropdownField from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
@@ -66,8 +66,8 @@ jest.mock('@hooks/usePermissions', () => () => ({
 // Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
 const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
 const mockValueByRow: Record<string, string | undefined> = {};
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value}: ExpenseFieldDropdownMockProps) => {
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'name' | 'shouldOpenInDropdown' | 'value'>;
+jest.mock('@components/DropdownField', () => ({name, shouldOpenInDropdown, value}: DropdownFieldMockProps) => {
     mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
     mockValueByRow[name] = value;
     return null;

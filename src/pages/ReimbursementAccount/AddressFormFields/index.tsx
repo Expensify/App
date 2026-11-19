@@ -121,4 +121,4 @@ function AddressFormFields({
 }
 
 export default AddressFormFields;
-export type {AddressErrors, AddressInputKeys};
+export type {AddressInputKeys};

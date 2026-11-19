@@ -1,10 +1,10 @@
 import AmountFormField from '@components/AmountFormField';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
-import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -461,7 +461,7 @@ function SearchEditMultiplePage() {
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     {isAmountDisabled ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('iou.amount')}
                             value={lockedAmountTitle}
                             isInteractive={false}
@@ -505,7 +505,7 @@ function SearchEditMultiplePage() {
                         />
                     </View>
                     {hasPartiallyEditableMerchantTransaction ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('common.merchant')}
                             value={draftMerchant}
                             numberOfLinesValue={2}
@@ -527,7 +527,7 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {hasPartiallyEditableDateTransaction ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('common.date')}
                             value={draftDate}
                             isInteractive={false}
@@ -547,7 +547,7 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {areCategoriesEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
                             name={translate('common.category')}
                             value={draftTransaction?.category ?? ''}
                             numberOfLinesValue={2}
@@ -573,7 +573,7 @@ function SearchEditMultiplePage() {
                             }
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
-                                <ExpenseFieldDropdown
+                                <DropdownField
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
@@ -597,7 +597,7 @@ function SearchEditMultiplePage() {
                             );
                         })}
                     {isTaxTrackingEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
                             name={taxRateName}
                             value={selectedTaxRate}
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
@@ -616,7 +616,7 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areSelectedTransactionsReimbursable && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
                             name={translate('common.reimbursable')}
                             value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
                             shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
@@ -633,7 +633,7 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areSelectedTransactionsBillable && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
                             name={translate('common.billable')}
                             value={getPendingBooleanTitle(draftTransaction?.billable)}
                             shouldOpenInDropdown={!isBillableDisabled}
@@ -650,7 +650,7 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areAttendeesEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
                             name={translate('iou.attendees')}
                             valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
                             hasValueComponent={hasDraftAttendees}

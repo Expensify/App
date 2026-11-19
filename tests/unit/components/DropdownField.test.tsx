@@ -298,7 +298,7 @@ describe('DropdownField', () => {
         mockWindowHeight = 300;
         mockRowAt(120);
         render(
-            <ExpenseFieldDropdown
+            <DropdownField
                 sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 name={FIELD_NAME}
                 testID={ROW_TEST_ID}

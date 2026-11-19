@@ -3,8 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 import type {AttendeePickerModalProps} from '@components/AttendeePicker/AttendeePickerModal';
 import ComposeProviders from '@components/ComposeProviders';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type TagPickerModal from '@components/TagPicker/TagPickerModal';
 import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
@@ -78,7 +78,7 @@ const policyTags: PolicyTagLists = {
 const alice: Attendee = {email: 'alice@test.com', displayName: 'Alice', avatarUrl: ''};
 const bob: Attendee = {email: 'bob@test.com', displayName: 'Bob', avatarUrl: ''};
 
-const getPopoverProps = (onClose: jest.Mock, isVisible = true): ExpenseFieldDropdownRenderProps => ({
+const getPopoverProps = (onClose: jest.Mock, isVisible = true): DropdownFieldRenderProps => ({
     isVisible,
     onClose,
     anchorPosition: {horizontal: 0, vertical: 0},
