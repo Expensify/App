@@ -1308,13 +1308,8 @@
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchAdvancedFiltersBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchChangeApproverPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchChangeApproverPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultipleAmountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultipleBooleanPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleCategoryPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultipleDatePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultipleDescriptionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultipleMerchantPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultiplePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleTagPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleTagPage.tsx"	"no-restricted-imports"	1
