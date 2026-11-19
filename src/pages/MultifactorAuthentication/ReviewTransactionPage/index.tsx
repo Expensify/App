@@ -128,14 +128,19 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
                     </ScrollView>
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isReportingFraud}
-                        onAuthorize={confirmRecognized}
-                        onDeny={reportFraud}
-                        authorizeText={translate('multifactorAuthentication.fraudReview.recognizedButton')}
-                        denyText={translate('multifactorAuthentication.fraudReview.unrecognizedButton')}
-                        authorizeSentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_RECOGNIZED}
-                        denySentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_NOT_RECOGNIZED}
-                        shouldStackButtons
-                    />
+                        style={styles.gap2}
+                    >
+                        <MultifactorAuthenticationAuthorizeTransactionActions.AuthorizeButton
+                            text={translate('multifactorAuthentication.fraudReview.recognizedButton')}
+                            onPress={confirmRecognized}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_RECOGNIZED}
+                        />
+                        <MultifactorAuthenticationAuthorizeTransactionActions.DenyButton
+                            text={translate('multifactorAuthentication.fraudReview.unrecognizedButton')}
+                            onPress={reportFraud}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_NOT_RECOGNIZED}
+                        />
+                    </MultifactorAuthenticationAuthorizeTransactionActions>
                     <FreezeCardCancelConfirmModal
                         isVisible={isConfirmModalVisible}
                         onConfirm={confirmBackOut}

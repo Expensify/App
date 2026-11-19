@@ -9,80 +9,76 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
 type MultifactorAuthenticationAuthorizeTransactionActionsProps = {
-    onAuthorize: () => void;
-    onDeny: () => void;
+    /** Replaces the buttons with a spinner while an answer is being sent */
     isLoading: boolean | undefined;
-    denyText: string;
-    authorizeText: string;
 
-    /** Sentry label of the deny button, so each review screen is tracked on its own */
-    denySentryLabel?: SentryLabel;
+    /** Lays out the buttons, e.g. side by side or stacked */
+    style?: StyleProp<ViewStyle>;
 
-    /** Sentry label of the authorize button, so each review screen is tracked on its own */
-    authorizeSentryLabel?: SentryLabel;
-
-    /** Stacks the buttons full width with authorize on top, for labels too long to sit side by side */
-    shouldStackButtons?: boolean;
+    children: ReactNode;
 };
 
-function MultifactorAuthenticationAuthorizeTransactionActions({
-    onAuthorize,
-    onDeny,
-    isLoading,
-    denyText,
-    authorizeText,
-    denySentryLabel = CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_DENY,
-    authorizeSentryLabel = CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE,
-    shouldStackButtons = false,
-}: MultifactorAuthenticationAuthorizeTransactionActionsProps) {
+type ActionButtonProps = {
+    text: string;
+    onPress: () => void;
+    sentryLabel: SentryLabel;
+    style?: StyleProp<ViewStyle>;
+};
+
+/** Footer of the transaction review screens, each screen passes its own buttons and arranges them */
+function MultifactorAuthenticationAuthorizeTransactionActions({isLoading, style, children}: MultifactorAuthenticationAuthorizeTransactionActionsProps) {
     const styles = useThemeStyles();
 
-    const buttonStyle = shouldStackButtons ? undefined : styles.flex1;
-
-    const denyButton = (
-        <Button
-            sentryLabel={denySentryLabel}
-            variant={CONST.BUTTON_VARIANT.DANGER}
-            size={CONST.BUTTON_SIZE.LARGE}
-            style={buttonStyle}
-            onPress={onDeny}
-        >
-            <Button.Text>{denyText}</Button.Text>
-        </Button>
-    );
-
-    const authorizeButton = (
-        <Button
-            sentryLabel={authorizeSentryLabel}
-            variant={CONST.BUTTON_VARIANT.SUCCESS}
-            size={CONST.BUTTON_SIZE.LARGE}
-            style={buttonStyle}
-            onPress={onAuthorize}
-        >
-            <Button.Text>{authorizeText}</Button.Text>
-        </Button>
-    );
-
     return (
-        <FixedFooter style={[shouldStackButtons ? styles.flexColumn : styles.flexRow, styles.gap2]}>
+        <FixedFooter style={style}>
             {isLoading ? (
                 <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
                     <LoadingIndicator iconSize={28} />
                 </View>
             ) : (
-                <>
-                    {shouldStackButtons ? authorizeButton : denyButton}
-                    {shouldStackButtons ? denyButton : authorizeButton}
-                </>
+                children
             )}
         </FixedFooter>
     );
 }
 
+function AuthorizeButton({text, onPress, sentryLabel, style}: ActionButtonProps) {
+    return (
+        <Button
+            sentryLabel={sentryLabel}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={style}
+            onPress={onPress}
+        >
+            <Button.Text>{text}</Button.Text>
+        </Button>
+    );
+}
+
+function DenyButton({text, onPress, sentryLabel, style}: ActionButtonProps) {
+    return (
+        <Button
+            sentryLabel={sentryLabel}
+            variant={CONST.BUTTON_VARIANT.DANGER}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={style}
+            onPress={onPress}
+        >
+            <Button.Text>{text}</Button.Text>
+        </Button>
+    );
+}
+
 MultifactorAuthenticationAuthorizeTransactionActions.displayName = 'MultifactorAuthenticationAuthorizeTransactionActions';
+MultifactorAuthenticationAuthorizeTransactionActions.AuthorizeButton = AuthorizeButton;
+MultifactorAuthenticationAuthorizeTransactionActions.DenyButton = DenyButton;
 
 export default MultifactorAuthenticationAuthorizeTransactionActions;

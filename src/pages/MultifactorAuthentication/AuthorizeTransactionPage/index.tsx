@@ -146,11 +146,21 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                     />
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isDenyingTransaction}
-                        onAuthorize={onApproveTransaction}
-                        onDeny={onDenyTransaction}
-                        authorizeText={translate('multifactorAuthentication.reviewTransaction.approve')}
-                        denyText={translate('multifactorAuthentication.reviewTransaction.deny')}
-                    />
+                        style={[styles.flexRow, styles.gap2]}
+                    >
+                        <MultifactorAuthenticationAuthorizeTransactionActions.DenyButton
+                            text={translate('multifactorAuthentication.reviewTransaction.deny')}
+                            onPress={onDenyTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_DENY}
+                            style={styles.flex1}
+                        />
+                        <MultifactorAuthenticationAuthorizeTransactionActions.AuthorizeButton
+                            text={translate('multifactorAuthentication.reviewTransaction.approve')}
+                            onPress={onApproveTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE}
+                            style={styles.flex1}
+                        />
+                    </MultifactorAuthenticationAuthorizeTransactionActions>
                     <AuthorizeTransactionCancelConfirmModal
                         isVisible={isConfirmModalVisible}
                         onConfirm={confirmBackOut}
