@@ -19,7 +19,7 @@ GPS tracking lets Expensify record your actual driving route in the background w
 
 To create an expense using GPS tracking based on the distance traveled: 
 
-1. Tap the **➕ Create** button.
+1. Tap the **Start** button.
 2. Select **Track distance**.
 3. Select **GPS** from the top row.
 4. Tap **Start** and drive to your destination — tracking runs in the background.
