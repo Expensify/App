@@ -3453,6 +3453,7 @@ const SENTRY_LABEL = {
         PAYMENT_CARD_SECURITY_LINK: 'SettingsSubscription-PaymentCardSecurityLink',
     },
     REIMBURSEMENT_ACCOUNT: {
+        ABA_WITHDRAWAL_SUCCESS_CONTINUE: 'ReimbursementAccount-ABAWithdrawalSuccessContinue',
         BENEFICIAL_OWNERS_CONFIRM: 'ReimbursementAccount-BeneficialOwnersConfirm',
         BANK_ACCOUNT_ADDED_CONFIRM: 'ReimbursementAccount-BankAccountAddedConfirm',
         BENEFICIAL_OWNER_ROW: 'ReimbursementAccount-BeneficialOwnerRow',

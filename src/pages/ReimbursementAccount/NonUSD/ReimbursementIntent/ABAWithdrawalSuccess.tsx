@@ -5,6 +5,8 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 type ABAWithdrawalSuccessProps = {
@@ -31,6 +33,7 @@ function ABAWithdrawalSuccess({onFinish}: ABAWithdrawalSuccessProps) {
                     description={translate('bankAccount.bbaAddedDescription')}
                     buttonText={translate('common.continue')}
                     onButtonPress={onFinish}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ABA_WITHDRAWAL_SUCCESS_CONTINUE}
                 />
             </ScrollView>
         </InteractiveStepWrapper>
