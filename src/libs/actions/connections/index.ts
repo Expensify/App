@@ -169,6 +169,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.ODOO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ODOO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ODOO_SYNC_CONNECTION};
+        }
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             return {
                 readCommand: READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL,

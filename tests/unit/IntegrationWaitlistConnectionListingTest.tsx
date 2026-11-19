@@ -105,39 +105,69 @@ describe('Coming-soon integrations in unified Connections', () => {
         expect(clearIntegrationWaitlistError).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE);
     });
 
-    it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.ODOO]}])(
-        'lists Odoo as coming soon right after the Sage cards with Odoo beta enrollment $enabledBetas',
-        async ({enabledBetas}) => {
-            // Given a workspace, where the Odoo beta may be enabled since the painted door shows to everyone
-            mockEnabledBetas = enabledBetas;
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+    it('lists Odoo as coming soon right after the Sage cards without the Odoo beta', async () => {
+        // Given a workspace without the Odoo beta, which still sees the painted door
+        mockEnabledBetas = [];
+        const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            // When the accounting listings are built
-            const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
-            await waitForBatchedUpdatesWithAct();
+        // When the accounting listings are built
+        const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
 
-            // Then Odoo follows Sage Accounting so the two Sage cards stay together, and offers no connect flow yet
-            const keys = result.current.map((listing) => listing.key);
-            expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING) + 1);
-            const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.ODOO);
-            expect(listing?.onConnect).toBeUndefined();
+        // Then Odoo follows Sage Accounting so the two Sage cards stay together, and offers no connect flow
+        const keys = result.current.map((listing) => listing.key);
+        expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING) + 1);
+        const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.ODOO);
+        expect(listing?.onConnect).toBeUndefined();
 
-            // When the Odoo card renders and the user joins its waitlist
-            render(
-                <ConnectionsGrid
-                    policyID={policy.id}
-                    listings={listing ? [listing] : []}
-                />,
-                {wrapper: TestWrapper},
-            );
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        // When the Odoo card renders and the user joins its waitlist
+        render(
+            <ConnectionsGrid
+                policyID={policy.id}
+                listings={listing ? [listing] : []}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
 
-            // Then the coming-soon card signs the account up for the Odoo waitlist
-            expect(screen.getByLabelText('Odoo, Coming soon')).toBeOnTheScreen();
-            expect(joinIntegrationWaitlist).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.ODOO);
-            expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
-        },
-    );
+        // Then the coming-soon card signs the account up for the Odoo waitlist
+        expect(screen.getByLabelText('Odoo, Coming soon')).toBeOnTheScreen();
+        expect(joinIntegrationWaitlist).toHaveBeenCalledWith(CONST.POLICY.CONNECTIONS.NAME.ODOO);
+        expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
+    });
+
+    it('offers Connect for Odoo in the same place with the Odoo beta', async () => {
+        // Given a workspace with the Odoo beta, which gets the connector instead of the painted door
+        mockEnabledBetas = [CONST.BETAS.ODOO];
+        const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+        // When the accounting listings are built
+        const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Odoo still follows Sage Accounting, now as a connector
+        const keys = result.current.map((listing) => listing.key);
+        expect(keys.filter((key) => key === CONST.POLICY.CONNECTIONS.NAME.ODOO)).toHaveLength(1);
+        expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.ODOO)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING) + 1);
+        const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.ODOO);
+
+        // When the Odoo card renders and the user presses Connect
+        render(
+            <ConnectionsGrid
+                policyID={policy.id}
+                listings={listing ? [listing] : []}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('Odoo'), {nativeEvent: {}});
+
+        // Then the Odoo setup flow starts instead of a waitlist signup
+        expect(screen.queryByText('Coming soon')).toBeNull();
+        expect(mockStartIntegrationFlow).toHaveBeenCalledWith({name: CONST.POLICY.CONNECTIONS.NAME.ODOO});
+        expect(joinIntegrationWaitlist).not.toHaveBeenCalled();
+    });
 });

@@ -4,6 +4,7 @@ import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToDigitsFlow from '@components/ConnectToDigitsFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
+import ConnectToOdooFlow from '@components/ConnectToOdooFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
@@ -79,7 +80,8 @@ type AccountingIntegrationIcons = Record<
     | 'CampfireSquare'
     | 'DigitsSquare'
     | 'BusinessCentralSquare'
-    | 'ZohoBooksSquare',
+    | 'ZohoBooksSquare'
+    | 'OdooSquare',
     IconAsset
 >;
 
@@ -839,6 +841,26 @@ function getAccountingIntegrationData(
                 errorFields: policy?.connections?.businessCentral?.config?.errorFields,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+            return {
+                title: translate('workspace.accounting.odoo'),
+                icon: expensifyIcons?.OdooSquare,
+                setupConnectionFlow: (
+                    <ConnectToOdooFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                // The Import, Export and Advanced pages are added in later releases.
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                pendingFields: policy?.connections?.odoo?.config?.pendingFields,
+                errorFields: policy?.connections?.odoo?.config?.errorFields,
+            };
         default:
             return undefined;
     }

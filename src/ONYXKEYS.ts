@@ -1533,6 +1533,8 @@ const ONYXKEYS = {
         CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
         BUSINESS_CENTRAL_CREDENTIALS_FORM: 'businessCentralCredentialsForm',
         BUSINESS_CENTRAL_CREDENTIALS_FORM_DRAFT: 'businessCentralCredentialsFormDraft',
+        ODOO_CREDENTIALS_FORM: 'odooCredentialsForm',
+        ODOO_CREDENTIALS_FORM_DRAFT: 'odooCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1695,6 +1697,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
     [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
     [ONYXKEYS.FORMS.BUSINESS_CENTRAL_CREDENTIALS_FORM]: FormTypes.BusinessCentralCredentialsForm;
+    [ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM]: FormTypes.OdooCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {

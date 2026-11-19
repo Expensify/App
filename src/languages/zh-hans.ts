@@ -7758,6 +7758,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -7991,6 +7993,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Zoho Books 数据';
                         case 'zohoBooksSyncConnection':
                             return '正在初始化与 Zoho Books 的连接';
+                        case 'odooSyncConnection':
+                            return '正在初始化与 Odoo 的连接';
                         case 'campfireSyncImportData':
                             return '正在加载数据';
                         case 'campfireSyncPayments':
@@ -8059,6 +8063,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection: '<muted-text-label>按卡片流水单独配置持续对账。选择一个流水以更改您正在配置的流水。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
             qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
             netSuiteOAuthMigrationRequired: '请在 2027 年 2 月前将您的 NetSuite 连接升级到 OAuth 2.0。',
@@ -9524,6 +9529,15 @@ ${reportName}`,
             noVendorsFoundDescription: '请在 Digits 中添加供应商，然后再次同步连接',
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Digits 中添加银行账户或信用卡账户，然后再次同步连接',
+        },
+        odoo: {
+            odooSetup: 'Odoo 设置',
+            enterCredentials: '输入你的 Odoo URL 和 API 密钥',
+            howToFindAPIKey:
+                '<strong>查找你的 API 密钥。</strong><ol><li>登录 Odoo</li><li>前往 我的个人资料 -> 账户安全</li><li>点击 新建 API 密钥</li><li>确认你的密码，为密钥起一个便于识别的名称，并将期限设为 永久密钥。如果 Odoo 要求选择范围，请选择 RPC</li><li>从 Odoo 复制 API 密钥并粘贴到下方</li></ol>',
+            persistentKeyNote: '只有 Odoo 管理员可以选择 永久密钥。其他用户最多只能选择 3 个月，因此他们的密钥会过期，需要使用新密钥重新连接。',
+            odooURL: 'Odoo URL',
+            odooURLHint: '例如：https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',

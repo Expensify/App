@@ -8240,6 +8240,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8475,6 +8477,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
+                        case 'odooSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Odoo';
                         case 'campfireSyncImportData':
                             return 'Φόρτωση δεδομένων';
                         case 'campfireSyncPayments':
@@ -8548,6 +8552,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
             netSuiteOAuthMigrationRequired: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite σε OAuth 2.0 έως τον Φεβρουάριο 2027.',
@@ -10151,6 +10156,16 @@ ${reportName}`,
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Digits και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς τραπέζης ή πιστωτικών καρτών στο Digits και συγχρονίστε ξανά τη σύνδεση',
+        },
+        odoo: {
+            odooSetup: 'Ρύθμιση Odoo',
+            enterCredentials: 'Εισαγάγετε το URL του Odoo και το κλειδί API σας',
+            howToFindAPIKey:
+                '<strong>Πώς να βρείτε το κλειδί API σας.</strong><ol><li>Συνδεθείτε στο Odoo</li><li>Μεταβείτε στο Το προφίλ μου -> Ασφάλεια λογαριασμού</li><li>Κάντε κλικ στο Νέο κλειδί API</li><li>Επιβεβαιώστε τον κωδικό πρόσβασής σας, δώστε στο κλειδί ένα περιγραφικό όνομα και ορίστε τη Διάρκεια σε Μόνιμο κλειδί. Αν το Odoo ζητήσει εύρος, επιλέξτε RPC</li><li>Αντιγράψτε το κλειδί API από το Odoo και επικολλήστε το παρακάτω</li></ol>',
+            persistentKeyNote:
+                'Μόνο οι διαχειριστές του Odoo μπορούν να επιλέξουν Μόνιμο κλειδί. Οι υπόλοιποι χρήστες μπορούν να επιλέξουν έως 3 μήνες, οπότε το κλειδί τους λήγει και πρέπει να συνδεθούν ξανά με νέο κλειδί.',
+            odooURL: 'URL του Odoo',
+            odooURLHint: 'Για παράδειγμα, https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',

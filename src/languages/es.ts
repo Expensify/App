@@ -7988,6 +7988,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8223,6 +8225,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
+                        case 'odooSyncConnection':
+                            return 'Iniciando conexión con Odoo';
                         case 'campfireSyncImportData':
                             return 'Cargando datos';
                         case 'campfireSyncPayments':
@@ -8296,6 +8300,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La conciliación continua se configura por cada fuente de tarjetas. Selecciona una fuente para cambiar cuál estás configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caduca el ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Tu conexión con QuickBooks Online caducó el ${date}.`,
             netSuiteOAuthMigrationRequired: 'Actualiza tu conexión con NetSuite a OAuth 2.0 antes de febrero de 2027.',
@@ -9887,6 +9892,16 @@ ${reportName}`,
             noVendorsFoundDescription: 'Por favor, añade proveedores en Digits y vuelve a sincronizar la conexión',
             noAccountsFound: 'No se encontraron cuentas',
             noAccountsFoundDescription: 'Añade cuentas bancarias o de tarjeta de crédito en Digits y sincroniza la conexión de nuevo',
+        },
+        odoo: {
+            odooSetup: 'Configuración de Odoo',
+            enterCredentials: 'Introduce la URL de Odoo y tu clave API',
+            howToFindAPIKey:
+                '<strong>Cómo encontrar tu clave API.</strong><ol><li>Inicia sesión en Odoo</li><li>Ve a Mi perfil -> Seguridad de la cuenta</li><li>Haz clic en Nueva clave API</li><li>Confirma tu contraseña, ponle a la clave un nombre descriptivo y establece Duración en Clave persistente. Si Odoo te pide un alcance, elige RPC</li><li>Copia la clave API de Odoo y pégala abajo</li></ol>',
+            persistentKeyNote:
+                'Solo los administradores de Odoo pueden elegir Clave persistente. Los demás usuarios pueden elegir como máximo 3 meses, así que su clave caduca y tienen que volver a conectarse con una nueva.',
+            odooURL: 'URL de Odoo',
+            odooURLHint: 'Por ejemplo, https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',

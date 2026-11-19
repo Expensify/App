@@ -7305,6 +7305,15 @@ const translations = {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
         },
+        odoo: {
+            odooSetup: 'Odoo setup',
+            enterCredentials: 'Enter your Odoo URL and API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Odoo</li><li>Navigate to My Profile -> Account Security</li><li>Click New API Key</li><li>Confirm your password, give your key a descriptive name, and set Duration to Persistent Key. If Odoo asks for a scope, pick RPC</li><li>Copy the API key from Odoo and paste it below</li></ol>',
+            persistentKeyNote: 'Only Odoo administrators can pick Persistent Key. Other users can pick at most 3 months, so their key expires and they need to reconnect with a new one.',
+            odooURL: 'Odoo URL',
+            odooURLHint: 'For example, https://acme.odoo.com',
+        },
         zohoBooks: {
             organization: 'Zoho Books organization',
             organizationSelectDescription: "Choose the organization in Zoho Books that you'd like to import data from.",
@@ -8737,6 +8746,7 @@ const translations = {
             digits: 'Digits',
             zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -8762,6 +8772,8 @@ const translations = {
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -9002,6 +9014,8 @@ const translations = {
                             return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
+                        case 'odooSyncConnection':
+                            return 'Initializing connection to Odoo';
                         case 'campfireSyncImportData':
                             return 'Loading data';
                         case 'campfireSyncPayments':

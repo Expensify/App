@@ -54,6 +54,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
+        'OdooSquare',
     ]);
 
     if (!policyID) {
@@ -62,12 +63,16 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
+    const canUseOdooIntegration = isBetaEnabled(CONST.BETAS.ODOO) || !!policy?.connections?.odoo;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
             return canUseDigitsIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ODOO) {
+            return canUseOdooIntegration;
         }
         return true;
     });
@@ -165,8 +170,9 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             return listing;
         }
 
-        // Sage Accounting sits next to Sage Intacct, the other Sage product, and Odoo follows them as designed. Their
-        // connector flows arrive in later releases, so beta users also see their waitlist cards for now.
+        // Sage Accounting sits next to Sage Intacct, the other Sage product, and Odoo follows them as designed. Sage
+        // Accounting's connector flow arrives in a later release, so beta users also see its waitlist card for now. Odoo
+        // users with its beta get its connector from the list instead, in the same place.
         return [
             listing,
             {
@@ -176,11 +182,15 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 // Sage Accounting shares the Sage logo with Sage Intacct
                 icon: accountingIcons.IntacctSquare,
             },
-            {
-                key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
-                category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
-            },
+            ...(canUseOdooIntegration
+                ? []
+                : [
+                      {
+                          key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
+                          category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+                          title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
+                      },
+                  ]),
         ];
     });
 

@@ -803,6 +803,7 @@ const SCREENS = {
             DIGITS_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Digits_Company_Card_Account',
             BUSINESS_CENTRAL_PREREQUISITES: 'Policy_Accounting_Business_Central_Prerequisites',
             BUSINESS_CENTRAL_SETUP: 'Policy_Accounting_Business_Central_Setup',
+            ODOO_SETUP: 'Policy_Accounting_Odoo_Setup',
             BUSINESS_CENTRAL_COMPANY_SELECTOR: 'Policy_Accounting_Business_Central_Company_Selector',
             BUSINESS_CENTRAL_IMPORT: 'Policy_Accounting_Business_Central_Import',
             BUSINESS_CENTRAL_EXPORT: 'Policy_Accounting_Business_Central_Export',

@@ -81,6 +81,7 @@
         "rock.config.mjs": ["unlisted"],
         "src/libs/SearchParser/searchParser.js": ["exports"],
         "src/libs/SearchParser/autocompleteParser.js": ["exports"],
-        "src/libs/actions/connections/Digits.ts": ["exports"]
+        "src/libs/actions/connections/Digits.ts": ["exports"],
+        "src/libs/actions/connections/Odoo.ts": ["exports"]
     }
 }

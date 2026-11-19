@@ -35,7 +35,8 @@ function ConnectionsGrid({listings, policyID}: ConnectionsGridProps) {
     return (
         <View style={styles.connectionsGrid}>
             {listings.map((listing) => {
-                if (isWaitlistIntegration(listing.key)) {
+                // An integration offers its waitlist until the user can connect it, as Odoo's beta users already can
+                if (isWaitlistIntegration(listing.key) && !listing.onConnect) {
                     return (
                         <IntegrationWaitlistCard
                             key={listing.key}

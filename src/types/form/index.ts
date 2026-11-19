@@ -136,4 +136,5 @@ export type {WorkspaceOfficeLocationForm} from './WorkspaceOfficeLocationForm';
 export type {RilletCredentialsForm} from './RilletCredentialsForm';
 export type {DualEntryCredentialsForm} from './DualEntryCredentialsForm';
 export type {CampfireCredentialsForm} from './CampfireCredentialsForm';
+export type {OdooCredentialsForm} from './OdooCredentialsForm';
 export type {BusinessCentralCredentialsForm} from './BusinessCentralCredentialsForm';

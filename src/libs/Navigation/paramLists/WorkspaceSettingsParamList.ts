@@ -1316,6 +1316,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.ODOO_SETUP]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
         policyID: string;
     };

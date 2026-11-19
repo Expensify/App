@@ -5707,6 +5707,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/business-central/setup',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/setup` as const,
     },
+    POLICY_ACCOUNTING_ODOO_SETUP: {
+        route: 'workspaces/:policyID/accounting/odoo/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/odoo/setup` as const,
+    },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/business-central/company-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,

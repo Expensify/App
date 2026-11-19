@@ -8090,6 +8090,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8324,6 +8326,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie danych Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicjowanie połączenia z Zoho Books';
+                        case 'odooSyncConnection':
+                            return 'Inicjowanie połączenia z Odoo';
                         case 'campfireSyncImportData':
                             return 'Wczytywanie danych';
                         case 'campfireSyncPayments':
@@ -8396,6 +8400,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Ciągłe uzgadnianie jest konfigurowane dla każdego źródła kart osobno. Wybierz źródło, aby zmienić, które konfigurujesz.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Twoje połączenie z QuickBooks Online wygaśnie ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Twoje połączenie z QuickBooks Online wygasło ${date}.`,
             netSuiteOAuthMigrationRequired: 'Zaktualizuj swoje połączenie z NetSuite do OAuth 2.0 do lutego 2027.',
@@ -9939,6 +9944,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Digits i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę rachunki bankowe lub karty kredytowe w Digits i zsynchronizuj połączenie ponownie',
+        },
+        odoo: {
+            odooSetup: 'Konfiguracja Odoo',
+            enterCredentials: 'Wpisz adres URL Odoo i klucz API',
+            howToFindAPIKey:
+                '<strong>Jak znaleźć klucz API.</strong><ol><li>Zaloguj się do Odoo</li><li>Przejdź do Mój profil -> Bezpieczeństwo konta</li><li>Kliknij Nowy klucz API</li><li>Potwierdź hasło, nadaj kluczowi opisową nazwę i ustaw Czas trwania na Klucz stały. Jeśli Odoo zapyta o zakres, wybierz RPC</li><li>Skopiuj klucz API z Odoo i wklej go poniżej</li></ol>',
+            persistentKeyNote:
+                'Tylko administratorzy Odoo mogą wybrać Klucz stały. Pozostali użytkownicy mogą wybrać maksymalnie 3 miesiące, więc ich klucz wygasa i muszą ponownie połączyć się nowym kluczem.',
+            odooURL: 'Adres URL Odoo',
+            odooURLHint: 'Na przykład https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
