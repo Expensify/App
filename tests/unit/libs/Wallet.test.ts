@@ -416,6 +416,22 @@ describe('Android Unified Push Provisioning', () => {
         await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
     });
 
+    it('rejects the whole provisioning when Google asks for credentials and the response has no Google OPC', async () => {
+        // Given Google calls the credentials handler during tokenization and the backend answers with the TSP OPC only
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...androidPayload}));
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...{opaquePaymentCard: 'opaque'}}));
+        mockGoogle.mockImplementation(async (_cardData, handler) => {
+            await handler(credentialsRequest);
+            return 'success';
+        });
+
+        // When the card is added
+        const pending = addAndroid(usCard, 'Jane', 'Card');
+
+        // Then the flow fails instead of reporting success
+        await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
+    });
+
     it('fails the flow when the second request does not reach the backend', async () => {
         // Given a transport failure on the second call.
         const handler = await startProvisioning(usCard);

@@ -462,7 +462,7 @@ function createGoogleOpaquePaymentCard(
         serverSessionID,
         ...(tokenRequestorID ? {tokenRequestorID} : {}),
     };
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the OPCs in the response go straight to Google Wallet, they are not stored in Onyx
     return API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET,
         authentication ? {...params, signedChallenge: JSON.stringify(authentication.signedChallenge), authenticationMethod: authentication.authenticationMethod} : params,
