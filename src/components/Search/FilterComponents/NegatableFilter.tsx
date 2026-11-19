@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,12 +19,18 @@ import type {ListFilterContentProps} from './ListFilterContent';
 
 type NegatableFilterProps = React.PropsWithChildren & {
     isNegated: boolean;
+
+    /** Disables only the negative option; the positive option stays available. */
+    isNegationDisabled?: boolean;
+
+    /** Shown on hover only while negation is disabled. */
+    negationDisabledTooltip?: string;
     baseFilterKey: ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey'];
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
 };
 
-function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationChange}: NegatableFilterProps) {
+function NegatableFilter({baseFilterKey, isNegated, isNegationDisabled = false, negationDisabledTooltip, children, style, onNegationChange}: NegatableFilterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -51,15 +58,23 @@ function NegatableFilter({baseFilterKey, isNegated, children, style, onNegationC
                     >
                         <Button.Text style={[isNegated ? styles.textMicroBoldSupporting : undefined]}>{positive}</Button.Text>
                     </Button>
-                    <Button
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NEGATABLE_FILTER_NEGATIVE}
-                        style={[styles.flex1]}
-                        innerStyles={[isNegated ? undefined : styles.bgTransparent]}
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={() => onNegationChange(true)}
+                    <Tooltip
+                        text={negationDisabledTooltip}
+                        shouldRender={isNegationDisabled && !!negationDisabledTooltip}
                     >
-                        <Button.Text style={[isNegated ? undefined : styles.textMicroBoldSupporting]}>{negative}</Button.Text>
-                    </Button>
+                        <View style={styles.flex1}>
+                            <Button
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.NEGATABLE_FILTER_NEGATIVE}
+                                style={[styles.flex1]}
+                                innerStyles={[isNegated ? undefined : styles.bgTransparent]}
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                isDisabled={isNegationDisabled}
+                                onPress={() => onNegationChange(true)}
+                            >
+                                <Button.Text style={[isNegated ? undefined : styles.textMicroBoldSupporting]}>{negative}</Button.Text>
+                            </Button>
+                        </View>
+                    </Tooltip>
                 </View>
             </View>
             {children}

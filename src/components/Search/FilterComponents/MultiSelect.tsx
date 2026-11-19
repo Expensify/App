@@ -80,7 +80,10 @@ type MultiSelectFilterListItemData = ListItem & MultiSelectItemState;
 
 function MultiSelectFilterListItem(props: ListItemProps<MultiSelectFilterListItemData>) {
     return (
-        <Tooltip text={props.item.tooltipText}>
+        <Tooltip
+            text={props.item.tooltipText}
+            shouldRender={!!props.item.tooltipText}
+        >
             <View>
                 <MultiSelectListItem {...props} />
             </View>

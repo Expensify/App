@@ -1,8 +1,10 @@
 import {act, render} from '@testing-library/react-native';
 
 import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import Tooltip from '@components/Tooltip';
 
 import {VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 
@@ -13,18 +15,14 @@ import React from 'react';
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
 jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
+jest.mock('@components/Tooltip', () => jest.fn(({children}: React.PropsWithChildren) => children));
 jest.mock(
     '@components/Search/FilterComponents/ListFilterViewWrapper',
     () =>
         ({children}: React.PropsWithChildren) =>
             children,
 );
-jest.mock(
-    '@components/Search/FilterComponents/NegatableFilter',
-    () =>
-        ({children}: React.PropsWithChildren) =>
-            children,
-);
+jest.mock('@components/Search/FilterComponents/NegatableFilter', () => jest.fn(({children}: React.PropsWithChildren) => children));
 jest.mock('@hooks/useTheme', () => () => ({}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
@@ -62,6 +60,73 @@ describe('Has filter required violation stages', () => {
     }
 
     beforeEach(() => jest.clearAllMocks());
+
+    it.each([
+        {value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, shouldRender: true},
+        {value: CONST.SEARCH.HAS_VALUES.RECEIPT, shouldRender: false},
+    ])('only wraps a Has row in a tooltip when it has explanatory text (%j)', ({value, shouldRender}) => {
+        // Given one required violation stage alongside an unrelated Has selection
+        renderHasFilter(['overLimit'], [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.RECEIPT]);
+        const Row = mockedSelectionList.mock.lastCall?.[0].ListItem;
+        if (!Row) {
+            throw new Error('Missing Has row component');
+        }
+
+        // When the shared row component renders either option
+        render(
+            <Row
+                item={getRow(value)}
+                onSelectRow={jest.fn()}
+                showTooltip={false}
+            />,
+        );
+
+        // Then only the required stage enables the hover wrapper
+        expect(jest.mocked(Tooltip).mock.lastCall?.[0].shouldRender).toBe(shouldRender);
+    });
+
+    it('disables Has negation with the required tooltip while positive violations are selected', () => {
+        // Given a positive violation filter in the shared Has content used by all filter surfaces
+        renderHasFilter(['overLimit']);
+
+        // When the Has negation toggle is rendered
+        const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
+
+        // Then the negative option is disabled with the same explanation as the required stage
+        expect(props).toEqual(expect.objectContaining({isNegationDisabled: true, negationDisabledTooltip: 'search.filters.requiredWithViolationFilter'}));
+    });
+
+    it.each([{violationNames: undefined}, {violationNames: []}])('allows Has negation without a positive violation filter (%j)', ({violationNames}) => {
+        // Given an absent or negated-only violation filter with no positive violation names
+        renderHasFilter(violationNames);
+
+        // When the Has negation toggle is rendered
+        const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
+
+        // Then the negative option remains available without a disabled tooltip
+        expect(props).toEqual(expect.objectContaining({isNegationDisabled: false, negationDisabledTooltip: undefined}));
+    });
+
+    it('does not disable negation on other filters while positive violations are selected', () => {
+        // Given a positive violation filter and an unrelated Billable filter
+        render(
+            <ListFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE}
+                value={undefined}
+                violationNames={['overLimit']}
+                isNegated={false}
+                policyID={undefined}
+                onChange={jest.fn()}
+                onNegationChange={jest.fn()}
+            />,
+        );
+
+        // When the unrelated filter's negation toggle is rendered
+        const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
+
+        // Then the Has-only restriction does not apply
+        expect(props).toEqual(expect.objectContaining({isNegationDisabled: false, negationDisabledTooltip: undefined}));
+    });
 
     it.each(VIOLATION_HAS_VALUES)('locks the remaining %s stage after the other stage is unchecked', (stage) => {
         // Given both stages selected with a positive violation filter

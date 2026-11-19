@@ -106,6 +106,38 @@ describe('useUpdateFilterQuery', () => {
     });
 
     describe('required violation stages', () => {
+        it('does not add violation stages when an unrelated date filter changes', () => {
+            // Given a typed positive violation query with no explicit Has stages
+            const query = buildSearchQueryJSON('violation:overLimit');
+            if (!query) {
+                throw new Error('Invalid test query');
+            }
+            const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {});
+            onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = form;
+            const {result} = renderHook(() => useUpdateFilterQuery(query));
+
+            // When the user refines that query through the Date filter
+            const updated = result.current.getUpdatedFilterFormValues(form, {dateAfter: '2026-01-01'});
+            act(() => result.current.updateFilterQueryParams({dateAfter: '2026-01-01'}));
+
+            // Then the form and navigated query preserve the typed query's implicit stages
+            expect(updated.has ?? []).toEqual([]);
+            expect(updated.violationName).toEqual(['overLimit']);
+            expect(getNavigatedQuery()?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)).toEqual([]);
+            expect(getNavigatedQuery()?.flatFilters).toContainEqual({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, filters: [{operator: 'eq', value: 'overLimit'}]});
+        });
+
+        it('does not add expense stages when a violation filter is edited on Chat', () => {
+            // Given an unsupported search type, even if a stale violation filter remains in its draft
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When the update explicitly includes a positive violation filter
+            const updated = result.current.getUpdatedFilterFormValues({type: CONST.SEARCH.DATA_TYPES.CHAT}, {violationName: ['overLimit']});
+
+            // Then the helper still respects the search type restriction
+            expect(updated.has).toBeUndefined();
+        });
+
         it.each([{has: []}, {has: [CONST.SEARCH.HAS_VALUES.ATTACHMENT]}])('does not restore expense violation stages when switching to Chat (%j)', ({has}) => {
             // Given an expense search whose violation filter requires expense stages
             const currentValues: Partial<SearchAdvancedFiltersForm> = {

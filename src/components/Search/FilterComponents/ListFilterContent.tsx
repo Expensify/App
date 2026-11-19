@@ -215,7 +215,9 @@ function ListFilterContent({
     onNegationChange,
 }: ListFilterContentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
+    const isNegationDisabled = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length;
     const selectionListTextInputStyle = [selectionListTextInputStyleProp, isFilterKeyNegatable && styles.pt2];
 
     let content;
@@ -372,6 +374,8 @@ function ListFilterContent({
             style={style}
             baseFilterKey={baseFilterKey}
             isNegated={isNegated}
+            isNegationDisabled={isNegationDisabled}
+            negationDisabledTooltip={isNegationDisabled ? translate('search.filters.requiredWithViolationFilter') : undefined}
             onNegationChange={onNegationChange}
         >
             {content}

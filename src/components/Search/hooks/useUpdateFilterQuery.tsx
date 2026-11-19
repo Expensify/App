@@ -50,7 +50,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.columns = [];
         }
 
-        updatedFilterFormValues.has = getHasValuesWithRequiredViolations(updatedFilterFormValues);
+        if (CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION in newValues) {
+            updatedFilterFormValues.has = getHasValuesWithRequiredViolations(updatedFilterFormValues);
+        }
 
         return updatedFilterFormValues;
     }
