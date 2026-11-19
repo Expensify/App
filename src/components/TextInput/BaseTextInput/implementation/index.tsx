@@ -25,6 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -543,6 +544,7 @@ function BaseTextInput({
                                     onBlur={onBlur}
                                     onChangeText={setValue}
                                     secureTextEntry={passwordHidden}
+                                    forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                     onPressOut={inputProps.onPress}
                                     showSoftInputOnFocus={!disableKeyboard}
                                     inputMode={inputMode}
