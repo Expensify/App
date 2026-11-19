@@ -4,24 +4,36 @@
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getApprovalForkDescription} from '@libs/WorkflowUtils';
+
 import variables from '@styles/variables';
+
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type ApprovalForkStepsProps = {
-    /** The fork's description, as one HTML line per step */
-    lines: string[];
+    /** Approver whose employee settings fork some of the workflow's reports away from it */
+    forkApprover: Approver;
+
+    /** Currency the report totals are shown in */
+    currency: string;
 };
 
-function ApprovalForkSteps({lines}: ApprovalForkStepsProps) {
+function ApprovalForkSteps({forkApprover, currency}: ApprovalForkStepsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['UserCheck']);
+    const lines = getApprovalForkDescription({forkApprover, currency, translate, formatPhoneNumber, convertToDisplayString});
 
     return (
         <View>

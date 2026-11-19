@@ -105,6 +105,13 @@ type GetApproversParams = {
      * the chain, flagged, instead of the chain silently stopping before them.
      */
     policy?: OnyxEntry<Policy>;
+
+    /**
+     * Whether the chain is for approval workflow rules, which can't follow every route employee settings send reports
+     * down, so those routes fork from it, see `Approver.forkBranches`. Without the rules, the employee settings are what
+     * the workflow saves, so it has no forks.
+     */
+    shouldFindForks?: boolean;
 };
 
 /** Whether the approver only gets the reports over an amount, which makes them an optional over-limit approver */
@@ -353,9 +360,8 @@ function addEmployeeRouteApprovers({approvers, route, overLimitAmount, higherRou
             return;
         }
 
-        // Approval workflow rules give an optional over-limit approver every report over their limit, so only the detour's
-        // approvers before the first one some bigger reports skip, of those that get to the approver before it, can join the
-        // workflow
+        // Approval workflow rules give an optional over-limit approver every report over their limit, so the detour's approvers
+        // only join the workflow up to the first one that some bigger report reaching the approver before the detour skips
         const biggerRoutes = higherRoutes.filter((higherRoute) => doesRouteGoThrough(higherRoute, previousApprover.email));
         const unsharedPosition = detour.findIndex((detourApprover) => !biggerRoutes.every((biggerRoute) => doesRouteGoThrough(biggerRoute, detourApprover.email)));
         const sharedDetour = unsharedPosition === -1 ? detour : detour.slice(0, unsharedPosition);
@@ -566,7 +572,7 @@ function buildApproversFromRoutes({
 }
 
 /** Get the list of approvers for a given email */
-function calculateApprovers({employees, firstEmail, personalDetailsByEmail, policy}: GetApproversParams): Approver[] {
+function calculateApprovers({employees, firstEmail, personalDetailsByEmail, policy, shouldFindForks = false}: GetApproversParams): Approver[] {
     // Reports still route to an approver who left the workspace, so show them flagged for the admin to replace
     const isFlaggedNonMember = (email: string) => !employees[email] && !!policy && isNonMemberApprover(policy, email);
 
@@ -585,7 +591,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail, poli
                 ...(isFlaggedNonMember(email) ? {isNotWorkspaceMember: true} : {pendingAction: employee?.pendingAction, errors: employee?.errors}),
             };
         },
-        isRoutedByEmployeeSettings: true,
+        isRoutedByEmployeeSettings: shouldFindForks,
     });
 }
 
@@ -1713,15 +1719,18 @@ function buildApprovalWorkflowRulesForSave(
     // Compare against the default workflow's own rules, or - before it has any - against the shapes the
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
+    const employeeListDefaultApprovers = hasRuleBasedDefault ? [] : calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}, shouldFindForks: true});
     const defaultWorkflowRules = hasRuleBasedDefault
         ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
-        : buildApprovalWorkflowRules({
-              members: approvalWorkflow.members,
-              approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}}),
-              isDefault: true,
-          });
+        : buildApprovalWorkflowRules({members: approvalWorkflow.members, approvers: employeeListDefaultApprovers, isDefault: true});
     const defaultWorkflowRuleShapes = new Set(defaultWorkflowRules.map(getRuleShape));
-    const matchesDefaultWorkflow = rulesAsDefault.length > 0 && rulesAsDefault.every((rule) => defaultWorkflowRuleShapes.has(getRuleShape(rule)));
+
+    // An `employeeList` chain with forks sends some reports where its rules wouldn't, so a workflow saved as rules never
+    // matches it, which is how removing the default workflow's forks saves it
+    const matchesDefaultWorkflow =
+        !hasApprovalWorkflowForks({approvers: employeeListDefaultApprovers}) &&
+        rulesAsDefault.length > 0 &&
+        rulesAsDefault.every((rule) => defaultWorkflowRuleShapes.has(getRuleShape(rule)));
 
     if (!matchesDefaultWorkflow) {
         // `rulesAsDefault` is already the answer when this workflow is itself the default one.
@@ -2418,7 +2427,7 @@ function convertApprovalWorkflowRulesToWorkflows({
     if (firstWorkflow && !firstWorkflow.isDefault) {
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy}),
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy, shouldFindForks: true}),
             isDefault: true,
         });
     }

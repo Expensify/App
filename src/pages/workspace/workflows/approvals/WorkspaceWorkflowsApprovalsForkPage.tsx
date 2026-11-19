@@ -12,7 +12,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {getApprovalForkDescription, hasApprovalWorkflowForks, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {hasApprovalWorkflowForks, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -43,24 +42,21 @@ type WorkspaceWorkflowsApprovalsForkPageProps = WithPolicyAndFullscreenLoadingPr
 
 function WorkspaceWorkflowsApprovalsForkPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsForkPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {approvalWorkflows, rulesCollection} = useApprovalWorkflows(policy);
     const {policyID, firstApproverEmail} = route.params;
 
     const approvalWorkflow = approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApproverEmail && hasApprovalWorkflowForks(workflow));
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const forks = (approvalWorkflow?.approvers ?? [])
-        .filter((approver) => !!approver.forkBranches)
-        .map((forkApprover) => ({email: forkApprover.email, lines: getApprovalForkDescription({forkApprover, currency, translate, formatPhoneNumber, convertToDisplayString})}));
-    const hasMultipleForks = forks.length > 1;
+    const forkApprovers = approvalWorkflow?.approvers.filter((approver) => !!approver.forkBranches) ?? [];
+    const hasMultipleForks = forkApprovers.length > 1;
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         !canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS) ||
         isPendingDeletePolicy(policy) ||
-        forks.length === 0 ||
+        forkApprovers.length === 0 ||
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
@@ -102,9 +98,9 @@ function WorkspaceWorkflowsApprovalsForkPage({policy, isLoadingReportData = true
                         style={styles.flex1}
                         contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
-                        <Text style={styles.mb6}>{translate('workflowsApprovalForkPage.description', {count: forks.length})}</Text>
-                        {forks.map(({email, lines}, forkIndex) => (
-                            <View key={email}>
+                        <Text style={styles.mb6}>{translate('workflowsApprovalForkPage.description', {count: forkApprovers.length})}</Text>
+                        {forkApprovers.map((forkApprover, forkIndex) => (
+                            <View key={forkApprover.email}>
                                 {forkIndex > 0 && <View style={[styles.sectionDividerLine, styles.mv6]} />}
                                 {hasMultipleForks && (
                                     <Text
@@ -114,7 +110,10 @@ function WorkspaceWorkflowsApprovalsForkPage({policy, isLoadingReportData = true
                                         {translate('workflowsApprovalForkPage.forkNumber', {number: forkIndex + 1})}
                                     </Text>
                                 )}
-                                <ApprovalForkSteps lines={lines} />
+                                <ApprovalForkSteps
+                                    forkApprover={forkApprover}
+                                    currency={currency}
+                                />
                             </View>
                         ))}
                     </ScrollView>

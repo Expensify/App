@@ -36,7 +36,7 @@ type ApprovalWorkflowSectionProps = {
     /** Called when the "+X more" text inside the members row is pressed — deep-links to the members list (skips the Edit RHP). */
     onShowAllMembersPress?: () => void;
 
-    /** Called when the warning or the row of an approver whose employee settings fork some reports away from the workflow is pressed */
+    /** Called when the warning on an approver whose employee settings fork some reports away from the workflow is pressed */
     onForkPress?: () => void;
 
     /** Currency used for formatting approval limits */
@@ -222,7 +222,7 @@ function ApprovalWorkflowSection({
                                 iconWidth={20}
                                 numberOfLinesDescription={1}
                                 iconFill={theme.icon}
-                                onPress={approver.forkBranches && forkPressAction ? forkPressAction : pressAction}
+                                onPress={pressAction}
                                 shouldRemoveBackground
                                 titleComponent={
                                     <View style={[styles.ml3, styles.pr3]}>
