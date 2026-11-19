@@ -1,8 +1,11 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {createExpenseByType} from '@libs/actions/IOU/Duplicate';
 import * as PerDiem from '@libs/actions/IOU/PerDiem';
 import * as Split from '@libs/actions/IOU/Split';
 import * as TrackExpense from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type {WriteReadyBarrier} from '@libs/API';
 import {getTransactionDetails} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -26,7 +29,8 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => ({
 }));
 
 jest.mock('@libs/actions/IOU/Split', () => ({
-    createDistanceRequest: jest.fn(),
+    planDistanceRequest: jest.fn(() => ({iouReport: null, transactionID: 'planned-distance-transaction-id'})),
+    commitDistanceRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/PerDiem', () => ({
@@ -50,6 +54,9 @@ jest.mock('@react-navigation/native');
 
 const OWNER_ACCOUNT_ID = 1;
 const OWNER_EMAIL = 'owner@test.com';
+const OWNER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [OWNER_EMAIL]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL},
+};
 const PARTICIPANT_ACCOUNT_ID = 2;
 const PARTICIPANT_EMAIL = 'participant@test.com';
 
@@ -61,7 +68,6 @@ describe('actions/IOU/createExpenseByType', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: OWNER_ACCOUNT_ID, email: OWNER_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL}},
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -156,13 +162,16 @@ describe('actions/IOU/createExpenseByType', () => {
             participantsPolicyTags: {},
             policyTags: {},
             rules: undefined,
+            personalDetailsByLogins: OWNER_PERSONAL_DETAILS_BY_LOGINS,
             ...overrides,
         });
     }
 
     function getLastDistanceRequestParams() {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
+        const distanceParams = jest.mocked(Split.planDistanceRequest).mock.calls.at(0)?.at(0);
+        if (!distanceParams) {
+            throw new Error('planDistanceRequest was not called');
+        }
         return distanceParams;
     }
 
@@ -185,7 +194,7 @@ describe('actions/IOU/createExpenseByType', () => {
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
@@ -213,7 +222,7 @@ describe('actions/IOU/createExpenseByType', () => {
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
     });
@@ -224,21 +233,30 @@ describe('actions/IOU/createExpenseByType', () => {
             waypoint1: {lat: 34.0522, lng: -118.2437, address: 'Los Angeles, CA'},
         };
 
-        it('calls createDistanceRequest for DISTANCE type', () => {
+        it('plans and commits a distance request for DISTANCE type, and returns the planned transaction ID', () => {
+            // Given a distance expense to duplicate, with a write barrier from the caller
             const {transaction, transactionDetails, params} = buildBaseParams({
                 comment: {comment: 'road trip', customUnit: {distanceUnit: 'mi'}},
             });
+            const writeBarrier: WriteReadyBarrier = () => Promise.resolve();
 
-            callCreateExpenseByType({
+            // When the duplicate path routes it by its transaction type
+            const result = callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
-                params,
+                params: {...params, writeBarrier},
                 transaction,
                 transactionDetails,
                 waypoints,
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
             });
 
-            expect(Split.createDistanceRequest).toHaveBeenCalledTimes(1);
+            // Then the plan it builds is the one it writes, behind the caller's barrier like the other expense types, and its transaction ID comes back for the growl.
+            // The barrier goes only to the commit, since the planner sends nothing.
+            const plan: unknown = jest.mocked(Split.planDistanceRequest).mock.results.at(0)?.value;
+            expect(Split.planDistanceRequest).toHaveBeenCalledTimes(1);
+            expect(getLastDistanceRequestParams()).not.toHaveProperty('writeBarrier');
+            expect(Split.commitDistanceRequest).toHaveBeenCalledWith(plan, writeBarrier);
+            expect(result?.transactionID).toBe('planned-distance-transaction-id');
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
@@ -329,7 +347,7 @@ describe('actions/IOU/createExpenseByType', () => {
 
             expect(PerDiem.submitPerDiemExpense).toHaveBeenCalledTimes(1);
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
 
         it('always sets hasViolations to false', () => {
