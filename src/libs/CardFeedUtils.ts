@@ -202,11 +202,7 @@ function getExpensifyCardFeedsForDisplay(
  * The fund identifies the feed's origin, independently of preferred or linked workspaces.
  * Returns `undefined` when the origin's name is unavailable.
  */
-function getCompanyFeedSubtitle(
-    fundID: string,
-    policyNameByFundID: Map<number, string | undefined>,
-    domains: OnyxCollection<Domain> | undefined,
-): string | undefined {
+function getCompanyFeedSubtitle(fundID: string, policyNameByFundID: Map<number, string | undefined>, domains: OnyxCollection<Domain> | undefined): string | undefined {
     const numericFundID = Number(fundID);
     const domain = getDomainByFundID(domains, numericFundID);
     if (domain) {
