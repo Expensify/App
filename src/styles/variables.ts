@@ -27,7 +27,7 @@ const avatarSizes = {
     avatarSizeMedium: 40,
     avatarSizeLarge: 48,
     avatarSizeXLarge: 52,
-    connectionOrbitDiameter: 164,
+    connectionOrbitDiameter: 160,
     connectionOrbitBadgeSize: 56,
     avatarSizeXxLarge: 60,
     avatarSizeXxxLarge: 80,

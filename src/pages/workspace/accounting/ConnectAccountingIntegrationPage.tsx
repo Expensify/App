@@ -135,9 +135,10 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
                     <Header.Title title={connectTitle} />
                 </Header>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
-                    <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    {/* The design sits the content slightly above center, which reads as centered next to the footer buttons */}
+                    <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pb10]}>
                         {!!config && <ConnectionOrbitAnimation integrationIcon={config.icon} />}
-                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mt6, styles.mb4]}>{connectTitle}</Text>
+                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mt7, styles.mb7]}>{connectTitle}</Text>
                         <View
                             style={styles.gap2}
                             role={CONST.ROLE.LIST}
@@ -155,8 +156,8 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
                                         <Icon
                                             src={icons.Checkmark}
                                             fill={theme.iconSuccessFill}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
                                         />
                                     </View>
                                     <Text style={styles.ml2}>{translate(feature)}</Text>
@@ -165,7 +166,7 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
                         </View>
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.mtAuto, styles.gap3]}>
+                <FixedFooter style={[styles.mtAuto, styles.gap2]}>
                     {!!config?.canConnectToSandbox && (
                         <ButtonDisabledWhenOffline
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CONNECT_PAGE_CONNECT_SANDBOX}
