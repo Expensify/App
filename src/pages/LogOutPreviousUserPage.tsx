@@ -26,7 +26,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {StackActions} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 
 import NotFoundPage from './ErrorPage/NotFoundPage';
 
@@ -47,7 +47,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal, closeModalByID} = useConfirmModal();
-    const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     // Linking.getInitialURL() only ever resolves the URL that launched the app, so only process this route when that URL carries its token.
     // HybridApp doesn't update its launch URL for later links, so we skip this check there.
@@ -131,7 +130,9 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     return;
                 }
                 if (result.action !== ModalActions.CONFIRM) {
-                    setHasCancelledSwitch(true);
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.goBack(ROUTES.HOME);
+                    });
                     return;
                 }
                 Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
@@ -207,13 +208,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     }, [initialURL]);
 
     useEffect(() => {
-        if (hasCancelledSwitch) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(ROUTES.HOME);
-            });
-            return;
-        }
-
         if (!isInitialURLForRoute) {
             return;
         }
@@ -236,7 +230,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialURL, isAccountLoading, hasCancelledSwitch]);
+    }, [initialURL, isAccountLoading]);
 
     // Once the launch URL has settled without this route's link, this mount came from tapping a link inside the app (e.g. a link in a message), which this page can't process.
     // Show a not-found page instead of hanging here.
