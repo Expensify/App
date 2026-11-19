@@ -11675,7 +11675,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: 'Τα χρήματα επιστράφηκαν. Μπορείτε να δοκιμάσετε ξανά την πληρωμή.',
                 reimbursementHeld:
                     'Η πληρωμή έχει τεθεί σε αναμονή όσο ο συνεργάτης μας ολοκληρώνει έναν έλεγχο. Περιμένετε νεότερη ενημέρωση. Συνομιλήστε με τον <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Ο έλεγχος ολοκληρώθηκε και η πληρωμή σας είναι καθ’ οδόν. Η τελική ισοτιμία συναλλάγματος ενδέχεται να αλλάξει το ποσό.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Η πληρωμή εκταμιεύτηκε, τα χρήματα αναμένεται να φτάσουν έως τις ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Η πληρωμή αποδεσμεύτηκε.',
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',

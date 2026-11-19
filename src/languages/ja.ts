@@ -11240,7 +11240,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: '資金は返金されました。支払いを再試行できます。',
                 reimbursementHeld:
                     'パートナーによる審査が完了するまで支払いを保留しています。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。',
-                reimbursementReleased: '審査が完了し、お支払いは送金手続き中です。最終的な為替レートにより金額が変わる場合があります。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `支払いは送金されました。資金は${expectedDate}までに到着する見込みです。`,
+                reimbursementReleasedWithoutDate: '支払いが実行されました。',
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

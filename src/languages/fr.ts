@@ -11512,7 +11512,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 reimbursementRefundedWithoutBankAccount: 'Les fonds ont été renvoyés. Vous pouvez réessayer le paiement.',
                 reimbursementHeld:
                     'Paiement en attente pendant que notre partenaire termine un examen. Attendez une autre mise à jour. Discutez avec <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'L’examen est terminé et votre paiement est en cours d’acheminement. Le taux de change final peut modifier le montant.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Paiement effectué, les fonds devraient arriver d’ici le ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Paiement effectué.',
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
