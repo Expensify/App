@@ -2598,6 +2598,57 @@ describe('isReviewDuplicatesAction', () => {
             }),
         ).toBe(false);
     });
+
+    const buildAdminScenario = async (stateNum: number, statusNum: number, role: string) => {
+        // Given an admin who is neither the submitter nor the approver of a report with a duplicated expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            managerID: 888,
+            stateNum,
+            statusNum,
+        });
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = createMock<Transaction>({transactionID: TRANSACTION_ID});
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [createMock<TransactionViolation>({name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION})],
+        };
+        const policy = createMock<Policy>({id: 'POLICY_ID', role});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        return {report, transaction, violations, policy};
+    };
+
+    it('should return true when a workspace admin who is not the submitter or approver reviews a Draft report', async () => {
+        const {report, transaction, violations, policy} = await buildAdminScenario(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, CONST.POLICY.ROLE.ADMIN);
+
+        // When the review duplicates action is evaluated
+        const result = isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, policy, violations);
+
+        // Then the admin can resolve the duplicate
+        expect(result).toBe(true);
+    });
+
+    it('should return true when a workspace admin who is not the submitter or approver reviews an Outstanding report', async () => {
+        const {report, transaction, violations, policy} = await buildAdminScenario(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.POLICY.ROLE.ADMIN);
+
+        // When the review duplicates action is evaluated
+        const result = isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, policy, violations);
+
+        // Then the admin can resolve the duplicate
+        expect(result).toBe(true);
+    });
+
+    it('should return false when a non-admin workspace member who is not the submitter or approver reviews a Draft report', async () => {
+        const {report, transaction, violations, policy} = await buildAdminScenario(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN, CONST.POLICY.ROLE.USER);
+
+        // When the review duplicates action is evaluated
+        const result = isReviewDuplicatesAction(report, undefined, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, policy, violations);
+
+        // Then the member cannot resolve the duplicate
+        expect(result).toBe(false);
+    });
 });
 
 describe('getTransactionThreadPrimaryAction', () => {

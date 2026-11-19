@@ -395,10 +395,12 @@ function isReviewDuplicatesAction(
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
 
-    const isSubmitterOrApprover = isReportSubmitter || isReportApprover;
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+
+    const canResolveDuplicates = isReportSubmitter || isReportApprover || isAdmin;
     const isReportActive = isReportOpen || isProcessingReport;
 
-    if (isSubmitterOrApprover && isReportActive) {
+    if (canResolveDuplicates && isReportActive) {
         return true;
     }
 
