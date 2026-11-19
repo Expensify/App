@@ -64,6 +64,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ValueOf} from 'type-fest';
 
@@ -152,6 +153,10 @@ function CreateDistanceRatePage({
 
     // Errors from submitting one kind's form don't apply to the other kind
     const selectKind = (selectedKind: DistanceRateKind) => {
+        // Android keeps the keyboard open when the focused Name input unmounts
+        if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
+            KeyboardUtils.dismiss();
+        }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
     };
