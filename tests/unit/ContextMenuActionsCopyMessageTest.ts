@@ -107,7 +107,6 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-
         expect(mockSetString).toHaveBeenCalledWith('Expensify');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
@@ -121,7 +120,6 @@ describe('ContextMenuActions copy message', () => {
         }
 
         copyMessageAction.onPress(false, createPayload(selection));
-
 
         expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
