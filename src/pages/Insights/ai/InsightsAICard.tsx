@@ -23,6 +23,10 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    // The same child tag can appear under different parents on the dashboard.
+    const explainScope =
+        insight.tagLevel !== undefined && insight.parentTagPath !== undefined ? {...insightsScope, tagLevel: insight.tagLevel, tagParent: insight.parentTagPath} : insightsScope;
+
     return (
         <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
             <View style={[styles.ml3, styles.gap2]}>
@@ -44,7 +48,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             </View>
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
-                insightsScope={insightsScope}
+                insightsScope={explainScope}
             >
                 <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
             </InsightsExplainButton>

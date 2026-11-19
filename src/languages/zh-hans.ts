@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: '保存更改',
         submit: '提交',
         submitAnyway: '仍然提交',
+        approveAnyway: '仍然批准',
         markAsDone: '标记为完成',
         markAsDoneAnyway: '仍然标记为完成',
         submitted: '已提交',
@@ -575,6 +576,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} 天`,
             other: (count: number) => `${formattedCount ?? count} 天`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 小时`,
+            other: (count: number) => `${formattedCount ?? count} 小时`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 分钟`,
+            other: (count: number) => `${formattedCount ?? count} 分钟`,
         }),
         amount: '金额',
     },
@@ -1241,6 +1250,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '最长付款时间',
         share: '占比',
         averageDays: '平均天数',
+        generatingAIInsights: '正在生成 AI 洞察…',
+        generatingAIInsightsSubtitle: '这不会花费超过一分钟',
+        readingChart: (chartTitle: string) => `正在读取 ${chartTitle}`,
+        comparingWithYourAverage: '与您的平均值比较',
+        lookingForAnythingUnusual: '正在查找任何异常情况',
+        writingYourInsights: '撰写你的见解',
         violationStage: {
             label: '违规事项',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
@@ -1506,6 +1521,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
+        confirmApproveReportViolations: {
+            title: '仍然批准？',
+            description: '此报表存在策略违规。确定要在不进行任何更改的情况下批准吗？',
+        },
         confirmSubmitReportViolations: {
             title: '提交报告？',
             description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',
@@ -3180,6 +3199,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: '开始使用',
             headerTitle: '全球报销',
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
+            payingMultipleReportsSubtitle: '由于公司账户和员工账户使用的货币不同，这些报告均无法支付。',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `使用 x${lastFour} 支付` : '使用银行账户支付'),
+            description: '这些报告需要全球报销，因此未使用该银行账户支付。请在下方开始设置流程。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
         wiseMoreInfoNeeded: '启用全球报销所需的更多信息',
@@ -9917,11 +9941,11 @@ ${reportName}`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `已添加自定义单位 ${customUnitName} 费率“${rateName}”`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `将 ${customUnitName} 的 ${updatedField} 费率“${customUnitRateName}”更改为“${newValue}”（之前为“${oldValue}”）`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `已将距离费率“${customUnitRateName}”的税率更改为“${newValue}（${newTaxPercentage}）”（之前为“${oldValue}（${oldTaxPercentage}）”）`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `将距离费率“${customUnitRateName}”的税率更改为“${newTaxRate}”（之前为“${oldTaxRate}”）`;
             }
-            return `已将税率“${newValue}（${newTaxPercentage}）”添加到距离费率“${customUnitRateName}”`;
+            return `已将税率“${newTaxRate}”添加到里程费率“${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

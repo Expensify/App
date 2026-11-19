@@ -1,5 +1,5 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
-import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
+import type {ChartDataPoint, LabelRotation, PieSlice, YAxisTickStep} from '@components/Charts/types';
 import VictoryTheme, {
     CHART_Y_SCALE_HEIGHT,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
@@ -475,7 +475,8 @@ function getSteppedYAxisTicks(domain: [number, number], tickCount: number, step:
  * Y-axis ticks, tick count and domain of a cartesian chart. With a `step`, the ticks stay on its multiples and the domain stretches to the outermost tick,
  * so the axis ends on a label. Without one, the axis takes the default tick count over the data's own domain.
  */
-function getYAxisTickLayout(domain: [number, number], step: number | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+function getYAxisTickLayout(domain: [number, number], tickStep: YAxisTickStep | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+    const step = typeof tickStep === 'function' ? tickStep(domain[1]) : tickStep;
     if (!step) {
         return {ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain};
     }

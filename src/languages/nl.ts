@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
         submitAnyway: 'Toch verzenden',
+        approveAnyway: 'Toch goedkeuren',
         markAsDone: 'Markeren als voltooid',
         markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
@@ -580,6 +581,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} dag`,
             other: (count: number) => `${formattedCount ?? count} dagen`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} uur`,
+            other: (count: number) => `${formattedCount ?? count} uur`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuut`,
+            other: (count: number) => `${formattedCount ?? count} minuten`,
         }),
         amount: 'Bedrag',
     },
@@ -1291,6 +1300,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Meeste tijd om te betalen',
         share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
+        generatingAIInsights: 'AI-inzichten genereren...',
+        generatingAIInsightsSubtitle: 'Dit duurt niet langer dan een minuut',
+        readingChart: (chartTitle: string) => `${chartTitle} wordt geladen`,
+        comparingWithYourAverage: 'Vergelijken met je gemiddelde',
+        lookingForAnythingUnusual: 'Op zoek naar iets ongewoons',
+        writingYourInsights: 'Je inzichten opschrijven',
         violationStage: {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
@@ -1568,6 +1583,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
+        confirmApproveReportViolations: {
+            title: 'Toch goedkeuren?',
+            description: 'Dit rapport bevat beleidsinbreuken. Weet je zeker dat je het wilt goedkeuren zonder wijzigingen aan te brengen?',
+        },
         confirmSubmitReportViolations: {
             title: 'Rapport verzenden?',
             description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
@@ -3294,6 +3313,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
+            payingMultipleReportsSubtitle: 'Geen van deze rapporten kon worden betaald, omdat de bankrekeningen van het bedrijf en de medewerker verschillende valuta gebruiken.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+            description: 'Deze rapporten zijn niet met de bankrekening betaald, omdat ze wereldwijde terugbetalingen vereisen. Start het proces hieronder.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
         wiseMoreInfoNeeded: 'Meer informatie nodig om wereldwijde terugbetalingen in te schakelen',
@@ -10321,11 +10345,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft ${customUnitName}-tarief „${rateName}” toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `heeft het belastingtarief van het kilometertarief "${customUnitRateName}" gewijzigd naar "${newValue} (${newTaxPercentage})" (voorheen "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `heeft het belastingtarief van het afstandstarief "${customUnitRateName}" gewijzigd naar "${newTaxRate}" (voorheen "${oldTaxRate}")`;
             }
-            return `heeft het belastingtarief "${newValue} (${newTaxPercentage})" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
+            return `heeft het belastingtarief "${newTaxRate}" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
         submitAnyway: 'Enviar mesmo assim',
+        approveAnyway: 'Aprovar mesmo assim',
         markAsDone: 'Marcar como concluído',
         markAsDoneAnyway: 'Marcar como concluído mesmo assim',
         submitted: 'Enviado',
@@ -579,6 +580,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} dia`,
             other: (count: number) => `${formattedCount ?? count} dias`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hora`,
+            other: (count: number) => `${formattedCount ?? count} horas`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minutos`,
         }),
         amount: 'Valor',
     },
@@ -1294,6 +1303,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Maior prazo para pagar',
         share: 'Participação',
         averageDays: 'Média de dias',
+        generatingAIInsights: 'Gerando insights de IA...',
+        generatingAIInsightsSubtitle: 'Isso não deve levar mais de um minuto',
+        readingChart: (chartTitle: string) => `Lendo ${chartTitle}`,
+        comparingWithYourAverage: 'Comparando com a sua média',
+        lookingForAnythingUnusual: 'Procurando algo incomum',
+        writingYourInsights: 'Escrevendo seus insights',
         violationStage: {
             label: 'Violações de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
@@ -1570,6 +1585,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
+        confirmApproveReportViolations: {
+            title: 'Aprovar mesmo assim?',
+            description: 'Este relatório tem violações da política. Tem certeza de que quer aprová‑lo sem fazer alterações?',
+        },
         confirmSubmitReportViolations: {
             title: 'Enviar relatório?',
             description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
@@ -3298,6 +3317,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Começar',
             headerTitle: 'Reembolsos globais',
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
+            payingMultipleReportsSubtitle: 'Nenhum desses relatórios pôde ser pago porque as contas bancárias da empresa e do funcionário usam moedas diferentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
+            description: 'Esses relatórios não foram pagos com a conta bancária porque exigem reembolsos globais. Comece o processo abaixo.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
         wiseMoreInfoNeeded: 'Mais informações necessárias para ativar reembolsos globais',
@@ -10334,11 +10358,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou a taxa de ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `alterou a alíquota de imposto na tarifa de distância "${customUnitRateName}" para "${newValue} (${newTaxPercentage})" (anteriormente "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `alterou a taxa de imposto na taxa de distância "${customUnitRateName}" para "${newTaxRate}" (antes "${oldTaxRate}")`;
             }
-            return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
+            return `adicionou a alíquota de imposto "${newTaxRate}" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

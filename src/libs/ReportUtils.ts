@@ -185,6 +185,7 @@ import {
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isWorkflowApprover,
     resolveCurrentTaxCode,
     shouldShowPolicy,
 } from './PolicyUtils';
@@ -6146,14 +6147,11 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isWorkflowApproverEditing =
-        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
-        !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
     if (isWorkflowApproverEditing) {
         return true;
     }
@@ -6341,14 +6339,11 @@ function canCurrentUserEditExpense(
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isApprover =
-        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
-        !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
 
     return isAdmin || isManager || isRequestor || isApprover;
 }
@@ -11367,12 +11362,21 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions, report, policy);
 }
 
-function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+/**
+ * @param reportOwnerPersonalDetailsByLogin - Only the report owner's entry is needed, because the next approver's account ID is only
+ * compared against the owner's. Approvers missing from the map get a generated account ID, which never equals the owner's.
+ */
+function shouldBlockSubmitDueToPreventSelfApproval(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin,
+): boolean {
     if (!policy?.preventSelfApproval || !isReportOwner(report)) {
         return false;
     }
 
-    const nextApproverAccountID = getNextApproverAccountID(report, rules);
+    const nextApproverAccountID = getNextApproverAccountID(report, rules, undefined, undefined, reportOwnerPersonalDetailsByLogin);
     const isSubmitterSameAsNextApprover = nextApproverAccountID === report?.ownerAccountID;
 
     if (isOpenExpenseReport(report)) {

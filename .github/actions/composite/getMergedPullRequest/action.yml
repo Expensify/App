@@ -10,18 +10,6 @@ outputs:
   number:
     description: The PR number
     value: ${{ steps.getMergedPR.outputs.number }}
-  title:
-    description: The PR title
-    value: ${{ steps.getMergedPR.outputs.title }}
-  body:
-    description: The PR body
-    value: ${{ steps.getMergedPR.outputs.body }}
-  labels:
-    description: Newline-separated label names
-    value: ${{ steps.getMergedPR.outputs.labels }}
-  assignees:
-    description: Newline-separated assignee logins
-    value: ${{ steps.getMergedPR.outputs.assignees }}
 
 runs:
   using: composite
@@ -45,22 +33,12 @@ runs:
           exit 0
         fi
 
-        {
-          echo "number=$(echo "$PR" | jq -r '.number')"
-          echo "title=$(echo "$PR" | jq -r '.title')"
+        PR_NUMBER=$(jq -r '.number' <<< "$PR")
+        if [[ ! "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Expected a positive integer for the merged pull request number" >&2
+            exit 1
+        fi
 
-          echo "body<<GETMPR_EOF"
-          echo "$PR" | jq -r '.body // ""'
-          echo "GETMPR_EOF"
-
-          echo "labels<<GETMPR_LABELS_EOF"
-          echo "$PR" | jq -r '[.labels[].name] | join("\n")'
-          echo "GETMPR_LABELS_EOF"
-
-          echo "assignees<<GETMPR_ASSIGNEES_EOF"
-          echo "$PR" | jq -r '[.assignees[].login] | join("\n")'
-          echo "GETMPR_ASSIGNEES_EOF"
-
-        } >> "$GITHUB_OUTPUT"
+        printf 'number=%s\n' "$PR_NUMBER" >> "$GITHUB_OUTPUT"
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}

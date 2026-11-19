@@ -21,7 +21,7 @@ import type {ValueOf} from 'type-fest';
 import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
-import {canCreateExpensesOnPolicy, canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
+import {canCreateExpensesOnPolicy, canCreateRoomsOnPolicy, canEditWorkspaceSettings, getPolicyRole, isPolicyAdmin, isPolicyOwner, isPolicyUser} from './permissions';
 import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type WorkspaceDetails = {
@@ -147,9 +147,7 @@ function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['t
  * Get the active group policies where the current user can create policy rooms.
  */
 function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePolicies(policies, currentUserLogin).filter(
-        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
-    );
+    return getActivePolicies(policies, currentUserLogin).filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canCreateRoomsOnPolicy(policy, currentUserLogin ?? ''));
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {

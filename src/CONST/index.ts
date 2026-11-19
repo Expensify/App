@@ -57,6 +57,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const UBER_REVOKE_URL = 'https://business.uber.com/revoke';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
@@ -809,6 +810,7 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    UBER_REVOKE_URL,
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
@@ -851,6 +853,8 @@ const CONST = {
         // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
         // for, so English output is unchanged, while other languages stop being forced into the US component order.
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
+        SECONDS_PER_MINUTE: 60,
+        SECONDS_PER_HOUR: 60 * 60,
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -7597,6 +7601,7 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    TAB_BAR_LABEL_BOLD_PLACEHOLDER: 'tab-bar-label-bold-placeholder',
     COPYABLE_TEXT_ELEMENT: 'copyable-text',
     COPYABLE_ROW_ELEMENT: 'copyable-row',
     COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
