@@ -214,7 +214,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
-    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing);
+    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing) ?? {};
 
     const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
     const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
