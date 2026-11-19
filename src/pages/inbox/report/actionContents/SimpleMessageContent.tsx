@@ -9,6 +9,7 @@ import {
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
+    getMergedReportsMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getReportActionText,
@@ -78,6 +79,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedExpenseDeleted')} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS)) {
+        return <ReportActionItemBasicMessage message={getMergedReportsMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
         return <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;
