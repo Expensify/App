@@ -18,6 +18,7 @@ import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButto
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -73,6 +74,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     accessible
                                     testID="ExpensifyLogoButton"
                                     onPress={navigateToNewDotHome}
+                                    linkRoute={ROUTES.HOME}
                                     wrapperStyle={styles.leftNavigationTabBarItem}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                                 >
@@ -84,6 +86,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                 </PressableWithFeedback>
                                 <PressableWithFeedback
                                     onPress={navigateToNewDotHome}
+                                    linkRoute={ROUTES.HOME}
                                     role={CONST.ROLE.TAB}
                                     accessibilityLabel={translate('common.home')}
                                     style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
@@ -140,6 +143,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
             >
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
+                    linkRoute={ROUTES.HOME}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
                     wrapperStyle={styles.navigationTabBarSlot}

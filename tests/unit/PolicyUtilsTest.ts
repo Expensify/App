@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
+    formatTaxRateName,
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
     canAdminPayReport,
@@ -63,6 +64,7 @@ import {
     getIntegrationLastSuccessfulDate,
     getManagerAccountID,
     getMemberAccountIDsForWorkspace,
+    isWorkflowApprover,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -549,6 +551,46 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('formatTaxRateName', () => {
+        it('adds the percentage after a name that does not include it', () => {
+            // Given a tax rate whose name says nothing about its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT', '20%');
+
+            // Then the percentage follows the name, so the admin can tell rates apart by value
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('keeps a name that already ends with its percentage', () => {
+            // Given the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (20%)', '20%');
+
+            // Then the percentage isn't repeated
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('adds the percentage when the name ends with a different one', () => {
+            // Given a rate whose value changed after it was named, so the percentage in its name is out of date
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (15%)', '20%');
+
+            // Then the current percentage is still shown
+            expect(label).toBe('Standard VAT (15%) (20%)');
+        });
+
+        it('shows the name alone when the rate has no percentage', () => {
+            // Given rates with an empty or missing value
+            // When their labels are built
+            const emptyValueLabel = formatTaxRateName('Tax exempt', '');
+            const missingValueLabel = formatTaxRateName('Tax exempt', undefined);
+
+            // Then there's no empty pair of parentheses after the name
+            expect(emptyValueLabel).toBe('Tax exempt');
+            expect(missingValueLabel).toBe('Tax exempt');
         });
     });
 
@@ -3234,6 +3276,77 @@ describe('PolicyUtils', () => {
                 const result = getManagerAccountID(policy, '', undefined);
 
                 expect(result).toBe(categoryApprover1AccountID);
+            });
+        });
+
+        describe('isWorkflowApprover', () => {
+            const buildAdvancedPolicy = (): Policy => ({
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: approverEmail,
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, submitsTo: adminEmail},
+                    [adminEmail]: {email: adminEmail},
+                },
+            });
+
+            it('should return true when the user is the owner submitsTo', () => {
+                // Given an advanced workflow where the employee submits to the admin
+                const policy = buildAdvancedPolicy();
+
+                // When checking whether the admin is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, adminEmail);
+
+                // Then it is true, because the admin is who the report is submitted to
+                expect(result).toBe(true);
+            });
+
+            it('should return false when the user is not the owner submitsTo', () => {
+                // Given an advanced workflow where the employee submits to the admin
+                const policy = buildAdvancedPolicy();
+
+                // When checking whether someone else is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, categoryApprover1Email);
+
+                // Then it is false, because the report isn't submitted to them
+                expect(result).toBe(false);
+            });
+
+            it('should return false when the owner login is unresolved, even for the default approver', () => {
+                // Given an advanced workflow whose default approver is the approver
+                const policy = buildAdvancedPolicy();
+
+                // When the owner's login isn't known yet
+                const result = isWorkflowApprover(policy, undefined, undefined, 0, approverEmail);
+
+                // Then it is false, because without the owner the manager would fall back to the default approver and
+                // wrongly grant approver rights to them
+                expect(result).toBe(false);
+            });
+
+            it('should return false when the user email is missing, even when no manager resolves', () => {
+                // Given a policy where the owner has no employee entry and there is no default approver, so the manager
+                // email resolves to an empty string
+                const policy: Policy = {...buildAdvancedPolicy(), approver: undefined, owner: '', employeeList: {}};
+
+                // When the user's email isn't known
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, '');
+
+                // Then it is false, because an empty email must never match an empty manager email
+                expect(result).toBe(false);
+            });
+
+            it('should return false on a Submit & Close policy', () => {
+                // Given a Submit & Close policy, where reports have no approver, even though the employee's submitsTo is
+                // still set to the admin
+                const policy: Policy = {...buildAdvancedPolicy(), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+
+                // When checking whether the admin is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, adminEmail);
+
+                // Then it is false, because nobody approves reports on this policy
+                expect(result).toBe(false);
             });
         });
 

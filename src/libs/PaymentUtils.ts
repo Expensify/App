@@ -165,6 +165,14 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns the account data only when it belongs to a bank account.
+ * Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account.
+ */
+function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
+    return accountData && 'type' in accountData ? accountData : undefined;
+}
+
+/**
  * Returns whether a payment method's bank currency matches the given currency.
  * When no currency is provided, all methods are considered a match.
  */
@@ -359,6 +367,7 @@ export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBankAccountData,
     getBusinessBankAccountOptions,
     matchesCurrency,
     calculateWalletTransferBalanceFee,

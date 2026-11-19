@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
         submitAnyway: 'Υποβολή ούτως ή άλλως',
+        approveAnyway: 'Έγκριση ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
         markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
@@ -577,6 +578,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} ημέρα`,
             other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ώρα`,
+            other: (count: number) => `${formattedCount ?? count} ώρες`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} λεπτό`,
+            other: (count: number) => `${formattedCount ?? count} λεπτά`,
         }),
         amount: 'Ποσό',
     },
@@ -1338,6 +1347,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        generatingAIInsights: 'Δημιουργία AI Insights...',
+        generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
+        readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
+        comparingWithYourAverage: 'Σύγκριση με τον μέσο όρο σας',
+        lookingForAnythingUnusual: 'Αναζητούμε οτιδήποτε ασυνήθιστο',
+        writingYourInsights: 'Καταγράφετε τις ιδέες σας',
         violationStage: {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
@@ -1617,6 +1632,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
+        confirmApproveReportViolations: {
+            title: 'Έγκριση ούτως ή άλλως;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε βέβαιοι ότι θέλετε να την εγκρίνετε χωρίς να κάνετε αλλαγές;',
+        },
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
@@ -1758,6 +1777,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${vendorDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,
@@ -3372,6 +3392,12 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+            payingMultipleReportsSubtitle:
+                'Καμία από αυτές τις αναφορές δεν ήταν δυνατό να πληρωθεί, επειδή οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Πληρωμή με x${lastFour}` : 'Πληρωμή με τραπεζικό λογαριασμό'),
+            description: 'Αυτές οι αναφορές δεν πληρώθηκαν με τον τραπεζικό λογαριασμό, επειδή απαιτούν παγκόσμιες αποζημιώσεις. Ξεκινήστε τη διαδικασία παρακάτω.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
         wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
@@ -7373,9 +7399,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            visibleTo: 'Ορατό σε',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η κατάργηση πρόσβασης στην κατηγορία ${categoryName}`,
+                bulkRemoveAccessTitle: 'Δεν είναι δυνατή η κατάργηση πρόσβασης σε αυτές τις κατηγορίες',
                 description: ({count}: {count: number}) => ({
                     one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
                     other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
@@ -10588,11 +10622,11 @@ ${reportName}`,
             `προστέθηκε πεδίο αναφοράς ${fieldType} «${fieldName}»${defaultValue ? `με προεπιλεγμένη τιμή «${defaultValue}»` : ''}`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `άλλαξε την τιμή του ${customUnitName} ${updatedField} «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newValue} (${newTaxPercentage})» (προηγουμένως «${oldValue} (${oldTaxPercentage})»)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newTaxRate}» (προηγουμένως «${oldTaxRate}»)`;
             }
-            return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
+            return `προστέθηκε ο φορολογικός συντελεστής «${newTaxRate}» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

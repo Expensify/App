@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
         submitAnyway: 'Soumettre quand même',
+        approveAnyway: 'Approuver quand même',
         markAsDone: 'Marquer comme terminé',
         markAsDoneAnyway: 'Marquer comme terminé quand même',
         submitted: 'Soumis',
@@ -580,6 +581,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} jour`,
             other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} heure`,
+            other: (count: number) => `${formattedCount ?? count} heures`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minute`,
+            other: (count: number) => `${formattedCount ?? count} minutes`,
         }),
         amount: 'Montant',
     },
@@ -1299,6 +1308,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Délai de paiement le plus long',
         share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
+        generatingAIInsights: 'Génération d’analyses IA...',
+        generatingAIInsightsSubtitle: 'Cela ne devrait pas prendre plus d’une minute',
+        readingChart: (chartTitle: string) => `Lecture de ${chartTitle}`,
+        comparingWithYourAverage: 'Comparaison avec votre moyenne',
+        lookingForAnythingUnusual: 'Recherche de toute anomalie',
+        writingYourInsights: 'Rédiger vos analyses',
         violationStage: {
             label: 'Infractions de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
@@ -1579,6 +1594,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
+        confirmApproveReportViolations: {
+            title: 'Approuver quand même ?',
+            description: 'Cette note de frais comporte des violations de politique. Voulez-vous vraiment l’approuver sans y apporter de modifications ?',
+        },
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',
@@ -1713,6 +1732,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -3318,6 +3338,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+            payingMultipleReportsSubtitle: 'Aucune de ces notes de frais n’a pu être payée, car les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+            description: 'Ces notes de frais n’ont pas été payées avec le compte bancaire, car elles nécessitent des remboursements globaux. Commencez la procédure ci-dessous.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
         wiseMoreInfoNeeded: 'Informations supplémentaires requises pour activer les remboursements globaux',
@@ -7279,9 +7304,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            visibleTo: 'Visible pour',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossible de retirer l’accès à ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossible de supprimer l’accès à ces catégories',
                 description: ({count}: {count: number}) => ({
                     one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
                     other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
@@ -10436,11 +10469,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newValue} (${newTaxPercentage}) » (auparavant « ${oldValue} (${oldTaxPercentage}) »)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newTaxRate} » (précédemment « ${oldTaxRate} »)`;
             }
-            return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
+            return `a ajouté le taux de taxe « ${newTaxRate} » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
