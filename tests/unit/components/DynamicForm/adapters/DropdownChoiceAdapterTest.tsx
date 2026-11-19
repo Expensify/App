@@ -91,6 +91,43 @@ describe('DropdownChoiceAdapter', () => {
         expect(onInputChange).toHaveBeenCalledWith('SAVINGS');
     });
 
+    it('validates a list closed without a pick, but not one closed by a pick', () => {
+        // Given a field with no answer
+        const onBlur = jest.fn();
+        renderAdapter({onBlur});
+
+        // When the user picks an option, which closes the list
+        act(() => pressRow());
+        act(() => {
+            lastPopoverProps()?.onItemSelected?.({value: 'SAVINGS', text: 'Savings', keyForList: 'SAVINGS'});
+            lastPopoverProps()?.onClose();
+        });
+
+        // Then the field is not marked touched, so a state the country clears later does not show its required error at once
+        expect(onBlur).not.toHaveBeenCalled();
+
+        // When the user opens the list again and dismisses it without a pick
+        act(() => pressRow());
+        act(() => lastPopoverProps()?.onClose());
+
+        // Then the field is validated, since the user left it without an answer
+        expect(onBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears the input it resets after a new pick', () => {
+        // Given an address country whose pick clears the state, since the old state does not belong to the new country
+        const onInputChange = jest.fn();
+        renderAdapter({value: 'CHECKING', onInputChange, stateInputIDToReset: 'address.state'});
+        act(() => pressRow());
+
+        // When the user picks another option
+        act(() => lastPopoverProps()?.onItemSelected?.({value: 'SAVINGS', text: 'Savings', keyForList: 'SAVINGS'}));
+
+        // Then the form gets the new key and an empty state
+        expect(onInputChange).toHaveBeenNthCalledWith(1, 'SAVINGS');
+        expect(onInputChange).toHaveBeenNthCalledWith(2, '', 'address.state');
+    });
+
     it('does not report a change when the option the field already holds is picked again', () => {
         // Given a field holding one option
         const onInputChange = jest.fn();

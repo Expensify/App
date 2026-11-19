@@ -40,7 +40,7 @@ type CapturedInputProps = {
     hint?: string;
     inputMode?: string;
     maxAutoGrowHeight?: number;
-    items?: Array<{value: string; label: string}>;
+    items?: Array<{value: string; label: string; searchValue?: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
     canSelectMultiple?: boolean;
@@ -55,6 +55,7 @@ type CapturedInputProps = {
     onBlur?: () => void;
     disabled?: boolean;
     shouldAllowChange?: boolean;
+    stateInputIDToReset?: string;
 };
 
 const mockNetwork = {isOffline: false};
@@ -540,6 +541,32 @@ describe('DynamicFormFields', () => {
         expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
     });
 
+    it('draws the state and country of an address as dropdown rows', () => {
+        // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress]);
+
+        // Then the state and country open like every other choice field of the form, and a new country clears the state, since the old one is not in its list
+        expect(rendered.get(addressKeys.state)?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get(addressKeys.country)?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get(addressKeys.country)?.stateInputIDToReset).toBe(addressKeys.state);
+    });
+
+    it('searches the address countries by their code', () => {
+        // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress]);
+
+        // Then its country list searches by code as well as name, the way the country field next to it does
+        expect(rendered.get(addressKeys.country)?.items?.find((item) => item.value === 'GB')?.searchValue).toMatch(/^gb/);
+    });
+
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
         // Given a sort code that must be six digits, and a reference that takes letters too
         const sortCode: DynamicFormField = {key: 'sortCode', type: 'text', required: true, regex: '^\\d{6}$'};
@@ -640,7 +667,7 @@ describe('DynamicFormFields', () => {
             const rendered = renderFields([homeAddress]);
 
             // Then the country is locked, while the street and city stay editable since typing them sends nothing to the server
-            expect(rendered.get('homeAddress.country')?.shouldAllowChange).toBe(false);
+            expect(rendered.get('homeAddress.country')?.disabled).toBe(true);
             expect(rendered.get('homeAddress')?.disabled).toBeFalsy();
             expect(rendered.get('homeAddress.city')?.disabled).toBeFalsy();
         });
@@ -896,7 +923,7 @@ describe('DynamicFormFields', () => {
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'AU'});
 
         // Then the state is asked from the Australian list, not from US states
-        expect(rendered.get(addressKeys.state)?.optionsList).toHaveProperty('NSW');
+        expect(rendered.get(addressKeys.state)?.items).toContainEqual(expect.objectContaining({value: 'NSW'}));
     });
 
     it('lists Canadian provinces for an address restored with Canada as its country', () => {
@@ -908,7 +935,7 @@ describe('DynamicFormFields', () => {
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'CA'});
 
         // Then the state picker offers provinces such as Ontario, not US states
-        expect(rendered.get(addressKeys.state)?.optionsList).toHaveProperty('ON');
+        expect(rendered.get(addressKeys.state)?.items).toContainEqual(expect.objectContaining({value: 'ON'}));
     });
 
     it('asks for new requirements once when the user picks the country of a refreshing address', () => {

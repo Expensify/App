@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef, Ref} from 'react';
 import type {View} from 'react-native';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
 type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
     /** Options, one row each */
@@ -26,8 +26,14 @@ type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
     /** Key of the picked option */
     value?: string;
 
-    /** Called with the key of a newly picked option. Picking the option the field already holds does not call it. */
-    onInputChange?: (value: string) => void;
+    /**
+     * Called with the key of a newly picked option, then with '' and `stateInputIDToReset` to clear that input.
+     * Picking the option the field already holds does not call it.
+     */
+    onInputChange?: (value: string, inputID?: string) => void;
+
+    /** Input cleared on each new pick, like the state of an address whose country changes, since the old state does not belong to the new country */
+    stateInputIDToReset?: string;
 
     /** Validation error shown under the row */
     errorText?: string;
@@ -38,7 +44,7 @@ type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
     /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
     ref?: Ref<ComponentRef<typeof View>>;
 
-    /** Called when the list closes, so FormProvider validates a field closed without an answer */
+    /** Called when the list closes without a pick, so FormProvider validates a field closed without an answer */
     onBlur?: () => void;
 };
 
@@ -46,15 +52,41 @@ type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
  * A choice field whose options open in a container anchored to its row, and picking one saves it and closes the list.
  * Only FormProvider's value, change, error and ref props reach the row. FormProvider's `onPress` marks the field
  * touched, which a list the user dismisses without a pick must not do, so it is left out.
+ * A pick does not mark the field touched either, as on a push row. A pick leaves nothing to report, and a touched field
+ * would show its required error as soon as another input clears it, like the state when the country changes.
  */
-function DropdownChoiceAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: DropdownChoiceAdapterProps) {
+function DropdownChoiceAdapter({
+    items,
+    label,
+    title,
+    value,
+    onInputChange,
+    stateInputIDToReset,
+    errorText = '',
+    disabled = false,
+    forwardedFSClass,
+    ref,
+    onBlur,
+}: DropdownChoiceAdapterProps) {
     const selectedItem = items.find((item) => item.value === value);
+    const hasPickedRef = useRef(false);
+
+    const blurUnlessPicked = () => {
+        if (!hasPickedRef.current) {
+            onBlur?.();
+        }
+        hasPickedRef.current = false;
+    };
 
     const selectValue = (pickedValue: string | undefined) => {
+        hasPickedRef.current = true;
         if (pickedValue === undefined || pickedValue === value) {
             return;
         }
         onInputChange?.(pickedValue);
+        if (stateInputIDToReset) {
+            onInputChange?.('', stateInputIDToReset);
+        }
     };
 
     return (
@@ -65,7 +97,7 @@ function DropdownChoiceAdapter({items, label, title, value, onInputChange, error
             errorText={errorText}
             disabled={disabled}
             rowRef={ref}
-            onBlur={onBlur}
+            onBlur={blurUnlessPicked}
             forwardedFSClass={forwardedFSClass}
             renderDropdown={(dropdownProps) => (
                 <ValuePickerPopover
