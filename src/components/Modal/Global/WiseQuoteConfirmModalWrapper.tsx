@@ -1,4 +1,4 @@
-import WisePaymentDisclosure from '@components/WisePaymentSummary/components/WisePaymentDisclosure';
+import WisePaymentPrompt from '@components/WisePaymentSummary/components/WisePaymentPrompt';
 import WiseQuotePaymentSummary from '@components/WisePaymentSummary/components/WiseQuotePaymentSummary';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -10,7 +10,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {ModalProps} from './ModalContext';
 
@@ -45,20 +44,18 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <View>
+                <WisePaymentPrompt buttonText={translate('iou.pay')}>
                     <WiseQuotePaymentSummary
                         reportID={reportID}
                         isPayingUnheldOnly={isPayingUnheldOnly}
                     />
-                    <WisePaymentDisclosure buttonText={translate('iou.pay')} />
-                </View>
+                </WisePaymentPrompt>
             }
             confirmText={confirmText}
             cancelText={translate('common.cancel')}
             isConfirmDisabled={!wiseQuoteID}
             shouldDisableConfirmButtonWhenOffline
             shouldHandleNavigationBack
-            shouldEnablePromptScroll
         />
     );
 }
