@@ -1,4 +1,6 @@
 /** Native wallet provisioning starts only after the MFA provider signs a challenge. */
+import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
+import {DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
@@ -10,6 +12,18 @@ import WalletProvisioningError from '@libs/Wallet/WalletProvisioningError';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
+
+import React from 'react';
+
+const WalletFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        headerTitle: 'multifactorAuthentication.addToWallet.failedHeader',
+        title: 'multifactorAuthentication.addToWallet.failedTitle',
+        subtitle: 'multifactorAuthentication.addToWallet.failedSubtitle',
+    },
+    'WalletFailureScreen',
+);
 
 type Payload = {
     card: Card;
@@ -35,22 +49,31 @@ export default {
                 reason:
                     status === 'canceled' || context?.signal.aborted
                         ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED
-                        : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNRECOGNIZED,
+                        : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED,
                 message: undefined,
             };
         } catch (error) {
             if (error instanceof WalletProvisioningError) {
-                return error.response;
+                return {...error.response, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED};
             }
-            // Native exceptions can contain card data. The shared MFA failure UI only needs a reason.
+            // Native exceptions can contain card data. Only the wallet failure reason is exposed.
             return {
                 httpStatusCode: undefined,
-                reason: context?.signal.aborted ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
+                reason: context?.signal.aborted
+                    ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED
+                    : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED,
                 message: undefined,
             };
         }
     },
-    callback: async (isSuccessful, _input, payload) => {
+    failureScreens: {
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED]: <WalletFailureScreen />,
+    },
+    callback: async (isSuccessful, input, payload) => {
+        // Dismissing the wallet sheet is a user choice, so no failure screen is shown.
+        if (!isSuccessful && input.message === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED) {
+            return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
+        }
         if (!isSuccessful || !payload || !('card' in payload)) {
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
         }

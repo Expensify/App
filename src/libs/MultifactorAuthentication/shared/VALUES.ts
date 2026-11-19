@@ -47,6 +47,8 @@ const REASON = {
         UNHANDLED_EXCEPTION: 'Local: An unhandled error occurred',
         UNRECOGNIZED: 'Local: Unrecognized local error',
         CANCELED: 'Local: Flow canceled by user',
+        /** Authentication succeeded but adding the card to the digital wallet failed. */
+        WALLET_PROVISIONING_FAILED: 'Local: Digital wallet provisioning failed',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
         WEBAUTHN: {

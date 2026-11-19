@@ -798,6 +798,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        addToWallet: {
+            failedHeader: 'Kaart kon niet worden toegevoegd',
+            failedTitle: 'We konden je kaart niet aan je wallet toevoegen',
+            failedSubtitle: 'Je identiteit is geverifieerd, maar er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
+        },
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
