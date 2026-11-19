@@ -291,9 +291,23 @@ function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolea
 }
 
 /**
+ * Whether the admin saved part of the Wise onboarding for any of their bank accounts. The server sets Wise as the provider on the first saved page,
+ * and from then on Wallet shows the account's setup so the admin can return to it.
+ * An account deleted offline still counts until the server removes it, so the banners don't show up before the deletion goes through.
+ */
+function hasStartedWiseOnboarding(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE);
+}
+
+/**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    // Once any account has a Wise setup, Wallet shows where it stands, so the banner has nothing left to promote
+    if (hasStartedWiseOnboarding(bankAccountList)) {
+        return undefined;
+    }
+
     const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
         // Accounts deleted offline stay in the list until the request syncs
         if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -331,6 +345,11 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
 
     const bankAccountID = policy.achAccount?.bankAccountID;
     if (!bankAccountID) {
+        return undefined;
+    }
+
+    // Once any account has a Wise setup, Wallet shows where it stands, so the banner has nothing left to promote
+    if (hasStartedWiseOnboarding(bankAccountList)) {
         return undefined;
     }
 

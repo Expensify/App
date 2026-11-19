@@ -131,7 +131,6 @@ type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
-    // Still behind the ZOHO_BOOKS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
@@ -396,6 +395,12 @@ const CONST = {
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
+
+    // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
+    ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
+
+    // Rows built from buttons, like "Custom range", sit inside an element with this data attribute, so the arrow keys move through them too
+    ADVANCED_FILTERS_ARROW_ROWS_ELEMENT: 'advanced-filters-arrow-rows',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1117,6 +1122,8 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** How long the terms page waits after Submit for Wise to decide whether it needs more info */
+        ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS: 8000,
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',
@@ -1138,6 +1145,51 @@ const CONST = {
         /** Wise's KYC requirement types we collect */
         KYC_REQUIREMENT: {
             ID_DOCUMENT: 'ID_DOCUMENT',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
+        /** The source of funds page's answer key, which is Wise's field */
+        SOURCE_OF_WEALTH_INFO_KEY: 'businessSourceOfWealthInfo',
+        /** The key Wise takes the picked sources under, one `{businessSourceOfWealthInfo, isSourceOfFund}` entry per source */
+        SOURCE_OF_WEALTH_LIST_KEY: 'sourceOfWealthList',
+        /** The daily operations page's answer key: the picked sources that fund the business's daily operations, saved as each entry's `isSourceOfFund` */
+        SOURCE_OF_FUNDS_KEY: 'sourceOfFunds',
+        /** Drafted as true while a newly picked source waits for the daily operations page, since the new source can fund daily operations too */
+        SOURCE_OF_FUNDS_REVIEW_KEY: 'shouldReviewSourceOfFunds',
+        /** The server takes up to this many files in one save and drops the rest without an error */
+        MAX_NEW_FILES_PER_SAVE: 20,
+        /** Wise's businessSourceOfWealthInfo values, in Wise's order */
+        SOURCE_OF_WEALTH: {
+            REVENUE: 'REVENUE',
+            PERSONAL_FUNDING: 'PERSONAL_FUNDING',
+            BUSINESS_LOAN: 'BUSINESS_LOAN',
+            FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'FUNDING_AND_SHAREHOLDER_INVESTMENTS',
+            INVESTMENT_INCOME: 'INVESTMENT_INCOME',
+            DONATIONS: 'DONATIONS',
+            GRANTS: 'GRANTS',
+            LEGAL: 'LEGAL',
+        },
+        /** Wise's documentType values for a BUSINESS_SOURCE_OF_WEALTH_PROOF document */
+        SOURCE_OF_WEALTH_DOCUMENT_TYPE: {
+            TAX_DOCUMENTS: 'TAX_DOCUMENTS',
+            AUDITED_FINANCIAL_STATEMENTS: 'AUDITED_FINANCIAL_STATEMENTS',
+            BANK_STATEMENT: 'BANK_STATEMENT',
+            E_COMMERCE_STATEMENTS: 'E_COMMERCE_STATEMENTS',
+            INVOICES: 'INVOICES',
+            CONTRACTS: 'CONTRACTS',
+            PERSONAL_TAX_DECLARATION: 'PERSONAL_TAX_DECLARATION',
+            SAVINGS_STATEMENT: 'SAVINGS_STATEMENT',
+            PAYSLIP: 'PAYSLIP',
+            PERSONAL_LOAN_AGREEMENT: 'PERSONAL_LOAN_AGREEMENT',
+            PERSONAL_INVESTMENT: 'PERSONAL_INVESTMENT',
+            ASSET_SALE_AGREEMENT: 'ASSET_SALE_AGREEMENT',
+            LOAN_AGREEMENT: 'LOAN_AGREEMENT',
+            EQUITY_AGREEMENT: 'EQUITY_AGREEMENT',
+            SUBSCRIPTION_AGREEMENT: 'SUBSCRIPTION_AGREEMENT',
+            SHARE_SALE_CERTIFICATE: 'SHARE_SALE_CERTIFICATE',
+            DONATION_RECEIPTS: 'DONATION_RECEIPTS',
+            WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
+            GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
         },
         /** Wise's companyType values, the legal form */
         COMPANY_TYPE: {
@@ -1318,6 +1370,47 @@ const CONST = {
             'RESIDENTS_PROPERTY_MANAGEMENT',
             'DIPLOMATIC_BODIES',
         ],
+
+        /**
+         * Maps Wise's payout `failure_reason_code` values to the translation key of the reason we show on a failed deposit.
+         * Codes not listed here, including `REASON_NOT_SPECIFIED` and ones Wise adds later, show the generic reason.
+         * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
+         */
+        PAYOUT_FAILURE_REASON: {
+            WRONG_ACCOUNT_NUMBER: 'wrongAccountNumber',
+            WRONG_ACCOUNT_DETAILS: 'wrongAccountDetails',
+            WRONG_BANK_CODE: 'wrongBankCode',
+            WRONG_BRANCH_CODE: 'wrongBranchCode',
+            WRONG_ACCOUNT_TYPE: 'wrongAccountType',
+            WRONG_CARD_NUMBER: 'wrongCardNumber',
+            WRONG_CARD_TYPE: 'wrongCardType',
+            WRONG_NAME: 'wrongName',
+            WRONG_PHONE_NUMBER: 'wrongPhoneNumber',
+            WRONG_ID_NUMBER: 'wrongIdNumber',
+            WRONG_RUT_NUMBER: 'wrongRutNumber',
+            TAX_ID_NOT_MATCHING: 'taxIdNotMatching',
+            WRONG_CURRENCY: 'wrongCurrency',
+            ACCOUNT_DOES_NOT_EXIST: 'accountDoesNotExist',
+            EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED: 'externalIdentifierDetailsHaveChanged',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_FROZEN: 'accountFrozen',
+            ACCOUNT_BLOCKED: 'accountBlocked',
+            ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
+            TAX_ID_SUSPENDED: 'taxIdSuspended',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'cannotAcceptFrom3rdParty',
+            CREDITING_ACCOUNT_FORBIDDEN: 'creditingAccountForbidden',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'businessPaymentsForbidden',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnRequestedByRecipient',
+            FUNDS_NOT_EXPECTED_RETURNED: 'fundsNotExpectedReturned',
+            DUPLICATE_ENTRY: 'duplicateEntry',
+            MANDATE_NOT_FILLED_IN: 'mandateNotFilledIn',
+            REQUEST_FOR_INFORMATION_EXPIRED: 'requestForInformationExpired',
+            WRONG_REFERENCE: 'wrongReference',
+            WRONG_PAYMENT_PURPOSE: 'wrongPaymentPurpose',
+            SENDER_REQUESTED_TO_CANCEL: 'senderRequestedToCancel',
+            TECHNICAL_ISSUE: 'technicalIssue',
+            TECHNICAL_ISSUE_RETRYABLE: 'technicalIssueRetryable',
+        },
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -1519,15 +1612,17 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
+        PAY_VIA_ABA: 'payViaABA',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        ZOHO_BOOKS: 'zohoBooks',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        ODOO: 'odoo2026',
+        SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1539,20 +1634,20 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
+        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
-        ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
-        CATEGORY_VISIBILITY: 'categoryVisibility',
-        SCAN_FLASH_TORCH: 'scanFlashTorch',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
+        MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1567,6 +1662,7 @@ const CONST = {
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
+        BR: 'BR',
         CA: 'CA',
         FI: 'FI',
         FR: 'FR',
@@ -1873,7 +1969,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
-    PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
+    ADHOC_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.adhoc.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
     WHATS_NEW_URL: `${USE_EXPENSIFY_URL}/blog?category=Product%20Updates`,
@@ -1891,7 +1987,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES:
-        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
+        'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account#which-industries-does-expensify-not-support-for-direct-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -1939,8 +2035,8 @@ const CONST = {
         ADMIN_TOUR_MOBILE: 'https://expensify.storylane.io/share/7t9urrrcqk5k',
         ADMIN_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         ADMIN_MIGRATED_MOBILE: 'https://app.storylane.io/share/fgireksbt2oh',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
-        TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://expensify.storylane.io/share/rbncowjn0nav?embed=inline',
+        TRACK_WORKSPACE_TOUR_MOBILE: 'https://expensify.storylane.io/share/em54uaq7wbgk?embed=inline',
         EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
@@ -2019,6 +2115,31 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1000,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
+        TRANSLATION_REQUEST_STATE: {
+            LOADING: 'loading',
+            LOADED: 'loaded',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -2208,6 +2329,7 @@ const CONST = {
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
+                COMPANY_CARD_CONSENT_EXPIRING: 'COMPANYCARDCONSENTEXPIRING',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -2233,6 +2355,11 @@ const CONST = {
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                // OldDot sends these four actions when a Wise reimbursement fails, is held, is refunded, or is released
+                REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED',
+                REIMBURSEMENT_HELD: 'REIMBURSEMENTHELD',
+                REIMBURSEMENT_REFUNDED: 'REIMBURSEMENTREFUNDED',
+                REIMBURSEMENT_RELEASED: 'REIMBURSEMENTRELEASED',
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
@@ -2323,6 +2450,7 @@ const CONST = {
                     SET_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SET_CATEGORY_VISIBILITY: 'POLICYCHANGELOG_SET_CATEGORY_VISIBILITY',
                     SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
@@ -2442,6 +2570,24 @@ const CONST = {
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
             MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
+        },
+        // Matches the backend's WORKFLOW_ACTIONS list
+        get WORKFLOW_ACTIONS() {
+            return [
+                this.ACTIONS.TYPE.SUBMITTED,
+                this.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                this.ACTIONS.TYPE.APPROVED,
+                this.ACTIONS.TYPE.UNAPPROVED,
+                this.ACTIONS.TYPE.REJECTED,
+                this.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                this.ACTIONS.TYPE.RETRACTED,
+                this.ACTIONS.TYPE.CLOSED,
+                this.ACTIONS.TYPE.REOPENED,
+                this.ACTIONS.TYPE.FORWARDED,
+                this.ACTIONS.TYPE.TAKE_CONTROL,
+                this.ACTIONS.TYPE.REROUTE,
+                this.ACTIONS.TYPE.REASSIGN_APPROVER,
+            ] as const;
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -3310,6 +3456,9 @@ const CONST = {
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
+
+        // Sent when an employee being paid via ABA has no Australian bank account to pay into
+        MISSING_ABA_DEPOSIT_ACCOUNT: 'Missing AU deposit account',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -3527,6 +3676,7 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
     },
 
     IMAGE_CACHE_FILE_TYPES: {
@@ -3743,6 +3893,9 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         ACCOUNTING_METHOD: 'accountingMethod',
         FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
+        API_PROVIDER: {
+            CODAT: 'codat',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -4351,6 +4504,8 @@ const CONST = {
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
     },
+
+    QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME: 'Credit Card Misc.',
 
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
@@ -4966,6 +5121,7 @@ const CONST = {
         DEBIT_CARD: 'debitCard',
         PERSONAL_BANK_ACCOUNT: 'bankAccount',
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
+        ABA: 'ABA',
     },
 
     PAYMENT_SELECTED: {
@@ -5168,6 +5324,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -5177,13 +5339,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -5385,6 +5544,15 @@ const CONST = {
             IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
             IS_MCP_ENABLED: 'isMCPEnabled',
         },
+        CATEGORY_VISIBILITY: {
+            // Change log lists with this many entries or more show a count instead, with the full list at the top of the thread
+            MAX_LISTED_ITEMS: 10,
+            REASON: {
+                SET_BY_ADMIN: 'setByAdmin',
+                CATEGORIES_DELETED: 'categoriesDeleted',
+                CATEGORIES_DISABLED: 'categoriesDisabled',
+            },
+        },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
             BENEFITS: 'Benefits',
@@ -5554,6 +5722,8 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                ODOO: 'odoo',
+                SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5595,6 +5765,8 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                odoo: 'Odoo',
+                sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5624,6 +5796,10 @@ const CONST = {
                     this.NAME.ZOHO_BOOKS,
                     this.NAME.BUSINESS_CENTRAL,
                 ] as const;
+            },
+            // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
+            get WAITLIST_CONNECTION_NAMES() {
+                return [this.NAME.SAGE_ACCOUNTING] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -5863,6 +6039,15 @@ const CONST = {
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
+        // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for
+        DISTANCE_RATE_EURO_COUNTRIES: ['AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES'] as const,
+        DISTANCE_RATE_DEFAULT_EURO_COUNTRY: 'AT',
+        // Countries without a government rate whose reason is explained on the Add rate page
+        DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE: ['FR', 'IT', 'GR', 'BG', 'SK', 'CZ', 'HU', 'RO', 'SG', 'HK'] as const,
+        DISTANCE_RATE_KIND: {
+            GOVERNMENT: 'government',
+            CUSTOM: 'custom',
+        },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
             US: 'mi',
@@ -6149,6 +6334,10 @@ const CONST = {
         },
     },
     COMPANY_CARDS: {
+        CONSENT_EXPIRY_WARNING_DAYS: {
+            TWO_WEEKS: 14,
+            ONE_WEEK: 7,
+        },
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
 
         // Ignored scrape result codes that still need the user to act, so they belong in the card's status
@@ -6564,7 +6753,6 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         // Matches complete tags like <script> or <123a>; lone < or > are allowed.
         NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
@@ -6779,6 +6967,7 @@ const CONST = {
     STATE_CHARACTER_LIMIT: 32,
     REPORT_TITLE_FORMULA_LIMIT: 500,
     AGENT_PROMPT_LIMIT: 300,
+    AGENT_PROMPT_MAX_LENGTH: 60000,
 
     // Test receipt data
     TEST_RECEIPT: {
@@ -7926,6 +8115,7 @@ const CONST = {
      * Constant for prefix of violations.
      */
     VIOLATIONS_PREFIX: 'violations.',
+    NONDEFAULT_VIOLATION_PREFIX: 'nonDefault',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -7959,6 +8149,14 @@ const CONST = {
         MISSING_CATEGORY: 'missingCategory',
         MISSING_COMMENT: 'missingComment',
         MISSING_TAG: 'missingTag',
+        NONDEFAULT_AMOUNT: 'nonDefaultAmount',
+        NONDEFAULT_BILLABLE: 'nonDefaultBillable',
+        NONDEFAULT_CATEGORY: 'nonDefaultCategory',
+        NONDEFAULT_COMMENT: 'nonDefaultComment',
+        NONDEFAULT_MERCHANT: 'nonDefaultMerchant',
+        NONDEFAULT_REIMBURSABLE: 'nonDefaultReimbursable',
+        NONDEFAULT_TAG: 'nonDefaultTag',
+        NONDEFAULT_TAX: 'nonDefaultTax',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',
@@ -8163,10 +8361,24 @@ const CONST = {
             EVERYTHING_MOBILE: 'everythingMobile',
             TRAVEL_EXPENSE: 'travelExpense',
         },
+        SWITCH_RESULT: {
+            SAVED: 'saved',
+            FAILED: 'failed',
+        },
     },
 
     CACHE_API_KEYS: {
         ATTACHMENTS: 'attachments',
+    },
+
+    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {
@@ -8373,6 +8585,7 @@ const CONST = {
         SORT_BY_COLUMNS: {
             CATEGORY_GL_CODE: 'glcode',
             TAG_GL_CODE: 'tagglcode',
+            AVERAGE_TIME: 'groupaverageduration',
         },
         GROUP_BY: {
             FROM: 'from',
@@ -8389,6 +8602,13 @@ const CONST = {
             APPROVER: 'approver',
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
+            PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
+        },
+        WORKFLOW_STAGES: {
+            CREATED_SUBMITTED: 'created-submitted',
+            SUBMITTED_APPROVED: 'submitted-approved',
+            APPROVED_PAID: 'approved-paid',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8748,6 +8968,14 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                PAID_BY: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8811,6 +9039,8 @@ const CONST = {
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8864,6 +9094,11 @@ const CONST = {
         get TRIP_FILTER_STATUSES() {
             // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
             return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
+        TABLE_COLUMN_ALIGNMENT: {
+            START: 'start',
+            CENTER: 'center',
+            END: 'end',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -8973,6 +9208,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9002,6 +9239,11 @@ const CONST = {
         CHART_METRIC: {
             AMOUNT: 'amount',
             COUNT: 'count',
+            DURATION: 'duration',
+        },
+        CHART_COUNT_DIMENSION: {
+            EXPENSE: 'expense',
+            REPORT: 'report',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -9010,6 +9252,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            VIOLATION: 'violationName',
             TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
@@ -9034,7 +9277,9 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
+            ANY_SUBMISSION: 'anySubmission',
             PAID: 'paid',
+            WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
@@ -9083,6 +9328,7 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_GROUP_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         VENDOR_EMPTY_VALUE: 'none',
@@ -9110,6 +9356,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            VIOLATION: 'violation',
             TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -9133,6 +9380,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'any-approval',
+            ANY_SUBMISSION: 'any-submission',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -9255,7 +9503,9 @@ const CONST = {
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
+            LESS_THAN_OR_EQUAL_TO: 'LessThanOrEqualTo',
             GREATER_THAN: 'GreaterThan',
+            GREATER_THAN_OR_EQUAL_TO: 'GreaterThanOrEqualTo',
             EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
@@ -9289,6 +9539,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -9779,6 +10030,11 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
+        },
     },
 
     RULES: {
@@ -9800,6 +10056,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9894,6 +10151,7 @@ const CONST = {
         HAS_PAYMENT_METHOD_ERROR: 'hasPaymentMethodError',
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
+        HAS_UK_FUEL_RATE_TAX_ERROR: 'hasUKFuelRateTaxError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
@@ -10285,6 +10543,9 @@ const CONST = {
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
 
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
+
         /** Width of the strip straddling a pane's edge that picks up a drag, as wide as the RHP floating card's gutter. */
         PANE_HIT_WIDTH: 12,
 
@@ -10355,9 +10616,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
@@ -10451,23 +10709,33 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
+            EFFICIENCY: 'efficiency',
             COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
+        NO_CHANGE_PLACEHOLDER: '—',
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+            WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
+            LONGEST_TO_SUBMIT: 'longestToSubmit',
+            SLOWEST_TO_APPROVE: 'slowestToApprove',
+            MOST_TIME_TO_PAY: 'mostTimeToPay',
         },
         AI_INSIGHT: {
             SIGNAL: {
@@ -10488,7 +10756,13 @@ const CONST = {
             CHIP_UNIT: {
                 PERCENT: 'percent',
                 AMOUNT: 'amount',
+                COUNT: 'count',
+                DURATION: 'duration',
             },
+        },
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
         },
     },
 
@@ -10530,9 +10804,13 @@ const CONST = {
         EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
+        INTEGRATIONS: 53,
         NEWDOT: 83,
         OAUTH: 86,
     },
+
+    /** Start of the partnerUserID Auth gives a login it issues to an Integration Server OAuth partner */
+    INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX: 'is-oauth-',
 } as const;
 
 const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {

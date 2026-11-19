@@ -150,10 +150,6 @@ function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boole
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
-function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
-    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
-}
-
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
     transaction,
     isPolicyExpenseChat,
@@ -636,6 +632,15 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
 }
 
+/** Falls back to the expense's own currency while its converted amount is unavailable offline. */
+function getTotalForDisplay(transaction: Transaction, reportCurrency: string | undefined, isFromExpenseReport: boolean): {amount: number; currency: string} {
+    const hasConvertedAmount = transaction.convertedAmount != null;
+    return {
+        amount: hasConvertedAmount ? getConvertedAmount(transaction, isFromExpenseReport) : getAmount(transaction, isFromExpenseReport),
+        currency: hasConvertedAmount ? (reportCurrency ?? getCurrency(transaction)) : getCurrency(transaction),
+    };
+}
+
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
@@ -949,7 +954,7 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -958,6 +963,23 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the reimbursable value of a transaction can be changed by the user.
+ * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
+ * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
+ */
+function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
+    if (!isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
+    return typeof transaction?.comment?.forceReimbursable !== 'boolean';
 }
 
 /**
@@ -1497,14 +1519,12 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
-        .map(
-            (transaction): UnreportedExpenseListItemType => ({
-                ...transaction,
-                isDisabled: isTransactionPendingDelete(transaction),
-                keyForList: transaction.transactionID,
-                errors: transaction.errors as Errors | undefined,
-            }),
-        );
+        .map((transaction): UnreportedExpenseListItemType => ({
+            ...transaction,
+            isDisabled: isTransactionPendingDelete(transaction),
+            keyForList: transaction.transactionID,
+            errors: transaction.errors as Errors | undefined,
+        }));
 }
 
 type GetEligibleTransactionsToAddParams = {
@@ -1836,7 +1856,6 @@ export {
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
     getBilledDistance,
-    shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
@@ -1844,6 +1863,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
@@ -1942,6 +1962,7 @@ export {
     shouldReuseInitialTransaction,
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
+    getTotalForDisplay,
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,

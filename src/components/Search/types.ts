@@ -30,6 +30,8 @@ import type {
     TransactionTagGroupListItemType,
     TransactionApproverGroupListItemType,
     TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -185,6 +187,7 @@ type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
 type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 type SearchChartMetric = ValueOf<typeof CONST.SEARCH.CHART_METRIC>;
+type SearchChartCountDimension = ValueOf<typeof CONST.SEARCH.CHART_COUNT_DIMENSION>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -381,6 +384,7 @@ type SearchTextFilterKeys =
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
@@ -397,7 +401,7 @@ type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
-type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
+type SearchAmountValues = Partial<Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string>>;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -415,7 +419,9 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -440,6 +446,12 @@ type SearchQueryAST = {
     groupColumns?: SearchColumnType[];
     limit?: number;
     compare?: SearchCompareMode;
+
+    /** 1-based position; omitted queries retain full-tag grouping and text matching. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for an exact level-aware tag filter; empty selects independent tags. */
+    tagParent?: string;
 };
 
 type SearchQueryJSON = {
@@ -498,7 +510,9 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType
     | TransactionApproverGroupListItemType
-    | TransactionViolationGroupListItemType;
+    | TransactionViolationGroupListItemType
+    | TransactionPaidByGroupListItemType
+    | TransactionWorkflowStageGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
@@ -580,5 +594,6 @@ export type {
     GroupedItem,
     SearchChartDataRow,
     SearchChartMetric,
+    SearchChartCountDimension,
     SearchFilterCommonProps,
 };

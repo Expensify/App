@@ -9,6 +9,9 @@ import IntlStore from '@src/languages/IntlStore';
 
 import {enUS} from 'date-fns/locale/en-US';
 
+/** `formatRange` puts thin spaces around the en dash in English ranges */
+const THIN_SPACE = '\u2009';
+
 describe('getInsightsDateLabel', () => {
     const translateEnglish: LocalizedTranslate = (key, ...parameters) => translate(CONST.LOCALES.EN, key, ...parameters);
 
@@ -42,7 +45,7 @@ describe('getInsightsDateLabel', () => {
         const label = getInsightsDateLabel(date, translateEnglish, enUS);
 
         // Then the year is implied, so only months and days show
-        expect(label).toBe('Sep 1 - Oct 15');
+        expect(label).toBe(`Sep 1${THIN_SPACE}–${THIN_SPACE}Oct 15`);
     });
 
     it('shows the year on both dates of a custom range that reaches outside the current year', () => {
@@ -53,7 +56,7 @@ describe('getInsightsDateLabel', () => {
         const label = getInsightsDateLabel(date, translateEnglish, enUS);
 
         // Then both dates show the year, so neither is ambiguous
-        expect(label).toBe('Nov 15, 2025 - Jan 10, 2026');
+        expect(label).toBe(`Nov 15, 2025${THIN_SPACE}–${THIN_SPACE}Jan 10, 2026`);
     });
 
     it('shows a custom day in the current year as a short date', () => {

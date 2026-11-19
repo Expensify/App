@@ -318,7 +318,16 @@ describe('SubmitActionButton', () => {
 
         // Then the decision is made from the report preview's own violations and transactions rather than a separate
         // Onyx read, which is what let this button drift out of sync with the report header's submit button
-        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, reportViolations, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(
+            TEST_IOU_REPORT_ID,
+            reportViolations,
+            true,
+            TEST_ACCOUNT_ID,
+            TEST_EMAIL,
+            reportTransactions,
+            iouReport,
+            undefined,
+        );
     });
 
     it('passes dismissal-filtered violations to the strict policy rules gate', () => {
@@ -336,7 +345,16 @@ describe('SubmitActionButton', () => {
         // collection instead of the raw context slice, so the two Submit buttons cannot disagree on dismissed violations
         expect(mockedGetTransactionViolations).toHaveBeenCalledWith(reportTransactions.at(0), reportViolations, TEST_EMAIL, TEST_ACCOUNT_ID, iouReport, undefined, undefined);
         const filteredViolationsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []};
-        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, filteredViolationsCollection, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(
+            TEST_IOU_REPORT_ID,
+            filteredViolationsCollection,
+            true,
+            TEST_ACCOUNT_ID,
+            TEST_EMAIL,
+            reportTransactions,
+            iouReport,
+            undefined,
+        );
 
         // Then the violations-confirmation gate received the exact same filtered collection, so the two gates cannot
         // disagree on which violations the submitter has already dismissed

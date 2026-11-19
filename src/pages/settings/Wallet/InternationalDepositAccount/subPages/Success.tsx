@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function Confirmation({onNext}: CustomSubPageProps) {
@@ -18,6 +20,7 @@ function Confirmation({onNext}: CustomSubPageProps) {
                 heading={translate('addPersonalBankAccountPage.successTitle')}
                 description={translate('addPersonalBankAccountPage.successMessage')}
                 buttonText={translate('common.continue')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_DEPOSIT_ACCOUNT_SUCCESS_CONTINUE}
                 onButtonPress={onNext}
             />
         </ScrollView>

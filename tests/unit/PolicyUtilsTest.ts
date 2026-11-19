@@ -49,8 +49,11 @@ import {
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
+    getCampfireVendors,
     getDualEntryVendors,
+    getDigitsVendors,
     getCertiniaVendors,
+    getZohoBooksVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -72,10 +75,13 @@ import {
     getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getRateValueWithDecimals,
+    areRateAmountsEqual,
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    canPayViaABA,
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
     getReimbursementChoice,
@@ -141,6 +147,7 @@ import {
     isRoomMemberProtectedByPolicyRole,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isQuickbooksDesktopVendorMatchingActive,
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
     isXeroVendorMatchingActive,
@@ -154,6 +161,7 @@ import {
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -163,14 +171,18 @@ import ROUTES from '@src/ROUTES';
 import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
+    CampfireVendor,
     Connections,
+    DigitsVendor,
     DualEntryVendor,
     FinancialForceSyncedEntity,
     PolicyConnectionSyncProgress,
     PolicyConnectionSyncStage,
+    QBDNonReimbursableExportAccountType,
     QBONonReimbursableExportAccountType,
     SageIntacctExportConfig,
     TaxRates,
+    ZohoBooksVendor,
 } from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -185,6 +197,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -378,6 +391,161 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('UK fuel rate VAT warnings', () => {
+        describe.each(['quickbooksOnline', 'xero', 'netsuite'] as const)('%s tax-import warning copy', (connection) => {
+            it.each([false, true])('uses integration copy only when tax import is enabled: %s', (isImported) => {
+                // Given local tax tracking is on, independently of the integration's tax-import setting
+                const policy = createUKFuelRateTaxPolicy();
+                const connections = createMock<Connections>({
+                    ...(connection === 'quickbooksOnline' ? {quickbooksOnline: createMock<Connections['quickbooksOnline']>({config: {syncTax: isImported}})} : {}),
+                    ...(connection === 'xero' ? {xero: createMock<Connections['xero']>({config: {importTaxRates: isImported}})} : {}),
+                    ...(connection === 'netsuite' ? {netsuite: createMock<Connections['netsuite']>({options: {config: {syncOptions: {syncTax: isImported}}}})} : {}),
+                });
+                policy.connections = connections;
+                const translate = TestHelper.translateLocal;
+                const message = isImported
+                    ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]})
+                    : translate('workspace.distanceRates.ukFuelRateTaxError');
+
+                // When both pages build their fuel warning
+                const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
+                const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
+
+                // Then a connection alone never directs the admin away from workspace-managed taxes
+                expect(settingsErrors).toEqual({ukFuelRateTax: message});
+                expect(detailsErrors).toEqual(settingsErrors);
+            });
+        });
+
+        it('does not warn on another rate when a fuel band is invalid', () => {
+            // Given a workspace with an invalid fuel band and a separate valid rate
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            unit.rates.other = {...unit.rates.fuel, customUnitRateID: 'other', attributes: {taxRateExternalID: 'valid'}};
+            policy.taxRates = createMock<Policy['taxRates']>({taxes: {valid: {name: 'VAT', value: '20%'}}});
+
+            // When viewing the valid rate or a rate no longer present
+            const otherErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'other');
+            const missingErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'missing');
+
+            // Then only settings and the affected rate show the warning
+            expect(otherErrors).toEqual({});
+            expect(missingErrors).toEqual({});
+            expect(getUKFuelRateTaxErrors(policy, TestHelper.translateLocal)).toHaveProperty('ukFuelRateTax');
+        });
+
+        it.each([false, true])('retains only the latest workspace dismissal failure with dismissed=%s', (isDismissed) => {
+            // Given a failed workspace-wide dismissal and a separate rate-save error
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {'100': 'Old dismissal failure', '200': 'Latest dismissal failure'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {'300': 'Rate-save failure'}};
+
+            // When building the independent fuel-warning row for either page
+            const settingsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal);
+            const detailsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then the latest dismissal failure survives even without a warning, and save errors stay separate
+            const expectedErrors = {
+                ...(!isDismissed ? {ukFuelRateTax: TestHelper.translateLocal('workspace.distanceRates.ukFuelRateTaxError')} : {}),
+                '200': 'Latest dismissal failure',
+            };
+            expect(settingsErrors).toEqual(expectedErrors);
+            expect(detailsErrors).toEqual(expectedErrors);
+            expect(unit.rates.fuel.errorFields.taxRateExternalID).toEqual({'300': 'Rate-save failure'});
+        });
+
+        it('returns no errors before the policy or distance unit loads', () => {
+            // Given no policy, or a policy whose distance unit has not loaded
+            const policy = createUKFuelRateTaxPolicy();
+            policy.customUnits = {};
+
+            // When building errors during loading
+            const missingPolicyErrors = getUKFuelRateTaxErrors(undefined, TestHelper.translateLocal);
+            const missingUnitErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then neither page receives an error
+            expect(missingPolicyErrors).toEqual({});
+            expect(missingUnitErrors).toEqual({});
+        });
+
+        it.each(['', 'deleted', 'disabled', 'pendingDelete', 'valid'])('checks the %s tax code', (taxCode) => {
+            // Given a fuel band mapped to each possible tax code state
+            const policy = createUKFuelRateTaxPolicy();
+            policy.taxRates = createMock<Policy['taxRates']>({
+                taxes: {
+                    disabled: {name: 'Disabled', value: '20%', isDisabled: true},
+                    pendingDelete: {name: 'Deleting', value: '20%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    valid: {name: 'VAT', value: '20%'},
+                },
+            });
+            const attributes = policy.customUnits?.distance.rates.fuel.attributes;
+            if (!attributes) {
+                throw new Error('Expected fuel rate attributes');
+            }
+            attributes.taxRateExternalID = taxCode;
+            // When the policy is checked
+            const rates = getUKFuelRatesWithInvalidTax(policy);
+            // Then only a selectable tax code clears the warning and workspace red dot
+            expect(rates).toHaveLength(taxCode === 'valid' ? 0 : 1);
+            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBe(taxCode === 'valid' ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it.each(['taxOff', 'distanceTaxOff', 'distanceFeatureOff', 'member', 'dismissed', 'disabled', 'deleting', 'standardMileage', 'nonUK', 'custom'])(
+            'does not warn for %s',
+            (scenario) => {
+                // Given a policy outside the warning's eligibility rules
+                const policy = createUKFuelRateTaxPolicy();
+                const unit = policy.customUnits?.distance;
+                if (!unit?.attributes || !policy.tax || !unit.rates.fuel.attributes?.governmentRate) {
+                    throw new Error('Expected fuel rate and distance tax attributes');
+                }
+                const rate = unit.rates.fuel;
+                const governmentRate = unit.rates.fuel.attributes.governmentRate;
+                if (scenario === 'taxOff') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceTaxOff') {
+                    unit.attributes.taxEnabled = false;
+                }
+                if (scenario === 'distanceFeatureOff') {
+                    policy.areDistanceRatesEnabled = false;
+                }
+                if (scenario === 'member') {
+                    policy.role = CONST.POLICY.ROLE.USER;
+                }
+                if (scenario === 'dismissed') {
+                    unit.attributes.isUKFuelRateTaxErrorDismissed = true;
+                }
+                if (scenario === 'disabled') {
+                    rate.enabled = false;
+                }
+                if (scenario === 'deleting') {
+                    rate.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                }
+                if (scenario === 'standardMileage') {
+                    governmentRate.sourceRateID = 'GB_2026-04-06';
+                }
+                if (scenario === 'nonUK') {
+                    governmentRate.sourceRateID = 'US_PETROL_2026-01-01';
+                }
+                if (scenario === 'custom') {
+                    rate.attributes = {};
+                }
+                // When the policy is checked
+                const shouldShow = shouldShowUKFuelRateTaxError(policy);
+                // Then it is excluded from the warning's eligibility rules
+                expect(shouldShow).toBe(false);
+            },
+        );
+    });
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -1565,12 +1733,13 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('blocks assigning the approve-only role', () => {
-                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
-                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            it('allows People Admins to assign the approve-only role', () => {
+                // Given a People Admin on a Control workspace
+                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
-                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
-                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                // When they assign the approve-only role
+                // Then assignment is allowed because it stays within a People Admin's authority
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
             });
 
             it('gives approve-only members read-only access like members', () => {
@@ -2254,6 +2423,62 @@ describe('PolicyUtils', () => {
                 expect(pickedDefault?.name).toBe('Default Rate');
             });
         });
+        describe('getRateValueWithDecimals', () => {
+            it.each([
+                [0, '0.00'],
+                [1, '1.00'],
+                [0.1, '0.10'],
+                [0.12, '0.12'],
+                [0.123, '0.123'],
+                [0.1234, '0.1234'],
+                [0.12346, '0.1235'],
+                [0.12001, '0.12'],
+                [0.99999, '1.00'],
+                [0.1 + 0.2, '0.30'],
+            ])('formats %s as %s', (value, expected) => {
+                // Given a rate amount with up to four meaningful decimals or extra calculation precision
+                // When preparing the raw amount for an editor
+                const displayValue = getRateValueWithDecimals(value);
+
+                // Then Classic precision is preserved without unnecessary zeros beyond two decimals
+                expect(displayValue).toBe(expected);
+            });
+
+            it('leaves locale separators to the display caller', () => {
+                // Given a locale whose decimal separator is a comma
+                const toCommaDigit = (digit: string) => (digit === '.' ? ',' : digit);
+
+                // When preparing the raw editor value and the localized display value
+                const editorValue = getRateValueWithDecimals(0.123);
+                const displayValue = getRateDisplayValue(0.123, toCommaDigit, true);
+
+                // Then the editor receives a numeric string while the display keeps its locale separator
+                expect(editorValue).toBe('0.123');
+                expect(displayValue).toBe('0,123');
+            });
+        });
+
+        describe('areRateAmountsEqual', () => {
+            it.each<[string | number, string | number, boolean]>([
+                ['0.1', '0.10', true],
+                ['0.1', '0.1000', true],
+                [0.1, '0.1000', true],
+                ['0.1000', 0.1, true],
+                [0.1 + 0.2, '0.3000', true],
+                ['0.12344', '0.1234', true],
+                ['', 0, true],
+                ['0.1000', '0.1001', false],
+                ['0.1234', '0.1235', false],
+            ])('compares %s and %s as %s at editor precision', (firstAmount, secondAmount, expected) => {
+                // Given saved and entered amounts with different padding or calculation precision
+                // When deciding whether an editor should persist a change
+                const areEqual = areRateAmountsEqual(firstAmount, secondAmount);
+
+                // Then formatting differences are ignored without losing meaningful fourth-decimal changes
+                expect(areEqual).toBe(expected);
+            });
+        });
+
         describe('getRateDisplayValue', () => {
             it('should return an empty string for NaN', () => {
                 // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
@@ -4674,6 +4899,52 @@ describe('PolicyUtils', () => {
             );
         });
 
+        describe('canPayViaABA', () => {
+            const AUWithdrawalAccount = {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN};
+
+            it('should return true for an admin of an AUD workspace with an open AU withdrawal account', () => {
+                // Given an AUD workspace with an open AU withdrawal account, viewed by an admin
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy, true);
+
+                // Then they can, since the ABA file debits that withdrawal account
+                expect(result).toBe(true);
+            });
+
+            it.each([
+                ['the user is not an admin', {role: CONST.POLICY.ROLE.USER}],
+                ['the workspace is not AUD', {outputCurrency: CONST.CURRENCY.USD}],
+                ['the workspace has no AU withdrawal account', {reimbursement: {countries: {}}}],
+                ['the AU withdrawal account is not open', {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING}}}}],
+                [
+                    'the AU withdrawal account was set up through Corpay',
+                    {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, additionalData: {verifications: {corpay: {clientCode: 123}}}}}}},
+                ],
+            ])('should return false when %s', (_, overrides: Partial<Policy>) => {
+                // Given a workspace that only misses one of the requirements
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                    ...overrides,
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy, true);
+
+                // Then they can't, since only admins can pay via ABA, and the file needs an open AU withdrawal account
+                expect(result).toBe(false);
+            });
+        });
+
         describe('isPolicyPayer', () => {
             // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
             it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
@@ -6475,6 +6746,22 @@ describe('PolicyUtils', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
             });
 
+            it('uses an already computed category rules flag only for a migrated corporate policy', () => {
+                // Given callers that select only whether any category has rules, instead of passing the categories themselves
+
+                // When that flag is passed for policies in different Rules states
+                const migratedCorporateResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, true);
+                const rulesOffResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false}, undefined, true);
+                const teamResult = arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined}, undefined, true);
+                const noCategoryRulesResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, false);
+
+                // Then it only stands in for category rules on a migrated Control policy, so Rules turned off or a Collect policy stay off
+                expect(migratedCorporateResult).toBe(true);
+                expect(rulesOffResult).toBe(false);
+                expect(teamResult).toBe(false);
+                expect(noCategoryRulesResult).toBe(false);
+            });
+
             it('returns true for a team policy with areRulesEnabled explicitly true', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
             });
@@ -6934,10 +7221,52 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['cf-1']);
             });
 
+            it('uses only active Zoho Books vendors when Zoho Books and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Zoho Books, whose list also has a customer and an inactive vendor
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                        config: {isConfigured: true},
+                        data: {
+                            vendors: [
+                                {id: 'zb-1', name: 'Zoho Books vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                                {id: 'zb-2', name: 'Zoho Books customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                                {id: 'zb-3', name: 'Inactive Zoho Books vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                            ],
+                        },
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Zoho Books is the source, so the vendor field never shows the beta-gated Business Central list,
+                // and only active vendor-type records can be picked
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['zb-1']);
+            });
+
+            it('uses the Zoho Books empty state when the synced list has no vendors', () => {
+                // Given a configured Zoho Books workspace whose synced vendor list is empty
+                const translate = TestHelper.translateLocal;
+                const policy = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured: true}, data: {vendors: []}}})});
+
+                // When the vendor picker asks for its empty state
+                const emptyState = getVendorEmptyState(policy, translate);
+
+                // Then it points the admin to Zoho Books, where the vendors have to be added
+                expect(emptyState).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
+                });
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
-                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
                 });
             });
@@ -7046,9 +7375,39 @@ describe('PolicyUtils', () => {
             it('uses the existing DualEntry empty state', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildDualEntryPolicy([]), translate)).toEqual({
-                    title: translate('workspace.dualEntry.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
                 });
+            });
+        });
+
+        describe('Digits vendors', () => {
+            it('lists every cached vendor with an ID for the default vendor picker', () => {
+                // Given cached Digits vendors, including one without ledger activity yet and one Digits sent without an ID
+                const vendors: DigitsVendor[] = [
+                    {id: '{"issuer":"digits","id":"v-1"}', name: 'Acme Supplies', email: 'billing@acme.com', roles: ['EntityVendorRole']},
+                    {id: '{"issuer":"digits","id":"v-2"}', name: 'New Vendor', roles: []},
+                    {id: '', name: 'Missing ID', roles: ['EntityVendorRole']},
+                ];
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {digits: {data: {vendors}}}});
+
+                // When the default vendor picker reads the Digits vendors
+                const digitsVendors = getDigitsVendors(policy);
+
+                // Then every vendor with an ID is offered, since the import already left out parties that are only customers
+                expect(digitsVendors).toEqual([
+                    {id: '{"issuer":"digits","id":"v-1"}', name: 'Acme Supplies', currency: '', email: 'billing@acme.com'},
+                    {id: '{"issuer":"digits","id":"v-2"}', name: 'New Vendor', currency: '', email: ''},
+                ]);
+            });
+
+            it('returns no vendors before the first sync', () => {
+                // Given a workspace connected to Digits whose first sync hasn't saved any vendor
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {digits: {data: {}}}});
+
+                // When the default vendor picker reads the Digits vendors
+                // Then the list is empty, so the picker shows its empty state
+                expect(getDigitsVendors(policy)).toEqual([]);
             });
         });
 
@@ -7157,9 +7516,313 @@ describe('PolicyUtils', () => {
 
                 // Then localized messages specific to Certinia are returned
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.certinia.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
                 });
+            });
+        });
+
+        describe('QBD vendors', () => {
+            const QBD_VENDORS_UNSYNCED = Symbol('QBD_VENDORS_UNSYNCED');
+            const buildQBDPolicy = (
+                nonReimbursable: QBDNonReimbursableExportAccountType | undefined,
+                vendors: Array<{id: string; name: string; currency: string; email: string}> | typeof QBD_VENDORS_UNSYNCED = [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}],
+                {apiProvider = CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT}: {apiProvider?: string} = {},
+            ): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({apiProvider, export: {nonReimbursable}}),
+                            data: vendors === QBD_VENDORS_UNSYNCED ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('requires Codat apiProvider and CREDIT_CARD_CHARGE export to activate', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+
+                // When checking activation
+                // Then the predicate is true and the feature requires the vendor matching beta
+                expect(isQuickbooksDesktopVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(isQuickbooksDesktopVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it.each([
+                {label: 'missing connection', policy: createMock<Policy>({connections: {}})},
+                {label: 'missing config', policy: createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}}})},
+                {
+                    label: 'missing apiProvider',
+                    policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, undefined, {apiProvider: ''}),
+                },
+                {
+                    label: 'non-codat apiProvider',
+                    policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, undefined, {apiProvider: 'legacy-provider'}),
+                },
+                {label: 'CHECK export', policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK)},
+                {label: 'VENDOR_BILL export', policy: buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL)},
+                {label: 'absent nonReimbursable', policy: buildQBDPolicy(undefined)},
+            ])('is inactive for $label', ({policy}) => {
+                // Given a QBD workspace that does not meet all activation conditions
+                // When checking the predicate
+                // Then it returns false
+                expect(isQuickbooksDesktopVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns the eligible vendor list, excluding the Credit Card Misc. fallback and empty-id records', () => {
+                // Given a QBD workspace with a normal vendor, the reserved fallback, and a vendor with no ID
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''},
+                    {id: 'qbd-2', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                    {id: '', name: 'No ID Vendor', currency: 'USD', email: ''},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getMatchingVendors(policy);
+
+                // Then only the normal vendor is returned
+                expect(vendors).toEqual([{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+            });
+
+            it('distinguishes an unloaded list from a loaded-empty list', () => {
+                // Given an unloaded vendor list and a loaded empty vendor list
+                const unloadedPolicy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, QBD_VENDORS_UNSYNCED);
+                const emptyPolicy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, []);
+
+                // When checking list load status and reading matching vendors
+                // Then the unloaded list is not marked loaded, while an empty array is marked loaded
+                expect(isMatchingVendorListLoaded(unloadedPolicy)).toBe(false);
+                expect(isMatchingVendorListLoaded(emptyPolicy)).toBe(true);
+                expect(getMatchingVendors(unloadedPolicy)).toEqual([]);
+            });
+
+            it('returns loaded-empty when the only vendor is the reserved Credit Card Misc. record', () => {
+                // Given a QBD workspace whose only vendor is the reserved fallback
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When reading the eligible list
+                // Then it is loaded-empty, not unloaded — any stored ID triggers inactive-vendor
+                expect(isMatchingVendorListLoaded(policy)).toBe(true);
+                expect(getMatchingVendors(policy)).toEqual([]);
+            });
+
+            it('resolves a normal QBD vendor by ID from the eligible list', () => {
+                // Given a QBD workspace with a normal vendor
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+
+                // When resolving by ID through the matching path
+                // Then it resolves
+                expect(getMatchingVendorByID(policy, 'qbd-1')?.name).toBe('Acme QBD');
+            });
+
+            it('cannot resolve the reserved Credit Card Misc. record through getMatchingVendorByID (inactive-vendor violation path)', () => {
+                // Given a QBD workspace containing the reserved fallback vendor
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''},
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When attempting to resolve the reserved record through the matching path
+                // Then it is not found, triggering the inactive-vendor path
+                expect(getMatchingVendorByID(policy, 'ccm')).toBeUndefined();
+            });
+
+            it('can resolve the reserved Credit Card Misc. record through findVendorByID for historical display', () => {
+                // Given a QBD workspace with the reserved vendor in the raw list
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
+                    {id: 'ccm', name: 'Credit Card Misc.', currency: 'USD', email: ''},
+                ]);
+
+                // When looking up for display only (not for matching)
+                // Then the raw fallback resolves it for historical display
+                expect(findVendorByID(policy, 'ccm')?.name).toBe('Credit Card Misc.');
+            });
+
+            it('resolves a normal QBD vendor from raw list after the export mode is switched away (historical display)', () => {
+                // Given a QBD workspace that switched to CHECK mode (vendor matching no longer active)
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK, [{id: 'qbd-1', name: 'Acme QBD', currency: 'USD', email: ''}]);
+
+                // When looking up a vendor stored on a historical transaction
+                // Then findVendorByID resolves it from the raw list
+                expect(findVendorByID(policy, 'qbd-1')?.name).toBe('Acme QBD');
+            });
+
+            it('stays last in source order (loses to active Certinia)', () => {
+                // Given a workspace configured for both Certinia FFA and QBD vendor matching
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config: {isConfigured: true, hasPSA: false},
+                            data: {vendors: [{id: 'certinia-1', name: 'Certinia Vendor'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                            data: {vendors: [{id: 'qbd-1', name: 'QBD Vendor', currency: 'USD', email: ''}]},
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then Certinia takes precedence and QBD vendors are not returned
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+                expect(getMatchingVendors(policy).map((v) => v.id)).toEqual(['certinia-1']);
+            });
+
+            it('uses QBD-specific empty state copy', () => {
+                // Given a QBD workspace with an empty vendor list
+                const policy = buildQBDPolicy(CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, []);
+                const translate = TestHelper.translateLocal;
+
+                // When retrieving the vendor empty state
+                // Then QBD-specific messages are returned, not the accounts copy
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+        });
+
+        describe('Campfire vendors', () => {
+            const buildCampfirePolicy = (vendors: CampfireVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Campfire workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildCampfirePolicy([
+                    {id: 'cf-1', name: 'Active Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-3', name: 'Active Customer', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.CUSTOMER},
+                    {id: 'cf-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['cf-1', 'cf-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Campfire workspace with a vendor with no id
+                const policy = buildCampfirePolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                    {id: 'cf-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Campfire workspace with no synced vendor data
+                const policy = buildCampfirePolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getCampfireVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Campfire vendor with an email address
+                const policy = buildCampfirePolicy([{id: 'cf-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR, email: 'vendor@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getCampfireVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'cf-1', name: 'Vendor With Email', currency: '', email: 'vendor@example.com'}]);
+            });
+        });
+
+        describe('Zoho Books vendors', () => {
+            const buildZohoBooksPolicy = (vendors: ZohoBooksVendor[] | undefined, isConfigured = true): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {isConfigured},
+                            data: vendors === undefined ? undefined : {vendors},
+                        },
+                    },
+                });
+
+            it('returns only active vendor-type records, excluding customers and inactive vendors', () => {
+                // Given a Zoho Books workspace with a mix of active vendors, inactive vendors, and customers
+                const policy = buildZohoBooksPolicy([
+                    {id: 'zb-1', name: 'Active Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-2', name: 'Inactive Vendor', isActive: false, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-3', name: 'Active Customer', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.CUSTOMER},
+                    {id: 'zb-4', name: 'Active Vendor 2', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only active vendor-type records are returned
+                expect(vendors.map((v) => v.id)).toEqual(['zb-1', 'zb-4']);
+            });
+
+            it('excludes vendors with an empty id', () => {
+                // Given a Zoho Books workspace with a vendor with no id
+                const policy = buildZohoBooksPolicy([
+                    {id: '', name: 'No ID Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                    {id: 'zb-1', name: 'Valid Vendor', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR},
+                ]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then only the vendor with a valid id is returned
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Valid Vendor', currency: '', email: ''}]);
+            });
+
+            it('returns an empty array when the vendor list is undefined', () => {
+                // Given a Zoho Books workspace with no synced vendor data
+                const policy = buildZohoBooksPolicy(undefined);
+
+                // When reading the vendor list
+                // Then an empty array is returned (not undefined)
+                expect(getZohoBooksVendors(policy)).toEqual([]);
+            });
+
+            it('preserves the vendor email when present', () => {
+                // Given a Zoho Books vendor with an email address
+                const policy = buildZohoBooksPolicy([{id: 'zb-1', name: 'Vendor With Email', isActive: true, vendorType: CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR, email: 'ap@example.com'}]);
+
+                // When reading the eligible vendor list
+                const vendors = getZohoBooksVendors(policy);
+
+                // Then the email is preserved in the normalized shape
+                expect(vendors).toEqual([{id: 'zb-1', name: 'Vendor With Email', currency: '', email: 'ap@example.com'}]);
+            });
+
+            it('returns an empty array when policy has no Zoho Books connection', () => {
+                // Given a policy with no Zoho Books connection
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When reading the Zoho Books vendor list
+                // Then an empty array is returned
+                expect(getZohoBooksVendors(policy)).toEqual([]);
             });
         });
 
@@ -7276,6 +7939,25 @@ describe('PolicyUtils', () => {
                 expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
 
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Zoho Books vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Zoho Books workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Zoho Books vendor matching, because Zoho Books is GA and needs no beta
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
             it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
                 expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
@@ -7299,6 +7981,43 @@ describe('PolicyUtils', () => {
 
             it('returns false when policy is undefined', () => {
                 expect(hasVendorFeature(undefined, true)).toBe(false);
+            });
+
+            it('returns true for QBD Codat + CREDIT_CARD_CHARGE when beta is enabled', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                        },
+                    },
+                });
+
+                // When checking with the beta on and off
+                // Then QBD requires the beta
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+            });
+
+            it('returns false for QBD CHECK export even when beta is enabled', () => {
+                // Given a QBD workspace in CHECK export mode
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
+                        },
+                    },
+                });
+
+                // When checking with the beta on
+                // Then CHECK mode does not qualify
+                expect(hasVendorFeature(policy, true)).toBe(false);
             });
         });
 
@@ -7938,6 +8657,42 @@ describe('PolicyUtils', () => {
             it('returns undefined when policy is undefined', () => {
                 expect(getActiveVendorMatchingIntegration(undefined)).toBeUndefined();
             });
+
+            it('returns QBD when QBD Codat + CREDIT_CARD_CHARGE is active', () => {
+                // Given a QBD workspace correctly configured for vendor matching
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then QBD is returned
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBD);
+            });
+
+            it('returns undefined when QBD is connected but not in CREDIT_CARD_CHARGE mode', () => {
+                // Given a QBD workspace in CHECK mode
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK},
+                            }),
+                        },
+                    },
+                });
+
+                // When resolving the active integration
+                // Then no vendor matching integration is active
+                expect(getActiveVendorMatchingIntegration(policy)).toBeUndefined();
+            });
         });
 
         describe('getVendorEmptyState', () => {
@@ -7962,7 +8717,7 @@ describe('PolicyUtils', () => {
             it('returns Xero empty state copy when Xero is the active integration', () => {
                 const policy = buildXeroPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.xero.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.xero.noVendorsFoundDescription'),
                 });
             });
@@ -7970,8 +8725,80 @@ describe('PolicyUtils', () => {
             it('returns Rillet empty state copy when Rillet is the active integration', () => {
                 const policy = buildRilletPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.rillet.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns QBD empty state copy when QBD is the active integration', () => {
+                // Given a QBD workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                            config: createMock({
+                                apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                                export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            }),
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then QBD-specific messages are returned, not the accounts copy
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns Campfire empty state copy when Campfire is the active integration', () => {
+                // Given a Campfire workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {isConfigured: true},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then Campfire-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+                });
+            });
+
+            it('returns DualEntry empty state copy when DualEntry is the active integration', () => {
+                // Given a DualEntry workspace with an empty vendor list
+                const policy = createMock<Policy>({
+                    connections: {
+                        dualEntry: {
+                            config: {isConfigured: true, subsidiaryID: '10'},
+                            data: {vendors: []},
+                        },
+                    },
+                });
+
+                // When retrieving the vendor empty state
+                // Then DualEntry-specific messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+                });
+            });
+
+            it('falls back to QBO default copy when no supported integration is active', () => {
+                // Given a policy with no active vendor-matching integration
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When retrieving the vendor empty state
+                // Then the QBO default messages are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.qbo.noAccountsFound'),
+                    subtitle: translate('workspace.qbo.noAccountsFoundDescription', 'QuickBooks Online'),
                 });
             });
         });
@@ -8147,6 +8974,28 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Zoho Books default vendor', () => {
+                // Given a Zoho Books workspace with a default company card vendor
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'zoho_books_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                // When resolving the default vendor for Zoho Books
+                const defaultVendorID = getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
+
+                // Then it's the Zoho Books export default vendor, which unmatched expenses fall back to
+                expect(defaultVendorID).toBe('zoho_books_vendor_1');
             });
 
             it('resolves Business Central default vendor', () => {
@@ -8414,6 +9263,24 @@ describe('PolicyUtils', () => {
 
                 // Then the Business Central exporter is listed, so that member can export reports to Business Central
                 expect(exporters).toContain('exporter@example.com');
+            });
+
+            it('includes the Digits preferred exporter', () => {
+                // Given a workspace connected to Digits whose preferred exporter isn't an admin
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                            config: {export: {exporter: 'digits-exporter@example.com'}},
+                        },
+                    },
+                });
+
+                // When the workspace's connection exporters are read
+                const exporters = getConnectionExporters(policy);
+
+                // Then the Digits exporter is listed, so that member gets the Export button and the warnings when they leave the workspace
+                expect(exporters).toContain('digits-exporter@example.com');
             });
         });
     });

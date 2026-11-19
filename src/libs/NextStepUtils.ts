@@ -546,6 +546,8 @@ function getReportNextStep({
         currentUserAccountID,
         currentUserEmail,
         Object.values(transactions),
+        report,
+        policy,
     );
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
         return buildOptimisticNextStepForStrictPolicyRuleViolations();
@@ -688,7 +690,6 @@ export {
     buildNextStepMessage,
     getNextStepETA,
     buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     getUpcomingStepActionForNextStep,

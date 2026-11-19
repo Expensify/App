@@ -3,7 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
