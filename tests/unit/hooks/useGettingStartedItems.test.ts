@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -1913,7 +1913,25 @@ describe('useGettingStartedItems', () => {
                 const addFirstReceiptItem = result.current.items.find((item) => item.key === 'addFirstReceipt');
                 expect(addFirstReceiptItem?.route).toBeUndefined();
                 addFirstReceiptItem?.onPress?.();
-                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN);
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN));
+            });
+
+            it('should pass the draft IDs that exist when addFirstReceipt is pressed', async () => {
+                // Given a draft written after the item was captured, which only a read at press time sees
+                startMoneyRequest.mockClear();
+                await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
+                const {result} = renderHook(() => useGettingStartedItems());
+                const addFirstReceiptItem = result.current.items.find((item) => item.key === 'addFirstReceipt');
+                expect(addFirstReceiptItem?.onPress).toBeDefined();
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+                });
+
+                // When the user presses addFirstReceipt
+                addFirstReceiptItem?.onPress?.();
+
+                // Then that draft goes to startMoneyRequest, so starting a new flow still clears it
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1'], CONST.IOU.REQUEST_TYPE.SCAN));
             });
 
             it('should mark addFirstReceipt incomplete with no transactions and complete once a non-deleted transaction exists', async () => {
@@ -2141,7 +2159,7 @@ describe('useGettingStartedItems', () => {
                 // Then the step is incomplete and pressing it starts the create expense flow on the Scan tab
                 expect(addFirstReceiptItem?.isComplete).toBe(false);
                 addFirstReceiptItem?.onPress?.();
-                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN);
+                await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN));
 
                 // When the user creates an expense anywhere in the product
                 await addOwnExpense();

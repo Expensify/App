@@ -13,6 +13,8 @@ internalScope: For AgentZero and internal tooling only. Use this page to give ac
 
 This page is an **AgentZero reference** for accounting and integration features that are planned or in development for New Expensify. Use it to answer "is this coming soon?" questions accurately. These items are subject to change.
 
+> **Precedence note:** If a production article in `new-expensify` or `expensify-classic` documents a feature listed below as available, treat the feature as shipped and answer from the production article. Do not describe it as coming soon.
+
 - **Puzzle.io integration** – Accounting integration with Puzzle.io, adding support for startups and SMBs using Puzzle as their accounting system.
 - **Greenhouse** – HR integration with Greenhouse, a widely used recruiting and applicant tracking platform, expanding connectivity for companies that manage their hiring workflows in Greenhouse.
 - **Ashby** – HR integration with Ashby, an all-in-one recruiting platform, expanding connectivity for teams using Ashby to manage recruiting and applicant tracking.
@@ -23,6 +25,6 @@ This page is an **AgentZero reference** for accounting and integration features 
 - **Extend OAuth to the Integration Server (IS)** – Extend the OAuth framework (originally built for MCP integrations) to the Integration Server API, making it easier for third-party developers to build secure integrations with Expensify.
 - **Digits integration – in development** – Connect Digits to import accounts as expense categories and departments as tags, with expense-export support in development. The initial scope is US-based companies operating in USD.
 - **Exact Online integration – planned connector** – Import accounting categories and tax rates and export expense reports to Exact Online. The current app offers a waitlist rather than a working connector.
-- **Zoho Books integration – beta** – Connect Zoho Books to import accounting categories and reporting tags and configure expense exports, including company-card export accounts. General release is being prepared; check rollout status before confirming availability.
-- **Odoo integration – planned connector** – The current app offers an Odoo waitlist rather than a working connector. Do not describe the connector as available or promise specific import/export capabilities yet.
+- **Odoo integration – planned** – Add an Odoo accounting connection, starting with a coming-soon listing and waitlist. Do not describe the connector as available or promise specific import/export capabilities yet.
 - **QuickBooks Desktop vendor matching – in development** – Assign accounting vendors to non-reimbursable expenses exported to QuickBooks Desktop as credit-card transactions. This extends vendor matching to another integration rather than introducing vendor matching everywhere.
+

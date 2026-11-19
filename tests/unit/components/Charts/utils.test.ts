@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getSteppedLabelLayout,
     getSteppedYAxisTicks,
     getYAxisTickLayout,
     getCartesianPlotBounds,
@@ -1092,5 +1093,22 @@ describe('getAxisLabelStep', () => {
 
         // Then the smallest step is used and the point stays labeled
         expect(step).toBe(1);
+    });
+});
+
+describe('getSteppedLabelLayout', () => {
+    it('keeps bar labels horizontal and untruncated, labeling every Nth bar so they do not overlap', () => {
+        // Given 31 daily bars whose 40px labels are wider than the space between neighboring bars
+        const {barWidth, gap, edgeSpace} = getBarLayout(600, 31);
+        const pointXs = Array.from({length: 31}, (_, index) => edgeSpace + index * (barWidth + gap));
+
+        // When laying out the labels with the daily steps
+        const layout = getSteppedLabelLayout({labelWidths: Array<number>(31).fill(40), pointXs, steps: [1, 2, 7, 14], lineHeight: LINE_HEIGHT, ellipsisWidth: 0});
+
+        // Then the labels stay horizontal at full width on one line, and only every 7th bar is labeled because a smaller step would overlap
+        expect(layout.labelRotation).toBe(LABEL_ROTATIONS.HORIZONTAL);
+        expect(layout.labelSkipInterval).toBe(7);
+        expect(layout.regularLabelMaxWidth).toBe(Infinity);
+        expect(layout.xAxisLabelHeight).toBe(LINE_HEIGHT);
     });
 });
