@@ -39,6 +39,7 @@ import {
     getExpectedUnitForCountry,
     getGovernmentRateAmountForUnit,
     getNoGovernmentRateNote,
+    hasGovernmentRateForCurrency,
     isEuroDistanceRateCountry,
     isGovernmentRateCountry,
     isSharedGovernmentRateCurrency,
@@ -104,8 +105,8 @@ function CreateDistanceRatePage({
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const formRef = useRef<FormRef>(null);
 
-    // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
-    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
+    // A workspace has at most one government rate. The server turns auto-update off on some currency changes but keeps the copied rates.
+    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates || hasGovernmentRateForCurrency(policy);
     const isEuroWorkspace = isSharedGovernmentRateCurrency(currency);
 
     const [pickedKind, setPickedKind] = useState<DistanceRateKind>();

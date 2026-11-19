@@ -12,6 +12,7 @@ import {
     getGovernmentRateCountryPhraseTranslationKey,
     getGovernmentRateSeries,
     getNoGovernmentRateNote,
+    hasGovernmentRateForCurrency,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateCountry,
     isGovernmentRateUnmodified,
@@ -318,6 +319,56 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should return undefined for a missing country', () => {
             expect(getGovernmentRateCountryPhraseTranslationKey(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('hasGovernmentRateForCurrency', () => {
+        const buildPolicy = (outputCurrency: string, rate: Partial<Rate>): Policy => ({
+            ...createRandomPolicy(1),
+            outputCurrency,
+            shouldAutoUpdateGovernmentDistanceRates: false,
+            customUnits: {
+                unit1: {
+                    customUnitID: 'unit1',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                    rates: {rate1: {customUnitRateID: 'rate1', ...rate}},
+                },
+            },
+        });
+
+        it('finds a copied rate for the currency after auto-update was turned off', () => {
+            // Given a CAD workspace whose server turned auto-update off but kept the copied Canadian rate
+            const policy = buildPolicy(CONST.CURRENCY.CAD, {attributes: {governmentRate: {sourceRateID: 'CA_2026-01-01'}}});
+
+            // When we check for a government rate
+            // Then the copied rate counts, so Add rate doesn't offer a second one
+            expect(hasGovernmentRateForCurrency(policy)).toBe(true);
+        });
+
+        it('matches any supported euro country for an EUR workspace', () => {
+            // Given an EUR workspace with a copied German rate
+            const policy = buildPolicy(CONST.CURRENCY.EUR, {attributes: {governmentRate: {sourceRateID: 'DE_2026-01-01'}}});
+
+            // When we check for a government rate
+            // Then it counts, because an EUR workspace has one government rate whichever country it came from
+            expect(hasGovernmentRateForCurrency(policy)).toBe(true);
+        });
+
+        it('ignores rates from another country, custom rates and rates being deleted', () => {
+            // Given a CAD workspace holding a US rate from a past currency, a custom rate and a Canadian rate being deleted
+            const usRatePolicy = buildPolicy(CONST.CURRENCY.CAD, {attributes: {governmentRate: {sourceRateID: 'US_2026-01-01'}}});
+            const customRatePolicy = buildPolicy(CONST.CURRENCY.CAD, {name: 'Custom'});
+            const deletedRatePolicy = buildPolicy(CONST.CURRENCY.CAD, {
+                attributes: {governmentRate: {sourceRateID: 'CA_2026-01-01'}},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+
+            // When we check for a government rate
+            // Then none count, since none is a usable government rate for the workspace currency
+            expect(hasGovernmentRateForCurrency(usRatePolicy)).toBe(false);
+            expect(hasGovernmentRateForCurrency(customRatePolicy)).toBe(false);
+            expect(hasGovernmentRateForCurrency(deletedRatePolicy)).toBe(false);
         });
     });
 
