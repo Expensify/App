@@ -66,4 +66,4 @@ function getNextNewTransactionsDiff(previous: NewTransactionsDiff, {transactions
 
 export default getNextNewTransactionsDiff;
 export {EMPTY_TRANSACTION_IDS, getInitialNewTransactionsDiff};
-export type {NewTransactionsDiff, NewTransactionsDiffInput};
+export type {NewTransactionsDiff};
