@@ -8,7 +8,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import type {InsightsDetailsQuery} from '@pages/Insights/details/buildInsightsDetailsQuery';
 import {INSIGHTS_DETAILS_SECTION_STATE} from '@pages/Insights/details/insightsDetailsSectionState';
 import useInsightsTopExpenses from '@pages/Insights/details/useInsightsTopExpenses';
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
@@ -34,15 +33,8 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 const QUERY = 'type:expense view:table date>=2026-01-01 date<=2026-03-31';
 const TOP_EXPENSES_QUERY_JSON = buildTopExpensesQueryJSON(QUERY);
 const SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.SNAPSHOT}${TOP_EXPENSES_QUERY_JSON?.hash}` as const;
-const DETAILS_QUERY: InsightsDetailsQuery = {
-    jsonQuery: '{}',
-    hash: 1,
-    topExpensesSnapshotHash: TOP_EXPENSES_QUERY_JSON?.hash ?? 0,
-    period: {start: '2026-01-01', end: '2026-03-31'},
-    periodGroupBy: CONST.SEARCH.GROUP_BY.QUARTER,
-    isPeriodInProgress: false,
-};
-const DETAILS_KEY = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${DETAILS_QUERY.hash}` as const;
+const DETAILS_HASH = 1;
+const DETAILS_KEY = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${DETAILS_HASH}` as const;
 const ACCOUNT_ID = 1;
 
 /** Builds a snapshot with one expense report per expense, the expense with ID `n` costing `n` dollars. */
@@ -99,8 +91,8 @@ function buildSearchMetadata() {
     };
 }
 
-function renderTopExpenses(query: string) {
-    return renderHook((props: {query: string}) => useInsightsTopExpenses(props.query, DETAILS_QUERY), {
+function renderTopExpenses(query: string, detailsHash: number | undefined = DETAILS_HASH) {
+    return renderHook((props: {query: string}) => useInsightsTopExpenses(props.query, TOP_EXPENSES_QUERY_JSON?.hash ?? 0, detailsHash), {
         initialProps: {query},
         wrapper: ({children}) => <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>{children}</ComposeProviders>,
     });
@@ -182,6 +174,18 @@ describe('useInsightsTopExpenses', () => {
 
             // Then it shows the error state
             expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.ERROR);
+        });
+
+        it('is stale when the Search fallback got no response', async () => {
+            // Given a graph GetInsightsDetails doesn't support, whose Top expenses Search failed without reaching the server
+            await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});
+
+            // When the panel renders without a Details entry
+            const {result} = renderTopExpenses(QUERY, undefined);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it reads the failure from the snapshot and asks the user to refresh
+            expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.STALE);
         });
 
         it('is offline when offline and nothing is stored for the query', async () => {

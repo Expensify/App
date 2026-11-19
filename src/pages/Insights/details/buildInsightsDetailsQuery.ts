@@ -20,6 +20,14 @@ import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 /** Sections of the panel this request loads */
 const INSIGHTS_DETAILS_SECTIONS = ['summary', 'topExpenses'];
 
+/** Graphs GetInsightsDetails answers for, the backend rejects the rest */
+const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
+    CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
+    CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
+    CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
+    CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
+]);
+
 type InsightsDetailsQuery = {
     /** Request payload for GetInsightsDetails */
     jsonQuery: string;
@@ -89,9 +97,12 @@ function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGrou
     return {start: range.start > period.start ? range.start : period.start, end: range.end};
 }
 
-/** Builds the request for a Details panel's sections, or nothing when its period can't be resolved. */
+/** Builds the request for a Details panel's sections, or nothing when the backend doesn't support the graph or the period can't be resolved. */
 function buildInsightsDetailsQuery(params: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
     const {graphKey, filters, itemGroupBy, itemKey, topExpensesSnapshotHash} = params;
+    if (!SUPPORTED_GRAPH_KEYS.has(graphKey)) {
+        return undefined;
+    }
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
     const period = getSummarizedPeriod(params, periodGroupBy);
     const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, filters);

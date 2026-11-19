@@ -1,7 +1,10 @@
+import type {SearchQueryJSON} from '@components/Search/types';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {getInsightsDetails} from '@libs/actions/Insights';
+import {search} from '@libs/actions/Search';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -10,24 +13,30 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type {InsightsDetailsQuery} from './buildInsightsDetailsQuery';
 
-/** Requests the Details panel's sections and returns a function that requests them again. */
-function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined): () => void {
+/** Requests the Details panel's sections and returns a function that requests them again. Without a Details request, only Top expenses are loaded, through Search. */
+function useRequestInsightsDetails(query: InsightsDetailsQuery | undefined, topExpensesQueryJSON: Readonly<SearchQueryJSON> | undefined): () => void {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const request = () => {
-        if (!query || isOffline) {
+        if (isOffline) {
             return;
         }
-        getInsightsDetails(query.hash, query.jsonQuery, query.topExpensesSnapshotHash);
+        if (query) {
+            getInsightsDetails(query.hash, query.jsonQuery, query.topExpensesSnapshotHash);
+            return;
+        }
+        if (topExpensesQueryJSON) {
+            search({queryJSON: topExpensesQueryJSON, searchKey: undefined, offset: 0, isLoading: false});
+        }
     };
 
     const onRefreshKeyChange = useEffectEvent(request);
 
     // An expense edit moves the spend signature and can change the panel's numbers and expenses, so they're fetched again.
     // A change made while an expense is open on top waits until the user is back on the panel.
-    const refreshKey = [query?.hash, query?.topExpensesSnapshotHash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
+    const refreshKey = [query?.hash, topExpensesQueryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
     const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (!isFocused || refreshKey === lastRefreshKeyRef.current) {

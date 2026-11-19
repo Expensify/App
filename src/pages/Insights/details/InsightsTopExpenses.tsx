@@ -40,8 +40,6 @@ import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Polic
 import React from 'react';
 import {View} from 'react-native';
 
-import type {InsightsDetailsQuery} from './buildInsightsDetailsQuery';
-
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import useInsightsTopExpenses from './useInsightsTopExpenses';
@@ -50,20 +48,23 @@ type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
     query: SearchQueryString;
 
-    /** Request for the panel, which stores the expenses under the query's snapshot */
-    detailsQuery: InsightsDetailsQuery;
+    /** Hash of the snapshot the expenses are stored under */
+    snapshotHash: number;
+
+    /** Hash of the panel's GetInsightsDetails entry, absent when the expenses come from Search */
+    detailsHash: number | undefined;
 
     /** Requests the panel's sections again */
     onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, detailsQuery, onRetry}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({query, snapshotHash, detailsHash, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, detailsQuery);
+    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash, detailsHash);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

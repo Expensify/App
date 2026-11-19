@@ -70,12 +70,13 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
-    const topExpensesSnapshotHash = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery)?.hash : undefined;
+    const topExpensesQueryJSON = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery) : undefined;
+    const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
     const detailsQuery =
         chartSpec && topExpensesSnapshotHash !== undefined
             ? buildInsightsDetailsQuery({graphKey: chartSpec.graphKey, filters, itemGroupBy: chartSpec.groupBy, itemKey, periodEnd, topExpensesSnapshotHash})
             : undefined;
-    const requestDetails = useRequestInsightsDetails(detailsQuery);
+    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -110,19 +111,20 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         <Text variant="h1">{item.title}</Text>
                     </View>
                     {!!detailsQuery && (
-                        <>
-                            <InsightsSummary
-                                query={detailsQuery}
-                                graphKey={chartSpec.graphKey}
-                                currency={filters.groupCurrency}
-                                onRetry={requestDetails}
-                            />
-                            <InsightsTopExpenses
-                                query={drillDownQuery}
-                                detailsQuery={detailsQuery}
-                                onRetry={requestDetails}
-                            />
-                        </>
+                        <InsightsSummary
+                            query={detailsQuery}
+                            graphKey={chartSpec.graphKey}
+                            currency={filters.groupCurrency}
+                            onRetry={requestDetails}
+                        />
+                    )}
+                    {topExpensesSnapshotHash !== undefined && (
+                        <InsightsTopExpenses
+                            query={drillDownQuery}
+                            snapshotHash={topExpensesSnapshotHash}
+                            detailsHash={detailsQuery?.hash}
+                            onRetry={requestDetails}
+                        />
                     )}
                 </ScrollView>
             )}

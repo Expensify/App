@@ -66,4 +66,20 @@ describe('buildInsightsDetailsQuery', () => {
         expect(again?.hash).toBe(first?.hash);
         expect(other?.hash).not.toBe(first?.hash);
     });
+
+    it('builds nothing for a graph GetInsightsDetails rejects', () => {
+        // Given a tag on Top tags, which the backend answers with "Invalid Insights Details graph or item"
+        // When its Details panel builds the request
+        const query = buildInsightsDetailsQuery({
+            graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+            filters: FILTERS,
+            itemGroupBy: CONST.SEARCH.GROUP_BY.TAG,
+            itemKey: 'Engineering',
+            periodEnd: undefined,
+            topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
+        });
+
+        // Then there's no request, so the panel loads its Top expenses through Search instead
+        expect(query).toBeUndefined();
+    });
 });
