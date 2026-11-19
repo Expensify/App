@@ -112,10 +112,12 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     default: () => mockRootNavigationState(),
 }));
 
+let mockExportedToFilterOptions: string[] = [];
+
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
-        exportedToFilterOptions: [],
+        exportedToFilterOptions: mockExportedToFilterOptions,
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -257,6 +259,7 @@ describe('SearchAutocompleteList', () => {
     });
 
     beforeEach(() => {
+        mockExportedToFilterOptions = [];
         jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -288,6 +291,28 @@ describe('SearchAutocompleteList', () => {
         render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
 
         expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it.each([
+        ['exported-to:Bud', 'exported-to-template:Budget'],
+        ['exported-to:Net', 'exported-to-template:NetSuite'],
+        ['exported-to:template:Bud', 'exported-to-template:template:Budget'],
+        ['exported-to-template:template:Bud', 'exported-to-template:template:Budget'],
+        ['exported-to:Net', 'exported-to:NetSuite'],
+    ])('inserts the export query shown in the suggestion for %s: %s', async (input, expected) => {
+        // Given integration and template choices, including a literal template: prefix
+        mockExportedToFilterOptions = ['NetSuite', 'template:NetSuite', 'template:Budget', 'template:template:Budget'];
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        // When choosing the suggested query shown for a partially typed destination
+        fireEvent.changeText(screen.getByTestId('search-autocomplete-text-input'), input);
+        await flushAllUpdates();
+        fireEvent.press(screen.getByText(expected));
+        await flushAllUpdates();
+
+        // Then the inserted query matches the preview, preserving the complete template name
+        expect(screen.getByTestId('search-autocomplete-text-input')).toHaveProp('value', `${expected}\u00A0`);
     });
 
     it('asks for the option list with the config shared with the SearchRouter warm-up', () => {
