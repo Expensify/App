@@ -4199,6 +4199,23 @@ describe('SearchQueryUtils', () => {
         const mockReports = {};
         const currentUserAccountID = 12345;
 
+        it('preserves template identity in editable Search syntax', () => {
+            expect(
+                getFilterDisplayValue({
+                    filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                    filterValue: 'template:NetSuite',
+                    personalDetails: {},
+                    reports: {},
+                    cardList: {},
+                    cardFeeds: {},
+                    policies: {},
+                    currentUserAccountID,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                }),
+            ).toBe('template:NetSuite');
+        });
+
         it('should return clean phone number without @expensify.sms for SMS login users', () => {
             const personalDetails = {
                 '99999': {

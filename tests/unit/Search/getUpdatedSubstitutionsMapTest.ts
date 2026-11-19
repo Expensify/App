@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+
 import {getUpdatedSubstitutionsMap} from '@src/components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 
 describe('getUpdatedSubstitutionsMap should return updated and cleaned substitutions map', () => {
@@ -68,5 +70,16 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
             'policyID:Test Workspace': 'policyA',
             'policyID:Test Workspace:1': 'policyB',
         });
+    });
+});
+
+describe('template export queries', () => {
+    it.each([
+        ['exported-to:template:NetSuite -exported-to:NetSuite', '-exported-to:NetSuite'],
+        ['exported-to:NetSuite -exported-to:template:NetSuite', '-exported-to:template:NetSuite'],
+    ])('keeps the remaining destination unchanged when editing %s', (originalQuery, editedQuery) => {
+        expect(getQueryWithSubstitutions(originalQuery, {})).toBe(originalQuery);
+        const substitutions = getUpdatedSubstitutionsMap(editedQuery, {});
+        expect(getQueryWithSubstitutions(editedQuery, substitutions)).toBe(editedQuery);
     });
 });

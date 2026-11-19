@@ -94,6 +94,25 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.exportedToFilterOptions).toContain(customName);
     });
 
+    it('keeps an accounting destination and a same-named template separately selectable', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
+        mockGetExportTemplates.mockReturnValue({
+            customTemplates: [
+                createMock<ExportTemplate>({
+                    templateName: 'custom-netsuite',
+                    name: 'NetSuite',
+                    type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                }),
+            ],
+            defaultTemplates: [],
+        });
+
+        const {result} = renderHook(() => useExportedToFilterOptions());
+
+        expect(result.current.exportedToFilterOptions).toContain('NetSuite');
+        expect(result.current.exportedToFilterOptions).toContain('template:NetSuite');
+    });
+
     it('builds templates once without in-app layouts, regardless of how many policies exist', async () => {
         // Given several policies with in-app export layouts, which can't be identified in the exported-to filter
         const exportLayouts = {layout: {name: 'Custom Export Format from OD'}};

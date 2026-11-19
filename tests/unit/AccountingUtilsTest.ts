@@ -1,6 +1,8 @@
 import {
     getAccountingIntegrationDisplayName,
     getExportLabelForConnection,
+    getExportTemplateSearchValue,
+    getExportedToDisplayName,
     getExportLabelsForConnection,
     getQBORefreshTokenExpiryDate,
     getQBORefreshTokenExpiryStatus,
@@ -192,5 +194,32 @@ describe('AccountingUtils', () => {
                 ]),
             ).toEqual([CONST.EXPORT_LABELS.QBO, CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE]);
         });
+    });
+});
+
+describe('getExportTemplateSearchValue', () => {
+    it.each([
+        ['NetSuite', 'template:NetSuite'],
+        ['Sage Intacct', 'template:Sage Intacct'],
+        ['Intacct', 'template:Intacct'],
+        ['Certinia', 'template:Certinia'],
+        ['NetSuite QuickStart', 'template:NetSuite QuickStart'],
+        ['Sage Accounting', 'template:Sage Accounting'],
+        ['Odoo', 'template:Odoo'],
+        ['My export', 'My export'],
+        ['template:NetSuite', 'template:template:NetSuite'],
+    ])('keeps template %s distinct as %s', (label, expected) => {
+        expect(getExportTemplateSearchValue(label)).toBe(expected);
+    });
+});
+
+describe('getExportedToDisplayName', () => {
+    it.each([
+        ['NetSuite', 'NetSuite'],
+        ['template:NetSuite', 'NetSuite'],
+        ['My export', 'My export'],
+        ['template:template:NetSuite', 'template:NetSuite'],
+    ])('keeps %s displayed as %s', (value, expected) => {
+        expect(getExportedToDisplayName(value)).toBe(expected);
     });
 });
