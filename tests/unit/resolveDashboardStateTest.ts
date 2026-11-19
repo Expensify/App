@@ -2,7 +2,9 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from '@pages/Insights/resolveDashboardState';
+import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import buildInsightsJsonQuery from '@pages/Insights/insightsQueries';
+import {getChartComparison, getDashboardState, INSIGHTS_DASHBOARD_STATE} from '@pages/Insights/resolveDashboardState';
 import type {InsightsDashboardChart} from '@pages/Insights/resolveDashboardState';
 
 import CONST from '@src/CONST';
@@ -46,6 +48,49 @@ function makeCharts(headline: SearchResults | undefined, supporting: SearchResul
         {chart: SUPPORTING_CHART, snapshot: supporting, queryJSON: QUERY_JSON},
     ];
 }
+
+describe('getChartComparison', () => {
+    it('keeps the averages of unchanged Compliance charts while an uncached stage loads', () => {
+        // Given an already loaded Compliance dashboard with both charts set to Submitters
+        const dashboardID = CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
+        const {supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        const filters: InsightsFilters = {date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}, groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', policyIDs: []};
+        const previousQuery = buildInsightsJsonQuery(dashboardID, filters, supportingCharts);
+        if (!previousQuery) {
+            throw new Error('Expected a Compliance query');
+        }
+        const previousDashboard: InsightsDashboard = {
+            ...LOADED_DASHBOARD,
+            graphs: Object.fromEntries(
+                [previousQuery.headlineChart, ...previousQuery.supportingCharts].map(({chart, queryJSON}) => [chart.graphKey, {snapshotHash: queryJSON?.hash, averageCount: 3}]),
+            ),
+        };
+
+        // When only Violations over time switches to Approvers and its request is still pending
+        const query = buildInsightsJsonQuery(dashboardID, filters, supportingCharts, {[CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME]: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED});
+        if (!query) {
+            throw new Error('Expected a Compliance query');
+        }
+
+        // Then the new dashboard key leaves the scope unchanged, and only the changed chart waits for a new average
+        expect(query.hash).not.toBe(previousQuery.hash);
+        expect(query.filterHash).toBe(previousQuery.filterHash);
+        expect(getChartComparison(query.headlineChart, undefined, previousDashboard)).toMatchObject({isDashboardLoaded: false, average: {count: undefined}});
+        for (const chart of query.supportingCharts) {
+            expect(getChartComparison(chart, undefined, previousDashboard)).toMatchObject({isDashboardLoaded: true, average: {count: 3}});
+        }
+    });
+
+    it('prefers the latest average once the dashboard responds', () => {
+        // Given a cached comparison for a chart and a new response for the same chart
+        const chart = {chart: HEADLINE_CHART, queryJSON: QUERY_JSON};
+        const previousDashboard = {...LOADED_DASHBOARD, graphs: {[HEADLINE_CHART.graphKey]: {snapshotHash: QUERY_JSON?.hash, averageAmount: 1000}}};
+        const dashboard = {...LOADED_DASHBOARD, graphs: {[HEADLINE_CHART.graphKey]: {snapshotHash: QUERY_JSON?.hash, averageAmount: 2000}}};
+
+        // When the comparison is resolved, then the new response replaces the cached values
+        expect(getChartComparison(chart, dashboard, previousDashboard)).toMatchObject({isDashboardLoaded: true, average: {amount: 2000}});
+    });
+});
 
 describe('getDashboardState', () => {
     it('says the user is offline while no response has landed', () => {

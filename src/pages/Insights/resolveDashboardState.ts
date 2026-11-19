@@ -43,6 +43,27 @@ function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean 
     return !!dashboard?.inputQuery;
 }
 
+/** Average comparison uses the dashboard response even when the chart snapshot is already cached. */
+function getChartComparison(
+    {chart, queryJSON}: InsightsChartQuery,
+    dashboard: OnyxEntry<InsightsDashboard>,
+    previousDashboard: OnyxEntry<InsightsDashboard>,
+): Pick<InsightsDashboardChart, 'average' | 'isDashboardLoaded'> {
+    const hasResponse = hasDashboardResponse(dashboard);
+    const previousGraph = previousDashboard?.graphs?.[chart.graphKey];
+    // The selected stage changes the chart hash, so its old average must not be used.
+    const matchingGraph = queryJSON && previousGraph?.snapshotHash === queryJSON.hash ? previousGraph : undefined;
+    const graph = hasResponse ? dashboard?.graphs?.[chart.graphKey] : matchingGraph;
+    return {
+        average: {
+            [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
+            [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
+            [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
+        },
+        isDashboardLoaded: hasResponse || !!matchingGraph,
+    };
+}
+
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
 function getDashboardState(
     dashboard: OnyxEntry<InsightsDashboard>,
@@ -93,5 +114,5 @@ function getDashboardState(
     return INSIGHTS_DASHBOARD_STATE.READY;
 }
 
-export {INSIGHTS_DASHBOARD_STATE, getDashboardState, hasDashboardResponse};
+export {INSIGHTS_DASHBOARD_STATE, getChartComparison, getDashboardState, hasDashboardResponse};
 export type {InsightsDashboardState, InsightsDashboardChart};

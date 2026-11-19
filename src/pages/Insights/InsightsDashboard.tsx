@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -67,7 +68,7 @@ import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
 import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
-import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getChartComparison, getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import InsightsUpsellState from './states/InsightsUpsellState';
@@ -401,6 +402,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     };
     // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
     const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
+    const [previousStageRequest, setPreviousStageRequest] = useState<{scope: string; hash: number; aiHash?: number}>();
+    const [initialWorkspaceAccess, setInitialWorkspaceAccess] = useState<string | null>();
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
@@ -410,12 +413,6 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
     const hash = query?.hash;
     const snapshotHashes = query?.snapshotHashes.join(',');
-    const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
-        if (isExporting) {
-            return;
-        }
-        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
-    };
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
@@ -442,6 +439,40 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const workspaceAccess =
+        dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE && arePoliciesLoaded && login && isDashboardPolicyEligible
+            ? JSON.stringify([
+                  login,
+                  getPoliciesInScope(policies, [])
+                      .filter((policy) => isDashboardPolicyEligible(policy, login))
+                      .map(({id}) => id)
+                      .sort(),
+              ])
+            : undefined;
+
+    // The All Workspaces cache key can survive a role change. Once access changes, do not reuse another stage's response until the page remounts.
+    if (workspaceAccess !== undefined && initialWorkspaceAccess !== null && workspaceAccess !== initialWorkspaceAccess && (query || initialWorkspaceAccess !== undefined)) {
+        setInitialWorkspaceAccess(initialWorkspaceAccess === undefined ? workspaceAccess : null);
+    }
+
+    const stageScope = query && workspaceAccess !== undefined && workspaceAccess === initialWorkspaceAccess ? JSON.stringify([query.filterHash, queryGroupBy, workspaceAccess]) : undefined;
+    const previousRequest = previousStageRequest?.scope === stageScope ? previousStageRequest : undefined;
+    const [previousDashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${previousRequest?.hash}`);
+    const previousAIHash = previousRequest?.aiHash;
+    const [previousAIDashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${previousAIHash === previousRequest?.hash ? undefined : previousAIHash}`);
+    const previousAIInsights = previousRequest && (previousAIHash === previousRequest.hash ? previousDashboard?.aiInsights : previousAIDashboard?.aiInsights);
+
+    const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
+        if (isExporting) {
+            return;
+        }
+        // Keep the last response if the user switches again before the new request finishes.
+        if (stageScope && hash !== undefined && hasDashboardResponse(dashboard) && isEmptyObject(dashboard?.errors)) {
+            // The cards cover both stages and can arrive after the charts, so remember their source separately.
+            setPreviousStageRequest({scope: stageScope, hash, aiHash: dashboard?.aiInsights === undefined ? previousAIHash : hash});
+        }
+        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+    };
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
@@ -454,22 +485,14 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
-    const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
-        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
-        return {
-            ...chartQuery,
-            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
-            previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-            averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
-            average: {
-                [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
-                [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
-                [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
-            },
-            isDashboardLoaded: hasDashboardResponse(dashboard),
-            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
-        };
-    });
+    const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => ({
+        ...chartQuery,
+        snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+        ...getChartComparison(chartQuery, dashboard, previousRequest ? previousDashboard : undefined),
+        stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
+    }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);
 
@@ -553,7 +576,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         <InsightsDashboardContent
                             dashboardID={dashboardID}
                             state={state}
-                            aiInsights={dashboard?.aiInsights}
+                            aiInsights={dashboard?.aiInsights ?? previousAIInsights}
                             insightsScope={{
                                 searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
                                 policyIDs: filters.policyIDs,

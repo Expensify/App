@@ -197,6 +197,9 @@ type InsightsQuery = {
     /** Hash of the dashboard-wide query and the picked violation stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
     hash: number;
 
+    /** Identifies the dashboard filters without the chart-specific violation stages. */
+    filterHash: number;
+
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
 
@@ -260,6 +263,7 @@ function buildInsightsJsonQuery(
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash,
+        filterHash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
         headlineChart,
         supportingCharts,
