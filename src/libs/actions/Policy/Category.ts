@@ -1984,7 +1984,14 @@ function setPolicyMemberCategoryVisibility(
  *
  * Deselecting every member disables the categories instead, since a category nobody can use shouldn't stay enabled.
  */
-function setPolicyCategoryMemberVisibility(policyID: string, categoryNames: string[], selectedAccountIDs: number[], deselectedAccountIDs: number[], policyCategories: PolicyCategories) {
+function setPolicyCategoryMemberVisibility(
+    policyID: string,
+    categoryNames: string[],
+    selectedAccountIDs: number[],
+    deselectedAccountIDs: number[],
+    policyData: PolicyData,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+) {
     const isEveryMemberSelected = deselectedAccountIDs.length === 0;
     const isEveryMemberDeselected = selectedAccountIDs.length === 0;
     const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
@@ -2001,7 +2008,7 @@ function setPolicyCategoryMemberVisibility(policyID: string, categoryNames: stri
           };
 
     for (const categoryName of categoryNames) {
-        const category = policyCategories[categoryName];
+        const category = policyData.categories[categoryName];
         const previousVisibleTo = category?.visibleTo ?? null;
 
         if (isEveryMemberDeselected) {
@@ -2073,6 +2080,14 @@ function setPolicyCategoryMemberVisibility(policyID: string, categoryNames: stri
             },
         ],
     };
+
+    if (isEveryMemberDeselected) {
+        // Disabling here affects expenses the same way the Enable toggle does, so they get the same auto-selected
+        // category and violations offline as with setWorkspaceCategoryEnabled.
+        const disabledCategories = Object.fromEntries(categoryNames.map((categoryName) => [categoryName, {enabled: false}]));
+        const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, disabledCategories);
+        pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, disabledCategories, {}, autoSelections);
+    }
 
     const parameters: SetPolicyCategoryMemberVisibilityParams = {
         policyID,

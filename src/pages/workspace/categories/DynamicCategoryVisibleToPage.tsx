@@ -15,10 +15,10 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
-import useOnyx from '@hooks/useOnyx';
 import useOverridableSelection from '@hooks/useOverridableSelection';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +38,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -59,8 +58,9 @@ function DynamicCategoryVisibleToPage({
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const policy = usePolicy(policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const policyData = usePolicyData(policyID);
+    const {policy, categories: policyCategories} = policyData;
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
     // The modal hook decides who counts as a current member, so the rows here match the members it checks.
@@ -68,7 +68,7 @@ function DynamicCategoryVisibleToPage({
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
 
-    const policyCategory = policyCategories?.[categoryName];
+    const policyCategory = policyCategories[categoryName];
     // The server rejects visibility changes on a disabled category. A pending enabled change means this page just disabled
     // the category by unchecking every member, so the page stays as it is while it closes instead of flashing not found.
     const isCategoryDisabled = !!policyCategory && !policyCategory.enabled && !policyCategory.pendingFields?.enabled;
@@ -150,7 +150,7 @@ function DynamicCategoryVisibleToPage({
             return;
         }
 
-        setPolicyCategoryMemberVisibility(policyID, [categoryName], newSelectedAccountIDs, deselectedAccountIDs, policyCategories ?? {});
+        setPolicyCategoryMemberVisibility(policyID, [categoryName], newSelectedAccountIDs, deselectedAccountIDs, policyData, isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING));
         Navigation.goBack(categorySettingsBackPath);
     };
 

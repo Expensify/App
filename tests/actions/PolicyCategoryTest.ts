@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import usePolicyData from '@hooks/usePolicyData';
+import type PolicyData from '@hooks/usePolicyData/types';
 
 import {
     clearPolicyMemberCategoryVisibilityError,
@@ -29,7 +30,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -39,6 +40,8 @@ import type {MockFetch} from '../utils/TestHelper';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
+import {createExpenseReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -196,6 +199,15 @@ describe('actions/PolicyCategory', () => {
     describe('setPolicyCategoryMemberVisibility', () => {
         const policyID = 'policyID';
 
+        /** Builds the policy data the page passes in, with expenses only when a test needs them */
+        const buildPolicyData = (categories: PolicyCategories, reports: Report[] = [], transactionsAndViolations: PolicyData['transactionsAndViolations'] = {}): PolicyData => ({
+            policy: {...createRandomPolicy(0), id: policyID, type: CONST.POLICY.TYPE.CORPORATE, areCategoriesEnabled: true},
+            categories,
+            tags: {},
+            reports,
+            transactionsAndViolations,
+        });
+
         it('restricts a category open to everyone to the selected members and clears the pending field on success', async () => {
             // Given a category every member can use
             mockFetch?.pause?.();
@@ -206,7 +218,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin unchecks member 3 on the Fees "Visible to" page
-            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2], [3], policyCategories);
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2], [3], buildPolicyData(policyCategories), false);
             await waitForBatchedUpdates();
 
             // Then only the checked members can use Fees, the change is pending, and Travel is left for the server's MERGE
@@ -233,7 +245,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin swaps member 2 for member 3
-            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], policyCategories);
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], buildPolicyData(policyCategories), false);
             await waitForBatchedUpdates();
 
             // Then visibleTo is merged rather than replaced, so member 2's key has to be deleted for them to lose access
@@ -251,7 +263,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin checks every member
-            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2, 3], [], policyCategories);
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2, 3], [], buildPolicyData(policyCategories), false);
             await waitForBatchedUpdates();
 
             // Then visibleTo is cleared, which means everyone, rather than listing every member
@@ -269,7 +281,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin unchecks every member
-            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], policyCategories);
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], buildPolicyData(policyCategories), false);
             await waitForBatchedUpdates();
 
             // Then the category is disabled instead of left enabled for nobody, matching what the server does
@@ -288,7 +300,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin swaps member 2 for member 3
-            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], policyCategories);
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], buildPolicyData(policyCategories), false);
             await waitForBatchedUpdates();
 
             // Then member 3 is removed again, member 2 is back, and the category shows the error
@@ -297,6 +309,30 @@ describe('actions/PolicyCategory', () => {
             expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBeFalsy();
             expect(updatedCategories?.Fees?.errors).toBeTruthy();
             mockFetch?.succeed?.();
+        });
+
+        it('flags expenses on the category when unchecking every member disables it, like the Enable toggle does', async () => {
+            // Given an expense categorized as Fees on a report in the workspace
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+            const report: Report = {...createExpenseReport(1), policyID};
+            const transaction = {...createRandomTransaction(1), reportID: report.reportID, category: 'Fees'};
+            const policyData = buildPolicyData(policyCategories, [report], {
+                [report.reportID]: {transactions: {[transaction.transactionID]: transaction}, violations: {}},
+            });
+
+            // When the admin unchecks every member on the Fees "Visible to" page
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], policyData, false);
+            await waitForBatchedUpdates();
+
+            // Then the expense is flagged right away, since Fees is now disabled, without waiting for the server
+            const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(violations).toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY})]));
+            await mockFetch?.resume?.();
         });
     });
     describe('createWorkspaceCategories', () => {
