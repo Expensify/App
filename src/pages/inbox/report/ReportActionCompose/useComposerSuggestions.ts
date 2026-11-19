@@ -3,6 +3,7 @@ import type {ComposerRef, TextSelection} from '@components/Composer/types';
 
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 
+import type {Dimensions} from '@src/types/utils/Layout';
 import type {TextInputScrollEvent} from '@src/types/utils/ReactNativeCompat';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
@@ -19,13 +20,8 @@ import type {SuggestionsRef} from './ComposerContext';
 import getCursorPosition from './getCursorPosition';
 import getScrollPosition from './getScrollPosition';
 
-type InputSize = {
-    width: number;
-    height: number;
-};
-
 /** Reads the input's size from a native scroll event, which carries it even though React Native's types leave it out */
-function getInputSize(event: TextInputScrollEvent | undefined): InputSize | undefined {
+function getInputSize(event: TextInputScrollEvent | undefined): Dimensions | undefined {
     const nativeEvent = event?.nativeEvent;
     if (!nativeEvent || !('layoutMeasurement' in nativeEvent)) {
         return undefined;
@@ -65,7 +61,7 @@ function useComposerSuggestions({composerRef, selection, measureParentContainer,
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const mobileInputScrollPosition = useRef(0);
-    const inputSizeRef = useRef<InputSize | undefined>(undefined);
+    const inputSizeRef = useRef<Dimensions | undefined>(undefined);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
 
