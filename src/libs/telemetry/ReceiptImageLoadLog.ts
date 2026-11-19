@@ -135,4 +135,3 @@ function resetLoggedReceiptImageLoadEvents() {
 }
 
 export {createReceiptImageLoadReporter, getReceiptSourceKind, resetLoggedReceiptImageLoadEvents};
-export type {ReceiptImageSurface, ReceiptSourceKind};

@@ -41,4 +41,4 @@ function getImageLoadSource(source: BaseImageProps['source']): string | number |
 
 export default ImageLoadEventContext;
 export {getImageLoadSource};
-export type {ImageLoadComponent, ImageLoadEvent, ImageLoadEventReporter};
+export type {ImageLoadEvent, ImageLoadEventReporter};
