@@ -7,6 +7,8 @@ import type * as SearchContextModule from '@components/Search/SearchContext';
 import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -24,6 +26,11 @@ const POLICY_ID = '06F34677820A4D07';
 const TRANSACTION_VIOLATIONS_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}` as const;
 
 const mockSearchResults: {current: {data: Record<string, unknown>} | undefined} = {current: undefined};
+
+jest.mock('@hooks/useConfirmApproveReportViolations', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<typeof SearchContextModule>('@components/Search/SearchContext'),
@@ -124,5 +131,18 @@ describe('TransactionListItem violations', () => {
         // Then the row shows the live violations instead of the snapshot ones
         expect(screen.getByText(CONST.VIOLATIONS.OVER_LIMIT)).toBeTruthy();
         expect(screen.queryByText(CONST.VIOLATIONS.MISSING_TAG)).toBeNull();
+    });
+
+    it('does not initialize report approval confirmation for a transaction row', async () => {
+        // Given transaction rows only offer View, so report approval data is unnecessary
+        jest.mocked(useConfirmApproveReportViolations).mockClear();
+
+        // When a transaction row with violations renders
+        renderRow();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row does not initialize the report-wide approval hook
+        expect(useConfirmApproveReportViolations).not.toHaveBeenCalled();
+        expect(screen.getByText(CONST.VIOLATIONS.MISSING_TAG)).toBeTruthy();
     });
 });
