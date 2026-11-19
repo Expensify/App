@@ -130,8 +130,9 @@ const setPerformanceTimersEnd = () => {
 };
 
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
-    const displayKey = filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO : filterKey;
-    return `${displayKey}:${filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO ? getExportedToDisplayName(value) : value}`;
+    const isEncodedTemplate = filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO && value.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX);
+    const displayKey = isEncodedTemplate ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE : filterKey;
+    return `${displayKey}:${isEncodedTemplate ? getExportedToDisplayName(value) : value}`;
 }
 
 function SearchRouterItem({
