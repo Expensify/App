@@ -490,9 +490,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     // a selection shows the bar.
                     isBulkActionBarVisible &&
                         typeof contentMinHeight === 'number' &&
-                        typeof bulkActionBarBottomSpacing === 'number' && {
-                            minHeight: contentMinHeight + bulkActionBarBottomSpacing,
-                        },
+                        typeof bulkActionBarBottomSpacing === 'number' &&
+                        StyleUtils.getMinimumHeight(contentMinHeight + bulkActionBarBottomSpacing),
                     // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
                     isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
                     shouldRenderEmptyStateInList && styles.flexGrow1,
