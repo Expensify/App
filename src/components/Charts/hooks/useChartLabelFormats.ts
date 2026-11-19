@@ -4,7 +4,7 @@ import {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import useLocalize from '@hooks/useLocalize';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
