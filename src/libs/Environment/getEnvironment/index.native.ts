@@ -9,6 +9,17 @@ import type Environment from './types';
 let environment: Environment | null = null;
 
 /**
+ * Dev and adhoc builds are known from the config alone, every other build needs the beta check
+ */
+function getConfigEnvironment(): Environment | undefined {
+    const configEnvironment = Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV;
+    if (configEnvironment === CONST.ENVIRONMENT.DEV || configEnvironment === CONST.ENVIRONMENT.ADHOC) {
+        return configEnvironment;
+    }
+    return undefined;
+}
+
+/**
  * Returns a promise that resolves with the current environment string value
  */
 function getEnvironment(): Promise<Environment> {
@@ -19,14 +30,9 @@ function getEnvironment(): Promise<Environment> {
             return;
         }
 
-        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
-            environment = CONST.ENVIRONMENT.DEV;
-            resolve(environment);
-            return;
-        }
-
-        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC) {
-            environment = CONST.ENVIRONMENT.ADHOC;
+        const configEnvironment = getConfigEnvironment();
+        if (configEnvironment) {
+            environment = configEnvironment;
             resolve(environment);
             return;
         }
@@ -47,4 +53,13 @@ function getEnvironment(): Promise<Environment> {
     });
 }
 
+/**
+ * Returns the environment synchronously, for code that builds links while rendering
+ */
+function getCachedEnvironment(): Environment {
+    // Falling back to production is only reachable before the beta check settles, and the API root waits on it before any report data arrives
+    return environment ?? getConfigEnvironment() ?? CONST.ENVIRONMENT.PRODUCTION;
+}
+
 export default getEnvironment;
+export {getCachedEnvironment};

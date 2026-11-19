@@ -6,6 +6,7 @@
  * Required by path because jest-expo resolves the platform-agnostic specifier to the web implementation.
  */
 import type getEnvironmentModule from '@libs/Environment/getEnvironment/index.native';
+import type {getCachedEnvironment as getCachedEnvironmentModule} from '@libs/Environment/getEnvironment/index.native';
 
 import CONST from '@src/CONST';
 
@@ -46,5 +47,21 @@ describe('getEnvironment (native)', () => {
         const getEnvironment = require<{default: typeof getEnvironmentModule}>('@libs/Environment/getEnvironment/index.native').default;
 
         await expect(getEnvironment()).resolves.toBe(CONST.ENVIRONMENT.PRODUCTION);
+    });
+
+    it('returns the environment resolved by the beta check synchronously', async () => {
+        // Given a release build whose beta check reported a beta build at startup
+        mockIsBetaBuild.mockResolvedValue(true);
+        const {default: getEnvironment, getCachedEnvironment} = require<{
+            default: typeof getEnvironmentModule;
+            getCachedEnvironment: typeof getCachedEnvironmentModule;
+        }>('@libs/Environment/getEnvironment/index.native');
+        await getEnvironment();
+
+        // When code that builds links while rendering reads the environment
+        const environment = getCachedEnvironment();
+
+        // Then it gets the resolved staging environment without waiting on a promise
+        expect(environment).toBe(CONST.ENVIRONMENT.STAGING);
     });
 });
