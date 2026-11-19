@@ -23,9 +23,7 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     // initial URL and later `url` events. The native OAuth callback is consumed by the auth session that opened
     // it, so routing it would only land on NotFound and tear down the returning screen. The signed-out path goes
     // through openReportFromDeepLink instead, which has its own guard.
-    // A native share (`share/root`) that arrives before it is known whether onboarding comes first (signed out, or right
-    // after sign-in while the account is still loading) is parked by openReportFromDeepLink and opened once that is
-    // settled. Routing it here would mount the share modal just for onboarding to tear it down again (#101425).
+    // A native share that has to wait for onboarding is parked by openReportFromDeepLink, so it is not routed here (#101425).
     filter: (url) => !isNativeOAuthCallbackURL(url) && !(isNativeShareLink(url) && shouldParkNativeShare(hasAuthToken())),
 };
 

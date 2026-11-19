@@ -75,13 +75,8 @@ function useOnboardingFlowRouter() {
             hasAppLoadStartedRef.current = true;
         }
 
-        // A parked native share opens here once onboarding is ruled out for this account. That is only known once the
-        // OpenApp of this sign-in has landed: until then a fresh sign-up has no onboarding NVP, which reads as
-        // "completed", and the stored IS_LOADING_APP / HAS_LOADED_APP flags are not tied to that request, so they can
-        // already read "loaded". Opening the share then lets onboarding tear it down a moment later. So for a sign-in
-        // during this session, wait until its OpenApp has been seen in flight and has finished; a session that was
-        // already signed in at startup sends no OpenApp and has its data. The effect re-runs as these values change.
-        // Users who do onboard get the share from the onboarding exit instead.
+        // A parked native share opens once onboarding is ruled out. For a sign-in during this session that is only known
+        // after its OpenApp has been seen in flight and has finished; the stored loading flags can read "loaded" before that.
         const openPendingNativeShareOnceLoaded = () => {
             const hasAppLoadFinished = didUserLogInDuringSession() ? hasAppLoadStartedRef.current && !isAppLoadPending : true;
             if (!hasLoadedApp || !hasAppLoadFinished) {
@@ -153,8 +148,7 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                // Onboarding is coming (now, or after required 2FA below): keep a pending native share parked until the
-                // onboarding exit opens it on top of the landing screen, rather than under the onboarding modal.
+                // Onboarding is coming: the onboarding exit opens a pending native share.
                 if (isOnboardingCompleted === false) {
                     deferPendingNativeShareUntilOnboardingExit();
                 }

@@ -1,7 +1,7 @@
 import {
     deferPendingNativeShareUntilOnboardingExit,
+    keepNativeShareForOnboardingExit,
     openPendingNativeShare,
-    parkShareFlowRemovedByOnboarding,
     setPendingNativeShare,
     shouldParkNativeShare,
 } from '@libs/Navigation/helpers/pendingNativeShare';
@@ -71,7 +71,7 @@ function emitRootState(...routeNames: string[]) {
 describe('pending native share', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // Resets the parked share, the share-flow tracking and the "onboarding settled" mark, like a sign-out does.
+        // Resets the parked share and the "onboarding settled" mark, like a sign-out does.
         runSessionCleanupCallbacks();
         stateListeners.length = 0;
         mockedNavigationRef.isReady.mockReturnValue(true);
@@ -303,12 +303,10 @@ describe('pending native share', () => {
     });
 
     describe('share flow removed by onboarding', () => {
-        it('parks a share flow that onboarding replaced, for the onboarding exit', () => {
+        it('keeps a share flow that the onboarding redirect drops, for the onboarding exit', () => {
             // Given a share flow that is already open, whoever opened it (on HybridApp the link is routed right after sign-in)
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.SHARE_MODAL_NAVIGATOR));
-
-            // When onboarding starts and its redirect rebuilds the stack without the share flow
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR));
+            // When OnboardingGuard redirects to onboarding, which rebuilds the stack without the share flow
+            keepNativeShareForOnboardingExit();
 
             // Then the share is not lost: the router leaves it alone and the onboarding exit reopens it
             expect(openPendingNativeShare()).toBe(false);
@@ -317,44 +315,19 @@ describe('pending native share', () => {
             expect(mockedNavigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, {waitForTransition: true});
         });
 
-        it('parks a share this module opened itself when onboarding replaces it', () => {
-            // Given a pending share that was opened and has mounted
+        it('keeps a share this module pushed itself when the push is redirected to onboarding', () => {
+            // Given a pending share whose push is in flight
             setPendingNativeShare();
             openPendingNativeShare();
-            emitRootState(SCREENS.HOME, NAVIGATORS.SHARE_MODAL_NAVIGATOR);
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.SHARE_MODAL_NAVIGATOR));
 
-            // When onboarding starts afterwards and removes it, and the user then finishes onboarding
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR));
+            // When OnboardingGuard redirects that push to onboarding, and the user then finishes onboarding
+            keepNativeShareForOnboardingExit();
+            emitRootState(SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
             mockedNavigationRef.getRootState.mockReturnValue(buildRootState(SCREENS.HOME));
 
             // Then the onboarding exit opens it again
             expect(openPendingNativeShare({afterOnboarding: true})).toBe(true);
             expect(mockedNavigation.navigate).toHaveBeenCalledTimes(2);
-        });
-
-        it('does not park a share flow the user closed', () => {
-            // Given a share flow that is open
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.SHARE_MODAL_NAVIGATOR));
-
-            // When the user closes or completes it
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME));
-
-            // Then nothing is reopened later
-            expect(openPendingNativeShare({afterOnboarding: true})).toBe(false);
-            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('does not park anything when onboarding opens without a share flow', () => {
-            // Given no share flow in the stack
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME));
-
-            // When onboarding opens
-            parkShareFlowRemovedByOnboarding(buildRootState(SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR));
-
-            // Then the onboarding exit has nothing to open
-            expect(openPendingNativeShare({afterOnboarding: true})).toBe(false);
-            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
         });
     });
 

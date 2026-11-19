@@ -45,7 +45,6 @@ import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
 import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
-import {parkShareFlowRemovedByOnboarding} from './helpers/pendingNativeShare';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -294,8 +293,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
-
-        parkShareFlowRemovedByOnboarding(state);
     };
 
     const onReadyWithSentry = () => {
@@ -311,8 +308,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // from the restored root state so isTopMostReportId is correct on the first report screen
         // (e.g. the composer's keyboard avoiding view is enabled right away).
         updateCurrentReportID(navigationRef.getRootState());
-        // Same for a share flow that is part of the initial state.
-        parkShareFlowRemovedByOnboarding(navigationRef.getRootState());
 
         // Records the first screen, for the same reason.
         setNewDotScreenContext();

@@ -520,13 +520,8 @@ function openReportFromDeepLink(
         return;
     }
 
-    // A native share (`share/root`) that arrives before it is known whether onboarding comes first is parked instead of
-    // being replayed below: while signed out, or right after sign-in while OpenApp is still loading the account, which is
-    // when HybridApp hands the link over. The generic replay has no good moment for it: for a brand-new account it
-    // either stamps the "finish the setup questions" error (onboarding already focused) or races OpenApp and loses the
-    // share to the onboarding redirect. useOnboardingFlowRouter opens it once it has ruled onboarding out, and the
-    // onboarding exit opens it on top of the landing screen otherwise. linkingConfig.filter keeps react-navigation from
-    // routing the link for the same reason. See #101425.
+    // A native share that arrives before it is known whether onboarding comes first is parked, not replayed below.
+    // useOnboardingFlowRouter or the onboarding exit opens it. See #101425.
     if (isNativeShareLink(route) && shouldParkNativeShare(isAuthenticated)) {
         setPendingNativeShare();
         return;
