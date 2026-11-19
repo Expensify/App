@@ -47,15 +47,21 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
     // Laid out during the idle preload while nobody sees it, so it must not end the spans of a tap or submit made elsewhere.
     const isInPreloadedTab = useIsInPreloadedTab();
 
-    // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
-    // not un-hide it mid-swap.
+    // Read once at mount: the next render no longer reports a replacement, and switching branches then would remount Search.
     const [isReplacingContentAtMount] = useState(isReplacingContent);
+
+    // The previous results are unmounted in the same commit that mounts this layer, so a deferred mount would leave the
+    // list area empty until Search hydrates. Search has to be in that commit for the new results to take over directly.
+    // The layer already fades in, so Search needs no fade of its own here.
+    if (isReplacingContentAtMount) {
+        return <Search {...props} />;
+    }
 
     return (
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
+                <View style={[styles.flex1, StyleSheet.absoluteFill]}>
                     <SearchRowSkeleton
                         shouldAnimate
                         onLayout={isInPreloadedTab ? undefined : handleSkeletonLayout}
