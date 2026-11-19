@@ -25,6 +25,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import {isModalCoveringSelector} from '@selectors/Modal';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -61,7 +62,7 @@ function ThreeDotsMenu({
     sentryLabel,
     isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [isCoveredByModal] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,7 +72,7 @@ function ThreeDotsMenu({
     const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
-    const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
+    const isBehindModal = isCoveredByModal && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);

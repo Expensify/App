@@ -10,6 +10,7 @@ import {
     createIsInternationalCountrySelector,
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
@@ -527,6 +528,48 @@ describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
         };
 
         expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, currentPolicyID).map((policy) => policy.name)).toEqual(['Healthy Workspace']);
+    });
+});
+
+describe('canEditAnyWorkspaceSettingsSelector', () => {
+    it('returns false when the user is admin only on a personal policy', () => {
+        // Given the user administers a personal policy and is only a member of a group workspace
+        const policies: OnyxCollection<Policy> = {
+            personalPolicy: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.PERSONAL}),
+            teamPolicy: buildSelectorPolicy(2, {role: CONST.POLICY.ROLE.USER}),
+        };
+
+        // When checking whether the user can edit any workspace's settings
+        const result = canEditAnyWorkspaceSettingsSelector(policies, TEST_LOGIN);
+
+        // Then the personal policy is ignored, so there is no workspace the upgrade page could act on
+        expect(result).toBe(false);
+    });
+
+    it('returns true when the user is admin on a group workspace', () => {
+        // Given the user administers a Collect workspace
+        const policies: OnyxCollection<Policy> = {
+            teamPolicy: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        // When checking whether the user can edit any workspace's settings
+        const result = canEditAnyWorkspaceSettingsSelector(policies, TEST_LOGIN);
+
+        // Then the user has an upgradeable workspace to manage
+        expect(result).toBe(true);
+    });
+
+    it('returns true when the user is an editor on a Submit workspace', () => {
+        // Given the user is an editor, not an admin, on a Submit workspace
+        const policies: OnyxCollection<Policy> = {
+            submitPolicy: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.EDITOR, type: CONST.POLICY.TYPE.SUBMIT}),
+        };
+
+        // When checking whether the user can edit any workspace's settings
+        const result = canEditAnyWorkspaceSettingsSelector(policies, TEST_LOGIN);
+
+        // Then editors on Submit workspaces still pass, since they can edit its settings
+        expect(result).toBe(true);
     });
 });
 

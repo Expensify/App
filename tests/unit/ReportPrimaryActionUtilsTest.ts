@@ -822,6 +822,49 @@ describe('getPrimaryAction', () => {
         ).toBe('');
     });
 
+    it('should not return approve for report being processed when its only expense failed SmartScan with missing fields', async () => {
+        // Given a submitted expense report whose only expense failed SmartScan and has no amount
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+
+        // When getting the primary action for the report header
+        // Then it should not be approve because the expense still needs its missing fields filled in
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
+    });
+
     it('should return true from isApproveAction for DEW policy report without pending approval', async () => {
         // Given a submitted expense report on a DEW policy without any pending approval action
         const report = createMock<Report>({
@@ -993,6 +1036,51 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for an invoice that the receiver pays through its linked bill', async () => {
+        // Given a submitted invoice to the current user, which Auth hides from the receiver because it has a linked bill
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: INVOICE_SENDER_ACCOUNT_ID,
+            parentReportID: CHAT_REPORT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            isHiddenForBillReceiver: true,
+            total: 7,
+        });
+        const parentReport = createMock<Report>({
+            reportID: CHAT_REPORT_ID,
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                accountID: CURRENT_USER_ACCOUNT_ID,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentReport);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the report header picks its primary action
+        const action = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            invoiceReceiverPolicy: createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN}),
+            isChatReportArchived: false,
+        });
+
+        // Then the header offers no Pay, because the receiver pays the bill as in Classic
+        expect(action).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should not return PAY for zero value invoice report if paid as personal', async () => {
@@ -1562,6 +1650,57 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    it('should not return EXPORT TO ACCOUNTING while an export is still running', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+        const exportStartedAction = createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            created: '2026-10-14 10:00:00.000',
+        });
+
+        jest.mocked(getValidConnectedIntegration).mockReturnValue('netsuite');
+
+        // Given a finished report the preferred exporter could export
+        // When an export of it was started and nothing has answered it yet
+        // Then the header must not offer a second export
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                reportActions: [exportStartedAction],
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should return EXPORT TO ACCOUNTING for admin who is not the preferred exporter', async () => {

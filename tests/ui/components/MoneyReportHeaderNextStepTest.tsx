@@ -3,7 +3,7 @@ import {render, waitFor} from '@testing-library/react-native';
 import MoneyReportHeaderNextStep from '@components/MoneyReportHeaderNextStep';
 import RenderHTML from '@components/RenderHTML';
 
-import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
+import useNextStep from '@hooks/useNextStep';
 
 import type * as Localize from '@libs/Localize';
 
@@ -31,7 +31,7 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useInFlightRequests', () => ({
     useIsReportLoadPending: () => false,
 }));
-jest.mock('@hooks/useOptimisticNextStep', () => jest.fn());
+jest.mock('@hooks/useNextStep', () => jest.fn());
 jest.mock('@components/RenderHTML', () => jest.fn(() => null));
 
 describe('MoneyReportHeaderNextStep', () => {
@@ -70,7 +70,7 @@ describe('MoneyReportHeaderNextStep', () => {
         },
     ])('renders the $messageKey next step for a $reportType report', async ({messageKey, reportType, target}) => {
         // Given Auth sends the same approve and pay next steps for bills and expense reports.
-        jest.mocked(useOptimisticNextStep).mockReturnValue({
+        jest.mocked(useNextStep).mockReturnValue({
             messageKey,
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             actorAccountID: 780072,

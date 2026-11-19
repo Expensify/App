@@ -229,7 +229,7 @@ function AttachmentPickerWithMenuItems({
                 icon: icons.Transfer,
                 text: translate('iou.splitExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.SPLIT_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
         ],
@@ -238,14 +238,14 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
             {
                 icon: icons.Location,
                 text: translate('quickAction.recordDistance'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.TRACK_DISTANCE,
                 onSelected: () =>
                     selectOption(() => {
                         if (blockDistanceRequestIfNeeded()) {
@@ -260,7 +260,7 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
                 text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.PAY_SOMEONE,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         close(() => {
@@ -277,14 +277,14 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
             {
                 icon: icons.Location,
                 text: translate('iou.trackDistance'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.TRACK_DISTANCE,
                 onSelected: () =>
                     selectOption(() => {
                         if (blockDistanceRequestIfNeeded()) {
@@ -299,7 +299,7 @@ function AttachmentPickerWithMenuItems({
                 icon: icons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.SEND_INVOICE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false),
             },
         ],
@@ -317,7 +317,7 @@ function AttachmentPickerWithMenuItems({
                       icon: icons.Document,
                       text: translate('report.newReport.createReport'),
                       shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_REPORT,
                       onSelected: () => selectOption(() => handleCreateReport(), true),
                   },
               ];
@@ -332,7 +332,7 @@ function AttachmentPickerWithMenuItems({
                   icon: icons.Task,
                   text: translate('newTaskPage.assignTask'),
                   shouldCallAfterModalHide: shouldUseNarrowLayout,
-                  sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ASSIGN_TASK,
+                  sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.ASSIGN_TASK,
                   onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
               },
           ];
@@ -345,7 +345,7 @@ function AttachmentPickerWithMenuItems({
             icon: icons.Paperclip,
             text: translate('reportActionCompose.addAttachment'),
             disabled: shouldDisableAttachmentItem,
-            sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.ADD_ATTACHMENT,
         },
     ];
 

@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
@@ -13,6 +14,7 @@ import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} fro
 import variables from '@styles/variables';
 
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -42,7 +44,7 @@ function getSkeletonTitleWidth(index: number) {
     }
 }
 
-type SpendSummaryRowProps = {
+type SpendSummaryRowProps = WithRequiredSentryLabel & {
     state: ReturnType<typeof useYourSpendData>['approvalRowState'];
     testIDPrefix: string;
     description: string;
@@ -56,7 +58,7 @@ type SpendSummaryRowProps = {
     isStale?: boolean;
 };
 
-function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false}: SpendSummaryRowProps) {
+function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false, sentryLabel}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -95,25 +97,34 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
 
     return (
         <View testID={`${testIDPrefix}-row`}>
-            <MenuItemWithTopDescription
-                description={description}
-                title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={[styles.textBold, isStale && styles.offlineFeedbackPending]}
+            <MenuItem.Root
+                sentryLabel={sentryLabel}
                 onPress={onPress}
-                shouldShowRightIcon
-                leftComponent={
-                    <View style={styles.widgetItemIconContainer}>
-                        <Icon
-                            src={iconSrc}
-                            fill={theme.icon}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                    </View>
-                }
-                wrapperStyle={wrapperStyle}
-                shouldCheckActionAllowedOnPress={false}
-            />
+                style={wrapperStyle}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <View style={styles.widgetItemIconContainer}>
+                            <Icon
+                                src={iconSrc}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
+                    </MenuItem.Leading>
+                    <MenuItemField.Content name={description}>
+                        {totals.total !== undefined && (
+                            <MenuItem.FieldValue style={[styles.textBold, isStale && styles.offlineFeedbackPending]}>
+                                {convertToDisplayString(totals.total, totals.currency)}
+                            </MenuItem.FieldValue>
+                        )}
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
         </View>
     );
 }

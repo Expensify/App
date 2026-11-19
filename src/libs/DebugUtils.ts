@@ -490,6 +490,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'isHiddenForBillReceiver':
+        case 'isAwaitingActionFromCurrentUser':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
@@ -590,6 +591,24 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             );
         case 'permissions':
             return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'wiseQuote':
+            return validateObject<ObjectElement<Report, 'wiseQuote'>>(value, {
+                wiseQuoteID: 'string',
+                fee: 'number',
+                rate: 'number',
+                debitedAmount: 'number',
+                creditedAmount: 'number',
+                currency: 'string',
+                paymentCurrency: 'string',
+                expectedDate: 'string',
+                expiresAt: 'string',
+                tax: 'number',
+            });
+        case 'wiseQuoteRequest':
+            return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
+                full: 'boolean',
+                amount: 'number',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -598,6 +617,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eta: 'object',
                 iconFill: 'string',
                 requiredDepositCurrency: 'string',
+                requiresGlobalReimbursement: 'boolean',
+                depositCurrency: 'string',
+                autoExport: 'object',
             });
         case 'tripData':
             return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
@@ -605,6 +627,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
                 payload: 'object',
+                bookingApprovalState: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -630,6 +653,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
             return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
+                isAwaitingActionFromCurrentUser: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -644,10 +668,11 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildTask: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOwnPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isPinned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -669,6 +694,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1224,6 +1250,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     feedCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1291,6 +1318,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 source: 'string',
                 originalTransactionID: 'string',
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
+                forceReimbursable: 'boolean',
                 vendor: 'object',
                 splits: 'array',
                 dismissedViolations: 'object',

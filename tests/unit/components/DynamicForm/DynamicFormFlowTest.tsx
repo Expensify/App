@@ -110,6 +110,7 @@ type RenderFlowOptions = {
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
     unsavedPageKeys?: string[];
+    isLoading?: boolean;
 };
 
 function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
@@ -142,6 +143,7 @@ async function renderFlow({
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
     unsavedPageKeys,
+    isLoading,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -168,6 +170,7 @@ async function renderFlow({
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
             unsavedPageKeys={unsavedPageKeys}
+            isLoading={isLoading}
         />
     );
     const {rerender, unmount} = render(renderWith(isSubmitting));
@@ -569,6 +572,17 @@ describe('DynamicFormFlow', () => {
         expect(mockCurrentPage).not.toHaveBeenCalled();
     });
 
+    it('shows a spinner below the header in place of the page while the screen asks it to', async () => {
+        // Given a screen waiting for a save that can add pages
+        // When the flow renders with isLoading
+        await renderFlow({isLoading: true});
+
+        // Then the header stays and a spinner replaces the page, so the user does not see a page they are about to leave
+        expect(HeaderWithBackButtonAndTitle).toHaveBeenCalled();
+        expect(ActivityIndicator).toHaveBeenCalled();
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+    });
+
     it('sends the user back to the incomplete page without pushing a second copy of it', async () => {
         // Given a form whose SSN was lost when the app restarted
         const {subPageOptions, onSubmit} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}});
@@ -580,6 +594,29 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('personal-details'));
         expect(mockResetToPage).not.toHaveBeenCalled();
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('stays on the confirmation page and has it show the errors when Confirm is pressed with an unanswered field', async () => {
+        // Given a flow with a confirmation page, whose SSN was lost when the app restarted
+        const {subPageOptions, onSubmit, rerenderFlow} = await renderFlow({
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            pageIndex: 3,
+        });
+
+        // When the user presses Confirm
+        act(() => {
+            subPageOptions.onFinished();
+        });
+        await rerenderFlow();
+
+        // Then the user stays where the rows say what is missing, and nothing is submitted
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(mockResetToPage).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+        const pageProps = mockCurrentPage.mock.lastCall?.[0];
+        expect(hasDynamicFormProps(pageProps) && pageProps.shouldShowFieldErrors).toBe(true);
     });
 
     it('resets to the incomplete page when routes are replaced, since there is no stack to go back in', async () => {

@@ -1,3 +1,4 @@
+import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
@@ -39,6 +40,9 @@ type WorkspaceDistanceRatesTableProps = {
     isDistanceRateTaxEnabled: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rates support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>>;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -58,6 +62,7 @@ function WorkspaceDistanceRatesTable({
     isDistanceRateTaxEnabled,
     onRowSelectionChange,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -74,7 +79,7 @@ function WorkspaceDistanceRatesTable({
             label: translate('workspace.distanceRates.status'),
             sortable: true,
             width: variables.tableStatusColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'name',
@@ -94,14 +99,26 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
-        ...(shouldShowTaxReclaimableColumn ? ([{key: 'taxReclaimableOn', label: translate('workspace.taxes.taxReclaimableOn'), sortable: true}] as const) : []),
+        ...(shouldShowTaxReclaimableColumn
+            ? ([
+                  {
+                      key: 'taxReclaimableOn',
+                      label: translate('workspace.taxes.taxReclaimableOn'),
+                      sortable: true,
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
+                  },
+              ] as const)
+            : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
                   {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
               ] as const)
             : []),
-        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
+        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END}},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -155,6 +172,7 @@ function WorkspaceDistanceRatesTable({
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.EMPTY_STATE_ADD_RATE,
 
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
@@ -211,6 +229,7 @@ function WorkspaceDistanceRatesTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

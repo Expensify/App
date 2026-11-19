@@ -7,13 +7,14 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useRef, useState} from 'react';
 
-type ReportFieldFilterContentProps = {
+type ReportFieldFilterContentProps = WithRequiredSentryLabel & {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     selectedField: PolicyReportField | null;
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
@@ -22,7 +23,7 @@ type ReportFieldFilterContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function ReportFieldFilterContent({values, selectedField, size, style, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
+function ReportFieldFilterContent({values, selectedField, size, style, sentryLabel, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
     const {translate} = useLocalize();
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
@@ -30,6 +31,7 @@ function ReportFieldFilterContent({values, selectedField, size, style, onFieldSe
 
     const applyButton = (
         <Button
+            sentryLabel={sentryLabel}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={size}
             onPress={() => {

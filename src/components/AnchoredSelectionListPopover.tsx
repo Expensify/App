@@ -1,6 +1,7 @@
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
@@ -31,7 +32,7 @@ type AnchoredSelectionListPopoverProps = {
     title: string;
 
     /** Sentry label for the header's back button, so each list's presses are attributed to it */
-    backButtonSentryLabel: string;
+    backButtonSentryLabel: SentryLabel;
 
     /** Actions shown at the right end of the header, e.g. an add button */
     headerActions?: ReactNode;

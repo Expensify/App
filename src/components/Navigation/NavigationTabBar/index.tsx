@@ -12,9 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
-
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
@@ -33,6 +30,8 @@ import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
+import useAccountTabNavigation from './useAccountTabNavigation';
+import useHomeTabNavigation from './useHomeTabNavigation';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
@@ -41,31 +40,18 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
 
     const StyleUtils = useStyleUtils();
 
-    const navigateToNewDotHome = () => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME);
-    };
+    const navigateToNewDotHome = useHomeTabNavigation(selectedTab === NAVIGATION_TABS.HOME);
 
-    const navigateToSettings = () => {
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
-            return;
-        }
-        interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.SETTINGS);
-        }, session);
-    };
+    const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
     // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
@@ -88,6 +74,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     accessible
                                     testID="ExpensifyLogoButton"
                                     onPress={navigateToNewDotHome}
+                                    linkRoute={ROUTES.HOME}
                                     wrapperStyle={styles.leftNavigationTabBarItem}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                                 >
@@ -99,6 +86,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                 </PressableWithFeedback>
                                 <PressableWithFeedback
                                     onPress={navigateToNewDotHome}
+                                    linkRoute={ROUTES.HOME}
                                     role={CONST.ROLE.TAB}
                                     accessibilityLabel={translate('common.home')}
                                     style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
@@ -150,11 +138,12 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={styles.navigationTabBarContainer}
+                style={[styles.navigationTabBarContainer, isInLandscapeMode && styles.navigationTabBarContainerLandscape]}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
+                    linkRoute={ROUTES.HOME}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
                     wrapperStyle={styles.navigationTabBarSlot}

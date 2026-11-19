@@ -13,7 +13,6 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -24,8 +23,8 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
-    isSubmitAndClose,
     isSubmitPolicy,
+    isWorkflowApprover,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -54,6 +53,7 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
@@ -155,18 +155,13 @@ function isSubmitAction(
         return false;
     }
 
-    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const isWorkflowApprover =
-        !isReportSubmitter &&
-        currentUserAccountID !== undefined &&
-        !!ownerLogin &&
-        !isSubmitAndClose(policy) &&
-        currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
     // A role that cannot create expenses cannot submit its own report.
     if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
         return false;
     }
-    const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
+
+    const isCurrentUserWorkflowApprover = !isReportSubmitter && isWorkflowApprover(policy, ownerLogin, rules, report.total ?? 0, currentUserEmail);
+    const canBeSubmitter = isReportSubmitter || isCurrentUserWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
@@ -256,6 +251,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 

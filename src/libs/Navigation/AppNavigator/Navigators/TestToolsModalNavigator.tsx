@@ -21,8 +21,9 @@ import toggleTestToolsModal from '@userActions/TestTool';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import type {ViewClickEvent} from '@src/types/utils/ReactNativeCompat';
 
-import type {ComponentRef, ComponentType, MouseEvent, ReactNode} from 'react';
+import type {ComponentRef, ComponentType, ReactNode} from 'react';
 
 import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
@@ -64,7 +65,7 @@ function TestToolsModalFrame({children, isPassThrough = false, isPortaled = fals
         });
     };
 
-    const handleInnerClick = (e: MouseEvent) => {
+    const handleInnerClick = (e: ViewClickEvent) => {
         e.stopPropagation();
     };
 
@@ -84,7 +85,7 @@ function TestToolsModalFrame({children, isPassThrough = false, isPortaled = fals
                     ref={outerViewRef}
                     onPress={showChrome ? handleOuterClick : undefined}
                     pointerEvents={showChrome ? 'auto' : 'box-none'}
-                    sentryLabel="TestToolsModalNavigator-Dismiss"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOLS_MODAL_NAVIGATOR.DISMISS}
                     style={[styles.flex1, showChrome && styles.alignItemsCenter, showChrome && styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
                     accessible={false}
                 >

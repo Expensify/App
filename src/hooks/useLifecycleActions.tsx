@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -41,6 +42,7 @@ import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
+import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import useConfirmModal from './useConfirmModal';
 import useConfirmSubmitReportViolations from './useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -52,7 +54,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
-import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -110,6 +112,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
@@ -142,6 +145,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
@@ -152,7 +157,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetailsByLogin);
 
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -161,6 +166,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
@@ -196,46 +203,54 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         shouldShowMarkAsDoneCopy,
     });
 
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});
+
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         // Bills don't show Pay, so nothing would end the approved animation on a bill.
         const shouldAnimateApproval = !skipAnimation && !isBillReport(moneyRequestReport);
-        if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
-            startApprovedAnimation();
-        }
-        approveMoneyRequest({
-            personalDetailsByLogins: getPersonalDetailsByLogin(),
-            getCurrencyDecimals,
-            expenseReport: moneyRequestReport,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            full: isFullApproval,
-            expenseReportPolicy: policy,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            ownerLogin: submitterLogin,
-            amountOwed,
-            onApproved: () => {
-                if (!shouldAnimateApproval) {
-                    return;
-                }
+        confirmApproveReportViolations(() => {
+            if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
                 startApprovedAnimation();
-            },
-            delegateEmail,
-            delegateAccountID,
-            isTrackIntentUser,
-            rules,
-        });
-        if (skipAnimation) {
-            clearSelectedTransactions(true);
-            onCleanup?.();
-        }
+            }
+            approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                getCurrencyDecimals,
+                expenseReport: moneyRequestReport,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                full: isFullApproval,
+                expenseReportPolicy: policy,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                ownerLogin: submitterLogin,
+                amountOwed,
+                onApproved: () => {
+                    if (!shouldAnimateApproval) {
+                        return;
+                    }
+                    startApprovedAnimation();
+                },
+                delegateEmail,
+                delegateAccountID,
+                isTrackIntentUser,
+                rules,
+                allTransactionViolations,
+            });
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+                onCleanup?.();
+            }
+        }, isFullApproval);
     };
 
     const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, false, isChatReportArchived);

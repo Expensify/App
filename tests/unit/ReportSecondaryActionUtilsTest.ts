@@ -149,6 +149,50 @@ describe('getSecondaryAction', () => {
         Onyx.clear();
     });
 
+    it.each([
+        [false, false, MANAGER_ACCOUNT_ID, true],
+        [false, true, MANAGER_ACCOUNT_ID, false],
+        [false, false, APPROVER_ACCOUNT_ID, false],
+        [true, true, APPROVER_ACCOUNT_ID, true],
+        [false, false, MANAGER_ACCOUNT_ID, false, true],
+        [true, false, MANAGER_ACCOUNT_ID, true, true],
+    ])('change approver visibility: admin=%s, enforcement=%s, manager=%s', (isAdmin, areStrictPolicyRulesEnabled, managerID, expected, isLoadingSecurityGroup = false) => {
+        // Given an outstanding report and the caller's workspace enforcement setting.
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(isAdmin);
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID,
+        });
+        const policy = createMock<Policy>({
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        // When the caller opens the report menu.
+        const actions = getSecondaryReportActions({
+            currentUserLogin: MANAGER_EMAIL,
+            currentUserAccountID: MANAGER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
+        });
+
+        // Then only admins and eligible current approvers can change the approver.
+        expect(actions.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER)).toBe(expected);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(true);
+    });
+
     it('should always return default options', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});
@@ -1123,7 +1167,6 @@ describe('getSecondaryAction', () => {
         const OWNER_EMAIL = 'owner@mail.com';
         // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1167,7 +1210,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_ACCOUNT_ID = 5;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1212,7 +1254,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1805,6 +1846,63 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
+    it.each([false, true])('only includes APPROVE for a scan-failed duplicate report when it also has a complete expense: %s', async (hasCompleteExpense) => {
+        // Given a duplicate expense whose failed scan has no amount, optionally alongside a complete expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            approver: EMPLOYEE_EMAIL,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'SCAN_FAILED_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const completeTransaction = createMock<Transaction>({
+            transactionID: 'COMPLETE_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const reportTransactions = hasCompleteExpense ? [transaction, completeTransaction] : [transaction];
+        const violation = createMock<TransactionViolation>({
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Promise.all(reportTransactions.map((reportTransaction) => Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${reportTransaction.transactionID}`, reportTransaction)));
+
+        // When the approver opens the report's secondary actions
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: createMock<Transaction>({}),
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then a duplicate cannot bypass the missing-amount check, but a complete expense still allows approval
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(hasCompleteExpense);
+    });
+
     it('does not include APPROVE option for approver and report with only pending transactions', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -1987,6 +2085,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
+        // Given a different approver and a posted duplicate expense, not a randomly pending card charge
         const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
         const report = {
             ...createExpenseReport(Number(REPORT_ID)),
@@ -2004,6 +2103,7 @@ describe('getSecondaryAction', () => {
         const transaction = {
             ...createRandomTransaction(1),
             transactionID: TRANSACTION_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
         };
         const violation: TransactionViolation = {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -2013,6 +2113,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the assigned approver opens the secondary actions
         const result = getSecondaryReportActions({
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
@@ -2028,6 +2129,7 @@ describe('getSecondaryAction', () => {
             cardList: undefined,
         });
 
+        // Then the duplicate shortcut still allows another user to approve the report
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 

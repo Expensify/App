@@ -21,7 +21,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
-    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
     getDistanceRateTaxUpdates,
@@ -380,7 +379,7 @@ function initMoneyRequest({
     hasOnlyPersonalPolicies,
     draftTransactionIDs,
     defaultParticipants,
-}: InitMoneyRequestParams) {
+}: InitMoneyRequestParams): Partial<Transaction> | undefined {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = overrideCurrency ?? policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -406,7 +405,7 @@ function initMoneyRequest({
     }
 
     const comment: Comment = {};
-    let requestCategory: string | null = null;
+    let requestCategory: string | undefined;
 
     // Set up initial distance expense state
     if (
@@ -461,7 +460,7 @@ function initMoneyRequest({
         if (!isFromGlobalCreate) {
             const {customUnitID, category} = getCustomUnitID(report, parentReport, policy);
             comment.customUnit = {...comment.customUnit, customUnitID};
-            requestCategory = category ?? null;
+            requestCategory = category;
         }
     }
 
@@ -786,13 +785,7 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
  * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(
-    transactionID: string,
-    category: string,
-    policy: OnyxEntry<Policy>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isMovingFromTrackExpense?: boolean,
-) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         category,
     });
@@ -804,16 +797,6 @@ function setMoneyRequestCategory(
             taxCode: '',
             taxAmount: null,
             taxValue: null,
-        });
-        return;
-    }
-    const transaction = getAllTransactionDrafts()[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy, getCurrencyDecimals);
-    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-        setMoneyRequestTaxRateValues(transactionID, {
-            taxCode: categoryTaxCode,
-            taxAmount: categoryTaxAmount,
-            taxValue: categoryTaxValue,
         });
     }
 }
@@ -1186,6 +1169,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft,
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
+    rules,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -1199,6 +1183,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -1220,7 +1205,7 @@ function updateDistanceRateOnExpenseDateChange({
     if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
         const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
-        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, getCurrencyDecimals, distanceUnit);
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, rules, getCurrencyDecimals, distanceUnit);
         setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
         setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
         setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);
