@@ -24,4 +24,3 @@ function SubContent({children}: SubContentProps): ReactNode {
 SubContent.displayName = 'PopoverMenu.Sub.Content';
 
 export default SubContent;
-export type {SubContentProps};

@@ -1,5 +1,4 @@
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,11 +15,11 @@ import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/typ
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -32,13 +31,8 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params.domainAccountID;
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
-
-    const isDomainLoading = isLoadingOnyxValue(domainMetadata);
-    if (isDomainLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     if (!isAdmin) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
@@ -54,6 +48,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
                 description={translate('domain.domainAdded.description')}
                 descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
+                buttonSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADDED_CONFIGURE}
                 onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
             />
         </ScreenWrapper>

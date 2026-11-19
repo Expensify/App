@@ -9,7 +9,14 @@ import React from 'react';
 function TravelBillingLearnHow() {
     const {translate} = useLocalize();
 
-    return <TextLink href={CONST.TRAVEL_BILLING_HELP_URL}>{translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.learnHow')}</TextLink>;
+    return (
+        <TextLink
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_LEARN_HOW_LINK}
+            href={CONST.TRAVEL_BILLING_HELP_URL}
+        >
+            {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.learnHow')}
+        </TextLink>
+    );
 }
 
 export default TravelBillingLearnHow;

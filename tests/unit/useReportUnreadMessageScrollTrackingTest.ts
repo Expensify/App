@@ -84,6 +84,68 @@ describe('useReportUnreadMessageScrollTracking', () => {
     describe('when scrolling', () => {
         const onTrackScrollingMockFn = jest.fn();
 
+        it.each([false, true])('finishes a skipped read at the newest end without a divider when inverted is %s', (isInverted) => {
+            // Given a focused chat without a divider and a read waiting for the user to scroll down
+            const offsetRef = {current: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100};
+            const onUnreadActionVisible = jest.fn();
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible,
+                    onTrackScrolling: (event) => {
+                        offsetRef.current = event.nativeEvent.contentOffset.y;
+                    },
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted,
+                }),
+            );
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+
+            // When the scroll handler reports that the newest messages have been reached
+            act(() => result.current.trackVerticalScrolling(emptyScrollEventMock));
+
+            // Then the existing callback can finish the skipped read in either list direction
+            expect(onUnreadActionVisible).toHaveBeenCalledTimes(1);
+        });
+
+        describe.each([false, true])('without a visible divider when inverted is %s', (isInverted) => {
+            it.each([
+                {name: 'newer messages are not loaded', hasNewerActions: true},
+                {name: 'another screen has focus', isFocused: false},
+                {name: 'a real unread divider exists', unreadMarkerReportActionIndex: 5},
+                {name: 'initial positioning is not finished', shouldDisablePillTracking: true},
+                {name: 'the user is still reading older messages', offset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD},
+                {name: 'there is no scroll event', hasScrollEvent: false},
+            ])(
+                'does not finish a skipped read when $name',
+                ({hasNewerActions = false, isFocused = true, unreadMarkerReportActionIndex = -1, shouldDisablePillTracking = false, offset = 0, hasScrollEvent = true}) => {
+                    // Given a chat that has not met every condition for completing a skipped read
+                    jest.mocked(useIsFocused).mockReturnValue(isFocused);
+                    const onUnreadActionVisible = jest.fn();
+                    const {result} = renderHook(() =>
+                        useReportUnreadMessageScrollTracking({
+                            reportID,
+                            currentVerticalScrollingOffsetRef: {current: offset},
+                            onUnreadActionVisible,
+                            onTrackScrolling: jest.fn(),
+                            hasNewerActions,
+                            unreadMarkerReportActionIndex,
+                            isInverted,
+                            shouldDisablePillTracking,
+                        }),
+                    );
+
+                    // When scroll tracking runs before those conditions are met
+                    act(() => result.current.trackVerticalScrolling(hasScrollEvent ? emptyScrollEventMock : undefined));
+
+                    // Then it leaves the skipped read for the existing read logic to complete later
+                    expect(onUnreadActionVisible).not.toHaveBeenCalled();
+                },
+            );
+        });
+
         it('resumes pill tracking after initial positioning and hides it when returning to the newest messages', () => {
             // Given initial positioning keeps the pill hidden while the list reports its scroll position.
             const offsetRef = {current: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100};
@@ -477,7 +539,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
         });
     });
 
-    describe('action badge above viewport tracking', () => {
+    describe('action badge viewport tracking', () => {
         const onTrackScrollingMockFn = jest.fn();
 
         it('returns isActionBadgeAboveViewport as false initially', () => {
@@ -673,6 +735,172 @@ describe('useReportUnreadMessageScrollTracking', () => {
             rerender({});
 
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
+        it('returns isActionBadgeBelowViewport as true when action badge target is below the viewport in inverted list', () => {
+            // Given an inverted list whose action badge target is at index 1
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 1,
+                }),
+            );
+
+            // When the user has scrolled up so only indexes 3 to 5 are visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                        {index: 5, key: 'reportActions_5', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then the target is below the viewport, because lower indexes are newer messages at the bottom of an inverted list
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns both direction flags as false when action badge target is visible in viewport', () => {
+            // Given an inverted list whose action badge target is at index 2
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 2,
+                }),
+            );
+
+            // When the visible indexes include the target
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then neither flag is set, because the pill only shows while the target is out of view
+            expect(result.current.isActionBadgeBelowViewport).toBe(false);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeBelowViewport as true for a higher index when the list is not inverted', () => {
+            // Given a non-inverted list whose action badge target is at index 9
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: false,
+                    actionBadgeTargetIndex: 9,
+                }),
+            );
+
+            // When only indexes 3 and 4 are visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then the target is below the viewport, because higher indexes are further down in a non-inverted list
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
+
+        it('returns isActionBadgeAboveViewport as true for a lower index when the list is not inverted', () => {
+            // Given a non-inverted list whose action badge target is at index 1
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: false,
+                    actionBadgeTargetIndex: 1,
+                }),
+            );
+
+            // When only indexes 3 and 4 are visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then the target is above the viewport, because lower indexes are further up in a non-inverted list
+            expect(result.current.isActionBadgeBelowViewport).toBe(false);
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+        });
+
+        it('switches the badge direction from above to below when the user scrolls past the target', () => {
+            // Given an inverted list whose action badge target at index 5 is above the viewport
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 5,
+                }),
+            );
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [{index: 0, key: 'reportActions_0', isViewable: true, item: {}}],
+                    changed: [],
+                });
+            });
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
+
+            // When the user scrolls further up so only older messages are visible
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [{index: 8, key: 'reportActions_8', isViewable: true, item: {}}],
+                    changed: [],
+                });
+            });
+
+            // Then the pill flips to point down, because the target is now between the viewport and the newest message
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
 
         it.each([true, false])('keeps the action badge hidden despite stale viewable items when inverted is %s', (isInverted) => {

@@ -191,7 +191,8 @@ describe('FeatureList', () => {
             children: <FeatureList.Item icon={CreditCardsNew}>{benefit}</FeatureList.Item>,
         });
         const benefitPressable = screen.UNSAFE_getByType(PressableWithSecondaryInteraction);
-        expect(benefitPressable.props.onPress).toEqual(expect.any(Function));
+        // A read-only row gets no onPress from its caller, so MenuItem passes none on to its pressable
+        expect(benefitPressable.props.onPress).toBeUndefined();
         expect(benefitPressable.props.onSecondaryInteraction).toBeUndefined();
         expect(benefitPressable.props.activeOpacity).toBe(1);
 

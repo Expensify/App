@@ -1,21 +1,8 @@
-import {NativeModules} from 'react-native';
+import type ShareActionHandlerModule from './types';
 
-const {ShareActionHandler} = NativeModules;
-
-// Type for the content of a share action
-type ShareActionContent = {
-    id: string;
-    content: string;
-    mimeType: string;
-    processedAt: string;
-    aspectRatio: number;
+// Other apps can only share into the iOS and Android apps, so a share is never pending on web.
+const shareActionHandlerModule: ShareActionHandlerModule = {
+    processFiles: () => Promise.resolve([]),
 };
 
-// Type for the ShareActionHandler module
-type ShareActionHandlerModule = {
-    // Method to process files, which takes a callback function
-    processFiles(callback: (array: ShareActionContent[]) => void): void;
-};
-
-export default ShareActionHandler;
-export type {ShareActionHandlerModule};
+export default shareActionHandlerModule;
