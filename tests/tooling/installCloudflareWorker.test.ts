@@ -64,10 +64,10 @@ describe('Cloudflare Worker install during App setup', () => {
         expect(await installCloudflareWorker(workerDir, {}, install)).toBe(true);
     });
 
-    test('skips CI, where only the Worker jobs need the tooling and install it themselves', async () => {
+    test('skips the extra standalone install in CI, where Worker jobs opt in explicitly', async () => {
         // Given a CI root install
         // When postinstall runs
-        // Then wrangler and workerd are not downloaded
+        // Then no additional Worker-lockfile install runs during root setup
         expect(await installCloudflareWorker(workerDir, {CI: 'true'}, install)).toBe(false);
         expect(install).not.toHaveBeenCalled();
     });

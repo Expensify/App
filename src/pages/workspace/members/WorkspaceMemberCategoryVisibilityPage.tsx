@@ -17,7 +17,7 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOverridableSelection from '@hooks/useOverridableSelection';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -45,7 +45,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMemberCategoryVisibilityPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
@@ -61,7 +61,6 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const {isBetaEnabled} = usePermissions();
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -74,9 +73,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
     // An unrestricted member sees every enabled category, so every row starts checked.
     const memberVisibleCategories = getMemberVisibleCategoryNames(policyCategories, accountID);
-    // Undefined until the admin changes something, so the selection follows the member's categories once they load.
-    const [selectionOverride, setSelectionOverride] = useState<string[]>();
-    const selectedCategories = selectionOverride ?? memberVisibleCategories;
+    const {selectedKeys: selectedCategories, toggleKey: toggleCategoryName, toggleVisibleKeys} = useOverridableSelection(memberVisibleCategories);
     const initialSelectedCategories = useInitialSelection(memberVisibleCategories, {resetOnFocus: true});
 
     const backToRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
@@ -107,25 +104,9 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
-    const toggleCategory = (item: CategoryListItem) => {
-        setSelectionOverride((previous) => {
-            const selection = previous ?? memberVisibleCategories;
-            return selection.includes(item.value) ? selection.filter((categoryName) => categoryName !== item.value) : [...selection, item.value];
-        });
-    };
+    const toggleCategory = (item: CategoryListItem) => toggleCategoryName(item.value);
 
-    const toggleSelectAll = () => {
-        const visibleValues = filteredCategoryItems.map((item) => item.value);
-        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedCategories.includes(value));
-
-        if (allVisibleSelected) {
-            const visibleSet = new Set(visibleValues);
-            setSelectionOverride((previous) => (previous ?? memberVisibleCategories).filter((value) => !visibleSet.has(value)));
-            return;
-        }
-
-        setSelectionOverride((previous) => Array.from(new Set([...(previous ?? memberVisibleCategories), ...visibleValues])));
-    };
+    const toggleSelectAll = () => toggleVisibleKeys(filteredCategoryItems.map((item) => item.value));
 
     const handleSave = () => {
         // Only categories still on the list count, so one deleted or disabled since the page opened isn't saved.
@@ -156,7 +137,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories || !memberLogin}
+            shouldBeBlocked={!isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories || !memberLogin}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCategoryVisibilityPage"

@@ -312,4 +312,4 @@ type PolicyChangeLogCopyReportActionNames =
     | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction, PolicyChangeLogCopyReportActionNames};
+export type {ReportActions, Message, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction, PolicyChangeLogCopyReportActionNames};

@@ -505,6 +505,7 @@ type GetReportNextStepParams = {
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
     reportOwnerLogin: string;
+    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin;
     reportMetadata: ReportMetadata | undefined;
     reportActions: ReportAction[];
     transactions: Record<string, Transaction>;
@@ -517,12 +518,22 @@ type GetReportNextStepParams = {
     isOffline: boolean;
 };
 
+/**
+ * Returns the next step of an invoice. Invoices only show the next step while a payment waits for the sender's bank
+ * account, because the sender must act before they can be paid. It doesn't check the policy, because the invoice's
+ * policy might not be loaded.
+ */
+function getInvoiceNextStep(report: OnyxEntry<Report>): ReportNextStep | undefined {
+    return report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT ? report.nextStep : undefined;
+}
+
 function getReportNextStep({
     currentUserLogin,
     currentUserEmail,
     currentUserAccountID,
     report,
     reportOwnerLogin,
+    reportOwnerPersonalDetailsByLogin,
     reportMetadata,
     reportActions,
     transactions,
@@ -534,6 +545,10 @@ function getReportNextStep({
     theme,
     isOffline,
 }: GetReportNextStepParams): ReportNextStep | undefined {
+    if (isInvoiceReport(report)) {
+        return getInvoiceNextStep(report);
+    }
+
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
@@ -546,6 +561,8 @@ function getReportNextStep({
         currentUserAccountID,
         currentUserEmail,
         Object.values(transactions),
+        report,
+        policy,
     );
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
         return buildOptimisticNextStepForStrictPolicyRuleViolations();
@@ -617,7 +634,7 @@ function getReportNextStep({
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules, reportOwnerPersonalDetailsByLogin)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
@@ -684,11 +701,11 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
 }
 
 export {
+    getInvoiceNextStep,
     getReportNextStep,
     buildNextStepMessage,
     getNextStepETA,
     buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
     getUpcomingStepActionForNextStep,

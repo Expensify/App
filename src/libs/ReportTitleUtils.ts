@@ -1,5 +1,5 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 /**
  * This file should only be used in context of optimistic report name updates.
@@ -10,29 +10,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {getTitleReportField} from './ReportUtils';
-
-let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};
-
-/**
- * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
- * We need up to date report name value pairs of reports to correctly determine if further updates to report's titles should be made.
- * It wouldn't be possible without connection directly to Onyx.
- */
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    callback: (val) => {
-        allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
-    },
-});
-
-/**
- * Get the title field from report name value pairs
- */
-function getTitleFieldFromRNVP(reportID: string) {
-    const reportNameValuePairs = allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-
-    return reportNameValuePairs?.expensify_text_title;
-}
 
 /**
  * Update title field in report's rNVP to match the policy's title field configuration
@@ -66,4 +43,5 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array
     return optimisticData;
 }
 
-export {getTitleFieldFromRNVP, updateTitleFieldToMatchPolicy};
+// eslint-disable-next-line import/prefer-default-export -- Utility file with a single named export; other title helpers may be added here later.
+export {updateTitleFieldToMatchPolicy};

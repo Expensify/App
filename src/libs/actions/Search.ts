@@ -29,17 +29,19 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getSearchErrorMessage} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
+import {markSearchSnapshotStale, releaseSearchSnapshot} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -70,7 +72,15 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFooterSelectionFromQuery,
+    getSearchQueryError,
+    isGroupBySupportedBySearch,
+    normalizeDatePresetsInQuery,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -260,6 +270,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -269,6 +280,8 @@ type HandleActionButtonPressParams = {
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
+    isAccountLocked?: boolean;
+    onAccountLocked?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -277,6 +290,8 @@ type HandleActionButtonPressParams = {
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    /** Requires approval callers to confirm report violations before proceeding. */
+    confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     currentUserAccountID: number;
     currentUserLogin?: string;
@@ -308,6 +323,7 @@ function handleActionButtonPress({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     submitterLogin,
@@ -317,6 +333,8 @@ function handleActionButtonPress({
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
+    isAccountLocked,
+    onAccountLocked,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
     onPendingCardTransactionsBlock,
@@ -324,6 +342,7 @@ function handleActionButtonPress({
     onUndelete,
     onAllHeldExpensesBlock,
     confirmSubmitReportViolations,
+    confirmApproveReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     currentUserLogin,
@@ -370,6 +389,7 @@ function handleActionButtonPress({
                 hash,
                 item,
                 goToItem,
+                policyID,
                 snapshotReport,
                 snapshotPolicy,
                 lastPaymentMethod,
@@ -404,32 +424,38 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
+            if (isAccountLocked) {
+                onAccountLocked?.();
+                return;
+            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            getApproveActionCallback({
-                hash,
-                item,
-                snapshotReport,
-                snapshotPolicy,
-                policy,
-                currentSearchKey,
-                currentUserAccountID,
-                currentUserLogin,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-                amountOwed,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-                ownerLogin: submitterLogin,
-                allViolations,
-                rules,
-                getCurrencyDecimals,
-                personalDetailsByLogins,
-            });
+            confirmApproveReportViolations(() =>
+                getApproveActionCallback({
+                    hash,
+                    item,
+                    snapshotReport,
+                    snapshotPolicy,
+                    policy,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    ownerBillingGracePeriodEnd,
+                    amountOwed,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    ownerLogin: submitterLogin,
+                    allViolations,
+                    rules,
+                    getCurrencyDecimals,
+                    personalDetailsByLogins,
+                }),
+            );
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -496,7 +522,7 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
-                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID});
                 return;
             }
 
@@ -616,6 +642,7 @@ type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
@@ -649,6 +676,7 @@ function getPayActionCallback({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
@@ -681,7 +709,7 @@ function getPayActionCallback({
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -823,6 +851,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        allTransactionViolations: allViolations,
         personalDetailsByLogins,
     });
 }
@@ -870,7 +899,7 @@ function getOnyxLoadingData(
             value: {
                 errors: null,
                 // The code explains the errors it was stored with, so the two have to be cleared together.
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1089,8 +1118,8 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
             value: {
                 errors: null,
-                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
-                search: {state: null, responseJsonCode: null},
+                // Clear the terminal state with the failure so the snapshot can be requested again.
+                search: {state: null, responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1270,6 +1299,12 @@ type InFlightSearchRequest = {
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
+    hash: number;
+    jsonQuery: string;
+    /** False while the request waits for writes. */
+    isSent: boolean;
+    /** Whether the response lost its snapshot and needs a refetch after writes finish. */
+    wasSnapshotDropped?: boolean;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
@@ -1277,6 +1312,39 @@ type InFlightSearchRequest = {
 // save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
+
+/**
+ * Invalidates sent Search snapshots before an inline edit applies its optimistic update. Requests waiting for writes
+ * already include the edit when they are sent. Call synchronously before the edit's write so a Search cannot slip between them.
+ * Only the edited snapshot is invalidated, so unrelated searches can still show their first results.
+ */
+function markInFlightSearchRequestsStale(hash: number | undefined) {
+    for (const request of inFlightSearchRequests.values()) {
+        if (!request.isSent || request.hash !== hash) {
+            continue;
+        }
+        markSearchSnapshotStale(request.jsonQuery);
+    }
+}
+
+/**
+ * True when a running first-page request already returns what the caller wants, so the caller can skip its own request.
+ * Background refreshes (auto-refetch, post-action refresh, Home) may differ in totals, footer breakdown or trip rooms.
+ * A caller that needs any of those must still fire, or search() never re-fires the running request and that data never arrives.
+ */
+function isFirstPageSearchInFlight(queryJSON: Readonly<SearchQueryJSON>, shouldCalculateTotals: boolean, shouldReturnTripRooms: boolean) {
+    const inFlightRequest = inFlightSearchRequests.get(`${queryJSON.hash}_0`);
+    if (!inFlightRequest) {
+        return false;
+    }
+
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+    const isMissingTotals = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+    const hasDifferentFooterTotal = getFooterSelectionFromQuery(queryJSON).footerTotal !== inFlightRequest.footerTotal;
+    const hasDifferentTripRooms = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+
+    return !isMissingTotals && !hasDifferentFooterTotal && !hasDifferentTripRooms;
+}
 
 // Search mounts only after the page's request has finished, so the map above no longer holds it.
 // One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
@@ -1325,7 +1393,11 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
  * columns to a backend-supported date sort.
  */
-function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+function getBackendQueryJSON(searchQueryJSON: Readonly<SearchQueryJSON>) {
+    // The Search command rejects Insights-only group-bys as invalid, so they're left out
+    const queryJSON = isGroupBySupportedBySearch(searchQueryJSON.groupBy)
+        ? searchQueryJSON
+        : {...searchQueryJSON, groupBy: undefined, inputQuery: buildSearchQueryString({...searchQueryJSON, groupBy: undefined})};
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -1382,8 +1454,7 @@ function search({
      */
     shouldSaveRecentSearch?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
-     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Used by the
      * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
      * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
      * with an incomplete filter set and has to be re-fired once that data lands.
@@ -1398,10 +1469,38 @@ function search({
         return;
     }
 
+    const queryError = getSearchQueryError(queryJSON);
+    if (queryError) {
+        const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
+        // Settle the snapshot as if Auth had rejected the query. The loading updates move it to its final loaded state, so
+        // the error view shows and the query isn't requested again. The error goes last because optimisticData clears it.
+        return Onyx.update([
+            ...(optimisticData ?? []),
+            ...(finallyData ?? []),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                value: {
+                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: queryError},
+                    errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
+                },
+            },
+        ])
+            .then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY)
+            .catch((error: unknown) => {
+                // Callers don't catch search(), so a failed write is logged here like the other snapshot writes
+                Log.hmmm('[Search] failed to store the search query error', {error: String(error)});
+                return undefined;
+            });
+    }
+
+    // The backend saves a flagged search as the account's recent search and its last filters and columns. Support agents
+    // search a customer's account to troubleshoot, which must not change what the customer sees when they log in.
+    const shouldSaveSearchToAccount = shouldSaveRecentSearch && !isSupportAuthToken();
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
-    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
         // to one type let a totals request for another type collide with an in-flight request and get
@@ -1409,7 +1508,7 @@ function search({
         const needsTotalsUpgrade = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
-        const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
+        const needsSaveRecentSearchUpgrade = shouldSaveSearchToAccount && !inFlightRequest.shouldSaveRecentSearch;
         // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
         // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
         const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
@@ -1419,7 +1518,7 @@ function search({
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
-            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveSearchToAccount;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
@@ -1429,7 +1528,8 @@ function search({
                     prevReportsLength,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
-                    skipWaitForWrites,
+                    // A replacement for a stale snapshot must include the edit, even if the joining call skipped writes.
+                    skipWaitForWrites: skipWaitForWrites && !inFlightRequest.wasSnapshotDropped,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
@@ -1439,8 +1539,26 @@ function search({
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
-    inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
+    // Wait for the edit without covering the optimistic rows with loading or an offline error.
+    const refetchStaleSnapshot = () =>
+        waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+            if (getIsOffline()) {
+                return undefined;
+            }
+            return search({
+                queryJSON,
+                searchKey,
+                offset,
+                shouldCalculateTotals,
+                prevReportsLength,
+                isLoading: false,
+                shouldUpdateLastSearchParams,
+                shouldSaveRecentSearch,
+                shouldShowLoading: false,
+                skipWaitForWrites: true,
+                shouldReturnTripRooms,
+            });
+        });
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
@@ -1450,12 +1568,22 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        shouldSaveRecentSearch,
+        shouldSaveRecentSearch: shouldSaveSearchToAccount,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
         ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
+    const inFlightRequestState: InFlightSearchRequest = {
+        shouldCalculateTotals,
+        shouldSaveRecentSearch: shouldSaveSearchToAccount,
+        footerTotal,
+        shouldReturnTripRooms: isTripRoomsSearch,
+        hash: queryJSON.hash,
+        jsonQuery,
+        isSent: false,
+    };
+    inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1488,13 +1616,21 @@ function search({
         });
     }
 
-    const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+    const startRequest = () => {
+        inFlightRequestState.isSent = true;
+        return makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
+
+                // Preserve an existing totals/recent-search upgrade rather than scheduling a duplicate refetch.
+                if (releaseSearchSnapshot(jsonQuery)) {
+                    inFlightRequestState.wasSnapshotDropped = true;
+                    inFlightRequestState.pendingUpgradeRequest ??= refetchStaleSnapshot;
+                    return result?.jsonCode;
+                }
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
@@ -1505,9 +1641,11 @@ function search({
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
                 if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
-                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
-                    );
+                    const errorTranslationKey = responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY ? getSearchErrorMessage(result) : undefined;
+                    Onyx.merge(snapshotKey, {
+                        search: {responseJsonCode, errorTranslationKey},
+                        ...(errorTranslationKey && {errors: getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey)}),
+                    }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
                 }
 
                 // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.
@@ -1568,9 +1706,11 @@ function search({
                 throw error;
             })
             .finally(() => {
+                releaseSearchSnapshot(jsonQuery);
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
             });
+    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
@@ -2343,6 +2483,38 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+type BulkExpenseActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
+
+/**
+ * Queues a Hold, Unhold or Reject, with the reason for Hold and Reject, for every expense matching a Select all search that the user can act on.
+ * The expenses checked again inside a deselected group are sent too, since the search leaves out their whole group.
+ */
+function queueBulkExpenseAction(
+    action: BulkExpenseActionType,
+    allMatchingQuery: {jsonQuery: string; excludedTransactionIDList: string[]} | undefined,
+    rowsCheckedInExcludedGroups: SelectedTransactions,
+    comment = '',
+) {
+    if (!allMatchingQuery) {
+        Log.info(`[BulkExpenseAction] Dropping bulk ${action}: an excluded row could not be resolved`);
+        return;
+    }
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(action);
+    const jsonQuery = allMatchingQuery.jsonQuery;
+    const excludedTransactionIDList = allMatchingQuery.excludedTransactionIDList.join(',');
+    const transactionIDList = Object.keys(rowsCheckedInExcludedGroups).join(',');
+    switch (action) {
+        case CONST.SEARCH.BULK_ACTION_TYPES.HOLD:
+            write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        case CONST.SEARCH.BULK_ACTION_TYPES.REJECT:
+            write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        default:
+            write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+    }
+}
+
 /** Moves every report matching the search query that the user can move to the given workspace. */
 function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
@@ -2748,7 +2920,8 @@ function setOptimisticDataForTransactionThreadPreview(
     delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
-    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
+    const {reportID, report, amount, currency, transactionID, created, from} = item;
+    const policyID = report?.policyID;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -2807,10 +2980,12 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    queueBulkExpenseAction,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
     search,
+    markInFlightSearchRequestsStale,
     getFooterConvertedAmounts,
     clearFooterConversion,
     rejectMoneyRequestsOnSearch,
@@ -2857,6 +3032,7 @@ export {
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
+    isFirstPageSearchInFlight,
     consumePageRequestedSearch,
     clearPageRequestedSearch,
 };

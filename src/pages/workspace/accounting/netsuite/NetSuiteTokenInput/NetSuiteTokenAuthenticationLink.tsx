@@ -32,7 +32,12 @@ function NetSuiteTokenAuthenticationLink({policyID, style}: NetSuiteTokenAuthent
     return (
         <Text style={[styles.textSupporting, style]}>
             {translate('workspace.netsuite.tokenInput.tokenAuthenticationPrompt.beforeLink')}{' '}
-            <TextLink onPress={switchToTokenAuthentication}>{translate('workspace.netsuite.tokenInput.tokenAuthenticationPrompt.link')}</TextLink>{' '}
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TOKEN_AUTHENTICATION_LINK}
+                onPress={switchToTokenAuthentication}
+            >
+                {translate('workspace.netsuite.tokenInput.tokenAuthenticationPrompt.link')}
+            </TextLink>{' '}
             {translate('workspace.netsuite.tokenInput.tokenAuthenticationPrompt.afterLink')}
         </Text>
     );

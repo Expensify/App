@@ -104,7 +104,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             key: 'actions',
             width: variables.workspaceTableActionColumnWidth,
             label: '',
-            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
         },
     ];
 
@@ -202,6 +202,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                   buttonAction: () =>
                       interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session),
                   buttonText: translate('workspace.new.newWorkspace'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.EMPTY_STATE_NEW_WORKSPACE,
               },
           ]
         : undefined;

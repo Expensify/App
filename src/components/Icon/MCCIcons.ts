@@ -12,4 +12,6 @@ import Services from '@assets/images/MCCGroupIcons/MCC-Services.svg';
 import Taxi from '@assets/images/MCCGroupIcons/MCC-Taxi.svg';
 import Utilities from '@assets/images/MCCGroupIcons/MCC-Utilities.svg';
 
-export {Airlines, Commuter, Gas, Goods, Groceries, Hotel, Mail, Meals, Rental, Services, Taxi, Miscellaneous, Utilities};
+const mccIcons = {Airlines, Commuter, Gas, Goods, Groceries, Hotel, Mail, Meals, Rental, Services, Taxi, Miscellaneous, Utilities};
+
+export default mccIcons;

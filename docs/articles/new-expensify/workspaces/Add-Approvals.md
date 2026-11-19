@@ -164,7 +164,7 @@ Even with auto-approvals enabled, you can route a percentage of compliant report
 2. Enter your desired percentage amount.
 3. Click **Save**.
 
-**Note:** Custom auto-approval settings are only available on the Control plan. Collect plans will have a $100 auto-approval threshold and 0% random audit percentage. 
+**Note:** Custom auto-approval settings are only available on the Control plan. 
 
 ---
 
