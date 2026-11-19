@@ -275,6 +275,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
+            // Transaction rows cannot approve reports; do not initialize a report approval hook for each row.
+            confirmApproveReportViolations: () => undefined,
             currentUserAccountID,
             currentUserLogin,
             activePolicy,

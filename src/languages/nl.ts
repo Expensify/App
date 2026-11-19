@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
         submitAnyway: 'Toch verzenden',
+        approveAnyway: 'Toch goedkeuren',
         markAsDone: 'Markeren als voltooid',
         markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
@@ -1568,6 +1569,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
+        confirmApproveReportViolations: {
+            title: 'Toch goedkeuren?',
+            description: 'Dit rapport bevat beleidsinbreuken. Weet je zeker dat je het wilt goedkeuren zonder wijzigingen aan te brengen?',
+        },
         confirmSubmitReportViolations: {
             title: 'Rapport verzenden?',
             description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
@@ -1694,6 +1699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
         rejectedThisReport: 'afgekeurd',
         waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${vendorDisplayName} een bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,

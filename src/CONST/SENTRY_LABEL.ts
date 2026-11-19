@@ -197,6 +197,9 @@ const SENTRY_LABEL = {
         CTA: 'ProductMarketingWindow-CTA',
         DISMISS: 'ProductMarketingWindow-Dismiss',
     },
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        CREATE: 'NewReportWorkspaceSelection-Create',
+    },
     NAVIGATION_TAB_BAR: {
         EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
         INBOX: 'NavigationTabBar-Inbox',
@@ -211,6 +214,12 @@ const SENTRY_LABEL = {
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
         FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
+        MORE_MENU: {
+            ACCOUNTING: 'NavigationTabBar-MoreMenu-Accounting',
+            SAVED: 'NavigationTabBar-MoreMenu-Saved',
+            INSIGHTS: 'NavigationTabBar-MoreMenu-Insights',
+            WORKSPACES: 'NavigationTabBar-MoreMenu-Workspaces',
+        },
     },
     FAB_MENU: {
         CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -882,6 +891,7 @@ const SENTRY_LABEL = {
         BILLABLE_FIELD: 'SearchEditMultiple-BillableField',
         REIMBURSABLE_FIELD: 'SearchEditMultiple-ReimbursableField',
         ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
+        BOOLEAN_DROPDOWN_BACK_BUTTON: 'SearchEditMultiple-BooleanDropdownBackButton',
         SAVE_BUTTON: 'SearchEditMultiple-SaveButton',
     },
     INSIGHTS: {
@@ -3002,6 +3012,7 @@ const SENTRY_LABEL = {
     },
     ONBOARDING: {
         HELP_DROPDOWN: 'Onboarding-HelpDropdown',
+        OUTER_AREA: 'Onboarding-OuterArea',
         MERGING_ACCOUNT_BLOCKED_CONFIRM: 'Onboarding-MergingAccountBlockedConfirm',
         INTERESTED_FEATURES_ITEM: {
             CATEGORIES: 'Onboarding-InterestedFeaturesItem-Categories',

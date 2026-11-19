@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
         submitAnyway: 'Soumettre quand même',
+        approveAnyway: 'Approuver quand même',
         markAsDone: 'Marquer comme terminé',
         markAsDoneAnyway: 'Marquer comme terminé quand même',
         submitted: 'Soumis',
@@ -1579,6 +1580,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
+        confirmApproveReportViolations: {
+            title: 'Approuver quand même ?',
+            description: 'Cette note de frais comporte des violations de politique. Voulez-vous vraiment l’approuver sans y apporter de modifications ?',
+        },
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',
@@ -1706,6 +1711,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,

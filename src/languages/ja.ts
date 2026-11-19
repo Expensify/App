@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: '変更を保存',
         submit: '送信',
         submitAnyway: 'とにかく送信',
+        approveAnyway: 'このまま承認する',
         markAsDone: '完了にする',
         markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
@@ -1553,6 +1554,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
+        confirmApproveReportViolations: {
+            title: 'それでも承認しますか？',
+            description: 'このレポートにはポリシー違反があります。変更を行わずに承認してもよろしいですか？',
+        },
         confirmSubmitReportViolations: {
             title: 'レポートを送信しますか？',
             description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
@@ -1679,6 +1684,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
         rejectedThisReport: '却下しました',
         waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `支払いを開始しましたが、${vendorDisplayName} が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,

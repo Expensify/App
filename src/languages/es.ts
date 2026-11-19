@@ -97,6 +97,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
         submitAnyway: 'Enviar de todos modos',
+        approveAnyway: 'Aprobar de todos modos',
         markAsDone: 'Marcar como listo',
         markAsDoneAnyway: 'Marcar como listo de todos modos',
         submitted: 'Enviado',
@@ -1545,6 +1546,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
+        confirmApproveReportViolations: {
+            title: '¿Aprobar de todas formas?',
+            description: 'Este informe tiene infracciones de la política. ¿Seguro que quieres aprobarlo sin hacer cambios?',
+        },
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',
             description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',
@@ -1692,6 +1697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `inició el pago, pero está esperando a que ${vendorDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,

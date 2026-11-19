@@ -18,7 +18,6 @@ import {
     isExpenseUnreported,
     isPartiallyEnteredScanExpense,
 } from './TransactionUtils';
-import {getMerchantError} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -56,6 +55,23 @@ function addLeadingZero(amount: string, shouldAllowNegative = false): string {
         return `-0${amount}`;
     }
     return amount.startsWith('.') ? `0${amount}` : amount;
+}
+
+/** The backend amount for what was typed in an inline amount field, or null when the field is empty or holds only a sign. */
+function getBackendAmountFromInput(value: string): number | null {
+    const isNegative = value.startsWith('-');
+    const cleanAmount = value.replace('-', '').trim();
+    if (!cleanAmount) {
+        return null;
+    }
+
+    const numericAmount = Number.parseFloat(cleanAmount);
+    if (Number.isNaN(numericAmount)) {
+        return null;
+    }
+
+    const absoluteBackendAmount = convertToBackendAmount(numericAmount);
+    return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
 }
 
 /**
@@ -177,18 +193,6 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
         return false;
     }
     return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
-}
-
-/**
- * Validates a merchant value according to business rules.
- *
- * @param merchant - The merchant name to validate
- * @param transaction - The transaction to validate merchant for (used to determine if clearing is allowed)
- * @param report - The parent report for the transaction (used to determine if IOU clearing is allowed)
- * @returns Whether the merchant value is valid
- */
-function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
 }
 
 type AmountHasUnsavedChangesParams = {
@@ -317,6 +321,7 @@ function isConfirmationDateMissing(
 }
 
 export {
+    getBackendAmountFromInput,
     addLeadingZero,
     getConfirmationAmount,
     isConfirmationAmountMissing,
@@ -335,7 +340,6 @@ export {
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
     isMerchantRequired,
-    isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,

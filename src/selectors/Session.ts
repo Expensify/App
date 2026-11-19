@@ -13,8 +13,6 @@ const emailSelector = (session: OnyxEntry<Session>) => session?.email;
 
 const accountIDSelector = (session: OnyxEntry<Session>) => session?.accountID;
 
-const sessionEmailAndAccountIDSelector = (session: OnyxEntry<Session>) => ({email: session?.email, accountID: session?.accountID});
-
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
 
 const authTokenTypeAndAccountIDSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType, accountID: session.accountID};
@@ -27,7 +25,6 @@ const hasNonAnonymousSessionSelector = (session: OnyxEntry<Session>) => !!sessio
 export {
     emailSelector,
     accountIDSelector,
-    sessionEmailAndAccountIDSelector,
     authTokenSelector,
     authTokenTypeSelector,
     authTokenTypeAndAccountIDSelector,
