@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
         submitAnyway: 'Trotzdem senden',
+        approveAnyway: 'Trotzdem genehmigen',
         markAsDone: 'Als erledigt markieren',
         markAsDoneAnyway: 'Trotzdem als erledigt markieren',
         submitted: 'Übermittelt',
@@ -1292,6 +1293,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
+        generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
+        readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
+        comparingWithYourAverage: 'Verglichen mit Ihrem Durchschnitt',
+        lookingForAnythingUnusual: 'Suche nach ungewöhnlichen Vorgängen',
+        writingYourInsights: 'Ihre Erkenntnisse schreiben',
         violationStage: {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
@@ -1573,6 +1580,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
+        confirmApproveReportViolations: {
+            title: 'Trotzdem genehmigen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Sind Sie sicher, dass Sie ihn ohne Änderungen genehmigen möchten?',
+        },
         confirmSubmitReportViolations: {
             title: 'Bericht einreichen?',
             description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
@@ -1699,6 +1710,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${vendorDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,

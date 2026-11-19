@@ -164,6 +164,7 @@ const translations = {
         saveChanges: 'Save changes',
         submit: 'Submit',
         submitAnyway: 'Submit anyway',
+        approveAnyway: 'Approve anyway',
         markAsDone: 'Mark as done',
         markAsDoneAnyway: 'Mark as done anyway',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
@@ -1373,6 +1374,12 @@ const translations = {
         },
     },
     insightsPage: {
+        generatingAIInsights: 'Generating AI Insights...',
+        generatingAIInsightsSubtitle: "This shouldn't take more than a minute",
+        readingChart: (chartTitle: string) => `Reading ${chartTitle}`,
+        comparingWithYourAverage: 'Comparing with your average',
+        lookingForAnythingUnusual: 'Looking for anything unusual',
+        writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
         parent: 'Parent',
@@ -1715,6 +1722,10 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
+        confirmApproveReportViolations: {
+            title: 'Approve anyway?',
+            description: 'This report has policy violations. Are you sure you want to approve it without making changes?',
+        },
         confirmSubmitReportViolations: {
             title: 'Submit report?',
             description: 'This report has policy violations. Are you sure you want to submit it without making changes?',
@@ -1858,6 +1869,7 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `started payment, but is waiting for ${vendorDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,

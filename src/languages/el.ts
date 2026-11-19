@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
         submitAnyway: 'Υποβολή ούτως ή άλλως',
+        approveAnyway: 'Έγκριση ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
         markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
@@ -1338,6 +1339,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        generatingAIInsights: 'Δημιουργία AI Insights...',
+        generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
+        readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
+        comparingWithYourAverage: 'Σύγκριση με τον μέσο όρο σας',
+        lookingForAnythingUnusual: 'Αναζητούμε οτιδήποτε ασυνήθιστο',
+        writingYourInsights: 'Καταγράφετε τις ιδέες σας',
         violationStage: {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
@@ -1619,6 +1626,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
+        confirmApproveReportViolations: {
+            title: 'Έγκριση ούτως ή άλλως;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε βέβαιοι ότι θέλετε να την εγκρίνετε χωρίς να κάνετε αλλαγές;',
+        },
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
@@ -1754,6 +1765,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${vendorDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,
