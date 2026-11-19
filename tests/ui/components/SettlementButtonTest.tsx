@@ -10,8 +10,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SettlementButton from '@components/SettlementButton';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
+
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -24,7 +29,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {translateLocal} from '../../utils/TestHelper';
+import {getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -50,6 +55,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getActiveRoute: jest.fn(() => ''),
         getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigationRef: mockRef,
     };
 });
@@ -88,20 +94,35 @@ jest.mock('@libs/actions/ReimbursementAccount', () => ({
     navigateToBankAccountRoute: jest.fn(),
 }));
 
-// Dropdown items defer onSelected until the popover finishes hiding, so the modal has to report that.
+// Dropdown items defer onSelected until the popover finishes hiding, and the payment methods load once it has shown,
+// so the modal has to report both.
 jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactElement}) {
-        const wasVisible = useRef<boolean>(isVisible);
+    return function MockReanimatedModal({
+        isVisible,
+        onModalShow,
+        onModalHide,
+        children,
+    }: {
+        isVisible: boolean;
+        onModalShow?: () => void;
+        onModalHide?: () => void;
+        children: React.ReactElement;
+    }) {
+        // The popover mounts already visible, so it starts as hidden for the first render to count as it showing
+        const wasVisible = useRef<boolean>(false);
 
         useEffect(() => {
+            if (!wasVisible.current && isVisible) {
+                onModalShow?.();
+            }
             if (wasVisible.current && !isVisible) {
                 onModalHide?.();
             }
             wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
+        }, [isVisible, onModalShow, onModalHide]);
 
         if (!isVisible) {
             return null;
@@ -111,7 +132,12 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     };
 });
 
-const mockVerifyAccountAndResume = jest.fn();
+jest.mock('@userActions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
+const mockVerifyAccountAndResume = jest.fn<void, [(() => void | Promise<void>) | undefined]>();
 
 jest.mock('@hooks/useVerifyAccountAndResume', () => ({
     __esModule: true,
@@ -216,8 +242,14 @@ function createPersonalBankAccount(accountNumber = '5678'): BankAccountList {
     return createBankAccountList(accountNumber, CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 }
 
+// Fires the layout event the popover waits for before showing its modal, which never happens on its own in tests
+function showMeasuredPopover() {
+    fireEvent(screen.getByText(translateLocal('iou.payElsewhere', '')), 'layout', {nativeEvent: {layout: {width: 100, height: 100}}});
+}
+
 const defaultProps: SettlementButtonProps = {
     onPress: jest.fn(),
+    sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
     enablePaymentsRoute: ROUTES.ENABLE_PAYMENTS,
     policyID: POLICY_ID,
     formattedAmount: '$100.00',
@@ -373,6 +405,37 @@ describe('SettlementButton', () => {
             const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
             fireEvent.press(payButton);
             expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
+        });
+
+        it('loads the payment methods when the options open', async () => {
+            // Given an expense report on a USD policy, which can't be paid via ABA
+            const expenseReport = createExpenseReport();
+            const onPaymentOptionsShow = jest.fn();
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                        onPaymentOptionsShow={onPaymentOptionsShow}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            showMeasuredPopover();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment methods are still loaded, since the payment options can need them for more than paying via ABA, and the caller hears that the options opened
+            expect(openPaymentMethods).toHaveBeenCalledTimes(1);
+            expect(onPaymentOptionsShow).toHaveBeenCalledTimes(1);
         });
 
         it('does not show wallet option for expense reports (subtitle shows bank account)', async () => {
@@ -547,6 +610,192 @@ describe('SettlementButton', () => {
             expect(screen.getByText('Open Business Account')).toBeTruthy();
             expect(screen.queryByText('Setup Business Account')).toBeNull();
         });
+
+        it('filters out ABA accounts from invoice payment options', async () => {
+            // Given an AUD invoice, and an open AUD business account next to an open ABA account, which Expensify can't pay from
+            const invoiceReport = createInvoiceReport({currency: CONST.CURRENCY.AUD});
+            const businessAccountID = 11111;
+            const abaAccountID = 22222;
+            const bankAccountList: BankAccountList = {
+                [businessAccountID]: {
+                    methodID: businessAccountID,
+                    bankCurrency: CONST.CURRENCY.AUD,
+                    bankCountry: 'AU',
+                    title: 'Business Account',
+                    description: 'Account ending in 1111',
+                    accountData: {
+                        bankAccountID: businessAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '000001111',
+                        addressName: 'Business Account',
+                    },
+                },
+                [abaAccountID]: {
+                    methodID: abaAccountID,
+                    bankCurrency: CONST.CURRENCY.AUD,
+                    bankCountry: 'AU',
+                    title: 'ABA Account',
+                    description: 'Account ending in 2222',
+                    accountData: {
+                        bankAccountID: abaAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '000002222',
+                        addressName: 'ABA Account',
+                        additionalData: {isForABA: true},
+                    },
+                },
+            };
+
+            await setupOnyxState({
+                report: invoiceReport,
+                chatReport: createChatReport({
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {
+                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        policyID: POLICY_ID,
+                    },
+                }),
+                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+                bankAccountList,
+                betas: [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY],
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the business account is offered to pay the invoice through Expensify
+            expect(screen.getByText('Business Account')).toBeTruthy();
+            expect(screen.queryByText('ABA Account')).toBeNull();
+        });
+    });
+
+    describe('pay via ABA', () => {
+        afterEach(() => {
+            jest.mocked(useVerifyAccountAndResume).mockReturnValue({isUserValidated: true, verifyAccountAndResume: mockVerifyAccountAndResume});
+        });
+
+        function pressPayViaABA() {
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${translateLocal('iou.payViaABA')}`);
+
+            // MenuItem only forwards the press when it receives an event, so a GestureResponderEvent-shaped one is required.
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+        }
+
+        async function renderAUDExpenseReport(policyOverrides?: Partial<Policy>) {
+            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+            const onPress = jest.fn();
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy({
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
+                    ...policyOverrides,
+                }),
+                betas: [CONST.BETAS.PAY_VIA_ABA],
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={expenseReport}
+                        onPress={onPress}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+            return onPress;
+        }
+
+        it('pays via ABA when an admin picks the option on an AUD workspace with an open AU withdrawal account', async () => {
+            // Given an admin opening the payment options on an AUD workspace's report, with an open AU withdrawal account
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the report is paid as Elsewhere via ABA, since the ABA file pays it from outside Expensify
+            expect(onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        it('has an unvalidated admin verify their account before paying via ABA', async () => {
+            // Given an unvalidated admin opening the payment options on an AUD workspace's report
+            jest.mocked(useVerifyAccountAndResume).mockReturnValue({isUserValidated: false, verifyAccountAndResume: mockVerifyAccountAndResume});
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they verify their account before the payment starts, since a hold menu it opens closes before it could resume the payment
+            expect(mockVerifyAccountAndResume).toHaveBeenCalled();
+            expect(onPress).not.toHaveBeenCalled();
+
+            // And the payment carries on once they've verified
+            act(() => {
+                mockVerifyAccountAndResume.mock.calls.at(0)?.[0]?.();
+            });
+            expect(onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        it('does not show the option when the workspace has no AU withdrawal account', async () => {
+            // Given an AUD workspace without an AU withdrawal account
+            const policyOverrides = {reimbursement: {countries: {}}};
+
+            // When the payment options are opened
+            await renderAUDExpenseReport(policyOverrides);
+
+            // Then "Pay via ABA" isn't offered, since there's no account for the ABA file to pay from
+            expect(screen.queryByText(translateLocal('iou.payViaABA'))).toBeNull();
+
+            // And "Pay with business account" is, so the admin can still connect one
+            expect(screen.getByText(translateLocal('iou.settleBusiness', ''))).toBeTruthy();
+        });
+
+        it('does not offer to connect a business account once the workspace pays via ABA', async () => {
+            // Given an admin on an AUD workspace's report, with an open AU withdrawal account
+            // When the payment options are opened
+            await renderAUDExpenseReport();
+
+            // Then "Pay with business account" isn't offered, since it would only list the ABA account that's already connected
+            expect(screen.getByText(translateLocal('iou.payViaABA'))).toBeTruthy();
+            expect(screen.queryByText(translateLocal('iou.settleBusiness', ''))).toBeNull();
+        });
+
+        it('does not pay when the option is picked while offline', async () => {
+            // Given the user is offline
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            });
+            const onPress = await renderAUDExpenseReport();
+
+            // When they pick "Pay via ABA"
+            pressPayViaABA();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is paid, since the ABA file can only be downloaded while online
+            expect(onPress).not.toHaveBeenCalled();
+        });
     });
 
     describe('createWorkspace regression test', () => {
@@ -579,6 +828,167 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(createWorkspaceMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('expense payment funding source', () => {
+        const workspaceBankAccount = {
+            bankAccountID: BANK_ACCOUNT_ID + 1,
+            accountNumber: 'XXXX1111',
+            routingNumber: '123456789',
+            addressName: 'Workspace account',
+            bankName: 'Workspace bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        };
+
+        async function selectExpensePaymentOption(policy: Policy, optionText: string, bankAccountList?: BankAccountList) {
+            const expenseReport = createExpenseReport();
+            await setupOnyxState({report: expenseReport, chatReport: createChatReport(), policy, bankAccountList});
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+            const menuItem = screen.getByTestId(`PopoverMenuItem-${optionText}`);
+            fireEvent.press(menuItem, {nativeEvent: {}, type: 'press', target: menuItem, currentTarget: menuItem});
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.LOCKED])('adds a standalone account when the inaccessible workspace account is %s', async (state) => {
+            // Given an existing workspace account and stale setup data, neither may be used for a new funding source.
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, state}});
+            await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {bankAccountID: workspaceBankAccount.bankAccountID, policyID: POLICY_ID}});
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '1111'});
+
+            // When an admin without that account chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then setup receives no policyID and cannot replace the workspace account or reuse stale account details.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (setup) => {
+                    expect(setup?.achData?.policyID).toBeFalsy();
+                    expect(setup?.achData?.bankAccountID).toBeFalsy();
+                },
+            });
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(policy.achAccount)});
+        });
+
+        it('resumes the admin’s partially configured business account without linking it to the workspace', async () => {
+            // Given an existing workspace account and another bank account that the admin has not finished setting up.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP};
+
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {accountNumber: '5678'});
+
+            // When business-bank payment would otherwise open connect-existing setup.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then the admin resumes their account and the workspace keeps its existing account.
+            await getOnyxData({key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, callback: (draft) => expect(draft?.accountNumber).toBe('5678')});
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount),
+            });
+        });
+
+        it.each([
+            {bankCurrency: CONST.CURRENCY.USD, policyIDs: ['another-workspace']},
+            {bankCurrency: CONST.CURRENCY.GBP, policyIDs: []},
+        ])('starts fresh instead of resuming a partial account with currency $bankCurrency and policies $policyIDs', async ({bankCurrency, policyIDs}) => {
+            // Given a partial business account that belongs to another workspace or uses a different currency.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].bankCurrency = bankCurrency;
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {
+                ...bankAccountList[BANK_ACCOUNT_ID].accountData,
+                state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                policyIDs,
+            };
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                accountNumber: '5678',
+            });
+
+            // When the admin adds a funding source for this USD report.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then a fresh standalone setup avoids resuming an unsuitable account and preserves the workspace account.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            await getOnyxData({
+                key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+                callback: (draft) => expect(draft?.accountNumber).toBeFalsy(),
+            });
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING])('resumes an accessible workspace account in %s with policy context', async (state) => {
+            // Given the workspace account itself is shared with the admin and still needs setup.
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {...bankAccountList[BANK_ACCOUNT_ID].accountData, state};
+            const policy = createTestPolicy({achAccount: {...workspaceBankAccount, bankAccountID: BANK_ACCOUNT_ID, state}});
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then continue this account rather than creating or connecting a replacement.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID, backTo: ''});
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('pays from another accessible business account without connecting it to the workspace', async () => {
+            // Given the admin owns a usable account different from the workspace account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList('5678');
+
+            // When the admin selects that account directly in the pay menu.
+            await selectExpensePaymentOption(policy, 'Test Bank Account', bankAccountList);
+
+            // Then the selected account funds payment without entering workspace bank setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                payAsBusiness: true,
+                methodID: BANK_ACCOUNT_ID,
+                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            });
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
+        });
+
+        it('keeps first-account setup linked to a workspace with no bank account', async () => {
+            // Given the workspace has no bank account and the admin has no existing accounts.
+            const policy = createTestPolicy();
+
+            // When the admin chooses business-bank payment.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''));
+
+            // Then the normal setup may establish the workspace's first account.
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ''}));
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+        });
+
+        it('marks a report as paid without entering bank setup', async () => {
+            // Given the admin cannot access the workspace bank account.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+
+            // When the admin chooses pay elsewhere.
+            await selectExpensePaymentOption(policy, translateLocal('iou.payElsewhere', ''));
+
+            // Then manual payment proceeds independently of bank-account setup.
+            expect(defaultProps.onPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: false});
+            expect(navigateToBankAccountRoute).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 

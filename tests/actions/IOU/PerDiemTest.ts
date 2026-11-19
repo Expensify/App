@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
 import {
     addSubrate,
@@ -16,7 +18,7 @@ import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestM
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -60,6 +62,9 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const TRANSACTION_ID = 'test-txn-1';
 
 describe('PerDiem', () => {
@@ -77,7 +82,6 @@ describe('PerDiem', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
         return waitForBatchedUpdates();
@@ -85,7 +89,7 @@ describe('PerDiem', () => {
 
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
+        globalThis.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
         allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -136,6 +140,88 @@ describe('PerDiem', () => {
             };
             return transaction;
         }
+
+        test.each([undefined, null])('does not write a draft for an absent transaction %p', async (transaction) => {
+            // Given an absent transaction and an unrelated orphan key that must remain untouched.
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}undefined` as const;
+            await Onyx.set(key, {merchant: 'Stored only'});
+            const set = jest.spyOn(Onyx, 'set');
+            // When each editor receives the missing transaction, including otherwise reachable NaN indices.
+            if (transaction === null) {
+                // @ts-expect-error Null is intentionally malformed at this one runtime transaction argument.
+                removeSubrate(null, '0');
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                updateSubrate(null, 'not-a-number', 1, 'meal', 'Meal', 500);
+                // @ts-expect-error Keep the malformed null exception at the transaction argument.
+                addSubrate(null, '0', 2, 'meal', 'Meal', 500);
+            } else {
+                removeSubrate(transaction, '0');
+                updateSubrate(transaction, 'not-a-number', 1, 'meal', 'Meal', 500);
+                addSubrate(transaction, '0', 2, 'meal', 'Meal', 500);
+            }
+            await waitForBatchedUpdates();
+            // Then no partial draft is written and existing data is preserved.
+            expect(set).not.toHaveBeenCalled();
+            expect(await getOnyxValue(key)).toEqual({merchant: 'Stored only'});
+            set.mockRestore();
+        });
+
+        test.each(['-2', 'not-a-number'])('preserves Number and splice behavior for index %s', async (index) => {
+            // Given two rates and unrelated fields from the existing transaction producer.
+            const rates = [
+                {id: 'first', quantity: 1, name: 'First', rate: 100},
+                {id: 'last', quantity: 2, name: 'Last', rate: 200},
+            ];
+            const transaction = createTransactionWithSubrates(rates);
+            transaction.merchant = 'Retained merchant';
+            const originalComment = transaction.comment;
+            const originalUnit = transaction.comment?.customUnit;
+            const set = jest.spyOn(Onyx, 'set');
+            // When update uses the existing numeric conversion and copies only edited ancestors.
+            updateSubrate(transaction, index, 3, 'replacement', 'Replacement', 300);
+            await waitForBatchedUpdates();
+            const payload = set.mock.calls.at(-1)?.[1];
+            // Then both indices replace the first rate without changing the source object.
+            expect(payload).toBeDefined();
+            expect(payload).not.toBe(transaction);
+            expect(payload).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [{id: 'replacement', quantity: 3, name: 'Replacement', rate: 300}, rates.at(1)], quantity: null}},
+            });
+            expect(transaction.comment).toBe(originalComment);
+            expect(transaction.comment?.customUnit).toBe(originalUnit);
+            expect(transaction.comment?.customUnit?.subRates).toBe(rates);
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.comment).not.toBe(originalComment);
+            expect(draft?.comment?.customUnit).not.toBe(originalUnit);
+            expect(draft?.comment?.customUnit).not.toHaveProperty('quantity');
+            // When removal receives the same index, splice removes the first rate.
+            removeSubrate(transaction, index);
+            await waitForBatchedUpdates();
+            // Then the unedited rate and unrelated fields survive actual Onyx application.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`)).toMatchObject({
+                merchant: 'Retained merchant',
+                comment: {customUnit: {subRates: [rates.at(1)]}},
+            });
+            set.mockRestore();
+        });
+
+        it('creates missing nested fields without retaining a prior draft comment', async () => {
+            // Given a historical partial transaction with no comment or custom unit.
+            const transaction = createMock<Transaction>({transactionID: TRANSACTION_ID, merchant: 'Input merchant'});
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}` as const;
+            await Onyx.set(key, {comment: {comment: 'Prior draft only'}});
+            // When the action adds the first subrate through partial SET.
+            addSubrate(transaction, '0', 1, 'meal', 'Meal', 500);
+            await waitForBatchedUpdates();
+            // Then absent input fields remain absent and nested rate data is created.
+            expect(await getOnyxValue(key)).toEqual({
+                transactionID: TRANSACTION_ID,
+                merchant: 'Input merchant',
+                comment: {customUnit: {subRates: [{quantity: 1, id: 'meal', name: 'Meal', rate: 500}]}},
+            });
+            expect(transaction).not.toHaveProperty('comment');
+        });
 
         describe('addSubrate', () => {
             it('should add a subrate at the correct index', async () => {
@@ -293,6 +379,56 @@ describe('PerDiem', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
+        it.each([
+            {name: 'a trip over two days', start: '2026-01-22T12:00:00Z', end: '2026-01-23T12:00:00Z', expected: 'Berlin, Germany, January 22, 2026 to January 23, 2026'},
+            {name: 'a trip within one day', start: '2026-01-05T00:00:00Z', end: '2026-01-05T12:00:00Z', expected: 'Berlin, Germany, January 05, 2026 to January 05, 2026'},
+        ])('builds the same merchant the server saves for $name', ({start, end, expected}) => {
+            // Given a per-diem expense to a destination whose name has a comma
+            const params = createMock<Parameters<typeof getPerDiemExpenseInformation>[0]>({
+                parentChatReport: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionParams: {
+                    comment: '',
+                    currency: CONST.CURRENCY.USD,
+                    created: '2026-01-22',
+                    customUnit: {
+                        customUnitID: 'per-diem',
+                        customUnitRateID: 'berlin',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        attributes: {dates: {start, end}},
+                        subRates: [{id: 'day', name: 'Day', quantity: 1, rate: 1000}],
+                        quantity: 1,
+                    },
+                    attendees: [],
+                    reimbursable: true,
+                },
+                participantParams: {payeeAccountID: RORY_ACCOUNT_ID, payeeEmail: RORY_EMAIL, participant: {accountID: 123, login: 'test@example.com'}},
+                policyParams: {
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {perDiem: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, rates: {berlin: {name: 'Berlin, Germany'}}}},
+                    },
+                },
+                recentlyUsedParams: {},
+                policyTags: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                isASAPSubmitBetaEnabled: true,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                formatPhoneNumber,
+            });
+
+            // When the action builder prepares the optimistic transaction shown until the server responds
+            const result = getPerDiemExpenseInformation(params);
+
+            // Then its merchant matches the one the server builds and saves, in English and with the full month name, for
+            // every user. The request does not send a merchant, so any other form would visibly change once the expense
+            // is saved.
+            expect(result.transaction.merchant).toBe(expected);
+            expect(result.transaction.created).toBe('2026-01-22');
+        });
+
         it('should include policyRecentlyUsedCurrencies when provided', () => {
             const testCurrency = CONST.CURRENCY.GBP;
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
@@ -344,7 +480,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -451,7 +587,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -558,7 +694,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -678,7 +814,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -785,7 +921,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -826,6 +962,10 @@ describe('PerDiem', () => {
             const SUBMITTED_REPORT_ID = 'per-diem-report-awaiting-approval';
             const APPROVER_ACCOUNT_ID = 888;
             const APPROVER_EMAIL = 'approver@example.com';
+            const PERSONAL_DETAILS_BY_LOGINS_WITH_APPROVER: PersonalDetailsByLogin = {
+                ...RORY_PERSONAL_DETAILS_BY_LOGINS,
+                [APPROVER_EMAIL]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+            };
 
             // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
             const perDiemChatReport: Report = {
@@ -852,9 +992,8 @@ describe('PerDiem', () => {
                 };
             }
 
-            function getPerDiemInformation(parentChatReport: Report) {
+            function getPerDiemInformation(parentChatReport: Report, policy?: Policy, personalDetailsByLogins: PersonalDetailsByLogin = RORY_PERSONAL_DETAILS_BY_LOGINS) {
                 return getPerDiemExpenseInformation({
-                    dateFnsLocale: undefined,
                     parentChatReport,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionParams: createMock<PerDiemExpenseTransactionParams>({
@@ -881,11 +1020,12 @@ describe('PerDiem', () => {
                             reportID: PER_DIEM_CHAT_REPORT_ID,
                         },
                     }),
-                    policyParams: {},
+                    policyParams: policy ? {policy} : {},
                     recentlyUsedParams: {},
                     policyTags: {},
                     isASAPSubmitBetaEnabled: false,
                     isVendorMatchingBetaEnabled: false,
+                    personalDetailsByLogins,
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     hasViolations: false,
@@ -948,10 +1088,6 @@ describe('PerDiem', () => {
             it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
                 // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
                 // The submitted report must never be reused — the next expense belongs on a fresh report.
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                    [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
-                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PER_DIEM_POLICY_ID}`, {
                     approver: APPROVER_EMAIL,
                     owner: APPROVER_EMAIL,
@@ -966,7 +1102,43 @@ describe('PerDiem', () => {
                 });
                 await waitForBatchedUpdates();
 
-                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+                expect(getPerDiemInformation(perDiemChatReport, undefined, PERSONAL_DETAILS_BY_LOGINS_WITH_APPROVER).iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
+            });
+
+            it('sets the next step to wait on the approver when the per diem lands on an instantly submitted report', async () => {
+                // Given an Instant submit workspace with Basic approval, so the new report is created already submitted and waiting on the approver
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: PER_DIEM_POLICY_ID,
+                    role: CONST.POLICY.ROLE.USER,
+                    approver: APPROVER_EMAIL,
+                    owner: APPROVER_EMAIL,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    harvesting: {enabled: false},
+                    preventSelfApproval: false,
+                    pendingAction: undefined,
+                    employeeList: {},
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PER_DIEM_POLICY_ID}`, policy);
+                await waitForBatchedUpdates();
+
+                // When the per diem expense information is built
+                const {iouReport, onyxData} = getPerDiemInformation(perDiemChatReport, policy, PERSONAL_DETAILS_BY_LOGINS_WITH_APPROVER);
+
+                // Then the report is submitted and its optimistic next step waits on the approver's account
+                expect(iouReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                const reportUpdate = onyxData.optimisticData?.find(
+                    (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && !!update.value && typeof update.value === 'object' && 'nextStep' in update.value,
+                );
+                expect(reportUpdate?.value).toMatchObject({
+                    nextStep: {
+                        actorAccountID: APPROVER_ACCOUNT_ID,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    },
+                });
             });
         });
     });
@@ -1023,7 +1195,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1065,7 +1237,7 @@ describe('PerDiem', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
                     callback: (recentlyUsedTags) => {
                         resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -1113,7 +1285,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1152,7 +1324,7 @@ describe('PerDiem', () => {
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (val) => {
                         resolve(val ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -1218,7 +1390,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1290,7 +1462,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1330,7 +1502,7 @@ describe('PerDiem', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1351,7 +1523,6 @@ describe('PerDiem', () => {
 
         const submitToSelfDM = (isFromGlobalCreate: boolean) =>
             submitPerDiemExpenseForSelfDM({
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 selfDMReport: undefined,
                 policy: {...createRandomPolicy(1)},

@@ -1,6 +1,6 @@
 import PDFView from '@components/PDFView';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type AttachmentViewPdfProps from './types';
 
@@ -36,4 +36,4 @@ function AttachmentViewPdf({
     );
 }
 
-export default memo(AttachmentViewPdf);
+export default AttachmentViewPdf;

@@ -13,13 +13,14 @@ import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useRef} from 'react';
 
-type DateFilterContentProps = {
+type DateFilterContentProps = WithRequiredSentryLabel & {
     baseFilterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
@@ -30,7 +31,7 @@ type DateFilterContentProps = {
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, sentryLabel, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -63,6 +64,7 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
             />
             {!!selectedDateModifier && (
                 <Button
+                    sentryLabel={sentryLabel}
                     style={[styles.ph5, styles.pb5, styles.pt3]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={size}

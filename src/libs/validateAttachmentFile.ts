@@ -3,17 +3,22 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
+import {getErrorMessage} from './ErrorUtils';
+import canConvertDngToJpeg from './fileDownload/canConvertDngToJpeg';
 import {
     appendExtensionFromMimeType,
     cleanFileName,
     hasHeicOrHeifExtension,
+    isLabelledDng,
     isUnknownMimeType,
     isValidReceiptExtension,
     normalizeFileObject,
     splitExtensionFromFileName,
     validateImageForCorruption,
 } from './fileDownload/FileUtils';
+import hasDngFileHeader from './fileDownload/hasDngFileHeader';
 import getMimeTypeFromFileHeader from './getMimeTypeFromFileHeader';
+import Log from './Log';
 import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
@@ -36,6 +41,19 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     // Detect folders before receipt-specific extension and size checks so they retain the folder error.
     if (isDataTransferItemDirectory(item)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
+    }
+
+    // The backend can't parse DNG (iPhone ProRAW / Android RAW), so on native it is flagged for conversion to JPEG (like
+    // HEIC below), which covers paths that don't go through the pickers' own conversion, e.g. sharing into the app. Web
+    // can't decode DNG, so it gets the invalid-file-type error there. This runs before the receipt extension check, which
+    // would otherwise reject the DNG before it gets a chance to be converted.
+    if (isLabelledDng(file)) {
+        return {isValid: false, error: canConvertDngToJpeg ? CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
+    }
+
+    // Catches a DNG whose name and type don't give it away, e.g. renamed to `.jpg` or picked without an extension.
+    if (await hasDngFileHeader(file)) {
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
@@ -66,10 +84,14 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     const normalizedFile = await normalizeFileObject(fileObject);
-    try {
-        await validateImageForCorruption(normalizedFile);
-    } catch (error) {
-        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+    // A File is checked after it is snapshotted below, so the decode reads the stable in-memory copy.
+    if (!(normalizedFile instanceof File)) {
+        try {
+            await validateImageForCorruption(normalizedFile);
+        } catch (error) {
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+        }
     }
 
     /**
@@ -99,8 +121,9 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
         try {
             updatedFile = await snapshotPickedFile(updatedFile, cleanName, fileType ?? updatedFile.type);
-        } catch {
+        } catch (error) {
             // The backing file was already modified or deleted since it was picked.
+            Log.warn('[validateAttachmentFile] Could not read the picked file', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
         // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
@@ -113,6 +136,16 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
             URL.revokeObjectURL(previousUri);
         }
         updatedFile.uri = inputSource;
+
+        try {
+            await validateImageForCorruption(updatedFile);
+        } catch (error) {
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: updatedFile.type, size: updatedFile.size, error: getErrorMessage(error)});
+            if (inputSource.startsWith('blob:')) {
+                URL.revokeObjectURL(inputSource);
+            }
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+        }
 
         return {isValid: true, file: updatedFile};
     }

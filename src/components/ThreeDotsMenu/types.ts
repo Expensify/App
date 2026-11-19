@@ -4,11 +4,19 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-type ThreeDotsMenuProps = WithSentryLabel & {
+type ThreeDotsMenuHandle = {
+    hidePopoverMenu: () => void;
+    isPopupMenuVisible: boolean;
+
+    /** Re-measures the anchor of the open menu, for callers that know the anchor has moved */
+    updateMenuPosition?: () => void;
+};
+
+type ThreeDotsMenuProps = WithRequiredSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 
@@ -36,6 +44,9 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     testID?: string;
     onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
+    /** Called once the menu has fully closed and its modal is gone from the screen */
+    onModalHide?: () => void;
+
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
 
@@ -56,7 +67,7 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
     isNested?: boolean;
 
-    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
+    threeDotsMenuRef?: React.RefObject<ThreeDotsMenuHandle | null>;
     isContainerFocused?: boolean;
 };
 
@@ -90,3 +101,4 @@ type ThreeDotsMenuWithOptionalAnchorProps =
       });
 
 export default ThreeDotsMenuWithOptionalAnchorProps;
+export type {ThreeDotsMenuHandle};

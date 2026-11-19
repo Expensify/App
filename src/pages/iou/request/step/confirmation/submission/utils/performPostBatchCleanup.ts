@@ -63,7 +63,7 @@ function performPostBatchCleanup({
         return;
     }
 
-    // requestMoney passes the chat it wrote to (iouReport.chatReportID) as preResolvedChatTarget; trackExpense is void so it still derives (self-DM case).
+    // A caller that knows the chat it wrote to passes that chat as preResolvedChatTarget. Any other caller has the chat worked out here.
     const {report: resolvedReport, chatReportID} =
         preResolvedChatTarget ??
         resolveChatTargetForSubmitCleanup({

@@ -1,21 +1,25 @@
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
 
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {createContext, useContext} from 'react';
 
-import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
+import type {PaymentMethod} from './KYCWall/types';
+import type {ModalStateChangePayload} from './Modal/Global/ModalContext';
 
 type HoldMenuParams = {
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     onConfirm?: (full: boolean) => void;
 };
 
 type MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: (params: HoldMenuParams) => Promise<void>;
-    openPDFDownload: (options?: {onCancel?: () => void}) => void;
+    openHoldMenu: (params: HoldMenuParams) => void;
+    /** Resolves once the PDF download modal has finished hiding, with `CLOSE` if it was dismissed while the PDF was still generating */
+    openPDFDownload: () => Promise<ModalStateChangePayload | undefined>;
     openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
     showOfflineModal: () => void;
@@ -23,8 +27,8 @@ type MoneyReportHeaderModalsContextValue = {
 };
 
 const defaultValue: MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: () => Promise.resolve(),
-    openPDFDownload: () => {},
+    openHoldMenu: () => {},
+    openPDFDownload: () => Promise.resolve(undefined),
     openHoldEducational: () => {},
     openRejectModal: () => {},
     showOfflineModal: () => {},

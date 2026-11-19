@@ -2,13 +2,13 @@ import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {State} from '@components/StateSelector';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -18,13 +18,13 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
-import {normalizeCountryCode} from '@libs/CountryUtils';
+import {normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getAgeRequirementError, getCountryZipRegexDetails, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -32,22 +32,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-
-// StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
-function resolveStateCode(stateValue: string): string {
-    if (!stateValue || stateValue in COMMON_CONST.STATES) {
-        return stateValue;
-    }
-    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === stateValue.toLowerCase());
-    return match ? match[0] : stateValue;
-}
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -64,7 +54,7 @@ function PrivatePersonalDetailsPage() {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
     const dob = privatePersonalDetails?.dob ?? '';
-    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined;
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
     const [street1, street2Fallback] = getStreetLines(address?.street);
     const initialStreet1 = street1 ?? '';
     const initialStreet2 = address?.street2 ?? street2Fallback ?? '';
@@ -79,7 +69,7 @@ function PrivatePersonalDetailsPage() {
     // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
     const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
     const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || ((defaultCountry as Country | undefined) ?? ''));
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || (defaultCountry && isCountryCode(defaultCountry) ? defaultCountry : ''));
     const [selectedState, setSelectedState] = useState(draftState || normalizedState);
 
     // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
@@ -153,12 +143,13 @@ function PrivatePersonalDetailsPage() {
 
         const stateValue = values[INPUT_IDS.STATE] ?? '';
         const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
-        if (!stateValue.trim()) {
+        // Country changes validate before the change handler converts a full state name to its code.
+        if (!stateValue.trim() || (effectiveCountry === CONST.COUNTRY.US && !Object.hasOwn(COMMON_CONST.STATES, resolveStateCode(stateValue)))) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexDetails = effectiveCountry ? (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
+        const countryRegexDetails = getCountryZipRegexDetails(effectiveCountry);
         const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {
@@ -214,13 +205,16 @@ function PrivatePersonalDetailsPage() {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        if (!hasChanges(values)) {
+        // Resolve US state names to codes so hasChanges compares equivalent values and submission uses codes.
+        // Other countries accept free-text states, so preserve those values.
+        const normalizedValues = values[INPUT_IDS.COUNTRY] === CONST.COUNTRY.US ? {...values, [INPUT_IDS.STATE]: resolveStateCode(values[INPUT_IDS.STATE] ?? '')} : values;
+        if (!hasChanges(normalizedValues)) {
             Navigation.goBack();
             return;
         }
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
-        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, normalizedValues);
         skipClearDraftOnUnmountRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
@@ -245,7 +239,6 @@ function PrivatePersonalDetailsPage() {
                     validate={validate}
                     onSubmit={onSubmit}
                     submitButtonText={translate('common.save')}
-                    enabledWhenOffline
                 >
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
                     <View style={styles.mb4}>
@@ -325,10 +318,11 @@ function PrivatePersonalDetailsPage() {
                                 country: INPUT_IDS.COUNTRY,
                             }}
                             onValueChange={(value: unknown, key: unknown) => {
+                                const stringValue = typeof value === 'string' ? value : '';
                                 if (key === INPUT_IDS.COUNTRY) {
-                                    setSelectedCountry((value ?? '') as Country | '');
+                                    setSelectedCountry(isCountryCode(stringValue) ? stringValue : '');
                                 } else if (key === INPUT_IDS.STATE) {
-                                    setSelectedState((value ?? '') as string);
+                                    setSelectedState(stringValue);
                                 }
                             }}
                         />
@@ -364,8 +358,8 @@ function PrivatePersonalDetailsPage() {
                             <InputWrapper
                                 InputComponent={StateSelector}
                                 inputID={INPUT_IDS.STATE}
-                                value={selectedState as State}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                value={selectedState}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                             />
                         </View>
@@ -377,8 +371,9 @@ function PrivatePersonalDetailsPage() {
                                 label={translate('common.stateOrProvince')}
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS_STATE_OR_PROVINCE}
                                 value={selectedState}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -403,16 +398,16 @@ function PrivatePersonalDetailsPage() {
                             inputID={INPUT_IDS.COUNTRY}
                             value={selectedCountry}
                             onValueChange={(value: unknown) => {
-                                const newCountry = (value ?? '') as Country | '';
+                                const newCountry = typeof value === 'string' && isCountryCode(value) ? value : '';
                                 if (newCountry === selectedCountry) {
                                     return;
                                 }
                                 setSelectedCountry(newCountry);
                                 if (newCountry === CONST.COUNTRY.US) {
                                     const resolved = resolveStateCode(selectedState);
-                                    if (resolved !== selectedState) {
-                                        setSelectedState(resolved);
-                                    }
+                                    const validState = Object.hasOwn(COMMON_CONST.STATES, resolved) ? resolved : '';
+                                    setSelectedState(validState);
+                                    setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: validState});
                                     return;
                                 }
                                 // A previously selected US state (or another country's value) does not apply to the new country.

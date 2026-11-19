@@ -1,7 +1,7 @@
 /**
  * Lowers ES modules to CommonJS and defers each `require()` to its first use site. This gives the
- * same import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this
- * app relies on to boot.
+ * same import-cycle tolerance Metro used to get from its `inlineRequires` serializer option,
+ * which this app relies on to boot.
  *
  * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer ~100% of
  * imports, but SWC's lazy mode emits a memoizing wrapper function per imported module. That is
@@ -85,8 +85,13 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
 
         // App source only needs block-scoping (Hermes shares one binding across loop iterations).
         // node_modules also ship async generators, which Hermes cannot parse, so the node_modules
-        // rule opts into lowering those too. Everything else modern Hermes handles natively.
-        const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
+        // rule opts into lowering those too. Lower optional chaining before Rspack 2.1.3 can
+        // drop its null guards on inlined require() member chains.
+        const envInclude = [
+            'transform-block-scoping',
+            'transform-optional-chaining',
+            ...(options.hermesLowering ? ['transform-async-to-generator', 'transform-async-generator-functions'] : []),
+        ];
 
         const swcResult = await rspack.experiments.swc.transform(source, {
             filename: this.resourcePath,

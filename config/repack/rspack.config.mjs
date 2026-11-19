@@ -53,7 +53,6 @@ export default Repack.defineRspackConfig((env) => {
             // Without this the cache reuses stale transform output after a babel, loader or .env change.
             buildDependencies: [
                 path.resolve(projectRoot, 'babel.config.js'),
-                path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/babel/oxcReactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
                 path.resolve(projectRoot, 'config/repack/cjs-inline-requires-loader.mjs'),
@@ -116,7 +115,7 @@ export default Repack.defineRspackConfig((env) => {
                                 jsx: {runtime: 'automatic', development: isDev, refresh: isDev},
                             },
                         },
-                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs')},
+                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs'), options: {native: true}},
                     ],
                 },
                 {
@@ -190,7 +189,6 @@ export default Repack.defineRspackConfig((env) => {
             /oxc-react-compiler-loader:/,
             /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
             /Module not found: Can't resolve 'react-native-worklets-core'/,
-            /Module not found: Can't resolve '@shopify\/react-native-skia'/,
             /'`setUpTests` is available only in Jest environment\.'/,
             /Can't resolve 'expo-updates'/,
             /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,

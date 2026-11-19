@@ -1,5 +1,7 @@
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,7 +11,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
-import type {ImageProps as ExpoImageProps} from 'expo-image';
 import type {ImageSourcePropType} from 'react-native';
 
 import {Image} from 'expo-image';
@@ -22,7 +23,8 @@ function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
 
     const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
@@ -65,7 +67,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ExpoImageProps['style']]}
+                style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>

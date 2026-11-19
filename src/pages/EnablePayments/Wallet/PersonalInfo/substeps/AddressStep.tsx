@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 
@@ -31,15 +31,16 @@ function AddressStep({onNext, onMove, isEditing}: SubPageProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     // Draft is applied by the form itself, so defaults stay on saved wallet details and the profile.
-    const defaultValues = useMemo(() => {
-        const owner = getBankAccountOwnerDetails({walletAdditionalDetails, privatePersonalDetails});
-        return {
-            street: owner.formStreet,
-            city: owner.addressCity,
-            state: owner.addressState,
-            zipCode: owner.addressZipCode,
-        };
-    }, [privatePersonalDetails, walletAdditionalDetails]);
+    const owner = getBankAccountOwnerDetails({
+        walletAdditionalDetails,
+        privatePersonalDetails,
+    });
+    const defaultValues = {
+        street: owner.formStreet,
+        city: owner.addressCity,
+        state: owner.addressState,
+        zipCode: owner.addressZipCode,
+    };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

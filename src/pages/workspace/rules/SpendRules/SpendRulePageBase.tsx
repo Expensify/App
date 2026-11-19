@@ -1,7 +1,8 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -29,14 +30,20 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {
+    getEligibleSpendRuleCards,
+    getSpendRuleDraftFromGeneratedValues,
+    getSpendRuleFormValuesFromCardRule,
+    getTruncatedSpendRuleSummary,
+    hasSpendRuleMerchantRestrictions,
+} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import variables from '@styles/variables';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -44,13 +51,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
@@ -88,6 +96,7 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket']);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useAllPersonalDetails();
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
@@ -97,20 +106,18 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const isNewRule = currentRuleID === ROUTES.NEW;
     const isEditingRule = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
-    const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
+    const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
-        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
-        return isNewRule || hasNoMerchantRestrictions;
-    });
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => !hasSpendRuleMerchantRestrictions(isNewRule ? spendRuleForm : existingFormValues));
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        const generatedCategories = values.categories?.filter(isSpendRuleCategory);
-        setDraftSpendRule(generatedCategories ? {...values, categories: generatedCategories} : values);
-        setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
+        const eligibleCardIDs = expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : undefined;
+        const draft = getSpendRuleDraftFromGeneratedValues(values, eligibleCardIDs, spendRuleForm?.cardIDs);
+        setDraftSpendRule(draft);
+        setIsRestrictMerchantsOff(!hasSpendRuleMerchantRestrictions(draft));
     };
 
     useEffect(() => {
@@ -357,29 +364,41 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
         return <NotFoundPage />;
     }
 
-    const getMenuItemIconProps = (icon: IconAsset) => ({
-        icon,
-        iconWidth: variables.iconSizeNormal,
-        iconHeight: variables.iconSizeNormal,
-        shouldIconUseAutoWidthStyle: true,
-    });
-
     const handleRestrictionActionSelect = setSpendRuleRestrictionType;
 
     const spendRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM;
 
-    const renderEditableMenuItem = ({description, title, onPress, sentryLabel, icon}: {description: string; title: string; onPress: () => void; sentryLabel: string; icon?: IconAsset}) => (
-        <MenuItemWithTopDescription
-            description={description}
-            onPress={canWriteSpendRules ? onPress : undefined}
-            shouldShowRightIcon={canWriteSpendRules}
-            interactive={canWriteSpendRules}
-            title={title}
-            numberOfLinesTitle={2}
-            titleStyle={styles.flex1}
-            {...(icon ? getMenuItemIconProps(icon) : {})}
+    const renderEditableMenuItem = ({
+        description,
+        title,
+        onPress,
+        sentryLabel,
+        icon,
+    }: {
+        description: string;
+        title: string;
+        onPress: () => void;
+        sentryLabel: SentryLabel;
+        icon?: IconAsset;
+    }) => (
+        <MenuItem.Root
+            onPress={canWriteSpendRules ? callIfAuthenticated(onPress, session) : undefined}
             sentryLabel={sentryLabel}
-        />
+        >
+            <MenuItem.Row>
+                {!!icon && (
+                    <MenuItem.Leading>
+                        <MenuItem.IconNarrow src={icon} />
+                    </MenuItem.Leading>
+                )}
+                <MenuItemField.Content name={description}>{!!title && <MenuItem.FieldValue numberOfLines={2}>{title}</MenuItem.FieldValue>}</MenuItemField.Content>
+                {canWriteSpendRules && (
+                    <MenuItem.Trailing>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const cardsMenuItem = renderEditableMenuItem({

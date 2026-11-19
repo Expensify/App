@@ -18,8 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TupleToUnion} from 'type-fest';
-
 import {format, isValid} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
@@ -48,6 +46,9 @@ type ImportSpreadsheetProps = {
 
     isImportingMultiLevelTags?: boolean;
 
+    /** Whether the imported tag lists are appended to the existing (accounting connection) tag lists */
+    isAppendingToExistingLists?: boolean;
+
     /** Whether an OFX/QFX bank statement can be picked alongside a spreadsheet */
     shouldAllowBankStatements?: boolean;
 
@@ -55,7 +56,15 @@ type ImportSpreadsheetProps = {
     onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, shouldAllowBankStatements, onStatementPicked}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({
+    backTo,
+    goTo,
+    shouldForceReplaceNavigation = false,
+    isImportingMultiLevelTags,
+    isAppendingToExistingLists,
+    shouldAllowBankStatements,
+    onStatementPicked,
+}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -110,12 +119,13 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         return true;
     };
 
-    const readFile = (file: File) => {
-        if (!validateFile(file)) {
+    const readFile = (file: FileObject) => {
+        if (!validateFile(file) || typeof file.name !== 'string') {
             return;
         }
 
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+        const fileName = file.name;
+        const {fileExtension} = splitExtensionFromFileName(fileName);
         const statementExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
 
         // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
@@ -131,14 +141,14 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             return;
         }
 
-        let fileURI = file.uri ?? URL.createObjectURL(file);
+        let fileURI = file.uri ?? (file instanceof Blob ? URL.createObjectURL(file) : undefined);
         if (!fileURI) {
             return;
         }
         if (Platform.OS === 'ios') {
             fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
-        const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
+        const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.some((extension) => extension === fileExtension);
 
         setIsReadingFile(true);
 
@@ -164,7 +174,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         // Use raw: true to preserve original string values from CSV (especially dates)
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
+                        const data = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {header: 1, blankrows: false, raw: true});
                         const formattedSpreadsheetData = data.map((row) =>
                             row.map((cell) => {
                                 if (cell == null) {
@@ -186,9 +196,10 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             formattedSpreadsheetData,
                             fileURI,
                             file.type,
-                            file.name,
+                            fileName,
                             isImportingMultiLevelTags ?? false,
                             importedSpreadsheet?.importTransactionSettings,
+                            isAppendingToExistingLists,
                         );
                     })
                     .then(() => {
@@ -226,7 +237,15 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
 
     const desktopView = (
         <>
-            <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
+            <View
+                onLayout={({nativeEvent}) => {
+                    const {layout} = nativeEvent;
+                    // Only web layout events include the element's top position
+                    if ('top' in layout && typeof layout.top === 'number') {
+                        setFileTopPosition(PixelRatio.roundToNearestPixel(layout.top));
+                    }
+                }}
+            >
                 <ImageSVG
                     src={icons.SpreadsheetComputer}
                     contentFit="contain"
@@ -247,6 +266,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.CHOOSE_FILE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.pt9]}
@@ -254,7 +274,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                         onPress={() => {
                             openPicker({
                                 onPicked: (file) => {
-                                    readFile(file as File);
+                                    readFile(file);
                                 },
                             });
                         }}

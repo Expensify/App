@@ -2,8 +2,8 @@ import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import resolvePadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolvePadding';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {SkTypeface} from 'react-native-skia';
 
 import lodashMerge from 'lodash/merge';
 
@@ -21,7 +21,10 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let domain: ProcessNodeResult['domain'];
     let domainPadding: ProcessNodeResult['domainPadding'];
     let padding: ProcessNodeResult['padding'];
-    let leftAxisLabelPadding: ProcessNodeResult['leftAxisLabelPadding'];
+    let leftAxisSize: ProcessNodeResult['leftAxisSize'];
+    let rightAxisSize: ProcessNodeResult['rightAxisSize'];
+    let bottomAxisSize: ProcessNodeResult['bottomAxisSize'];
+    let topAxisSize: ProcessNodeResult['topAxisSize'];
     let isHorizontal: ProcessNodeResult['isHorizontal'];
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
@@ -52,8 +55,17 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.padding) {
             padding = result.padding;
         }
-        if (result.leftAxisLabelPadding !== undefined) {
-            leftAxisLabelPadding = result.leftAxisLabelPadding;
+        if (result.leftAxisSize !== undefined) {
+            leftAxisSize = result.leftAxisSize;
+        }
+        if (result.rightAxisSize !== undefined) {
+            rightAxisSize = result.rightAxisSize;
+        }
+        if (result.bottomAxisSize !== undefined) {
+            bottomAxisSize = result.bottomAxisSize;
+        }
+        if (result.topAxisSize !== undefined) {
+            topAxisSize = result.topAxisSize;
         }
         if (result.isHorizontal) {
             isHorizontal = result.isHorizontal;
@@ -81,8 +93,12 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         yAxis,
         domain,
         domainPadding,
+        designPadding: padding,
         padding,
-        leftAxisLabelPadding,
+        leftAxisSize,
+        rightAxisSize,
+        bottomAxisSize,
+        topAxisSize,
         isHorizontal,
         categories,
         labelItems,
@@ -109,8 +125,17 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (childResult.padding) {
             padding = childResult.padding;
         }
-        if (childResult.leftAxisLabelPadding !== undefined) {
-            leftAxisLabelPadding = childResult.leftAxisLabelPadding;
+        if (childResult.leftAxisSize !== undefined) {
+            leftAxisSize = childResult.leftAxisSize;
+        }
+        if (childResult.rightAxisSize !== undefined) {
+            rightAxisSize = childResult.rightAxisSize;
+        }
+        if (childResult.bottomAxisSize !== undefined) {
+            bottomAxisSize = childResult.bottomAxisSize;
+        }
+        if (childResult.topAxisSize !== undefined) {
+            topAxisSize = childResult.topAxisSize;
         }
         if (childResult.isHorizontal) {
             isHorizontal = childResult.isHorizontal;
@@ -131,8 +156,12 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         yAxis,
         domain,
         domainPadding,
-        padding: resolvePadding(padding, leftAxisLabelPadding),
-        leftAxisLabelPadding,
+        designPadding: padding,
+        padding: resolvePadding(padding, xAxis, yAxis, leftAxisSize, rightAxisSize, bottomAxisSize, topAxisSize, isHorizontal),
+        leftAxisSize,
+        rightAxisSize,
+        bottomAxisSize,
+        topAxisSize,
         isHorizontal,
         categories,
         labelItems,

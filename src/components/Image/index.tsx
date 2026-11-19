@@ -8,6 +8,8 @@ import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauth
 
 import CONST from '@src/CONST';
 
+import type {ImageStyle} from 'react-native';
+
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {ImageOnLoadEvent, ImageProps} from './types';
@@ -35,7 +37,7 @@ function Image({
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
-    const aspectRatioStyle = useMemo(() => {
+    const aspectRatioStyle = useMemo((): ImageStyle => {
         if (!shouldSetAspectRatioInStyle || !aspectRatio) {
             return {};
         }
@@ -178,5 +180,6 @@ Image.displayName = 'Image';
 
 export default React.memo(
     Image,
-    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+    (prevProps: ImageProps, nextProps: ImageProps) =>
+        prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight && prevProps.recyclingKey === nextProps.recyclingKey,
 );

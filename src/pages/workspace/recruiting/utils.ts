@@ -31,6 +31,8 @@ function getApproverFieldName(approverField: MergeATSApproverField | undefined, 
     switch (approverField) {
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER:
             return translate('workspace.recruiting.approverFields.recruiter');
+        case CONST.MERGE.ATS_APPROVER_FIELD.HIRING_MANAGER:
+            return translate('workspace.recruiting.approverFields.hiringManager');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
         default:
@@ -58,7 +60,7 @@ function getDefaultApproverLabel(
             return `${translate('workspace.merge.approvalModes.basic')} • ${approver}`;
         }
 
-        return `${translate('workspace.merge.approvalModes.advanced')} • ${getApproverFieldLabel(policy, translate)} -> ${approver}`;
+        return `${translate('workspace.merge.approvalModes.advanced')} • ${getApproverFieldLabel(policy, translate)}${approver ? ` -> ${approver}` : ''}`;
     }
 
     if (approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM) {
@@ -104,6 +106,7 @@ function getConfigRows(
     const rows: MergeProviderConfigRow[] = [
         {
             field: 'filters',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.RECRUITING_FILTERS,
             icon: icons.Download,
             title: translate('workspace.recruiting.importSettings'),
             shouldRenderAsMenuItem: true,
@@ -113,6 +116,7 @@ function getConfigRows(
         },
         {
             field: 'approvalMode',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_CONFIG_ROW.RECRUITING_APPROVAL_MODE,
             description: translate('workspace.recruiting.defaultApprover'),
             title: getDefaultApproverLabel(policy, policyEmployeePersonalDetails, translate, formatPhoneNumber),
             numberOfLinesTitle: 2,

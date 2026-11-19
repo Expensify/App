@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
@@ -36,16 +36,18 @@ function Slider({onSliderRatioChange}: SliderProps) {
     const minSliderRatio = useSharedValue(minRatio);
     const sliderWidthShared = useSharedValue(0);
 
-    const panGesture = Gesture.Pan().onChange((e) => {
-        'worklet';
+    const panGesture = usePanGesture({
+        onUpdate: (e) => {
+            'worklet';
 
-        if (sliderWidthShared.get() === 0) {
-            return;
-        }
+            if (sliderWidthShared.get() === 0) {
+                return;
+            }
 
-        const newRatio = Math.min(1, Math.max(minSliderRatio.get(), sliderRatio.get() + e.changeX / sliderWidthShared.get()));
-        sliderRatio.set(newRatio);
-        scheduleOnRN(onSliderRatioChange, newRatio);
+            const newRatio = Math.min(1, Math.max(minSliderRatio.get(), sliderRatio.get() + e.changeX / sliderWidthShared.get()));
+            sliderRatio.set(newRatio);
+            scheduleOnRN(onSliderRatioChange, newRatio);
+        },
     });
 
     const thumbStyle = useAnimatedStyle(() => ({

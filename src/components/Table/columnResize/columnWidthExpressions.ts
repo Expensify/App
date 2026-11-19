@@ -3,6 +3,9 @@
 /** Prefix of the custom property a resizable column reads its width from. */
 const COLUMN_WIDTH_VARIABLE_PREFIX = '--table-column-width-';
 
+/** Floor for the scroll extent mid-drag, so shrinking a column can't pull the scroll position, and the filter bar pinned to it, sideways. */
+const SCROLL_EXTENT_FLOOR_VARIABLE = '--table-scroll-extent-floor';
+
 /** Top of a handle's line: the heading row's top, relative to the handle. */
 const RESIZE_INDICATOR_TOP_VARIABLE = '--table-resize-indicator-top';
 
@@ -23,6 +26,11 @@ const TABLE_ROW_DATA_SET = {tableRow: true};
 
 const TABLE_ROW_SELECTOR = '[data-table-row]';
 
+/** Marks the scroller a table with a pinned filter bar scrolls its columns in. `web/index.html` matches it too. */
+const TABLE_COLUMN_SCROLLER_DATA_SET = {tableColumnScroller: true};
+
+const TABLE_COLUMN_SCROLLER_SELECTOR = '[data-table-column-scroller="true"]';
+
 /** Column keys may hold characters a CSS custom property name can't, so those are replaced. */
 function getColumnWidthVariableName(columnKey: string): string {
     return `${COLUMN_WIDTH_VARIABLE_PREFIX}${columnKey.replaceAll(/[^\w-]/g, '_')}`;
@@ -33,7 +41,7 @@ function getColumnWidthValue(columnKey: string, resolvedWidth: number): string {
     return `var(${getColumnWidthVariableName(columnKey)}, ${resolvedWidth}px)`;
 }
 
-/** Track that grows into the row's leftover width, keeping trailing headless columns pinned right. */
+/** Track that grows into the row's leftover width, keeping trailing headless columns at the right edge. */
 function getGrowableColumnTrack(widthValue: string): string {
     return `minmax(${widthValue}, 1fr)`;
 }
@@ -53,6 +61,9 @@ export {
     RESIZE_INDICATOR_HEIGHT_VARIABLE,
     RESIZE_INDICATOR_OPACITY_VARIABLE,
     RESIZE_INDICATOR_TOP_VARIABLE,
+    SCROLL_EXTENT_FLOOR_VARIABLE,
+    TABLE_COLUMN_SCROLLER_DATA_SET,
+    TABLE_COLUMN_SCROLLER_SELECTOR,
     TABLE_ROW_DATA_SET,
     TABLE_ROW_SELECTOR,
     getColumnWidthValue,

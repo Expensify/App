@@ -1,6 +1,9 @@
-import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import {hasChartedValue} from '@components/Search/chartMetricValue';
+import type {GroupedItem, SearchChartMetric, SearchQueryJSON} from '@components/Search/types';
 
+import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchGroupBase} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -27,6 +30,9 @@ type ResolveInsightsChartDataParams = {
     /** The snapshot's rows, grouped and sorted the way the chart plots them */
     sortedData: GroupedItem[] | undefined;
 
+    /** What the chart plots, which decides whether a row has a value to plot */
+    metric?: SearchChartMetric;
+
     /** Whether the device is offline, so a chart with nothing stored can't expect data to arrive */
     isOffline?: boolean;
 };
@@ -38,8 +44,13 @@ type InsightsChartData = {
     state: InsightsChartState;
 };
 
+/** Checks whether any group holds expenses, since snapshots may include empty buckets. */
+function hasGroupWithExpenses(groups: Array<Pick<SearchGroupBase, 'count'>>): boolean {
+    return groups.some((group) => group.count > 0);
+}
+
 /** Resolves one chart's rows and state from its snapshot, whether GetInsights or Search loaded it. */
-function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
+function resolveInsightsChartData({snapshot, queryJSON, sortedData, metric, isOffline = false}: ResolveInsightsChartDataParams): InsightsChartData {
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
 
@@ -55,11 +66,12 @@ function resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline = 
         return {data: [], state: INSIGHTS_CHART_STATE.LOADING};
     }
 
-    if (!sortedData?.length) {
+    const chartedData = metric === CONST.SEARCH.CHART_METRIC.DURATION ? sortedData?.filter((item) => hasChartedValue(item, metric)) : sortedData;
+    if (!chartedData || !hasGroupWithExpenses(chartedData)) {
         return {data: [], state: INSIGHTS_CHART_STATE.EMPTY};
     }
 
-    return {data: sortedData, state: INSIGHTS_CHART_STATE.READY};
+    return {data: chartedData, state: INSIGHTS_CHART_STATE.READY};
 }
 
-export {INSIGHTS_CHART_STATE, resolveInsightsChartData};
+export {INSIGHTS_CHART_STATE, hasGroupWithExpenses, resolveInsightsChartData};

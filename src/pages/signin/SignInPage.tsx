@@ -7,6 +7,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +20,7 @@ import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 
-import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+import {clearSignInData} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +33,7 @@ import type {Ref} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {InputHandle} from './LoginForm/types';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
@@ -188,6 +189,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const isSupportalSession = useIsSupportalSession();
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
     /**
       This variable is only added to make sure the component is re-rendered
@@ -250,7 +252,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
         isAccountValidated,
-        isSupportalSession: isSupportalSessionUtils(),
+        isSupportalSession,
         isAuthenticatingWithShortLivedToken: !!isAuthenticatingWithShortLivedToken,
     });
 
@@ -310,7 +312,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     // Read the ref at call time (via a stable callback) instead of during render, so both React
     // Compilers can memoize this component. LoginForm calls this optionally, so an always-defined
     // callback that no-ops until the layout ref is attached is equivalent to passing the raw method.
-    const scrollPageToTop = useCallback(() => signInPageLayoutRef.current?.scrollPageToTop(), []);
+    const scrollPageToTop = () => signInPageLayoutRef.current?.scrollPageToTop();
 
     const navigateBack = () => {
         if (

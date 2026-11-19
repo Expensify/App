@@ -9,13 +9,13 @@ order: 2
 
 After connecting Certinia, set up how data flows between Expensify and Certinia using the **Import**, **Export**, and **Advanced** settings. Some options differ depending on whether you use the **FFA** or **PSA/SRP** module — those differences are noted below.
 
-To open these settings, go to **Workspaces > [Workspace Name] > Accounting** from the navigation tabs (on the left on web, on the bottom on mobile), then select **Import**, **Export**, or **Advanced** under the Certinia connection.
+To open these settings, in the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Import**, **Export**, or **Advanced**.
 
 ---
 
 ## How to configure Certinia import settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Import** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Import**.
 
 ## How to import categories from Certinia
 
@@ -55,7 +55,7 @@ Toggle on **Tax** to import tax rates from Certinia and apply them to expenses. 
 
 ## How to configure Certinia export settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Export** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Export**.
 
 ## How to set the preferred exporter for Certinia
 
@@ -92,7 +92,7 @@ If vendor matching is enabled for your Workspace, [learn how to manage vendor ma
 
 ## How to configure Certinia advanced sync settings
 
-From **Workspaces > [Workspace Name] > Accounting**, click **Advanced** under the Certinia connection.
+From **Workspaces > [workspace name] > Connections**, select **Configure** next to Certinia, then select **Advanced**.
 
 ## How to enable auto-sync for Certinia
 
@@ -104,6 +104,10 @@ We recommend enabling **Auto-sync** to keep your data up to date. Auto-sync perf
 ## How to sync reimbursed reports with Certinia
 
 Keep reimbursement status in sync between Expensify and Certinia for reports that have been paid.
+
+## How to set the currency conversion fee account for Certinia (FFA)
+
+If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, select **Currency conversion fee account** and choose the general ledger account for currency conversion fees. When the company covers the conversion cost on a cross-border reimbursement, Expensify adds that cost to the Payable Invoice as a separate line coded to this account.
 
 ## How to export tax as non-billable in Certinia
 

@@ -1,12 +1,12 @@
 import {useChartParagraphs} from '@components/Charts/hooks';
-import type {LabelRotation} from '@components/Charts/types';
+import type {LabelRotation, WrappedLabelConfig} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import VictoryTheme, {GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
-import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import React from 'react';
+import {Group, Paragraph, vec} from 'react-native-skia';
 
 type ChartXAxisLabelsProps = {
     /** Original (non-truncated) label strings from the data. */
@@ -47,6 +47,12 @@ type ChartXAxisLabelsProps = {
 
     /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
+
+    /** Width of the whole canvas, which horizontal labels are kept inside */
+    canvasWidth: number;
+
+    /** When set, labels wrap at word breaks across the full column, centered on the bar, never rotated or skipped. Used for bar-name labels. */
+    wrapConfig?: WrappedLabelConfig;
 };
 
 function ChartXAxisLabels({
@@ -63,6 +69,8 @@ function ChartXAxisLabels({
     labelColor,
     xScale,
     chartBoundsBottom,
+    canvasWidth,
+    wrapConfig,
 }: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
     const truncatedLabels = (() => {
@@ -78,10 +86,49 @@ function ChartXAxisLabels({
         });
     })();
 
-    const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
+    // Wrapped bar labels render from the full label text and let Skia wrap or ellipsize. Single-line axis labels render from the pre-truncated text.
+    const paragraphLabels = wrapConfig ? labels : truncatedLabels;
+    const paragraphLayoutWidth = wrapConfig ? wrapConfig.columnWidth : MAX_X_AXIS_LABEL_WIDTH;
+    const paragraphs = useChartParagraphs(paragraphLabels, fontManager, fontSize, labelColor, paragraphLayoutWidth, wrapConfig?.maxLines);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
+    const edgeMargin = VictoryTheme.axis.padding.left;
+
+    if (wrapConfig) {
+        const {columnWidth} = wrapConfig;
+        const wrapTop = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap;
+        return paragraphLabels.map((label, i) => {
+            if (label.length === 0) {
+                return null;
+            }
+            const para = paragraphs?.at(i)?.para ?? null;
+            if (!para) {
+                return null;
+            }
+            const tickX = xScale(i);
+
+            // Center the column on the bar, then nudge the first/last label inward just enough that its widest
+            // line stays on-canvas. Edge bars sit close to the canvas edge, so a label as wide as its slot would
+            // otherwise clip its outer glyph (e.g. "No merchant" rendering as "Vo merchant").
+            const halfLine = para.getLongestLine() / 2;
+            let boxX = tickX - columnWidth / 2;
+            if (tickX - halfLine < edgeMargin) {
+                boxX += edgeMargin - (tickX - halfLine);
+            } else if (tickX + halfLine > canvasWidth - edgeMargin) {
+                boxX -= tickX + halfLine - (canvasWidth - edgeMargin);
+            }
+            return (
+                <Paragraph
+                    key={`x-label-${label}-${tickX}`}
+                    paragraph={para}
+                    x={boxX}
+                    y={wrapTop}
+                    width={columnWidth}
+                />
+            );
+        });
+    }
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
     const labelY = chartBoundsBottom + VictoryTheme.axis.xAxisLabelGap + rotatedLabelYOffset(ascent, descent, angleRad);
@@ -100,11 +147,13 @@ function ChartXAxisLabels({
         const renderWidth = paraData.width;
 
         if (angleRad === 0) {
+            // Stepped labels are never truncated, so one centered under a bar near the canvas edge is moved inward instead of being clipped. Truncated labels already fit and stay centered.
+            const labelX = Math.max(edgeMargin, Math.min(tickX - renderWidth / 2, canvasWidth - edgeMargin - renderWidth));
             return (
                 <Paragraph
                     key={`x-label-${label}-${tickX}`}
                     paragraph={paraData.para}
-                    x={tickX - renderWidth / 2}
+                    x={labelX}
                     y={labelY - ascent}
                     width={renderWidth + GLYPH_PADDING}
                 />

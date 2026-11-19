@@ -1,7 +1,7 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
 
-import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
+import {InjectManifest} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
@@ -25,6 +25,8 @@ import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import {FORWARDED_DEVELOPMENT_ENV_KEYS} from './developmentEnvKeys.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -103,9 +105,11 @@ const INCLUDED_NODE_MODULES = [
     'expo-video',
     'expo-image',
     'expo-image-manipulator',
+    // Lets knip see that expo-modules-core is used. Remove together with this entry.
+    /** @type {import('expo-modules-core')} */
     'expo-modules-core',
     'victory-native',
-    '@shopify/react-native-skia',
+    'react-native-skia',
 ];
 
 // Matches node_modules paths that are in the allowlist above
@@ -133,6 +137,10 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 function getDefineValues(file: string): DefinePluginOptions {
     const isDevelopmentFile = file === '.env' || file === '.env.development';
+    const parsedConfig = dotenv.config({path: file}).parsed;
+    const developmentOverrides = isDevelopmentFile
+        ? Object.fromEntries(FORWARDED_DEVELOPMENT_ENV_KEYS.flatMap((key: string) => (process.env[key] === undefined ? [] : [[key, process.env[key]]])))
+        : {};
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
@@ -142,7 +150,10 @@ function getDefineValues(file: string): DefinePluginOptions {
         global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
-        __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
+        __REACT_WEB_CONFIG__: JSON.stringify({
+            ...parsedConfig,
+            ...developmentOverrides,
+        }),
 
         // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
         // react-native-render-html uses variable to log exclusively during development.
@@ -170,18 +181,18 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
     return {
         source: {
             define: getDefineValues(file),
-            // Rsbuild already treats images/fonts/pdf as static assets by default; .lottie needs to
-            // be added explicitly so it's emitted as a file instead of falling through to the JS pipeline.
-            assetsInclude: /\.lottie$/,
         },
         resolve: {
             alias: {
+                // The JSDoc types in this block only let knip see that these packages are used. Remove each with its alias.
+                /** @type {import('lodash-es')} */
                 lodash: 'lodash-es',
+                /** @type {import('react-web-config')} */
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
                 // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
-                // Required for @shopify/react-native-skia web support
+                // Required for react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
@@ -239,8 +250,15 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 // We can ignore the "module not installed" warning from lottie-react-native because we
                 // are not using the library for JSON format of Lottie animations.
                 // We also ignore React Compiler errors - they're deliberately warnings, not errors.
+                // react-native-skia tries `react-native/asset-registry` (React Native 0.87+) inside a try block before the older path, so the miss is
+                // expected. It must not be aliased to `false` like the older path: an empty module is truthy and would be used as the registry.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
+                config.ignoreWarnings = [
+                    ...(config.ignoreWarnings ?? []),
+                    /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/,
+                    /oxc-react-compiler-loader:/,
+                    /Module not found: Can't resolve 'react-native\/asset-registry'/,
+                ];
 
                 // Cache rules:
                 // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
@@ -274,6 +292,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                         type: 'asset/source' as const,
                     },
                     {
+                        // Small Lottie archives cannot be inlined because they have no data URL MIME type.
                         test: /\.lottie$/,
                         type: 'asset/resource' as const,
                     },
@@ -294,6 +313,8 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
                     // where Pager is imported without extension due to having platform-specific implementations
                     {
+                        // Lets knip see that react-native-tab-view is used. Remove together with this rule.
+                        /** @type {import('react-native-tab-view')} */
                         test: /\.js$/,
                         resolve: {fullySpecified: false},
                         include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
@@ -369,7 +390,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 // which can only classify frames when it did.
                 __SENTRY_APPLICATION_KEY_STAMPED__: !!sentryWebpackPlugin,
             },
-            entry: {main: './index.js'},
+            // fonts.css is bundled rather than copied as a static file, so its font paths resolve to the same
+            // content-hashed font files the charts import, and the browser downloads each font only once.
+            entry: {main: ['./assets/css/fonts.css', './index.js']},
         },
         output: {
             target: 'web',
@@ -410,8 +433,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'assets/css', to: 'css'},
-                {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/css/pdf.css', to: 'css/pdf.css'},
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
@@ -422,7 +444,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
-                // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
+                // CanvasKit WASM binary for react-native-skia web support (uses the full build). Emitted
                 // under a versioned name so it can't be served stale against newer glue. The URL is passed to
                 // the app through the `__CANVASKIT_WASM_URL__` define above.
                 {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},
@@ -511,9 +533,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(isDevelopment
                         ? []
                         : [
-                              new GenerateSW({
-                                  clientsClaim: true,
-                                  skipWaiting: true,
+                              new InjectManifest({
+                                  swSrc: path.resolve(dirname, '../../web/service-worker.ts'),
+                                  swDest: 'service-worker.js',
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
                                   // authScreens.prefetch (~10.1 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
                                   // all critical for offline boot, so we precache the lot. JS chunks are
@@ -525,24 +547,6 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
                                   exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
-                                  // Single-page app: any unmatched navigation should serve the cached app shell.
-                                  navigateFallback: '/index.html',
-                                  // Don't fall back for asset-like or .well-known requests.
-                                  navigateFallbackDenylist: [/^\/_/, /^\/\.well-known/, /\/[^/?]+\.[^/]+$/],
-                                  runtimeCaching: [
-                                      {
-                                          // Same-origin user media (receipts, chat attachments) — cache opportunistically
-                                          // so they're viewable on offline refresh. The function below is serialized into
-                                          // the generated service worker, so it executes in the SW context where
-                                          // `sameOrigin` is the appropriate Workbox match (no need to read `self.location`).
-                                          urlPattern: ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
-                                          handler: 'StaleWhileRevalidate',
-                                          options: {
-                                              cacheName: 'user-media',
-                                              expiration: {maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60},
-                                          },
-                                      },
-                                  ],
                               }),
                           ]),
                     // Inject <link rel="prefetch/preload" /> into HTML.

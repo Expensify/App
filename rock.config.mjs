@@ -1,14 +1,9 @@
 import {platformAndroid} from '@rock-js/platform-android';
 import {platformIOS} from '@rock-js/platform-ios';
-import {pluginMetro} from '@rock-js/plugin-metro';
 import {pluginRepack} from '@rock-js/plugin-repack';
 import {providerS3} from '@rock-js/provider-s3';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
-// `BUNDLER=metro` reverts the native build to Metro. Keep it while HybridApp still bundles with
-// Metro: its release builds go through the Gradle plugin's own Metro task, so deleting Metro here is
-// blocked on moving hybrid bundling onto Rock in the wrapper repo first.
-const useMetro = process.env.BUNDLER === 'metro';
 const isPublicAccess = !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY;
 
 // The dSYM mode changes what a build produces, so it belongs in the fingerprint below. Everything that
@@ -25,7 +20,7 @@ export default {
         // Credentials come from the AWS SDK default chain so AWS_SESSION_TOKEN from OIDC sessions is used
         publicAccess: isPublicAccess,
     }),
-    bundler: useMetro ? pluginMetro() : pluginRepack(),
+    bundler: pluginRepack(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
@@ -38,8 +33,13 @@ export default {
             'patches',
             ...(isHybrid ? ['Mobile-Expensify/patches'] : []),
             '.github/actions/composite/getXcodeVersion/action.yml',
+            // The autolinking sources describe these local native modules only by name and version, so their native code has to be listed here.
+            'modules/*/ios/**',
+            'modules/*/android/**',
+            'modules/*/*.podspec',
+            'modules/ExpensifyNitroUtils/nitrogen/**',
         ],
-        env: ['BUNDLER', 'USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD', 'RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'],
+        env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD', 'RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'],
         ignorePaths: ['Mobile-Expensify/Android/assets/app/shared/bundle.js'],
     },
     // Forces React Native to build from source to include our custom patches

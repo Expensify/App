@@ -1,15 +1,14 @@
 import {
-    getMergeATSFilterValues,
     getConnectedATSProvider,
     getMergeATSApprovalMode,
     getMergeATSApproverField,
+    getMergeATSApproverFields,
     getMergeATSFilterLabel,
     getMergeATSFilterOptions,
     isAnyRecruitingConnected,
     isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
     isRecruitingAdvancedMode,
-    shouldShowRecruitingConnectionError,
 } from '@libs/merge/RecruitingUtils';
 
 import type {MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
@@ -36,6 +35,7 @@ const {TAGS, STAGES, OFFICES} = CONST.MERGE.ATS_FILTER_TYPE;
 
 const POLICY_ID = 'ABC123';
 const GREENHOUSE: MergeATSProviderSlug = 'greenhouse';
+const ASHBY: MergeATSProviderSlug = 'ashby';
 const STUB_ICON: IconAsset = {uri: 'stub'};
 const APPROVER_LOGIN = 'approver@test.com';
 const ERROR_TIMESTAMP = 123;
@@ -231,44 +231,6 @@ describe('RecruitingUtils', () => {
         });
     });
 
-    describe('getMergeATSFilterValues', () => {
-        it('returns an empty list when the ATS returned no catalog for the dimension', () => {
-            // Given no data at all, or data that only holds another dimension's catalog
-            // When every dimension is asked for its values
-            // Then each comes back empty, so toggling one on selects nothing rather than crashing
-            expect(getMergeATSFilterValues(TAGS, undefined)).toEqual([]);
-            expect(getMergeATSFilterValues(STAGES, undefined)).toEqual([]);
-            expect(getMergeATSFilterValues(OFFICES, undefined)).toEqual([]);
-            expect(getMergeATSFilterValues(TAGS, {stages: [{id: 's1', name: 'Offer'}]})).toEqual([]);
-        });
-
-        it('returns the same values the options expose, since both feed `config.filters`', () => {
-            // Given a catalog for every dimension, where offices are stored by id and tags and stages by name
-            const data = {
-                tags: ['Engineering', 'Design'],
-                stages: [
-                    {id: 's1', name: 'Offer'},
-                    {id: 's2', name: 'Phone Screen'},
-                ],
-                offices: [
-                    {id: 'o1', name: 'New York'},
-                    {id: 'o2', name: 'Remote - EU'},
-                ],
-            };
-
-            // When each dimension is asked for all of its values
-            // Then they match the `value` of the options shown in the selection list, so toggling a dimension on is
-            // the same as picking every one of its options by hand
-            for (const filterType of [TAGS, STAGES, OFFICES]) {
-                expect(getMergeATSFilterValues(filterType, data)).toEqual(getMergeATSFilterOptions(filterType, data).map((option) => option.value));
-            }
-
-            expect(getMergeATSFilterValues(TAGS, data)).toEqual(['Engineering', 'Design']);
-            expect(getMergeATSFilterValues(STAGES, data)).toEqual(['Offer', 'Phone Screen']);
-            expect(getMergeATSFilterValues(OFFICES, data)).toEqual(['o1', 'o2']);
-        });
-    });
-
     describe('getMergeATSFilterLabel', () => {
         const DATA = {
             tags: ['Engineering', 'Design', 'Sales'],
@@ -441,38 +403,37 @@ describe('RecruitingUtils', () => {
         });
     });
 
-    describe('shouldShowRecruitingConnectionError', () => {
-        it('returns false when the user is not an admin', () => {
-            const policy = makeMergeATSPolicy({
-                lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED},
-            });
-            expect(shouldShowRecruitingConnectionError(policy, false)).toBe(false);
+    describe('getMergeATSApproverFields', () => {
+        it('offers only the recruiter and recruiting coordinator for Greenhouse', () => {
+            // Given a policy connected to Greenhouse, which has no hiring manager field
+            const policy = makeMergeATSPolicy({config: {integration: GREENHOUSE}});
+
+            // When the approver fields are read
+            // Then only the fields Greenhouse supports are offered
+            expect(getMergeATSApproverFields(policy)).toEqual([CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER, CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR]);
         });
 
-        it('returns false when no recruiting integration is connected', () => {
-            expect(shouldShowRecruitingConnectionError(undefined, true)).toBe(false);
-            expect(shouldShowRecruitingConnectionError(makePolicy(), true)).toBe(false);
+        it('also offers the hiring manager for Ashby', () => {
+            // Given a policy connected to Ashby, which exposes a hiring manager field
+            const policy = makeMergeATSPolicy({config: {integration: ASHBY}});
+
+            // When the approver fields are read
+            // Then the hiring manager is offered between the recruiter and the recruiting coordinator
+            expect(getMergeATSApproverFields(policy)).toEqual([
+                CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+                CONST.MERGE.ATS_APPROVER_FIELD.HIRING_MANAGER,
+                CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR,
+            ]);
         });
 
-        it('returns false when the last sync was fine', () => {
-            const policy = makeMergeATSPolicy({
-                lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
-            });
-            expect(shouldShowRecruitingConnectionError(policy, true)).toBe(false);
-        });
+        it('offers nothing when the provider is unknown', () => {
+            // Given a connection whose integration slug we can't resolve, since the backend sets it
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- deliberately simulating a slug we cannot resolve
+            const policy = makeMergeATSPolicy({config: {integration: undefined as unknown as MergeATSProviderSlug}});
 
-        it('returns true when the connection needs to be reconnected', () => {
-            const policy = makeMergeATSPolicy({
-                lastSync: {isAuthenticationError: true},
-            });
-            expect(shouldShowRecruitingConnectionError(policy, true)).toBe(true);
-        });
-
-        it('returns true when the last sync failed', () => {
-            const policy = makeMergeATSPolicy({
-                lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED},
-            });
-            expect(shouldShowRecruitingConnectionError(policy, true)).toBe(true);
+            // When the approver fields are read
+            // Then no fields are offered
+            expect(getMergeATSApproverFields(policy)).toEqual([]);
         });
     });
 });
@@ -695,15 +656,6 @@ describe('getRecruitingCards', () => {
             );
         });
 
-        it('falls back to "not set" for the approver when basic mode has none', () => {
-            // Given a connection in basic mode with no final approver chosen
-            // When the default approver row is built
-            // Then the missing approver is called out rather than left blank
-            expect(getDefaultApproverTitle({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: null}})).toBe(
-                'workspace.merge.approvalModes.basic • workspace.merge.notSet',
-            );
-        });
-
         it('resolves the approver login to their display name', () => {
             // Given a final approver who is a known workspace member
             // When the default approver row is built
@@ -736,6 +688,24 @@ describe('getRecruitingCards', () => {
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR, finalApprover: APPROVER_LOGIN},
                 }),
             ).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.recruitingCoordinator -> ${APPROVER_LOGIN}`);
+        });
+
+        it('translates the hiring manager field on the Ashby card in advanced mode', () => {
+            // Given an Ashby connection in advanced mode reading the approver from the hiring manager field
+            const policy = makeMergeATSPolicy({
+                config: {
+                    integration: ASHBY,
+                    approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED,
+                    approverField: CONST.MERGE.ATS_APPROVER_FIELD.HIRING_MANAGER,
+                    finalApprover: APPROVER_LOGIN,
+                },
+            });
+
+            // When the Ashby card is built
+            const card = getRecruitingCards(makeGetRecruitingCardsParams({policy})).find((c) => c.key === `merge_ats_${ASHBY}`);
+
+            // Then its default approver row names the hiring manager field
+            expect(getRow(card, 'approvalMode')?.title).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.hiringManager -> ${APPROVER_LOGIN}`);
         });
 
         it('reads "not set" for the ATS field when advanced mode has none', () => {

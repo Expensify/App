@@ -48,6 +48,9 @@ type DynamicFieldInputProps<TAnswer extends FormValue = FormValue> = Required<Fo
     Pick<InputComponentBaseProps, 'onValueChange'> & {
         onBlur?: () => void;
 
+        /** Offline, a field that asks the server for a new form cannot change, because the request would wait in the queue while the user goes on with a stale form */
+        disabled?: boolean;
+
         /** A sensitive answer is not drafted, so the input starts from the answer the flow keeps in memory */
         defaultValue?: TAnswer;
     };

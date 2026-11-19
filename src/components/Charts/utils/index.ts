@@ -1,16 +1,26 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
-import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
-
-import {isShareWorthDrawing} from '@libs/PercentageUtils';
+import type {ChartDataPoint, LabelRotation, PieSlice, YAxisTickStep} from '@components/Charts/types';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+    X_AXIS_LABEL_MIN_GAP,
+} from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from 'react-native-skia';
 
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
+import {FontStyle, FontWeight, Skia, TextAlign} from 'react-native-skia';
 
+import getDrawablePieData from './getDrawablePieData';
+import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -38,6 +48,27 @@ function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, 
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
         })
         .addText(text)
         .pop()
@@ -207,9 +238,8 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  * Process raw data into pie chart slices sorted by absolute value descending.
  * Slices are sized by the primary series only.
  *
- * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
- * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
- * the visible slices cover only the significant share of the spend rather than all of it.
+ * Points too small relative to the plotted groups are left out so every remaining slice can be hovered or tapped.
+ * Their reported share of all spend is kept separately for tooltips and tables.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
@@ -217,16 +247,7 @@ function processDataIntoSlices(
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const visibleSlices = data
-        .map((point, index) => ({
-            label: point.label,
-            color: point.color,
-            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
-            originalIndex: index,
-            percentOfTotal: point.percentOfTotal,
-        }))
-        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
-        .sort((a, b) => b.absTotal - a.absTotal);
+    const visibleSlices = getDrawablePieData(data, primarySeriesKey);
 
     // Angles span only the surviving slices, matching how the canvas normalizes its values.
     const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);
@@ -436,6 +457,34 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Y-axis ticks on whole multiples of `step`, picked as round numbers of steps rather than of plotted units, so a count never shows half an expense
+ * and seconds can read as round days. The ticks always include the domain's ends, and a flat domain still gets a tick one step above it.
+ */
+function getSteppedYAxisTicks(domain: [number, number], tickCount: number, step: number): number[] {
+    const min = Math.floor(domain[0] / step);
+    const max = Math.max(Math.ceil(domain[1] / step), min + 1);
+    return scaleLinear()
+        .domain([min, max])
+        .nice(tickCount)
+        .ticks(tickCount)
+        .filter((tick) => Number.isInteger(tick))
+        .map((tick) => tick * step);
+}
+
+/**
+ * Y-axis ticks, tick count and domain of a cartesian chart. With a `step`, the ticks stay on its multiples and the domain stretches to the outermost tick,
+ * so the axis ends on a label. Without one, the axis takes the default tick count over the data's own domain.
+ */
+function getYAxisTickLayout(domain: [number, number], tickStep: YAxisTickStep | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+    const step = typeof tickStep === 'function' ? tickStep(domain[1]) : tickStep;
+    if (!step) {
+        return {ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain};
+    }
+    const ticks = getSteppedYAxisTicks(domain, VictoryTheme.axis.tickCount, step);
+    return {ticks, tickCount: ticks.length, domain: [Math.min(domain[0], ticks.at(0) ?? 0), Math.max(domain[1], ticks.at(-1) ?? 0)]};
+}
+
+/**
  * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
  * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
@@ -515,6 +564,38 @@ function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepPa
     return candidates.find(fits) ?? Math.max(1, pointXs.length);
 }
 
+type SteppedLabelLayoutParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    lineHeight: number;
+
+    ellipsisWidth: number;
+};
+
+/**
+ * Label layout for a time axis whose labels stay horizontal and untruncated, labeling only every Nth point so they don't overlap.
+ * It has the same shape as `useChartLabelLayout`'s result, so a chart can use either one.
+ */
+function getSteppedLabelLayout({labelWidths, pointXs, steps, lineHeight, ellipsisWidth}: SteppedLabelLayoutParams) {
+    return {
+        labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+        labelSkipInterval: getAxisLabelStep({labelWidths, pointXs, steps, minGap: X_AXIS_LABEL_MIN_GAP}),
+        truncatedLabelWidths: labelWidths,
+        xAxisLabelHeight: lineHeight,
+        regularLabelMaxWidth: Infinity,
+        firstLabelMaxWidth: Infinity,
+        lastLabelMaxWidth: Infinity,
+        ellipsisWidth,
+    };
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -522,6 +603,8 @@ function getYAxisLabelWidth(
     fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
+    tickCount: number = VictoryTheme.axis.tickCount,
+    tickValues?: number[],
 ): number {
     if (!fontManager) {
         return 0;
@@ -529,16 +612,13 @@ function getYAxisLabelWidth(
     const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
-    return Math.max(
-        0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontManager, fontSize),
-        ),
-    );
+    const ticks = tickValues ?? getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom);
+    return Math.max(0, ...ticks.map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)));
 }
 
 export {
     buildChartParagraph,
+    buildWrappedChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
@@ -548,6 +628,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getLineRuns,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
@@ -561,11 +642,12 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getYAxisLabelWidth,
     getCartesianPlotBounds,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,
+    getSteppedLabelLayout,
 };
-
-export type {ChartLabelHitTestParams};

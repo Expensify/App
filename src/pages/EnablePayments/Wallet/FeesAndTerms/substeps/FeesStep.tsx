@@ -28,6 +28,7 @@ function FeesStep({onNext}: SubPageProps) {
                 <ShortTermsForm userWallet={userWallet} />
                 <LongTermsForm />
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.WALLET_FEES_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mv5]}

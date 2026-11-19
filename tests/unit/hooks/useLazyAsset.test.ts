@@ -413,6 +413,24 @@ describe('useMemoizedLazyExpensifyIcons', () => {
         // And: The async loader should NOT be called because chunk is already cached
         expect(mockLoadExpensifyIconsChunk).not.toHaveBeenCalled();
     });
+
+    it('does not reload the chunk after a cold load when icon names are unchanged', async () => {
+        // Given a cold chunk and callers that recreate their names array on every render.
+        const mockChunk = createMock<ExpensifyIconsChunk>({});
+        mockChunk.getExpensifyIcon = jest.fn(() => mockAsset);
+        mockGetExpensifyIconsChunk.mockReturnValue(null);
+        // Keep unexpected reloads pending so a regression fails without an infinite update loop.
+        mockLoadExpensifyIconsChunk.mockImplementation(() => new Promise<ExpensifyIconsChunk>(() => {})).mockResolvedValueOnce(mockChunk);
+
+        // When loading updates the hook's state and the parent renders again with equal names.
+        const {result, rerender} = renderHook(() => useMemoizedLazyExpensifyIcons(['AddReaction']));
+        await waitFor(() => expect(result.current.AddReaction).toBe(mockAsset));
+        rerender(undefined);
+
+        // Then the loaded asset is kept without restarting the loading effect.
+        expect(result.current.AddReaction).toBe(mockAsset);
+        expect(mockLoadExpensifyIconsChunk).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('useMemoizedLazyIllustrations', () => {
@@ -451,5 +469,80 @@ describe('useMemoizedLazyIllustrations', () => {
 
         // And: The async loader should NOT be called because chunk is already cached
         expect(mockLoadIllustrationsChunk).not.toHaveBeenCalled();
+    });
+
+    it('does not reload the chunk after a cold load when illustration names are unchanged', async () => {
+        // Given the same cold-loading path for illustrations, with freshly allocated names arrays.
+        const mockChunk = createMock<IllustrationsChunk>({});
+        mockChunk.getIllustration = jest.fn(() => mockAsset);
+        mockGetIllustrationsChunk.mockReturnValue(null);
+        mockLoadIllustrationsChunk.mockImplementation(() => new Promise<IllustrationsChunk>(() => {})).mockResolvedValueOnce(mockChunk);
+
+        // When the chunk resolves and the hook renders again with the same requested illustration.
+        const {result, rerender} = renderHook(() => useMemoizedLazyIllustrations(['Building']));
+        await waitFor(() => expect(result.current.Building).toBe(mockAsset));
+        rerender(undefined);
+
+        // Then no second load is started by a new array containing the same name.
+        expect(result.current.Building).toBe(mockAsset);
+        expect(mockLoadIllustrationsChunk).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe.each([
+    {
+        hookName: 'useMemoizedLazyExpensifyIcons',
+        firstName: 'AddReaction',
+        secondName: 'Apple',
+        mockCachedChunk: (assetsByName: Record<string, IconAsset>) => {
+            const mockChunk = createMock<ExpensifyIconsChunk>({});
+            mockChunk.getExpensifyIcon = jest.fn((name: ExpensifyIconName) => assetsByName[name]);
+            mockChunk.AVAILABLE_EXPENSIFY_ICONS = ['AddReaction', 'Apple'];
+            mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
+        },
+        useIcons: (shouldRequestSecondName: boolean): Record<string, IconAsset> => useMemoizedLazyExpensifyIcons(shouldRequestSecondName ? ['AddReaction', 'Apple'] : ['AddReaction']),
+    },
+    {
+        hookName: 'useMemoizedLazyIllustrations',
+        firstName: 'Building',
+        secondName: 'Tag',
+        mockCachedChunk: (assetsByName: Record<string, IconAsset>) => {
+            const mockChunk = createMock<IllustrationsChunk>({});
+            mockChunk.getIllustration = jest.fn((name: IllustrationName) => assetsByName[name]);
+            mockChunk.AVAILABLE_ILLUSTRATIONS = ['Building', 'Tag'];
+            mockGetIllustrationsChunk.mockReturnValue(mockChunk);
+        },
+        useIcons: (shouldRequestSecondName: boolean): Record<string, IconAsset> => useMemoizedLazyIllustrations(shouldRequestSecondName ? ['Building', 'Tag'] : ['Building']),
+    },
+])('$hookName returned object', ({firstName, secondName, mockCachedChunk, useIcons}) => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockCachedChunk({[firstName]: mockAsset, [secondName]: mockFallbackAsset});
+    });
+
+    it('keeps its identity when the parent re-renders with the same names', () => {
+        // Given a consumer whose names array is a new array on every render
+        const {result, rerender} = renderHook(({shouldRequestSecondName}) => useIcons(shouldRequestSecondName), {initialProps: {shouldRequestSecondName: false}});
+        const firstIcons = result.current;
+
+        // When the parent re-renders without changing the requested names
+        rerender({shouldRequestSecondName: false});
+
+        // Then the same object is returned, so consumers that depend on it don't recompute
+        expect(result.current).toBe(firstIcons);
+    });
+
+    it('returns the newly requested icons when the names change', () => {
+        // Given a consumer that first requests one name from an already cached chunk
+        const {result, rerender} = renderHook(({shouldRequestSecondName}) => useIcons(shouldRequestSecondName), {initialProps: {shouldRequestSecondName: false}});
+        const firstIcons = result.current;
+
+        // When it starts requesting a second name
+        rerender({shouldRequestSecondName: true});
+
+        // Then a new object holds both icons instead of a placeholder for the added name
+        expect(result.current).not.toBe(firstIcons);
+        expect(result.current[firstName]).toBe(mockAsset);
+        expect(result.current[secondName]).toBe(mockFallbackAsset);
     });
 });

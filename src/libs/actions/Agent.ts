@@ -21,6 +21,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -40,15 +41,14 @@ function openProfilePage() {
     read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
 }
 
-function createAgent(
-    firstName: string | undefined,
+function prepareNewAgentOnyxData(
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
     prompt: string,
-    ownerAccountID: number,
-    ownerLogin: string | undefined,
+    policy?: Policy,
+    firstName?: string,
     customExpensifyAvatarID?: string,
-    file?: File | CustomRNImageManipulatorResult,
     optimisticAvatarURI?: string,
-    policyID?: string,
 ) {
     const optimisticAccountID = Number(generateReportID());
 
@@ -59,7 +59,7 @@ function createAgent(
         avatarURI = optimisticAvatarURI;
     }
 
-    // Optimistic row for Settings > Agents until CREATE_AGENT responds. Omit `login` (server-assigned).
+    // Optimistic row for Settings > Agents until BE responds. Omit `login` (server-assigned).
     const optimisticPersonalDetail = {
         accountID: optimisticAccountID,
         displayName: firstName,
@@ -71,16 +71,17 @@ function createAgent(
     // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
     const optimisticReportID = generateReportID();
     const optimisticChatReport = buildOptimisticChatReport({
-        participantList: [ownerAccountID, optimisticAccountID],
-        ownerAccountID,
+        participantList: [currentUserAccountID, optimisticAccountID],
+        ownerAccountID: currentUserAccountID,
         optimisticReportID,
-        currentUserAccountID: ownerAccountID,
+        currentUserAccountID,
     });
+
     // Reuse the client-generated CREATED action ID when CreateAgent creates the DM.
     const createdReportActionID = rand64();
     const optimisticCreatedAction = buildOptimisticCreatedReportAction({
-        emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
-        currentUserAccountID: ownerAccountID,
+        emailCreatingAction: currentUserLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
+        currentUserAccountID,
         optimisticReportActionID: createdReportActionID,
     });
 
@@ -88,7 +89,11 @@ function createAgent(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
-            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            value: {
+                prompt,
+                ownerAccountID: policy?.policyAccountID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -128,8 +133,6 @@ function createAgent(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
             value: {
-                prompt,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd'),
             },
         },
@@ -150,11 +153,63 @@ function createAgent(
         },
     ];
 
+    return {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise};
+}
+
+function createAgent(
+    firstName: string | undefined,
+    prompt: string,
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+) {
+    const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
+        currentUserAccountID,
+        currentUserLogin,
+        prompt,
+        undefined,
+        firstName,
+        customExpensifyAvatarID,
+        optimisticAvatarURI,
+    );
+
     write(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
         // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
+        {firstName, prompt, customExpensifyAvatarID, file, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
+        {optimisticData, successData, failureData},
+    );
+
+    return {optimisticAccountID, avatarURI, optimisticReportID, optimisticPersonalDetailPromise};
+}
+
+function createCompanyAgent(
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
+    prompt: string,
+    policy: Policy,
+    role: ValueOf<typeof CONST.POLICY.ROLE>,
+    firstName?: string,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+) {
+    const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
+        currentUserAccountID,
+        currentUserLogin,
+        prompt,
+        policy,
+        firstName,
+        customExpensifyAvatarID,
+        optimisticAvatarURI,
+    );
+
+    write(
+        WRITE_COMMANDS.CREATE_COMPANY_AGENT,
+        {prompt, policyID: policy.id, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
@@ -329,6 +384,9 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
+
+        // Set accountID to 0 so the agent is not included in personal details list (e.g. so you can't invite an agent that you are deleting)
+        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: CONST.DEFAULT_NUMBER_ID}}),
     ];
 
     const successData: AnyOnyxUpdate[] = [
@@ -349,6 +407,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
+        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}}),
     ];
 
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
@@ -433,6 +492,7 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    createCompanyAgent,
     setNewAgentTemplate,
     clearNewAgentTemplate,
     clearAgentError,

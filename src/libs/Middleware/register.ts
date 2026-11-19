@@ -1,6 +1,8 @@
 import {addMiddleware} from '@libs/Request';
 
 import {
+    DiscardStaleSearchSnapshot,
+    MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -13,6 +15,7 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -53,8 +56,11 @@ function registerMiddlewares() {
     // Handle supportal permission denial centrally
     addMiddleware(SupportalPermission);
 
-    // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
+    // Handle the global reimbursements pay signal (Corpay or Wise): drop the failed PAY action and the report error, and hold the signal back for Search bulk pay, which lists its unpaid reports itself.
     addMiddleware(GlobalReimbursementPayError);
+
+    // Show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without.
+    addMiddleware(MembersNeedCategoryError);
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
@@ -76,6 +82,12 @@ function registerMiddlewares() {
     // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
+
+    // DiscardStaleSearchSnapshot - Drops snapshots explicitly invalidated before inline edits. Must run before SaveResponseInOnyx.
+    addMiddleware(DiscardStaleSearchSnapshot);
+
+    // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
+    addMiddleware(ReconcileBulkEditReportAction);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -27,9 +28,9 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getChatReportFromMoneyRequestReport,
     getNewestOutstandingReportForUser,
     getReimbursableTotal,
-    getReportOrDraftReport,
     getUnheldReimbursableTotal,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -50,7 +51,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -72,12 +72,16 @@ import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     const newSubrates = [...existingSubrates];
     newSubrates.splice(index, 1);
@@ -86,28 +90,31 @@ function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index >= existingSubrates.length) {
         return;
@@ -120,19 +127,18 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function clearSubrates(transactionID: string) {
@@ -140,12 +146,16 @@ function clearSubrates(transactionID: string) {
 }
 
 function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    if (!transaction) {
+        return;
+    }
+
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubrates = transaction.comment?.customUnit?.subRates ?? [];
 
     if (index !== existingSubrates.length) {
         return;
@@ -158,19 +168,18 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     const newTransaction: OnyxTypes.Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as OnyxTypes.Transaction),
+        ...transaction,
         comment: {
-            ...transaction?.comment,
+            ...transaction.comment,
             customUnit: {
-                ...transaction?.comment?.customUnit,
+                ...transaction.comment?.customUnit,
                 subRates: newSubrates,
                 quantity: null,
             },
         },
     };
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
 function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
@@ -178,7 +187,7 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
 }
 
-function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>, dateFnsLocale: DateFnsLocale | undefined) {
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
     if (!customUnit.customUnitRateID) {
         return '';
     }
@@ -190,7 +199,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate), dateFnsLocale);
+    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
     return `${locationName}, ${formattedTime}`;
 }
 
@@ -236,7 +245,6 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
-    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -271,10 +279,10 @@ type PerDiemExpenseInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type PerDiemExpenseInformationParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -304,10 +312,10 @@ type PerDiemExpenseInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selfDMReport: OnyxTypes.Report | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transactionParams: PerDiemExpenseTransactionParams;
@@ -367,7 +375,7 @@ function getPerDiemExpensePolicyID({
     const allReports = getAllReports();
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const parentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const parentChatReportCandidate = parentChatReport?.reportID ? parentChatReport : null;
@@ -396,7 +404,6 @@ function getPerDiemExpensePolicyID({
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
-        dateFnsLocale,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -425,6 +432,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -432,7 +440,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -643,7 +651,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               [payerAccountID]: {
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
@@ -663,6 +670,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         policy,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     });
 
     // STEP 5: Build Onyx Data
@@ -740,22 +748,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {
-        dateFnsLocale,
-        selfDMReport,
-        transactionParams,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        quickAction,
-        optimisticChatReportID,
-        delegateAccountID,
-        getCurrencyDecimals,
-    } = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -1089,11 +1087,11 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        dateFnsLocale,
         getCurrencyDecimals,
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1103,7 +1101,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
     const {
@@ -1121,7 +1119,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         reimbursable,
     } = getPerDiemExpenseInformation({
         isVendorMatchingBetaEnabled,
-        dateFnsLocale,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1149,6 +1146,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
@@ -1211,7 +1209,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
     const {
-        dateFnsLocale,
         selfDMReport,
         policy,
         transactionParams,
@@ -1231,7 +1228,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     }
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
-        dateFnsLocale,
         getCurrencyDecimals,
         selfDMReport,
         policy,

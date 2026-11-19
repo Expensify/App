@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 function IntroSchoolPrincipalPage() {
@@ -68,37 +68,34 @@ function IntroSchoolPrincipalPage() {
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
 
-            if (!values.firstName || !isValidPersonName(values.firstName)) {
-                addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
-            } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
-            }
-            if (!values.lastName || !isValidPersonName(values.lastName)) {
-                addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
-            } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
-            }
-            if (!values.partnerUserID) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
-            }
-            if (values.partnerUserID && loginList?.[values.partnerUserID.toLowerCase()]) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
-            }
-            if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
-            }
-            if (values.partnerUserID && isEmailPublicDomain(values.partnerUserID)) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
-            }
+        if (!values.firstName || !isValidPersonName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+        } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!values.lastName || !isValidPersonName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
+        } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!values.partnerUserID) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
+        }
+        if (values.partnerUserID && loginList?.[values.partnerUserID.toLowerCase()]) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+        }
+        if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
+        }
+        if (values.partnerUserID && isEmailPublicDomain(values.partnerUserID)) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+        }
 
-            return errors;
-        },
-        [loginList, translate],
-    );
+        return errors;
+    };
 
     return (
         <ScreenWrapper

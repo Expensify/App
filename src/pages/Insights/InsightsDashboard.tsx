@@ -1,6 +1,9 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import {ChartCaptureContext} from '@components/Charts/context/ChartCaptureContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
@@ -8,6 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useIsTabVisible from '@hooks/useIsTabVisible';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,57 +31,151 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
+import viewRef from '@src/types/utils/viewRef';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
+import type {InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
+import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
+import type {InsightsTagLevelOption} from './insightsTagLevels';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
+import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
+import InsightsTagLevelControl from './controls/InsightsTagLevelControl';
+import INSIGHTS_DASHBOARD_SPECS, {
+    applyViolationStage,
+    getEnabledStages,
+    getPoliciesInScope,
+    getUpgradeablePolicyIDsInScope,
+    getViolationStage,
+    getVisibleCharts,
+    shouldUpsellControlPlan,
+} from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import InsightsTabSelector from './InsightsTabSelector';
+import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
+import InsightsUpsellState from './states/InsightsUpsellState';
+import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboardID: InsightsDashboardID;
     state: InsightsDashboardState;
+    aiInsights: AIInsight[] | undefined;
+    insightsScope: InsightsScope;
+
+    /** Whether the last request for the dashboard failed */
+    hasFailedToLoad: boolean;
+
     headlineChart: InsightsDashboardChart;
 
-    /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
+    /** Last day the charts count expenses through, as the backend resolved today */
+    asOfDate: string | undefined;
+
+    /** Expenses in the date range dated after `asOfDate`, which every chart leaves out */
+    futureExpenses: InsightsFutureExpenses | undefined;
+
+    /** Charts below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
+    /** Workspaces in scope the upsell's CTA can start the upgrade flow on */
+    upgradeablePolicyIDs: string[];
+
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Changes the time bucket the headline chart aggregates into */
-    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Changes how the headline chart aggregates: the time bucket, or Running total */
+    onGroupByChange: (update: Partial<InsightsFilters>) => void;
+    tagLevelOptions: InsightsTagLevelOption[];
+
+    /** Violation stage picked on each chart that offers one */
+    violationStages: InsightsViolationStages;
+
+    /** Stores the stage picked on the given chart, which only charts with a violation stage control call */
+    onViolationStageChange: (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => void;
+
+    /** Ref on the scrolling dashboard content so the export includes cards below the fold */
+    captureRef: InsightsCaptureRef;
+
+    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+/** Splits the charts into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
+function getDashboardSections(charts: InsightsDashboardChart[], shouldUseNarrowLayout: boolean): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+    const isGridChart = (chart: InsightsDashboardChart | undefined) => !!chart && !chart.chart.isFullWidth;
+    const isAloneInGrid = (index: number) => isGridChart(charts.at(index)) && (index === 0 || !isGridChart(charts.at(index - 1))) && !isGridChart(charts.at(index + 1));
+    // A two-column grid with one chart leaves half a row empty, so on wide layouts that chart moves to the bottom, where the gap ends the page
+    const orderedCharts = shouldUseNarrowLayout ? charts : [...charts.filter((chart, index) => !isAloneInGrid(index)), ...charts.filter((chart, index) => isAloneInGrid(index))];
+
+    const sections: Array<InsightsDashboardChart | InsightsDashboardChart[]> = [];
+    for (const chart of orderedCharts) {
+        const lastSection = sections.at(-1);
+        if (!chart.chart.isFullWidth && Array.isArray(lastSection)) {
+            lastSection.push(chart);
+        } else {
+            sections.push(chart.chart.isFullWidth ? chart : [chart]);
+        }
+    }
+    return sections;
+}
+
+function InsightsDashboardContent({
+    dashboardID,
+    state,
+    aiInsights,
+    insightsScope,
+    hasFailedToLoad,
+    headlineChart,
+    asOfDate,
+    futureExpenses,
+    supportingCharts,
+    filters,
+    upgradeablePolicyIDs,
+    onRetry,
+    onGroupByChange,
+    violationStages,
+    onViolationStageChange,
+    tagLevelOptions,
+    captureRef,
+    children,
+}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
-    const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
+    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
-        fillsVisibleArea: isEmptyState,
+        fillsVisibleArea: shouldShowStandInView,
     });
 
+    const {countDimension, supportsDrillIn} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
     if (didRequestFail) {
@@ -90,115 +189,241 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
             },
             [INSIGHTS_DASHBOARD_STATE.ERROR]: {
-                title: translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout}),
+                title: translate('errorPage.title', {
+                    isBreakLine: shouldUseNarrowLayout,
+                }),
                 subtitle: translate('errorPage.subtitle'),
                 buttonTranslationKey: 'common.tryAgain',
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <FullPageErrorView
+                        shouldShow
+                        onButtonPress={onRetry}
+                        {...failureViewByState[state]}
+                    />
+                </View>
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <BlockingView
+                        icon={icons.OfflineCloud}
+                        iconColor={theme.offline}
+                        title={translate('common.youAppearToBeOffline')}
+                        subtitle={translate('common.thisFeatureRequiresInternet')}
+                        addBottomSafeAreaPadding
+                        addOfflineIndicatorBottomSafeAreaPadding
+                    />
+                </View>
+            </>
         );
     }
 
-    if (isEmptyState) {
+    if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
         return (
-            <ScrollView
-                {...scrollProps}
-                addBottomSafeAreaPadding
-            >
-                {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
-            </ScrollView>
+            <>
+                {children}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </>
         );
     }
 
-    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
+    if (shouldShowStandInView) {
+        return (
+            <TabRootScrollViewMarker>
+                <ScrollView
+                    {...scrollProps}
+                    addBottomSafeAreaPadding
+                >
+                    {children}
+                    <View
+                        ref={viewRef(captureRef)}
+                        collapsable={false}
+                        style={styles.flexGrow1}
+                    >
+                        {state === INSIGHTS_DASHBOARD_STATE.UPSELL && <InsightsUpsellState upgradeablePolicyIDs={upgradeablePolicyIDs} />}
+                        {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && <InsightsNoExpensesState />}
+                        {state === INSIGHTS_DASHBOARD_STATE.EMPTY && <InsightsEmptyState />}
+                    </View>
+                </ScrollView>
+            </TabRootScrollViewMarker>
+        );
+    }
+
+    const renderChart = (
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
+        isHeadline = false,
+    ) => (
+        <InsightsChartWidget
+            key={chart.graphKey}
+            dashboardID={dashboardID}
+            chart={chart}
+            queryJSON={queryJSON}
+            snapshot={snapshot}
+            previousPeriodQueryJSON={previousPeriodQueryJSON}
+            previousPeriodSnapshot={previousPeriodSnapshot}
+            averageQueryJSON={averageQueryJSON}
+            averageSnapshot={averageSnapshot}
+            average={average}
+            isDashboardLoaded={isDashboardLoaded}
+            stages={stages}
+            filters={filters}
+            insightsScope={insightsScope}
+            countDimension={countDimension}
+            supportsDrillIn={supportsDrillIn}
+            onRetry={onRetry}
+            onGroupByChange={isHeadline ? onGroupByChange : undefined}
+            violationStage={getViolationStage(chart, violationStages)}
+            onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
+            asOfDate={asOfDate}
+        >
+            {chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && tagLevelOptions.length > 1 && (
+                <InsightsChartWidget.Controls>
+                    <InsightsTagLevelControl
+                        tagLevel={filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL}
+                        options={tagLevelOptions}
+                        onChange={onGroupByChange}
+                    />
+                </InsightsChartWidget.Controls>
+            )}
+            {isHeadline && !!asOfDate && !!futureExpenses?.count && (
+                <InsightsFutureExpensesNote
+                    futureExpenses={futureExpenses}
+                    asOfDate={asOfDate}
+                    filters={filters}
+                />
+            )}
+        </InsightsChartWidget>
+    );
+
+    const renderGrid = (gridCharts: InsightsDashboardChart[]) => {
+        // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+        const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
+        return (
+            <View
+                key={gridCharts.at(0)?.chart.graphKey}
+                style={styles.insightsChartGrid(shouldUseNarrowLayout)}
+            >
+                {columns.map((columnCharts, columnIndex) => (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                        key={columnIndex}
+                        style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                    >
+                        {columnCharts.map((chart) => renderChart(chart))}
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
-        <ScrollView
-            style={styles.insightsDashboardScrollView}
-            onScroll={triggerScrollEvent}
-            {...scrollProps}
-            addBottomSafeAreaPadding
-        >
-            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                <InsightsChartWidget
-                    chart={headlineChart.chart}
-                    queryJSON={headlineChart.queryJSON}
-                    snapshot={headlineChart.snapshot}
-                    previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
-                    previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                    averageQueryJSON={headlineChart.averageQueryJSON}
-                    averageSnapshot={headlineChart.averageSnapshot}
-                    filters={filters}
-                    onRetry={onRetry}
-                    onGroupByChange={onGroupByChange}
-                />
-                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                    {columns.map((columnCharts, columnIndex) => (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                            key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                        >
-                            {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
-                                <InsightsChartWidget
-                                    key={chart.graphKey}
-                                    chart={chart}
-                                    queryJSON={queryJSON}
-                                    snapshot={snapshot}
-                                    previousPeriodQueryJSON={previousPeriodQueryJSON}
-                                    previousPeriodSnapshot={previousPeriodSnapshot}
-                                    averageQueryJSON={averageQueryJSON}
-                                    averageSnapshot={averageSnapshot}
-                                    filters={filters}
-                                    onRetry={onRetry}
-                                />
-                            ))}
-                        </View>
-                    ))}
+        <TabRootScrollViewMarker>
+            <ScrollView
+                style={styles.insightsDashboardScrollView}
+                onScroll={triggerScrollEvent}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                {...scrollProps}
+                addBottomSafeAreaPadding
+                removeClippedSubviews={false}
+            >
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
+                >
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            insights={aiInsights}
+                            insightsScope={insightsScope}
+                            hasFailedToLoad={hasFailedToLoad}
+                        />
+                    )}
+                    {renderChart(headlineChart, true)}
+                    {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </TabRootScrollViewMarker>
     );
 }
 
-function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+/** Checks whether GetInsights has responded for any dashboard or filters. */
+function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some(hasDashboardResponse);
+}
+
+function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
+    const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
+    const wasFocusedRef = useRef(isFocused);
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {isBetaEnabled} = usePermissions();
-
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
-    const jsonQuery = query?.jsonQuery;
-    const hash = query?.hash;
-
-    const requestDashboard = () => {
-        if (!query || !jsonQuery || hash === undefined || isOffline) {
+    const arePoliciesLoaded = policies !== undefined;
+    // Checked against the next filters, because a workspace change can turn the upsell on or off
+    const {filters, defaultFilters, isResolved, setFilters, tagPolicyIDs, tagLevelOptions} = useInsightsFilters(
+        dashboardID,
+        (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
+        policies,
+    );
+    const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
+    const updateFilters = (update: Partial<InsightsFilters>) => {
+        if (isExporting) {
             return;
         }
-        getInsights(dashboardID, hash, jsonQuery, query.snapshotHashes);
+        setFilters(update);
+    };
+    // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
+    const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
+    // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
+    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
+    const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
+    const hash = query?.hash;
+    const snapshotHashes = query?.snapshotHashes.join(',');
+    const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
+        if (isExporting) {
+            return;
+        }
+        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+    };
+    // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
+    const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
+
+    const requestDashboard = () => {
+        if (!query || hash === undefined || isOffline) {
+            return;
+        }
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -206,60 +431,156 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     });
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = wasFocusedRef.current;
+        wasFocusedRef.current = isFocused;
+        // An RHP opened beside a wide dashboard leaves it visible, so only closing the RHP fetches again, because the RHP may have changed the expenses behind the charts.
+        if (!isDashboardVisible || (wasFocused && !isFocused)) {
             return;
         }
         onRequestConditionsChanged();
-    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The chart snapshots are listed because the hash leaves out the effective bucket and the eligible charts, so changing them triggers a refetch while a pure Running total toggle does not.
+    }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
-    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
+        selector: hasStoredDashboardResponse,
+    });
+    // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
-        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
-        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
+        ? [query.headlineChart, ...query.supportingCharts]
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart: applyViolationStage(chart, violationStages[chart.graphKey]), queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
-    const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
-        ...chartQuery,
-        snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
-        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
-    }));
+    const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
+        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        return {
+            ...chartQuery,
+            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+            previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+            averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+            average: {
+                [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
+                [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
+                [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
+            },
+            isDashboardLoaded: hasDashboardResponse(dashboard),
+            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
+        };
+    });
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts);
+    const state = getDashboardState(dashboard, isOffline, charts, shouldUpsell, hasLoadedBefore);
+
+    const tabSelector =
+        accessibleDashboards.length > 1 ? (
+            <InsightsTabSelector
+                activeDashboardID={dashboardID}
+                dashboardIDs={accessibleDashboards}
+            />
+        ) : null;
+
+    const pageControls =
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && state !== INSIGHTS_DASHBOARD_STATE.LOADING ? (
+            <InsightsPageControls
+                filters={filters}
+                defaultFilters={defaultFilters}
+                onChange={updateFilters}
+                isPolicyAvailable={isDashboardPolicyEligible ? (policy) => isDashboardPolicyEligible(policy, login) : undefined}
+                captureRef={controlsRef}
+                onExport={exportDashboard}
+                isExporting={isExporting}
+                isExportDisabled={!isResolved || isChartLoading}
+            />
+        ) : null;
+
+    const header = (
+        <>
+            <View
+                ref={viewRef(headerRef)}
+                collapsable={false}
+            >
+                <TopBar
+                    breadcrumbLabel={translate('common.insights')}
+                    shouldDisplayHelpButton
+                />
+            </View>
+            {shouldUseNarrowLayout ? (
+                <>
+                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                    {pageControls}
+                </>
+            ) : (
+                (!!tabSelector || !!pageControls) && (
+                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                        <View
+                            style={[
+                                styles.centeredContentWidthLimiter,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                styles.gap2,
+                            ]}
+                        >
+                            {tabSelector}
+                            {pageControls}
+                        </View>
+                    </View>
+                )
+            )}
+        </>
+    );
 
     return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            {...tabRootScreenWrapperProps}
-            testID="InsightsPage"
-        >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
-                />
-            )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={(groupBy) => setFilters({groupBy})}
-            />
-        </ScreenWrapper>
+        <ChartCaptureContext.Provider value={captureContext}>
+            <ScreenWrapper
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                {...tabRootScreenWrapperProps}
+                testID="InsightsPage"
+            >
+                <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
+                {!shouldScrollMainHeader && header}
+                <View style={styles.flex1}>
+                    <Animated.View
+                        key={state}
+                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                        style={StyleSheet.absoluteFill}
+                    >
+                        <InsightsDashboardContent
+                            dashboardID={dashboardID}
+                            state={state}
+                            aiInsights={dashboard?.aiInsights}
+                            insightsScope={{
+                                searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
+                                policyIDs: filters.policyIDs,
+                                date: filters.date,
+                                groupCurrency: filters.groupCurrency,
+                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
+                            }}
+                            hasFailedToLoad={!!dashboard?.errors}
+                            headlineChart={headlineChart}
+                            asOfDate={dashboard?.asOfDate}
+                            futureExpenses={dashboard?.futureExpenses}
+                            supportingCharts={supportingCharts}
+                            filters={filters}
+                            upgradeablePolicyIDs={upgradeablePolicyIDs}
+                            onRetry={requestDashboard}
+                            onGroupByChange={updateFilters}
+                            violationStages={violationStages}
+                            onViolationStageChange={updateViolationStage}
+                            tagLevelOptions={tagLevelOptions}
+                            captureRef={contentRef}
+                        >
+                            {shouldScrollMainHeader && header}
+                        </InsightsDashboardContent>
+                    </Animated.View>
+                </View>
+            </ScreenWrapper>
+        </ChartCaptureContext.Provider>
     );
 }
 

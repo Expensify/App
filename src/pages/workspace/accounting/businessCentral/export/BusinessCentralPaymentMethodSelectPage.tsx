@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBusinessCentralErrorField, updateBusinessCentralPaymentMethod} from '@libs/actions/connections/BusinessCentral';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -44,7 +45,7 @@ function BusinessCentralPaymentMethodSelectPage({policy}: WithPolicyConnectionsP
             keyForList: paymentMethod.code,
             isSelected: paymentMethodCode === paymentMethod.code,
         })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(paymentMethodOptions);
+    const {filteredData, textInputOptions, pinnedValues} = useSelectionListSearch(paymentMethodOptions);
 
     // The payment method is optional, and an empty code clears it
     const noneOption: PaymentMethodListItem = {
@@ -53,7 +54,10 @@ function BusinessCentralPaymentMethodSelectPage({policy}: WithPolicyConnectionsP
         keyForList: '',
         isSelected: !paymentMethodCode,
     };
-    const data = paymentMethodOptions.length > 0 ? [noneOption, ...filteredData] : [];
+    // Place the clear row below the top option only when that option is the one the hook actually pinned.
+    const firstOptionValue = filteredData.at(0)?.value;
+    const isSelectionPinnedToTop = firstOptionValue !== undefined && pinnedValues.includes(firstOptionValue);
+    const data = paymentMethodOptions.length > 0 ? withClearRow(filteredData, noneOption, isSelectionPinnedToTop) : [];
 
     const headerContent = (
         <View>

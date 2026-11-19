@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -88,6 +89,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: reportsSelector,
     });
+    const [personalDetails] = useAllPersonalDetails();
     const {isOffline} = useNetwork();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -112,6 +114,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             report: targetTransactionReport,
             currentUserLogin,
             rules,
+            personalDetails,
             allPolicies,
             allReports,
         });
@@ -125,6 +128,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         targetTransaction,
         targetReportTransactions,
         rules,
+        personalDetails,
         allPolicies,
         allReports,
     ]);
@@ -194,7 +198,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               getCurrencySymbol,
               reportAction: undefined,
               linkedTransaction: targetTransaction,
-              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
+              report: getReportOrDraftReport({
+                  reportID: targetTransaction?.reportID,
+                  searchReports: targetTransactionReport ? [targetTransactionReport] : [],
+                  report: targetTransactionReport,
+              }),
           })
         : '';
 
@@ -209,7 +217,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     );
 
     const subTitleContent = (
-        <View style={[styles.renderHTML, styles.textNormal]}>
+        <View style={[styles.renderHTML, styles.textNormal, styles.textAlignCenter, styles.alignItemsCenter]}>
             <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
         </View>
     );
@@ -220,7 +228,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, translate, getCurrencyDecimals, reports, true, undefined, [
             targetTransactionPolicy,
             sourceTransactionPolicy,
         ]);

@@ -36,7 +36,7 @@ import type {IssueNewCardData} from '@src/types/onyx/Card';
 import type {ValueOf} from 'type-fest';
 
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
@@ -88,21 +88,18 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
-    const minDate = useMemo(() => {
-        if (!assigneeTimeZone) {
-            return new Date();
-        }
-        return toZonedTime(new Date(), assigneeTimeZone);
-    }, [assigneeTimeZone]);
+    const minDate = !assigneeTimeZone ? new Date() : toZonedTime(new Date(), assigneeTimeZone);
 
     const spendRuleTabs = [
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.COPY_EXISTING,
             title: translate('workspace.card.issueNewCard.copyExisting'),
             icon: icons.Copy,
         },
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_SPEND_RULE_TAB.CREATE_NEW,
             title: translate('workspace.card.issueNewCard.createNew'),
             icon: icons.Pencil,
         },
@@ -171,7 +168,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const hasAnyMerchant = !!spendRuleForm.merchantNames?.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
 
-    const getSpendRuleErrorMessage = useCallback(() => {
+    const getSpendRuleErrorMessage = () => {
         if (!spendRuleEnabled) {
             return '';
         }
@@ -185,7 +182,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
 
         return '';
-    }, [hasAnyRuleApplied, spendRuleEnabled, spendRuleID, spendRuleOption, translate]);
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         const formSpendRuleError = getSpendRuleErrorMessage();
@@ -290,6 +287,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             showLockIcon={isSpendRuleLocked}
                             disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_SPEND_RULE_SWITCH}
                             wrapperStyle={[styles.mv3]}
                         />
                         {!isSpendRuleLocked && spendRuleEnabled && (
@@ -377,6 +375,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             isActive={expirationToggled}
                             onToggle={setExpirationToggled}
                             switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_ADD_EXPIRATION_DATE_SWITCH}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={[styles.mv3]}
                         />

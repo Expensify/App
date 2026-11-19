@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function ExitSurveyOffline() {
@@ -27,4 +27,4 @@ function ExitSurveyOffline() {
     );
 }
 
-export default memo(ExitSurveyOffline);
+export default ExitSurveyOffline;

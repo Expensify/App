@@ -3,8 +3,6 @@ title: Manage Vendor Matching for Sage Intacct
 description: Learn how Sage Intacct vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
 keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export]
 internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover Sage Intacct connection setup or other export types.
-noindex: true
-sitemap: false
 ---
 
 # Manage Vendor Matching for Sage Intacct
@@ -34,7 +32,7 @@ Workspace Admins can manually select a vendor from the searchable **Vendor** fie
 
 ## How to set a fallback (default) vendor for Sage Intacct company card expenses
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Workspaces > [workspace name] > Accounting > Sage Intacct**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.
 2. Click **Export**.
 3. Under **Export company card expenses as**, select **Credit Card Charges**.
 4. Select a **Default vendor**.

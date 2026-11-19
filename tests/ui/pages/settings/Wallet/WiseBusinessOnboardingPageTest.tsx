@@ -1,0 +1,1106 @@
+import {act, render, screen} from '@testing-library/react-native';
+
+import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
+import {getPages} from '@components/DynamicForm/utils/paginate';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {setHasRadio} from '@libs/NetworkState';
+
+import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
+import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage';
+
+import {openReimbursementAccountPage} from '@userActions/BankAccounts';
+import {saveDraftAnswers} from '@userActions/DynamicForm';
+import saveWiseOnboardingPage, {openReimbursementAccountPageForWiseIntro} from '@userActions/WiseOnboarding';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {WiseBusinessOnboardingForm} from '@src/types/form';
+import type {BankAccount, DismissedProductTraining, DynamicFormPage, PrivatePersonalDetails} from '@src/types/onyx';
+import type {WiseKYCRequirement} from '@src/types/onyx/WiseKYCReview';
+
+import type ReactNative from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
+
+const FLOW_TEST_ID = 'DynamicFormFlow';
+const LOADER_TEST_ID = 'FullScreenLoadingIndicator';
+const NOT_FOUND_TEST_ID = 'NotFoundPage';
+const BANK_ACCOUNT_ID = 1;
+const SAVE_ID = '1';
+const OTHER_SAVE_ID = '2';
+
+const mockFlowMount = jest.fn();
+const mockFlowProps = jest.fn<void, [DynamicFormFlowProps]>();
+
+jest.mock('@components/DynamicForm', () => {
+    const {useEffect} = jest.requireActual<typeof React>('react');
+    const reactNative = jest.requireActual<typeof ReactNative>('react-native');
+    function MockDynamicFormFlow(props: DynamicFormFlowProps) {
+        mockFlowProps(props);
+        useEffect(() => {
+            mockFlowMount();
+        }, []);
+        return <reactNative.View testID="DynamicFormFlow" />;
+    }
+    return {__esModule: true, default: MockDynamicFormFlow};
+});
+jest.mock('@components/FullscreenLoadingIndicator', () => {
+    const reactNative = jest.requireActual<typeof ReactNative>('react-native');
+    return {__esModule: true, default: () => <reactNative.View testID="FullScreenLoadingIndicator" />};
+});
+jest.mock('@pages/ErrorPage/NotFoundPage', () => {
+    const reactNative = jest.requireActual<typeof ReactNative>('react-native');
+    return {__esModule: true, default: () => <reactNative.View testID="NotFoundPage" />};
+});
+jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
+jest.mock('@userActions/WiseOnboarding', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/WiseOnboarding'), __esModule: true, default: jest.fn()}));
+jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
+const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
+
+// The real hook reads the root state, which a deep link fills only after the page renders
+let mockBackPath = INTRO_PATH;
+jest.mock('@hooks/useDynamicBackPath', () => () => mockBackPath);
+jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
+
+const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
+    bankCurrency: CONST.CURRENCY.USD,
+    bankCountry: CONST.COUNTRY.US,
+    accountData: {bankAccountID: BANK_ACCOUNT_ID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN, addressName: 'Main checking'},
+};
+
+/** The part of the reimbursement account the page reads */
+type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingUnsavedPages?: Record<string, boolean>};
+
+const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
+    achData: {
+        bankAccountID: BANK_ACCOUNT_ID,
+        companyName: 'Boulder Development Inc.',
+        incorporationType: CONST.INCORPORATION_TYPES.CORPORATION,
+    },
+};
+
+const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
+    legalFirstName: 'Alice',
+    legalLastName: 'Nguyen',
+    dob: '1985-04-12',
+    addresses: [{street: '42 Oak Ave', city: 'Austin', state: 'TX', zip: '78704', country: CONST.COUNTRY.US, current: true}],
+};
+
+function getExpensifyRequirement(key: string): WiseKYCRequirement {
+    return {key, state: CONST.WISE.KYC_REQUIREMENT_STATE.NOT_PROVIDED, isHostedOnly: false, requestedBy: CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY.EXPENSIFY};
+}
+
+/** What the business page's save returns for a high-risk industry */
+const ENHANCED_DUE_DILIGENCE: WiseKYCRequirement[] = [
+    getExpensifyRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO),
+    getExpensifyRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF),
+];
+
+/** The server's copy of the sources page, with the first source funding daily operations */
+function getSavedSourcesPages(sources: string[]) {
+    return {
+        [CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO]: {
+            [CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]: sources.map((source, index) => ({businessSourceOfWealthInfo: source, isSourceOfFund: index === 0})),
+        },
+    };
+}
+
+function getFlowPageKeys() {
+    const schema = mockFlowProps.mock.lastCall?.[0].schema;
+    return schema && 'pages' in schema ? schema.pages.map((page) => page.key) : [];
+}
+
+const {saveDraftAnswers: saveDraftAnswersToOnyx} = jest.requireActual<{saveDraftAnswers: typeof saveDraftAnswers}>('@userActions/DynamicForm');
+
+function readDraft() {
+    return new Promise<OnyxEntry<WiseBusinessOnboardingForm>>((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT,
+            callback: (value) => {
+                connection.unsubscribe();
+                resolve(value);
+            },
+        });
+    });
+}
+
+function readDismissedProductTraining() {
+    return new Promise<OnyxEntry<DismissedProductTraining>>((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+            callback: (value) => {
+                connection.unsubscribe();
+                resolve(value);
+            },
+        });
+    });
+}
+
+const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
+
+type RenderOptions = {
+    bankAccount?: BankAccount;
+
+    /** What the reimbursement account holds when the page opens */
+    reimbursementAccount?: BusinessReimbursementAccount;
+
+    /** What the page's read of the reimbursement account returns */
+    readResponse?: BusinessReimbursementAccount;
+
+    /** The read never returns, as while the request is in flight */
+    shouldLeaveReadRunning?: boolean;
+
+    subPage?: string;
+};
+
+async function renderPage({bankAccount = ELIGIBLE_BANK_ACCOUNT, reimbursementAccount, readResponse = REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning = false, subPage}: RenderOptions = {}) {
+    await Onyx.multiSet({
+        [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
+        [ONYXKEYS.BANK_ACCOUNT_LIST]: {[BANK_ACCOUNT_ID]: bankAccount},
+        [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
+        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: PRIVATE_PERSONAL_DETAILS,
+        ...(reimbursementAccount ? {[ONYXKEYS.REIMBURSEMENT_ACCOUNT]: reimbursementAccount} : {}),
+    });
+    render(
+        <OnyxListItemProvider>
+            <NavigationContainer ref={navigationRef}>
+                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING}>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING}
+                        component={WiseBusinessOnboardingPage}
+                        initialParams={{bankAccountID: String(BANK_ACCOUNT_ID), subPage}}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </OnyxListItemProvider>,
+    );
+    await waitForBatchedUpdatesWithAct();
+    if (shouldLeaveReadRunning || !jest.mocked(openReimbursementAccountPage).mock.calls.length) {
+        return;
+    }
+
+    // The read sets the loading flag right away and clears it with the server's answer
+    await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+    await waitForBatchedUpdatesWithAct();
+    await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...readResponse, isLoading: false}));
+    await waitForBatchedUpdatesWithAct();
+}
+
+describe('WiseBusinessOnboardingPage', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockBackPath = INTRO_PATH;
+        jest.mocked(saveDraftAnswers).mockImplementation(saveDraftAnswersToOnyx);
+        setHasRadio(true);
+        await Onyx.clear();
+    });
+
+    it('shows a loader until the prefill is in the draft, then the flow', async () => {
+        // Given a draft that the prefill has not reached yet, since its save is held back
+        jest.mocked(saveDraftAnswers).mockImplementation(() => {});
+
+        // When the page opens for an eligible business account
+        await renderPage();
+
+        // Then the loader stays while the prefill is only asked for, since the flow's inputs read the draft once when they mount
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({firstName: 'Alice', companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+
+        // When the prefill lands in the draft
+        const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
+        if (!prefill) {
+            throw new Error('The page did not ask for a prefill');
+        }
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, prefill));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow replaces the loader
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(LOADER_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the flow mounted when private details change after the prefill', async () => {
+        // Given the flow open after the prefill, with no phone number on file
+        await renderPage();
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+
+        // When a phone number is added to the private details during the visit
+        await act(() => Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {phoneNumber: '+15125550199'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow is not swapped for the loader and remounted, since that would drop an SSN the user is typing
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+        expect(mockFlowMount).toHaveBeenCalledTimes(1);
+        expect(saveDraftAnswers).toHaveBeenCalledTimes(1);
+    });
+
+    it('reads the bank account details when the visit opens and waits for them before the prefill', async () => {
+        // Given a reimbursement account that holds nothing yet
+
+        // When the visit opens without a page and the read has not returned
+        await renderPage({shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and keeps the loader, since the read-only rows come from the answer
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+
+        // When the read starts and returns the bank account details
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the business rows are prefilled under the bank account's own keys, the corporation starts on its Wise company type, and the flow shows
+        expect(saveDraftAnswers).toHaveBeenCalledWith(
+            ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
+            expect.objectContaining({
+                companyName: 'Boulder Development Inc.',
+                companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
+            }),
+        );
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+        expect(openReimbursementAccountPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens on the details the intro page read, without reading them again', async () => {
+        // Given the intro page's read for this bank account, already answered
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT});
+
+        // Then the flow shows with those details and no second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('waits for the read the intro page started while it is still running', async () => {
+        // Given the intro page's read for this bank account, not answered yet
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+        await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true});
+
+        // When the visit opens without a page
+        await renderPage();
+
+        // Then the loader stays without a second read
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // When the read answers
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows with its details
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['left nothing on the device', undefined],
+        ['left another bank account on the device', {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1}}],
+    ])('reads the details itself when the read the intro page started has ended and %s', async (_label, reimbursementAccount) => {
+        // Given the intro page's read for this bank account, ended without this bank account's details, as when it fails
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the form would open without the business details
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('reads the details itself when the intro page read another bank account', async () => {
+        // Given the intro page's read for another bank account, with details for this one left on the device
+        openReimbursementAccountPageForWiseIntro(BANK_ACCOUNT_ID + 1);
+        jest.mocked(openReimbursementAccountPage).mockClear();
+
+        // When the visit opens without a page
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning: true});
+
+        // Then the page reads this bank account and waits, since the details on the device may be old
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('does not read again when Next or Back mounts the page on one of its pages', async () => {
+        // Given the details read earlier in the visit
+        // When the page mounts on the business page, as Next does
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
+
+        // Then it prefills from the details on the device without another read or loader
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('opens the flow offline from the details on the device instead of waiting for a read', async () => {
+        // Given an offline device, where a read is not sent until the connection returns
+        setHasRadio(false);
+
+        // When the visit opens with the bank account details already on the device
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT});
+
+        // Then the flow shows with those details, and no read keeps the loader up
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('blocks a visit that opens offline without the details of this bank account until the connection returns', async () => {
+        // Given an offline device that holds none of this bank account's details or the pages already saved to Wise
+        setHasRadio(false);
+
+        // When the visit opens
+        await renderPage({shouldLeaveReadRunning: true});
+
+        // Then the offline view shows instead of the flow, since the prefill runs once per visit and would leave the business rows blank
+        expect(screen.getByText('common.thisFeatureRequiresInternet')).toBeOnTheScreen();
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+
+        // When the connection returns
+        act(() => setHasRadio(true));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page reads this bank account's details, as an online visit does
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the flow when Next or Back mounts the page offline without the details on the device', async () => {
+        // Given an offline device that holds none of this bank account's details
+        setHasRadio(false);
+
+        // When the page mounts on one of its pages, as Next and Back do mid-visit
+        await renderPage({subPage: 'business'});
+
+        // Then the flow stays, so the user can keep filling in the page while offline
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
+    });
+
+    it('asks the flow to disable Next offline', async () => {
+        // Given an eligible business account
+        // When the flow opens
+        await renderPage();
+
+        // Then every page's Next waits for a connection, since each page is saved to Wise as the user leaves it and a page with an SSN cannot be queued
+        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.objectContaining({shouldDisableNextWhenOffline: true}));
+    });
+
+    it('stops waiting for the read when the device goes offline, so the loader does not stay', async () => {
+        // Given the details of this bank account already on the device, and a read that has started but not returned
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning: true});
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // When the device goes offline, which holds the read until the connection returns
+        act(() => setHasRadio(false));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow opens from the details on the device
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('leaves the read-only rows empty when the details on the device belong to another bank account', async () => {
+        // Given a reimbursement account whose details the read leaves on another bank account, as for an admin who shares this account but does not own it
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+
+        // When the visit opens and the read returns
+        await renderPage({readResponse: otherAccount});
+
+        // Then no detail of the other account reaches the draft, and the flow still opens
+        const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
+        expect(prefill).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
+        expect(prefill).not.toHaveProperty('companyName');
+        expect(prefill).not.toHaveProperty('companyType');
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('starts the draft over when it was started for another bank account', async () => {
+        // Given a draft with answers the user gave for another bank account, and a sensitive answer and a failed page save from that visit
+        await Onyx.multiSet({
+            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingUnsavedPages: {representative: true}},
+            [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
+                bankAccountID: '2',
+                companyName: 'Other Business LLC',
+                companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
+                companyRole: 'OWNER',
+                description: 'Sells furniture',
+            },
+            [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: {[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: {ssnLast4: '1234'}},
+        });
+
+        // When the visit opens for this bank account
+        await renderPage();
+
+        // Then the draft holds only this account's prefill, since the other business's answers do not apply to this one
+        const draft = await readDraft();
+        expect(draft).toMatchObject({
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            companyName: 'Boulder Development Inc.',
+            companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
+        });
+        expect(draft).not.toHaveProperty('companyRole');
+        expect(draft).not.toHaveProperty('description');
+        const sensitiveAnswers = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
+                callback: (value) => {
+                    connection.unsubscribe();
+                    resolve(value);
+                },
+            });
+        });
+        expect(sensitiveAnswers?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toBeFalsy();
+        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (value) => {
+                    connection.unsubscribe();
+                    resolve(value);
+                },
+            });
+        });
+        expect(reimbursementAccount?.wiseOnboardingUnsavedPages).toBeFalsy();
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('keeps the draft started for this bank account', async () => {
+        // Given a draft the user started for this bank account
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), companyRole: 'OWNER'});
+
+        // When the visit opens again
+        await renderPage();
+
+        // Then the user's answer stays next to the prefill
+        expect(await readDraft()).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID), companyRole: 'OWNER', companyName: 'Boulder Development Inc.'});
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('leaves the Wallet and workspace banners alone when the form shows, since they hide once a page is saved', async () => {
+        // Given a visit whose read of the bank account details has not returned
+        await renderPage({shouldLeaveReadRunning: true});
+        expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
+
+        // When the read returns and the form shows
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+
+        // Then neither banner is dismissed, so an admin who leaves before saving still sees them
+        expect(await readDismissedProductTraining()).toBeUndefined();
+    });
+
+    it('shows not found for a bank account that cannot use global reimbursements', async () => {
+        // Given a business account in euros, which Wise reimbursements do not cover
+        const euroBankAccount: BankAccount = {...ELIGIBLE_BANK_ACCOUNT, bankCurrency: CONST.CURRENCY.EUR};
+
+        // When the page opens for it
+        await renderPage({bankAccount: euroBankAccount});
+
+        // Then the user sees not found instead of the form
+        expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('opens the status page instead of the form once the business is submitted', async () => {
+        // Given a bank account whose business is already submitted to Wise
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}},
+        };
+
+        // When one of the form's pages opens for it
+        await renderPage({bankAccount: submittedBankAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the status page replaces it, since there is nothing left to submit, and the form never shows nor reads or prefills its answers
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('waits for the intro path before opening the status page from a deep link', async () => {
+        // Given a submitted business and a deep link that renders the page before the root state holds it, so the back path is empty
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        mockBackPath = '';
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}},
+        };
+        await renderPage({bankAccount: submittedBankAccount});
+
+        // Then it does not navigate yet, since a status route built on an empty path does not exist
+        expect(navigateSpy).not.toHaveBeenCalled();
+
+        // When the root state catches up and the back path becomes the intro, which the page sees on its next render
+        mockBackPath = INTRO_PATH;
+        await act(() => Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {title: 'Checking'}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the status page replaces the form over the intro
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
+    it('puts the saved file keys in the draft once a page save returns them', async () => {
+        // Given an open flow whose draft holds an ID document picked on this device and sent with a page save
+        await renderPage();
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save returns the key the server stored the file under
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft holds the saved file, so saving the page again lists its key instead of uploading the file again
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('puts the saved file keys in the draft when they return while another page saves and the page mounts again before that save ends', async () => {
+        // Given the representative page saved with an ID document picked on this device, and the business page saving after it
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'representative'});
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true, [OTHER_SAVE_ID]: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the representative save returns its key while the business save still runs, Next mounts the page on the confirmation page, and the business save ends
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+        screen.unmount();
+        await renderPage({subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[OTHER_SAVE_ID]: null}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft holds the saved file, since a draft that kept the picked file would tell the server to delete it once the user adds another
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('puts the saved file keys in the draft when they returned while the flow was closed', async () => {
+        // Given a draft that took no saved file yet and still holds the ID document picked on this device, as when the app reloads before the save returns
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            savedDocuments: JSON.stringify({}),
+            idDocument: [{name: 'passport.jpg', uri: 'blob:passport'}],
+        });
+        const savedAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}};
+
+        // When the page mounts on the confirmation page with the file's key already on the device, as when the app reloads after the save returned
+        await renderPage({reimbursementAccount: savedAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the draft holds the saved file instead of the picked one, which the device may no longer be able to read
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('keeps a file picked on this device when the flow opens with saved file keys the draft already took', async () => {
+        // Given a draft that took the saved ID document and holds a second one picked on this device but not saved yet
+        const savedDocuments = {representative: {idDocument: ['kyc/1/passport.jpg']}};
+        const pickedFile = {name: 'license.jpg', uri: 'file://license.jpg'};
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            savedDocuments: JSON.stringify(savedDocuments),
+            idDocument: [toSavedFile('kyc/1/passport.jpg'), pickedFile],
+        });
+
+        // When the user opens the flow again
+        await renderPage({readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: savedDocuments}}}});
+
+        // Then both files stay, since the server's keys did not change and the picked file is not on the server yet
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg'), pickedFile]);
+    });
+
+    it('records the saved file keys without replacing a picked file when the draft predates the record', async () => {
+        // Given a draft from before the page recorded the saved file keys, holding an ID document picked on this device
+        const pickedFile = {name: 'passport.jpg', uri: 'file://passport.jpg'};
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), idDocument: [pickedFile]});
+        const savedDocuments = {representative: {idDocument: ['kyc/1/older.jpg']}};
+
+        // When the user opens the flow and the server holds an older file
+        await renderPage({readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: savedDocuments}}}});
+
+        // Then the picked file stays and the server's keys are recorded, since the draft cannot tell whether the older file predates the picked one
+        expect(await readDraft()).toMatchObject({idDocument: [pickedFile], savedDocuments: JSON.stringify(savedDocuments)});
+    });
+
+    it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {
+        // Given the representative page failed to save, and the business page saved after it, which cleared the shared error
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user taps Confirm
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then they stay on the confirmation page with an error, since Wise does not have the representative details yet
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+
+    it('does not wait for a save the app closed during when it reloads on a page of the flow, but keeps the user on the confirmation page', async () => {
+        // Given the app closed while the representative page was saving, so its save never answered, is not retried, and is gone with the app's memory
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the app reloads on the confirmation page and the user taps Confirm
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then Confirm does not wait for the save forever, and the user stays with an error, since Wise may not have the page
+        expect(flowProps?.isSavingPages).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+
+    it('names the requirement pages that did not save by their page keys, so the next visit opens on them', async () => {
+        // Given the sources page and the documents page failed to save, which records their steps
+        // When the flow opens
+        await renderPage({
+            reimbursementAccount: {
+                achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
+                wiseOnboardingUnsavedPages: {
+                    [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO]: true,
+                    [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true,
+                },
+            },
+        });
+
+        // Then the flow gets the keys its pages go by, since it matches them against its own pages to pick where the visit starts
+        expect(mockFlowProps.mock.lastCall?.[0].unsavedPageKeys).toEqual(['business-source-of-wealth-info', 'business-source-of-wealth-proof']);
+    });
+    it('adds the enhanced due diligence pages after the business page once its save returns them', async () => {
+        // Given the flow open on the business page, with no requirements yet
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+
+        // When the business page's save answers for a high-risk industry
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the sources, the sources that fund daily operations and their proof are asked before the confirmation page
+        expect(getFlowPageKeys()).toEqual([
+            'representative',
+            'business',
+            CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO,
+            'BUSINESS_SOURCE_OF_FUNDS',
+            CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF,
+        ]);
+    });
+
+    it('ignores requirements saved on the reimbursement account for another bank account', async () => {
+        // Given requirements the device holds for another bank account
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}};
+
+        // When the page opens for this bank account and its read has not returned yet
+        await renderPage({reimbursementAccount: otherAccount, subPage: 'business', shouldLeaveReadRunning: true});
+
+        // Then only the profile pages are asked
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+    });
+
+    it('reads this bank account on a direct link to the confirmation page and takes the user to the requirement it returns', async () => {
+        // Given a device that holds another bank account's details, so a reload on the confirmation page has no requirements for this one
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens and the read returns this bank account with enhanced due diligence
+        await renderPage({
+            reimbursementAccount: otherAccount,
+            readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the page reads this bank account and sends the user to the source of funds page, so Submit cannot skip it
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+    });
+
+    it('shows a spinner in place of the confirmation page while it reads the requirements of this bank account', async () => {
+        // Given a device that holds another bank account's details, so a reload on the confirmation page reads this one's requirements
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+
+        // When the confirmation page opens and the read is still running
+        await renderPage({reimbursementAccount: otherAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY, shouldLeaveReadRunning: true});
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a spinner stands in for it, so Confirm cannot skip a requirement page the read has yet to return
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the read returns this bank account with no requirements
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the confirmation page shows
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+    });
+
+    it('takes the user from the confirmation page to the source of funds page when the requirements arrive', async () => {
+        // Given the user moved on from the business page to the confirmation page before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the save answers with the enhanced due diligence requirements
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user lands on the first requirement page, replacing the confirmation page, since Submit needs the answers first
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+    });
+
+    it('shows a spinner in place of the confirmation page while the business page saves, and until the user is moved to the requirement page it returns', async () => {
+        // Given the user moved on from the business page to the confirmation page before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows a spinner, since the save can add pages the user has to answer before the summary
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the save answers with the enhanced due diligence requirements
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                    wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null},
+                    achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
+                }),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user is sent to the first requirement page, and the spinner stays until they get there, so the summary does not flash
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+    });
+
+    it('shows the confirmation page once the business page saves without new requirements', async () => {
+        // Given the confirmation page waiting for the business page's save
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save answers without requirements, as for an industry that needs no enhanced due diligence
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user stays and sees the summary
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the confirmation page while a page other than the business page saves', async () => {
+        // Given the user edited the representative page from the confirmation page and came back before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the summary stays, with only Confirm waiting, since that save cannot add pages
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        expect(flowProps?.isLoading).toBe(false);
+        expect(flowProps?.isSavingPages).toBe(true);
+    });
+
+    it('shows a spinner in place of a requirement page while the business page saves, since the save can remove it', async () => {
+        // Given enhanced due diligence on the device from an earlier save, and the user moved on to its first page after picking an industry that does not need it
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: 'business-source-of-wealth-info',
+        });
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flow shows a spinner instead of a page the save is about to drop
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the save answers without requirements
+        await act(() => Promise.all([Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}), Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, REIMBURSEMENT_ACCOUNT)]));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the spinner is gone and the flow has no requirement pages left, so it moves the user on from the page that no longer exists
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+    });
+
+    it('keeps the business page while its own save runs', async () => {
+        // Given the user went back to the business page while its save is running
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.WISE.ONBOARDING_STEP.BUSINESS});
+        await act(() =>
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+            ]),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page stays, so the user can change the industry again
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+    });
+
+    it('stops Next on the documents page when its new files pass what one save can upload', async () => {
+        // Given the documents page open for revenue
+        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business-source-of-wealth-proof'});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const proofPage = flowProps && getPages(flowProps.schema).find((page) => page.key === 'business-source-of-wealth-proof');
+        const fieldKey = `proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`;
+        const getAnswers = (count: number) => ({
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [fieldKey]: [{id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: Array.from({length: count}, (_, index) => ({name: `${index}.pdf`, uri: `file://${index}.pdf`}))}],
+        });
+
+        // When the page is checked with as many new files as one save takes, and with one more
+        // Then only the second is stopped, with the message under the revenue field, since the server drops the files past its cap without an error
+        expect(proofPage && flowProps?.validatePage?.(proofPage, getAnswers(CONST.WISE.MAX_NEW_FILES_PER_SAVE))).toEqual({});
+        expect(proofPage && flowProps?.validatePage?.(proofPage, getAnswers(CONST.WISE.MAX_NEW_FILES_PER_SAVE + 1))).toEqual({
+            [fieldKey]: 'attachmentPicker.tooManyFiles',
+        });
+    });
+
+    it('leaves the user on the confirmation page once every requirement page has an answer', async () => {
+        // Given both requirement pages answered on an earlier visit
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [{id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [toSavedFile('kyc/1/proof.pdf')]}],
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens with the requirements on the device
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user stays to review the answers
+        expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('saves the sources page under its requirement key with the daily operations answers it keeps', async () => {
+        // Given revenue saved as the lone source, and the user adding grants from the confirmation page, which skips the daily operations page.
+        // The sources input drafts each pick as it is made, so the draft holds both sources before the page is left.
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
+        await renderPage({
+            reimbursementAccount: {
+                achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE, pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE])}},
+            },
+            subPage: 'business',
+        });
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+        const answers = {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]};
+
+        // When the user leaves the sources page, which the flow names by its URL key
+        act(() => flowProps?.onPageSubmit?.(sourcesPage, answers, {}));
+
+        // Then the page is saved under Wise's requirement key with every source picked and the kept daily operations answers, so every source gets a boolean
+        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(
+            BANK_ACCOUNT_ID,
+            expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
+            {...answers, sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE]},
+            {},
+        );
+
+        // And the daily operations answer is drafted empty, since the user never picked it, so the flow asks the daily operations page before Confirm
+        await waitForBatchedUpdatesWithAct();
+        expect((await readDraft())?.sourceOfFunds).toEqual([]);
+    });
+
+    it('keeps the drafted daily operations answers when a source is added to several picked sources', async () => {
+        // Given revenue and grants saved, with revenue funding daily operations as the user chose on the daily operations page, and donations drafted as the user picks it
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
+        await renderPage({
+            reimbursementAccount: {
+                achData: {
+                    ...REIMBURSEMENT_ACCOUNT.achData,
+                    wise: {kycRequirements: ENHANCED_DUE_DILIGENCE, pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS])},
+                },
+            },
+            subPage: 'business',
+        });
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+
+        // When the user adds donations from the confirmation page
+        act(() =>
+            flowProps?.onPageSubmit?.(
+                sourcesPage,
+                {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS]},
+                {},
+            ),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user's own answer stays to be shown on the daily operations page, and that page is marked to be asked again, since donations can fund daily operations too
+        const draftAfterSave = await readDraft();
+        expect(draftAfterSave?.sourceOfFunds).toEqual([CONST.WISE.SOURCE_OF_WEALTH.REVENUE]);
+        expect(draftAfterSave?.shouldReviewSourceOfFunds).toBe(true);
+    });
+
+    it('does not ask the daily operations page again when no source is added', async () => {
+        // Given revenue, grants and donations saved, with revenue funding daily operations
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
+        await renderPage({
+            reimbursementAccount: {
+                achData: {
+                    ...REIMBURSEMENT_ACCOUNT.achData,
+                    wise: {
+                        kycRequirements: ENHANCED_DUE_DILIGENCE,
+                        pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS]),
+                    },
+                },
+            },
+            subPage: 'business',
+        });
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+
+        // When the user removes donations from the confirmation page
+        act(() => flowProps?.onPageSubmit?.(sourcesPage, {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]}, {}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the daily operations page is not asked again, since its answer still covers every picked source
+        expect((await readDraft())?.shouldReviewSourceOfFunds).toBe(false);
+    });
+
+    it('takes the user from the confirmation page to the daily operations page after a source is added', async () => {
+        // Given three picked sources with revenue funding daily operations, and donations just added from the confirmation page
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            shouldReviewSourceOfFunds: true,
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user is sent to the daily operations page, so they can say whether donations fund daily operations too
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-funds'), {forceReplace: true});
+    });
+
+    it('takes the user from the confirmation page to the daily operations page when its answer is empty', async () => {
+        // Given two picked sources and an empty daily operations answer, as after a second source is added from the confirmation page
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            sourceOfFunds: [],
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user is sent to the daily operations page before the documents page, so they pick which sources fund daily operations
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-funds'), {forceReplace: true});
+    });
+
+    it('saves the daily operations page under the sources page step, with the picked sources', async () => {
+        // Given revenue and grants picked on the sources page
+        const pickedSources = [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS];
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), businessSourceOfWealthInfo: pickedSources});
+        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business'});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const dailyOperationsPage: DynamicFormPage = {key: 'business-source-of-funds', content: []};
+        const answers = {sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE]};
+
+        // When the user leaves the daily operations page with Next
+        act(() => flowProps?.onPageSubmit?.(dailyOperationsPage, answers, {}));
+
+        // Then it is saved under the sources page step with the picked sources, since the server replaces that step's answers whole
+        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(
+            BANK_ACCOUNT_ID,
+            expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
+            {...answers, businessSourceOfWealthInfo: pickedSources},
+            {},
+        );
+
+        // And the page is no longer marked to be asked again, since the user just answered it
+        await waitForBatchedUpdatesWithAct();
+        expect((await readDraft())?.shouldReviewSourceOfFunds).toBe(false);
+    });
+});

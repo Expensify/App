@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
@@ -24,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
@@ -91,6 +93,7 @@ function SearchStaticList({
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -118,7 +121,7 @@ function SearchStaticList({
             reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
@@ -160,6 +163,7 @@ function SearchStaticList({
                 delegateAccountID,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
+                fullPolicySnapshotLastModifiedByPolicyID,
             });
             if (shouldOpenTransactionThread) {
                 return;
@@ -200,7 +204,7 @@ function SearchStaticList({
 
         return (
             <PressableWithoutFeedback
-                sentryLabel="SearchStaticList-item"
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM}
                 accessibilityRole="button"
                 accessibilityLabel=""
                 onPress={() => onPressItem(item)}
@@ -281,7 +285,7 @@ function SearchStaticList({
                 ]}
             >
                 <PressableWithoutFeedback
-                    sentryLabel="SearchStaticList-wide-item"
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_WIDE_ITEM}
                     accessibilityRole="button"
                     accessibilityLabel=""
                     onPress={() => onPressItem(item)}
@@ -304,6 +308,7 @@ function SearchStaticList({
                         isSelected={false}
                         isDisabled
                         shouldShowCheckbox={canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM_CHECKBOX}
                         shouldShowErrors
                         violations={item.violations}
                         isDateColumnCreated={isCreatedDateType(type)}
@@ -356,13 +361,16 @@ function SearchStaticList({
             onLayout={onLayout}
         >
             {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, pageGutterMargin]}>
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
                     {canSelectMultiple && (
                         <View
+                            style={styles.pv2}
                             accessibilityElementsHidden
                             importantForAccessibility="no-hide-descendants"
                         >
                             <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                                 accessibilityLabel={translate('workspace.people.selectAll')}
                                 isChecked={false}
                                 disabled
@@ -371,7 +379,7 @@ function SearchStaticList({
                             />
                         </View>
                     )}
-                    <View style={[styles.pr9, styles.flex1]}>
+                    <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
                         <SearchTableHeader
                             canSelectMultiple={canSelectMultiple}
                             columns={columns}

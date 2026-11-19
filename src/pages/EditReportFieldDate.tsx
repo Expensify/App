@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type EditReportFieldDatePageProps = {
@@ -33,16 +33,13 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            if (isRequired && value[fieldKey].trim() === '') {
-                errors[fieldKey] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [fieldKey, isRequired, translate],
-    );
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
+        if (isRequired && value[fieldKey].trim() === '') {
+            errors[fieldKey] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
     return (
         <FormProvider

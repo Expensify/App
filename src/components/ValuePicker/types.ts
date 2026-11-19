@@ -63,6 +63,13 @@ type ValueSelectionListProps = Pick<
 type ValuePickerProps = ForwardedFSClassProps & {
     value?: string;
     label?: string;
+
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
     items?: ValuePickerItem[];
     placeholder?: string;
 
@@ -90,6 +97,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
+
+    /** Only applies to the row that opens the modal, since the inline list has no single control to disable */
+    disabled?: boolean;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

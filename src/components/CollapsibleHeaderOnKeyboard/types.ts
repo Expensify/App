@@ -11,6 +11,11 @@ type CollapsibleHeaderOnKeyboardProps = {
      * regardless if there is enough space for the input above the keyboard.
      */
     alwaysCollapseHeaderOnKeyboard?: boolean;
+
+    /**
+     * If true, the collapsible behavior is disabled and the header remains visible.
+     */
+    disabled?: boolean;
 };
 
 type CollapsibleHeaderOnKeyboardGroupProps = {

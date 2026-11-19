@@ -3,9 +3,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getFieldOptions, {getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
+import {getListItemFiles, getListItems} from './listItems';
 
 /** Street, then city, then state and zip, then country, as in "1 Main Street, Springfield, IL 62701, United States" */
 function formatAddress(fieldKey: string, values: DynamicFormValues, translate: LocalizedTranslate): string {
@@ -14,8 +15,9 @@ function formatAddress(fieldKey: string, values: DynamicFormValues, translate: L
         const part = values[partKey];
         return typeof part === 'string' ? part : '';
     };
-    const stateAndZip = [getPart(addressKeys.state), getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
     const country = getAddressCountry(fieldKey, values);
+    // A state the form does not ask for is not submitted, so it is not shown either
+    const stateAndZip = [isStateAsked(country) ? getPart(addressKeys.state) : '', getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
     const countryName = country ? translate(`allCountries.${country}`) : '';
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
 }
@@ -29,7 +31,8 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
     if (Array.isArray(answer)) {
         const items: unknown[] = answer;
         if (field.type === 'file') {
-            return translate('dynamicForm.fileCount', {count: items.length});
+            const count = field.uploads ? getListItems(answer).reduce((sum, entry) => sum + getListItemFiles(entry).length, 0) : items.length;
+            return translate('dynamicForm.fileCount', {count});
         }
         if (field.type !== 'multiselect' && field.type !== 'countryMultiselect') {
             return '';
@@ -55,6 +58,9 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
             return `${answer}%`;
         case 'address':
             return formatAddress(field.key, values, translate);
+        case 'text':
+            // A row shows one line, so a multiline answer is joined into it, which also gives a cut answer its ellipsis
+            return field.multiline ? answer.replaceAll(/\s*\r?\n\s*/g, ' ').trim() : answer;
         default:
             return answer;
     }

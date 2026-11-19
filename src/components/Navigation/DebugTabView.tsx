@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,9 +39,10 @@ import type {NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
+import useNavigationBarWidth from './FlatNavigationBar/useNavigationBarWidth';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
@@ -72,11 +74,12 @@ function useDebugTabViewHeight(): number {
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
-        case CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR:
-            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceQBOExport';
+        case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceReimbursementExport';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -103,6 +106,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.completeHrSetup';
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return 'debug.indicatorStatus.theresAProblemWithYourAgent';
         default:
             return undefined;
     }
@@ -112,6 +117,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
             return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR:
+            return ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
@@ -129,7 +136,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
@@ -138,7 +145,9 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
-            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return ROUTES.SETTINGS_AGENTS;
         default:
             return undefined;
     }
@@ -156,7 +165,9 @@ function DebugTabView({selectedTab}: Props) {
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
+    const {sidePanelWidth} = useSidePanelState();
+    const navigationBarWidth = useNavigationBarWidth();
+    const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
@@ -178,37 +189,22 @@ function DebugTabView({selectedTab}: Props) {
         return FULL_WIDTH_TAB_ROOT_SCREENS.has(focusedLeaf);
     });
 
-    const message = useMemo((): TranslationPaths | undefined => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return 'debug.indicatorStatus.theresAReportAwaitingAction';
-            }
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return 'debug.indicatorStatus.theresAReportWithErrors';
-            }
+    let message: TranslationPaths | undefined;
+    let indicator;
+    if (selectedTab === NAVIGATION_TABS.INBOX) {
+        if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            message = 'debug.indicatorStatus.theresAReportAwaitingAction';
+            indicator = theme.success;
+        } else if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            message = 'debug.indicatorStatus.theresAReportWithErrors';
+            indicator = theme.danger;
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            return getSettingsMessage(status);
-        }
-    }, [selectedTab, chatTabBrickRoad, status]);
+    } else if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
+        message = getSettingsMessage(status);
+        indicator = status ? indicatorColor : undefined;
+    }
 
-    const indicator = useMemo(() => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return theme.success;
-            }
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return theme.danger;
-            }
-        }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            if (status) {
-                return indicatorColor;
-            }
-        }
-    }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
-
-    const navigateTo = useCallback(() => {
+    const navigateTo = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX && !!chatTabBrickRoad) {
             const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
 
@@ -223,7 +219,7 @@ function DebugTabView({selectedTab}: Props) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, indicatorPolicyID]);
+    };
 
     if (
         (shouldUseNarrowLayout && !isAtRoot) ||
@@ -239,10 +235,10 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: windowWidth - navigationBarWidth - sidePanelOffset};
     } else {
         const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: lhnWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
@@ -272,7 +268,10 @@ function DebugTabView({selectedTab}: Props) {
                     />
                     {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
                 </View>
-                <Button onPress={navigateTo}>
+                <Button
+                    onPress={navigateTo}
+                    sentryLabel={CONST.SENTRY_LABEL.DEBUG_TAB_VIEW.VIEW_BUTTON}
+                >
                     <Button.Text>{translate('common.view')}</Button.Text>
                 </Button>
             </View>
@@ -280,5 +279,5 @@ function DebugTabView({selectedTab}: Props) {
     );
 }
 
-export {getSettingsMessage, useDebugTabViewHeight};
+export {getSettingsMessage, getSettingsRoute, useDebugTabViewHeight};
 export default DebugTabView;

@@ -79,6 +79,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
 
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
+                            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.ENABLE_SWITCH}
                             isOn={isSamlEnabled}
                             disabled={!!domainSettings?.twoFactorAuthRequired}
                             onToggle={() => setSamlEnabled({enabled: !isSamlEnabled, accountID, domainName})}
@@ -112,6 +113,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                             </Text>
                             <Switch
                                 accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
+                                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.REQUIRE_SWITCH}
                                 isOn={isSamlRequired}
                                 onToggle={() => {
                                     if (isSamlRequired && isOktaScimEnabled) {

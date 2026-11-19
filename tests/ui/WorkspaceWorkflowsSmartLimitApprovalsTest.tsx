@@ -89,7 +89,7 @@ const getApprovalMode = () =>
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
             callback: (policy) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(policy?.approvalMode);
             },
         });

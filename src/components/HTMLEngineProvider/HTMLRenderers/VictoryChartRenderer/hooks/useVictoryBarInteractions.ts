@@ -6,7 +6,6 @@ import {useChartInteractions} from '@components/Charts/hooks';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import type {CartesianChartData, PolarChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getChartPointMetadataKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartPointMetadataKey';
 import {getVictoryBarInteractionGeometry, isCursorInVerticalBar} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getVictoryBarInteractionGeometry';
@@ -149,10 +148,9 @@ function getActiveTooltipData(
 }
 
 function useVictoryBarInteractions() {
-    const {tnode, data, yKeys, pointMetadata, isHorizontal} = useVictoryChartContext();
+    const {tnode, data, yKeys, pointMetadata, isHorizontal, pixelScale} = useVictoryChartContext();
     const {numberFormat} = useLocalize();
     const {getSearchKeyForQuery} = useSearchQueryActions();
-    const coordinateScale = useVictoryChartLayoutScale();
     const rows = Object.values(data).filter(isCartesianChartData);
     const barSeriesConfig = isHorizontal ? {} : collectVerticalBarSeries(tnode.children);
     const interactiveBars = buildInteractiveBars(rows, yKeys, barSeriesConfig, pointMetadata);
@@ -218,14 +216,13 @@ function useVictoryBarInteractions() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: getSearchKeyForQuery(buildSearchQueryJSON(searchQuery))}));
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip} = useChartInteractions({
         handlePress: navigateToBarSearch,
         checkIsOver: checkIsOverBar,
         checkIsClickable: checkIsClickableBar,
         resolveTargetIndex: resolveBarTargetIndex,
         chartBottom,
         yZero,
-        coordinateScale,
         shouldPinTooltipOnTouch: false,
     });
 
@@ -250,7 +247,7 @@ function useVictoryBarInteractions() {
         for (const bar of interactiveBars) {
             const seriesPoints = points[bar.yKey];
             const point = seriesPoints?.find((candidate) => candidate.xValue === bar.xValue);
-            const geometry = point ? getVictoryBarInteractionGeometry(point, chartBounds, seriesPoints.length, barSeriesConfig[bar.yKey]) : undefined;
+            const geometry = point ? getVictoryBarInteractionGeometry(point, chartBounds, seriesPoints.length, barSeriesConfig[bar.yKey], pixelScale) : undefined;
 
             xs.push(geometry?.x ?? 0);
             ys.push(geometry?.y ?? 0);
@@ -275,6 +272,7 @@ function useVictoryBarInteractions() {
         isCursorOverClickable,
         initialTooltipPosition,
         onChartMoved,
+        dismissTooltip,
     };
 }
 

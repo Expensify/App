@@ -2,6 +2,7 @@ import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
@@ -15,10 +16,11 @@ type ImportFinalModalResult = {
 function setSpreadsheetData(
     data: string[][],
     fileURI: string,
-    fileType: string,
+    fileType: ImportedSpreadsheet['fileType'],
     fileName: string,
     isImportingMultiLevelTags: boolean,
     importTransactionSettings?: ImportTransactionSettings,
+    isAppendingToExistingLists = false,
 ): Promise<void | void[]> {
     // Validate that data is a non-empty array
     if (!Array.isArray(data) || data.length === 0) {
@@ -55,6 +57,7 @@ function setSpreadsheetData(
         fileType,
         fileName,
         isImportingMultiLevelTags,
+        isAppendingToExistingLists,
         // Preserve transaction import settings that were configured before file upload
         importTransactionSettings,
         containsHeader: true,
@@ -118,7 +121,7 @@ function waitForImportFinalModal(importFinalModalID: string): ImportFinalModalRe
                 }
 
                 isPending = false;
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(spreadsheet.importFinalModal);
             },
         });
@@ -132,7 +135,7 @@ function waitForImportFinalModal(importFinalModalID: string): ImportFinalModalRe
             }
 
             isPending = false;
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
         },
     };
 }

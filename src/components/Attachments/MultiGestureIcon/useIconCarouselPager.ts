@@ -6,7 +6,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 
 type IconCarouselPagerProps = {
-    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
+    pagerGesture: AttachmentCarouselPagerStateContextType['pagerGesture'];
 
     /** Whether horizontal pager scrolling is enabled. */
     isScrollEnabled: SharedValue<boolean>;
@@ -26,7 +26,7 @@ function useIconCarouselPager(): IconCarouselPagerProps {
 
     if (state === null || actions === null) {
         return {
-            pagerRef: undefined,
+            pagerGesture: undefined,
             isScrollEnabled: isScrollingEnabledFallback,
             onTap: () => {},
             onSwipeDown: () => {},
@@ -34,7 +34,7 @@ function useIconCarouselPager(): IconCarouselPagerProps {
     }
 
     return {
-        pagerRef: state.pagerRef,
+        pagerGesture: state.pagerGesture,
         isScrollEnabled: state.isScrollEnabled,
         onTap: actions.onTap ?? (() => {}),
         onSwipeDown: actions.onSwipeDown ?? (() => {}),

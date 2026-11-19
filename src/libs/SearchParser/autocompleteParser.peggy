@@ -87,6 +87,7 @@ autocompleteKey "key"
       / total
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / from
@@ -98,6 +99,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -112,11 +114,13 @@ autocompleteKey "key"
       / reimbursable
       / billable
       / declined
+      / held
       / policyID
       / action
       / date
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo
@@ -139,6 +143,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / reportFieldDynamic
       / columns
       / limit

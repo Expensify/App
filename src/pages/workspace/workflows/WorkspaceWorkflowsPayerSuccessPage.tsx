@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import ScrollView from '@components/ScrollView';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {clearShareBankAccount} from '@userActions/BankAccounts';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
@@ -37,16 +38,15 @@ function WorkspaceWorkflowsPayerSuccessPage() {
             addBottomSafeAreaPadding
             contentContainerStyle={styles.flexGrow1}
         >
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 heading={translate('walletPage.shareBankAccountSuccess')}
                 description={translate('walletPage.shareBankAccountSuccessDescription')}
                 illustration={illustrations.ShareBank}
-                shouldShowButton
                 descriptionStyle={[styles.ph4, styles.textSupporting]}
                 illustrationStyle={styles.successBankSharedCardIllustration}
+                buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.PAYER_SUCCESS_CONFIRM}
                 onButtonPress={onButtonPress}
                 buttonText={translate('common.buttonConfirm')}
-                containerStyle={styles.h100}
             />
         </ScrollView>
     );

@@ -52,8 +52,8 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
         isSelected: !defaultCompanyCardVendorID,
     };
     const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
-    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
-    const data: VendorListItem[] = shouldShowClearOption ? [clearOption, ...filteredVendorOptions] : filteredVendorOptions;
+    const searchableOptions: VendorListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData: data, textInputOptions} = useSelectionListSearch(searchableOptions, translate('common.noResultsFound'), true);
 
     const headerContent = (
         <View>
@@ -66,7 +66,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualEntry.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.dualEntry.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />
@@ -94,6 +94,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={defaultCompanyCardVendorID}

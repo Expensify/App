@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -99,5 +99,48 @@ describe('ValidateCodeActionContent', () => {
         await waitForBatchedUpdates();
 
         expect(sendValidateCode).not.toHaveBeenCalled();
+    });
+
+    it('clears the error when the user goes back', async () => {
+        const clearError = jest.fn();
+        const onClose = jest.fn();
+        render(
+            <ComposeProviders components={[LocaleContextProvider]}>
+                <ValidateCodeActionContent
+                    {...defaultProps}
+                    sendValidateCode={jest.fn()}
+                    clearError={clearError}
+                    onClose={onClose}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        expect(clearError).toHaveBeenCalledTimes(1);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the error when the user goes back from a flow that shows it on the previous page', async () => {
+        const clearError = jest.fn();
+        const onClose = jest.fn();
+        render(
+            <ComposeProviders components={[LocaleContextProvider]}>
+                <ValidateCodeActionContent
+                    {...defaultProps}
+                    sendValidateCode={jest.fn()}
+                    clearError={clearError}
+                    shouldClearErrorOnClose={false}
+                    onClose={onClose}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        expect(clearError).not.toHaveBeenCalled();
+        expect(onClose).toHaveBeenCalledTimes(1);
     });
 });

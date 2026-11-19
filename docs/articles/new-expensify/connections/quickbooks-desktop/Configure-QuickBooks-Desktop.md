@@ -12,8 +12,8 @@ Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, r
 
 # Step 1: Initial Connection
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
-2. Find QuickBooks Desktop in the list of integrations and click **Set up**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **QuickBooks Desktop**.
 3. You'll receive a Codat link URL that must be opened on the computer where QuickBooks Desktop is installed.
 4. Open the provided link on your QuickBooks Desktop computer and follow the connection flow.
 5. Once connected, you'll see a syncing screen while information imports from QuickBooks Desktop to Expensify.
@@ -24,7 +24,7 @@ Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, r
 
 These steps define how your QuickBooks Desktop data is pulled into Expensify.
 
-1. From the navigation tabs, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to QuickBooks Desktop.
 2. Click the **Import** tab under the QuickBooks Desktop connection.
 3. Choose which coding configurations to import from QuickBooks Desktop. For each configuration, you can manage its import status:
 
@@ -54,15 +54,13 @@ These steps define how your QuickBooks Desktop data is pulled into Expensify.
 
 These settings control how Expensify exports reports and transactions to QuickBooks Desktop.
 
-1. From the navigation tabs, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
-2. Under the **Accounting** tab, go to the **Export** section.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to QuickBooks Desktop.
+2. Select **Export**.
 3. Configure the following settings:
 
 **Basic Export Settings:**
 
 * **Preferred Exporter**: Choose a Workspace Admin to automate report exports (defaults to workspace owner).
-
-  * **Note**: If exporting company card transactions, the preferred exporter must also be a Domain Admin.
 * **Export Date**: Choose **date of last expense** (default), **export date**, or **submitted date**.
 
 **Out-of-Pocket Expenses:**
@@ -104,8 +102,8 @@ These settings control how Expensify exports reports and transactions to QuickBo
 
 These options manage syncing behavior, automation preferences, and additional account settings.
 
-1. From the navigation tabs, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
-2. Still in the **Accounting** section, select the **Advanced** tab.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to QuickBooks Desktop.
+2. Select **Advanced**.
 3. Review and configure each setting (all default to enabled):
 
    * **Auto-sync**: Enable this for Expensify to automatically sync with QuickBooks Desktop every day.
@@ -117,6 +115,7 @@ These options manage syncing behavior, automation preferences, and additional ac
 
    * **Bill payment account**: Select the account for bill payments (defaults to the first option)
    * **Invoice collections account**: Select the account for invoice collections (defaults to the first option)
+   * **Currency conversion fee account**: Select the account for currency conversion (FX) fees. This setting appears only when **When to Export** is set to **Cash**, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, Expensify adds the conversion cost as an extra line on the reimbursable export, coded to the selected account. Select this account to export the conversion cost.
 
 ---
 
@@ -173,5 +172,4 @@ You can export to an employee record when exporting reports as **Journal Entries
 By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
 
 If there is no vendor or employee record and **Auto-create entities** is enabled, we'll create a new vendor record for the submitter.
-
 

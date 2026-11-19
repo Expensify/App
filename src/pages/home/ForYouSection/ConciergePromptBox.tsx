@@ -45,7 +45,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ComponentRef} from 'react';
-import type {HostInstance, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
@@ -86,6 +86,7 @@ type ConciergePromptBoxProps = {
 };
 
 function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: ConciergePromptBoxProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -130,7 +131,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
-    const animatedRef = useAnimatedRef<HostInstance>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
 
     const containerRef = useRef<ComponentRef<typeof View>>(null);
 
@@ -171,7 +172,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
         interceptAnonymousUser(() => {
             askConciergeWithAttachment(attachments, value);
             clearInput();
-        });
+        }, session);
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
 
@@ -215,7 +216,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
         interceptAnonymousUser(() => {
             askConcierge(value);
             clearInput();
-        });
+        }, session);
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
@@ -302,12 +303,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         ref={actionButtonRef}
                                                         accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                         role={CONST.ROLE.BUTTON}
-                                                        sentryLabel="ConciergePromptBox-AddAttachment"
+                                                        sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.ADD_ATTACHMENT}
                                                         disabled={!canAddAttachment}
                                                         onPress={(e) => {
                                                             e?.preventDefault();
                                                             actionButtonRef.current?.blur();
-                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
+                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev), session);
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
@@ -349,6 +350,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         {
                                                             icon: icons.Paperclip,
                                                             text: translate('reportActionCompose.addAttachment'),
+                                                            sentryLabel: CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.ADD_ATTACHMENT_MENU_ITEM,
                                                             shouldCallAfterModalHide: shouldUseNarrowLayout,
                                                         },
                                                     ]}
@@ -362,7 +364,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             <View style={styles.conciergePromptBoxButtonSpacer} />
                         </View>
                     </View>
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
+                    <View
+                        style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}
+                        // Composer can't take a sentryLabel, so the label sits on its wrapper, which Sentry and FullStory find from the input.
+                        // sentryLabelExact makes Sentry report every click inside the composer with just the label, whichever inner element was hit.
+                        dataSet={{sentryLabel: CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.INPUT, sentryLabelExact: true}}
+                    >
                         <Composer
                             ref={setComposerRef}
                             style={[styles.textInputCompose, styles.textInputCollapseCompose]}
@@ -391,7 +398,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                     // Blur before the attachment preview modal takes over, so the keyboard doesn't stay up over it.
                                     composerRef.current?.blur();
                                     pickAttachments(files);
-                                });
+                                }, session);
                             }}
                             maxLines={MAX_INPUT_LINES}
                             multiline
@@ -441,7 +448,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                     <View style={styles.justifyContentEnd}>
                         <SubmitDraftButton
                             accessibilityLabel={translate('common.send')}
-                            sentryLabel="ConciergePromptBox-Send"
+                            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.SEND}
                             isDisabled={!canSubmit}
                             icon={icons.Send}
                             label={translate('common.send')}

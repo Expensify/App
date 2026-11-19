@@ -1,5 +1,5 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import ChartAverageLine from '@components/Charts/components/ChartAverageLine';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -15,10 +15,14 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import type {ChartSeries} from '@components/Charts/types';
-import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
+import {getBarLayout, getCartesianPlotBounds, getSteppedLabelLayout, getXAxisLabel, getYAxisLabelWidth, getYAxisTickLayout} from '@components/Charts/utils';
+import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import {getSeriesStacks, getStackTotalsData, getStackTotalSeries} from '@components/Charts/utils/stackedBars';
+import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
+import Text from '@components/Text';
 
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,25 +35,53 @@ import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'vic
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {Bar, CartesianChart} from 'victory-native';
+import {Group, Skia} from 'react-native-skia';
+import {Bar, CartesianChart, StackedBar} from 'victory-native';
 
 import type BarChartProps from './types';
 import type {BarChartContentProps} from './types';
 
 type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
+function VerticalBarChartCanvas({
+    data,
+    series,
+    yAxisUnit,
+    yAxisUnitPosition = 'left',
+    formatValue: formatValueOverride,
+    countDimension,
+    yAxisTickStep,
+    onBarPress,
+    onTooltipPress,
+    tooltipFooter,
+    shouldShowLabels = true,
+    shouldWrapLabels = false,
+    labelSteps,
+    chartWidth,
+    fontManager,
+}: VerticalBarChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
 
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const barSeries = series.filter((seriesItem) => !seriesItem.isAverage);
+    const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
+    const stacks = getSeriesStacks(series);
+    const isStacked = stacks.length > 0;
+    // A stack reaches the sum of its segments, so the y-axis and the tooltip anchor are measured against each stack's total across both periods
+    const plottedData = isStacked ? getStackTotalsData(data, stacks, averageSeries) : data;
+    const stackTotalSeries = getStackTotalSeries(stacks);
+    const plottedSeries = isStacked ? [...stackTotalSeries, ...(averageSeries ? [averageSeries] : [])] : series;
+    const barSlotCount = isStacked ? stacks.length : barSeries.length;
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
     }));
 
-    const yAxisDomain = useDynamicYDomain(data);
+    const yAxisDomain = useDynamicYDomain(plottedData);
 
     const handleBarPress = (index: number) => {
         if (index < 0 || index >= data.length) {
@@ -69,26 +101,64 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
+        formatValue: formatValueOverride,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);
+    const {ticks: yAxisTicks, tickCount: yAxisTickCount, domain: yAxisTickDomain} = getYAxisTickLayout(yAxisDomain, yAxisTickStep);
+    const yAxisLabelWidth = getYAxisLabelWidth(plottedData, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING, yAxisTickCount, yAxisTicks);
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const plotBounds = getCartesianPlotBounds(chartWidth, chartPaddingRight);
     const barLayout = getBarLayout(plotBounds.width, data.length);
-    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (series.length - 1)) / series.length;
+    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (barSlotCount - 1)) / barSlotCount;
+    // Moves a bar from the group's center to the middle of its slot, counted from the group's left edge, so the series or stacks sit side by side
+    const getSlotOffset = (slot: number) => -barLayout.barWidth / 2 + slot * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
 
     const measurements = useChartLabelMeasurements(labelData, fontManager, variables.iconSizeExtraSmall);
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
+    const steppedLabelLayout =
+        labelSteps && !shouldWrapLabels && plotBounds.width > 0
+            ? getSteppedLabelLayout({
+                  labelWidths: measurements.labelWidths,
+                  pointXs: labelData.map((_, index) => plotBounds.left + barLayout.edgeSpace + index * (barLayout.barWidth + barLayout.gap)),
+                  steps: labelSteps,
+                  lineHeight: measurements.lineHeight,
+                  ellipsisWidth: measurements.ellipsisWidth,
+              })
+            : undefined;
+
+    const rotatingLabelLayout = useChartLabelLayout({
         data: labelData,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         measurements,
         tickSpacing: shouldShowLabels && plotBounds.width > 0 ? barLayout.barWidth + barLayout.gap : 0,
-        labelAreaWidth: plotBounds.width,
+        // Wrapped and stepped labels are always horizontal and never truncated, so the rotation/skip/truncation
+        // pass is discarded. Pass 0 to short-circuit the hook, matching how the line chart skips it via labelAreaWidth.
+        labelAreaWidth: shouldWrapLabels || steppedLabelLayout ? 0 : plotBounds.width,
         firstTickLeftSpace: plotBounds.left + barLayout.edgeSpace,
         lastTickRightSpace: chartWidth - plotBounds.right + barLayout.edgeSpace,
     });
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
+        steppedLabelLayout ?? rotatingLabelLayout;
+
+    // Named bar labels wrap to two centered lines in the full column width, always horizontal and
+    // never skipped, so they bypass the rotation/skip/single-line treatment the axis labels use.
+    const labelColumnWidth = Math.min(barLayout.barWidth + barLayout.gap, plotBounds.width);
+    const wrapConfig: WrappedLabelConfig | undefined =
+        shouldWrapLabels && measurements.lineHeight > 0
+            ? {
+                  columnWidth: labelColumnWidth,
+                  maxLines: MAX_BAR_LABEL_LINES,
+                  lineHeight: measurements.lineHeight,
+                  hasLabel: originalLabels.map((label) => label.length > 0),
+              }
+            : undefined;
+    // `getBarChartLoadingHeight` reserves the same lines while the chart loads, so update the two together.
+    const wrapLabelHeight = wrapConfig ? wrapConfig.maxLines * wrapConfig.lineHeight : 0;
+    // When wrapping, labelAreaWidth is 0 above so the hook returns EMPTY_LAYOUT (horizontal, skip 1).
+    // xAxisLabelHeight is 0 there too, so the wrap height has to be substituted explicitly.
+    const resolvedLabelHeight = shouldWrapLabels ? wrapLabelHeight : (xAxisLabelHeight ?? 0);
 
     const barHitHalfWidth = useSharedValue(0);
     const plotTop = useSharedValue(0);
@@ -103,6 +173,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         labelRotation,
         labelSkipInterval,
         chartBottom,
+        wrapConfig,
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
@@ -123,7 +194,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip, isTouchPinned, onChartTouchStart} =
         useChartInteractions({
             handlePress: onBarPress ? handleBarPress : undefined,
             checkIsOver: checkIsOverBar,
@@ -133,7 +204,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
             yZero,
         });
 
-    const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
+    const syncPointPositions = useSyncPointPositions(plottedData, plottedSeries, setPointPositions);
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         barHitHalfWidth.set(barLayout.barWidth > 0 ? barLayout.barWidth / 2 + barLayout.gap * BAR_HIT_GAP_RATIO : 0);
@@ -154,19 +225,61 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
 
         const pointColor = seriesIndex === 0 ? dataPoint.color : undefined;
         const color = dataPoint.seriesColors?.[seriesItem.key] ?? pointColor ?? seriesItem.color ?? VictoryTheme.colors.default;
-        // Moves the bar from the group's center to the middle of its series' slot, counted from the group's left edge, so the series sit side by side
-        const offset = -barLayout.barWidth / 2 + seriesIndex * (groupedBarWidth + BAR_GROUP_INNER_GAP) + groupedBarWidth / 2;
 
         return (
             <Bar
-                key={`bar-${seriesItem.key}-${dataPoint.label}`}
-                points={[{...point, x: point.x + offset}]}
+                key={`bar-${seriesItem.key}-${point.xValue}`}
+                points={[{...point, x: point.x + getSlotOffset(seriesIndex)}]}
                 chartBounds={chartBounds}
                 color={color}
                 barWidth={groupedBarWidth}
                 barCount={data.length}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
             />
+        );
+    };
+
+    /**
+     * Returns the rounded outline of a stack's bars, from zero to each bar's total.
+     * Rounding the end segments instead fails when an end segment is too short to show its corners, like a stage that took minutes in a chart of days.
+     */
+    const getStackOutline = (position: number, offset: number, xScale: Scale, yScale: Scale) => {
+        const totalKey = stackTotalSeries.at(position)?.key;
+        const outline = Skia.PathBuilder.Make();
+        for (const [index, point] of plottedData.entries()) {
+            const total = totalKey ? point.values[totalKey] : undefined;
+            if (!total) {
+                continue;
+            }
+            const top = Math.min(yScale(total), yScale(0));
+            const height = Math.abs(yScale(total) - yScale(0));
+            const bar = Skia.XYWHRect(xScale(index) + offset - groupedBarWidth / 2, top, groupedBarWidth, height);
+            outline.addRRect(Skia.RRectXY(bar, BAR_CORNER_RADIUS, BAR_CORNER_RADIUS));
+        }
+        return outline.build();
+    };
+
+    const renderStack = (stack: ChartSeries[], position: number, points: Record<string, PointsArray>, chartBounds: ChartBounds, xScale: Scale, yScale: Scale) => {
+        // The previous period's stack is drawn left of the current one, reading in time order
+        const offset = getSlotOffset(stacks.length - 1 - position);
+        return (
+            <Group
+                key={`stack-${stack.at(0)?.stackIndex}`}
+                clip={getStackOutline(position, offset, xScale, yScale)}
+            >
+                <StackedBar
+                    points={stack.map((seriesItem) =>
+                        (points[seriesItem.key] ?? []).map((point) => ({
+                            ...point,
+                            x: point.x + offset,
+                        })),
+                    )}
+                    chartBounds={chartBounds}
+                    barWidth={groupedBarWidth}
+                    barCount={data.length}
+                    colors={stack.map((seriesItem) => seriesItem.color ?? VictoryTheme.colors.default)}
+                />
+            </Group>
         );
     };
 
@@ -195,6 +308,8 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
+                        canvasWidth={args.canvasSize.width}
+                        wrapConfig={wrapConfig}
                     />
                 )}
                 <ChartYAxisLabels
@@ -206,15 +321,26 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                     labelColor={theme.icon}
                     formatValue={formatCompactValue}
                 />
+                {averageValue !== undefined && (
+                    <ChartAverageLine
+                        value={averageValue}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        canvasHeight={args.canvasSize.height}
+                        formatValue={formatCompactValue}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontManager={fontManager}
+                    />
+                )}
             </>
         );
     };
 
-    const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0) : 0;
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const labelSpace = shouldShowLabels ? getXAxisLabelSpace(resolvedLabelHeight) : 0;
+    const chartHeight = getBarChartHeight(shouldShowLabels, resolvedLabelHeight);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
 
-    return (
+    const chart = (
         <GestureDetector
             gesture={customGestures}
             touchAction="pan-y"
@@ -240,11 +366,11 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, domain: yAxisDomain}]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, tickValues: yAxisTicks, domain: yAxisTickDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
-                    {({points, chartBounds, yScale, yTicks}) => (
+                    {({points, chartBounds, xScale, yScale, yTicks}) => (
                         <>
                             <ChartGridLines
                                 yTicks={yTicks}
@@ -252,8 +378,10 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                                 chartBounds={chartBounds}
                                 color={theme.border}
                             />
+                            {groupedBarWidth > 0 && isStacked && stacks.map((stack, position) => renderStack(stack, position, points, chartBounds, xScale, yScale))}
                             {groupedBarWidth > 0 &&
-                                series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
+                                !isStacked &&
+                                barSeries.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
                         </>
                     )}
                 </CartesianChart>
@@ -263,30 +391,53 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>
     );
+
+    if (!isStacked) {
+        return chart;
+    }
+
+    // Stacked segments share their bar, so the legend is what names them. Each stage is listed once per period, the period named only when there are several.
+    return (
+        <>
+            {chart}
+            <View style={styles.pieChartLegendContainer}>
+                {stacks.flat().map((seriesItem) => (
+                    <View
+                        key={`legend-${seriesItem.key}`}
+                        style={[styles.flexRow, styles.alignItemsCenter]}
+                    >
+                        <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(seriesItem.color ?? VictoryTheme.colors.default)]} />
+                        <Text style={[styles.pieChartLegendLabel, StyleUtils.getColorStyle(theme.icon), styles.ml2]}>
+                            {stacks.length > 1 && seriesItem.stackLabel && seriesItem.label
+                                ? translate('search.seriesInPeriod', {
+                                      series: seriesItem.label,
+                                      period: seriesItem.stackLabel,
+                                  })
+                                : seriesItem.label}
+                        </Text>
+                    </View>
+                ))}
+            </View>
+        </>
+    );
 }
 
 function VerticalBarChartContentBody({isLoading = false, chartWidth, ...canvasProps}: BarChartContentProps) {
-    const styles = useThemeStyles();
     const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
-
     if (!readyCanvas) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

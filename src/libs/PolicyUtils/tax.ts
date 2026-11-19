@@ -39,9 +39,20 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+/**
+ * Gets a tax rate's label: its name followed by its percentage. A name that already ends with its percentage, like the
+ * `Standard VAT (20%)` rate created for UK fuel-band distance rates, is shown as is so the percentage isn't repeated.
+ */
+function formatTaxRateName(name: string, value: string | undefined): string {
+    if (!value || name.trimEnd().endsWith(`(${value})`)) {
+        return name;
+    }
+    return `${name} (${value})`;
+}
+
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
-function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
+function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Pick<Policy, 'taxRates'>>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
     const seenKeys: Record<string, Set<string>> = {};
 
@@ -134,13 +145,17 @@ function isSelectableTaxCode(policy: OnyxEntry<Policy>, taxCode: string | undefi
     return !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
-    const isSyncTaxEnabled =
+/** Whether tax rates are imported rather than maintained on the workspace. */
+function isPolicyTaxImported(policy: OnyxEntry<Policy>): boolean {
+    return (
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
-        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax
+    );
+}
 
-    return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
+function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (policy?.tax?.trackingEnabled ?? false) || isPolicyTaxImported(policy);
 }
 
 /**
@@ -159,12 +174,14 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 export {
     isTaxTrackingEnabled,
     getTaxByID,
+    formatTaxRateName,
     getAllTaxRatesNamesAndValues,
     canDisableOrDeleteTaxRate,
     getCurrentTaxID,
     resolveCurrentTaxCode,
     isSelectableTaxCode,
     isPolicyTaxEnabled,
+    isPolicyTaxImported,
     isTaxCodeCustomized,
 };
 export {getAllTaxRatesNamesAndKeys as getAllTaxRates};

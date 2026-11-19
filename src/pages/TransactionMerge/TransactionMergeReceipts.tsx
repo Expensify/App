@@ -73,6 +73,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 />
                                 <View style={[styles.pAbsolute, styles.b2, styles.r2]}>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.VIEW_RECEIPT_BUTTON}
                                         innerStyles={styles.arrowIcon}
                                         onPress={() => {
                                             Navigation.navigate(

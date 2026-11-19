@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,8 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import ColumnHeaderMenu from './ColumnHeaderMenu';
+import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
@@ -90,9 +93,11 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         dynamicGridTemplateColumns,
         scrollWidth,
         rowWidth,
-        columnResize,
         tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
+    const columnResize = useColumnResizeController();
+    const {isBetaEnabled} = usePermissions();
+    const isColumnMenuEnabled = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -133,7 +138,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const header = (
         <View
             style={[
-                styles.pv2,
+                // With table semantics every heading has a cell of its own, which carries the vertical padding, so each heading
+                // spans the row's full height and hovering anywhere over it shows its resize grip.
+                !isTableSemanticsEnabled && styles.pv2,
                 pageGutterMargin,
                 // Same expression as the rows, so headings stay aligned with their cells.
                 !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
@@ -164,6 +171,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                             containerStyle={styles.m0}
                             disabled={isAccessibilityHidden || !hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
@@ -191,8 +199,12 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         // When semantics apply, this is exposed as the first (non-sortable) column header so the header
                         // column count matches the data rows, which include the selection checkbox cell. The
                         // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
-                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
+                        <View
+                            style={isTableSemanticsEnabled && styles.pv2}
+                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}
+                        >
                             <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.TABLE.SELECT_ALL_CHECKBOX}
                                 disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
                                 isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
@@ -209,6 +221,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                                 column={column}
                                 isTableSemanticsEnabled={isTableSemanticsEnabled}
                                 isAccessibilityHidden={isAccessibilityHidden}
+                                isColumnMenuEnabled={isColumnMenuEnabled}
                                 // 1-based, and offset by the leading selection column (column 1) when present, so it
                                 // aligns with the matching data cell's aria-colindex.
                                 columnIndex={index + 1 + (isSelectionCheckboxVisible ? 1 : 0)}
@@ -246,17 +259,22 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     column,
     isTableSemanticsEnabled,
     isAccessibilityHidden,
+    isColumnMenuEnabled,
     columnIndex,
 }: {
     column: TableColumn<ColumnKey, DataType>;
     isTableSemanticsEnabled: boolean;
     isAccessibilityHidden: boolean;
+
+    /** Whether a sortable column's heading opens a menu of sort options instead of cycling the sort when pressed. */
+    isColumnMenuEnabled: boolean;
     columnIndex: number;
 }) {
     const theme = useTheme();
     const toggleCount = useRef(0);
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
+    const columnResize = useColumnResizeController();
 
     const {
         activeSorting,
@@ -290,10 +308,17 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     const {minWidth, maxWidth} = StyleSheet.flatten(column.styling?.containerStyles) ?? {};
     const columnCellSizingStyle = {minWidth, maxWidth};
 
-    // Base sort-button styles shared by both paths. The column's `containerStyles` are horizontal-alignment styles for
-    // the header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below. Flex
-    // sizing is appended per path since it differs.
-    const tableHeaderStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
+    // Base sort-button styles shared by both paths. The column's `containerStyles` pad the header row, so they belong
+    // on this `flexRow` button rather than the column-direction cell wrapper below. Flex sizing is appended per path
+    // since it differs.
+    const alignment = column.styling?.alignment ?? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START;
+    const alignmentStyle = {
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START]: undefined,
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER]: styles.justifyContentCenter,
+        [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END]: styles.justifyContentEnd,
+    }[alignment];
+    const labelRowStyles = [styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, alignmentStyle];
+    const tableHeaderStyles = [...labelRowStyles, column.styling?.containerStyles, !column.sortable && styles.cursorDefault];
 
     const label = (
         <>
@@ -343,8 +368,42 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         </PressableWithFeedback>
     );
 
+    // The sticky header's hidden twin keeps the disabled button, so it never opens a second menu.
+    const shouldShowColumnMenu = isColumnMenuEnabled && column.sortable && !isAccessibilityHidden;
+    const columnMenu = shouldShowColumnMenu ? (
+        <ColumnHeaderMenu.Root>
+            <ColumnHeaderMenu.Trigger
+                columnLabel={column.label}
+                alignment={alignment}
+                hasResizeHandle={!!columnResize?.hasHandle(column.key)}
+                labelRowStyle={column.styling?.containerStyles}
+                sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU}
+            >
+                <View style={labelRowStyles}>{label}</View>
+            </ColumnHeaderMenu.Trigger>
+            <ColumnHeaderMenu.Content>
+                <ColumnHeaderMenu.SortItems
+                    sorting={{
+                        activeSortOrder: isSortingByColumn ? activeSorting.order : undefined,
+                        onSort: (order) => {
+                            // Skipped, so a server-sorted table doesn't refetch the page it already shows.
+                            if (isSortingByColumn && activeSorting.order === order) {
+                                return;
+                            }
+                            updateSorting({columnKey: column.key, order});
+                        },
+                    }}
+                    sentryLabels={{
+                        ascending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_ASCENDING,
+                        descending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_DESCENDING,
+                    }}
+                />
+            </ColumnHeaderMenu.Content>
+        </ColumnHeaderMenu.Root>
+    ) : undefined;
+
     if (!isTableSemanticsEnabled) {
-        return sortButton;
+        return columnMenu ? <View style={[columnFlexStyle, styles.justifyContentCenter]}>{columnMenu}</View> : sortButton;
     }
 
     // Table semantics: the columnheader cell carries the ARIA role, sort state and column index, and it wraps a focusable
@@ -352,13 +411,18 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={[columnFlexStyle, columnCellSizingStyle]}
+            style={[columnFlexStyle, columnCellSizingStyle, styles.pv2]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
-            {sortButton}
+            {columnMenu ?? sortButton}
 
             {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
-            {!isAccessibilityHidden && <ColumnResizeHandle columnKey={column.key} />}
+            {!isAccessibilityHidden && (
+                <ColumnResizeHandle
+                    columnKey={column.key}
+                    columnLabel={column.label}
+                />
+            )}
         </View>
     );
 }

@@ -85,6 +85,18 @@ describe('getReportAttributesUpdates', () => {
         expect(updates).toEqual([SECOND_REPORT_ID]);
     });
 
+    it('should report entries that were removed from the current snapshot', () => {
+        // Given a snapshot with two reports
+        const previous = {[FIRST_REPORT_ID]: createAttributes(), [SECOND_REPORT_ID]: createAttributes()};
+
+        // When the derived value drops one of them
+        const current = {[FIRST_REPORT_ID]: previous[FIRST_REPORT_ID]};
+        const updates = getReportAttributesUpdates(current, previous);
+
+        // Then the removed report is reported, so the LHN rechecks it without its attributes
+        expect(updates).toEqual([SECOND_REPORT_ID]);
+    });
+
     it('should report every entry when there is no previous snapshot', () => {
         // Given the derived value is loaded for the first time
         const current = {[FIRST_REPORT_ID]: createAttributes(), [SECOND_REPORT_ID]: createAttributes()};

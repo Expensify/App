@@ -3,8 +3,10 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 // eslint-disable-next-line no-restricted-imports
 import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamily';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {TextStyle} from 'react-native';
+import type {SkTypeface} from 'react-native-skia';
 
 import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
 
@@ -35,7 +37,7 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
         return fontStyle === 'italic' ? 'EXP_NEW_KANSAS_MEDIUM_ITALIC' : 'EXP_NEW_KANSAS_MEDIUM';
     }
 
-    const matchingKey = (Object.keys(singleFontFamily) as Array<keyof typeof singleFontFamily>)
+    const matchingKey = ObjectUtils.typedKeys(singleFontFamily)
         .filter((key): key is ChartSkiaTypefaceKey => key !== 'SYSTEM')
         .find((key) => {
             const definition = singleFontFamily[key];

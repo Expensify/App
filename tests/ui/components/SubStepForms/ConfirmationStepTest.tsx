@@ -2,30 +2,33 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+
 import React from 'react';
 
 type RNComponent = React.ComponentType<{testID?: string; children?: React.ReactNode}>;
 type ReactNative = {Pressable: RNComponent; View: RNComponent; Text: RNComponent};
 
+jest.mock('@hooks/useAccessibilityAnnouncement', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (phone: string) => phone, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useSafeAreaPaddings', () => () => ({paddingTop: 0, paddingBottom: 0, insets: undefined, safeAreaPaddingBottomStyle: {}}));
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
+jest.mock('@components/MenuItem', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     const RNPressable = reactNative.Pressable;
-    const RNView = reactNative.View;
     return {
         __esModule: true,
-        default: ({pressableTestID, title, description}: {pressableTestID?: string; title: string; description: string}) => (
-            <RNPressable testID={pressableTestID}>
-                <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
-                <RNView testID={`${pressableTestID}-description`}>{description}</RNView>
-            </RNPressable>
-        ),
+        default: {Root: RNPressable, Chevron: () => null, BrickRoadIndicator: () => null, HelpText: () => null},
     };
 });
+jest.mock('@components/MenuItem/presets/MenuItemField', () => {
+    const {Text: RNText} = jest.requireActual<ReactNative>('react-native');
+    return {__esModule: true, default: {Row: ({name, value}: {name: string; value: string}) => <RNText>{`${name}: ${value}`}</RNText>}};
+});
+jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@userActions/Session', () => ({callIfAuthenticated: (callback: () => void) => callback}));
 
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/DotIndicatorMessage', () => ({__esModule: true, default: () => null}));
@@ -76,7 +79,7 @@ describe('ConfirmationStep — caller-provided id contract', () => {
         ];
         renderStep(after);
         expect(screen.getByTestId('legal-name')).toBeOnTheScreen();
-        expect(screen.getByTestId('legal-name-title').props.children).toBe('Jane Smith');
+        expect(screen.getByText('Legal name: Jane Smith')).toBeOnTheScreen();
     });
 
     it('honors an explicit `testID` over the id', () => {
@@ -130,5 +133,60 @@ describe('ConfirmationStep — subtitle and resubmission', () => {
         );
         fireEvent.press(screen.getByText('common.confirm'));
         expect(onNext).toHaveBeenCalledTimes(1);
+    });
+
+    it('announces the error once a submission finishes, not when Confirm is pressed', () => {
+        // Given a confirmation page still showing the error of an earlier submission
+        const error = 'Bank account details could not be verified';
+        const props = {isEditing: false, onNext: () => {}, onMove: () => {}, pageTitle: 'title', summaryItems: [], showOnfidoLinks: false, error, shouldAnnounceSubmitState: true};
+        const getAnnouncementKey = () => jest.mocked(useAccessibilityAnnouncement).mock.lastCall?.[2]?.announcementKey;
+        const {rerender} = render(<ConfirmationStep {...props} />);
+        const keyBeforeSubmit = getAnnouncementKey();
+
+        // When the user resubmits and the request is still running
+        fireEvent.press(screen.getByText('common.confirm'));
+        rerender(
+            <ConfirmationStep
+                {...props}
+                isLoading
+            />,
+        );
+
+        // Then the old error is not announced again yet
+        expect(getAnnouncementKey()).toBe(keyBeforeSubmit);
+
+        // When the request finishes with the error
+        rerender(
+            <ConfirmationStep
+                {...props}
+                isLoading={false}
+            />,
+        );
+
+        // Then the error is announced for this submission
+        expect(getAnnouncementKey()).not.toBe(keyBeforeSubmit);
+    });
+
+    it('asks the user to fix the errors, and the link opens the first one', () => {
+        // Given a confirmation page whose rows have errors after Confirm was pressed
+        const onFixTheErrorsLinkPressed = jest.fn();
+        render(
+            <ConfirmationStep
+                isEditing={false}
+                onNext={() => {}}
+                onMove={() => {}}
+                pageTitle="title"
+                summaryItems={[]}
+                showOnfidoLinks={false}
+                isFixErrorsAlertVisible
+                onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+            />,
+        );
+
+        // When the user presses the "fix the errors" link above Confirm
+        fireEvent.press(screen.getByText('common.fixTheErrors'), {preventDefault: jest.fn()});
+
+        // Then the flow is asked to open the first row with an error, as in other forms
+        expect(onFixTheErrorsLinkPressed).toHaveBeenCalledTimes(1);
     });
 });

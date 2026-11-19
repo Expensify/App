@@ -1,0 +1,250 @@
+/**
+ * Tests for useBulkActionBarFocus (web), the hand-back of focus when the bulk action bar unmounts with the
+ * selection it describes. Runs against real DOM nodes in jsdom rather than a rendered bar, because the hook only
+ * ever reads the bar through a ref.
+ */
+
+import {act, renderHook} from '@testing-library/react-native';
+
+import type {RefObject} from 'react';
+
+// Jest resolves index.native.ts by default, and that one is a no-op.
+const useBulkActionBarFocus = require<{
+    default: (barRef: RefObject<unknown>, isCoveredByScreen: boolean) => {suppressStrayFocusRing: () => void; isFocusInsideBar: boolean};
+}>('../../src/components/BulkActionBar/useBulkActionBarFocus/index.ts').default;
+const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
+    setActivePopoverLauncher: (element: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
+    resetLauncherStackForTests: () => void;
+}>('../../src/libs/LauncherStack.ts');
+const {setupHadTabNavigation, resetForTests: resetHadTabNavigation} = require<{
+    setupHadTabNavigation: () => void;
+    resetForTests: () => void;
+}>('../../src/libs/hadTabNavigation.ts');
+const {isFocusRingSuppressed} = require<{isFocusRingSuppressed: (element: Element | null) => boolean}>('../../src/libs/suppressFocusRing.ts');
+
+function createButton(label: string) {
+    const button = document.createElement('button');
+    button.textContent = label;
+    document.body.appendChild(button);
+    return button;
+}
+
+/** jsdom fires focusin for `focus()`, which is what the hook listens on, so the real event is enough here. */
+function focus(element: HTMLElement) {
+    act(() => element.focus());
+}
+
+beforeEach(() => {
+    setupHadTabNavigation();
+    resetHadTabNavigation();
+});
+
+afterEach(() => {
+    resetLauncherStackForTests();
+    resetHadTabNavigation();
+    document.body.innerHTML = '';
+});
+
+describe('useBulkActionBarFocus', () => {
+    it('hands focus back to the table when the bar unmounts holding it', () => {
+        // Given a row that was focused before the bar appeared, and a bar that has since taken focus
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        const barButton = createButton('Change role');
+        bar.appendChild(barButton);
+        document.body.appendChild(bar);
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(row);
+        focus(barButton);
+
+        // When the action clears the selection and the bar goes away under the focused button
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the row rather than lost to the document
+        expect(document.activeElement).toBe(row);
+    });
+
+    it('hands focus back to a checkbox that was already focused when the bar appeared', () => {
+        // Given the row checkbox that made the selection, which held focus before the bar existed and so fires no
+        // focusin the bar can see
+        const row = createButton('Row');
+        focus(row);
+
+        const bar = document.createElement('div');
+        const barButton = createButton('Clear selection');
+        bar.appendChild(barButton);
+        document.body.appendChild(bar);
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(barButton);
+
+        // When the action clears the selection and the bar goes away under the focused button
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the checkbox rather than lost to the document
+        expect(document.activeElement).toBe(row);
+    });
+
+    it('hands focus back when an action run from another screen has already dropped it to the document', () => {
+        // Given a row focused on the table, and a screen opened over it that takes focus to its own Save button
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+        const save = createButton('Save');
+
+        const {rerender, unmount} = renderHook(({isCoveredByScreen}) => useBulkActionBarFocus({current: bar}, isCoveredByScreen), {initialProps: {isCoveredByScreen: false}});
+
+        focus(row);
+
+        rerender({isCoveredByScreen: true});
+        focus(save);
+
+        // When that screen saves and leaves, so its own controls are gone and focus has fallen to the document
+        // before the bar unmounts with the selection
+        act(() => save.remove());
+        expect(document.activeElement).toBe(document.body);
+
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the row, not left on the document
+        expect(document.activeElement).toBe(row);
+    });
+
+    it('leaves focus alone when the bar unmounts without holding it', () => {
+        // Given a bar that unmounts while focus sits on a control of the table behind it
+        const row = createButton('Row');
+        const other = createButton('Other');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(row);
+        focus(other);
+
+        // When the last row is deselected and the bar goes away
+        unmount();
+        bar.remove();
+
+        // Then the control the user is actually on keeps focus
+        expect(document.activeElement).toBe(other);
+    });
+
+    it('keeps the table target when focus passes through the bar\'s own "More" menu', () => {
+        // Given a row focused on the table, then the bar's "More" menu opened over it. The menu renders in a popover
+        // portalled to the body, so its items are outside the bar in the DOM but on the same screen.
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+        const moreButton = createButton('More');
+        bar.appendChild(moreButton);
+        const menuItem = createButton('Remove members');
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(row);
+        focus(moreButton);
+        act(() => setActivePopoverLauncher(moreButton));
+        focus(menuItem);
+
+        // When the chosen action clears the selection, so the menu has closed and the bar unmounts with it
+        act(() => {
+            markActivePopoverLauncherDeactivated(moreButton);
+            menuItem.remove();
+        });
+
+        unmount();
+        bar.remove();
+
+        // Then focus is back on the row, rather than lost because the menu item was remembered and is now gone
+        expect(document.activeElement).toBe(row);
+    });
+
+    it('hands focus back when the bar unmounts while its own "More" menu still holds focus', () => {
+        // Given a row focused on the table, then an action chosen from the bar's "More" menu. The action clears the
+        // selection from the menu item, so the bar unmounts before the popover has finished closing and focus is
+        // still on the item rather than back on the table.
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+        const moreButton = createButton('More');
+        bar.appendChild(moreButton);
+        const menuItem = createButton('Duplicate expenses');
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(row);
+        focus(moreButton);
+        act(() => setActivePopoverLauncher(moreButton));
+        focus(menuItem);
+
+        // When the bar goes away with the selection, taking the launcher the popover would otherwise return to
+        unmount();
+        bar.remove();
+        act(() => menuItem.remove());
+
+        // Then focus is back on the row, rather than aimed at a "More" button that left with the bar
+        expect(document.activeElement).toBe(row);
+    });
+    it('suppresses the focus ring on a checkbox the selection was made with by mouse', () => {
+        // Given a select all checkbox clicked with the mouse, which leaves it focused without a ring
+        const checkbox = createButton('Select all');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true})));
+        focus(checkbox);
+
+        // When Escape clears the selection, which is what would otherwise make the checkbox match `:focus-visible`
+        act(() => result.current.suppressStrayFocusRing());
+
+        // Then the checkbox is marked as hiding its ring, which also keeps the browser's own outline off it
+        expect(isFocusRingSuppressed(checkbox)).toBe(true);
+    });
+
+    it('leaves the focus ring alone on a checkbox the keyboard reached', () => {
+        // Given a select all checkbox tabbed to rather than clicked, so its ring is the user's own
+        const checkbox = createButton('Select all');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true})));
+        focus(checkbox);
+
+        // When Escape clears the selection
+        act(() => result.current.suppressStrayFocusRing());
+
+        // Then nothing is suppressed, because a keyboard user has to keep seeing where focus is
+        expect(isFocusRingSuppressed(checkbox)).toBe(false);
+    });
+    it('lets the checkbox show its ring again once focus moves on', () => {
+        // Given a select all checkbox clicked with the mouse, whose ring the cleared selection hid
+        const checkbox = createButton('Select all');
+        const elsewhere = createButton('Settings');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+
+        const {result} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        act(() => document.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true})));
+        focus(checkbox);
+        act(() => result.current.suppressStrayFocusRing());
+
+        // When focus leaves the checkbox for something else
+        focus(elsewhere);
+
+        // Then the checkbox is back to showing a ring on its next visit, rather than staying silent forever
+        expect(isFocusRingSuppressed(checkbox)).toBe(false);
+    });
+});

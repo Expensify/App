@@ -17,7 +17,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,11 +25,13 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
-import React from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useId} from 'react';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {domainAccountID, accountID} = route.params;
 
     const {translate, formatPhoneNumber} = useLocalize();
@@ -46,13 +48,25 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const [adminPersonalDetails] = usePersonalDetail(accountID);
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const isTargetAdmin = !!adminAccountIDs?.includes(accountID);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate, formatPhoneNumber});
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModalByID} = useConfirmModal();
+    const revokeAdminModalID = useId();
+
+    useEffect(() => {
+        // The global confirmation outlives the page content replaced by Not Found.
+        if (isTargetAdmin) {
+            return;
+        }
+        closeModalByID(revokeAdminModalID);
+    }, [isTargetAdmin, closeModalByID, revokeAdminModalID]);
+
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
+            id: revokeAdminModalID,
             title: translate('domain.admins.revokeAdminAccess'),
             prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
@@ -73,9 +87,12 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         <BaseDomainMemberDetailsComponent
             domainAccountID={domainAccountID}
             accountID={accountID}
+            shouldBeBlocked={!isTargetAdmin}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}}
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.RESET_DOMAIN}
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
@@ -83,8 +100,9 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REVOKE_ADMIN_ACCESS}
                     isDisabled={isCurrentUserPrimaryContact}
-                    onPress={callFunctionIfActionIsAllowed(handleRevokeAdminAccess)}
+                    onPress={callIfAuthenticated(handleRevokeAdminAccess, session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>
