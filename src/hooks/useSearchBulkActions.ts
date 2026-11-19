@@ -3311,9 +3311,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
                 allMatchingOptions.push(changeWorkspaceOption);
             }
+            // The bulk delete has no way to include an expense checked again inside a deselected group.
+            const canQueueDelete =
+                (isExpenseType || isExpenseReportType) && canQueueExpenseAction && isEmptyObject(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions));
             // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
-            const hasLoadedDeletableItem =
-                selectedReports.length && isExpenseReportType
+            const shouldShowDeleteOptionForAllMatchingItems =
+                canQueueDelete &&
+                (selectedReports.length && isExpenseReportType
                     ? selectedReports.some((report) =>
                           shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, allReportActions, [report], queryJSON?.type),
                       )
@@ -3329,10 +3333,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               [],
                               queryJSON?.type,
                           ),
-                      );
-            // The bulk delete has no way to include an expense checked again inside a deselected group.
-            const hasRowsCheckedInExcludedGroups = !isEmptyObject(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions));
-            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && hasLoadedDeletableItem && !hasRowsCheckedInExcludedGroups) {
+                      ));
+            if (shouldShowDeleteOptionForAllMatchingItems) {
                 allMatchingOptions.push({
                     icon: expensifyIcons.Trashcan,
                     text: translate('search.bulkActions.delete'),
