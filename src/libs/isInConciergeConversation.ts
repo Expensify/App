@@ -46,4 +46,4 @@ function isInConciergeConversation(reportID: string | undefined, conciergeReport
 }
 
 export default isInConciergeConversation;
-export {getConciergeConversationReportID, isConciergePageThread, isConciergeThread};
+export {getConciergeConversationReportID, isConciergePageThread};
