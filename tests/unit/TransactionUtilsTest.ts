@@ -2279,7 +2279,7 @@ describe('TransactionUtils', () => {
     describe('shouldShowBrokenConnectionViolation', () => {
         it('should return false when no broken connection violations are found for the provided transaction', () => {
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
@@ -2287,7 +2287,7 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2295,7 +2295,7 @@ describe('TransactionUtils', () => {
         it('should return true for a 531 (temporary, retry later) broken connection violation', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2303,7 +2303,7 @@ describe('TransactionUtils', () => {
         it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2342,7 +2342,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2351,7 +2351,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = secondUserOpenReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2360,7 +2360,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2369,7 +2369,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = approvedReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, CURRENT_USER_ID);
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
