@@ -634,7 +634,7 @@ function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height
     };
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
+function getWidthAndHeightStyle(width: number, height?: number): Dimensions {
     return {
         width,
         height: height ?? width,

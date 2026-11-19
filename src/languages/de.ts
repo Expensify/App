@@ -1293,6 +1293,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
+        generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
+        readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
+        comparingWithYourAverage: 'Verglichen mit Ihrem Durchschnitt',
+        lookingForAnythingUnusual: 'Suche nach ungewöhnlichen Vorgängen',
+        writingYourInsights: 'Ihre Erkenntnisse schreiben',
         violationStage: {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',

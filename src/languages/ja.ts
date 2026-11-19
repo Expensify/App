@@ -1281,6 +1281,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        generatingAIInsights: 'AI インサイトを生成しています…',
+        generatingAIInsightsSubtitle: '1 分もかからないはずです',
+        readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
+        comparingWithYourAverage: '平均と比較',
+        lookingForAnythingUnusual: '異常な点がないか確認しています',
+        writingYourInsights: 'インサイトの記入',
         violationStage: {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',

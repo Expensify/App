@@ -1287,6 +1287,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Más tiempo para pagar',
         share: 'Porcentaje de participación',
         averageDays: 'Días promedio',
+        generatingAIInsights: 'Generando información con IA...',
+        generatingAIInsightsSubtitle: 'Esto no debería llevar más de un minuto',
+        readingChart: (chartTitle: string) => `Leyendo ${chartTitle}`,
+        comparingWithYourAverage: 'Comparando con tu promedio',
+        lookingForAnythingUnusual: 'Buscando algo inusual',
+        writingYourInsights: 'Redactar tus ideas',
         violationStage: {
             label: 'Infracciones de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',

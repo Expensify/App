@@ -1292,6 +1292,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Meeste tijd om te betalen',
         share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
+        generatingAIInsights: 'AI-inzichten genereren...',
+        generatingAIInsightsSubtitle: 'Dit duurt niet langer dan een minuut',
+        readingChart: (chartTitle: string) => `${chartTitle} wordt geladen`,
+        comparingWithYourAverage: 'Vergelijken met je gemiddelde',
+        lookingForAnythingUnusual: 'Op zoek naar iets ongewoons',
+        writingYourInsights: 'Je inzichten opschrijven',
         violationStage: {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
