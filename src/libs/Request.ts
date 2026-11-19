@@ -5,6 +5,7 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
+import type SentAuthState from './Network/types';
 
 import {getCurrentFlushPromise} from './actions/QueuedOnyxUpdates';
 import isStartupNetworkRequest from './AppStartupNetworkRequest';
@@ -21,11 +22,6 @@ let middlewares: Middleware[] = [];
 
 /** Reauthentication retries the same request object from inside the still-pending original call, so only its newest attempt may record the phase. */
 const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
-
-type SentAuthState = {
-    authToken: string | null;
-    authTokenType: ReturnType<typeof getAuthTokenType>;
-};
 
 /** The session each request's latest attempt was sent with, so an auth failure can be compared with the session that is current when it arrives. */
 const sentAuthStateByRequest = new WeakMap<WeakKey, SentAuthState>();
@@ -130,4 +126,4 @@ function clearMiddlewares() {
 }
 
 export {clearMiddlewares, processWithMiddleware, addMiddleware, getSentAuthState};
-export type {Middleware, SentAuthState};
+export type {Middleware};

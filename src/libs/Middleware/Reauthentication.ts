@@ -20,6 +20,7 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
+import type {SessionChange} from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<ReauthenticationResult> | null = null;
@@ -94,8 +95,6 @@ function shouldResolveAuthenticateHTTPError(error: unknown, request: {command: s
         error.message !== CONST.ERROR.SERVICE_UNAVAILABLE
     );
 }
-
-type SessionChange = 'unchanged' | 'tokenReplaced' | 'accountChanged';
 
 /**
  * Compares the session a request was sent with to the current session. A 407 for a token that has since been
