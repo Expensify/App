@@ -3031,6 +3031,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportID: chatReport.reportID,
                 total: -100,
                 currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS, requiresGlobalReimbursement},
             };
 
@@ -3058,6 +3060,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
             });
+            return expenseReport;
         }
 
         it('opens the onboarding instead of paying when the business bank account is not set up for global reimbursements', async () => {
@@ -3105,6 +3108,58 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the payment is sent and the backend decides, because the flag says nothing about this account
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+
+        it('keeps the report unpaid with a loading state until the backend answers a payment it may still reject', async () => {
+            // Given a payment the pre-check can't stop, from a USD business account that has not enabled global reimbursements, so the backend may reject it
+            mockFetch?.pause?.();
+
+            // When the admin pays the report
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            await waitForBatchedUpdates();
+
+            // Then the report isn't shown as paid yet, because rolling a rejected payment back makes it drop out of the lists and come back, and it shows a loading state instead
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).not.toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(true);
+
+            // When the backend rejects the payment
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the loading state ends and the payment shows the same error it would have after an optimistic payment
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(false);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            const payAction = Object.values(reportActions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(payAction?.errors).toBeTruthy();
+        });
+
+        it('ends the loading state when the backend accepts a held payment', async () => {
+            // Given a held payment from an account that has not enabled global reimbursements
+            mockFetch?.pause?.();
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(false), true, false);
+            await waitForBatchedUpdates();
+
+            // When the backend accepts it
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the loading state ends, and the last used payment method is saved since the backend doesn't send it back
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${expenseReport.reportID}`))?.isActionLoading).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.NVP_LAST_PAYMENT_METHOD)).toBeTruthy();
+        });
+
+        it('shows the report as paid right away when the account has global reimbursements enabled', async () => {
+            // Given an account the backend won't reject for global reimbursements
+            mockFetch?.pause?.();
+
+            // When the admin pays the report with it
+            const expenseReport = payWithBusinessBankAccount(buildBankAccountList(true), true, false);
+            await waitForBatchedUpdates();
+
+            // Then the report is shown as paid before the backend answers, as for any other payment
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`))?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            await mockFetch?.resume?.();
         });
     });
 

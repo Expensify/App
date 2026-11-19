@@ -254,13 +254,24 @@ type WiseQuotePaymentParams = {
     wiseQuoteID?: string;
 };
 
-/** The Wise account a business bank account payment debits. Without a chosen account the backend pays from the workspace account */
-function getWiseBankAccountForPayment({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, policy}: WiseQuotePaymentParams): OnyxTypes.BankAccount | undefined {
+/** The business bank account a payment debits, for admins in the Wise beta. Without a chosen account the backend pays from the workspace account */
+function getBusinessBankAccountForPayment({
+    paymentType,
+    methodID,
+    bankAccountList,
+    isWiseReimbursementsBetaEnabled,
+    policy,
+}: Pick<WiseQuotePaymentParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled' | 'policy'>): OnyxTypes.BankAccount | undefined {
     const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
     if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
         return undefined;
     }
-    const bankAccount = bankAccountList?.[bankAccountID];
+    return bankAccountList?.[bankAccountID];
+}
+
+/** The Wise account a business bank account payment debits */
+function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes.BankAccount | undefined {
+    const bankAccount = getBusinessBankAccountForPayment(params);
     const isWiseAccount = isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
     return isWiseAccount ? bankAccount : undefined;
 }
@@ -562,6 +573,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 }
 
 export {
+    getBusinessBankAccountForPayment,
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
