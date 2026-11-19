@@ -955,6 +955,7 @@ describe('libs/NextStepUtils', () => {
                     currentUserAccountID,
                     report,
                     reportOwnerLogin: currentUserEmail,
+                    reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                     reportMetadata: undefined,
                     reportActions: [],
                     transactions: {},
