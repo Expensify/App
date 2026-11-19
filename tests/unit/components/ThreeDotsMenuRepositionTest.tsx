@@ -76,6 +76,7 @@ function renderMenu() {
             shouldSelfPosition
             testID="three-dots-button"
             menuItems={MENU_ITEMS}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />,
     );
 }
@@ -111,6 +112,7 @@ describe('ThreeDotsMenu reposition on resize', () => {
                 shouldSelfPosition
                 testID="three-dots-button"
                 menuItems={MENU_ITEMS}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
@@ -137,6 +139,7 @@ describe('ThreeDotsMenu reposition on resize', () => {
                 shouldSelfPosition
                 testID="three-dots-button"
                 menuItems={MENU_ITEMS}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
@@ -158,6 +161,7 @@ describe('ThreeDotsMenu reposition on resize', () => {
                 shouldSelfPosition
                 testID="three-dots-button"
                 menuItems={MENU_ITEMS}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         await act(async () => {

@@ -122,6 +122,7 @@ function renderMenu() {
             shouldSelfPosition
             testID="three-dots-button"
             menuItems={MENU_ITEMS}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />,
     );
 }
