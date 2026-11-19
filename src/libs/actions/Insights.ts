@@ -7,23 +7,22 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-type InsightsCommand = typeof READ_COMMANDS.GET_INSIGHTS | typeof READ_COMMANDS.GET_INSIGHTS_DETAILS;
-type InsightsEntryKey = `${typeof ONYXKEYS.COLLECTION.INSIGHTS}${string}` | `${typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${string}`;
-type InsightsOnyxData = {
-    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
-    successData?: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
-    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>>;
-};
-
 /** Sends an Insights read and stores its JSON code beside the errors, so the UI can tell backend errors from failed requests */
-function requestInsights(command: InsightsCommand, jsonQuery: string, key: InsightsEntryKey, onyxData: InsightsOnyxData) {
+function requestInsights<TKey extends OnyxKey>(
+    command: typeof READ_COMMANDS.GET_INSIGHTS | typeof READ_COMMANDS.GET_INSIGHTS_DETAILS,
+    jsonQuery: string,
+    key: `${typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${string}`,
+    onyxData: OnyxData<TKey>,
+) {
     waitForWrites(command).then(() =>
         // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
         makeRequestWithSideEffects(command, {jsonQuery}, onyxData)
@@ -38,7 +37,7 @@ function requestInsights(command: InsightsCommand, jsonQuery: string, key: Insig
                 Log.hmmm(`[Insights] ${command} request failed`, {
                     error: String(error),
                 });
-                return Onyx.update(onyxData.failureData);
+                return Onyx.update(onyxData.failureData ?? []);
             }),
     );
 }

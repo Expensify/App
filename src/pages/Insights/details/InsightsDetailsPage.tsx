@@ -6,6 +6,7 @@ import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -24,6 +25,7 @@ import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -31,10 +33,9 @@ import {View} from 'react-native';
 import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
-import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
-import useInsightsSummary from './useInsightsSummary';
 import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
@@ -88,7 +89,15 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
               })
             : undefined;
     const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
-    const {summary, state: detailsState} = useInsightsSummary(detailsQuery);
+    const {isOffline} = useNetwork();
+    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
+    const summary = details?.summary;
+    const detailsState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: !!summary,
+        hasErrors: !isEmptyObject(details?.errors),
+        responseJsonCode: details?.responseJsonCode,
+    });
     const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
