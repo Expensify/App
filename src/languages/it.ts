@@ -1305,6 +1305,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Tempo massimo per pagare',
         share: 'Quota%',
         averageDays: 'Giorni medi',
+        generatingAIInsights: 'Generazione di approfondimenti IA in corso...',
+        generatingAIInsightsSubtitle: 'Non dovrebbe volerci più di un minuto',
+        readingChart: (chartTitle: string) => `Lettura di ${chartTitle}`,
+        comparingWithYourAverage: 'Confronto con la tua media',
+        lookingForAnythingUnusual: 'Ricerca di eventuali anomalie',
+        writingYourInsights: 'Scrivere le tue idee',
         violationStage: {
             label: 'Violazioni di',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Mittenti',

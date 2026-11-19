@@ -1250,6 +1250,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '最长付款时间',
         share: '占比',
         averageDays: '平均天数',
+        generatingAIInsights: '正在生成 AI 洞察…',
+        generatingAIInsightsSubtitle: '这不会花费超过一分钟',
+        readingChart: (chartTitle: string) => `正在读取 ${chartTitle}`,
+        comparingWithYourAverage: '与您的平均值比较',
+        lookingForAnythingUnusual: '正在查找任何异常情况',
+        writingYourInsights: '撰写你的见解',
         violationStage: {
             label: '违规事项',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
