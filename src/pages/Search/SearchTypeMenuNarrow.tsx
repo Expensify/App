@@ -224,7 +224,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
-        const query = normalizeDatePresetsInQuery(getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query));
+        const query = normalizeDatePresetsInQuery(getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query, tabKey));
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
