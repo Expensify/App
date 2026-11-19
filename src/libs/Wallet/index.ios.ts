@@ -89,16 +89,16 @@ async function isCardInWallet(card: Card): Promise<boolean> {
     }
 
     try {
-        let status: CardStatus;
-        let method: LookupMethod;
+        let status: CardStatus = 'not found';
+        let method: LookupMethod = 'none';
         let summary = '';
 
         if (card.token) {
             method = 'identifier';
             status = await getCardStatusByIdentifier(panReferenceID, CONST.COMPANY_CARDS.CARD_TYPE.VISA);
-        } else {
+        } else if (card.lastFourPAN) {
             method = 'suffix';
-            status = await getCardStatusBySuffix(card.lastFourPAN ?? '');
+            status = await getCardStatusBySuffix(card.lastFourPAN);
         }
 
         // The pass can exist in Wallet under another primary account identifier, so retry by the card's last digits.
