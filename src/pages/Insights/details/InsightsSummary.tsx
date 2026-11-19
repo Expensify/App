@@ -7,6 +7,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {format as formatNumber} from '@libs/NumberFormatUtils';
@@ -32,9 +33,6 @@ import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummarySkeleton from './InsightsSummarySkeleton';
 import useInsightsSummary from './useInsightsSummary';
-
-/** Stands in for the average until there's enough history to compute it */
-const NO_AVERAGE = '—';
 
 const VERSUS_AVERAGE_PERIOD_KEYS = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.summary.versusAverageDay',
@@ -76,12 +74,16 @@ type InsightsSummaryProps = {
 
 type SummaryTileProps = {
     label: string;
-    value: string;
+
+    /** Figure to show, or nothing while there's not enough history for it */
+    value: string | undefined;
 };
 
 /** One labeled figure in the Summary's grid. */
 function SummaryTile({label, value}: SummaryTileProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     return (
         <View style={[styles.flex1, styles.gap1]}>
@@ -91,7 +93,7 @@ function SummaryTile({label, value}: SummaryTileProps) {
             >
                 {label}
             </Text>
-            <Text>{value}</Text>
+            {value === undefined ? <Text style={StyleUtils.getColorStyle(theme.icon)}>{CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER}</Text> : <Text>{value}</Text>}
         </View>
     );
 }
@@ -100,10 +102,11 @@ function SummaryTile({label, value}: SummaryTileProps) {
 function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate, preferredLocale, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const illustrations = useMemoizedLazyIllustrations(['CalendarMonthly']);
+    const illustrations = useMemoizedLazyIllustrations(['CalendarMonthlyMuted']);
     const {summary, state} = useInsightsSummary(query);
     const {period, periodGroupBy, isPeriodInProgress} = query;
     const isSpendOverTime = graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME;
@@ -156,19 +159,19 @@ function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryPr
 
         if (comparison.type === 'notEnoughHistory') {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.opacitySemiTransparent]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     <ImageSVG
-                        src={illustrations.CalendarMonthly}
+                        src={illustrations.CalendarMonthlyMuted}
                         width={variables.insightsSummaryHistoryIllustrationWidth}
                         height={variables.insightsSummaryHistoryIllustrationHeight}
                     />
                     <Text
                         variant="label"
-                        style={[styles.flex1, styles.textSupporting]}
+                        style={[styles.flex1, StyleUtils.getColorStyle(theme.icon)]}
                     >
                         <Text
                             variant="labelStrong"
-                            style={styles.textSupporting}
+                            style={StyleUtils.getColorStyle(theme.icon)}
                         >
                             {translate('insightsPage.summary.moreHistoryNeeded')}
                         </Text>{' '}
@@ -229,7 +232,7 @@ function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryPr
                     />
                     <SummaryTile
                         label={translate(AVERAGE_TILE_KEYS[periodGroupBy], averagePeriodCount)}
-                        value={hasAverage ? convertToDisplayString(summary.average ?? 0, currency) : NO_AVERAGE}
+                        value={hasAverage ? convertToDisplayString(summary.average ?? 0, currency) : undefined}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.gap5, styles.p4]}>
