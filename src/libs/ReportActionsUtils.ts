@@ -2911,7 +2911,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 function formatReimbursementDate(date: string): string {
     // getMessageOfOldDotReportAction is also called outside React (LHN text, report names), so the date-fns locale
     // comes from IntlStore instead of useLocalize
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()));
+    return DateUtils.formatToLongDateInUTC(date, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()));
 }
 
 /**

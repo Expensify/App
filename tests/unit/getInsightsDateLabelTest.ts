@@ -7,6 +7,7 @@ import getInsightsDateLabel from '@pages/Insights/getInsightsDateLabel';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
+import {de} from 'date-fns/locale/de';
 import {enUS} from 'date-fns/locale/en-US';
 
 /** `formatRange` puts thin spaces around the en dash in English ranges */
@@ -79,5 +80,14 @@ describe('getInsightsDateLabel', () => {
 
         // Then the year shows, so it isn't mistaken for this year's date
         expect(label).toBe('Oct 5, 2025');
+    });
+
+    it('orders a custom day the way the date language does', () => {
+        // Given custom days in the current and the previous year
+        // When their labels are built with German dates
+        const labels = [getInsightsDateLabel({on: '2026-10-05'}, translateEnglish, de), getInsightsDateLabel({on: '2025-10-05'}, translateEnglish, de)];
+
+        // Then the day comes before the month, as German writes it. The hand-written `MMM d` produced `Okt. 5`.
+        expect(labels).toEqual(['5. Okt.', '5. Okt. 2025']);
     });
 });

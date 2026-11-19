@@ -76,6 +76,17 @@ function isTimeGroupBy(groupBy: SearchGroupBy): groupBy is TimeGroupBy {
     return groupBy in BUCKET_OFFSET;
 }
 
+/** A date-fns pattern naming a bucket, or a function for a name date-fns can't localize, like a month and day (see `DateUtils.formatToMonthDay`) */
+type CalendarNameFormat = string | ((date: Date, dateFnsLocale: LocaleContextProps['dateFnsLocale']) => string);
+
+/** Names a day by its abbreviated month and day, e.g. "Oct 5", in the language's own order */
+const formatMonthDay: CalendarNameFormat = (date, dateFnsLocale) => DateUtils.formatToMonthDay(date, dateFnsLocale);
+
+/** Applies either kind of calendar name format, so callers don't need to check which one a bucket uses */
+function formatCalendarName(date: Date, calendarNameFormat: CalendarNameFormat, dateFnsLocale: LocaleContextProps['dateFnsLocale']): string {
+    return typeof calendarNameFormat === 'string' ? format(date, calendarNameFormat, {locale: dateFnsLocale}) : calendarNameFormat(date, dateFnsLocale);
+}
+
 /** A period's first and last day */
 type ChartPeriod = {start: string; end: string};
 
@@ -89,10 +100,14 @@ type ChartComparisonPeriods = {
 };
 
 /**
- * Returns date-fns patterns naming paired buckets by what they share, like "January" for January 2026 and January 2025, and each by what differs,
+ * Returns the formats naming paired buckets by what they share, like "January" for January 2026 and January 2025, and each by what differs,
  * like "2026" and "2025". Undefined when two buckets in the period would share a name, like "5th" for October 5 and November 5.
  */
-function getCalendarNamePatterns(groupBy: TimeGroupBy, periodStart: Date, periodEnd: Date) {
+function getCalendarNamePatterns(
+    groupBy: TimeGroupBy,
+    periodStart: Date,
+    periodEnd: Date,
+): {label: CalendarNameFormat; shortLabel: CalendarNameFormat; seriesLabel: CalendarNameFormat} | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY:
             if (differenceInCalendarDays(periodEnd, periodStart) < DAYS_IN_WEEK) {
@@ -102,7 +117,7 @@ function getCalendarNamePatterns(groupBy: TimeGroupBy, periodStart: Date, period
             if (isSameMonth(periodStart, periodEnd)) {
                 return {label: 'do', shortLabel: 'do', seriesLabel: 'LLLL yyyy'};
             }
-            return periodEnd < addYears(periodStart, 1) ? {label: 'MMM d', shortLabel: 'MMM d', seriesLabel: 'yyyy'} : undefined;
+            return periodEnd < addYears(periodStart, 1) ? {label: formatMonthDay, shortLabel: formatMonthDay, seriesLabel: 'yyyy'} : undefined;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return differenceInCalendarMonths(periodEnd, periodStart) < 12 ? {label: 'LLLL', shortLabel: 'LLL', seriesLabel: 'yyyy'} : undefined;
         case CONST.SEARCH.GROUP_BY.QUARTER:
@@ -211,11 +226,15 @@ function getComparedBucketLabels(
     const patterns = getCalendarNamePatterns(groupBy, primaryStart, primaryEnd);
     // A bucket with no counterpart is named like its neighbors, by the bucket at its position. Days paired by date always share a name.
     const comparedDate = counterpartRange ? parseISO(counterpartRange.start) : getBucketAtSamePosition(bucketDate, periods, groupBy);
+    // The names are only compared to see whether two buckets share one, so they are built without a language.
     const sharedPatterns =
-        patterns && ((!counterpartRange && isPairedByDate(periods, groupBy)) || format(bucketDate, patterns.label) === format(comparedDate, patterns.label)) ? patterns : undefined;
+        patterns &&
+        ((!counterpartRange && isPairedByDate(periods, groupBy)) || formatCalendarName(bucketDate, patterns.label, undefined) === formatCalendarName(comparedDate, patterns.label, undefined))
+            ? patterns
+            : undefined;
 
     const formatSeriesLabel = (range: ChartBucketRange, period: ChartPeriod) =>
-        sharedPatterns ? format(parseISO(range.start), sharedPatterns.seriesLabel, {locale: dateFnsLocale}) : formatDates(clipToPeriod(range, period), dateFnsLocale);
+        sharedPatterns ? formatCalendarName(parseISO(range.start), sharedPatterns.seriesLabel, dateFnsLocale) : formatDates(clipToPeriod(range, period), dateFnsLocale);
     const seriesLabels = {
         primary: formatSeriesLabel(bucketRange, periods.primary),
         comparison: counterpartRange && formatSeriesLabel(counterpartRange, periods.comparison),
@@ -223,8 +242,8 @@ function getComparedBucketLabels(
 
     if (sharedPatterns) {
         return {
-            label: format(bucketDate, sharedPatterns.label, {locale: dateFnsLocale}),
-            shortLabel: format(bucketDate, sharedPatterns.shortLabel, {locale: dateFnsLocale}),
+            label: formatCalendarName(bucketDate, sharedPatterns.label, dateFnsLocale),
+            shortLabel: formatCalendarName(bucketDate, sharedPatterns.shortLabel, dateFnsLocale),
             seriesLabels,
         };
     }
@@ -256,11 +275,16 @@ function getUnpairedBucketLabels(
     const bucketDate = parseISO(range.start);
     const patterns = getCalendarNamePatterns(groupBy, parseISO(periods.primary.start), parseISO(periods.primary.end));
     // Days paired by date always share a name. Others take a calendar name only if it matches their spot, as paired buckets do.
-    if (patterns && (isPairedByDate(periods, groupBy) || format(bucketDate, patterns.label) === format(parseISO(getPositionInPrimaryPeriod(range, periods, groupBy)), patterns.label))) {
+    // That check only compares names, so they are built without a language.
+    if (
+        patterns &&
+        (isPairedByDate(periods, groupBy) ||
+            formatCalendarName(bucketDate, patterns.label, undefined) === formatCalendarName(parseISO(getPositionInPrimaryPeriod(range, periods, groupBy)), patterns.label, undefined))
+    ) {
         return {
-            label: format(bucketDate, patterns.label, {locale: dateFnsLocale}),
-            shortLabel: format(bucketDate, patterns.shortLabel, {locale: dateFnsLocale}),
-            seriesLabel: format(bucketDate, patterns.seriesLabel, {locale: dateFnsLocale}),
+            label: formatCalendarName(bucketDate, patterns.label, dateFnsLocale),
+            shortLabel: formatCalendarName(bucketDate, patterns.shortLabel, dateFnsLocale),
+            seriesLabel: formatCalendarName(bucketDate, patterns.seriesLabel, dateFnsLocale),
         };
     }
     const positionLabel = translate(BUCKET_LABEL[groupBy], BUCKET_OFFSET[groupBy](bucketDate, parseISO(periods.comparison.start)) + 1);

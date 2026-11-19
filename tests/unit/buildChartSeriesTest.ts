@@ -20,6 +20,10 @@ import themeColors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
+
+import {de} from 'date-fns/locale/de';
+
 import {translateLocal} from '../utils/TestHelper';
 
 /** A grouped merchant result, carrying the fields the series is built from. */
@@ -1359,8 +1363,8 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(rows.at(0)?.point.values).toEqual({[CHART_SERIES_KEY.PRIMARY]: 1000, [CHART_SERIES_KEY.COMPARISON]: 500});
     });
 
-    /** Builds a chart plotting the window on screen by day against the one before it. */
-    function buildDays(days: string[], comparedDays: string[], periods: ChartComparisonPeriods) {
+    /** Builds a chart plotting the window on screen by day against the one before it, with English dates unless another language is given. */
+    function buildDays(days: string[], comparedDays: string[], periods: ChartComparisonPeriods, dateFnsLocale?: DateFnsLocale) {
         return buildChartSeries({
             data: days.map(dayGroup),
             comparison: {data: comparedDays.map(dayGroup), color: themeColors.green200, periods},
@@ -1369,7 +1373,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
             getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
             getCurrencyDecimals,
             translate: translateLocal,
-            dateFnsLocale: undefined,
+            dateFnsLocale,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
         }).rows;
     }
@@ -1400,6 +1404,25 @@ describe('buildChartSeries labels for compared time buckets', () => {
         // Then February 29 sits between February 28 and March 1, so the compared line keeps its date order
         expect(rows.map((row) => row.point.label)).toEqual(['Feb 28', 'Feb 29', 'Mar 1']);
         expect(rows.at(1)?.point.values).toEqual({[CHART_SERIES_KEY.COMPARISON]: 1000});
+    });
+
+    it('orders compared days the way the date language does', () => {
+        // cspell:ignore März
+        // Given the same comparison of 2029 against 2028 by day, with German dates
+        const rows = buildDays(
+            ['2029-02-28', '2029-03-01'],
+            ['2028-02-28', '2028-02-29', '2028-03-01'],
+            {
+                primary: {start: '2029-01-01', end: '2029-03-01'},
+                comparison: {start: '2028-01-01', end: '2028-03-01'},
+                monthsApart: 12,
+            },
+            de,
+        );
+
+        // Then each day, paired or not, puts the day before the month as German writes it. The hand-written `MMM d`
+        // produced `Feb. 28`.
+        expect(rows.map((row) => row.point.label)).toEqual(['28. Feb.', '29. Feb.', '1. März']);
     });
 
     it('numbers a compared month the current period has no month for when the months beside it are numbered', () => {

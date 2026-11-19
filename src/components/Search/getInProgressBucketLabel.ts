@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -24,14 +26,15 @@ type GetInProgressBucketLabelParams = {
     translate: LocalizedTranslate;
 };
 
-const DAY_FORMAT = 'MMM d';
-
-/** How each time-based group names its period, e.g. "Oct 5", "Oct", "Q4" or "2026". Weeks are named with a translation instead. */
-const PERIOD_FORMATS: Partial<Record<SearchGroupBy, string>> = {
-    [CONST.SEARCH.GROUP_BY.DAY]: DAY_FORMAT,
-    [CONST.SEARCH.GROUP_BY.MONTH]: 'LLL',
-    [CONST.SEARCH.GROUP_BY.QUARTER]: 'QQQ',
-    [CONST.SEARCH.GROUP_BY.YEAR]: 'yyyy',
+/**
+ * How each time-based group names its period, e.g. "Oct 5", "Oct", "Q4" or "2026". Weeks are named with a translation instead.
+ * A day goes through `DateUtils.formatToMonthDay`, since date-fns can't order a month and day without a year by language.
+ */
+const PERIOD_FORMATTERS: Partial<Record<SearchGroupBy, (start: Date, dateFnsLocale: DateFnsLocale | undefined) => string>> = {
+    [CONST.SEARCH.GROUP_BY.DAY]: (start, dateFnsLocale) => DateUtils.formatToMonthDay(start, dateFnsLocale),
+    [CONST.SEARCH.GROUP_BY.MONTH]: (start, dateFnsLocale) => format(start, 'LLL', {locale: dateFnsLocale}),
+    [CONST.SEARCH.GROUP_BY.QUARTER]: (start, dateFnsLocale) => format(start, 'QQQ', {locale: dateFnsLocale}),
+    [CONST.SEARCH.GROUP_BY.YEAR]: (start, dateFnsLocale) => format(start, 'yyyy', {locale: dateFnsLocale}),
 };
 
 /**
@@ -50,8 +53,8 @@ function getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilt
     }
 
     const start = parse(range.start, CONST.DATE.FNS_FORMAT_STRING, new Date());
-    const periodFormat = PERIOD_FORMATS[groupBy];
-    const period = periodFormat ? format(start, periodFormat, {locale: dateFnsLocale}) : translate('search.weekOf', {date: format(start, DAY_FORMAT, {locale: dateFnsLocale})});
+    const formatPeriod = PERIOD_FORMATTERS[groupBy];
+    const period = formatPeriod ? formatPeriod(start, dateFnsLocale) : translate('search.weekOf', {date: DateUtils.formatToMonthDay(start, dateFnsLocale)});
     return translate('search.periodSoFar', {period});
 }
 
