@@ -1,3 +1,4 @@
+import {dismissShareSheet, getIsShareSheetOpen} from '@libs/fileDownload/shareSheetState';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 
 import type CONST from '@src/CONST';
@@ -124,6 +125,12 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
+    // UIKit can't present the menu while the share sheet is up (it would count as open without ever being shown), so close the sheet first.
+    // Opening the menu afterwards also cancels the press that started under the sheet, so the pressed item doesn't stay dimmed.
+    if (getIsShareSheetOpen()) {
+        dismissShareSheet().then(() => showContextMenu(showContextMenuParams));
+        return;
+    }
     if (!contextMenuRef.current) {
         // Popover is lazy-mounted; trigger eager mount and retry until the ref is populated
         // so a fast cold-start interaction isn't silently dropped.
