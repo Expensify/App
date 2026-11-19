@@ -2144,6 +2144,27 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
     });
 
+    it('hides Delete when an expense is checked again inside a group deselected after Select all', async () => {
+        // Given "Select all" on a merchant grouped search with the Airline group deselected, then one of its expenses checked again
+        const airlineGroupKey = `${CONST.SEARCH.GROUP_PREFIX}airline` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction(), tx3: makeSelectedTransaction({groupKey: airlineGroupKey})};
+        mockExcludedTransactions = {[airlineGroupKey]: makeSelectedTransaction()};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {[airlineGroupKey]: {merchant: 'Airline', count: 2, total: 200, currency: 'USD'}},
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Delete isn't offered, since the backend would skip the expense checked again with the rest of its group
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(false);
+    });
+
     it('deletes nothing when the user cancels the confirmation', async () => {
         // Given "Select all" and a user who cancels the delete confirmation
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});

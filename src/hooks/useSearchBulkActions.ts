@@ -3330,7 +3330,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               queryJSON?.type,
                           ),
                       );
-            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && hasLoadedDeletableItem) {
+            // The bulk delete has no way to include an expense checked again inside a deselected group.
+            const hasRowsCheckedInExcludedGroups = !isEmptyObject(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions));
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && hasLoadedDeletableItem && !hasRowsCheckedInExcludedGroups) {
                 allMatchingOptions.push({
                     icon: expensifyIcons.Trashcan,
                     text: translate('search.bulkActions.delete'),
