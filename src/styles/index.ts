@@ -8,6 +8,7 @@ import getPlatform from '@libs/getPlatform';
 import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
+import {toTextStyle, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -129,9 +130,13 @@ type WebViewStyle = {
 
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
-type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
+// Accepts both an Animated.Value and the card's progress interpolation. Calling .interpolate()
+// on a union of the two is a type error, because their signatures differ.
+type OverlayStylesParams = Pick<Animated.Value, 'interpolate'>;
 
-type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
+// React Native 0.88 drops the <T> from AnimatedAddition and AnimatedSubtraction, so no direct
+// spelling compiles on both 0.86 and 0.88. The return types of Animated.add/subtract do.
+type OverlayPositionValue = number | Animated.Value | ReturnType<typeof Animated.add> | ReturnType<typeof Animated.subtract>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -142,7 +147,17 @@ type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | '
 
 type MapDirectionLayerStyle = Pick<LineLayerSpecification, 'layout' | 'paint'>;
 
-type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle | AnchorPosition | CustomPickerStyle;
+type StyleObject =
+    | ViewStyle
+    | Animated.WithAnimatedValue<ViewStyle>
+    | TextStyle
+    | ImageStyle
+    | WebViewStyle
+    | OfflineFeedbackStyle
+    | MapDirectionStyle
+    | MapDirectionLayerStyle
+    | AnchorPosition
+    | CustomPickerStyle;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type StyleFunction = (...args: any[]) => StyleObject;
 
@@ -159,6 +174,12 @@ const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight:
 // bar's own padding and its tallest item, a small button, rather than written down a second time: a written height
 // silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
 const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
+
+// A subnav row's label lines up with the label of the row above: the row's padding, the icon and the icon-label gap.
+const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + variables.iconSizeNormal + variables.flatNavigationBarItemGap;
+
+// The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
+const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -245,7 +266,7 @@ const webViewStyles = (theme: ThemeColors) =>
             ol: {
                 maxWidth: '100%',
                 whiteSpace: 'normal',
-            },
+            } satisfies ViewStyle & MixedStyleDeclaration,
 
             li: {
                 flexShrink: 1,
@@ -506,9 +527,9 @@ const staticStyles = (theme: ThemeColors) =>
             whiteSpace: 'nowrap',
         },
 
-        verticalAlignTopText: {
+        verticalAlignTopText: toTextStyle({
             verticalAlign: 'text-top',
-        },
+        }),
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -770,7 +791,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // Only the mobile web bar uses this; iOS and Android draw native tab bars.
-        navigationTabBarContainer: {
+        navigationTabBarContainer: toViewStyle({
             // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long
             // label gets the room it needs and, once the labels no longer all fit, the long ones truncate to the same
             // width while the short ones keep theirs.
@@ -790,7 +811,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
-        },
+        }),
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
@@ -885,11 +906,30 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        // Drawn as its own layer so the shadow can fade on its own, and only while a collapsed bar peeks over the content.
+        flatNavigationBarPeekShadow: {
+            ...StyleSheet.absoluteFill,
+            boxShadow: theme.shadow,
+        },
+
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'flex-end',
             height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+            // The logo fades out in place while the toggle stays, so the header has to clip the logo as the bar narrows.
+            overflow: 'hidden',
+        },
+
+        // Lets the wordmark fade out in place while the toggle is the only thing left in the header.
+        flatNavigationBarLogoContainer: {
+            position: 'absolute',
+            left: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
         },
 
         // The "y" at the end of the wordmark already leaves empty space on its right, so the badge sits closer than the default badge margin
@@ -907,18 +947,68 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.flatNavigationBarCreateButtonHeight,
         },
 
+        // Collapsed, the button narrows with its container: rail width minus both insets equals its height, so the pill ends as a circle.
+        flatNavigationBarCreateButtonCompact: {
+            paddingHorizontal: 0,
+        },
+
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: variables.flatNavigationBarItemGap,
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
+            // Labels stay mounted while they fade, so a collapsed row has to clip what no longer fits.
+            overflow: 'hidden',
         },
 
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.spacing2,
+            height: variables.flatNavigationBarSubnavItemHeight,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        // Sits at the bottom of its row, which leaves the gap above the group.
+        flatNavigationBarSubnavHeader: {
+            height: variables.flatNavigationBarSubnavHeaderHeight,
+            justifyContent: 'flex-end',
+            paddingBottom: 4,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+        },
+
+        // The active row's marker slides along this rule.
+        flatNavigationBarSubnavRule: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: flatNavigationBarSubnavRuleLeft,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarSubnavMarker: {
+            position: 'absolute',
+            top: 0,
+            left: flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            width: variables.flatNavigationBarSubnavMarkerWidth,
+            height: variables.flatNavigationBarSubnavMarkerHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.success,
         },
 
         flatNavigationBarDivider: {
@@ -1954,9 +2044,9 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 20,
         },
 
-        lh140Percent: {
+        lh140Percent: toTextStyle({
             lineHeight: '140%',
-        },
+        }),
 
         formHelp: {
             color: theme.textSupporting,
@@ -3845,6 +3935,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.pr5,
         },
 
+        growlNotificationNativeContent: {
+            width: '100%',
+            maxWidth: variables.growlNotificationMaxWidth,
+            alignSelf: 'center',
+        },
+
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
             right: 0,
@@ -4217,11 +4313,6 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
-        },
-
-        iPhoneXSafeArea: {
-            backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         transferBalancePayment: {
@@ -6875,7 +6966,7 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
-        receiptPreview: {
+        receiptPreview: toViewStyle({
             position: 'absolute',
             // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
             left: 60,
@@ -6888,17 +6979,12 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: theme.shadow,
             backgroundColor: theme.appBG,
-        },
+        }),
 
         receiptPreviewEReceiptsContainer: {
             ...sizing.w100,
             ...sizing.h100,
             backgroundColor: colors.green800,
-        },
-
-        wideRHPExtendedCardInterpolatorStyles: {
-            ...getRHPExtendedCardFrame(theme),
-            width: animatedWideRHPWidth,
         },
 
         // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
@@ -6918,19 +7004,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         receiptCellLoadingContainer: {
             backgroundColor: theme.activeComponentBG,
-        },
-
-        wideRHPMoneyRequestReceiptViewContainer: {
-            backgroundColor: theme.appBG,
-            width: animatedReceiptPaneRHPWidth,
-            height: '100%',
-            borderRightWidth: 1,
-            borderColor: theme.border,
-        },
-
-        wideRHPDropZoneContainer: {
-            width: animatedReceiptPaneRHPWidth,
-            height: '100%',
         },
 
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
@@ -6967,11 +7040,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
-        modalStackNavigatorContainer: {
+        modalStackNavigatorContainer: toViewStyle({
             height: '100%',
             right: 0,
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-        },
+        }),
         animatedRHPNavigatorContainer: {
             height: '100%',
             right: 0,
@@ -7035,7 +7108,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
         } satisfies ViewStyle,
 
-        sidePanelContent: {
+        sidePanelContent: toViewStyle({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
             bottom: 0,
@@ -7043,7 +7116,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: theme.modalBackground,
             borderLeftColor: theme.border,
-        },
+        }),
         searchBarMargin: {
             marginHorizontal: 20,
             marginBottom: 20,
@@ -7381,12 +7454,12 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
-        nativeTabBarFloatingButtons: (bottom: number) =>
+        nativeTabBarFloatingButtons: (bottom: number, left: number, right: number) =>
             ({
                 position: 'absolute',
-                right: 0,
+                right,
                 bottom,
-                left: 0,
+                left,
                 height: 0,
             }) satisfies ViewStyle,
 
@@ -7401,7 +7474,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 boxShadow: theme.androidTabBarShadow,
             }) satisfies ViewStyle,
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: DimensionValue) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
@@ -7410,11 +7483,11 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: ReturnType<typeof Animated.subtract>) =>
             ({
                 ...getRHPExtendedCardFrame(theme),
                 width,
-            }) satisfies ViewStyle,
+            }) satisfies Animated.WithAnimatedValue<ViewStyle>,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
@@ -7519,7 +7592,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                     outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
-            }) satisfies ViewStyle,
+            }) satisfies Animated.WithAnimatedValue<ViewStyle>,
 
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
@@ -7631,7 +7704,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
         }),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
+        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>): ViewStyle => {
             if (isDisabled) {
                 return {backgroundColor: undefined};
             }
@@ -7708,11 +7781,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
-        }),
-
-        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
-            left: -left,
-            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
@@ -7854,6 +7922,24 @@ const dynamicStyles = (theme: ThemeColors) =>
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
 const plainStyles = (theme: ThemeColors) =>
     ({
+        // These widths are Animated.Values, which StyleSheet.create's types reject. They are only passed
+        // to Animated components, which ignore what StyleSheet.create prepares, so plain objects behave the same.
+        wideRHPExtendedCardInterpolatorStyles: {
+            ...getRHPExtendedCardFrame(theme),
+            width: animatedWideRHPWidth,
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+        wideRHPDropZoneContainer: {
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+        } satisfies Animated.WithAnimatedValue<ViewStyle>,
+
         webViewStyles: webViewStyles(theme),
         textInputDesktop: addOutlineWidth(theme, {}, 0),
         noOutline: addOutlineWidth(theme, {}, 0),
@@ -8130,6 +8216,70 @@ const plainStyles = (theme: ThemeColors) =>
 
         insightsAICard: {
             width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
+
+        insightsDataTableSkeletonTopOffset: (topOffset: number) =>
+            ({
+                marginTop: topOffset,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableShareColumn: {
+            flex: 1.5,
+            minWidth: 0,
+            alignSelf: 'stretch',
+            paddingRight: variables.insightsRankingTableShareLabelSpace,
+        } satisfies ViewStyle,
+
+        insightsRankingTableNumberColumn: {
+            width: variables.w130,
+        } satisfies ViewStyle,
+
+        insightsRankingTableChangeColumn: {
+            width: variables.w96,
+            alignItems: 'flex-end',
+        } satisfies ViewStyle,
+
+        insightsRankingTableBar: (widthPercent: number) =>
+            ({
+                width: `${widthPercent}%`,
+                minWidth: variables.insightsRankingTableBarMinWidth,
+                height: variables.insightsRankingTableBarHeight,
+                borderRadius: variables.insightsRankingTableBarHeight / 2,
+                backgroundColor: colors.green400,
+                flexShrink: 0,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableBarTrack: {
+            flexDirection: 'row',
+            height: variables.insightsRankingTableBarHeight,
+            borderRadius: variables.insightsRankingTableBarHeight / 2,
+            backgroundColor: theme.border,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAverageLineAnchor: (leftPercent: number, overhangTop = 0, overhangBottom?: number) =>
+            ({
+                position: 'absolute',
+                top: -overhangTop,
+                bottom: -(overhangBottom ?? overhangTop),
+                left: `${leftPercent}%`,
+                width: 0,
+                alignItems: 'center',
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageDashedLine: (width: number) =>
+            ({
+                width,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageLegendMark: {
+            height: variables.insightsRankingTableBarHeight + variables.insightsRankingTableAverageMarkerOverhang * 2,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAveragePill: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingHorizontal: VictoryTheme.averageLine.pillPaddingHorizontal,
+            paddingVertical: VictoryTheme.averageLine.pillPaddingVertical,
         } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {

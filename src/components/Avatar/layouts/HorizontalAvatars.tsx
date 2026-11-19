@@ -69,7 +69,7 @@ function HorizontalAvatars({
             style={avatarContainerStyles}
             /* eslint-disable-next-line react/no-array-index-key */
             key={`avatarRow-${rowIndex}`}
-            testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row"
+            testID="Avatar-MultipleAvatars-StackedHorizontally-Row"
         >
             {avatars.slice(0, maxAvatarsPerRow).map((icon, index) => (
                 <AvatarTooltip
@@ -92,14 +92,14 @@ function HorizontalAvatars({
                         ]}
                         icon={icon}
                         size={size}
-                        testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
+                        testID="Avatar-MultipleAvatars-StackedHorizontally-Avatar"
                     />
                 </AvatarTooltip>
             ))}
             {avatars.length > maxAvatarsPerRow && (
                 <AvatarNamesTooltip avatars={icons.slice(avatarRows.length * maxAvatarsPerRow - 1, avatarRows.length * maxAvatarsPerRow + 9)}>
                     <View
-                        testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-LimitReached"
+                        testID="Avatar-MultipleAvatars-StackedHorizontally-LimitReached"
                         style={[
                             styles.alignItemsCenter,
                             styles.justifyContentCenter,

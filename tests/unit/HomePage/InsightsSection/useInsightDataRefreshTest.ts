@@ -65,6 +65,12 @@ jest.mock('@hooks/useIsTabFocused', () => ({
     default: jest.fn(() => true),
 }));
 
+// The real hook needs a ready navigation ref. Jest treats every layout as narrow, where tab visibility ignores the root state.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: jest.fn(() => false),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
 }));
