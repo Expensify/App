@@ -108,6 +108,7 @@ const options = createFilteredOptionList(
     EMPTY_PRIVATE_IS_ARCHIVED_MAP,
     undefined,
     {
+        lastActions: undefined,
         dateFnsLocale: undefined,
         convertToDisplayString,
         conciergeReportID: undefined,
@@ -122,6 +123,7 @@ const options = createFilteredOptionList(
 const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => (mockedReportsMap as OnyxCollection<Report>)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
 const ValidOptionsConfig = {
+    lastActions: undefined,
     dateFnsLocale: undefined,
     getReportByID,
     convertToDisplayString,
@@ -163,6 +165,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                lastActions: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 translate: translateLocal,
@@ -268,6 +271,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    lastActions: undefined,
                     dateFnsLocale: undefined,
                     getReportByID,
                     convertToDisplayString,
@@ -387,6 +391,7 @@ describe('OptionsListUtils', () => {
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
                 {
+                    lastActions: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -410,6 +415,7 @@ describe('OptionsListUtils', () => {
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
                 {
+                    lastActions: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -436,6 +442,7 @@ describe('OptionsListUtils', () => {
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
             {
+                lastActions: undefined,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -489,6 +496,7 @@ describe('OptionsListUtils', () => {
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
             {
+                lastActions: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -502,6 +510,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
+                lastActions: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 translate: translateLocal,

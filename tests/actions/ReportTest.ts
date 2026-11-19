@@ -2,6 +2,7 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
@@ -690,6 +691,20 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
+    it('readNewestAction stamps the given read time instead of now', async () => {
+        // Given a report that was read long ago
+        const REPORT_ID = '1';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, lastReadTime: '2026-01-01 09:00:00.000'});
+
+        // When it is marked read with the time the user saw it, which is earlier than now
+        Report.readNewestAction(REPORT_ID, true, false, '2026-01-01 10:00:00.000');
+        await waitForBatchedUpdates();
+
+        // Then the report keeps that time, so actions that arrived after it stay unread
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report?.lastReadTime).toBe('2026-01-01 10:00:00.000');
+    });
+
     it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
@@ -1052,6 +1067,98 @@ describe('actions/Report', () => {
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
+    });
+
+    describe.each([
+        {
+            name: 'a NetSuite export',
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 12:00:00.000'},
+        },
+        {
+            name: 'a payment meant for someone else',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+            originalMessage: {actionableForAccountIDs: [3]},
+        },
+    ])('marking unread with $name', ({actionName, originalMessage}) => {
+        const reportID = 'scoped-unread';
+        const currentUserAccountID = 1;
+        const comment = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: '2023-01-01 11:00:00.000',
+            message: [{type: 'COMMENT', text: 'An ordinary comment', html: 'An ordinary comment'}],
+        });
+        const informational = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'informational',
+            actionName,
+            originalMessage,
+            actorAccountID: 2,
+            created: '2023-01-01 12:00:00.000',
+            message: [{type: 'COMMENT', text: 'System message', html: 'System message'}],
+        });
+
+        beforeEach(async () => {
+            apiWriteSpy.mockResolvedValue(undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                lastVisibleActionCreated: informational.created,
+                lastReadTime: informational.created,
+                lastActorAccountID: informational.actorAccountID,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('uses the newest eligible message when marking the whole chat unread', () => {
+            // Given a read chat whose newest activity cannot show an automatic divider
+            const reportActions = {comment, informational};
+
+            // When the user marks the chat unread without choosing a specific message
+            Report.markCommentAsUnread(reportID, reportActions, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the read time points to the ordinary comment without storing a manual message anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: comment.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(comment.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: null})})]),
+                }),
+            );
+        });
+
+        it('keeps a specific message unread even when automatic dividers are filtered', () => {
+            // Given the same system message and an older ordinary comment
+            const reportActions = {comment, informational};
+
+            // When the user explicitly marks the system message unread
+            Report.markCommentAsUnread(reportID, reportActions, informational, currentUserAccountID, false);
+
+            // Then the chosen message still supplies the read time and manual anchor
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({manuallyMarkedUnreadReportActionID: informational.reportActionID})})]),
+                }),
+            );
+        });
+
+        it('keeps the existing fallback when no eligible message from another user exists', () => {
+            // Given only filtered activity from another user and a newer comment from the current user
+            const ownComment = {...comment, actorAccountID: currentUserAccountID, created: '2023-01-01 13:00:00.000'};
+
+            // When the whole chat is marked unread
+            Report.markCommentAsUnread(reportID, {ownComment, informational}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+            // Then the system message still supplies the fallback rather than the user's own comment
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_AS_UNREAD,
+                expect.objectContaining({reportActionID: informational.reportActionID, lastReadTime: DateUtils.subtractMillisecondsFromDateTime(informational.created, 1)}),
+                expect.anything(),
+            );
+        });
     });
 
     it('Should properly update comment with links', async () => {
@@ -13042,6 +13149,8 @@ describe('actions/Report', () => {
     describe('mergeReports', () => {
         const currentUserAccountID = 1;
         const currentUserEmail = 'test@example.com';
+        const currentUserPersonalDetail = {accountID: currentUserAccountID, login: currentUserEmail};
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[currentUserEmail]: currentUserPersonalDetail};
 
         const POLICY_ID = 'policy_123';
         const WORKSPACE_CHAT_REPORT_ID = 'workspace_chat_456';
@@ -13227,6 +13336,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13298,6 +13408,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13368,6 +13479,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13393,6 +13505,71 @@ describe('actions/Report', () => {
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
             expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);
+        });
+
+        it('builds the destination next step with the personal details looked up by login', async () => {
+            const approverEmail = 'approver@example.com';
+            const approverAccountID = 2;
+            const personalDetailsByLoginsWithApprover: PersonalDetailsByLogin = {...personalDetailsByLogins, [approverEmail]: {accountID: approverAccountID, login: approverEmail}};
+            const approvalPolicy = createMock<OnyxTypes.Policy>({
+                ...policy,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+            });
+            const submittedDestinationReport = createMock<OnyxTypes.Report>({
+                ...destinationReport,
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: -500,
+                unheldTotal: -500,
+                transactionCount: 1,
+            });
+
+            // Given a destination report waiting on the approver of a workspace with Basic approval, whose next step needs
+            // the approver's personal details to find who it waits on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, approvalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, submittedDestinationReport);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+
+            // When other reports are merged into it
+            Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                cardList: undefined,
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                currentUserPersonalDetails: {accountID: currentUserAccountID, email: currentUserEmail},
+                policy: approvalPolicy,
+                policyTagList: {},
+                allReports: {...allReports, [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: submittedDestinationReport},
+                allReportActions,
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the destination stays submitted, and its next step is built with the same personal details, so it can resolve the approver
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: expect.objectContaining({reportID: DESTINATION_REPORT_ID}),
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+                }),
+            );
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 

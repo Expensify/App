@@ -2,7 +2,6 @@ import Text from '@components/Text';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
@@ -12,7 +11,7 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 function MentionHereRenderer({style, tnode}: CustomRendererProps<TText | TPhrasing>) {
     const StyleUtils = useStyleUtils();
 
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const flattenStyle = StyleSheet.flatten(style);
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
