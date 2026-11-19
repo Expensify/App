@@ -8,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
@@ -86,6 +86,7 @@ function SubmitActionButtonContent() {
     const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -122,7 +123,7 @@ function SubmitActionButtonContent() {
         violationsCollection: filteredTransactionViolations,
     });
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules, submitterPersonalDetailsByLogin);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         iouReport?.reportID,
         filteredTransactionViolations,
@@ -130,6 +131,8 @@ function SubmitActionButtonContent() {
         currentUserAccountID,
         currentUserEmail,
         transactions,
+        iouReport,
+        policy,
     );
     const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
