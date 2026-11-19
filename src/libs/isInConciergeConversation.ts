@@ -30,7 +30,7 @@ function getConciergeConversationReportID(reportID: string | undefined, concierg
         if (currentReportID === conciergeReportID) {
             return currentReportID;
         }
-        const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
+        const currentReport: OnyxEntry<ConciergeConversationReport> = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
         const parentReportID: string | undefined = currentReport?.parentReportID;
         if (parentReportID === conciergeReportID) {
             return isConciergePageThread(currentReport, conciergeReportID) ? currentReportID : undefined;

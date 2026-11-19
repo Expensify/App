@@ -138,9 +138,17 @@ function isConciergeMessageWithoutThread(reportAction: OnyxEntry<ReportAction>):
     );
 }
 
+/** Orders timestamps and IDs, which aren't user-facing text, so they don't need a locale-aware comparison */
+function compareDescending(first: string, second: string): number {
+    if (first === second) {
+        return 0;
+    }
+    return first < second ? 1 : -1;
+}
+
 /** Most recent activity first */
 function sortConciergeConversations(conversations: ConciergeConversation[]): ConciergeConversation[] {
-    return conversations.sort((first, second) => second.lastActivity.localeCompare(first.lastActivity) || second.key.localeCompare(first.key));
+    return conversations.sort((first, second) => compareDescending(first.lastActivity, second.lastActivity) || compareDescending(first.key, second.key));
 }
 
 export {
@@ -152,4 +160,4 @@ export {
     isUnreadConciergeThread,
     sortConciergeConversations,
 };
-export type {ConciergeConversation};
+export type {ConciergeConversation, ConciergeThreadConversation};

@@ -558,7 +558,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                <ConciergeHeaderActions reportID={reportID} />
+                                {(isInNarrowConciergePage || isInConciergeSidePanel) && (
+                                    <ConciergeHeaderActions
+                                        reportID={reportID}
+                                        isInNarrowConciergePage={isInNarrowConciergePage}
+                                        isInConciergeSidePanel={isInConciergeSidePanel}
+                                    />
+                                )}
                                 <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>

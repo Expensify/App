@@ -3,7 +3,6 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 
-import useConciergeHeaderPlacement from '@hooks/useConciergeHeaderPlacement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,9 +28,15 @@ import ConciergeHistoryButton from './ConciergeHistoryButton';
 type ConciergeHeaderActionsProps = {
     /** The report the header shows */
     reportID: string | undefined;
+
+    /** The header is on the Concierge page in the narrow layout, where the page shows one screen at a time */
+    isInNarrowConciergePage: boolean;
+
+    /** The header shows a Concierge conversation in the side panel, where the Concierge DM only starts new conversations */
+    isInConciergeSidePanel: boolean;
 };
 
-function ConciergeHeaderActions({reportID}: ConciergeHeaderActionsProps) {
+function ConciergeHeaderActions({reportID, isInNarrowConciergePage, isInConciergeSidePanel}: ConciergeHeaderActionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -41,7 +46,6 @@ function ConciergeHeaderActions({reportID}: ConciergeHeaderActionsProps) {
     // The side panel is narrow on every screen, so only the window width tells whether the Concierge page shows its list beside the chat
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isInNarrowConciergePage, isInConciergeSidePanel} = useConciergeHeaderPlacement(reportID);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = !!conciergeReportID && reportID === conciergeReportID;

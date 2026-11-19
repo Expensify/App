@@ -1,7 +1,7 @@
 /** The sidebar of the Concierge page: the user's Concierge conversations, newest activity first, and a button to start a new one. */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
@@ -117,12 +117,13 @@ function ConciergeSidebarScreen() {
             {...(shouldUseNarrowLayout ? {} : tabRootScreenWrapperProps)}
         >
             {shouldUseNarrowLayout ? (
-                <HeaderWithBackButton
-                    title={translate('common.concierge.title')}
-                    onBackButtonPress={goBack}
-                >
-                    {newChatButton}
-                </HeaderWithBackButton>
+                <Header>
+                    <Header.BackButton onPress={goBack} />
+                    <Header.Title title={translate('common.concierge.title')} />
+                    <Header.Right>
+                        <Header.Actions>{newChatButton}</Header.Actions>
+                    </Header.Right>
+                </Header>
             ) : (
                 <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.concierge.title')}

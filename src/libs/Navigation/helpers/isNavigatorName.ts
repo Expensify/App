@@ -77,4 +77,13 @@ function isWorkspaceNavigatorRouteName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<WorkspaceNavigatorRouteName>(screen, WORKSPACES_TAB_SET);
 }
 
-export {isFullScreenName, isModalNavigatorName, isOnboardingFlowName, isPreMountBufferHostName, isReportSplitNavigatorName, isSidebarScreenName, isSplitNavigatorName, isWorkspaceNavigatorRouteName};
+export {
+    isFullScreenName,
+    isModalNavigatorName,
+    isOnboardingFlowName,
+    isPreMountBufferHostName,
+    isReportSplitNavigatorName,
+    isSidebarScreenName,
+    isSplitNavigatorName,
+    isWorkspaceNavigatorRouteName,
+};
