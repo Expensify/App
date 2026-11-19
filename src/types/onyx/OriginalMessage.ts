@@ -1303,6 +1303,21 @@ type OriginalMessageMovedTransaction = {
     reasoning?: string;
 };
 
+/** Model of MERGED_REPORTS report action */
+type OriginalMessageMergedReports = {
+    /** Reports merged into this report, with their names at merge time because the merge deletes them */
+    sourceReports: Array<{
+        /** ID of the merged report */
+        reportID: string;
+
+        /** Name of the merged report */
+        reportName: string;
+    }>;
+
+    /** Number of expenses the merge moved into this report */
+    movedTransactionCount: number;
+};
+
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
     /** ID of the old policy */
@@ -1877,6 +1892,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS]: OriginalMessageMergedReports;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
@@ -1993,6 +2009,7 @@ export type {
     OriginalMessageExportIntegration,
     OriginalMessageChangePolicy,
     OriginalMessageMovedTransaction,
+    OriginalMessageMergedReports,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
