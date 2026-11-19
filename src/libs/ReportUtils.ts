@@ -258,15 +258,14 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
+import {isCurrentUserSubmitter as isCurrentUserSubmitterState, isReportManager as isReportManagerState} from './ReportRoles';
 import {
-    isCurrentUserSubmitter as isCurrentUserSubmitterState,
     isInvoiceReport as isInvoiceReportState,
     isIOUReport as isIOUReportState,
     isOpenExpenseReport as isOpenExpenseReportState,
     isProcessingReport as isProcessingReportState,
-    isReportManager as isReportManagerState,
     isSettled as isSettledState,
-} from './ReportStateUtils';
+} from './ReportTypeAndStatus';
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,

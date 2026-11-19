@@ -1,7 +1,6 @@
 /**
- * Report predicates that read only the report object and the current user's account ID. This file never imports ReportUtils,
- * so modules whose graph reaches ReportUtils (like TransactionUtils/violations) can use them without an import cycle.
- * ReportUtils keeps wrapper functions with the same names, so `import {isSettled} from '@libs/ReportUtils'` keeps working.
+ * Checks on a report's type, state and status. This file never imports ReportUtils, so modules whose graph reaches ReportUtils
+ * (like TransactionUtils/violations) can use them without an import cycle. ReportUtils keeps wrapper functions with the same names.
  */
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Report} from '@src/types/onyx';
@@ -52,18 +51,4 @@ function isSettled(report: OnyxInputOrEntry<Report> | undefined): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 }
 
-/**
- * Checks if the given user is the submitter of the report.
- */
-function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
-    return !!report && report.ownerAccountID === currentUserAccountID;
-}
-
-/**
- * Checks if the given user is the manager of the supplied report.
- */
-function isReportManager(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
-    return !!(report && report.managerID === currentUserAccountID);
-}
-
-export {isProcessingReport, isIOUReport, isInvoiceReport, isOpenExpenseReport, isSettled, isCurrentUserSubmitter, isReportManager};
+export {isProcessingReport, isIOUReport, isInvoiceReport, isOpenExpenseReport, isSettled};
