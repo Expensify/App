@@ -13,6 +13,7 @@ import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import shouldParkNativeShare from '@libs/Navigation/helpers/shouldParkNativeShare';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import isNativeOAuthCallbackURL from '@libs/Navigation/linkingConfig/isNativeOAuthCallbackURL';
@@ -520,13 +521,14 @@ function openReportFromDeepLink(
         return;
     }
 
-    // A native share (`share/root`) received while signed out is parked instead of being replayed below. The generic
-    // replay has no good moment for it: for a brand-new account it either stamps the "finish the setup questions" error
-    // (onboarding already focused) or drops the link (captured before onboarding finished), and for any account it
-    // races OpenApp. useOnboardingFlowRouter opens it once it knows onboarding is not needed, and the onboarding exit
-    // opens it on top of the landing screen otherwise. linkingConfig.filter keeps react-navigation from mounting the
-    // route from a signed-out launch URL for the same reason. See #101425.
-    if (!isAuthenticated && isNativeShareLink(route)) {
+    // A native share (`share/root`) that arrives before it is known whether onboarding comes first is parked instead of
+    // being replayed below: while signed out, or right after sign-in while OpenApp is still loading the account, which is
+    // when HybridApp hands the link over. The generic replay has no good moment for it: for a brand-new account it
+    // either stamps the "finish the setup questions" error (onboarding already focused) or races OpenApp and loses the
+    // share to the onboarding redirect. useOnboardingFlowRouter opens it once it has ruled onboarding out, and the
+    // onboarding exit opens it on top of the landing screen otherwise. linkingConfig.filter keeps react-navigation from
+    // routing the link for the same reason. See #101425.
+    if (isNativeShareLink(route) && shouldParkNativeShare(isAuthenticated)) {
         setPendingNativeShare();
         return;
     }

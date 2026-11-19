@@ -16,6 +16,7 @@ import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 
 import {updateLastVisitedPath} from '@userActions/App';
+import {parkShareFlowRemovedByOnboarding} from '@userActions/Share';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
@@ -281,6 +282,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
+
+        parkShareFlowRemovedByOnboarding(state);
     };
 
     const onReadyWithSentry = () => {
@@ -296,6 +299,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // from the restored root state so isTopMostReportId is correct on the first report screen
         // (e.g. the composer's keyboard avoiding view is enabled right away).
         updateCurrentReportID(navigationRef.getRootState());
+        // Same for a share flow that is part of the initial state.
+        parkShareFlowRemovedByOnboarding(navigationRef.getRootState());
     };
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.

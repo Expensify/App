@@ -2,6 +2,7 @@ import {hasAuthToken} from '@libs/CurrentUserStore';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
+import shouldParkNativeShare from '@libs/Navigation/helpers/shouldParkNativeShare';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import type {LinkingOptions} from '@react-navigation/native';
@@ -22,10 +23,10 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     // initial URL and later `url` events. The native OAuth callback is consumed by the auth session that opened
     // it, so routing it would only land on NotFound and tear down the returning screen. The signed-out path goes
     // through openReportFromDeepLink instead, which has its own guard.
-    // A native share (`share/root`) that arrives while signed out is parked by openReportFromDeepLink and opened once the
-    // signed-in app knows whether onboarding comes first. Letting react-navigation keep it as the launch state would
-    // mount the share modal the moment the user signs in, where onboarding tears it down again (#101425).
-    filter: (url) => !isNativeOAuthCallbackURL(url) && !(isNativeShareLink(url) && !hasAuthToken()),
+    // A native share (`share/root`) that arrives before it is known whether onboarding comes first (signed out, or right
+    // after sign-in while the account is still loading) is parked by openReportFromDeepLink and opened once that is
+    // settled. Routing it here would mount the share modal just for onboarding to tear it down again (#101425).
+    filter: (url) => !isNativeOAuthCallbackURL(url) && !(isNativeShareLink(url) && shouldParkNativeShare(hasAuthToken())),
 };
 
 // eslint-disable-next-line import/prefer-default-export

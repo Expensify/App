@@ -1,11 +1,13 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from '@libs/actions/Session';
-import {clearPendingNativeShare, openPendingNativeShare} from '@libs/actions/Share';
+import {openPendingNativeShare} from '@libs/actions/Share';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
+import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import * as Url from '@libs/Url';
 
 import CONFIG from '@src/CONFIG';
@@ -57,6 +59,10 @@ jest.mock('@libs/actions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     waitForUserSignIn: jest.fn(),
 }));
+jest.mock('@libs/SessionUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/SessionUtils'),
+    didUserLogInDuringSession: jest.fn(() => true),
+}));
 jest.mock('@libs/actions/Welcome', () => ({
     setOnboardingErrorMessage: jest.fn(),
 }));
@@ -78,6 +84,7 @@ const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRout
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockedWaitForUserSignIn = jest.mocked(waitForUserSignIn);
 const mockedSetOnboardingErrorMessage = jest.mocked(setOnboardingErrorMessage);
+const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
     return {
@@ -447,7 +454,9 @@ describe('Link.openReportFromDeepLink', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        clearPendingNativeShare();
+        // Resets the parked native share and the "onboarding settled" mark, like a sign-out does.
+        runSessionCleanupCallbacks();
+        mockedDidUserLogInDuringSession.mockReturnValue(true);
         await Onyx.clear();
         mockedIsAnonymousUser.mockReturnValue(false);
         mockedWaitForUserSignIn.mockResolvedValue(true);
@@ -475,9 +484,41 @@ describe('Link.openReportFromDeepLink', () => {
         expect(mockedNavigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, {waitForTransition: true});
     });
 
-    it('leaves a native share received while signed in to react-navigation', async () => {
-        // Given a signed-in user shares a photo to the app, which react-navigation's linking already routes
-        // When the deep link is processed
+    it('parks a native share that arrives right after sign-in, before onboarding is settled', async () => {
+        // Given the share link reaches JS only once the user is signed in, while the account is still loading. This is
+        // how HybridApp delivers it: react-navigation would route it straight away and onboarding would then remove it
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When the deep link is processed for the signed-in user
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, false, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        // Then it is parked like a signed-out share: no replay, no onboarding error
+        expect(mockedWaitForUserSignIn).not.toHaveBeenCalled();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetOnboardingErrorMessage).not.toHaveBeenCalled();
+        expect(openPendingNativeShare()).toBe(true);
+    });
+
+    it('leaves a native share to react-navigation once onboarding is settled', async () => {
+        // Given a user who signed in during this session and for whom onboarding has already been ruled out
+        openPendingNativeShare();
+
+        // When they share a photo to the app later on
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, true, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        // Then nothing is parked, because react-navigation's linking already routes it
+        expect(mockedWaitForUserSignIn).toHaveBeenCalled();
+        expect(openPendingNativeShare()).toBe(false);
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('leaves a native share to react-navigation for a session that was already signed in at startup', async () => {
+        // Given a returning user whose session was on disk when the app started, so their onboarding status is known
+        mockedDidUserLogInDuringSession.mockReturnValue(false);
+
+        // When they share a photo to the app
         openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, true, 1, {}, {});
         await waitForBatchedUpdates();
 

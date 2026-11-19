@@ -404,7 +404,7 @@ describe('navigateAfterOnboarding', () => {
         expect(openSidePanel).not.toHaveBeenCalled();
     });
 
-    describe('native share captured while signed out', () => {
+    describe('parked native share', () => {
         function exitOnboarding(exit: () => void) {
             jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
             let finishDismissal: (() => void) | undefined;
@@ -460,18 +460,19 @@ describe('navigateAfterOnboarding', () => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         });
 
-        it('leaves a share that onboarding never deferred to the onboarding router', () => {
-            // Given a share is pending for an account that did not need onboarding
+        it('opens a share that is still pending when onboarding exits', () => {
+            // Given a share was parked but the onboarding router never got to defer it, e.g. it arrived while onboarding was already on screen
             const navigate = jest.spyOn(Navigation, 'navigate');
             setPendingNativeShare();
 
-            // When an onboarding exit runs anyway
+            // When the onboarding exit runs
             exitOnboarding(() => navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {}, false));
 
-            // Then the exit does not consume it; the router (useOnboardingFlowRouter) still can
-            expect(navigate).toHaveBeenCalledTimes(1);
-            expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-            expect(openPendingNativeShare()).toBe(true);
+            // Then the exit opens it on top of the landing screen instead of leaving it stranded, and it is not opened again later
+            expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.HOME, undefined);
+            expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.SHARE_ROOT, {waitForTransition: true});
+            expect(navigate).toHaveBeenCalledTimes(2);
+            expect(openPendingNativeShare()).toBe(false);
         });
     });
 });

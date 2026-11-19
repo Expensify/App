@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import {markOnboardingSettledForNativeShare} from '@libs/Navigation/helpers/shouldParkNativeShare';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
@@ -10,14 +11,17 @@ import type {ShareTempFile} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {NavigationState} from '@react-navigation/native';
+
 import Onyx from 'react-native-onyx';
 
 /**
- * A native share (`share/root`) that arrived while the user was signed out. The share extensions stage the file natively
- * and open the app through a plain deep link, so a signed-out share has to be handed over to the signed-in app once it
- * is known whether onboarding will open first:
- * - `pending`: captured; opened by useOnboardingFlowRouter as soon as it decides onboarding is not needed.
- * - `deferredUntilOnboardingExit`: the user needs onboarding; opened by the onboarding exit on top of the landing screen.
+ * A native share (`share/root`) that has to wait for onboarding. The share extensions stage the file natively and open
+ * the app through a plain deep link, and that link can reach JS before it is known whether onboarding comes first: while
+ * signed out, or right after sign-in while OpenApp is still loading the account (see shouldParkNativeShare). Such a share
+ * is parked here and opened once:
+ * - `pending`: parked; opened by useOnboardingFlowRouter as soon as it rules onboarding out.
+ * - `deferredUntilOnboardingExit`: onboarding comes first; opened by the onboarding exit on top of the landing screen.
  * - `opening`: the share flow has been pushed; consumed once ShareModalNavigator is actually in the root state.
  * Kept in memory on purpose: the staged file does not survive a process restart, and the intent must never replay for
  * the next account that signs in (it is cleared on sign-out below).
@@ -38,15 +42,25 @@ const MAX_SHARE_FLOW_PUSH_ATTEMPTS = 3;
 
 let pendingNativeShare: PendingNativeShare = 'none';
 let stopWatchingNavigationState: (() => void) | undefined;
+let wasShareFlowMounted = false;
+
+function stopWatchingShareFlowPush() {
+    stopWatchingNavigationState?.();
+    stopWatchingNavigationState = undefined;
+}
 
 function setPendingNativeShare() {
+    // The link that parked the share is processed again on later DeepLinkHandler runs, so a share that is already
+    // parked, deferred or opening must not start over.
+    if (pendingNativeShare !== 'none') {
+        return;
+    }
     pendingNativeShare = 'pending';
 }
 
 function clearPendingNativeShare() {
     pendingNativeShare = 'none';
-    stopWatchingNavigationState?.();
-    stopWatchingNavigationState = undefined;
+    stopWatchingShareFlowPush();
 }
 
 /**
@@ -60,8 +74,12 @@ function deferPendingNativeShareUntilOnboardingExit() {
     pendingNativeShare = 'deferredUntilOnboardingExit';
 }
 
+function hasRootRoute(state: NavigationState, name: string): boolean {
+    return state.routes.some((route) => route.name === name);
+}
+
 function isShareFlowInRootState(): boolean {
-    return navigationRef.getRootState().routes.some((route) => route.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR);
+    return hasRootRoute(navigationRef.getRootState(), NAVIGATORS.SHARE_MODAL_NAVIGATOR);
 }
 
 function isWelcomeModalFocused(): boolean {
@@ -70,6 +88,25 @@ function isWelcomeModalFocused(): boolean {
 
 function pushShareFlow() {
     Navigation.navigate(ROUTES.SHARE_ROOT, {waitForTransition: true});
+}
+
+/**
+ * Keeps a share flow that onboarding removes. Onboarding that starts while the share flow is open rebuilds the stack
+ * without it (the onboarding redirect drops every dismissible modal), whoever opened the share, and the shared file
+ * would be lost with it. Called with every root navigation state: a share flow that was replaced by the onboarding
+ * modal is parked for the onboarding exit, which reopens it on top of the landing screen.
+ */
+function parkShareFlowRemovedByOnboarding(state: NavigationState) {
+    const isShareFlowMounted = hasRootRoute(state, NAVIGATORS.SHARE_MODAL_NAVIGATOR);
+    const wasRemovedByOnboarding = wasShareFlowMounted && !isShareFlowMounted && state.routes.at(-1)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+    wasShareFlowMounted = isShareFlowMounted;
+
+    if (!wasRemovedByOnboarding) {
+        return;
+    }
+
+    stopWatchingShareFlowPush();
+    pendingNativeShare = 'deferredUntilOnboardingExit';
 }
 
 /**
@@ -82,12 +119,11 @@ function openShareFlowOnceAccepted() {
     let attempts = 1;
     let shouldRetryAfterWelcomeModal = isWelcomeModalFocused();
 
-    stopWatchingNavigationState?.();
+    stopWatchingShareFlowPush();
     stopWatchingNavigationState = navigationRef.addListener('state', () => {
-        // Cleared on sign-out, or re-parked by a newer share that will be opened on its own.
+        // Cleared on sign-out, or parked again for the onboarding exit.
         if (pendingNativeShare !== 'opening') {
-            stopWatchingNavigationState?.();
-            stopWatchingNavigationState = undefined;
+            stopWatchingShareFlowPush();
             return;
         }
 
@@ -120,14 +156,26 @@ function openShareFlowOnceAccepted() {
 }
 
 /**
- * Opens the Share flow for a parked native share, at most once. The plain call takes only a share that was never
- * deferred; `afterOnboarding` takes only a share deferred by onboarding, so the two consumers cannot race each other.
+ * Opens the Share flow for a parked native share, at most once. Called without options by useOnboardingFlowRouter once
+ * it has ruled onboarding out, and with `afterOnboarding` by the onboarding exit once it has navigated to the landing
+ * screen. Either call also means a share arriving later in this session no longer has to wait for onboarding.
  *
  * @returns whether a parked share was taken up
  */
 function openPendingNativeShare({afterOnboarding = false}: {afterOnboarding?: boolean} = {}): boolean {
-    const consumableState: PendingNativeShare = afterOnboarding ? 'deferredUntilOnboardingExit' : 'pending';
-    if (pendingNativeShare !== consumableState) {
+    // Onboarding is ruled out the moment it completes, while its modal is still on screen and before its exit has
+    // navigated to the landing screen. Leave the share to that exit so the two pushes cannot race.
+    if (!afterOnboarding && navigationRef.isReady() && hasRootRoute(navigationRef.getRootState(), NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR)) {
+        deferPendingNativeShareUntilOnboardingExit();
+        return false;
+    }
+
+    markOnboardingSettledForNativeShare();
+
+    // A share deferred by onboarding belongs to the onboarding exit alone: the router re-evaluates as soon as onboarding
+    // completes, before the exit has navigated to the landing screen.
+    const canTakeShare = pendingNativeShare === 'pending' || (afterOnboarding && pendingNativeShare === 'deferredUntilOnboardingExit');
+    if (!canTakeShare) {
         return false;
     }
 
@@ -148,7 +196,10 @@ function openPendingNativeShare({afterOnboarding = false}: {afterOnboarding?: bo
     return true;
 }
 
-registerSessionCleanupCallback(clearPendingNativeShare);
+registerSessionCleanupCallback(() => {
+    clearPendingNativeShare();
+    wasShareFlowMounted = false;
+});
 
 /**
 Function for clearing old saved data before at the start of share-extension flow
@@ -209,4 +260,5 @@ export {
     clearPendingNativeShare,
     deferPendingNativeShareUntilOnboardingExit,
     openPendingNativeShare,
+    parkShareFlowRemovedByOnboarding,
 };
