@@ -91,6 +91,7 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchGroupBase,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchResultDataType,
@@ -5434,6 +5435,20 @@ function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transa
     }
 }
 
+/**
+ * The totals a group row carries, keyed by the breakdown that shows each one. A collapsed group stands for rows the
+ * client never loaded, so these are the only figures a selected group can contribute to the footer's total.
+ */
+function getGroupTotalsByBreakdown(group: Partial<SearchGroupBase>): Partial<Record<SearchFooterTotal, number>> {
+    return {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: group.total,
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: group.reimbursableTotal,
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: group.nonReimbursableTotal,
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: group.billableTotal,
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: group.nonBillableTotal,
+    };
+}
+
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -8599,6 +8614,7 @@ export {
     canBulkMoveReportToPolicy,
     canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
+    getGroupTotalsByBreakdown,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     isEverySearchBulkEditExpenseOwnedBy,
