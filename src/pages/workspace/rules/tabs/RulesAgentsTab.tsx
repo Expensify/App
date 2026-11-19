@@ -81,6 +81,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                             {
                                 buttonText: translate('workspace.rules.agentRulesEmptyState.cta'),
                                 buttonAction: handleAddAgentRule,
+                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENTS_EMPTY_STATE_ADD_RULE,
                                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 icon: icons.Plus,
                                 isDisabled: !canWriteRules,

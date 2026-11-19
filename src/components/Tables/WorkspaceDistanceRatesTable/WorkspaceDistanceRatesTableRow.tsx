@@ -183,7 +183,7 @@ function WorkspaceDistanceRatesTableRow({
                                     />
                                     <Text
                                         variant="label"
-                                        style={[styles.textSupporting, styles.fontSizeLabel, styles.flexShrink1]}
+                                        style={[styles.textSupporting, styles.flexShrink1]}
                                     >
                                         {dateLabelText}
                                     </Text>
@@ -197,7 +197,10 @@ function WorkspaceDistanceRatesTableRow({
                                         height={variables.iconSizeSmall}
                                         fill={theme.icon}
                                     />
-                                    <Text style={[styles.textSupportingNormal, styles.flexShrink1]}>
+                                    <Text
+                                        variant="label"
+                                        style={[styles.textSupporting, styles.flexShrink1]}
+                                    >
                                         {translate('workspace.distanceRates.taxReclaimableOnAmount', formattedTaxReclaimable)}
                                     </Text>
                                 </View>
