@@ -7,6 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import type * as SingleExecution from '@hooks/useSingleExecution';
 
 import * as AgentActions from '@libs/actions/Agent';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -37,6 +38,9 @@ import * as TestHelper from '../utils/TestHelper';
 import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// Web intentionally allows repeated navigation; exercise the native guard that these rows must preserve.
+jest.mock('@hooks/useSingleExecution', () => jest.requireActual<typeof SingleExecution>('@hooks/useSingleExecution/index.native'));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -79,33 +83,11 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// The public options rows use the composable MenuItem API, where the indicator is a child leaf rather than
-// a prop, so expose its status as text the same way the MenuItemWithTopDescription double below does
+// Expose the indicator status so tests can distinguish phone errors from address reminders.
 jest.mock('@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
     return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, null, `${status}-brickRoadIndicator`);
-});
-
-// Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    const ReactMock = jest.requireActual<typeof React>('react');
-    const {Text} = jest.requireActual<{Text: typeof ReactNativeText}>('react-native');
-    return ({
-        pressableTestID,
-        brickRoadIndicator,
-        furtherDetails,
-    }: {
-        pressableTestID: string;
-        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-        furtherDetails?: string;
-    }) =>
-        ReactMock.createElement(
-            ReactMock.Fragment,
-            null,
-            ReactMock.createElement(Text, {testID: pressableTestID}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`),
-            furtherDetails ? ReactMock.createElement(Text, {testID: `${pressableTestID}-further-details`}, furtherDetails) : null,
-        );
 });
 
 describe('ProfilePage contact method indicator', () => {
@@ -291,6 +273,21 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText('Private')).toBeDefined();
     });
 
+    it('opens private details only once while navigation is pending', async () => {
+        // Given a signed-in user whose private rows can be edited.
+        await setupUser('user@expensify.com');
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(Navigation.navigate).mockClear();
+
+        // When two private rows are pressed before the first navigation finishes.
+        fireEvent.press(screen.getByTestId('legal-name-menu-item'), {nativeEvent: {}});
+        fireEvent.press(screen.getByTestId('address-menu-item'), {nativeEvent: {}});
+
+        // Then a second private-details screen is not pushed on top of the first.
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
     it('names the workspace that calculates commuter exclusions from the home address', async () => {
         await setupUser('user@expensify.com');
         await act(async () => {
@@ -305,8 +302,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
-        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent(/info-brickRoadIndicator/);
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent(/Boulder Development uses this address for commuter exclusions\./);
     });
 
     it('does not mention commuter exclusions when no workspace calculates them from the home address', async () => {
@@ -323,7 +320,7 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('address-menu-item')).toBeDefined();
-        expect(screen.queryByTestId('address-menu-item-further-details')).toBeNull();
+        expect(screen.queryByText('Boulder Development uses this address for commuter exclusions.')).toBeNull();
     });
 
     it('shows the commuter exclusion indicator when distance rates are disabled but the setting remains active', async () => {
@@ -340,8 +337,8 @@ describe('ProfilePage - agent account', () => {
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('address-menu-item')).toHaveTextContent('info-brickRoadIndicator');
-        expect(screen.getByTestId('address-menu-item-further-details')).toHaveTextContent('Boulder Development uses this address for commuter exclusions.');
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent(/info-brickRoadIndicator/);
+        expect(screen.getByTestId('address-menu-item')).toHaveTextContent(/Boulder Development uses this address for commuter exclusions\./);
     });
 
     it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {

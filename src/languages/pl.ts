@@ -7266,9 +7266,19 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            visibleTo: 'Widoczne dla',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 członek',
+                few: `${count} członkowie`,
+                many: `${count} członków`,
+                other: `${count} członka`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Nie można usunąć dostępu do ${categoryName}`,
+                bulkRemoveAccessTitle: 'Nie można usunąć dostępu do tych kategorii',
                 description: ({count}: {count: number}) => ({
                     one: '1 członek nie miałby żadnych kategorii do wyboru. Zaktualizuj widoczność kategorii dla tej osoby, a potem spróbuj ponownie:',
                     other: `${count} członków nie będzie miało żadnych kategorii do wyboru. Zaktualizuj widoczność ich kategorii, a potem spróbuj ponownie:`,
@@ -8638,6 +8648,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             timezoneInputLabel: 'Strefa czasowa',
             timezoneInputHelpText: 'Twoja strefa czasowa jest używana do automatycznego wysyłania raportów',
             timezoneErrorMessage: 'Nie udało się zmienić strefy czasowej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
+            directReimbursementCurrencyTitle: 'Waluta niedostępna przy bezpośrednim zwrocie',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Ta przestrzeń robocza zwraca koszty członkom bezpośrednio przez Expensify, co nie jest dostępne w ${currency}. Aby używać ${currency}, przejdź do Przepływów pracy i wyłącz, a następnie ponownie włącz Płatności, aby płatności były realizowane poza Expensify.`,
+            goToWorkflows: 'Przejdź do przepływów pracy',
         },
         officeLocations: {
             title: 'Lokalizacje biur',
@@ -11030,6 +11044,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
+            tooManyKeywords: `Twoje wyszukiwanie zawiera zbyt wiele słów kluczowych. Użyj maksymalnie ${CONST.SEARCH.MAX_KEYWORD_TOKENS} słów kluczowych i spróbuj ponownie.`,
+            unsupportedGrouping: 'To wyszukiwanie nie obsługuje grupowania ani widoku wykresu. Usuń grupowanie i użyj widoku tabeli.',
+            invalidReportID: 'Wpisz prawidłowy identyfikator raportu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
+            unsupportedFilter: 'Filtr "is:" nie jest obsługiwany w tym wyszukiwaniu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
                 subtitle: `Spróbuj zmienić kryteria wyszukiwania lub utworzyć coś za pomocą przycisku +.`,

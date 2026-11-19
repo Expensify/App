@@ -6971,9 +6971,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            visibleTo: '可见范围',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 名成员',
+                other: `${count} 名成员`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `无法移除对 ${categoryName} 的访问权限`,
+                bulkRemoveAccessTitle: '无法移除这些类别的访问权限',
                 description: ({count}: {count: number}) => ({
                     one: '将会有 1 名成员没有可选择的类别。请先更新 TA 的类别可见性，然后再试一次：',
                     other: `将有 ${count} 名成员将没有可选择的类别。请先更新他们的类别可见性，然后重试：`,
@@ -8290,6 +8298,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             timezoneInputLabel: '时区',
             timezoneInputHelpText: '您的时区用于自动提交报表',
             timezoneErrorMessage: '无法更改时区。请重试或联系支持。',
+            directReimbursementCurrencyTitle: '直接报销不支持此货币',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `此工作区通过 Expensify 直接向成员报销，但 ${currency} 不支持此功能。要使用 ${currency}，请前往工作流程，先关闭再重新开启付款，使付款在 Expensify 之外进行。`,
+            goToWorkflows: '前往工作流程',
         },
         officeLocations: {
             title: '办公地点',
@@ -10566,6 +10578,10 @@ ${reportName}`,
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
+            tooManyKeywords: `搜索关键词过多。请使用不超过${CONST.SEARCH.MAX_KEYWORD_TOKENS}个关键词，然后重试。`,
+            unsupportedGrouping: '此搜索不支持分组或图表视图。请移除分组并使用表格视图。',
+            invalidReportID: '请输入有效的报告ID。如需查找未归入报告的费用，请使用 status:unreported。',
+            unsupportedFilter: '此搜索不支持 "is:" 筛选条件。如需查找未归入报告的费用，请使用 status:unreported。',
             emptyResults: {
                 title: '暂无内容',
                 subtitle: `请尝试调整搜索条件，或使用 “+” 按钮创建新项目。`,
