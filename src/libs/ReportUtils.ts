@@ -259,6 +259,15 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
+import {
+    isCurrentUserSubmitter as isCurrentUserSubmitterState,
+    isInvoiceReport as isInvoiceReportState,
+    isIOUReport as isIOUReportState,
+    isOpenExpenseReport as isOpenExpenseReportState,
+    isProcessingReport as isProcessingReportState,
+    isReportManager as isReportManagerState,
+    isSettled as isSettledState,
+} from './ReportStateUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,
@@ -1496,7 +1505,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
 }
 
 function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
-    return report?.type === CONST.REPORT.TYPE.INVOICE;
+    return isInvoiceReportState(report);
 }
 
 function isFinancialReportsForBusinesses(report: OnyxEntry<Report>): boolean {
@@ -1524,7 +1533,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean
  */
 function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
-    return report?.type === CONST.REPORT.TYPE.IOU;
+    return isIOUReportState(report);
 }
 
 /**
@@ -1599,7 +1608,7 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isReportManager(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
-    return !!(report && report.managerID === (currentUserAccountID ?? deprecatedCurrentUserAccountID));
+    return isReportManagerState(report, currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
 /**
@@ -1623,7 +1632,7 @@ function isReportManuallyReimbursed(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report is an expense report in Open state and status.
  */
 function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
-    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    return isOpenExpenseReportState(report);
 }
 
 /**
@@ -1661,21 +1670,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
         return false;
     }
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
-    if (!report) {
-        return false;
-    }
-
-    if (isEmptyObject(report)) {
-        return false;
-    }
-
-    // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
-    // consider the report as paid as well.
-    if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return false;
-    }
-
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    return isSettledState(report);
 }
 
 /**
@@ -1683,7 +1678,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
-    return !!report && report.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
+    return isCurrentUserSubmitterState(report, currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
 /**
@@ -2095,7 +2090,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
  * Returns true if report is still being processed
  */
 function isProcessingReport(report: OnyxEntry<Report>): boolean {
-    return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+    return isProcessingReportState(report);
 }
 
 function isOpenReport(report: OnyxEntry<Report>): boolean {
