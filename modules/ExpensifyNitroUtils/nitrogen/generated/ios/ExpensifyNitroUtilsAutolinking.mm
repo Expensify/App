@@ -12,6 +12,7 @@
 
 #include "HybridContactsModuleSpecSwift.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
+#include "HybridVerticalBarModuleSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -33,6 +34,13 @@
     "AppStartTimeModule",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridAppStartTimeModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createAppStartTimeModule();
+      return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "VerticalBarModule",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridVerticalBarModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createVerticalBarModule();
       return hybridObject;
     }
   );
