@@ -107,7 +107,7 @@ type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = E
      */
     callback?: MultifactorAuthenticationScenarioCallback;
 
-    /** Hides the MFA modal as soon as the action succeeds, for actions that dismiss a native sheet over it. */
+    /** Makes the MFA modal invisible once the action succeeds, for actions that dismiss a native sheet over it. */
     shouldHideModalOnSuccess?: true;
 
     /**

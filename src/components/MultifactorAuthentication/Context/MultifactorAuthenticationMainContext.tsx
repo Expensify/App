@@ -401,10 +401,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         return;
                     }
 
-                    if (scenario.shouldHideModalOnSuccess) {
-                        dispatch({type: 'HIDE_MODAL'});
-                    }
-
                     // Store the scenario response for callback invocation at outcome navigation
                     dispatch({
                         type: 'SET_SCENARIO_RESPONSE',

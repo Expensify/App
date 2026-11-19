@@ -7,7 +7,6 @@ import type {Action, MultifactorAuthenticationState} from './types';
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
     isModalOpen: false,
-    isModalHidden: false,
     error: undefined,
     continuableError: undefined,
     validateCode: undefined,
@@ -93,8 +92,6 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
                 payload: action.payload.payload,
             };
         }
-        case 'HIDE_MODAL':
-            return {...state, isModalHidden: true};
         case 'CLOSE_MODAL':
             // Also clear isCancelConfirmVisible. CLOSE_MODAL can close the navigator without the
             // flow ever completing (e.g. cancel() short-circuits to CLOSE_MODAL when offline), so

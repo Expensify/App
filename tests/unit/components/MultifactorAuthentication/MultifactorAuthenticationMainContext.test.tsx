@@ -139,7 +139,7 @@ describe('Wallet MFA composed providers', () => {
         expect(state.scenarioResponse?.body).toBeUndefined();
     });
 
-    it('hides the modal once wallet provisioning succeeds so it does not show under the dismissing sheet', async () => {
+    it('completes authorization on wallet success so the modal can hide before the sheet dismisses', async () => {
         // Given the real providers and a wallet sheet that is still presented over the modal.
         let finishWallet: ((status: TokenizationStatus) => void) | undefined;
         jest.mocked(handleAddCardToWallet).mockImplementation(
@@ -155,14 +155,15 @@ describe('Wallet MFA composed providers', () => {
         );
         await startScenario();
         await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
-        expect(state.isModalHidden).toBe(false);
+        expect(state.isAuthorizationComplete).toBe(false);
 
         // When the wallet reports success, which is when the native sheet starts dismissing.
         await act(async () => finishWallet?.('success'));
 
-        // Then the modal is invisible while the scenario completes instead of being closed or aborted.
-        await waitFor(() => expect(state.isFlowComplete).toBe(true));
-        expect(state.isModalHidden).toBe(true);
+        // Then the scenario asks for a hidden modal as soon as authorization completes, and nothing aborts it.
+        await waitFor(() => expect(state.isAuthorizationComplete).toBe(true));
+        expect(state.scenario?.shouldHideModalOnSuccess).toBe(true);
+        expect(state.error).toBeUndefined();
     });
 
     it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
@@ -185,9 +186,9 @@ describe('Wallet MFA composed providers', () => {
         // When the user cancels in the wallet sheet.
         await act(async () => finishWallet?.('canceled'));
 
-        // Then the modal stays visible for the failure outcome.
+        // Then authorization never completes, so the modal stays visible for the failure outcome.
         await waitFor(() => expect(state.isFlowComplete).toBe(true));
-        expect(state.isModalHidden).toBe(false);
+        expect(state.isAuthorizationComplete).toBe(false);
     });
 
     it('requires the existing enrollment flow before wallet provisioning', async () => {

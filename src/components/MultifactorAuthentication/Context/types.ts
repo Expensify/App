@@ -14,9 +14,6 @@ type MultifactorAuthenticationState = {
      *  so the close animation can play before state is fully reset. */
     isModalOpen: boolean;
 
-    /** Whether the open modal is made invisible without closing it or aborting the scenario. */
-    isModalHidden: boolean;
-
     /** Current error state - stops the flow and navigates to failure outcome */
     error: MFAError | undefined;
 
@@ -85,7 +82,6 @@ type Action =
     | {type: 'SET_CANCEL_CONFIRM_VISIBLE'; payload: boolean}
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'REREGISTER'}
-    | {type: 'HIDE_MODAL'}
     | {type: 'CLOSE_MODAL'}
     | {type: 'RESET'};
 

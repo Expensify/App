@@ -88,7 +88,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {isCancelConfirmVisible, isModalHidden, isModalOpen, scenario} = useMultifactorAuthenticationState();
+    const {isAuthorizationComplete, isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
     const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -99,6 +99,7 @@ function MultifactorAuthenticationModalNavigator() {
     const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const isModalHidden = !!scenario?.shouldHideModalOnSuccess && isAuthorizationComplete;
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
