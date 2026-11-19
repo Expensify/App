@@ -897,7 +897,7 @@ const translations = {
         addToWallet: {
             failedHeader: "Couldn't add card",
             failedTitle: "We couldn't add your card to your wallet",
-            failedSubtitle: "Your identity was verified, but something went wrong while adding the card. If it's already in your wallet, you can use it there.",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
         },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
