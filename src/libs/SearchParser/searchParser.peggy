@@ -41,8 +41,9 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
-    violation: null,
+    violation: "groupViolation",
     "paid-by": null,
+    "workflow-stage": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -58,6 +59,7 @@
     year: "desc",
     quarter: "desc",
     approver: "asc",
+    violation: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -309,6 +311,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -316,6 +319,7 @@ key "key"
       / withdrawalID
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo

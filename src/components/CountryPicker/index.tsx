@@ -4,6 +4,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Option} from '@libs/searchOptions';
 
 import {callIfAuthenticated} from '@userActions/Session';
@@ -17,7 +18,7 @@ import React, {useState} from 'react';
 
 import CountrySelectorModal from './CountrySelectorModal';
 
-type CountryPickerProps = {
+type CountryPickerProps = ForwardedFSClassProps & {
     value?: string;
 
     /** Callback when the list item is selected */
@@ -33,7 +34,7 @@ type CountryPickerProps = {
     disabled?: boolean;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}, label, disabled = false}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label, disabled = false, forwardedFSClass}: CountryPickerProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -57,6 +58,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label, disab
                 <MenuItemField.Row
                     name={label ?? translate('common.country')}
                     value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     <MenuItem.Chevron />

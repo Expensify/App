@@ -1,4 +1,5 @@
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import type {CollapseSurface} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
@@ -16,11 +17,14 @@ type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
     isCopied?: boolean;
+
+    /** The collapsible surface whose peek ends when an item is picked. Defaults to the Spend sidebar. */
+    collapseSurface?: CollapseSurface;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, collapseSurface}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
-    const {endPeek} = useSearchSidebarCollapse();
+    const {endPeek} = useSearchSidebarCollapse(collapseSurface);
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
     const menuItemsWithPeekCleanup = menuItems.map((item) => {

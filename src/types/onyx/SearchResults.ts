@@ -276,41 +276,58 @@ type SearchTagGroup = SearchGroupBase & {
     parentTagPath?: string;
 };
 
-/** Model of day grouped search result */
-type SearchDayGroup = SearchGroupBase & {
-    /** Date in YYYY-MM-DD format */
-    day: string;
+/** Average time a time bucket's reports spent in each workflow stage, in seconds. Only Insights returns them, and each is null when no report completed that stage. */
+type SearchWorkflowStageDurations = {
+    /** From creation to submission */
+    submitAverageTime?: number | null;
+
+    /** From submission to approval */
+    approveAverageTime?: number | null;
+
+    /** From approval to payment */
+    reimburseAverageTime?: number | null;
 };
+
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Date in YYYY-MM-DD format */
+        day: string;
+    };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchMonthGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Month (1-12) */
-    month: number;
-};
+        /** Month (1-12) */
+        month: number;
+    };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = SearchGroupBase & {
-    /** Week start date in YYYY-MM-DD format */
-    week: string;
-};
+type SearchWeekGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Week start date in YYYY-MM-DD format */
+        week: string;
+    };
 
 /** Model of year grouped search result */
-type SearchYearGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
-};
+type SearchYearGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
+    };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchQuarterGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Quarter (1-4) */
-    quarter: number;
-};
+        /** Quarter (1-4) */
+        quarter: number;
+    };
 
 /** Model of approver grouped search result */
 type SearchApproverGroup = SearchGroupBase & {
@@ -325,6 +342,15 @@ type SearchApproverGroup = SearchGroupBase & {
 type SearchViolationGroup = SearchGroupBase & {
     /** Violation name, e.g. `missingComment` */
     violation: string;
+};
+
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
 };
 
 /** Model of an expense in the search results */
@@ -365,6 +391,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchQuarterGroup
         | SearchApproverGroup
         | SearchViolationGroup
+        | SearchWorkflowStageGroup
     >;
 
 /** Model of search results */
@@ -400,9 +427,11 @@ export type {
     SearchTagGroup,
     SearchDayGroup,
     SearchMonthGroup,
+    SearchWorkflowStageDurations,
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

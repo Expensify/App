@@ -194,7 +194,7 @@ describe('Rule editors opened with a draft from the describe flow', () => {
         // Then the merchant restriction shows, because the editor reads the toggle from the seeded draft
         expect(await getOnyxValue(ONYXKEYS.FORMS.SPEND_RULE_FORM)).toEqual(draft);
         expect(screen.getByText(`restriction: ${CONST.SPEND_RULES.ACTION.BLOCK}`)).toBeOnTheScreen();
-        expect(screen.getByText(/workspace\.rules\.spendRules\.blockedMerchants/)).toBeOnTheScreen();
+        expect(screen.getByLabelText(/workspace\.rules\.spendRules\.blockedMerchants/)).toBeOnTheScreen();
     });
 
     it('opens a new spend rule with merchant restrictions off when there is no draft', async () => {
@@ -211,6 +211,6 @@ describe('Rule editors opened with a draft from the describe flow', () => {
 
         // Then merchant restrictions start off, as they do for any new spend rule
         expect(screen.getByText('restriction: off')).toBeOnTheScreen();
-        expect(screen.queryByText(/workspace\.rules\.spendRules\.blockedMerchants/)).toBeNull();
+        expect(screen.queryByLabelText(/workspace\.rules\.spendRules\.blockedMerchants/)).toBeNull();
     });
 });

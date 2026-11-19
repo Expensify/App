@@ -7,7 +7,7 @@ import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsSearchKey, Policy} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -40,6 +40,15 @@ type UseInsightsFiltersResult = {
     tagLevelOptions: InsightsTagLevelOption[];
 };
 
+/** Keeps parsing cached before the tag subscriptions use the saved workspace scope. */
+function useStoredInsightsFilters(searchKey: InsightsSearchKey) {
+    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {
+        selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey),
+    });
+    const parsedFilters = parseInsightsFilters(storedQuery);
+    return {storedQuery, storedQueryMetadata, parsedFilters};
+}
+
 /**
  * @param shouldSkipFetch - Whether the page won't call GetInsights for these filters, so a change to them has to be saved on its own
  */
@@ -49,14 +58,15 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
 
-    const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
+    const {storedQuery, storedQueryMetadata, parsedFilters} = useStoredInsightsFilters(searchKey);
 
     const defaultFilters: InsightsFilters = {
-        ...DEFAULT_INSIGHTS_FILTERS,
-        date: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH} : DEFAULT_INSIGHTS_FILTERS.date,
+        ...DEFAULT_INSIGHTS_FILTERS[dashboard],
+        defaultGroupBy: DEFAULT_INSIGHTS_FILTERS[dashboard].groupBy,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const storedFilters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
+    // A stored query leaves Compare out when it's off, so the default only applies before filters are stored.
+    const storedFilters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parsedFilters};
     const isSpend = dashboard === CONST.INSIGHTS.DASHBOARD.SPEND;
     const tagPolicyIDs = isSpend ? getInsightsTagPolicyIDs(policies, storedFilters.policyIDs) : [];
     const [namesByPolicy = getEmptyArray<string[]>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: (tags) => getInsightsTagLevelNames(tags, tagPolicyIDs)});
@@ -69,7 +79,9 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     const canFitTagLevel = policies !== undefined && hasLoadedTagLists;
     const filters: InsightsFilters = {
         ...storedFilters,
-        ...(isSpend && {tagLevel: canFitTagLevel ? getFittingTagLevel(selectedTagLevel, tagLevelOptions) : selectedTagLevel}),
+        ...(isSpend && {
+            tagLevel: canFitTagLevel ? getFittingTagLevel(selectedTagLevel, tagLevelOptions) : selectedTagLevel,
+        }),
     };
     const isResolved = activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded';
 

@@ -187,7 +187,6 @@ export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams
 export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
 export type {default as DismissReferralBannerParams} from './DismissReferralBannerParams';
-export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
@@ -365,6 +364,7 @@ export type {default as ReplaceReceiptParams} from './ReplaceReceiptParams';
 export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
+export type {default as PayViaABAParams} from './PayViaABAParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
@@ -440,6 +440,7 @@ export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDist
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetWorkspaceDistanceAutoUpdateParams} from './SetWorkspaceDistanceAutoUpdateParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
+export type {default as DismissUKFuelRateTaxErrorParams} from './DismissUKFuelRateTaxErrorParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
 export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';
@@ -608,6 +609,7 @@ export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
 export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyCompanyCardsFeedParams';
+export type {default as SearchCompanyCardByNumberParams} from './SearchCompanyCardByNumberParams';
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
 export type {default as SetFeedReimbursableParams} from './SetFeedReimbursableParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';
@@ -639,6 +641,7 @@ export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccou
 export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
+export type {default as JoinAccountingIntegrationWaitlistParams} from './JoinAccountingIntegrationWaitlistParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
@@ -704,6 +707,9 @@ export type {default as QueueExportSearchWithTemplateParams} from './QueueExport
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
 export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
 export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
+export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
+export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
+export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
 export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
@@ -745,7 +751,7 @@ export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthent
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
-export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
+export type {default as GetTransactionsMatchingRuleParams} from './GetTransactionsMatchingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
 export type {default as ToggleTwoFactorAuthRequiredForDomainParams} from './ToggleTwoFactorAuthRequiredForDomainParams';
 export type {default as SetReportDetailsColumnsParams} from './SetReportDetailsColumnsParams';
@@ -755,6 +761,7 @@ export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomai
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as RecordFraudFeedbackParams} from './RecordFraudFeedbackParams';
 export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';

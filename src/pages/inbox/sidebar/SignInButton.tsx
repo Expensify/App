@@ -7,9 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function SignInButton() {
     const styles = useThemeStyles();
@@ -19,15 +21,17 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => signOutAndRedirectToSignIn()}
+            onPress={async () => {
+                signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+            }}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
             <View style={[styles.signInButtonAvatar, styles.ph2]}>
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => {
-                        signOutAndRedirectToSignIn();
+                    onPress={async () => {
+                        signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                     }}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>

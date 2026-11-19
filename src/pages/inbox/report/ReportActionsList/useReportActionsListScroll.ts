@@ -12,8 +12,9 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useEffect, useRef} from 'react';
 
@@ -149,7 +150,7 @@ function useReportActionsListScroll({
     };
 
     const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
-        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
+        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => typeof index === 'number'));
         onViewableItemsChanged(info);
     };
 

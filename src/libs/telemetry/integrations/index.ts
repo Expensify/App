@@ -21,6 +21,9 @@ const classCallCheckNoiseFilterIntegration = undefined;
 // Web-only, stub for export shape parity.
 const googleTranslateRecursionNoiseFilterIntegration = undefined;
 
+// CanvasKit initialization only runs on web.
+const canvasKitNoiseFilterIntegration = undefined;
+
 export {
     navigationIntegration,
     tracingIntegration,
@@ -31,4 +34,5 @@ export {
     thirdPartyErrorFilterIntegration,
     classCallCheckNoiseFilterIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
 };

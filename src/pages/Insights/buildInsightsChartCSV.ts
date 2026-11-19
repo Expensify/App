@@ -1,9 +1,12 @@
 /** Builds a CSV from the current period's loaded chart groups, without exporting individual expenses. */
+import {COUNT_COLUMN_TITLE_KEYS} from '@components/Charts/utils/formatChartCount';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {ChartStackStage} from '@components/Search/buildStackedSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import {getAverageDuration} from '@components/Search/chartMetricValue';
 import {isEmptyPeriodAfterToday} from '@components/Search/isPeriodAfterToday';
 import applyRunningTotal from '@components/Search/runningTotal';
-import type {GroupedItem, SearchChartCountDimension, SearchGroupBy} from '@components/Search/types';
+import type {GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import escapeCsvField from '@libs/escapeCsvField';
@@ -22,6 +25,10 @@ type BuildInsightsChartCSVParams = {
     today: string;
     shouldShowRunningTotal?: boolean;
     countDimension?: SearchChartCountDimension;
+    metric?: SearchChartMetric;
+
+    /** The stages a stacked chart draws in each bucket, each written in a column of its own */
+    stages?: readonly ChartStackStage[];
 };
 
 const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
@@ -32,7 +39,15 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.TAG]: 'common.tag',
     [CONST.SEARCH.GROUP_BY.PAID_BY]: 'search.filters.groupBy.paid-by',
     [CONST.SEARCH.GROUP_BY.VIOLATION]: 'search.filters.groupBy.violation',
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'search.filters.groupBy.workflow-stage',
 };
+
+/** Matches the precision the chart writes average durations in */
+const AVERAGE_DAYS_FRACTION_DIGITS = 1;
+
+function formatDays(durationInSeconds: number): string {
+    return (durationInSeconds / CONST.DATE.SECONDS_PER_DAY).toFixed(AVERAGE_DAYS_FRACTION_DIGITS);
+}
 
 function buildInsightsChartCSV({
     data,
@@ -44,6 +59,8 @@ function buildInsightsChartCSV({
     today,
     shouldShowRunningTotal,
     countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
+    metric,
+    stages,
 }: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     if (groupBy === CONST.SEARCH.GROUP_BY.TAG && data.some((item) => item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined)) {
@@ -72,24 +89,34 @@ function buildInsightsChartCSV({
         return `\uFEFF${[tagHeader.map(escapeCsvField).join(','), ...tagRows].join('\r\n')}`;
     }
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
-    const countHeader = translate(countDimension === CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT ? 'common.reports' : 'common.expenses');
-    const header = [groupHeader, countHeader, translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
+    const countHeader = translate(COUNT_COLUMN_TITLE_KEYS[countDimension]);
+    const isDurationMetric = metric === CONST.SEARCH.CHART_METRIC.DURATION;
+    const durationHeaders = stages ? stages.map(({label}) => label) : [translate('insightsPage.averageDays')];
+    const valueHeaders = isDurationMetric ? durationHeaders : [translate('common.total'), translate('common.currency')];
+    const header = [groupHeader, countHeader, ...valueHeaders].map(escapeCsvField).join(',');
 
     // Trimmed before the running total, which replaces each period's count with the count so far
     const lastKeptIndex = data.findLastIndex((item) => !isEmptyPeriodAfterToday(item, groupBy, today, dateFilterStart));
     const keptData = data.slice(0, lastKeptIndex + 1);
     const exportedData = shouldShowRunningTotal ? applyRunningTotal({data: keptData, groupBy}).data : keptData;
 
-    const rows = exportedData.map((item) => ({
-        label: getDateRange?.(item)?.start ?? getLabel(item),
-        count: item.count ?? 0,
-        total: item.total ?? 0,
-        currency: item.currency ?? currency,
-    }));
-
-    const csvRows = rows.map((row) =>
-        [escapeCsvField(row.label), row.count, convertToFrontendAmountAsString(row.total, getCurrencyDecimals(row.currency)), escapeCsvField(row.currency)].join(','),
-    );
+    const csvRows = exportedData.map((item) => {
+        const label = escapeCsvField(getDateRange?.(item)?.start ?? getLabel(item));
+        const count = item.count ?? 0;
+        if (stages) {
+            // A stage none of the bucket's reports completed has no duration, so its cell is left empty rather than read as 0 days
+            const stageDays = stages.map((stage) => {
+                const duration = stage.getValue(item);
+                return typeof duration === 'number' ? formatDays(duration) : '';
+            });
+            return [label, count, ...stageDays].join(',');
+        }
+        if (isDurationMetric) {
+            return [label, count, formatDays(getAverageDuration(item) ?? 0)].join(',');
+        }
+        const itemCurrency = item.currency ?? currency;
+        return [label, count, convertToFrontendAmountAsString(item.total ?? 0, getCurrencyDecimals(itemCurrency)), escapeCsvField(itemCurrency)].join(',');
+    });
 
     return `\uFEFF${[header, ...csvRows].join('\r\n')}`;
 }
