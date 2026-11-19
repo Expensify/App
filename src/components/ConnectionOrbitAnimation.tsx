@@ -92,4 +92,3 @@ function ConnectionOrbitAnimation({integrationIcon}: ConnectionOrbitAnimationPro
 }
 
 export default ConnectionOrbitAnimation;
-export type {ConnectionOrbitAnimationProps};
