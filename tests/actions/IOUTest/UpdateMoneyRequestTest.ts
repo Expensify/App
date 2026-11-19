@@ -87,6 +87,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));

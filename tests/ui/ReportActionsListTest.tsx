@@ -112,6 +112,13 @@ const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseIsReportLoadPending = useIsReportLoadPending as jest.MockedFunction<typeof useIsReportLoadPending>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
+
+// Runs the selector a component passed to useOnyx over a given personal details list
+function selectFromPersonalDetails(selector: unknown, personalDetails: OnyxTypes.PersonalDetailsList) {
+    // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return (selector as (personalDetailsList: OnyxTypes.PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+}
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
 const mockUsePaginatedReportActions = usePaginatedReportActions as jest.MockedFunction<typeof usePaginatedReportActions>;
@@ -156,7 +163,6 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     isSidePanelResizable: false,
 };
 
-jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 const mockLoadOlderChats = jest.fn();
 jest.mock('@hooks/useLoadReportActions', () =>
@@ -280,6 +286,7 @@ type MockLegendListProps = {
             layoutMeasurement: {height: number; width: number};
         };
     }) => void;
+    ListHeaderComponent?: React.ReactNode;
 };
 
 const {LegendList: mockLegendList} = jest.requireMock<{LegendList: jest.MockedFunction<(props: MockLegendListProps) => null>}>('@legendapp/list/react-native');
@@ -2093,8 +2100,8 @@ describe('ReportActionsList (body)', () => {
                 person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
             };
             mockUseOnyx.mockImplementation((key, options) => {
-                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
-                    return [[agentAccountID], {status: 'loaded'}];
+                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                    return [selectFromPersonalDetails(options.selector, {[agentAccountID]: {accountID: agentAccountID, isCustomAgent: true}}), {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);
             });
@@ -2434,15 +2441,80 @@ describe('ReportActionsList (body)', () => {
             isOffline = false;
             view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
 
-            // Then the displayed action window survives both the pending loads and their completion.
+            // Then the displayed action window survives the pending loads.
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(getCapturedVisibleActions()).toEqual(visibleActions);
+
+            // When both loads complete.
             isAppLoadPending = false;
             hasOnceLoadedReportActions = true;
             mockUseIsReportLoadPending.mockReturnValue(false);
             view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+
+            // Then the same action window stays on screen without a skeleton in between.
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(getCapturedVisibleActions()).toEqual(visibleActions);
+        });
+
+        it('keeps the offline history skeleton after reconnecting until the older actions have loaded', () => {
+            // Given a cached chat without its oldest actions or pagination pages, opened offline with OpenReport queued
+            // and the history skeleton above its messages. Without pages, pagination reports no older actions yet.
+            const actionsWithoutCreated = mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+            let isOffline = true;
+            let isReportLoadPending = true;
+            let hasOlderActions = false;
+            mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUseIsReportLoadPending.mockImplementation(() => isReportLoadPending);
+            mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: actionsWithoutCreated, hasOlderActions}));
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            expect(getCapturedListProps()?.ListHeaderComponent).toBeDefined();
+
+            // When the connection returns while OpenReport is still loading
+            isOffline = false;
+            view.rerender(renderList());
+
+            // Then the skeleton keeps the space of the missing history, so removing it cannot move the messages being read
+            expect(getCapturedListProps()?.ListHeaderComponent).toBeDefined();
+
+            // When OpenReport finishes and stores pages that have older actions on the server
+            isReportLoadPending = false;
+            hasOlderActions = true;
+            view.rerender(renderList());
+
+            // Then the skeleton still holds the space until those older actions load
+            expect(getCapturedListProps()?.ListHeaderComponent).toBeDefined();
+
+            // When the oldest page has loaded
+            hasOlderActions = false;
+            view.rerender(renderList());
+
+            // Then there is no missing history left to hold space for
+            expect(getCapturedListProps()?.ListHeaderComponent).toBeUndefined();
+        });
+
+        it('does not show the history skeleton online for a chat that was not displayed offline', () => {
+            // Given a chat with older actions still on the server, opened while online
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            // When the list renders
+            render(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>,
+            );
+
+            // Then online pagination keeps its existing behavior without a placeholder above the messages
+            expect(getCapturedListProps()?.ListHeaderComponent).toBeUndefined();
         });
 
         it('derives a true report pending value for the initial skeleton decision', () => {

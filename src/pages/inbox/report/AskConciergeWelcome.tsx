@@ -11,6 +11,7 @@ import {INITIAL_SCROLL_METRICS, useActionListContext, useActionListReady} from '
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import AskConciergeEmptyState from './AskConciergeEmptyState';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
@@ -39,7 +40,7 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
 
     return (
         <ScrollView
-            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
+            style={!shouldUseNarrowLayout && styles.flexGrow0}
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => {
@@ -47,12 +48,14 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
                 markOpenReportEnd(reportID, report, {warm: true});
             }}
         >
-            <AskConciergeEmptyState />
-            <ConciergeChatHistoryToggle
-                isHistoryShown={false}
-                onPress={onShowPreviousMessages}
-                containerStyles={styles.pv5}
-            />
+            <View style={styles.conciergeAskColumn}>
+                <AskConciergeEmptyState />
+                <ConciergeChatHistoryToggle
+                    isHistoryShown={false}
+                    onPress={onShowPreviousMessages}
+                    containerStyles={styles.pv5}
+                />
+            </View>
         </ScrollView>
     );
 }

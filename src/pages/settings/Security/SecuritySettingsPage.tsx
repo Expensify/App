@@ -37,7 +37,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -46,7 +46,7 @@ import {View} from 'react-native';
 
 import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
 
-type BaseMenuItemType = WithSentryLabel & {
+type BaseMenuItemType = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;

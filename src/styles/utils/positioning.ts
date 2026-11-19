@@ -1,3 +1,5 @@
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
+
 import type {ViewStyle} from 'react-native';
 
 /**
@@ -14,9 +16,9 @@ export default {
     /**
      * Web-only style.
      */
-    pFixed: {
+    pFixed: toViewStyle({
         position: 'fixed',
-    },
+    }),
 
     t0: {
         top: 0,

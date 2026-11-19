@@ -5,6 +5,7 @@ import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkele
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
+import useInitial from '@hooks/useInitial';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -71,6 +72,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {
         report,
         hasOnceLoadedReportActions,
+        isWaitingForOlderActions,
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -242,14 +244,19 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         </>
     );
 
-    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const isMissingOldestAction = !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const hasShownOfflineHistorySkeleton = useInitial(isOffline && isMissingOldestAction ? true : undefined);
+
+    // Once shown offline, the skeleton keeps holding the space of the missing history after reconnecting until older
+    // actions replace it. Removing it on reconnect would shrink the list and move the messages the user is reading.
+    const shouldShowHistorySkeleton = isMissingOldestAction && (isOffline || (!!hasShownOfflineHistorySkeleton && isWaitingForOlderActions));
 
     // The list is not inverted, so its header is the oldest end, where the collapsed header's spacer goes.
     const offlineHistoryHeader =
-        isMobilePhoneWeb || shouldShowOfflineSkeleton ? (
+        isMobilePhoneWeb || shouldShowHistorySkeleton ? (
             <>
                 <CollapsedReportHeaderSpacer />
-                {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+                {shouldShowHistorySkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
             </>
         ) : undefined;
 

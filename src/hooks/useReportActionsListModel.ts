@@ -149,6 +149,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isLoadingOlderReportActions,
         hasLoadingOlderReportActionsError,
         hasOlderActions,
+        // Pagination reports no older actions until a load stores pages, so a pending report load may still bring some.
+        isWaitingForOlderActions: hasOlderActions || isReportLoadPending,
         hasNewerActions,
         oldestReportActionID: currentReportOldestActionID,
         sortedAllReportActions,
