@@ -128,6 +128,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMergedReportsAction,
     buildOptimisticMovedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
@@ -9485,6 +9486,28 @@ function mergeReports({
     const optimisticData = [...moveOptimisticData, ...deleteOptimisticData];
     const successData = [...moveSuccessData, ...deleteSuccessData];
     const failureData = [...moveFailureData, ...deleteFailureData];
+
+    const mergedReportsAction = buildOptimisticMergedReportsAction(
+        destinationReportID,
+        allSourceReport.map((sourceReport) => ({reportID: sourceReport.reportID, reportName: sourceReport.reportName ?? ''})),
+        transactionIDsToMove.length,
+        currentUserPersonalDetails,
+    );
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReportID}`,
+        value: {[mergedReportsAction.reportActionID]: mergedReportsAction},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReportID}`,
+        value: {[mergedReportsAction.reportActionID]: {pendingAction: null}},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReportID}`,
+        value: {[mergedReportsAction.reportActionID]: null},
+    });
 
     if (hash) {
         const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
