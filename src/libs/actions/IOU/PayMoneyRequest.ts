@@ -1049,6 +1049,31 @@ type ABAFile = {
     content: string;
 };
 
+type PayViaABAJSONResponse = {
+    jsonCode?: number;
+    message?: string;
+    ABA?: string;
+};
+
+/**
+ * Reads the ABA file's text from the PayViaABA response. The API currently sends the file itself, but soon will send a
+ * JSON response with the file's text in `ABA`.
+ */
+async function getABAFileContent(response: Response): Promise<string> {
+    if (response.headers.get('content-type') !== 'application/json') {
+        if (!response.ok) {
+            throw new Error('Failed to download the ABA file');
+        }
+        return response.text();
+    }
+    return response.json().then((data: PayViaABAJSONResponse) => {
+        if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.ABA === undefined) {
+            throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
+        }
+        return data.ABA;
+    });
+}
+
 /**
  * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
  * when it creates the file. Resolves with nothing when the user can't pay, and rejects with the backend's error when it
@@ -1088,17 +1113,7 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | und
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
     const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
-
-    // The API only responds with JSON instead of the file when it couldn't pay the reports
-    if (response.headers.get('content-type') === 'application/json') {
-        await response.json().then((error: {jsonCode?: number; message?: string}) => {
-            throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
-        });
-    }
-    if (!response.ok) {
-        throw new Error('Failed to download the ABA file');
-    }
-    const content = await response.text();
+    const content = await getABAFileContent(response);
 
     // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
     // reappearing before the BE's pusher updates arrive.

@@ -3129,6 +3129,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
         });
 
+        it('returns the ABA file when the API sends its text in JSON', async () => {
+            // Given an API that sends the ABA file's text inside its JSON response instead of as a file
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, ABA: 'ABA file\r\n'}),
+            });
+            const onPaid = jest.fn();
+
+            // When a report is paid via ABA
+            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then that text is returned as the report's ABA file, the same as when the API sends the file itself
+            expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file\r\n'});
+            expect(onPaid).toHaveBeenCalled();
+        });
+
         it('shows the reports as paid once their ABA file has downloaded', async () => {
             // Given two approved reports
             for (const reportID of ['123', '456']) {
