@@ -15,8 +15,9 @@ import {openTravelDotLink} from '@libs/openTravelDotLink';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {PortalProvider} from '@gorhom/portal';
 import type * as NativeNavigation from '@react-navigation/native';
+
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 

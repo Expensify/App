@@ -7,15 +7,14 @@ import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+// eslint-disable-next-line no-restricted-imports -- These tests preserve the paid-only TravelDot booking checks while using the real accessibility and provisioning helpers.
+import type * as PolicyUtils from '@libs/PolicyUtils';
 
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-// eslint-disable-next-line no-restricted-imports -- These tests preserve the paid-only TravelDot booking checks while using the real accessibility and provisioning helpers.
-import type * as PolicyUtils from '@libs/PolicyUtils';
 
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
