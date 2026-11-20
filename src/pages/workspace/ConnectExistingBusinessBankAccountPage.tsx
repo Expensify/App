@@ -32,6 +32,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -40,9 +41,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyID = route.params?.policyID;
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,11 +55,12 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const [isSelectingBankAccount, setIsSelectingBankAccount] = useState(false);
 
-    const handleAddBankAccountPress = () => {
+    const addBankAccount = async () => {
         // When changing the bank account we prepare a fresh setup (clearing the current account without disconnecting it).
         // We keep the policyID in the route so the newly connected account still links to the workspace's Workflows > Payments.
         // We must not set the loading flag here: during the change flow the page skips fetchData, so nothing would reset it.
         if (isChangingBankAccount) {
+            const reimbursementAccount = await Onyx.get(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
             prepareNewBankAccountSetup(policyCurrency, reimbursementAccount);
         } else {
             setReimbursementAccountLoading(true);
@@ -71,7 +71,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         });
     };
 
-    const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
+    const selectBankAccount = async ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
         if (policyID === undefined) {
             return;
         }
@@ -80,6 +80,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         if (bankAccountList && methodID && methodID !== connectedAccountBankAccountID && methodID !== policy?.achAccount?.bankAccountID) {
             setIsSelectingBankAccount(true);
+            const lastPaymentMethod = await Onyx.get(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
             setWorkspaceReimbursement({
                 policyID,
                 currentAchAccount: policy?.achAccount,
@@ -132,8 +133,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 <ScrollView style={[styles.w100, styles.ph5, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, styles.pb5]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                     <PaymentMethodList
-                        onPress={handleItemPress}
-                        onAddBankAccountPress={handleAddBankAccountPress}
+                        onPress={selectBankAccount}
+                        onAddBankAccountPress={addBankAccount}
                         style={[styles.mt5, styles.mhn5]}
                         listItemStyle={styles.ph5}
                         itemIconRight={icons.ArrowRight}

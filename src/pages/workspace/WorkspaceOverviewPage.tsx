@@ -93,6 +93,7 @@ import type {ValueOf} from 'type-fest';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -124,7 +125,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const routePolicyID = route.params.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
     const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
@@ -343,7 +343,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
-    const handleBackButtonPress = () => {
+    const navigateBack = async () => {
+        const isComingFromGlobalReimbursementsFlow = await Onyx.get(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
             Navigation.goBack();
@@ -589,7 +590,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             policyFeature={CONST.POLICY.POLICY_FEATURE.OVERVIEW}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={handleBackButtonPress}
+            onBackButtonPress={navigateBack}
             addBottomSafeAreaPadding
             headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             modals={modals}

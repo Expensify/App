@@ -71,6 +71,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 import MoreFeaturesSection from './MoreFeaturesSection';
 import MoreFeatureToggle from './MoreFeatureToggle';
@@ -112,7 +113,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
-    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -122,7 +122,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
@@ -282,6 +281,30 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     useNetwork({onReconnect: () => openPolicyMoreFeaturesPage(route.params.policyID)});
 
+    const togglePerDiem = async (isEnabled: boolean) => {
+        if (!policyID) {
+            return;
+        }
+        if (isEnabled && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+            return;
+        }
+        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+        enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
+    };
+
+    const toggleTaxes = async (isEnabled: boolean) => {
+        if (!policyID) {
+            return;
+        }
+        const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+        if (isEnabled) {
+            enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
+            return;
+        }
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -356,16 +379,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
-                                    return;
-                                }
-                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
-                            }}
+                            onToggle={toggleTaxes}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
@@ -565,18 +579,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
                             disabled={!canWriteMoreFeatures}
                             disabledAction={withReadOnlyFallback()}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
-                            }}
+                            onToggle={togglePerDiem}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
