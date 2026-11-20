@@ -999,15 +999,15 @@ describe('buildChartSeries with the duration metric', () => {
         expect(rows.map((row) => row.point.label)).toEqual(['Alice', 'Carol']);
     });
 
-    it('works out each share among the drawn groups rather than reading the share of spend', () => {
+    it('leaves durations without a share, since averages do not add up to a whole', () => {
         // Given members the search reported shares of total spend for, and one with no duration
         const data = [memberGroup('Alice', 3 * DAY, 10000, 10), memberGroup('Bob', DAY, 90000, 90), memberGroup('Carol', null, 0, 0)];
 
         // When the series is built for a donut plotting durations
         const {rows} = buildDurationSeries({data, view: CONST.SEARCH.VIEW.PIE});
 
-        // Then each share is the member's part of the durations drawn, so the slices split the time and not the money
-        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([75, 25]);
+        // Then no member gets a share, because the share of spend says nothing about time and a share of summed averages shifts when other members change
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([undefined, undefined]);
     });
 
     it('compares each group against its own duration in the compared rows', () => {
@@ -1035,7 +1035,7 @@ describe('buildChartSeries with the duration metric', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
     });
 
-    it('works out the compared shares among the compared durations', () => {
+    it('leaves the compared durations without a share too', () => {
         // Given members and their durations in the previous period
         const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
         const compared = [memberGroup('Alice', DAY), memberGroup('Bob', DAY)];
@@ -1043,9 +1043,9 @@ describe('buildChartSeries with the duration metric', () => {
         // When the series is built for a bar chart compared against those rows
         const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
 
-        // Then each series reports its own split of time, because the compared period had a different total
-        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.PRIMARY])).toEqual([(4 / 6) * 100, (2 / 6) * 100]);
-        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.COMPARISON])).toEqual([50, 50]);
+        // Then neither series reports a share, so the tooltip shows only the times being compared
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.PRIMARY])).toEqual([undefined, undefined]);
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.COMPARISON])).toEqual([undefined, undefined]);
     });
 
     it('draws the average in seconds, without converting it like an amount', () => {

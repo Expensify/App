@@ -1743,7 +1743,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
  * @param workEmail the work email to add.
  * @param addWorkEmailTaskReport the onboarding task report to complete once the work email is added, if any.
  */
-function AddWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
+function addWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
     // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
     // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
     const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
@@ -1998,7 +1998,7 @@ export {
     hasStashedSession,
     signUpUser,
     setupNewDotAfterTransitionFromOldDot,
-    AddWorkEmail,
+    addWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,

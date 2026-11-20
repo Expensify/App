@@ -408,7 +408,7 @@ describe('SearchPageNarrow', () => {
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
     // so the persisted code is the only thing left that can tell the two failure kinds apart.
-    const setFailedSnapshot = (responseJsonCode: number | undefined) =>
+    const setFailedSnapshot = (responseJsonCode: number | undefined, errorTranslationKey?: SearchResults['search']['errorTranslationKey']) =>
         act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -420,12 +420,16 @@ describe('SearchPageNarrow', () => {
                     hasMoreResults: false,
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                     responseJsonCode,
+                    errorTranslationKey,
                 },
             });
         });
 
-    it('hides the retry button on a fresh mount when the persisted response marks the query invalid', async () => {
-        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    it.each([
+        [undefined, "That search isn't valid. Try adjusting your search criteria."],
+        ['search.searchResults.tooManyKeywords', 'Your search has too many keywords. Use 50 or fewer keywords and try again.'],
+    ] as const)('hides the retry button on a fresh mount when the persisted response marks the query invalid (%s)', async (errorTranslationKey, expectedMessage) => {
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey);
 
         renderPage();
 
@@ -433,7 +437,7 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText("That search isn't valid. Try adjusting your search criteria.")).toBeTruthy();
+        expect(screen.getByText(expectedMessage)).toBeTruthy();
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
@@ -558,6 +562,33 @@ describe('SearchPageNarrow', () => {
 
         // Then the failed query is requested again instead of staying on the refresh view until tapped
         expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
+    });
+
+    it('does not send the search again when only the column pins change', async () => {
+        // Given a cached expense search on screen, after its mount requests went out
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        const {rerender} = renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        mockSearch.mockClear();
+
+        // When a column is pinned, which swaps the route's query for one that differs by its pins alone
+        const pinnedQuery = `${EXPENSE_QUERY} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`;
+        mockSearchQueryParam.mockReturnValue(pinnedQuery);
+        await act(async () => {
+            navigationRef.dispatch({...CommonActions.setParams({q: pinnedQuery}), source: navigationRef.getCurrentRoute()?.key});
+        });
+        rerender(getSearchPage(pinnedQuery));
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then no search goes out, because pins only reorder the columns already loaded
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not request a query again when the persisted response marks it invalid', async () => {

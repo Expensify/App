@@ -3,12 +3,11 @@ import usePolicy from '@hooks/usePolicy';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canCreateRoomsOnPolicy} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceNewRoomPage from '@pages/workspace/WorkspaceNewRoomPage';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -22,7 +21,7 @@ function WorkspaceRoomCreatePage({route}: WorkspaceRoomCreatePageProps) {
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            shouldBeBlocked={!canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS)}
+            shouldBeBlocked={!canCreateRoomsOnPolicy(policy, session?.email ?? '')}
         >
             <WorkspaceNewRoomPage policyID={route.params.policyID} />
         </AccessOrNotFoundWrapper>

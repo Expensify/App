@@ -583,6 +583,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} Tag`,
             other: (count: number) => `${formattedCount ?? count} Tage`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Stunde`,
+            other: (count: number) => `${formattedCount ?? count} Stunden`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Minute`,
+            other: (count: number) => `${formattedCount ?? count} Minuten`,
+        }),
         amount: 'Betrag',
     },
     socials: {
@@ -1293,6 +1301,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
+        generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
+        readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
+        comparingWithYourAverage: 'Verglichen mit Ihrem Durchschnitt',
+        lookingForAnythingUnusual: 'Suche nach ungewöhnlichen Vorgängen',
+        writingYourInsights: 'Ihre Erkenntnisse schreiben',
         violationStage: {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
@@ -3311,6 +3325,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
+            payingMultipleReportsSubtitle: 'Keiner dieser Berichte konnte bezahlt werden, weil die Bankkonten des Unternehmens und der Mitarbeitenden unterschiedliche Währungen verwenden.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Mit x${lastFour} bezahlen` : 'Mit Bankkonto bezahlen'),
+            description: 'Diese Berichte wurden nicht mit dem Bankkonto bezahlt, weil sie globale Rückerstattungen erfordern. Starten Sie den Vorgang unten.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
         wiseMoreInfoNeeded: 'Weitere Informationen erforderlich, um globale Rückerstattungen zu aktivieren',
@@ -7269,9 +7288,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            visibleTo: 'Sichtbar für',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) =>
+                `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Zugriff auf ${categoryName} kann nicht entfernt werden`,
+                bulkRemoveAccessTitle: 'Zugriff auf diese Kategorien kann nicht entfernt werden',
                 description: ({count}: {count: number}) => ({
                     one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisieren Sie die Kategorien-Sichtbarkeit dieser Person und versuchen Sie es dann erneut:',
                     other: `${count} Mitgliedern blieben keine Kategorien zur Auswahl. Aktualisieren Sie deren Kategoriesichtbarkeit und versuchen Sie es dann erneut:`,
@@ -8650,6 +8678,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             timezoneInputLabel: 'Zeitzone',
             timezoneInputHelpText: 'Ihre Zeitzone wird für das automatische Einreichen von Berichten verwendet',
             timezoneErrorMessage: 'Zeitzone konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+            directReimbursementCurrencyTitle: 'Währung bei direkter Erstattung nicht verfügbar',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Dieser Workspace erstattet Mitgliedern direkt über Expensify, was in ${currency} nicht verfügbar ist. Um ${currency} zu verwenden, gehe zu Workflows und schalte Zahlungen aus und wieder ein, damit Zahlungen außerhalb von Expensify erfolgen.`,
+            goToWorkflows: 'Zu Workflows',
         },
         officeLocations: {
             title: 'Bürostandorte',
@@ -10410,11 +10442,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addCustomUnitRate: (customUnitName: string, rateName: string) => `${customUnitName}-Satz „${rateName}“ hinzugefügt`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `hat den Satz des/der ${customUnitName} ${updatedField} „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `hat den Steuersatz für den Kilometersatz „${customUnitRateName}“ auf „${newValue} (${newTaxPercentage})“ geändert (zuvor „${oldValue} (${oldTaxPercentage})“)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `hat den Steuersatz für den Distanzsatz „${customUnitRateName}“ auf „${newTaxRate}“ geändert (zuvor „${oldTaxRate}“)`;
             }
-            return `die Steuerquote „${newValue} (${newTaxPercentage})“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
+            return `hat den Steuersatz „${newTaxRate}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11055,6 +11087,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         appliedFilters: 'Angewandte filter',
         resetFilters: 'Filter zurücksetzen',
         searchResults: {
+            tooManyKeywords: `Deine Suche enthält zu viele Suchbegriffe. Verwende höchstens ${CONST.SEARCH.MAX_KEYWORD_TOKENS} Suchbegriffe und versuche es erneut.`,
+            unsupportedGrouping: 'Diese Suche unterstützt keine Gruppierung oder Diagrammansicht. Entferne die Gruppierung und verwende die Tabellenansicht.',
+            invalidReportID: 'Gib eine gültige Berichts-ID ein. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
+            unsupportedFilter: 'Der Filter "is:" wird für diese Suche nicht unterstützt. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
             emptyResults: {
                 title: 'Nichts anzuzeigen',
                 subtitle: `Versuche, deine Suchkriterien anzupassen oder etwas mit der +‑Schaltfläche zu erstellen.`,
@@ -11115,6 +11151,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             openMenu: ({columnName}: {columnName: string}) => `Spaltenoptionen für ${columnName}`,
             sortAscending: 'Aufsteigend sortieren',
             sortDescending: 'Absteigend sortieren',
+            pinLeft: 'Links anheften',
+            pinRight: 'Rechts anheften',
+            unpin: 'Anheften aufheben',
             hideColumn: 'Spalte ausblenden',
             resetColumnSizes: 'Spaltenbreiten zurücksetzen',
         },
