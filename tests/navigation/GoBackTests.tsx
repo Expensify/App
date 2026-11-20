@@ -791,6 +791,111 @@ describe('Go back on the narrow layout', () => {
             };
         }
 
+        it.each([true, false])('Should keep the sidebar and More features in the card workspace with an underlying workspace tab=%s', (hasUnderlyingWorkspaceTab) => {
+            // Given Wallet in the Account tab with a modal open, while Workspaces still holds workspace B
+            const accountTabIndex = 3;
+            const accountState = buildStateWithModalOverTab(accountTabIndex, buildWorkspaceSplitRoute(policyB));
+            const initialState: InitialState = hasUnderlyingWorkspaceTab
+                ? {index: 2, routes: [...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyB)).routes, ...accountState.routes]}
+                : accountState;
+            render(<TestNavigationContainer initialState={initialState} />);
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When a card belonging to workspace A redirects to its disabled feature
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA));
+            });
+
+            // Then both panes belong to A rather than showing A's settings beside B's sidebar
+            const rootState = navigationRef.getRootState();
+            expect(rootState.routes).toHaveLength(1);
+            expect(rootState.routes.at(rootState.index)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+            const tabState = rootState.routes.at(rootState.index)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+            const workspaceState = getActiveWorkspaceState();
+            expect(workspaceState?.routes).toHaveLength(1);
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(activeSplit?.state?.routes.at(0)).toMatchObject({name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({name: SCREENS.WORKSPACE.MORE_FEATURES, params: {policyID: policyA}});
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+
+            // Back must stay in A rather than reopening Account or the discarded workspace B split.
+            act(() => {
+                Navigation.goBack();
+            });
+            expect(navigationRef.getRootState().routes).toHaveLength(1);
+            const workspaceStateAfterBack = getActiveWorkspaceState();
+            expect(workspaceStateAfterBack?.routes).toHaveLength(1);
+            expect(workspaceStateAfterBack?.routes.at(0)?.state?.routes.at(0)).toMatchObject({name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}});
+        });
+
+        it.each([
+            {scope: 'workspace', route: ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA), sidebar: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}},
+            {scope: 'domain', route: ROUTES.DOMAIN_SAML.getRoute(1), sidebar: SCREENS.DOMAIN.INITIAL, params: {domainAccountID: '1'}},
+        ])('Should replace an unknown destination scope for a $scope redirect', ({route, sidebar, params}) => {
+            // Given browser Back rebuilt an inactive Workspaces route without live or preserved nested state
+            const initialState = buildStateWithModalOverTab(3);
+            const workspaceRoute = initialState.routes.at(0)?.state?.routes.at(WORKSPACES_TAB_INDEX);
+            if (workspaceRoute) {
+                delete workspaceRoute.state;
+            }
+            render(<TestNavigationContainer initialState={initialState} />);
+            const rootBeforeRedirect = navigationRef.getRootState();
+            const destinationRoute = rootBeforeRedirect.routes.at(0)?.state?.routes.find((tabRoute) => tabRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+            expect(destinationRoute).toBeDefined();
+            expect(destinationRoute?.state).toBeUndefined();
+            expect(getPreservedNavigatorState(destinationRoute?.key ?? '')).toBeUndefined();
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When a scoped fallback must open despite the missing destination state
+            act(() => {
+                Navigation.goBack(route);
+            });
+
+            // Then replacement prevents the tab from restoring a previously visited scope
+            expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootBeforeRedirect.key}));
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: 'JUMP_TO'}));
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+            expect(navigationRef.getRootState().routes).toHaveLength(1);
+            const activeSplit = getActiveWorkspaceState()?.routes.at(-1);
+            expect(activeSplit?.state?.routes.at(0)).toMatchObject({name: sidebar, params});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject(params);
+        });
+
+        it.each([ROUTES.WORKSPACES_LIST.getRoute(), ROUTES.SETTINGS_PROFILE.getRoute()])('Should jump to an unknown unscoped destination for %s', (route) => {
+            // Given only Home is mounted and the destination tab has no saved nested state
+            render(<TestNavigationContainer initialState={buildStateWithModalOverTab(0)} />);
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When the fallback does not request a scoped split
+            act(() => {
+                Navigation.goBack(route);
+            });
+
+            // Then missing state alone must not force root replacement
+            expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({type: 'JUMP_TO'}));
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.REPLACE}));
+        });
+
+        it('Should jump to a known matching workspace scope without replacing the root', () => {
+            // Given Account covers a Workspaces tab that already holds the requested scope
+            const accountState = buildStateWithModalOverTab(3, buildWorkspaceSplitRoute(policyA));
+            const initialState: InitialState = {index: 2, routes: [...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA)).routes, ...accountState.routes]};
+            render(<TestNavigationContainer initialState={initialState} />);
+            const rootKey = navigationRef.getRootState().key;
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When the card redirects to that same workspace
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA));
+            });
+
+            // Then tab switching preserves the existing navigator instead of replacing it
+            expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({type: 'JUMP_TO'}));
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.REPLACE}));
+            expect(navigationRef.getRootState().key).toBe(rootKey);
+        });
+
         it('Should close the modal and reach the matching workspace split', () => {
             render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
             const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
