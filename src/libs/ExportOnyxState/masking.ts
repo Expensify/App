@@ -53,6 +53,11 @@ const collectionKeysToRemove = new Set<string>([ONYXKEYS.COLLECTION.RAM_ONLY_COM
 // 2. KEYS WITH EXPORT RULES - keep some fields, mask the rest
 // ============================================================
 const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
+    // Software names are free text and can contain private information.
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]: {
+        allowList: ['integration'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.SESSION]: {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
