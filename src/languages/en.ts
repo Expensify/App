@@ -2039,6 +2039,12 @@ const translations = {
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             payAll: 'Pay all',
+            fxRateExpiredTitle: 'FX rate expired',
+            fxRatesExpiredTitle: 'FX rates expired',
+            fxRateExpiredPrompt: 'Review the latest rate before you pay.',
+            fxRatesExpiredPrompt: 'Review the latest rates before you pay.',
+            getLatestRate: 'Get latest rate',
+            getLatestRates: 'Get latest rates',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
                 other: `${count} reports`,

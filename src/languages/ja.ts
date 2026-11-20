@@ -1862,6 +1862,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '引き落とし額',
             employeeReceived: '従業員の受取額',
             payAll: 'すべて支払う',
+            fxRateExpiredTitle: '為替レートの期限切れ',
+            fxRatesExpiredTitle: '為替レートの期限切れ',
+            fxRateExpiredPrompt: '支払う前に最新のレートを確認してください。',
+            fxRatesExpiredPrompt: '支払う前に最新のレートを確認してください。',
+            getLatestRate: '最新のレートを取得',
+            getLatestRates: '最新のレートを取得',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 件のレポート',
                 other: `${count} 件のレポート`,
