@@ -1303,6 +1303,7 @@ const translations: TranslationDeepObject<typeof en> = {
         share: 'Participação',
         averageDays: 'Média de dias',
         summary: {
+            title: 'Resumo',
             over: (percentage: string) => `${percentage} acima`,
             under: (percentage: string) => `${percentage} abaixo`,
             versusMerchantAverage: (amount: string) => `${amount} vs a média deste estabelecimento`,

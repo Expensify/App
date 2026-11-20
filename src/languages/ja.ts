@@ -1289,6 +1289,7 @@ const translations: TranslationDeepObject<typeof en> = {
         share: 'シェア割合',
         averageDays: '平均日数',
         summary: {
+            title: '概要',
             over: (percentage: string) => `${percentage} 超過`,
             under: (percentage: string) => `${percentage} 未満`,
             versusMerchantAverage: (amount: string) => `${amount}（この加盟店の平均額との比較）`,

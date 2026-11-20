@@ -1399,6 +1399,7 @@ const translations = {
         viewAll: 'View all',
         topExpenses: 'Top expenses',
         summary: {
+            title: 'Summary',
             over: (percentage: string) => `${percentage} over`,
             under: (percentage: string) => `${percentage} under`,
             versusMerchantAverage: (amount: string) => `${amount} vs this merchant's average`,

@@ -1347,6 +1347,7 @@ const translations: TranslationDeepObject<typeof en> = {
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
         summary: {
+            title: 'Σύνοψη',
             over: (percentage: string) => `${percentage} πάνω από`,
             under: (percentage: string) => `${percentage} κάτω από`,
             versusMerchantAverage: (amount: string) => `${amount} σε σύγκριση με τον μέσο όρο αυτού του εμπόρου`,

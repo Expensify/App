@@ -198,6 +198,13 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
 
     const periodTitle = getPeriodTitle(periodGroupBy, period, dateFnsLocale);
 
+    const getSectionTitle = () => {
+        if (isSpendOverTime) {
+            return translate('insightsPage.summary.title');
+        }
+        return isPeriodInProgress ? translate('search.periodSoFar', {period: periodTitle}) : periodTitle;
+    };
+
     const getShortPeriodName = () => {
         const start = parseISO(period.start);
         switch (periodGroupBy) {
@@ -221,7 +228,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
                     variant="label"
                     style={styles.textSupporting}
                 >
-                    {isPeriodInProgress ? translate('search.periodSoFar', {period: periodTitle}) : periodTitle}
+                    {getSectionTitle()}
                 </Text>
             </View>
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
