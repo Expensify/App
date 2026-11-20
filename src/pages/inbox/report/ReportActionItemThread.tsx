@@ -6,9 +6,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
+import useShouldKeepNavigationInSidePanel from '@hooks/useShouldKeepNavigationInSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
+import SidePanelActions from '@libs/actions/SidePanel';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
@@ -49,6 +51,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
+    const shouldKeepNavigationInSidePanel = useShouldKeepNavigationInSidePanel();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {selector: getStableReportSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -81,6 +84,11 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
+                        const childReportID = childReport?.reportID ?? reportAction.childReportID;
+                        if (shouldKeepNavigationInSidePanel && childReportID) {
+                            SidePanelActions.setSidePanelReportID(childReportID);
+                            return;
+                        }
                         if (isCreatedSupportTicketReportAction(reportAction)) {
                             navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
                             return;

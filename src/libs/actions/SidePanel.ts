@@ -1,4 +1,7 @@
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -31,4 +34,14 @@ function dismissSidePanel() {
     Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {open: false, openNarrowScreen: false, forceConcierge: false, reportID: null});
 }
 
-export default {openSidePanel, closeSidePanel, dismissSidePanel};
+/** Shows another report, such as a thread, in the open side panel without leaving it. `null` returns to the panel's default chat. */
+function setSidePanelReportID(reportID: string | null) {
+    Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {reportID});
+}
+
+/** Remembers where the side panel sits on a wide layout, so it comes back the same way after a refresh. */
+function setSidePanelMode(mode: ValueOf<typeof CONST.SIDE_PANEL_MODE>) {
+    Onyx.set(ONYXKEYS.SIDE_PANEL_MODE, mode);
+}
+
+export default {openSidePanel, closeSidePanel, dismissSidePanel, setSidePanelReportID, setSidePanelMode};

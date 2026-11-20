@@ -83,13 +83,15 @@ describe('navigateToDetailsPage', () => {
             expect(mockGetActiveRoute).not.toHaveBeenCalled();
         });
 
-        it('anchors the profile of a 1:1 chat to the report instead of the screen behind the panel', () => {
+        it('opens the profile of a 1:1 chat over the screen behind the panel', () => {
+            // Given the side panel is open over the workspace overview
             mockGetActiveRoute.mockReturnValue(`/workspaces/${POLICY_ID}/overview`);
 
+            // When the user opens the details of the Concierge chat from the panel
             navigateToDetailsPage(conciergeChat, true);
 
-            expect(mockNavigate).toHaveBeenCalledWith(`r/${CONCIERGE_REPORT_ID}/a/${CONCIERGE_ACCOUNT_ID}`);
-            expect(mockGetActiveRoute).not.toHaveBeenCalled();
+            // Then the profile opens over the workspace overview, so the user stays where they are instead of being sent to the Inbox
+            expect(mockNavigate).toHaveBeenCalledWith(`/workspaces/${POLICY_ID}/overview/a/${CONCIERGE_ACCOUNT_ID}`);
         });
     });
 
