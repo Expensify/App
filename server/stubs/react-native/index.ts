@@ -3,7 +3,7 @@
 // `react-native`'s real entry pulls in Flow-typed sources, native module
 // bindings, and Metro-resolved platform extensions that Bun cannot parse.
 // Our headless `CartesianChart` path never mounts a real RN view tree, so we
-// only need enough surface area for `victory-native` and `@shopify/react-native-skia`
+// only need enough surface area for `victory-native` and `react-native-skia`
 // modules to load without throwing while we walk the headless branch.
 //
 // UI primitives pass children through so layout wrappers and label containers
@@ -60,7 +60,7 @@ const StyleSheet = {
 
 const findNodeHandle = () => null;
 
-// `@shopify/react-native-skia/lib/module/specs/NativeSkiaModule` does
+// `react-native-skia/lib/module/specs/NativeSkiaModule` does
 // `TurboModuleRegistry.getEnforcing("RNSkiaModule")` at module load. The
 // `Platform.OS === "web"` short-circuit in NativeSetup then ignores the
 // missing module, but we still need the named export to exist.

@@ -6,6 +6,7 @@ import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
+import {getPinnedColumns} from '@src/libs/SearchPinnedColumnsUtils';
 import {
     applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
@@ -3952,6 +3953,34 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('isSearchQuerySavable', () => {
+        it.each([
+            ['type:expense reportID:0', undefined],
+            ['type:expense merchant:coffee', CONST.JSON_CODE.INVALID_SEARCH_QUERY],
+        ])('returns false when the search is invalid (%s, %s)', (query, responseJsonCode) => {
+            // Given a query rejected by client validation or by Auth
+            const currentQueryJSON = buildSearchQueryJSON(query);
+            const search = {hash: currentQueryJSON?.hash ?? -1, responseJsonCode};
+
+            // When checking whether it can be saved
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the invalid query cannot be saved
+            expect(canSave).toBe(false);
+        });
+
+        it('ignores an invalid response for a previous query while the current query is pending', () => {
+            // Given a valid edit to a search whose previous query was rejected by Auth
+            const previousQueryJSON = buildSearchQueryJSON('type:expense merchant:tea');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            const search = {hash: previousQueryJSON?.hash ?? -1, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+
+            // When checking whether the edited query can be saved before its response arrives
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the previous query's failure does not block saving the current query
+            expect(canSave).toBe(true);
+        });
+
         it('returns true when there is no default query, even without filters or a keyword', () => {
             // Given a query that isn't bound to any suggested or saved search
             const currentQueryJSON = buildSearchQueryJSON('type:trip');
@@ -4021,6 +4050,19 @@ describe('SearchQueryUtils', () => {
             // Then the grouping alone is a view worth saving
             expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
+
+        it('returns true when only the column pins differ from the default query', () => {
+            // Given a saved search that pins Category to the left
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+
+            // When the pin moves to the right, or is removed, without any other change
+            const movedPinQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:category');
+            const unpinnedQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // Then the header offers Save, so the new layout can be kept
+            expect(isSearchQuerySavable(movedPinQueryJSON, defaultQueryJSON)).toBe(true);
+            expect(isSearchQuerySavable(unpinnedQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('getChangedDisplayOptionsCount', () => {
@@ -4072,6 +4114,16 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
         });
 
+        it('counts the columns and their pins as one display option', () => {
+            // Given a default query and one that picks its columns and pins one of them
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense columns:date,merchant,category leftPinnedColumns:category');
+
+            // When counting the changed display options
+            // Then the table layout counts once, since the pins belong to the columns
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(1);
+        });
+
         it('counts the group currency and the view of a grouped query', () => {
             // Given a grouped default and a query that changes its currency and shows it as a bar chart
             const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
@@ -4099,6 +4151,22 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY})]));
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD})]));
+        });
+
+        it("restores the default query's column pins", () => {
+            // Given a saved search that pins Category to the left, viewed with Merchant pinned to the right instead
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:merchant');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When resetting the display options
+            const resetQueryJSON = buildSearchQueryJSON(buildQueryStringWithResetDisplay(currentQueryJSON, defaultQueryJSON));
+
+            // Then the saved pins come back, so the Display count drops to zero
+            expect(getPinnedColumns(resetQueryJSON ?? {})).toEqual({left: ['category'], right: []});
+            expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
         });
     });
 

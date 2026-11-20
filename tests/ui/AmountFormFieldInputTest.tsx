@@ -420,6 +420,15 @@ describe('AmountFormField.Input', () => {
         expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
     });
 
+    it('uses the submit behavior its caller passes', async () => {
+        // Given an AmountFormField.Input on a page with no form to submit, which passes blurAndSubmit
+        renderAmountFormFieldInput({testID: INPUT_TEST_ID, submitBehavior: 'blurAndSubmit'}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the keyboard's Done key blurs the input, which closes the keyboard
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('blurAndSubmit');
+    });
+
     it('collapses the selection onto its end when clearSelection is called', async () => {
         const ref = React.createRef<AmountFormFieldRef>();
 

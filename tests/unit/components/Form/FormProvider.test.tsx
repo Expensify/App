@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import FormContext from '@components/Form/FormContext';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import FormProvider from '@components/Form/FormProvider';
+import type {FormRef, FormWrapperRef} from '@components/Form/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
@@ -24,6 +25,7 @@ const olderErrorKey = '1719999999999';
 const latestErrorKey = '1720000000000';
 
 type MockFormWrapperProps = {
+    ref?: React.Ref<FormWrapperRef>;
     children?: React.ReactNode;
     onSubmit: () => void;
     isLoading?: boolean;
@@ -32,21 +34,25 @@ type MockFormWrapperProps = {
     serverErrorMessage?: string;
 };
 
-const mockFormWrapper = jest.fn(({children, onSubmit, isLoading}: MockFormWrapperProps) => (
-    <View>
-        <Text testID="mock-loading-state">{String(isLoading)}</Text>
-        <PressableWithFeedback
-            testID="mock-submit-button"
-            onPress={onSubmit}
-            accessibilityRole="button"
-            accessibilityLabel="Submit"
-            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
-        >
-            <Text>Submit</Text>
-        </PressableWithFeedback>
-        {children}
-    </View>
-));
+const mockScrollTo = jest.fn();
+const mockFormWrapper = jest.fn(({children, onSubmit, isLoading, ref}: MockFormWrapperProps) => {
+    React.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: jest.fn()}));
+    return (
+        <View>
+            <Text testID="mock-loading-state">{String(isLoading)}</Text>
+            <PressableWithFeedback
+                testID="mock-submit-button"
+                onPress={onSubmit}
+                accessibilityRole="button"
+                accessibilityLabel="Submit"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            >
+                <Text>Submit</Text>
+            </PressableWithFeedback>
+            {children}
+        </View>
+    );
+});
 
 jest.mock('@components/Form/FormWrapper', () => ({
     __esModule: true,
@@ -116,6 +122,28 @@ describe('FormProvider', () => {
         await act(async () => {
             await Onyx.clear();
         });
+    });
+
+    it.each([undefined, true, false])('forwards shouldDelayScroll=%s to the form wrapper', async (shouldDelayScroll) => {
+        // Given a form with an imperative handle exposed to its caller
+        const ref = React.createRef<FormRef>();
+        render(
+            <FormProvider
+                ref={ref}
+                formID={FORM_ID}
+                submitButtonText="Submit"
+                onSubmit={jest.fn()}
+            >
+                {null}
+            </FormProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When a caller scrolls with or without a keyboard transition delay
+        act(() => ref.current?.scrollTo(420, shouldDelayScroll));
+
+        // Then the wrapper receives the caller's timing choice unchanged
+        expect(mockScrollTo).toHaveBeenCalledWith(420, shouldDelayScroll);
     });
 
     it('submits once for a valid form and forwards loading state from formState', async () => {

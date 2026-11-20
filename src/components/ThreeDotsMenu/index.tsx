@@ -43,6 +43,7 @@ function ThreeDotsMenu({
     shouldChangeFillOnOpen = true,
     testID,
     onIconPress = () => {},
+    onModalHide,
     menuItems,
     anchorPosition,
     anchorAlignment = {
@@ -210,7 +211,10 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalHide={() => setRestoreFocusType(undefined)}
+                onModalHide={() => {
+                    setRestoreFocusType(undefined);
+                    onModalHide?.();
+                }}
                 isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}

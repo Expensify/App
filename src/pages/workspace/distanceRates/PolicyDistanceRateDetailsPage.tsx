@@ -23,7 +23,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
+import {formatTaxRateName, getDistanceRateCustomUnit, getTaxByID, getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -99,8 +99,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
-    const taxRate =
-        taxRateExternalID && policy?.taxRates?.taxes[taxRateExternalID] ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
+    const linkedTaxRate = taxRateExternalID ? getTaxByID(policy, taxRateExternalID) : undefined;
+    const taxRate = linkedTaxRate ? formatTaxRateName(linkedTaxRate.name, linkedTaxRate.value) : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
