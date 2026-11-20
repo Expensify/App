@@ -3615,5 +3615,53 @@ describe('WorkflowUtils', () => {
                 });
             });
         });
+
+        describe('NetSuite', () => {
+            function buildPolicyWithNetSuite(syncPeople: boolean, syncApprovalWorkflow: boolean, setFinalApprover: boolean): Policy {
+                return createMock<Policy>({
+                    id: POLICY_ID,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {options: {config: {syncOptions: {syncPeople, syncApprovalWorkflow, setFinalApprover}}}},
+                    },
+                });
+            }
+
+            it.each([
+                [true, false],
+                [false, true],
+                [true, true],
+            ])('locks the workflows when NetSuite imports employees and sets approvers (syncApprovalWorkflow: %s, setFinalApprover: %s)', (syncApprovalWorkflow, setFinalApprover) => {
+                // Given a NetSuite connection that imports employees in an approval mode that sets approvers
+                const policy = buildPolicyWithNetSuite(true, syncApprovalWorkflow, setFinalApprover);
+
+                // When we check who owns the approval workflow
+                // Then NetSuite does, the same way an HR integration that sets approvers does
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(true);
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
+                    providerName: 'NetSuite',
+                    settingsRoute: ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(POLICY_ID),
+                });
+            });
+
+            it('leaves the workflows editable when NetSuite is set to Configure manually', () => {
+                // Given a NetSuite connection that imports employees without setting their approvers
+                const policy = buildPolicyWithNetSuite(true, false, false);
+
+                // When we check who owns the approval workflow
+                // Then the admin does
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(false);
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toBeUndefined();
+            });
+
+            it('leaves the workflows editable when NetSuite does not import employees', () => {
+                // Given a NetSuite connection whose approval mode would set approvers, but which imports no employees
+                const policy = buildPolicyWithNetSuite(false, true, true);
+
+                // When we check who owns the approval workflow
+                // Then the admin does, since NetSuite only sets approvers for the employees it imports
+                expect(isApprovalWorkflowLockedByIntegration(policy)).toBe(false);
+                expect(getApprovalWorkflowSource(policy, POLICY_ID)).toBeUndefined();
+            });
+        });
     });
 });
