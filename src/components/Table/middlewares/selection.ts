@@ -8,7 +8,7 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 
 import type {MiddlewareHookResult} from './types';
 
@@ -214,14 +214,24 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
     }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
+    // Clearing an empty selection would still hand the owner a new array, which re-renders it on every key typed in the
+    // search. The selection is read through an effect event so that selecting a row doesn't re-run the effect below.
+    const clearExistingSelection = useEffectEvent(() => {
+        if (!selectedKeys.length) {
+            return;
+        }
+
+        clearSelection();
+    });
+
     // When the table filters or the search string change, clear the current selection
     useEffect(() => {
         if (shouldPreserveSelectionOnSearchAndFilter) {
             return;
         }
 
-        clearSelection();
-    }, [currentFilters, activeSearchString, clearSelection, shouldPreserveSelectionOnSearchAndFilter]);
+        clearExistingSelection();
+    }, [currentFilters, activeSearchString, shouldPreserveSelectionOnSearchAndFilter]);
 
     // When the table unmounts, clear the selection. Should only run on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps

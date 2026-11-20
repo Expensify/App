@@ -29,25 +29,31 @@ function createItems(): TestItem[] {
 
 const SELECTABLE_KEYS = ['1', '2', '3'];
 
+// The table keeps its filters in state, so their identity only changes when a filter does. A new object per render would look like a filter change.
+const NO_FILTERS = {};
+
 type RenderSelectionProps = {
     data: TestItem[];
     selectedKeys: string[];
+    activeSearchString?: string;
+    shouldPreserveSelectionOnSearchAndFilter?: boolean;
 };
 
 function renderSelection(initialProps: RenderSelectionProps, onRowSelectionChange = jest.fn()) {
     const hook = renderHook(
-        ({data, selectedKeys}: RenderSelectionProps) => {
+        ({data, selectedKeys, activeSearchString = '', shouldPreserveSelectionOnSearchAndFilter = true}: RenderSelectionProps) => {
             const props: UseSelectionProps<TestItem> = {
                 data,
                 originalSelectableCount: data.length,
                 selectedKeys,
-                currentFilters: {},
-                activeSearchString: '',
+                currentFilters: NO_FILTERS,
+                activeSearchString,
                 onRowSelectionChange,
                 isSelectionModeEnabled: false,
                 setSelectionModeEnabled: jest.fn(),
-                // Keeps the table from clearing the selection when it mounts, which would hide what these tests look at.
-                shouldPreserveSelectionOnSearchAndFilter: true,
+                // Preserving by default keeps the table from clearing the selection when it mounts, which would hide what
+                // most of these tests look at.
+                shouldPreserveSelectionOnSearchAndFilter,
             };
             return useSelection<TestItem>(props);
         },
@@ -237,6 +243,51 @@ describe('useSelection middleware', () => {
 
             // Then the selection doesn't change
             expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('clearing the selection when the search changes', () => {
+        it('does not report a selection change when no row is selected', () => {
+            // Given a table with nothing selected that clears its selection on search. The owner keeps the selected keys in
+            // state, so a new empty array on every key would re-render the owner and redraw every row for nothing.
+            const data = createItems();
+            const {rerender, onRowSelectionChange} = renderSelection({data, selectedKeys: [], shouldPreserveSelectionOnSearchAndFilter: false});
+
+            // When the user types in the search box
+            rerender({data, selectedKeys: [], activeSearchString: 'o', shouldPreserveSelectionOnSearchAndFilter: false});
+            rerender({data, selectedKeys: [], activeSearchString: 'on', shouldPreserveSelectionOnSearchAndFilter: false});
+
+            // Then the owner is never told about a selection change, because the selection was already empty
+            expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+
+        it('keeps a row that was just selected while the search stays the same', () => {
+            // Given a table with nothing selected that clears its selection on search
+            const data = createItems();
+            const {rerender, onRowSelectionChange} = renderSelection({data, selectedKeys: [], shouldPreserveSelectionOnSearchAndFilter: false});
+            onRowSelectionChange.mockClear();
+
+            // When the owner selects a row and the search text does not change
+            rerender({data, selectedKeys: ['1'], shouldPreserveSelectionOnSearchAndFilter: false});
+
+            // Then the selection is left alone, because only a search or filter change should clear it. Checking for an
+            // empty selection must not make a selection change look like one
+            expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+
+        it('still clears the selection when rows are selected', () => {
+            // Given a table with two rows selected that clears its selection on search, which is the case the empty check
+            // must not swallow
+            const data = createItems();
+            const selectedKeys = ['1', '2'];
+            const {rerender, onRowSelectionChange} = renderSelection({data, selectedKeys, shouldPreserveSelectionOnSearchAndFilter: false});
+            onRowSelectionChange.mockClear();
+
+            // When the user types in the search box
+            rerender({data, selectedKeys, activeSearchString: 'o', shouldPreserveSelectionOnSearchAndFilter: false});
+
+            // Then the selection is cleared, because the selected rows may no longer be in the results
+            expect(onRowSelectionChange).toHaveBeenCalledWith([]);
         });
     });
 });
