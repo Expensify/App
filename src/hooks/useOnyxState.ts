@@ -86,9 +86,7 @@ function useOnyxState<T>(selector: UseOnyxStateSelector<T>, options?: UseOnyxSta
     const {shouldUseLiveData = false, ...onyxOptions} = options ?? {};
     const snapshotKey = useSearchSnapshotKey(shouldUseLiveData);
 
-    const snapshotAwareSelector: UseOnyxStateSelector<T> = snapshotKey
-        ? (state, previousState) => selector(createSnapshotStateView(state, snapshotKey), previousState && createSnapshotStateView(previousState, snapshotKey))
-        : selector;
+    const snapshotAwareSelector: UseOnyxStateSelector<T> = snapshotKey ? (state) => selector(createSnapshotStateView(state, snapshotKey)) : selector;
 
     return useOnyxStateWithoutSnapshots(snapshotAwareSelector, onyxOptions);
 }

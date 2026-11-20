@@ -84,15 +84,15 @@ function selectReportsAndSessionEmail(state: OnyxStateView) {
     return {reports: state[ONYXKEYS.COLLECTION.REPORT], email: state[ONYXKEYS.SESSION]?.email};
 }
 
-function selectReportNameWithPrevious(state: OnyxStateView, previousState: OnyxStateView | undefined) {
-    return {reportName: state[REPORT_KEY]?.reportName, previousReportName: previousState?.[REPORT_KEY]?.reportName};
+function selectReportName(state: OnyxStateView) {
+    return state[REPORT_KEY]?.reportName;
 }
 
 function selectHasReportMissingFromSnapshot(state: OnyxStateView) {
     return REPORT_MISSING_FROM_SNAPSHOT_KEY in state;
 }
 
-async function renderSelector<T>(selector: (state: OnyxStateView, previousState: OnyxStateView | undefined) => T, wrapper?: React.ComponentType<ChildrenProps>) {
+async function renderSelector<T>(selector: (state: OnyxStateView) => T, wrapper?: React.ComponentType<ChildrenProps>) {
     const rendered = renderHook(() => useOnyxState(selector), {wrapper});
     await waitForBatchedUpdatesWithAct();
     return rendered;
@@ -265,23 +265,11 @@ describe('useOnyxState Search snapshot redirect', () => {
         expect(result.current).toEqual({...SNAPSHOT_REPORT, reportName: 'Updated report'});
     });
 
-    it('should give previousState the previous snapshot copy inside Search', async () => {
-        // Given a selector on a Search screen that reads the report name from both state and previousState
-        const {result} = await renderSelector(selectReportNameWithPrevious, SearchScreen);
-
-        // When an update changes the report name in the snapshot
-        await act(() => Onyx.update([{onyxMethod: Onyx.METHOD.MERGE, key: REPORT_KEY, value: {reportName: 'Updated report'}}]));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then previousState holds the snapshot copy from before the update, so incremental selectors compare snapshot data with snapshot data
-        expect(result.current).toEqual({reportName: 'Updated report', previousReportName: SNAPSHOT_REPORT.reportName});
-    });
-
-    it('should read the new snapshot with an empty previousState after the search hash changes', async () => {
-        // Given a selector that reads state and previousState on a Search screen showing the first search
-        const values: Array<ReturnType<typeof selectReportNameWithPrevious>> = [];
+    it('should read the new snapshot after the search hash changes', async () => {
+        // Given a selector that reads the report name on a Search screen showing the first search
+        const values: Array<ReturnType<typeof selectReportName>> = [];
         function Reader() {
-            values.push(useOnyxState(selectReportNameWithPrevious));
+            values.push(useOnyxState(selectReportName));
             return null;
         }
         const {rerender} = render(
@@ -299,8 +287,8 @@ describe('useOnyxState Search snapshot redirect', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the report comes from the second snapshot, and previousState has nothing for it because the last run read the first snapshot
-        expect(values.at(-1)).toEqual({reportName: OTHER_SNAPSHOT_REPORT.reportName, previousReportName: undefined});
+        // Then the report comes from the second snapshot, because the hash picks which snapshot the selector reads
+        expect(values.at(-1)).toEqual(OTHER_SNAPSHOT_REPORT.reportName);
     });
 
     it('should read live data inside Search when the hook asks for live data', async () => {
