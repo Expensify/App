@@ -1,7 +1,7 @@
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {FLAT_NAV_SECTION_DEFINITIONS, getActiveFlatNavItem} from '@libs/Navigation/FlatNav/FlatNavUtils';
-import type {FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
+import type {FlatNavSavedSearchItem, FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import getFlatNavTabBarSlot from '@libs/Navigation/FlatNavTabBar/getFlatNavTabBarSlot';
 import getMoreMenuItems from '@libs/Navigation/MoreMenu/getMoreMenuItems';
@@ -11,8 +11,29 @@ import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 
+/** The More menu lists a section only when it has a search to open, and any item that can be opened will do here. */
+function createSavedSearchItem(overrides: Partial<FlatNavSavedSearchItem> = {}): FlatNavSavedSearchItem {
+    return {
+        type: FLAT_NAV.ITEM_TYPE.SAVED_SEARCH,
+        key: savedSearchIDToSearchKey('1'),
+        sectionID: FLAT_NAV.SECTION.SAVED,
+        savedSearchID: '1',
+        name: 'Saved 1',
+        title: 'Saved 1',
+        query: 'type:expense',
+        iconName: 'Bookmark',
+        isDisabled: false,
+        ...overrides,
+    };
+}
+
 function createSections(hiddenIDs: FlatNavSectionID[]): FlatNavSection[] {
-    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => !hiddenIDs.includes(definition.id)).map(({id, translationPath, iconName}) => ({id, translationPath, iconName, items: []}));
+    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => !hiddenIDs.includes(definition.id)).map(({id, translationPath, iconName}) => ({
+        id,
+        translationPath,
+        iconName,
+        items: [createSavedSearchItem()],
+    }));
 }
 
 const VISIBILITY_CASES: Array<[string, FlatNavSection[]]> = [
