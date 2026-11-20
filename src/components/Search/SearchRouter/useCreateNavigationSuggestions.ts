@@ -4,6 +4,7 @@
 import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -35,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Policy} from '@src/types/onyx';
@@ -124,6 +126,9 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(sessionEmail);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -180,7 +185,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     }
 
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
-    const isTravelVisible = !!activePolicy?.isTravelEnabled;
+    const isTravelVisible = !!hasTravelEnabledPolicy;
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isTravelEnabled =
@@ -264,7 +269,12 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
             matchTerms: matchTerms.travel,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled), session);
+                    interceptAnonymousUser(() => {
+                        if (blockIfDefaultWorkspaceLacksTravel()) {
+                            return;
+                        }
+                        openBookTravel(activePolicy?.id, isTravelEnabled);
+                    }, session);
                 }),
             keyForList: 'create_travel',
         },
