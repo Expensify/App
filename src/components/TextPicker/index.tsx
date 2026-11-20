@@ -26,7 +26,6 @@ function TextPicker({
     onValueCommitted,
     rightLabel,
     disabled = false,
-    interactive = true,
     required = false,
     customValidate,
     shouldUseStrictHtmlTagValidation,
@@ -69,7 +68,7 @@ function TextPicker({
             <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.TEXT_PICKER.OPEN}
                 ref={ref}
-                onPress={interactive ? callIfAuthenticated(showPickerModal, session) : undefined}
+                onPress={callIfAuthenticated(showPickerModal, session)}
                 style={wrapperStyle}
             >
                 <MenuItem.Row>

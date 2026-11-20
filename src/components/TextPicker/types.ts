@@ -76,7 +76,7 @@ type TextPickerProps = {
     shouldUseStrictHtmlTagValidation?: boolean;
 
     ref?: ForwardedRef<ComponentRef<typeof View>>;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
     Omit<TextProps, 'ref'>;
 
 export type {TextSelectorModalProps, TextPickerProps};

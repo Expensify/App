@@ -142,14 +142,13 @@ describe('Composable form field migration', () => {
         expect(onValueCommitted).toHaveBeenCalledWith('New name');
     });
 
-    it.each(['disabled', 'read-only'] as const)('does not open a %s TextPicker', (state) => {
-        // Given a picker that must not open for this interaction state.
+    it('does not open a disabled TextPicker', () => {
+        // Given a disabled picker that must not open.
         render(
             <TextPicker
                 inputID="name"
                 description="Name"
-                disabled={state === 'disabled'}
-                interactive={state !== 'read-only'}
+                disabled
             />,
         );
 
@@ -158,7 +157,7 @@ describe('Composable form field migration', () => {
 
         // Then the modal stays closed and disabled pickers have no chevron.
         expect(screen.UNSAFE_getByType(TextSelectorModal).props.isVisible).toBe(false);
-        expect(screen.UNSAFE_queryAllByType(MenuItem.Chevron)).toHaveLength(state === 'disabled' ? 0 : 1);
+        expect(screen.UNSAFE_queryAllByType(MenuItem.Chevron)).toHaveLength(0);
     });
 
     it('preserves multiline metadata typography and row spacing', () => {
