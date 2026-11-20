@@ -63,9 +63,16 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  *
  * `accountID` is deliberately a required position rather than optional: omitting it silently drops the owner
  * protection, so every caller must state it even when it is `undefined`.
+ *
+ * A caller checking many members passes `approverLogins` from `getPolicyApproverLogins`, because `isPolicyApprover`
+ * reads every workspace member on each call.
  */
-const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
-    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || hasReadOnlyAllReportsAccess(policy, login, false) || isPolicyApprover(policy, login);
+const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined, approverLogins?: ReadonlySet<string>): boolean =>
+    isPolicyOwner(policy, accountID) ||
+    !login ||
+    isPolicyAdmin(policy, login, false) ||
+    hasReadOnlyAllReportsAccess(policy, login, false) ||
+    (approverLogins ? approverLogins.has(login) : isPolicyApprover(policy, login));
 
 const ALL_POLICY_FEATURES = Object.values(CONST.POLICY.POLICY_FEATURE);
 

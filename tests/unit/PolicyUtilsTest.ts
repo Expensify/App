@@ -2136,6 +2136,32 @@ describe('PolicyUtils', () => {
                     // Then they are protected as the policy owner, regardless of their role in the employee list
                     expect(isRoomMemberProtectedByPolicyRole(policy, approverLogin, policyOwnerAccountID)).toBe(true);
                 });
+
+                it('gives the same answer for every member when the approver logins are collected once for the whole list', () => {
+                    // Given the approval chain plus an over-limit approver, and the approver logins collected once, as the members list does
+                    const overLimitLogin = 'overlimit@test.com';
+                    const chainPolicy = buildPolicyWithApprovalChain();
+                    const policy = {
+                        ...chainPolicy,
+                        employeeList: {
+                            ...chainPolicy.employeeList,
+                            [overLimitLogin]: {role: CONST.POLICY.ROLE.USER},
+                            'big.spender@test.com': {role: CONST.POLICY.ROLE.USER, submitsTo: approverLogin, overLimitForwardsTo: overLimitLogin},
+                        },
+                    };
+                    const approverLogins = getPolicyApproverLogins(policy);
+                    const logins = [approverLogin, forwardsToLogin, overLimitLogin, memberLogin, 'big.spender@test.com', adminLogin, 'stranger@test.com', 'Approver@Test.com', '', undefined];
+
+                    // When each member's protection is resolved with and without the collected logins
+                    // Then every answer matches, so the list and the member details page still agree
+                    for (const login of logins) {
+                        expect(isRoomMemberProtectedByPolicyRole(policy, login, regularMemberAccountID, approverLogins)).toBe(
+                            isRoomMemberProtectedByPolicyRole(policy, login, regularMemberAccountID),
+                        );
+                    }
+                    expect(isRoomMemberProtectedByPolicyRole(policy, overLimitLogin, regularMemberAccountID, approverLogins)).toBe(true);
+                    expect(isRoomMemberProtectedByPolicyRole(policy, memberLogin, regularMemberAccountID, approverLogins)).toBe(false);
+                });
             });
         });
 

@@ -38,7 +38,7 @@ import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
+import {getPolicyApproverLogins, isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
@@ -97,12 +97,14 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const accountIDToName = useMentionedAccountIDToNameMap(subtitleReportName);
 
     const {chatParticipants: participants, personalDetailsParticipants} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true);
+    // Every selected member is checked against the participants on each render, so after Select all a list would be searched once per member.
+    const participantAccountIDs = new Set(participants);
 
     const shouldIncludeMember = (participant?: PersonalDetails) => {
         if (!participant) {
             return false;
         }
-        const isInParticipants = participants.includes(participant.accountID);
+        const isInParticipants = participantAccountIDs.has(participant.accountID);
         const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
 
         const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -200,6 +202,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(accountID)));
     };
 
+    // Collected once for the whole list, because checking each member on its own reads every workspace member per row.
+    const policyApproverLogins = getPolicyApproverLogins(policy);
     const result: RoomMemberRowData[] = [];
     for (const accountID of participants) {
         const details = personalDetails?.[accountID];
@@ -209,7 +213,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
         // missing. Kept in sync with the member details page through the shared helper.
-        const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
+        const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID, policyApproverLogins);
         const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
         const isSelectionDisabled =
             (isPolicyExpenseChat && isProtectedByPolicyRole) ||
