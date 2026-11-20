@@ -71,8 +71,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
         bankAccountList,
         currentUserDetails.login ?? '',
         currentUserDetails.accountID,
-        // Matches ApprovePrimaryAction so Spend and the report header show the same approval amounts.
-        undefined,
+        transactions,
         false,
         isChatReportArchived,
         invoiceReceiverPolicy,
@@ -86,7 +85,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
             bankAccountList,
             currentUserDetails.login ?? '',
             currentUserDetails.accountID,
-            undefined,
+            transactions,
             true,
             isChatReportArchived,
             invoiceReceiverPolicy,

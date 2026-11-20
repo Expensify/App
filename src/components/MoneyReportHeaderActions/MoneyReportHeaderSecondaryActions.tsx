@@ -309,14 +309,25 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         bankAccountList,
         currentUserLogin ?? '',
         accountID,
-        undefined,
+        moneyReportTransactions,
         false,
         isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            moneyRequestReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserLogin ?? '',
+            accountID,
+            moneyReportTransactions,
+            true,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const hasOnlyPendingTransactions = moneyReportTransactions.length > 0 && moneyReportTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
