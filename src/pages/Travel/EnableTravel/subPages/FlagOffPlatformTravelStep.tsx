@@ -26,7 +26,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 /** The bookings an admin can choose to flag, as in the approved design, which leaves out hotel blocks. */
-const TRAVEL_TYPES_TO_OFFER: TravelTypeValue[] = [CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.HOTEL, CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL, CONST.SEARCH.TRAVEL_TYPE.RAIL];
+const TRAVEL_TYPES_TO_OFFER: TravelTypeValue[] = [CONST.SEARCH.TRAVEL_TYPE.FLIGHT, CONST.SEARCH.TRAVEL_TYPE.HOTEL, CONST.SEARCH.TRAVEL_TYPE.CAR, CONST.SEARCH.TRAVEL_TYPE.TRAIN];
 
 const FLAG_OPTION_KEY = 'flag';
 const SKIP_FLAGGING_OPTION_KEY = 'skipFlagging';

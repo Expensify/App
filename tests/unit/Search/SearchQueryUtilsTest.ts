@@ -1972,7 +1972,7 @@ describe('SearchQueryUtils', () => {
         test('shows travel types and platforms by their names', async () => {
             // Given English copy and a query that filters on stored travel values, which aren't what people call them
             await IntlStore.load('en');
-            const queryString = 'type:expense travel-type:air,carRental travel-platform:amexGBT';
+            const queryString = 'type:expense travel-type:flight,car travel-platform:amexGBT';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
             if (!canonicalQueryString) {
                 throw new Error('Failed to standardize query string');
@@ -1998,7 +1998,7 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            // Then each value shows the name from the filter list, so "air" reads as "Flight"
+            // Then each value shows the name from the filter list, so "car" reads as "Car rental"
             expect(result).toBe('type:expense travel-type:Flight,"Car rental" travel-platform:"Amex GBT/Egencia"');
         });
 
@@ -3015,10 +3015,10 @@ describe('SearchQueryUtils', () => {
 
         test.each([
             {
-                query: 'type:expense travel-type:air,carRental travel-platform:other',
-                expectedTravelType: ['air', 'carRental'],
+                query: 'type:expense travel-type:flight,car travel-platform:other',
+                expectedTravelType: ['flight', 'car'],
                 expectedTravelPlatform: ['other'],
-                expectedQuery: 'type:expense travelType:air,carRental travelPlatform:other',
+                expectedQuery: 'type:expense travelType:flight,car travelPlatform:other',
             },
             {
                 query: 'type:expense -travel-type:hotel -travel-platform:expensifyTravel',
@@ -3047,7 +3047,7 @@ describe('SearchQueryUtils', () => {
 
         test('travel filters drop values that are not travel types or platforms', () => {
             // Given a query with typos next to real travel values
-            const queryJSON = buildSearchQueryJSON('type:expense travel-type:air,plane travel-platform:navan,kayak');
+            const queryJSON = buildSearchQueryJSON('type:expense travel-type:flight,plane travel-platform:navan,kayak');
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
             }
@@ -3056,7 +3056,7 @@ describe('SearchQueryUtils', () => {
             const formValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
             // Then only the real values are kept, because Auth would never match the unknown ones
-            expect(formValues.travelType).toEqual(['air']);
+            expect(formValues.travelType).toEqual(['flight']);
             expect(formValues.travelPlatform).toEqual(['navan']);
         });
 

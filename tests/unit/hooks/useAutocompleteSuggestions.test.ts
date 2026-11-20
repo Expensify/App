@@ -422,8 +422,8 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([
             {
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE,
-                text: 'search.filters.travelType.carRental',
-                autocompleteID: CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL,
+                text: 'search.filters.travelType.car',
+                autocompleteID: CONST.SEARCH.TRAVEL_TYPE.CAR,
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE,
             },
         ]);
