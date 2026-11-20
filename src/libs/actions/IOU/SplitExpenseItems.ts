@@ -607,6 +607,9 @@ function addSplitExpenseField(
             );
             customUnit = updatedCustomUnit;
             merchant = calculatedMerchant;
+        } else if (rate === 0 && customUnit) {
+            // A $0 rate can't turn the amount into a distance, so the merchant is built straight from the new split's 0 distance
+            merchant = getDistanceMerchantFromDistance(0, unit, rate, transaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD, getCurrencySymbol);
         }
     }
 
@@ -1113,6 +1116,65 @@ function updateSplitExpenseAmountField(
 }
 
 /**
+ * Set a split's distance to a percentage of the expense's distance. Used for $0 distance expenses, whose splits divide the
+ * distance instead of the amount, so each split's amount stays its distance times its rate.
+ */
+function updateSplitExpenseDistanceFromPercentage({
+    draftTransaction,
+    currentItemTransactionID,
+    percentage,
+    originalTransaction,
+    policy,
+    isSelfDMSplit,
+    personalPolicyOutputCurrency,
+    getCurrencySymbol,
+    policies,
+    frozenSplitsContext,
+}: {
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    currentItemTransactionID: string;
+    percentage: number;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isSelfDMSplit: boolean;
+    personalPolicyOutputCurrency: string | undefined;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+    frozenSplitsContext?: FrozenSplitsContext;
+}) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID || !originalTransaction || Number.isNaN(percentage)) {
+        return;
+    }
+
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(currentItemTransactionID)) {
+        return;
+    }
+
+    const quantity = Math.max(0, roundToTwoDecimalPlaces(((getBilledDistance(originalTransaction) ?? 0) * percentage) / 100));
+    const mileageRate = resolveSplitMileageRate({transaction: originalTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
+    const currency = originalTransaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD;
+
+    const splitExpenses = (draftTransaction.comment?.splitExpenses ?? []).map((splitExpense) => {
+        if (splitExpense.transactionID !== currentItemTransactionID || !splitExpense.customUnit) {
+            return splitExpense;
+        }
+        const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
+        const sign = splitExpense.amount < 0 ? -1 : 1;
+        return {
+            ...splitExpense,
+            amount: isUsableSplitRate(rate) && quantity > 0 ? Math.round(quantity * rate) * sign : 0,
+            customUnit: {...splitExpense.customUnit, quantity},
+            merchant: getDistanceMerchantFromDistance(quantity, unit, rate, currency, getCurrencySymbol),
+            isManuallyEdited: true,
+        };
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction.comment?.originalTransactionID}`, {
+        comment: {splitExpenses},
+    });
+}
+
+/**
  * Clear errors from split transaction draft
  */
 function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
@@ -1146,6 +1208,7 @@ export {
     removeSplitExpenseField,
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
+    updateSplitExpenseDistanceFromPercentage,
     clearSplitTransactionDraftErrors,
     updateSplitExpenseDraftField,
 };

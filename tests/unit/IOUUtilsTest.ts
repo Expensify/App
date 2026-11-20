@@ -159,11 +159,11 @@ describe('IOUUtils', () => {
         });
     });
 
-    describe('calculateSplitPercentagesFromAmounts', () => {
+    describe('calculateSplitPercentages', () => {
         test('Equal amounts always have equal percentages', () => {
             // All equal amounts should get equal floored percentages
             const amounts = [33, 33, 35];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, 101);
 
             // First two (equal amounts) should have equal percentages
             expect(percentages.at(0)).toBe(percentages.at(1));
@@ -176,7 +176,7 @@ describe('IOUUtils', () => {
         test('Zero-amount splits stay at 0 percent', () => {
             // Splits with 0 amount should have 0% even when there is a remainder
             const amounts = [33, 33, 35, 0, 0];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, 101);
 
             // Zero amounts should be 0%
             expect(percentages.at(3)).toBe(0);
@@ -190,7 +190,7 @@ describe('IOUUtils', () => {
         test('Returns percentages with one decimal place', () => {
             const totalInCents = 2300;
             const amounts = [766, 766, 768];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, totalInCents);
 
             // First two equal amounts should have equal percentages
             expect(percentages.at(0)).toBe(percentages.at(1));
@@ -203,14 +203,14 @@ describe('IOUUtils', () => {
         });
 
         test('Handles zero or empty totals by returning zeros', () => {
-            expect(IOUUtils.calculateSplitPercentagesFromAmounts([], 0)).toEqual([]);
-            expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
+            expect(IOUUtils.calculateSplitPercentages([], 0)).toEqual([]);
+            expect(IOUUtils.calculateSplitPercentages([0, 0], 0)).toEqual([0, 0]);
         });
 
         test('Preserves sign for negative amounts in multi-split scenario', () => {
             const totalInCents = 10000;
             const amounts = [-2500, 7500, 5000]; // -25% + 75% + 50% = 100%
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, totalInCents);
 
             // First amount should be negative percentage
             expect(percentages.at(0)).toBe(-25);
@@ -225,7 +225,7 @@ describe('IOUUtils', () => {
         test('Handles all negative amounts with negative total', () => {
             const totalInCents = -2300;
             const amounts = [-766, -766, -768];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, totalInCents);
 
             // When both total and amounts are negative (same sign), percentages should be positive
             expect(percentages.at(0)).toBeGreaterThan(0);
@@ -241,7 +241,7 @@ describe('IOUUtils', () => {
         test('Returns floored percentages when split totals differ from original total', () => {
             const originalTotalInCents = 20000;
             const amounts = [10000, 10000, 5000]; // totals 25000, larger than original total
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, originalTotalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, originalTotalInCents);
 
             // Each amount is expressed as floored percentage of the original total
             expect(percentages.at(0)).toBe(percentages.at(1)); // Equal amounts have equal percentages
@@ -252,7 +252,7 @@ describe('IOUUtils', () => {
         test('Produces normalized percentages for 13-way split of $89', () => {
             const totalInCents = 8900;
             const amounts = [684, 684, 684, 684, 684, 685, 685, 685, 685, 685, 685, 685, 685];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, totalInCents);
 
             // All 684s (first 5) should have equal percentages
             const first5 = percentages.slice(0, 5);
@@ -272,7 +272,7 @@ describe('IOUUtils', () => {
         test('Produces normalized percentages for 12-way split of $22', () => {
             const totalInCents = 2200;
             const amounts = [183, 183, 183, 183, 183, 183, 183, 183, 184, 184, 184, 184];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+            const percentages = IOUUtils.calculateSplitPercentages(amounts, totalInCents);
 
             // All 183s (first 8) should have equal percentages
             const first8 = percentages.slice(0, 8);

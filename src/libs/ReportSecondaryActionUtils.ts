@@ -19,6 +19,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import DistanceRequestUtils from './DistanceRequestUtils';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -162,6 +163,18 @@ function isSplitAction(
     const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!getBilledDistance(reportTransaction);
 
     if (!amount && !isExpenseSplit && !hasDistanceToSplit) {
+        return false;
+    }
+
+    // A $0 rate splits the billed distance, so a commuter exclusion covering the whole trip would leave every split at 0 distance
+    const customUnitRateID = reportTransaction?.comment?.customUnit?.customUnitRateID;
+    const isZeroRateWithZeroBilledDistance =
+        isDistanceRequestTransactionUtils(reportTransaction) &&
+        !getBilledDistance(reportTransaction) &&
+        !!customUnitRateID &&
+        DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy})?.rate === 0;
+
+    if (isZeroRateWithZeroBilledDistance) {
         return false;
     }
 

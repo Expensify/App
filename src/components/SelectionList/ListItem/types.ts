@@ -304,6 +304,9 @@ type SplitListItemType = ListItem &
          */
         isAmountEditable?: boolean;
 
+        /** Whether the split's percentage can be typed in when it differs from `isAmountEditable`, e.g. a $0 distance split's percentage sets its distance */
+        isPercentageEditable?: boolean;
+
         /** Current mode for the split editor: amount or percentage */
         mode: ValueOf<typeof CONST.TAB.SPLIT>;
 

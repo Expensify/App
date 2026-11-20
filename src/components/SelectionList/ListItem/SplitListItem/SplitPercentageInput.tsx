@@ -30,8 +30,9 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
 
     const inputValue = percentageDraft ?? String(splitItem.percentage ?? 0);
 
-    // Any percentage of a $0 total is $0, so a percentage typed in would be discarded
-    if (splitItem.isEditable && splitItem.isAmountEditable !== false && splitItem.originalAmount !== 0) {
+    // Any percentage of a $0 total is $0, so a typed percentage is only kept when it sets something else, like a distance
+    const isPercentageEditable = splitItem.isPercentageEditable ?? (splitItem.isAmountEditable !== false && splitItem.originalAmount !== 0);
+    if (splitItem.isEditable && isPercentageEditable) {
         return (
             <PercentageForm
                 onInputChange={(value) => {
