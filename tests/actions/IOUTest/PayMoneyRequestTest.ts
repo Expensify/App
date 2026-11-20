@@ -2659,6 +2659,80 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const restoredReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(restoredReport?.canCancelReimbursement).toBe(true);
         });
+
+        it('returns a Submit workspace report to Outstanding and restores Paid when undoing Received payment fails', async () => {
+            const submitterEmail = 'submitter@expensifail.com';
+            const submitterAccountID = 40;
+            const parentReportActionID = 'submitPreviewAction';
+
+            // Given a submitter who confirmed Received payment on a Submit workspace report, which has payments turned off
+            await Onyx.set(ONYXKEYS.SESSION, {email: submitterEmail, accountID: submitterAccountID});
+            const policy = {
+                id: 'cancelSubmitPolicy',
+                name: 'Submit Workspace',
+                role: CONST.POLICY.ROLE.EDITOR,
+                owner: submitterEmail,
+                ownerAccountID: submitterAccountID,
+                outputCurrency: CONST.CURRENCY.USD,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const expenseReport = {
+                reportID: 'cancelSubmitExpense',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: 41,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -1000,
+                nonReimbursableTotal: 0,
+                currency: 'USD',
+                parentReportID: 'cancelSubmitChat',
+                parentReportActionID,
+                chatReportID: 'cancelSubmitChat',
+            };
+            const chatReport = {
+                reportID: 'cancelSubmitChat',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: submitterAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+
+            // When the submitter undoes the confirmation while the request is still pending
+            mockFetch?.pause?.();
+            cancelPayment(expenseReport, chatReport, policy, true, submitterAccountID, submitterEmail, false, false, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the report and its preview go back to Outstanding, matching Auth, because Submit workspaces can't approve reports
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(optimisticReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(optimisticReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(optimisticReport?.nextStep?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE);
+            const optimisticPreview = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`))?.[parentReportActionID];
+            expect(optimisticPreview?.childStateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(optimisticPreview?.childStatusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+            // When the request fails
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the report and its preview are Paid again
+            const restoredReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(restoredReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(restoredReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            const restoredPreview = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`))?.[parentReportActionID];
+            expect(restoredPreview?.childStateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(restoredPreview?.childStatusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+        });
     });
 
     describe('payMoneyRequest', () => {
