@@ -6695,7 +6695,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     excludeEmptyChats: false,
                     doesReportHaveViolations: false,
                     isReportArchived: false,
-                    draftComment: undefined,
+                    hasDraftComment: undefined,
                     currentUserLogin: RORY_EMAIL,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     conciergeReportID: undefined,
