@@ -216,6 +216,15 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
+    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing) ?? {};
+
+    // The bar's reserved space is bottom padding that replaces the list's own rather than adding to it, so a fixed
+    // minimum height has to grow by the difference to keep the content box the size it was. Leaving it alone shrinks
+    // the box, which lifts a footer the page pins to the bottom of it as soon as a selection shows the bar.
+    const bulkActionBarContentMinHeight =
+        typeof contentMinHeight === 'number' && typeof tableBodyBottomPadding === 'number' && typeof bulkActionBarBottomSpacing === 'number'
+            ? contentMinHeight + (shouldUseNarrowTableLayout ? tableBodyBottomPadding : 0) + bulkActionBarBottomSpacing - tableBodyBottomPadding
+            : undefined;
 
     const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
     const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
@@ -371,6 +380,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
             shouldRenderEmptyStateInList && styles.flexGrow1,
             narrowTableMinHeightStyle,
+            // Applied last so it wins at the in-between widths, where the narrow layout sets a minimum height
+            // of its own and the bar is shown as well.
+            isBulkActionBarVisible && bulkActionBarContentMinHeight !== undefined && StyleUtils.getMinimumHeight(bulkActionBarContentMinHeight),
         ],
     });
 
