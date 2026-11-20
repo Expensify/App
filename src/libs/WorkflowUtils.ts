@@ -1809,9 +1809,30 @@ function getFilterAmounts(node: RuleFilterNode): number[] {
 }
 
 /**
+ * Group rules by the submitters they list. A rule listing several submitters lands in each of their groups.
+ */
+function groupApprovalWorkflowRulesBySubmitter(rules: Record<string, ApprovalWorkflowRule>): Map<string, Record<string, ApprovalWorkflowRule>> {
+    const rulesBySubmitter = new Map<string, Record<string, ApprovalWorkflowRule>>();
+    for (const [ruleID, rule] of Object.entries(rules)) {
+        for (const submitter of extractSubmitterEmails(rule)) {
+            let submitterRules = rulesBySubmitter.get(submitter);
+            if (!submitterRules) {
+                submitterRules = {};
+                rulesBySubmitter.set(submitter, submitterRules);
+            }
+            submitterRules[ruleID] = rule;
+        }
+    }
+    return rulesBySubmitter;
+}
+
+/**
  * Build a submitter's approvers from the routes their reports take. The first approver comes from the `ReportSubmit` rule, and
  * each approver's `to == approver` rules say where a report goes once they approve it, for its amount. Any step the rules don't
  * cover falls back to the legacy `employeeList` fields.
+ *
+ * Only rules listing `submitter` are read, even for later steps: an approver's own submit rules never route this submitter's
+ * report. So passing just the submitter's group from `groupApprovalWorkflowRulesBySubmitter` gives the same chain as all rules.
  */
 function buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail}: BuildApproverChainFromRulesParams): Approver[] {
     const submission = resolveApprovalHop(submitter, rules, undefined);
@@ -2000,28 +2021,17 @@ function getApproverPendingActionByMemberEmail(
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
-    const submitters = new Set<string>();
-    const defaultWorkflowSubmitters = new Set<string>();
-    for (const rule of Object.values(rules)) {
-        for (const email of extractSubmitterEmails(rule)) {
-            submitters.add(email);
-            if (rule.isDefaultApprovalWorkflow) {
-                defaultWorkflowSubmitters.add(email);
-            }
-        }
-    }
-
     const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
     const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
     const result: Record<string, string> = {};
-    for (const submitter of submitters) {
+    for (const [submitter, submitterRules] of groupApprovalWorkflowRulesBySubmitter(rules)) {
         // Resolving the chain is the expensive part, so skip it for submitters the rules already exclude.
-        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters.has(submitter)) {
+        if (canReadDefaultWorkflowFromRules && hasRuleBasedDefaultWorkflow(submitterRules)) {
             continue;
         }
 
-        const firstApprover = resolveFirstApprover(submitter, rules, employees);
+        const firstApprover = resolveFirstApprover(submitter, submitterRules, employees);
         if (!firstApprover) {
             continue;
         }
@@ -2040,17 +2050,10 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
  * treating "same first approver" as "same workflow".
  */
 function getRulesSubmitterToWorkflowKey(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}): Record<string, string> {
-    const submitters = new Set<string>();
-    for (const rule of Object.values(rules)) {
-        for (const email of extractSubmitterEmails(rule)) {
-            submitters.add(email);
-        }
-    }
-
     const result: Record<string, string> = {};
-    for (const submitter of submitters) {
+    for (const [submitter, submitterRules] of groupApprovalWorkflowRulesBySubmitter(rules)) {
         // The key ignores display/avatar fields, so personal details aren't needed here.
-        const chain = buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail: {}});
+        const chain = buildApproverChainFromRules({submitter, rules: submitterRules, employees, personalDetailsByEmail: {}});
         if (chain.length > 0) {
             result[submitter] = getApproverChainKey(chain);
         }
@@ -2093,24 +2096,10 @@ function convertApprovalWorkflowRulesToWorkflows({
         personalDetailsByEmail[value?.login ?? key] = value;
     }
 
+    const rulesBySubmitter = groupApprovalWorkflowRulesBySubmitter(rules);
+
     // Keyed by a source-tagged workflow key so a legacy chain and a rule-based chain with the same shape stay
     // in separate workflows.
-    const ruleBackedSubmitters = new Set<string>();
-    const defaultWorkflowSubmitters = new Set<string>();
-    // The chain builders only read the rules that list the submitter, so each one gets just those instead of scanning every rule again at every step
-    const rulesBySubmitter = new Map<string, Record<string, ApprovalWorkflowRule>>();
-    for (const [ruleID, rule] of Object.entries(rules)) {
-        for (const submitter of extractSubmitterEmails(rule)) {
-            ruleBackedSubmitters.add(submitter);
-            if (rule.isDefaultApprovalWorkflow) {
-                defaultWorkflowSubmitters.add(submitter);
-            }
-            const submitterRules = rulesBySubmitter.get(submitter) ?? {};
-            submitterRules[ruleID] = rule;
-            rulesBySubmitter.set(submitter, submitterRules);
-        }
-    }
-
     const groupedByWorkflowKey = new Map<string, WorkflowGroup>();
     const usedApproverEmails = new Set<string>();
     const availableMembers: Member[] = [];
@@ -2180,8 +2169,8 @@ function convertApprovalWorkflowRulesToWorkflows({
             }
         }
 
-        const hasRuleBasedChain = ruleBackedSubmitters.has(email);
-        const isDefaultWorkflowChain = hasRuleBasedChain ? defaultWorkflowSubmitters.has(email) : firstApproverEmail === defaultApprover;
+        const hasRuleBasedChain = rulesBySubmitter.has(email);
+        const isDefaultWorkflowChain = hasRuleBasedChain ? hasRuleBasedDefaultWorkflow(submitterRules) : firstApproverEmail === defaultApprover;
 
         const chainKey = getApproverChainKey(chain);
         const workflowKey = `${hasRuleBasedChain ? 'r' : 'l'}${isDefaultWorkflowChain ? 'd' : ''}|${chainKey}`;
@@ -2357,6 +2346,7 @@ export {
     getApproverPendingActionByMemberEmail,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    groupApprovalWorkflowRulesBySubmitter,
     getWorkflowMemberEmails,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
