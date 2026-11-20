@@ -12,13 +12,13 @@ import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadRepor
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
-import useRepairExperienceCookie from '@hooks/useRepairExperienceCookie';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
+import {isSharedProductHost} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {getReportsTabPreloadTarget, getTabNavigatorStateKey} from '@libs/Navigation/helpers/tabNavigatorUtils';
@@ -55,6 +55,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import React, {useEffect, useRef} from 'react';
 
+import ExperienceCookieRepairHandler from './ExperienceCookieRepairHandler';
 import SearchTabPreload from './SearchTabPreload';
 
 function initializePusher(
@@ -124,7 +125,6 @@ function AuthScreensInitHandler() {
 
     useReconcileHighContrastIntent();
     useRequestsKeptOnSAMLSignOut();
-    useRepairExperienceCookie();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
@@ -281,12 +281,16 @@ function AuthScreensInitHandler() {
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
 
-    // Its own component, so its Onyx reads re-render only the preload. Rendered here to reuse isLoadingApp and tabNavigatorStateKey.
     return (
-        <SearchTabPreload
-            isLoadingApp={isLoadingApp}
-            tabNavigatorStateKey={tabNavigatorStateKey}
-        />
+        <>
+            {/* Only the host that serves both products uses the cookie, so the repair's Onyx reads exist nowhere else */}
+            {isSharedProductHost() && <ExperienceCookieRepairHandler />}
+            {/* Its own component, so its Onyx reads re-render only the preload. Rendered here to reuse isLoadingApp and tabNavigatorStateKey. */}
+            <SearchTabPreload
+                isLoadingApp={isLoadingApp}
+                tabNavigatorStateKey={tabNavigatorStateKey}
+            />
+        </>
     );
 }
 
