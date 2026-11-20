@@ -46,6 +46,15 @@ type ChartGroupByConfig = {
     getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
 
+const getMonthRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined);
+
+const getQuarterRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined);
+
+/** Builds the drill-down filter for a time group, or no filter when the group has no real period */
+function buildDateFilterQuery(range: ChartBucketRange | undefined, dateFilterKey?: SearchDateFilterKeys): string {
+    return range ? buildBucketFilterQuery(range, dateFilterKey) : '';
+}
+
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
  * for displaying grouped transaction data in charts.
@@ -98,13 +107,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? (item.formattedMonth ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         axisLabelSteps: [1, 2, 3, 6],
-        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
-            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.MONTH) {
-                return '';
-            }
-            return buildBucketFilterQuery(DateUtils.getMonthDateRange(item.year, item.month), dateFilterKey);
-        },
-        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined),
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => buildDateFilterQuery(getMonthRange(item), dateFilterKey),
+        getDateRange: getMonthRange,
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
@@ -137,13 +141,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? (item.formattedQuarter ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         axisLabelSteps: [1, 2, 4],
-        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
-            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.QUARTER) {
-                return '';
-            }
-            return buildBucketFilterQuery(DateUtils.getQuarterDateRange(item.year, item.quarter), dateFilterKey);
-        },
-        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => buildDateFilterQuery(getQuarterRange(item), dateFilterKey),
+        getDateRange: getQuarterRange,
     },
     [CONST.SEARCH.GROUP_BY.APPROVER]: {
         titleIconName: 'Users',

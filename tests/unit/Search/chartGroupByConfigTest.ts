@@ -176,6 +176,13 @@ const cases: ChartGroupByCase[] = [
     },
 ];
 
+const outOfRangePeriodCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
+    {groupBy: CONST.SEARCH.GROUP_BY.MONTH, item: createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2025, month: 13})},
+    {groupBy: CONST.SEARCH.GROUP_BY.MONTH, item: createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2025, month: 0})},
+    {groupBy: CONST.SEARCH.GROUP_BY.QUARTER, item: createMock<TransactionQuarterGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.QUARTER, year: 2025, quarter: 5})},
+    {groupBy: CONST.SEARCH.GROUP_BY.QUARTER, item: createMock<TransactionQuarterGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.QUARTER, year: 2025, quarter: 0})},
+];
+
 const optionalLabelCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
     {
         groupBy: CONST.SEARCH.GROUP_BY.FROM,
@@ -276,6 +283,16 @@ describe('CHART_GROUP_BY_CONFIG', () => {
         expect(config.getLabel(mismatchedItem)).toBe('');
         expect(config.getShortLabel?.(mismatchedItem)).toBeUndefined();
         expect(config.getFilterQuery(mismatchedItem)).toBe('');
+    });
+
+    test.each(outOfRangePeriodCases)('gives no range or filter for a $groupBy group outside its year', ({groupBy, item}) => {
+        // Given a group whose month or quarter doesn't exist, which `Date` would otherwise roll into another year
+        const config = CHART_GROUP_BY_CONFIG[groupBy];
+
+        // When the chart reads its range and drill-down filter
+        // Then neither points at a period in the wrong year
+        expect(config.getDateRange?.(item)).toBeUndefined();
+        expect(config.getFilterQuery(item)).toBe('');
     });
 
     test.each(optionalLabelCases)('returns an empty label for an absent or empty optional $groupBy label', ({groupBy, item}) => {

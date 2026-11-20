@@ -4475,6 +4475,70 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
         });
 
+        it('should skip a month group outside 1-12', () => {
+            // Given a month 13 group, which would otherwise get a "January 2027" label and no query to open
+            const dataWithInvalidMonth: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, month: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_13` as const]: {year: 2026, month: 13, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the month sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidMonth,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMonthGroupListItemType,
+            );
+
+            // Then only the real month gets a section, the same way week skips a group it can't place
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
+        it('should skip a quarter group outside 1-4', () => {
+            // Given a quarter 5 group, which would otherwise get a rolled-over label and no query to open
+            const dataWithInvalidQuarter: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, quarter: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_5` as const]: {year: 2026, quarter: 5, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the quarter sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidQuarter,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionQuarterGroupListItemType,
+            );
+
+            // Then only the real quarter gets a section
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
         it('should leave the year out of short labels when every month falls in the same year', () => {
             // Given months that all fall in 2026, so a year on every chart axis label would repeat the same information
             const dataInOneYear: OnyxTypes.SearchResults['data'] = {
@@ -4830,7 +4894,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a month group (e.g., date >= 2025-12-15)
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 12);
+            const monthDateRange = {start: '2025-12-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4852,7 +4916,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 6);
+            const monthDateRange = {start: '2025-06-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4878,7 +4942,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a quarter group (e.g., date >= 2025-09-15)
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 3);
+            const quarterDateRange = {start: '2025-07-01', end: '2025-09-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4900,7 +4964,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 2);
+            const quarterDateRange = {start: '2025-04-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -5039,7 +5103,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
             // This verifies that both date filters are respected when expanding quarter groups
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1);
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -5066,7 +5130,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect GREATER_THAN and LOWER_THAN filters that narrow the range', () => {
             // Test case where both filters narrow down a quarter range
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 4);
+            const quarterDateRange = {start: '2025-10-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -5093,7 +5157,7 @@ describe('SearchUIUtils', () => {
         it('should handle multiple date filter objects when multiple date filters exist in flatFilters', () => {
             // Test that adjustTimeRangeToDateFilters correctly merges and processes multiple date filter objects
             // This simulates the scenario where date>2025-12-02 and date<2026-02-02 are stored as separate filter objects
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1); // Q1 2026: 2026-01-01 to 2026-03-31
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const flatFilters = [
                 {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5349,6 +5413,38 @@ describe('SearchUIUtils', () => {
             // Check that formatted week contains the start date
             expect(result.some((item) => item.formattedWeek.includes('Jan 25'))).toBe(true);
             expect(result.some((item) => item.formattedWeek.includes('Jun 15'))).toBe(true);
+        });
+
+        it('should skip a week group without a week', () => {
+            // Given a week-grouped snapshot where one group has an empty week
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {week: '2026-01-25', count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {week: '', count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then only the valid week is shown, because a week's dates are also its label and an empty week has none
+            expect(result.map((item) => item.week)).toEqual(['2026-01-25']);
         });
 
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {
@@ -9203,7 +9299,10 @@ describe('SearchUIUtils', () => {
 
         it('should give each selected merchant group a merchant filter entry with its own value', () => {
             // Given the "Amazon" group and the "No merchant" group of a merchant-grouped search
-            const groups = [{merchant: 'Amazon'}, {merchant: ''}];
+            const groups = [
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: 'Amazon'},
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: ''},
+            ];
 
             // When the export builds the filter entry for each selected group
             const selectedGroupEntries = groups.map((group) => SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MERCHANT, group));

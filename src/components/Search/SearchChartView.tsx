@@ -227,7 +227,8 @@ function SearchChartView({
         }
 
         const pressedQueryJSON = drillDownQueryJSON ?? queryJSON;
-        if (!pressedQueryJSON) {
+        // A time group without a real period (e.g. month 13) has no date filter, so drilling in would open the whole query
+        if (!pressedQueryJSON || (getDateRange && !getDateRange(item))) {
             return;
         }
 
