@@ -391,7 +391,12 @@ function updateMultipleMoneyRequests({
             transactionChanges.attendees = changes.attendees;
         }
 
+        const {taxCode: selectedTaxCode, taxValue: selectedTaxValue, taxAmount: selectedTaxAmount} = transactionChanges;
         transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, transactionPolicy);
+        // The server re-applies the currency's default tax rate when the currency changes without a tax code, so keep the selected rate even if unchanged
+        if (transactionChanges.currency && selectedTaxCode) {
+            transactionChanges = {...transactionChanges, taxCode: selectedTaxCode, taxValue: selectedTaxValue, taxAmount: selectedTaxAmount};
+        }
 
         const updates: Record<string, string | number | boolean> = {};
         if (transactionChanges.merchant) {
