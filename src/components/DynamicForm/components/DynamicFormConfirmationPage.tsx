@@ -1,3 +1,4 @@
+import useContinueOfflineModal from '@components/DynamicForm/hooks/useContinueOfflineModal';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
 import getServerPageErrors from '@components/DynamicForm/utils/getServerPageErrors';
@@ -30,10 +31,12 @@ function DynamicFormConfirmationPage({
     submitError,
     onOpenListItemEditor,
     shouldShowFieldErrors = false,
+    onSaveForLater,
     children,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {showContinueOfflineModal} = useContinueOfflineModal();
     const [formState] = useOnyx(formID);
     // The server can reject one answer, such as a SWIFT code for a country it does not pay to, so its row shows why and the alert opens its page
     const serverPageErrors = getServerPageErrors(pages, values, allFields, formState?.errorFields);
@@ -47,7 +50,14 @@ function DynamicFormConfirmationPage({
         <ConfirmationStep
             isEditing={isEditing}
             // The flow submits whatever onNext carries, and the press event is not answers
-            onNext={() => onNext()}
+            onNext={() => {
+                if (isOffline && onSaveForLater) {
+                    showContinueOfflineModal({onSaveForLater, onContinue: () => onNext()});
+                    return;
+                }
+                onNext();
+            }}
+            isConfirmEnabledWhenOffline={!!onSaveForLater}
             onMove={onMove}
             pageTitle={confirmationTitle}
             pageSubtitle={confirmationSubtitle}

@@ -323,8 +323,9 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={savePage}
             validatePage={validatePage}
-            // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
-            shouldDisableNextWhenOffline
+            // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen.
+            // Next offline explains that instead and offers to leave, since the pages saved so far and the draft are kept.
+            shouldOfferToContinueLaterWhenOffline
             submitError={saveError}
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
             isSavingPages={isSaving}

@@ -109,6 +109,7 @@ type RenderFlowOptions = {
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
+    shouldOfferToContinueLaterWhenOffline?: boolean;
     unsavedPageKeys?: string[];
     isLoading?: boolean;
 };
@@ -142,6 +143,7 @@ async function renderFlow({
     maxFileSize,
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
+    shouldOfferToContinueLaterWhenOffline,
     unsavedPageKeys,
     isLoading,
 }: RenderFlowOptions = {}) {
@@ -169,6 +171,7 @@ async function renderFlow({
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+            shouldOfferToContinueLaterWhenOffline={shouldOfferToContinueLaterWhenOffline}
             unsavedPageKeys={unsavedPageKeys}
             isLoading={isLoading}
         />
@@ -459,6 +462,21 @@ describe('DynamicFormFlow', () => {
         expect(onlineOnlyPages?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
         expect(defaultStepper?.shouldShowOfflineIndicatorInWideScreen).toBeFalsy();
         expect(onlineOnlyStepper?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
+    });
+
+    it('hands its pages a way to leave for later offline only when the screen asks, and it leaves as Back from the first page does', async () => {
+        // Given one flow that leaves the option out and one whose screen offers to continue later offline, on its second page with an answer in memory
+        const defaultFlow = await renderFlow();
+        const offeringFlow = await renderFlow({shouldOfferToContinueLaterWhenOffline: true, pageIndex: 1, currentPageName: 'recipient', sensitiveAnswers: {ssn: '123456789'}});
+
+        // When the second flow's page leaves for later
+        offeringFlow.pageProps?.onSaveForLater?.();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the second flow's pages can leave for later, and leaving runs the screen's Back from a page past the first and drops the answers held in memory, as leaving the flow does
+        expect(defaultFlow.pageProps?.onSaveForLater).toBeUndefined();
+        expect(offeringFlow.onBack).toHaveBeenCalledTimes(1);
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
     });
 
     it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {

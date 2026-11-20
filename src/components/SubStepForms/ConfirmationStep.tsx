@@ -164,6 +164,9 @@ type ConfirmationStepProps = SubPageProps &
 
         /** Drawn between the rows and Confirm, such as a terms checkbox the user ticks before confirming */
         children?: ReactNode;
+
+        /** Keeps Confirm enabled offline, for a step whose `onNext` explains offline why it cannot go on. Off by default, so Confirm waits for a connection. */
+        isConfirmEnabledWhenOffline?: boolean;
     };
 
 function ConfirmationStep({
@@ -183,9 +186,11 @@ function ConfirmationStep({
     shouldAnnounceSubmitState = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     children,
+    isConfirmEnabledWhenOffline = false,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const ConfirmButton = isConfirmEnabledWhenOffline ? Button : ButtonDisabledWhenOffline;
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
@@ -327,7 +332,7 @@ function ConfirmationStep({
                     onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                 >
                     {() => (
-                        <ButtonDisabledWhenOffline
+                        <ConfirmButton
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             isLoading={isLoading}
@@ -337,7 +342,7 @@ function ConfirmationStep({
                             sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.CONFIRM}
                         >
                             <Button.Text>{translate('common.confirm')}</Button.Text>
-                        </ButtonDisabledWhenOffline>
+                        </ConfirmButton>
                     )}
                 </FormAlertWrapper>
             </View>

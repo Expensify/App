@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
 
@@ -40,6 +41,9 @@ import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedLi
 import {getAllFields, getPages} from './utils/paginate';
 import toDynamicFormValues from './utils/toDynamicFormValues';
 
+/** Whether leaving the flow from the offline modal confirms with a toast that the answers are kept. Design has not decided yet, so it is one switch to remove. */
+const SHOULD_SHOW_PROGRESS_SAVED_TOAST = true;
+
 /** An answer the user gave, including `false`, which counts as progress when deciding where a visit resumes */
 function hasDraftAnswer(answer: DynamicFormValues[string]): boolean {
     return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
@@ -72,6 +76,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
+    shouldOfferToContinueLaterWhenOffline,
     children,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
@@ -313,6 +318,11 @@ function DynamicFormFlow({
         }
     };
 
+    const leaveFlow = () => {
+        clearSensitiveAnswers(formID);
+        onBack();
+    };
+
     const goBack = () => {
         if (listItemPage) {
             closeListItemEditor(listItemPage.listKey);
@@ -323,11 +333,20 @@ function DynamicFormFlow({
             return;
         }
         if (pageIndex <= firstShownPageIndex) {
-            clearSensitiveAnswers(formID);
-            onBack();
+            leaveFlow();
             return;
         }
         prevPage();
+    };
+
+    /** Leaves the flow from any page. The draft and the pages saved so far already hold the answers, so nothing more is saved. */
+    const saveForLater = () => {
+        leaveFlow();
+        if (!SHOULD_SHOW_PROGRESS_SAVED_TOAST) {
+            return;
+        }
+        // At the bottom, as in the save and return design
+        Growl.success({bodyText: translate('dynamicForm.continueOffline.progressSaved'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     };
 
     // A flow on replaced routes has no page stack for Android's back to pop, so it takes the header's steps
@@ -359,7 +378,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
-            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
+            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline || shouldOfferToContinueLaterWhenOffline}
         >
             {isLoading || isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -393,6 +412,7 @@ function DynamicFormFlow({
                     refreshError={refreshError}
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+                    onSaveForLater={shouldOfferToContinueLaterWhenOffline ? saveForLater : undefined}
                     validatePage={validatePage}
                 >
                     {children}

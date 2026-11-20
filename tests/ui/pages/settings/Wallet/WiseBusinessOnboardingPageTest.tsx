@@ -401,13 +401,14 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
     });
 
-    it('asks the flow to disable Next offline', async () => {
+    it('asks the flow to offer to continue later offline', async () => {
         // Given an eligible business account
         // When the flow opens
         await renderPage();
 
-        // Then every page's Next waits for a connection, since each page is saved to Wise as the user leaves it and a page with an SSN cannot be queued
-        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.objectContaining({shouldDisableNextWhenOffline: true}));
+        // Then Next offline explains the connection and offers to leave, since each page is saved to Wise as the user leaves it and a page with an SSN cannot be queued
+        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.objectContaining({shouldOfferToContinueLaterWhenOffline: true}));
+        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.not.objectContaining({shouldDisableNextWhenOffline: true}));
     });
 
     it('stops waiting for the read when the device goes offline, so the loader does not stay', async () => {

@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenReimbursementAccountPageForWiseIntro from '@hooks/useOpenReimbursementAccountPageForWiseIntro';
 import usePermissions from '@hooks/usePermissions';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -56,6 +57,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const goBackToEntryPoint = () => Navigation.goBack(backPath);
 
     const {isOffline} = useNetwork();
+    const runWhenOnline = useRunWhenOnline();
     const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
     // The intro stays mounted under the form on a direct link to the form, which reads for itself
     const isFocused = useIsFocused();
@@ -114,9 +116,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
                                 // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
-                                Navigation.navigate(
-                                    createDynamicRoute(isOnboardingSubmitted ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()),
-                                );
+                                if (isOnboardingSubmitted) {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path));
+                                    return;
+                                }
+                                // The form saves each page to the server, so it opens only online
+                                runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute())));
                             }}
                         />
                     </FixedFooter>
