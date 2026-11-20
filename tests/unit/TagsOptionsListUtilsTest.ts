@@ -1219,6 +1219,29 @@ describe('TagsOptionsListUtils', () => {
             expect(getTagListSections({tags, searchValue, localeCompare, translate: translateLocal})).toStrictEqual(sectionsBefore);
         });
 
+        it('sorts the tags once while only the search text changes', () => {
+            // Given a comparator that counts its calls, and the list built once for a set of tags
+            let comparisons = 0;
+            const countingLocaleCompare = (a: string, b: string) => {
+                comparisons++;
+                return localeCompare(a, b);
+            };
+            const tagsToSort: PolicyTags = {...tags};
+            getTagListSections({tags: tagsToSort, localeCompare: countingLocaleCompare, translate: translateLocal});
+            expect(comparisons).toBeGreaterThan(0);
+
+            // When the user types into the search
+            comparisons = 0;
+            for (const searchValue of ['i', 'it', 'ite', 'item']) {
+                getTagListSections({tags: tagsToSort, searchValue, localeCompare: countingLocaleCompare, translate: translateLocal});
+            }
+
+            // Then the tags are not sorted again, but changed tags are
+            expect(comparisons).toBe(0);
+            getTagListSections({tags: {...tagsToSort}, searchValue: 'item', localeCompare: countingLocaleCompare, translate: translateLocal});
+            expect(comparisons).toBeGreaterThan(0);
+        });
+
         it('sorts with the comparator it is given', () => {
             // When the same tags are listed with a comparator that orders names the other way round
             const reverseLocaleCompare = (a: string, b: string) => localeCompare(b, a);
