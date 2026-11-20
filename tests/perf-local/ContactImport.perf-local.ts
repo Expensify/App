@@ -33,7 +33,7 @@ const TEST_TIMEOUT_MS = 20 * 60 * 1000;
 const PERSONAL_DETAILS_COUNT = 2000;
 const CONTACT_COUNTS = [1000, 2000, 5000];
 
-// Area codes that are valid in libphonenumber's US metadata; every number is NXX-555-XXXX
+// Area codes that are valid in the US phone number metadata; every number is NXX-555-XXXX
 const AREA_CODES = ['201', '202', '203', '205', '206', '207', '208', '209', '210', '212', '213', '214', '215', '216', '217', '218', '219', '224', '225', '228'];
 /** Formats a 10-digit number the way people store it in an address book: "(201) 555-0123", "201-555-0123", "+1 201 555 0123" or "2015550123". */
 function formatAsInAddressBook(digits: string, style: number): string {
