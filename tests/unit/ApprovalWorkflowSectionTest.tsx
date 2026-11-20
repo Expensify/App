@@ -96,9 +96,7 @@ describe('ApprovalWorkflowSection', () => {
 
         // Then the admin sees an error telling them to fix it
         expect(screen.getByText('workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
-        const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === 'workflowsPage.approverNotWorkspaceMember');
-        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
-        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({alignItems: 'flex-start'})]));
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
         const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
         expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
         expect(approverRow?.props.shouldBeAccessible).toBe(false);
@@ -127,12 +125,14 @@ describe('ApprovalWorkflowSection', () => {
         expect(approverRow).toBeDefined();
         expect(errorMessage).toBeDefined();
         expect(approverRow?.props.helperText).toBeUndefined();
-        expect(approverRow?.parent).toBe(errorMessage?.parent);
-        const siblings = approverRow?.parent?.children ?? [];
-        expect(siblings.findIndex((child) => child === approverRow)).toBeLessThan(siblings.findIndex((child) => child === errorMessage));
+        const approverStep = approverRow?.parent?.findAll(() => true) ?? [];
+        expect(approverStep.indexOf(errorMessage)).toBeGreaterThan(approverStep.indexOf(approverRow));
         expect(screen.getByText(errorKey)).toBeTruthy();
-        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(true);
-        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({marginLeft: 20}), expect.objectContaining({alignItems: 'flex-start'})]));
+
+        // And its text starts under the approver title, with the dot in the icon column instead of beside the text
+        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(false);
+        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({marginLeft: 12})]));
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
     });
 
     it('does not show the non-member error for a regular approver', () => {
