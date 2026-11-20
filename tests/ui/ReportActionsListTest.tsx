@@ -1535,24 +1535,6 @@ describe('ReportActionsList (body)', () => {
             });
         };
 
-        it('should show only greeting and created action when opened in side panel with no user messages', () => {
-            setupConciergeMocks();
-
-            mockUsePaginatedReportActions.mockReturnValue({
-                ...defaultPaginatedReportActionsResult,
-                reportActions: oldReportActions,
-            });
-            mockUseIsInSidePanel.mockReturnValue(true);
-            mockUseSidePanelState.mockReturnValue({...defaultSidePanelState, sessionStartTime: DateUtils.getDBTime()});
-
-            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
-
-            expect(mockInvertedFlashList).toHaveBeenCalled();
-            const passedActions = getCapturedVisibleActions();
-            expect(passedActions?.length).toBeGreaterThanOrEqual(1);
-            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
-        });
-
         it('should not show welcome state when not in side panel', () => {
             setupConciergeMocks();
 
@@ -1720,6 +1702,24 @@ describe('ReportActionsList (body)', () => {
             expect(mockInvertedFlashList).not.toHaveBeenCalled();
         });
 
+        it('should show the same welcome screen in the side panel as in the Inbox', () => {
+            // Given the Concierge chat opened in the side panel, where the user asked before, with its history collapsed
+            setupMainDMConciergeMocks();
+            mockUseIsInSidePanel.mockReturnValue(true);
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            // When the list renders
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            // Then the side panel shows the Inbox welcome screen, and the earlier conversation stays behind `View chat history`
+            expect(screen.getByTestId('AskConciergeWelcome')).toBeTruthy();
+            expect(mockInvertedFlashList).not.toHaveBeenCalled();
+        });
+
         it('should show the whole conversation without a greeting once the history is expanded', () => {
             // Given the user expanded the main Concierge chat history
             setupMainDMConciergeMocks(true);
@@ -1732,7 +1732,7 @@ describe('ReportActionsList (body)', () => {
             // When the list renders
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
-            // Then every earlier message shows, because only the side panel collapses its history
+            // Then every earlier message shows, with no greeting above them
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(false);

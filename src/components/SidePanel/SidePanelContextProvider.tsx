@@ -21,6 +21,7 @@ import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 import type {PropsWithChildren, RefObject} from 'react';
 import type {ValueOf} from 'type-fest';
 
+import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {createContext, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
@@ -107,8 +108,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     // The panel opens as a floating popover until the user docks it, and remembers that choice on this device.
     const [selectedSidePanelMode = CONST.SIDE_PANEL_MODE.FLOATING] = useOnyx(ONYXKEYS.SIDE_PANEL_MODE);
     const setSidePanelMode = SidePanelActions.setSidePanelMode;
+    // An open RHP docks the panel beside it instead of stacking a floating card next to it. The saved choice returns once the RHP closes.
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     // A mode saved before minimizing was removed still opens as the floating popover.
-    const sidePanelMode: SidePanelMode = shouldUseNarrowLayout || selectedSidePanelMode === CONST.SIDE_PANEL_MODE.DOCKED ? CONST.SIDE_PANEL_MODE.DOCKED : CONST.SIDE_PANEL_MODE.FLOATING;
+    const sidePanelMode: SidePanelMode =
+        shouldUseNarrowLayout || isRHPVisible || selectedSidePanelMode === CONST.SIDE_PANEL_MODE.DOCKED ? CONST.SIDE_PANEL_MODE.DOCKED : CONST.SIDE_PANEL_MODE.FLOATING;
     const isSidePanelDocked = sidePanelMode === 'docked';
 
     // A floating panel sits over the page like a support chat popover, so it neither insets the page nor blocks it with a backdrop.
@@ -170,6 +174,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         // This is intentional state management for coordinating with the animation lifecycle.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidePanelTransitionEnded(false);
+        // The floating card enters and leaves on the same timing as an RHP card.
+        let floatingTransitionDuration: number | undefined;
+        if (!isSidePanelDocked) {
+            floatingTransitionDuration = shouldHideSidePanel ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB : CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB;
+        }
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? dockedSidePanelWidthRef.current : 0,
@@ -178,7 +187,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
             Animated.timing(sidePanelTranslateX.current, {
                 toValue: shouldHideSidePanel ? sidePanelWidthRef.current : 0,
-                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
+                duration: floatingTransitionDuration ?? CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
         ]).start(({finished}) => {
@@ -192,7 +201,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, dockedSidePanelWidthRef]);
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, dockedSidePanelWidthRef, isSidePanelDocked]);
 
     const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined

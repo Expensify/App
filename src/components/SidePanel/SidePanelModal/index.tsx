@@ -14,8 +14,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 
-import variables from '@styles/variables';
-
 import {areAllModalsHidden} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
@@ -30,8 +28,6 @@ import {Animated, View} from 'react-native';
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 
 import type SidePanelModalProps from './types';
-
-import useSidePanelFloatingRight from '../useSidePanelFloatingRight';
 
 function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
     const styles = useThemeStyles();
@@ -48,8 +44,6 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const uniqueModalId = ComposerFocusManager.getId();
 
     const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useWideRHPState();
-
-    const floatingRight = useSidePanelFloatingRight(variables.sidePanelFloatingWidth);
 
     const shouldOverlayBeVisible = (!!wideRHPRouteKeys.length && isWideRHPFocused) || (!!superWideRHPRouteKeys.length && isSuperWideRHPFocused) || !isRHPVisible;
 
@@ -95,16 +89,11 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalPanel]);
 
-    // The floating popover reuses the docked slide's progress, fading and rising into place instead of sliding in from the edge.
-    const floatingProgress = sidePanelTranslateX.current.interpolate({inputRange: [0, sidePanelWidth], outputRange: [0, 1], extrapolate: 'clamp'});
+    // The floating card enters like an RHP card: a short slide from the right while it fades in, rather than a full slide from the edge.
+    const floatingProgress = sidePanelTranslateX.current.interpolate({inputRange: [0, sidePanelWidth], outputRange: [1, 0], extrapolate: 'clamp'});
+    const floatingTranslateX = floatingProgress.interpolate({inputRange: [0, 1], outputRange: [CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB, 0]});
     const contentStyle = isFloating
-        ? [
-              styles.sidePanelFloatingContent(windowHeight, floatingRight),
-              {
-                  opacity: floatingProgress.interpolate({inputRange: [0, 1], outputRange: [1, 0]}),
-                  transform: [{translateY: floatingProgress.interpolate({inputRange: [0, 1], outputRange: [0, 24]})}],
-              },
-          ]
+        ? [styles.sidePanelFloatingContent(windowHeight), {opacity: floatingProgress, transform: [{translateX: floatingTranslateX}]}]
         : [
               styles.sidePanelContent,
               styles.sidePanelContentWidth(shouldUseNarrowLayout, sidePanelWidth),

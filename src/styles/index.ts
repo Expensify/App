@@ -7725,10 +7725,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
         }),
         // Floats over the page's bottom-right corner like a support chat popover, leaving the rest of the page uncovered.
-        sidePanelFloatingContent: (windowHeight: number, right: DimensionValue): ViewStyle =>
+        sidePanelFloatingContent: (windowHeight: number): ViewStyle =>
             toViewStyle({
                 position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-                right,
+                right: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
                 width: variables.sidePanelFloatingWidth,
                 height: Math.min(variables.sidePanelFloatingMaxHeight, windowHeight - variables.rhpFloatingCardMargin * 2),

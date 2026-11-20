@@ -48,7 +48,6 @@ const ASK_CONCIERGE_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.combineExpenses',
     'common.concierge.composerPlaceholders.exportPdf',
     'common.concierge.composerPlaceholders.exportCsv',
-    'reportActionCompose.askConciergeForHelp',
 ] as const;
 
 function getRandomPlaceholder(translate: LocalizedTranslate): string {
