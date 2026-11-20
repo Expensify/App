@@ -1,5 +1,6 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen, waitFor, within} from '@testing-library/react-native';
 
+import Button from '@components/Button';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
@@ -8,10 +9,13 @@ import type {ActiveSorting, CompareItemsCallback, TableColumn} from '@components
 import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import * as usePolicyFeatureWriteAccessModule from '@hooks/usePolicyFeatureWriteAccess';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useTheme from '@hooks/useTheme';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import showInlineEditError from '@libs/showInlineEditError';
@@ -25,6 +29,7 @@ import type * as DistanceRateActions from '@userActions/Policy/DistanceRate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -173,6 +178,11 @@ function getColumnHeaderLabel() {
     return TestHelper.translateLocal('workspace.taxes.taxReclaimableOn');
 }
 
+// The heading opens the column menu, which is named after the column.
+function getColumnHeadingLabel() {
+    return TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: getColumnHeaderLabel()});
+}
+
 /** Returns the tax reclaimable cell texts in the order the rows are rendered. */
 function getRenderedAmounts() {
     return screen.queryAllByText(AMOUNT_TEXT).map((element) => String(element.props.children));
@@ -193,7 +203,7 @@ async function startEditingTax() {
     return input;
 }
 
-describe('PolicyDistanceRatesPage tax reclaimable column', () => {
+describe('PolicyDistanceRatesPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -211,6 +221,58 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    describe.each([false, true])('Settings header with narrow layout: %s', (shouldUseNarrowLayout) => {
+        it.each([false, true])('opens Settings directly with fuel warning: %s', async (hasFuelWarning) => {
+            // Given a normal rate or an enabled fuel band without a VAT mapping
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({...WIDE_LAYOUT, shouldUseNarrowLayout});
+            const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Gear', 'DotIndicator']));
+            const {result: theme} = renderHook(() => useTheme());
+            await renderPage([buildRate('cars', {attributes: hasFuelWarning ? {governmentRate: {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01'}} : {}})]);
+
+            // When the header renders, the warning changes only the icon, not the action or label
+            const settings = screen.getByRole('button', {name: TestHelper.translateLocal('common.settings')});
+            const icon = settings.find((node) => node.type === Button.Icon);
+
+            // Then there is no More menu or dropdown arrow, and the warning dot stays red on hover
+            expect(icon.props.src).toEqual(hasFuelWarning ? icons.current.DotIndicator : icons.current.Gear);
+            expect(icon.props.fill).toBe(hasFuelWarning ? theme.current.danger : undefined);
+            expect(icon.props.hoverFill).toBe(hasFuelWarning ? theme.current.danger : undefined);
+            expect(screen.queryByText(TestHelper.translateLocal('common.more'))).toBeNull();
+            expect(within(settings).queryByTestId('dropdown-arrow-icon')).toBeNull();
+
+            // When Settings is pressed once, it navigates directly once
+            fireEvent.press(settings);
+            expect(navigate).toHaveBeenCalledTimes(1);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(POLICY_ID));
+        });
+    });
+
+    it.each(['dismissal', 'mapping'])('restores the Settings gear after %s clears the warning', async (resolution) => {
+        // Given a header showing a fuel VAT warning
+        const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Gear', 'DotIndicator']));
+        await renderPage([buildRate('cars', {attributes: {governmentRate: {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01'}}})]);
+        const settings = () => screen.getByRole('button', {name: TestHelper.translateLocal('common.settings')});
+        expect(settings().find((node) => node.type === Button.Icon).props.src).toEqual(icons.current.DotIndicator);
+
+        // When the workspace receives either a dismissal or a valid tax mapping
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                customUnits: {
+                    [CUSTOM_UNIT_ID]: resolution === 'dismissal' ? {attributes: {isUKFuelRateTaxErrorDismissed: true}} : {rates: {cars: {attributes: {taxRateExternalID: TAX_RATE_ID}}}},
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the direct Settings button shows its gear again, with no warning dot
+        await waitFor(() => {
+            expect(settings().find((node) => node.type === Button.Icon).props.src).toEqual(icons.current.Gear);
+        });
+        expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.settings')})).toBeOnTheScreen();
     });
 
     it('shows the header when both tax settings are on and a rate has an amount', async () => {
@@ -218,7 +280,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
 
         // Then the column header is shown
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
     });
 
     it('hides the header when no rate has an amount', async () => {
@@ -226,7 +288,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxRateExternalID: TAX_RATE_ID}}), buildRate('bikes')]);
 
         // Then the column is hidden, like the date columns when no rate has a date, so the table has no empty column
-        expect(screen.queryByLabelText(getColumnHeaderLabel())).toBeNull();
+        expect(screen.queryByLabelText(getColumnHeadingLabel())).toBeNull();
         expect(getRenderedAmounts()).toEqual([]);
     });
 
@@ -238,7 +300,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})], settings);
 
         // Then neither the header nor the amount is shown, matching the rate details page that hides the field in this case
-        expect(screen.queryByLabelText(getColumnHeaderLabel())).toBeNull();
+        expect(screen.queryByLabelText(getColumnHeadingLabel())).toBeNull();
         expect(getRenderedAmounts()).toEqual([]);
     });
 
@@ -262,7 +324,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         ]);
 
         // Then the column is shown, but only the rate with a percentage shows an amount, since the others have nothing to reclaim
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
         expect(getRenderedAmounts()).toEqual(['$5.00']);
 
         // And only that row's label mentions the tax reclaimable amount
@@ -277,7 +339,7 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         ]);
 
         // Then both rows show their amount, because expenses still apply the percentage when the rate has no valid tax rate
-        expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+        expect(screen.getByLabelText(getColumnHeadingLabel())).toBeTruthy();
         expect(getRenderedAmounts().sort()).toEqual(['$2.00', '$5.00']);
     });
 

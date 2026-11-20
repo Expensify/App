@@ -1,7 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {DimensionValue} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 
 import useIsInSidePanel from './useIsInSidePanel';
 import useResponsiveLayout from './useResponsiveLayout';

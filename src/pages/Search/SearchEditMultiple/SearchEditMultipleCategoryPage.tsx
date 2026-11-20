@@ -16,6 +16,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
+import {getBulkEditCategoryChange} from './SearchEditMultipleUtils';
+
 function SearchEditMultipleCategoryPage() {
     const {translate} = useLocalize();
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
@@ -26,17 +28,7 @@ function SearchEditMultipleCategoryPage() {
     const currentCategory = draftTransaction?.category ?? '';
 
     const saveCategory = (item: ListItem) => {
-        const nextCategory = item.searchText ?? '';
-        if (!nextCategory || nextCategory === currentCategory) {
-            updateBulkEditDraftTransaction({
-                category: null,
-            });
-            Navigation.goBack();
-            return;
-        }
-        updateBulkEditDraftTransaction({
-            category: nextCategory,
-        });
+        updateBulkEditDraftTransaction(getBulkEditCategoryChange(item.searchText ?? '', currentCategory));
         Navigation.goBack();
     };
 

@@ -58,6 +58,7 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import {useGroupCheckboxState} from './useGroupChildren';
+import ViolationListItemHeader from './ViolationListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -337,6 +338,13 @@ function GroupHeader({
                         nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
                         {...commonProps}
                         isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.VIOLATION:
+                return (
+                    <ViolationListItemHeader
+                        violation={groupItem}
+                        {...commonProps}
                     />
                 );
             default:

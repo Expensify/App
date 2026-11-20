@@ -91,6 +91,9 @@ function getCompletedStep(
     if (isReopenedAction(reportAction)) {
         return {...step, icon: 'CircularArrowBackwards', label: translate('iou.reopened')};
     }
+    if (isPayAction(reportAction) && getOriginalMessage(reportAction)?.isSubmitterMarkedPaymentReceived) {
+        return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.receivedPayment')};
+    }
     if (isPayAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
     }

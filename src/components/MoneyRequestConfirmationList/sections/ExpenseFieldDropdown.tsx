@@ -84,14 +84,20 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     /** Whether the list opens in the container. A field that can't answer in place falls back to `onPress`. */
     shouldOpenInDropdown: boolean;
 
-    /** Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out */
-    onPress: () => void;
+    /**
+     * Opens the field's full-page selector, for every case `shouldOpenInDropdown` rules out. A field without one has no
+     * page to fall back to, so its list opens in place even where the room is short.
+     */
+    onPress?: () => void;
 
     /** Height of a header the list shows above its options, e.g. an add button, added to the container's limits so it still fits as many options */
     listHeaderHeight?: number;
 
     /** Lets the field open its list without a press, e.g. once the user is back from a step the press sent them to */
     ref?: Ref<ExpenseFieldDropdownHandle>;
+
+    /** Tells the form when the list opens or closes, e.g. so the form's own Enter shortcut stays off while the list is open */
+    onVisibilityChange?: (isVisible: boolean) => void;
 };
 
 type ExpenseFieldDropdownHandle = {
@@ -106,7 +112,7 @@ type ExpenseFieldDropdownHandle = {
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
  * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
  */
-function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, ...rowProps}: ExpenseFieldDropdownProps) {
+function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, onVisibilityChange, ...rowProps}: ExpenseFieldDropdownProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -126,12 +132,17 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
     const maxContainerHeight = MAX_CONTAINER_HEIGHT + listHeaderHeight;
     const minUsableHeight = MIN_USABLE_HEIGHT + listHeaderHeight;
 
-    const closeDropdown = () => setIsVisible(false);
+    const updateVisibility = (newIsVisible: boolean) => {
+        setIsVisible(newIsVisible);
+        onVisibilityChange?.(newIsVisible);
+    };
+
+    const closeDropdown = () => updateVisibility(false);
 
     const openDropdown = () => {
         if (isSmallScreenWidth) {
             setHasEverOpened(true);
-            setIsVisible(true);
+            updateVisibility(true);
             return;
         }
 
@@ -141,7 +152,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
             const shouldOpenAbove = spaceBelow < maxContainerHeight && spaceAbove > spaceBelow;
             const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
 
-            if (availableHeight < minUsableHeight) {
+            if (availableHeight < minUsableHeight && onPress) {
                 onPress();
                 return;
             }
@@ -154,13 +165,13 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
                 shouldOpenAbove,
             });
             setHasEverOpened(true);
-            setIsVisible(true);
+            updateVisibility(true);
         });
     };
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {
-            onPress();
+            onPress?.();
             return;
         }
         if (isVisible) {
@@ -173,7 +184,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
     useImperativeHandle(ref, () => ({
         open: () => {
             if (!shouldOpenInDropdown) {
-                onPress();
+                onPress?.();
                 return;
             }
             if (!isVisible) {

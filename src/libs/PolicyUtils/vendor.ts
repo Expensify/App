@@ -88,6 +88,20 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when a Codat QBD connection is configured to export non-reimbursables as Credit Card Charge.
+ * Strict: missing config, missing `apiProvider`, non-`"codat"`, or a non-CREDIT_CARD_CHARGE export
+ * mode all return false. Legacy non-Codat QBD connections share the `quickbooksDesktop` key but
+ * have no `apiProvider` and must be inactive.
+ */
+function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.config;
+    return (
+        config?.apiProvider === CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT &&
+        config?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD
+    );
+}
+
+/**
  * Vendor matching feature gate. Returns true when a supported accounting integration is connected
  * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
  * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
@@ -104,6 +118,7 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  *   - Campfire has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Zoho Books has a single company card export type, so a configured connection is enough. GA, so no beta required
  *   - Certinia FFA configured connection. Beta required
+ *   - QBD Codat + CREDIT_CARD_CHARGE export mode. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -120,7 +135,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     ) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy));
 }
 
 /**
@@ -145,7 +160,7 @@ function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMat
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Zoho Books, or Certinia) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Zoho Books, Certinia, or QBD) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -197,6 +212,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isCertiniaVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    }
+    if (isQuickbooksDesktopVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.QBD;
     }
     return undefined;
 }
@@ -269,12 +287,19 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isCertiniaVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
     }
+    if (isQuickbooksDesktopVendorMatchingActive(policy)) {
+        const vendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
+        if (!Array.isArray(vendors)) {
+            return undefined;
+        }
+        return vendors.filter((vendor) => !!vendor.id && vendor.name !== CONST.QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Zoho Books, or Certinia). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Zoho Books, Certinia, or QBD). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -434,7 +459,15 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     if (dualEntryVendor) {
         return dualEntryVendor;
     }
-    return getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
+    const certiniaMatch = getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (certiniaMatch) {
+        return certiniaMatch;
+    }
+    const qbdVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
+    if (Array.isArray(qbdVendors)) {
+        return qbdVendors.find((vendor) => vendor.id === vendorID);
+    }
+    return undefined;
 }
 
 /**
@@ -483,38 +516,43 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
-                title: translate('workspace.xero.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.xero.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             return {
-                title: translate('workspace.rillet.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
             return {
-                title: translate('workspace.dualEntry.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
             return {
-                title: translate('workspace.businessCentral.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
             return {
-                title: translate('workspace.campfire.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return {
-                title: translate('workspace.zohoBooks.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
             return {
-                title: translate('workspace.certinia.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.common.noVendorsFound'),
+                subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
@@ -548,6 +586,12 @@ function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return (vendors ?? [])
         .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
+/** Digits has no active flag or vendor type, and its import already leaves out parties that are only customers, so every cached vendor is eligible */
+function getDigitsVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DIGITS]?.data?.vendors;
+    return (vendors ?? []).filter((vendor) => !!vendor.id).map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /** Zoho Books export settings and vendor matching use only active vendor-type records, never customers or inactive vendors */
@@ -604,12 +648,14 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     getCampfireVendors,
+    getDigitsVendors,
     getZohoBooksVendors,
     getCertiniaVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
+    isQuickbooksDesktopVendorMatchingActive,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
