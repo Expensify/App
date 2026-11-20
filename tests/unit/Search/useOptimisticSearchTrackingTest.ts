@@ -36,6 +36,7 @@ const transactions: OnyxCollection<Transaction> = {
         amount: 4200,
         currency: 'USD',
         created: '2026-09-29',
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     },
 };
 
@@ -105,6 +106,26 @@ describe('useOptimisticSearchTracking', () => {
         const {result} = renderTracking(222);
 
         // Then the earlier expense is left out, since it has no relation to this query's filters
+        expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
+    });
+
+    it('does not inject a settled transaction even while its write is still pending', () => {
+        // Given a submission whose expense has already settled
+        markPendingSearchWrite();
+        setSearchWriteWatchKey(TRANSACTION_KEY);
+        const settledTransaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID,
+            reportID: '1',
+            merchant: 'Unique merchant',
+            amount: 4200,
+            currency: 'USD',
+            created: '2026-09-29',
+        });
+
+        // When Search mounts while that write is still pending
+        const {result} = renderTracking(111, {transactions: {[TRANSACTION_KEY]: settledTransaction}});
+
+        // Then the settled expense is left out, so a snapshot that excluded it stays excluded
         expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
     });
 
