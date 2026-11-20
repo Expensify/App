@@ -3536,15 +3536,16 @@ describe('SearchQueryUtils', () => {
             // Given a saved violation grouping, and the same search after clearing its Has pill, which also dropped the
             // grouping and moved the sorting and columns back to the defaults
             const savedQuery = parse(
-                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation sortBy:groupTotal sortOrder:asc columns:groupViolation,groupTotal`,
+                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} view:bar has:submitted-violation,approved-violation sortBy:groupTotal sortOrder:asc columns:groupViolation,groupTotal`,
             );
             const clearedQuery = parse('type:expense sortBy:date sortOrder:desc');
 
             // When the filters are reset to the saved search
             const resetQuery = parse(buildQueryStringWithResetFilters(clearedQuery, savedQuery));
 
-            // Then the grouping, sorting, and columns paired with the restored Has pill come back, so there is nothing left to save
+            // Then the grouping and the rest of its display come back with the restored Has pill, so there is nothing left to save
             expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(resetQuery.view).toBe(CONST.SEARCH.VIEW.BAR);
             expect(resetQuery.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
             expect(resetQuery.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
             expect(resetQuery.columns).toEqual(savedQuery.columns);
