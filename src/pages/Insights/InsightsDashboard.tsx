@@ -372,6 +372,22 @@ function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboard
     return Object.values(dashboards ?? {}).some(hasDashboardResponse);
 }
 
+/** Returns the graphs of the loaded dashboard entries, by hash */
+function selectLoadedGraphs(
+    dashboards: OnyxCollection<InsightsDashboardRecord>,
+    dashboardID: InsightsDashboardID,
+    hashes: Partial<Record<InsightsGraphKey, number[]>> | undefined,
+): Record<number, InsightsDashboardRecord['graphs']> {
+    const loadedGraphs: Record<number, InsightsDashboardRecord['graphs']> = {};
+    for (const hash of Object.values(hashes ?? {}).flat()) {
+        const entry = dashboards?.[`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`];
+        if (hasDashboardResponse(entry)) {
+            loadedGraphs[hash] = entry?.graphs;
+        }
+    }
+    return loadedGraphs;
+}
+
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -445,6 +461,11 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
+    const averageFallbackHashes = query?.averageFallbackHashes;
+    const [fallbackGraphs] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
+        selector: (dashboards) => selectLoadedGraphs(dashboards, dashboardID, averageFallbackHashes),
+    });
+    const isCurrentDashboardLoaded = hasDashboardResponse(dashboard);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -455,7 +476,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ),
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
-        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        const {graphKey} = chartQuery.chart;
+        const graph = isCurrentDashboardLoaded
+            ? dashboard?.graphs?.[graphKey]
+            : averageFallbackHashes?.[graphKey]?.map((fallbackHash) => fallbackGraphs?.[fallbackHash]?.[graphKey]).find((fallbackGraph) => !!fallbackGraph);
         return {
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
@@ -466,7 +490,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
-            isDashboardLoaded: hasDashboardResponse(dashboard),
+            isDashboardLoaded: isCurrentDashboardLoaded || !!graph,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });

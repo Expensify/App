@@ -200,9 +200,20 @@ type InsightsQuery = {
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
 
+    /** Hashes of the other stage combinations holding each graph's same average */
+    averageFallbackHashes: Partial<Record<InsightsGraphKey, number[]>>;
+
     headlineChart: InsightsChartQuery;
     supportingCharts: InsightsChartQuery[];
 };
+
+/** Returns every stage combination for the given charts, keyed in order so equal picks hash the same */
+function buildViolationStageCombinations(graphKeys: InsightsGraphKey[]): InsightsViolationStages[] {
+    return graphKeys.reduce<InsightsViolationStages[]>(
+        (combinations, graphKey) => combinations.flatMap((combination) => Object.values(CONST.INSIGHTS.VIOLATION_STAGE).map((stage) => ({...combination, [graphKey]: stage}))),
+        [{}],
+    );
+}
 
 /** Builds one request for the headline and supporting charts, applying each chart's picked violation stage, naming each graph's snapshots by its chart's query hashes and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(
@@ -238,9 +249,18 @@ function buildInsightsJsonQuery(
             return stage ? [[chart.graphKey, stage]] : [];
         }),
     );
+    const stageGraphKeys = [spec.headlineChart, ...spec.supportingCharts].filter((chart) => chart.hasViolationStageControl).map((chart) => chart.graphKey);
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
     // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry
-    const hash = hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
+    const buildDashboardHash = (stages: InsightsViolationStages) => (hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, stages]), INSIGHTS_HASH_RANGE) : queryJSON.hash);
+    const hash = buildDashboardHash(requestedViolationStages);
+    const otherStageCombinations = buildViolationStageCombinations(stageGraphKeys).filter((stages) => buildDashboardHash(stages) !== hash);
+    const averageFallbackHashes: InsightsQuery['averageFallbackHashes'] = Object.fromEntries(
+        [headlineChart, ...supportingCharts].map(({chart}) => [
+            chart.graphKey,
+            otherStageCombinations.filter((stages) => stages[chart.graphKey] === requestedViolationStages[chart.graphKey]).map(buildDashboardHash),
+        ]),
+    );
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -261,6 +281,7 @@ function buildInsightsJsonQuery(
         }),
         hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
+        averageFallbackHashes,
         headlineChart,
         supportingCharts,
     };
