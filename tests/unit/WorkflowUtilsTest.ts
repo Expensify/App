@@ -12,6 +12,7 @@ import {
     convertApprovalWorkflowRulesToWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
+    buildApproverChainFromRules,
     extractSubmitterEmails,
     getApproverChainKey,
     getApproverTitles,
@@ -27,6 +28,7 @@ import {
     getRulesSubmitterToFirstApprover,
     hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
+    groupApprovalWorkflowRulesBySubmitter,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
     includesEveryWorkspaceMember,
@@ -2621,6 +2623,44 @@ describe('WorkflowUtils', () => {
                     '4@example.com': '1@example.com',
                 });
                 expect(keys['4@example.com']).not.toBe(keys['2@example.com']);
+            });
+        });
+
+        describe('groupApprovalWorkflowRulesBySubmitter', () => {
+            // Submitters 5 and 6 share approver 1, and 1 submits to 2 in a workflow of their own. 1's submit rule
+            // must not leak into 5's or 6's chain, so building from the grouped rules has to match building from all.
+            const rules = keyRules([
+                ...buildApprovalWorkflowRules(buildWorkflow([5], [1, 3])),
+                ...buildApprovalWorkflowRules(buildWorkflow([6], [1])),
+                ...buildApprovalWorkflowRules(buildWorkflow([1], [2])),
+            ]);
+
+            it('Should build the same chain from grouped rules as from all rules', () => {
+                // Given rules for three submitters where a shared approver has submit rules of their own
+                const rulesBySubmitter = groupApprovalWorkflowRulesBySubmitter(rules);
+
+                // When each submitter's chain is built from just their group and from every rule
+                const chains = [...rulesBySubmitter].map(([submitter, submitterRules]) => {
+                    const params = {submitter, employees: {}, personalDetailsByEmail: {}};
+                    return {grouped: buildApproverChainFromRules({...params, rules: submitterRules}), all: buildApproverChainFromRules({...params, rules})};
+                });
+
+                // Then both give the same chain, so grouping is safe for the chain builders
+                expect([...rulesBySubmitter.keys()].sort()).toEqual(['1@example.com', '5@example.com', '6@example.com']);
+                for (const {grouped, all} of chains) {
+                    expect(grouped).toEqual(all);
+                }
+            });
+
+            it("Should not route a submitter through a shared approver's own workflow", () => {
+                // Given approver 1 submits to 2
+                // When the chains of submitters routed through 1 are built
+                const getChainEmails = (submitter: string) => buildApproverChainFromRules({submitter, rules, employees: {}, personalDetailsByEmail: {}}).map(({email}) => email);
+
+                // Then they follow their own rules after 1 and never reach 2
+                expect(getChainEmails('5@example.com')).toEqual(['1@example.com', '3@example.com']);
+                expect(getChainEmails('6@example.com')).toEqual(['1@example.com']);
+                expect(getChainEmails('1@example.com')).toEqual(['2@example.com']);
             });
         });
 
