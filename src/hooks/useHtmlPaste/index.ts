@@ -3,6 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
+import resolveComposerPaste from '@libs/Clipboard/resolveComposerPaste';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
@@ -179,19 +180,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     );
 
     /**
-     * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
-     */
-    const handlePastedHTML = useCallback(
-        (html: string) => {
-            // Built here rather than in render so it costs nothing until a paste actually happens.
-            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: buildAccountIDToNameMap(personalDetailsList)}));
-        },
-        [paste, reports, personalDetailsList],
-    );
-
-    /**
      * Paste the plaintext content into Composer.
      * If the clipboard contains a single URL and there is selected text, wrap the selected text in a markdown link.
      */
@@ -234,17 +222,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             event.preventDefault();
 
             const TEXT_HTML = 'text/html';
+            const pastedHTML = event.clipboardData?.types?.includes(TEXT_HTML) ? (event.clipboardData.getData(TEXT_HTML) ?? '') : '';
 
-            // If paste contains HTML
-            if (event.clipboardData?.types?.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
-
-                // Native markdown input adds this wrapper and styling when copied, so preserve its original plain text.
-                if (pastedHTML.startsWith('<p dir="ltr">')) {
-                    handlePastePlainText(event);
-                    return;
-                }
-
+            let preparedHTML = pastedHTML;
+            if (pastedHTML) {
                 const domparser = new DOMParser();
                 const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
                 const embeddedImages = Array.from(htmlDocument.images);
@@ -261,13 +242,21 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     emojiImageReplacements.set(image, emojiText);
                 }
 
-                handlePastedHTML(replaceEmojiImagesInHTML(pastedHTML, embeddedImages, emojiImageReplacements));
+                preparedHTML = replaceEmojiImagesInHTML(pastedHTML, embeddedImages, emojiImageReplacements);
+            }
+
+            // Empty HTML, native `<p dir="ltr">` wrappers, and HTML that converts to nothing fall back to text/plain.
+            const composerPaste = resolveComposerPaste(preparedHTML, (html) =>
+                Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: buildAccountIDToNameMap(personalDetailsList)}),
+            );
+            if (composerPaste.kind === 'html') {
+                paste(composerPaste.markdown);
                 return;
             }
             handlePastePlainText(event);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
+        [handlePastePlainText, paste, personalDetailsList, preHtmlPasteCallback, reports],
     );
 
     const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
