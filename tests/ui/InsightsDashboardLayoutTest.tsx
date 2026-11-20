@@ -1,4 +1,4 @@
-/** Verifies that the main Insights header can scroll out of the way of chart controls in phone landscape. */
+/** Keeps Insights navigation accessible while dashboard controls scroll away in phone landscape. */
 import {render, screen, within} from '@testing-library/react-native';
 
 import ScrollView from '@components/ScrollView';
@@ -62,7 +62,9 @@ function mockLayout(isInLandscapeMode: boolean, shouldUseNarrowLayout = true) {
 
 function expectHeaderPlacement(shouldScroll: boolean) {
     const scrollView = screen.UNSAFE_getByType(ScrollView);
-    for (const label of ['Insights header', 'Dashboard tabs', 'Page controls']) {
+    expect(screen.getAllByText('Insights header')).toHaveLength(1);
+    expect(within(scrollView).queryByText('Insights header')).toBeNull();
+    for (const label of ['Dashboard tabs', 'Page controls']) {
         expect(screen.getAllByText(label)).toHaveLength(1);
         if (shouldScroll) {
             expect(within(scrollView).getByText(label)).toBeOnTheScreen();
@@ -76,7 +78,7 @@ describe('Insights dashboard header layout', () => {
     afterEach(() => jest.restoreAllMocks());
 
     it.each([dashboardState.INSIGHTS_DASHBOARD_STATE.READY, dashboardState.INSIGHTS_DASHBOARD_STATE.EMPTY, dashboardState.INSIGHTS_DASHBOARD_STATE.UPSELL])(
-        'moves a single complete header into the %s scroller when rotating to landscape and restores it in portrait',
+        'scrolls only dashboard controls in the %s state in landscape and restores them in portrait',
         (state) => {
             // Given a phone in portrait, with the main header fixed above the content
             mockLayout(false);
@@ -88,7 +90,7 @@ describe('Insights dashboard header layout', () => {
             mockLayout(true);
             rerender(getDashboard());
 
-            // Then all header rows scroll together, freeing vertical space without duplicating controls
+            // Then tabs and filters free vertical space without hiding the main navigation
             expectHeaderPlacement(true);
 
             // When the phone returns to portrait

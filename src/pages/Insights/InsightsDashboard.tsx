@@ -115,7 +115,7 @@ type InsightsDashboardContentProps = {
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
 
-    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    /** Dashboard controls rendered inside the scroller to free vertical space in landscape */
     children?: React.ReactNode;
 };
 
@@ -163,12 +163,12 @@ function InsightsDashboardContent({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const shouldScrollMainHeader = shouldUseNarrowLayout && isInLandscapeMode;
+    const shouldScrollDashboardControls = shouldUseNarrowLayout && isInLandscapeMode;
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
-    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollDashboardControls && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: shouldShowStandInView,
@@ -349,7 +349,7 @@ function InsightsDashboardContent({
                 <View
                     ref={viewRef(captureRef)}
                     collapsable={false}
-                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
+                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollDashboardControls && pageGutter]}
                 >
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
@@ -377,7 +377,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
-    const shouldScrollMainHeader = shouldUseNarrowLayout && isInLandscapeMode;
+    const shouldScrollDashboardControls = shouldUseNarrowLayout && isInLandscapeMode;
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
@@ -494,42 +494,29 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             />
         ) : null;
 
-    const header = (
+    const dashboardControls = shouldUseNarrowLayout ? (
         <>
-            <View
-                ref={viewRef(headerRef)}
-                collapsable={false}
-            >
-                <TopBar
-                    breadcrumbLabel={translate('common.insights')}
-                    shouldDisplayHelpButton
-                />
-            </View>
-            {shouldUseNarrowLayout ? (
-                <>
-                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
-                    {pageControls}
-                </>
-            ) : (
-                (!!tabSelector || !!pageControls) && (
-                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View
-                            style={[
-                                styles.centeredContentWidthLimiter,
-                                styles.flexRow,
-                                styles.flexWrap,
-                                styles.alignItemsCenter,
-                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
-                                styles.gap2,
-                            ]}
-                        >
-                            {tabSelector}
-                            {pageControls}
-                        </View>
-                    </View>
-                )
-            )}
+            {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+            {pageControls}
         </>
+    ) : (
+        (!!tabSelector || !!pageControls) && (
+            <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                <View
+                    style={[
+                        styles.centeredContentWidthLimiter,
+                        styles.flexRow,
+                        styles.flexWrap,
+                        styles.alignItemsCenter,
+                        tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                        styles.gap2,
+                    ]}
+                >
+                    {tabSelector}
+                    {pageControls}
+                </View>
+            </View>
+        )
     );
 
     return (
@@ -541,7 +528,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 testID="InsightsPage"
             >
                 <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
-                {!shouldScrollMainHeader && header}
+                <View
+                    ref={viewRef(headerRef)}
+                    collapsable={false}
+                >
+                    <TopBar
+                        breadcrumbLabel={translate('common.insights')}
+                        shouldDisplayHelpButton
+                    />
+                </View>
+                {!shouldScrollDashboardControls && dashboardControls}
                 <View style={styles.flex1}>
                     <Animated.View
                         key={state}
@@ -574,7 +570,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             tagLevelOptions={tagLevelOptions}
                             captureRef={contentRef}
                         >
-                            {shouldScrollMainHeader && header}
+                            {shouldScrollDashboardControls && dashboardControls}
                         </InsightsDashboardContent>
                     </Animated.View>
                 </View>
