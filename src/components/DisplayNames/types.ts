@@ -62,5 +62,3 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 };
 
 export default DisplayNamesProps;
-
-export type {DisplayNameWithTooltip};

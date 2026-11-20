@@ -7,9 +7,9 @@ import type * as ChartWebFontModule from '@components/Charts/utils/chartWebFont'
 
 import type Log from '@libs/Log';
 
-import type {SkData, SkTypeface, SkTypefaceFontProvider, Skia} from '@shopify/react-native-skia';
-import type * as SkiaDataModule from '@shopify/react-native-skia/src/skia/types/Data/Data';
 import type ReactNativeModule from 'react-native';
+import type {SkData, SkTypeface, SkTypefaceFontProvider, Skia} from 'react-native-skia';
+import type * as SkiaDataModule from 'react-native-skia/src/skia/types/Data/Data';
 
 import createMock from '../utils/createMock';
 
@@ -44,8 +44,8 @@ const mockResolveAssetSource = jest.fn<ReturnType<typeof ReactNativeModule.Image
 const mockLoadedTypefaces = new Map<string, SkTypeface>();
 const mockFontDataURIs = new Map<SkData, string>();
 
-jest.mock('@shopify/react-native-skia', () => ({
-    unwrapModule: jest.requireActual<typeof SkiaDataModule>('@shopify/react-native-skia/src/skia/types/Data/Data').unwrapModule,
+jest.mock('react-native-skia', () => ({
+    unwrapModule: jest.requireActual<typeof SkiaDataModule>('react-native-skia/src/skia/types/Data/Data').unwrapModule,
     Skia: {
         Data: {fromURI: (...args: Parameters<typeof Skia.Data.fromURI>) => mockFromURI(...args)},
         Typeface: {MakeFreeTypeFaceFromData: (...args: Parameters<typeof Skia.Typeface.MakeFreeTypeFaceFromData>) => mockMakeTypeface(...args)},
