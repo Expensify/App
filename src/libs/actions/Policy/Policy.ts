@@ -4163,34 +4163,10 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     }
 
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: true,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    isLoadingReceiptPartners: null,
-                },
-            },
-        ],
+    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}` as const;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS> = {
+        optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
+        finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params, onyxData);
