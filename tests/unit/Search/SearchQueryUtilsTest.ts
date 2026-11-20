@@ -3532,6 +3532,37 @@ describe('SearchQueryUtils', () => {
             expect(resetQuery.flatFilters).toEqual([]);
         });
 
+        it('restores the violation grouping of the default query when the reset brings back its violation has value', () => {
+            // Given a saved violation grouping, and the same search after clearing its Has pill, which also dropped the
+            // grouping and moved the sorting and columns back to the defaults
+            const savedQuery = parse(
+                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation sortBy:groupTotal sortOrder:asc columns:groupViolation,groupTotal`,
+            );
+            const clearedQuery = parse('type:expense sortBy:date sortOrder:desc');
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(clearedQuery, savedQuery));
+
+            // Then the grouping, sorting, and columns paired with the restored Has pill come back, so there is nothing left to save
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(resetQuery.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(resetQuery.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(resetQuery.columns).toEqual(savedQuery.columns);
+            expect(isSearchQuerySavable(resetQuery, savedQuery)).toBe(false);
+        });
+
+        it('keeps a grouping chosen after clearing the violation has value when the reset brings it back', () => {
+            // Given a saved violation grouping that was cleared from the Has pill and then grouped by category instead
+            const savedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation`);
+            const regroupedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(regroupedQuery, savedQuery));
+
+            // Then the category grouping stays, since the user chose it on its own and Reset only resets filters
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.CATEGORY);
+        });
+
         it('keeps the violation grouping when the default query restores a violation has value', () => {
             // Given a violation grouping whose default search already asks for approved violations
             const violationQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation category:travel`);

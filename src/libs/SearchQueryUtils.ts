@@ -1500,6 +1500,26 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
         });
     }
 
+    // The reverse case: clearing a saved violation grouping's Has pill dropped the grouping, so bringing the Has pill back
+    // also brings back the grouping with its sorting and columns. Otherwise the search still differs from the saved one
+    // and keeps offering Save. A grouping chosen after clearing the Has pill is the user's own choice, so it stays.
+    if (
+        !currentQueryJSON.groupBy &&
+        defaultQueryJSON?.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        !queryHasHasFilter(currentQueryJSON, VIOLATION_HAS_VALUES) &&
+        queryHasHasFilter(resetQueryJSON, VIOLATION_HAS_VALUES)
+    ) {
+        return buildSearchQueryString({
+            ...resetQueryJSON,
+            groupBy: defaultQueryJSON.groupBy,
+            sortBy: defaultQueryJSON.sortBy,
+            sortOrder: defaultQueryJSON.sortOrder,
+            columns: defaultQueryJSON.columns,
+            leftPinnedColumns: defaultQueryJSON.leftPinnedColumns,
+            rightPinnedColumns: defaultQueryJSON.rightPinnedColumns,
+        });
+    }
+
     return buildSearchQueryString(resetQueryJSON);
 }
 
