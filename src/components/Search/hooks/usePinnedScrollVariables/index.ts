@@ -1,10 +1,14 @@
 /**
- * Publishes what the Spend table's left-pinned cells and cover need from its scroller: how far it has scrolled, whether anything
- * is beneath the pins, and how wide the pinned region is. The scroll offset is written from the scroll handler, so it lands a frame late.
+ * Publishes what the Spend table's left-pinned cells and cover need from its scroller: the scroll timeline that moves them, the
+ * furthest the table scrolls, and how wide the pinned region is. Without scroll-driven animations it also writes the scroll offset
+ * from the scroll handler, so it lands a frame late.
  */
+import {canUseScrollTimeline} from '@components/Search/pinnedCellStyles';
 import {
     PINNED_HEADER_ROW_SELECTOR,
     PINNED_HEADING_SELECTOR,
+    PINNED_SCROLL_TIMELINE,
+    PINNED_SCROLL_X_MAX_VARIABLE,
     PINNED_SCROLL_X_VARIABLE,
     PINNED_START_COVER_OPACITY_VARIABLE,
     PINNED_START_EDGE_SELECTOR,
@@ -42,7 +46,9 @@ function getOffsetLeftWithin(element: HTMLElement, ancestor: HTMLElement) {
 }
 
 /** Every row shares the header row's edges and column widths, so the region is measured once, on its headings. */
-function writeWidthVariable(container: HTMLElement) {
+function writeLayoutVariables(container: HTMLElement, scroller: HTMLElement) {
+    container.style.setProperty(PINNED_SCROLL_X_MAX_VARIABLE, `${Math.max(scroller.scrollWidth - scroller.clientWidth, 0)}px`);
+
     const headerRow = container.querySelector(PINNED_HEADER_ROW_SELECTOR);
     const startEdge = headerRow?.querySelector(PINNED_START_EDGE_SELECTOR);
     if (!(headerRow instanceof HTMLElement) || !(startEdge instanceof HTMLElement)) {
@@ -69,14 +75,22 @@ function usePinnedScrollVariables(containerRef: RefObject<View | null>, scrollVi
             return;
         }
 
-        writeScrollVariables(container, scroller);
-        writeWidthVariable(container);
-
-        // Resizing a column moves the headings, and can clamp the scroll offset, without a scroll event. A drag holds the scroll
-        // extent still, so a pinned heading changing size is the only sign one of them was resized.
-        const resizeObserver = new ResizeObserver(() => {
-            writeWidthVariable(container);
+        if (canUseScrollTimeline) {
+            scroller.style.setProperty('scroll-timeline', `${PINNED_SCROLL_TIMELINE} inline`);
+            // Lets the mask beside the scroller follow its timeline too.
+            container.style.setProperty('timeline-scope', PINNED_SCROLL_TIMELINE);
+        } else {
             writeScrollVariables(container, scroller);
+        }
+        writeLayoutVariables(container, scroller);
+
+        // Resizing a column changes how far the table scrolls and where the headings sit, and can clamp the scroll offset, without a
+        // scroll event. A drag holds the scroll extent still, so a pinned heading changing size is the only sign one of them was resized.
+        const resizeObserver = new ResizeObserver(() => {
+            writeLayoutVariables(container, scroller);
+            if (!canUseScrollTimeline) {
+                writeScrollVariables(container, scroller);
+            }
         });
         const headerRow = container.querySelector(PINNED_HEADER_ROW_SELECTOR);
         for (const element of [scroller, scroller.firstElementChild, headerRow, ...(headerRow?.querySelectorAll(PINNED_HEADING_SELECTOR) ?? [])]) {
@@ -89,6 +103,9 @@ function usePinnedScrollVariables(containerRef: RefObject<View | null>, scrollVi
     }, [containerRef, scrollViewRef, isScrolling, pinsKey]);
 
     return () => {
+        if (canUseScrollTimeline) {
+            return;
+        }
         const container = getElement(containerRef);
         const scroller = getScrollableElement(scrollViewRef);
         if (container && scroller) {

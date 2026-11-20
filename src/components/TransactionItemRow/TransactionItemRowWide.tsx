@@ -771,17 +771,20 @@ function TransactionItemRowWide({
                 <PinnedRowCovers />
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle, pinnedCellContainerStyle]}>
                     {!shouldShowRadioButton && (
-                        <Checkbox
-                            disabled={isDisabled}
-                            onPress={(event) => {
-                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isChecked={isSelected}
-                            containerStyle={styles.m0}
-                            wrapperStyle={[styles.justifyContentCenter, pinnedLeadingStyle]}
-                            sentryLabel={checkboxSentryLabel}
-                        />
+                        // The checkbox's own wrapper is a Reanimated view, which takes the pin's scroll-driven animation for its own.
+                        <View style={[styles.justifyContentCenter, pinnedLeadingStyle]}>
+                            <Checkbox
+                                disabled={isDisabled}
+                                onPress={(event) => {
+                                    onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
+                                }}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                isChecked={isSelected}
+                                containerStyle={styles.m0}
+                                wrapperStyle={styles.justifyContentCenter}
+                                sentryLabel={checkboxSentryLabel}
+                            />
+                        </View>
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (

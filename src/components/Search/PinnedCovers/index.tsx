@@ -2,7 +2,8 @@
  * What hides the Spend table's columns while they scroll beneath its left-pinned region. Plain elements, since every piece of
  * their geometry comes from CSS custom properties, so scrolling and resizing repaint them without a render.
  */
-import {PINNED_SCROLL_X_VARIABLE, PINNED_START_COVER_OPACITY_VARIABLE, PINNED_START_WIDTH_VARIABLE} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import {canUseScrollTimeline, getScrollTimelineAnimation} from '@components/Search/pinnedCellStyles';
+import {PINNED_KEYFRAMES, PINNED_SCROLL_X_VARIABLE, PINNED_START_COVER_OPACITY_VARIABLE, PINNED_START_WIDTH_VARIABLE} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
 import {usePinnedColumns, usePinnedRow} from '@components/Search/PinnedColumnsContext';
 
 import useTheme from '@hooks/useTheme';
@@ -21,14 +22,21 @@ type PinnedRowCoversProps = {
 
 const NO_INSET = {horizontal: 0, vertical: 0};
 
+// Hidden while the table rests at its start, since nothing is beneath the pins then. The timeline's keyframes override the base opacity.
+const COVER_MOTION: React.CSSProperties = canUseScrollTimeline
+    ? {...getScrollTimelineAnimation([PINNED_KEYFRAMES.START_TRANSLATE, PINNED_KEYFRAMES.START_COVER]), opacity: 0}
+    : {transform: `translateX(var(${PINNED_SCROLL_X_VARIABLE}, 0px))`, opacity: `var(${PINNED_START_COVER_OPACITY_VARIABLE}, 0)`};
+
+const MASK_MOTION: React.CSSProperties = canUseScrollTimeline
+    ? {...getScrollTimelineAnimation([PINNED_KEYFRAMES.START_COVER]), opacity: 0}
+    : {opacity: `var(${PINNED_START_COVER_OPACITY_VARIABLE}, 0)`};
+
 const COVER_STYLE: React.CSSProperties = {
     position: 'absolute',
     // Above the cells scrolling beneath, below the pinned cells.
     zIndex: 1,
     boxSizing: 'border-box',
-    transform: `translateX(var(${PINNED_SCROLL_X_VARIABLE}, 0px))`,
-    // Hidden while the table rests at its start, since nothing is beneath the pins then.
-    opacity: `var(${PINNED_START_COVER_OPACITY_VARIABLE}, 0)`,
+    ...COVER_MOTION,
 };
 
 // Cast onto the columns scrolling beneath, so the pinned region reads as floating above them.
@@ -92,7 +100,7 @@ const MASK_STYLE: React.CSSProperties = {
     // Above the scroller beside it, whose rows slide into the margin. The scroller is its own stacking context, so any layer above it will do.
     zIndex: 1,
     pointerEvents: 'none',
-    opacity: `var(${PINNED_START_COVER_OPACITY_VARIABLE}, 0)`,
+    ...MASK_MOTION,
 };
 
 /**

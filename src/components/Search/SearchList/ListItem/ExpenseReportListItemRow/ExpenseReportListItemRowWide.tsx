@@ -378,18 +378,20 @@ function ExpenseReportListItemRowWide({
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, pinnedCellContainerStyle]}>
                 {!!canSelectMultiple && (
-                    <Checkbox
-                        onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
-                        isChecked={isSelectAllChecked}
-                        isIndeterminate={isIndeterminate}
-                        containerStyle={styles.m0}
-                        wrapperStyle={pinnedLeadingStyle}
-                        disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.reportName ?? ''}
-                        shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
-                    />
+                    // The checkbox's own wrapper is a Reanimated view, which takes the pin's scroll-driven animation for its own.
+                    <View style={pinnedLeadingStyle}>
+                        <Checkbox
+                            onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
+                            containerStyle={styles.m0}
+                            disabled={isDisabledCheckbox}
+                            accessibilityLabel={item.reportName ?? ''}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
+                        />
+                    </View>
                 )}
                 {columns.map((column) => {
                     const CellComponent = columnComponents[column as keyof typeof columnComponents];
