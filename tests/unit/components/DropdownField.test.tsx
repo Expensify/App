@@ -348,6 +348,31 @@ describe('DropdownField', () => {
         expect(screen.queryByText(DROPDOWN_TEXT)).toBeNull();
     });
 
+    it('tells the form when the list opens and when it closes', () => {
+        // Given a field whose form listens for its list opening and closing
+        const onVisibilityChange = jest.fn();
+        mockRowAt(ROW_TOP);
+        render(
+            <DropdownField
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                name={FIELD_NAME}
+                testID={ROW_TEST_ID}
+                shouldOpenInDropdown
+                renderDropdown={renderDropdown}
+                onVisibilityChange={onVisibilityChange}
+            />,
+        );
+
+        // When the list is opened and then dismissed from inside it
+        act(() => pressRow());
+        expect(onVisibilityChange).toHaveBeenLastCalledWith(true);
+        act(() => renderedProps?.onClose());
+
+        // Then the form hears both, so it can keep its own Enter shortcut off only while the list is open
+        expect(onVisibilityChange).toHaveBeenLastCalledWith(false);
+        expect(onVisibilityChange).toHaveBeenCalledTimes(2);
+    });
+
     it('opens the full-page selector for a field the container cannot answer', () => {
         // Given a field that has to send the user somewhere else first, e.g. to upgrade or to pick a workspace
         const onPress = jest.fn();

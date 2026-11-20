@@ -51,12 +51,11 @@ jest.mock('@components/AttendeePicker/AttendeePickerModal', () => (props: Attend
 });
 
 // The yes/no list has no picker of its own, so the container shows the list as-is and the list records what it was handed.
-jest.mock(
-    '@components/AnchoredSelectionListPopover',
-    () =>
-        ({children}: AnchoredSelectionListPopoverProps) =>
-            children,
-);
+let mockPopoverProps: AnchoredSelectionListPopoverProps | undefined;
+jest.mock('@components/AnchoredSelectionListPopover', () => (props: AnchoredSelectionListPopoverProps) => {
+    mockPopoverProps = props;
+    return props.children;
+});
 
 type BooleanListProps = {data: BooleanOption[]; onSelectRow: (option: BooleanOption) => void};
 let mockBooleanListProps: BooleanListProps | undefined;
@@ -104,6 +103,7 @@ describe('SearchEditMultiple dropdowns', () => {
         mockTaxModalProps = undefined;
         mockAttendeeModalProps = undefined;
         mockBooleanListProps = undefined;
+        mockPopoverProps = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -285,6 +285,16 @@ describe('SearchEditMultiple dropdowns', () => {
                 {keyForList: CONST.SEARCH.BOOLEAN.YES, isSelected: false},
                 {keyForList: CONST.SEARCH.BOOLEAN.NO, isSelected: false},
             ]);
+        });
+
+        it('heads the list with the field name, as the other lists of the form do', () => {
+            // Given a yes/no field
+            // When its list opens
+            renderBooleanDropdown(undefined, jest.fn());
+
+            // Then the list shows a header with the field name on every layout, not only in the bottom sheet
+            expect(mockPopoverProps?.shouldShowHeader).toBe(true);
+            expect(mockPopoverProps?.title).toBe('Reimbursable');
         });
 
         it('records No for every expense when it is picked, and closes the list', () => {

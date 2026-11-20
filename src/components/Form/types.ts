@@ -233,12 +233,14 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

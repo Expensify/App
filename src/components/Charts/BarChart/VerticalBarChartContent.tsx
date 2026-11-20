@@ -32,10 +32,10 @@ import variables from '@styles/variables';
 import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {Group, Skia} from '@shopify/react-native-skia';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {Group, Skia} from 'react-native-skia';
 import {Bar, CartesianChart, StackedBar} from 'victory-native';
 
 import type BarChartProps from './types';

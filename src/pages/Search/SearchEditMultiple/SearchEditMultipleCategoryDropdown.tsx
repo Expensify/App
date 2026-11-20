@@ -31,6 +31,7 @@ function SearchEditMultipleCategoryDropdown({policyID, selectedCategory, onClose
             {...popoverProps}
             onClose={onClose}
             shouldFitContentHeight
+            shouldShowHeader
             policyID={policyID}
             selectedCategory={selectedCategory}
             onSelected={saveCategory}
