@@ -29,7 +29,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getSearchErrorMessage} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
@@ -76,6 +76,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     getFooterSelectionFromQuery,
+    getSearchQueryError,
     isGroupBySupportedBySearch,
     normalizeDatePresetsInQuery,
     serializeQueryJSONForBackend,
@@ -899,7 +900,7 @@ function getOnyxLoadingData(
             value: {
                 errors: null,
                 // The code explains the errors it was stored with, so the two have to be cleared together.
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1118,8 +1119,8 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
             value: {
                 errors: null,
-                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
-                search: {state: null, responseJsonCode: null},
+                // Clear the terminal state with the failure so the snapshot can be requested again.
+                search: {state: null, responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1469,6 +1470,31 @@ function search({
         return;
     }
 
+    const queryError = getSearchQueryError(queryJSON);
+    if (queryError) {
+        const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
+        // Settle the snapshot as if Auth had rejected the query. The loading updates move it to its final loaded state, so
+        // the error view shows and the query isn't requested again. The error goes last because optimisticData clears it.
+        return Onyx.update([
+            ...(optimisticData ?? []),
+            ...(finallyData ?? []),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                value: {
+                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: queryError},
+                    errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
+                },
+            },
+        ])
+            .then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY)
+            .catch((error: unknown) => {
+                // Callers don't catch search(), so a failed write is logged here like the other snapshot writes
+                Log.hmmm('[Search] failed to store the search query error', {error: String(error)});
+                return undefined;
+            });
+    }
+
     // The backend saves a flagged search as the account's recent search and its last filters and columns. Support agents
     // search a customer's account to troubleshoot, which must not change what the customer sees when they log in.
     const shouldSaveSearchToAccount = shouldSaveRecentSearch && !isSupportAuthToken();
@@ -1619,9 +1645,11 @@ function search({
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
                 if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
-                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
-                    );
+                    const errorTranslationKey = responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY ? getSearchErrorMessage(result) : undefined;
+                    Onyx.merge(snapshotKey, {
+                        search: {responseJsonCode, errorTranslationKey},
+                        ...(errorTranslationKey && {errors: getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey)}),
+                    }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
                 }
 
                 // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.

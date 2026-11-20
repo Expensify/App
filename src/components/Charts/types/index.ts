@@ -1,8 +1,8 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 import type {SearchChartCountDimension} from '@components/Search/types';
 
-import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ReactNode} from 'react';
+import type {SkParagraph} from 'react-native-skia';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
@@ -76,6 +76,9 @@ type UnitPosition = 'left' | 'right';
 /** Formats a plotted value for display, in place of the chart's own number-and-unit formatting */
 type ChartValueFormatter = (value: number, options?: {shouldUseCompactNotation?: boolean}) => string;
 
+/** A fixed Y-axis tick step, or one picked from the largest plotted value */
+type YAxisTickStep = number | ((maxValue: number) => number);
+
 type ChartProps = {
     data: ChartDataPoint[];
 
@@ -104,8 +107,8 @@ type CartesianChartProps = ChartProps & {
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
 
-    /** Keeps the Y-axis ticks on whole multiples of this step, in plotted units, e.g. 1 for a count of expenses. */
-    yAxisTickStep?: number;
+    /** Keeps the Y-axis ticks on whole multiples of this step, in plotted units, e.g. 1 for a count of expenses. A function picks the step from the largest plotted value. */
+    yAxisTickStep?: YAxisTickStep;
 
     /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
     labelSteps?: readonly number[];
@@ -171,4 +174,5 @@ export type {
     UnitPosition,
     UnitWithFallback,
     WrappedLabelConfig,
+    YAxisTickStep,
 };

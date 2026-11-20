@@ -33,7 +33,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
             value: {
                 errors: null,
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         })),
     ];
