@@ -17,6 +17,11 @@ const SENSITIVE_KEYS = new Set([
     'clientSecret',
     'cardNumber',
     'cardCVV',
+    // Expensify Card PIN commands send the PIN, and the card reveal commands return the PIN and full card details under these names.
+    'pin',
+    'pan',
+    'cvv',
+    'expiration',
     'signedChallenge',
     'nonce',
     'nonceSignature',
@@ -26,7 +31,18 @@ const SENSITIVE_KEYS = new Set([
     'ephemeralPublicKey',
     'opaquePaymentCard',
     'ssn',
+    'ssnLast4',
+    'accountNumber',
+    'routingNumber',
+    'plaidAccessToken',
+    'publicToken',
+    'intacctPassword',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
+    // These are sent as JSON strings, so key matching can't see the SSN and bank fields inside them.
     'inputs',
+    'beneficialOwners',
+    'additionalData',
 ]);
 
 const REDACTED = '<redacted>';

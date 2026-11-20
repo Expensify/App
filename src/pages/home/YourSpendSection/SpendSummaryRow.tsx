@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
@@ -96,26 +97,34 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
 
     return (
         <View testID={`${testIDPrefix}-row`}>
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 sentryLabel={sentryLabel}
-                description={description}
-                title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={[styles.textBold, isStale && styles.offlineFeedbackPending]}
                 onPress={onPress}
-                shouldShowRightIcon
-                leftComponent={
-                    <View style={styles.widgetItemIconContainer}>
-                        <Icon
-                            src={iconSrc}
-                            fill={theme.icon}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                    </View>
-                }
-                wrapperStyle={wrapperStyle}
-                shouldCheckActionAllowedOnPress={false}
-            />
+                style={wrapperStyle}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <View style={styles.widgetItemIconContainer}>
+                            <Icon
+                                src={iconSrc}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
+                    </MenuItem.Leading>
+                    <MenuItemField.Content name={description}>
+                        {totals.total !== undefined && (
+                            <MenuItem.FieldValue style={[styles.textBold, isStale && styles.offlineFeedbackPending]}>
+                                {convertToDisplayString(totals.total, totals.currency)}
+                            </MenuItem.FieldValue>
+                        )}
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
         </View>
     );
 }

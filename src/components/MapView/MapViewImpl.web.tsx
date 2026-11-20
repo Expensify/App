@@ -376,6 +376,9 @@ function MapViewImpl({
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
             style={[style, !interactive ? styles.pointerEventsNone : {}]}
+            // A click on the map can pick a route, and the canvas it lands on has no label, so the map reports every click
+            // under its own label. The map's buttons have labels of their own, which Sentry finds first.
+            dataSet={{sentryLabel: CONST.SENTRY_LABEL.MAP_VIEW.MAP, sentryLabelExact: true}}
             {...responder.panHandlers}
         >
             <div

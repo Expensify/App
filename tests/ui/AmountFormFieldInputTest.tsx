@@ -8,6 +8,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import CONST from '@src/CONST';
+
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 
@@ -53,6 +55,7 @@ function ToggleSignButton() {
             role="button"
             testID="toggle-sign-button"
             onPress={toggleSign}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />
     );
 }
@@ -417,6 +420,15 @@ describe('AmountFormField.Input', () => {
         expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
     });
 
+    it('uses the submit behavior its caller passes', async () => {
+        // Given an AmountFormField.Input on a page with no form to submit, which passes blurAndSubmit
+        renderAmountFormFieldInput({testID: INPUT_TEST_ID, submitBehavior: 'blurAndSubmit'}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the keyboard's Done key blurs the input, which closes the keyboard
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('blurAndSubmit');
+    });
+
     it('collapses the selection onto its end when clearSelection is called', async () => {
         const ref = React.createRef<AmountFormFieldRef>();
 
@@ -626,6 +638,7 @@ describe('AmountFormField.Input', () => {
                             accessibilityLabel="custom accessory"
                             role="button"
                             onPress={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                         <AmountFormField.CurrencyPickerButton
                             currency="EUR"
