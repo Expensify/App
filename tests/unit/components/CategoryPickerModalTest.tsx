@@ -1,6 +1,6 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
-import CategoryPicker from '@components/CategoryPicker';
+import * as CategoryPicker from '@components/CategoryPicker';
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
@@ -20,7 +20,10 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useLocalize', () => () => ({
+    translate: (key: string) => key,
+    localeCompare: (first: string, second: string) => first.localeCompare(second),
+}));
 
 // Only mobile browsers dock the sheet behind the keyboard, so the tests flip this to cover both.
 let mockIsMobileBrowser = true;
@@ -56,7 +59,10 @@ const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
 
 // The list is covered by CategoryPickerTest; here only the sheet around it, its header and the handlers it is given matter.
-jest.mock('@components/CategoryPicker', () => jest.fn(() => null));
+jest.mock('@components/CategoryPicker', () => ({
+    ...jest.requireActual<typeof CategoryPicker>('@components/CategoryPicker'),
+    CategoryPickerList: jest.fn(() => null),
+}));
 
 // Records what the sheet is handed and renders its content, so both the container props and the header can be checked.
 let mockPopoverProps: PopoverWithMeasuredContentProps | undefined;
@@ -164,7 +170,7 @@ describe('CategoryPickerModal', () => {
         );
 
         // When they tap the create row for a search that matched nothing
-        const createCategory = jest.mocked(CategoryPicker).mock.lastCall?.[0].onCreateCategory;
+        const createCategory = jest.mocked(CategoryPicker.CategoryPickerList).mock.lastCall?.[0].onCreateCategory;
         if (!createCategory) {
             throw new Error('Expected the pop-over to offer the create row');
         }
