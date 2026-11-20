@@ -2,7 +2,7 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBankAccountData, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {canPayViaABA} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
@@ -191,9 +191,8 @@ function usePaymentOptions({
                 const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
                 return formattedPaymentMethods
                     .filter((method) => {
-                        const accountData = method.accountData;
-                        // Only bank accounts have a type; card account data has none, so cards are left out
-                        return accountData != null && 'type' in accountData && accountData.type === requiredAccountType && !isBankAccountPartiallySetup(accountData.state);
+                        const accountData = getBankAccountData(method.accountData);
+                        return accountData?.type === requiredAccountType && !isBankAccountPartiallySetup(accountData.state);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',

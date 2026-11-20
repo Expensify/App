@@ -53,7 +53,7 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
     const rawBaseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
     // All pie geometry is parsed from raw pixel attributes, so it must follow the context's pixel
-    // scale for the expanded chart to render proportionally at its larger native size.
+    // scale for the chart to render proportionally at another size than its design size.
     const baseLabelItem = rawBaseLabelItem && pixelScale !== 1 ? scaleLabelItem(rawBaseLabelItem, pixelScale) : rawBaseLabelItem;
     const pieLabels = parseAttributeAsStringArray(tnode.attributes.labels);
     const rawLabelRadius = parseAttributeAsNumber(tnode.attributes.labelradius);

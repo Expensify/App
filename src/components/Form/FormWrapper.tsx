@@ -166,11 +166,16 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number) => {
-        // Wait for the keyboard animation to complete
-        setTimeout(() => {
+    const scrollTo = (y: number, shouldDelayScroll = true) => {
+        const scrollToOffset = () => {
             formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
-        }, CONST.ANIMATED_TRANSITION);
+        };
+        if (!shouldDelayScroll) {
+            scrollToOffset();
+            return;
+        }
+        // Focus can arrive before the keyboard animation completes; didShow callers can skip this wait.
+        setTimeout(scrollToOffset, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,

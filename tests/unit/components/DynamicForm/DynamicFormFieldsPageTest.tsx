@@ -14,7 +14,7 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () =>
 
 const page: DynamicFormPage = {key: 'identity', title: 'Identity', content: [{key: 'ssn', type: 'text', required: true, sensitive: true}]};
 
-function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean) {
+function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean, validatePage?: (page: DynamicFormPage) => Record<string, string>) {
     render(
         <DynamicFormFieldsPage
             isEditing={false}
@@ -32,6 +32,7 @@ function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean)
             onListItemSave={jest.fn()}
             confirmationTitle="Confirm"
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+            validatePage={validatePage}
         />,
     );
     return jest.mocked(FormProvider).mock.lastCall?.[0];
@@ -63,5 +64,18 @@ describe('DynamicFormFieldsPage', () => {
 
         // Then its button is disabled offline, so no page save waits in the queue or fails for want of a connection
         expect(formProps?.enabledWhenOffline).toBe(false);
+    });
+
+    it("adds the screen's checks of the whole page to the fields' own, which win on the same field", () => {
+        // Given a screen that limits the page as a whole, with errors under the SSN field and under another field
+        const validatePage = jest.fn(() => ({ssn: 'Too many files', other: 'Too many files'}));
+        const formProps = renderPage(false, false, validatePage);
+
+        // When the page is validated without an SSN
+        const errors = formProps?.validate?.({}, jest.fn());
+
+        // Then the screen's error blocks Next, and the missing SSN keeps its own error
+        expect(validatePage).toHaveBeenCalledWith(page, expect.anything());
+        expect(errors).toEqual({ssn: 'common.error.fieldRequired', other: 'Too many files'});
     });
 });
