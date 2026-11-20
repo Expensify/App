@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
-import {COLLAPSE_SURFACE, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {COLLAPSE_SURFACE, FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 
 import variables from '@styles/variables';
 
@@ -73,7 +73,7 @@ describe('useNavigationBarWidth', () => {
         await waitForBatchedUpdates();
 
         // Then it returns the skinny rail width
-        expect(result.current).toBe(variables.flatNavigationBarCollapsedWidth);
+        expect(result.current).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
     });
 
     it('does not re-render or change value when a surface starts or ends peeking', async () => {
@@ -99,7 +99,7 @@ describe('useNavigationBarWidth', () => {
         await waitForBatchedUpdates();
 
         // Then the width stays the collapsed layout width, since a peek overlays the content instead of pushing it, and the hook does not re-render
-        expect(result.current).toBe(variables.flatNavigationBarCollapsedWidth);
+        expect(result.current).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         expect(renderCount).toBe(initialRenderCount);
 
         // When peeking ends

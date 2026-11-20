@@ -5,13 +5,12 @@ import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/Tabl
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -69,7 +68,6 @@ function WorkspaceCategoryRulesTableImpl({
     bulkActionOptions,
 }: WorkspaceCategoryRulesTableProps<CategoryRulesTableItem>) {
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -79,7 +77,7 @@ function WorkspaceCategoryRulesTableImpl({
             label: typeColumnLabel,
             sortable: true,
             width: typeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {key: 'condition', label: conditionColumnLabel, sortable: true},
         {key: 'rule', label: ruleColumnLabel, sortable: true},

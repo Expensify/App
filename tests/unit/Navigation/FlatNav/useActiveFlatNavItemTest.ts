@@ -25,6 +25,7 @@ const sections: FlatNavSection[] = [
                 key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
                 sectionID: FLAT_NAV.SECTION.REPORTS,
                 translationPath: 'search.tabs.submit',
+                spendColumnTranslationPath: 'search.tabs.submit',
                 iconName: 'Pencil',
                 searchQuery: 'type:expense-report',
             },

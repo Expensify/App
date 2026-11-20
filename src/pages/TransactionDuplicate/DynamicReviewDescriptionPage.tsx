@@ -14,7 +14,8 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
-import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+import {getTransactionID} from '@libs/TransactionUtils';
+import {compareDuplicateTransactionFields} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -2,6 +2,7 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
@@ -13148,6 +13149,8 @@ describe('actions/Report', () => {
     describe('mergeReports', () => {
         const currentUserAccountID = 1;
         const currentUserEmail = 'test@example.com';
+        const currentUserPersonalDetail = {accountID: currentUserAccountID, login: currentUserEmail};
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[currentUserEmail]: currentUserPersonalDetail};
 
         const POLICY_ID = 'policy_123';
         const WORKSPACE_CHAT_REPORT_ID = 'workspace_chat_456';
@@ -13333,6 +13336,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13404,6 +13408,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13474,6 +13479,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins,
             });
             await waitForBatchedUpdates();
 
@@ -13499,6 +13505,71 @@ describe('actions/Report', () => {
             expect(snapshotFailure?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]?.transactionCount).toBe(0);
             expect(snapshotFailure?.data?.[transaction1Key]?.reportID).toBe(SOURCE_REPORT_1_ID);
             expect(snapshotFailure?.data?.[transaction2Key]?.reportID).toBe(SOURCE_REPORT_2_ID);
+        });
+
+        it('builds the destination next step with the personal details looked up by login', async () => {
+            const approverEmail = 'approver@example.com';
+            const approverAccountID = 2;
+            const personalDetailsByLoginsWithApprover: PersonalDetailsByLogin = {...personalDetailsByLogins, [approverEmail]: {accountID: approverAccountID, login: approverEmail}};
+            const approvalPolicy = createMock<OnyxTypes.Policy>({
+                ...policy,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+            });
+            const submittedDestinationReport = createMock<OnyxTypes.Report>({
+                ...destinationReport,
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: -500,
+                unheldTotal: -500,
+                transactionCount: 1,
+            });
+
+            // Given a destination report waiting on the approver of a workspace with Basic approval, whose next step needs
+            // the approver's personal details to find who it waits on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, approvalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`, submittedDestinationReport);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+
+            // When other reports are merged into it
+            Report.mergeReports({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                cardList: undefined,
+                destinationReportID: DESTINATION_REPORT_ID,
+                sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+                currentUserPersonalDetails: {accountID: currentUserAccountID, email: currentUserEmail},
+                policy: approvalPolicy,
+                policyTagList: {},
+                allReports: {...allReports, [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: submittedDestinationReport},
+                allReportActions,
+                bankAccountList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the destination stays submitted, and its next step is built with the same personal details, so it can resolve the approver
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: expect.objectContaining({reportID: DESTINATION_REPORT_ID}),
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    personalDetailsByLogins: personalDetailsByLoginsWithApprover,
+                }),
+            );
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 
