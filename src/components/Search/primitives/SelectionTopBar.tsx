@@ -1,6 +1,6 @@
 import {PINNED_HEADER_ROW_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
 import {usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
-import {PinnedRowCovers} from '@components/Search/PinnedCovers';
+import {PinnedRowCover} from '@components/Search/PinnedCovers';
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
 import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
@@ -81,7 +81,7 @@ function SelectionTopBar({
             // The resize line starts at the row with this marker, and the pinned region is measured on this row's headings.
             dataSet={{...(columnResize ? TABLE_ROW_DATA_SET : {}), ...(SearchTableHeader ? PINNED_HEADER_ROW_DATA_SET : {})}}
         >
-            {!!SearchTableHeader && <PinnedRowCovers shouldRoundTop />}
+            {!!SearchTableHeader && <PinnedRowCover shouldRoundTop />}
             {canSelectMultiple && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, shouldCheckboxCarryPadding && styles.pv2, checkboxPinnedStyle]}>
                     <SearchSelectAllMenu

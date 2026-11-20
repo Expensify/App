@@ -29,10 +29,7 @@ const PINNED_HEADER_ROW_SELECTOR = '[data-pinned-header-row="true"]';
 const PINNED_HEADING_SELECTOR = '[data-pinned-heading="true"]';
 
 /** Marks the heading at the region's inner edge: the last left pin. */
-const PINNED_EDGE = {
-    START: 'start',
-} as const;
-const PINNED_START_EDGE_SELECTOR = `[data-pinned-edge="${PINNED_EDGE.START}"]`;
+const PINNED_START_EDGE_SELECTOR = '[data-pinned-start-edge="true"]';
 
 export {
     PINNED_SCROLL_X_VARIABLE,
@@ -43,7 +40,6 @@ export {
     PINNED_START_COVER_OPACITY_VARIABLE,
     PINNED_HEADER_ROW_DATA_SET,
     PINNED_HEADER_ROW_SELECTOR,
-    PINNED_EDGE,
     PINNED_HEADING_SELECTOR,
     PINNED_START_EDGE_SELECTOR,
 };

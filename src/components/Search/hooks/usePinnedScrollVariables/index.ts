@@ -14,6 +14,7 @@ import {
     PINNED_START_EDGE_SELECTOR,
     PINNED_START_WIDTH_VARIABLE,
 } from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import type {SearchColumnType} from '@components/Search/types';
 
 import variables from '@styles/variables';
 
@@ -23,13 +24,7 @@ import type {ScrollView as RNScrollView, View} from 'react-native';
 
 import {useLayoutEffect} from 'react';
 
-function getElement(ref: RefObject<unknown>): HTMLElement | undefined {
-    const node: unknown = ref.current;
-    return node instanceof HTMLElement ? node : undefined;
-}
-
-function getScrollableElement(scrollViewRef: RefObject<RNScrollView | null>): HTMLElement | undefined {
-    const node: unknown = scrollViewRef.current?.getScrollableNode();
+function getHTMLElement(node: unknown): HTMLElement | undefined {
     return node instanceof HTMLElement ? node : undefined;
 }
 
@@ -64,13 +59,15 @@ function writeScrollVariables(container: HTMLElement, scroller: HTMLElement) {
 }
 
 /**
- * @param pinsKey Changes whenever the pinned columns do, since pinning moves the headings without resizing anything.
+ * @param leftPinned A stable reference that changes whenever the pinned columns do, since pinning moves the headings without resizing anything.
  * @returns Call it from the scroller's scroll handler.
  */
-function usePinnedScrollVariables(containerRef: RefObject<View | null>, scrollViewRef: RefObject<RNScrollView | null>, isScrolling: boolean, pinsKey: string): () => void {
+function usePinnedScrollVariables(containerRef: RefObject<View | null>, scrollViewRef: RefObject<RNScrollView | null>, isScrolling: boolean, leftPinned: SearchColumnType[]): () => void {
+    const hasPinnedColumns = leftPinned.length > 0;
+
     useLayoutEffect(() => {
-        const container = isScrolling && pinsKey ? getElement(containerRef) : undefined;
-        const scroller = container ? getScrollableElement(scrollViewRef) : undefined;
+        const container = isScrolling && hasPinnedColumns ? getHTMLElement(containerRef.current) : undefined;
+        const scroller = container ? getHTMLElement(scrollViewRef.current?.getScrollableNode()) : undefined;
         if (!container || !scroller) {
             return;
         }
@@ -100,14 +97,14 @@ function usePinnedScrollVariables(containerRef: RefObject<View | null>, scrollVi
         }
 
         return () => resizeObserver.disconnect();
-    }, [containerRef, scrollViewRef, isScrolling, pinsKey]);
+    }, [containerRef, scrollViewRef, isScrolling, hasPinnedColumns, leftPinned]);
 
     return () => {
         if (canUseScrollTimeline) {
             return;
         }
-        const container = getElement(containerRef);
-        const scroller = getScrollableElement(scrollViewRef);
+        const container = getHTMLElement(containerRef.current);
+        const scroller = getHTMLElement(scrollViewRef.current?.getScrollableNode());
         if (container && scroller) {
             writeScrollVariables(container, scroller);
         }

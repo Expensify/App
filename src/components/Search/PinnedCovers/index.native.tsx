@@ -1,10 +1,10 @@
 /** Native tables don't hold pinned cells in place yet, so nothing ever scrolls beneath them to hide. */
-function PinnedRowCovers() {
+function PinnedRowCover() {
     return null;
 }
 
-function PinnedGutterMasks() {
+function PinnedGutterMask() {
     return null;
 }
 
-export {PinnedRowCovers, PinnedGutterMasks};
+export {PinnedRowCover, PinnedGutterMask};

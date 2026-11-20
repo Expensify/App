@@ -1,20 +1,15 @@
 /**
- * Which Spend table columns are pinned, and how a row holds them in place. Pinned cells only translate. Each row paints one
- * cover behind them (`PinnedRowCovers`), which hides the columns scrolling beneath and draws the divider.
+ * Which Spend table columns are pinned to the table's start, and how a row holds them in place. Pinned cells only translate. Each row
+ * paints one cover behind them (`PinnedRowCover`), which hides the columns scrolling beneath and draws the divider.
  */
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
+import {View} from 'react-native';
 
 import type {SearchColumnType} from './types';
 
 import {PINNED_CELL_CONTAINER_STYLE, PINNED_START_CELL_STYLE} from './pinnedCellStyles';
-import {PINNED_EDGE} from './pinnedCellStyles/pinnedScrollVariables';
-
-type PinnedColumnsState = {
-    /** The shown columns pinned to the table's start, in their order. */
-    leftPinned: SearchColumnType[];
-};
 
 /** The row states that change a row's background, which its cover paints to match. */
 type PinnedRowState = {
@@ -24,21 +19,27 @@ type PinnedRowState = {
     isHovered?: boolean;
 };
 
-const NO_PINNED_COLUMNS: PinnedColumnsState = {leftPinned: []};
+const NO_PINNED_COLUMNS: SearchColumnType[] = [];
 
-const PinnedColumnsContext = createContext<PinnedColumnsState>(NO_PINNED_COLUMNS);
+/** The shown columns pinned to the table's start, in their order. */
+const PinnedColumnsContext = createContext<SearchColumnType[]>(NO_PINNED_COLUMNS);
 
 const PinnedRowContext = createContext<PinnedRowState>({});
 
-function PinnedColumnsProvider({leftPinned, children}: React.PropsWithChildren<PinnedColumnsState>) {
-    return <PinnedColumnsContext.Provider value={{leftPinned}}>{children}</PinnedColumnsContext.Provider>;
+type PinnedColumnsProviderProps = React.PropsWithChildren<{
+    /** The shown columns pinned to the table's start, in their order. */
+    leftPinned: SearchColumnType[];
+}>;
+
+function PinnedColumnsProvider({leftPinned, children}: PinnedColumnsProviderProps) {
+    return <PinnedColumnsContext.Provider value={leftPinned}>{children}</PinnedColumnsContext.Provider>;
 }
 
 function PinnedRowProvider({isSelected, isHovered, children}: React.PropsWithChildren<PinnedRowState>) {
     return <PinnedRowContext.Provider value={{isSelected, isHovered}}>{children}</PinnedRowContext.Provider>;
 }
 
-function usePinnedColumns(): PinnedColumnsState {
+function useLeftPinnedColumns(): SearchColumnType[] {
     return useContext(PinnedColumnsContext);
 }
 
@@ -61,14 +62,14 @@ type PinnedColumnStyles = {
 };
 
 function usePinnedColumnStyles(): PinnedColumnStyles {
-    const {leftPinned} = usePinnedColumns();
+    const leftPinned = useLeftPinnedColumns();
     const hasPinnedColumns = leftPinned.length > 0;
 
     const getPinnedColumnStyle = (columnName: SearchColumnType) => (leftPinned.includes(columnName) ? PINNED_START_CELL_STYLE : undefined);
 
     const getPinnedHeadingDataSet = (columnName: SearchColumnType) => {
         if (columnName === leftPinned.at(-1)) {
-            return {pinnedHeading: 'true', pinnedEdge: PINNED_EDGE.START};
+            return {pinnedHeading: 'true', pinnedStartEdge: 'true'};
         }
         return leftPinned.includes(columnName) ? {pinnedHeading: 'true'} : undefined;
     };
@@ -81,4 +82,30 @@ function usePinnedColumnStyles(): PinnedColumnStyles {
     };
 }
 
-export {PinnedColumnsProvider, PinnedRowProvider, usePinnedColumns, usePinnedRow, usePinnedColumnStyles};
+type PinnedViewProps = React.PropsWithChildren<{
+    /** The view's own style, which the pin's style goes on top of. */
+    style?: StyleProp<ViewStyle>;
+}>;
+
+/**
+ * Holds what sits before the columns (a checkbox) beside the left pins. A checkbox wraps itself in a Reanimated view, which would
+ * take the pin's scroll-driven animation for its own, so the pin goes on this plain View instead. Without pins it adds no view.
+ */
+function PinnedLeadingView({style, children}: PinnedViewProps) {
+    const {leadingStyle} = usePinnedColumnStyles();
+
+    if (!leadingStyle) {
+        return children;
+    }
+
+    return <View style={[style, leadingStyle]}>{children}</View>;
+}
+
+/** A view between a row and its cells, which lets the pinned cells stack above the row's cover. */
+function PinnedCellContainerView({style, children}: PinnedViewProps) {
+    const {cellContainerStyle} = usePinnedColumnStyles();
+
+    return <View style={[style, cellContainerStyle]}>{children}</View>;
+}
+
+export {PinnedColumnsProvider, PinnedRowProvider, PinnedLeadingView, PinnedCellContainerView, useLeftPinnedColumns, usePinnedRow, usePinnedColumnStyles};

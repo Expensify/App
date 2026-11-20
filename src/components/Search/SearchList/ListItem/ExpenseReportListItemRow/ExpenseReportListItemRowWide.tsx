@@ -1,7 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
-import {usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
+import {PinnedLeadingView, usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
@@ -51,7 +51,7 @@ function ExpenseReportListItemRowWide({
     shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
     const getSearchColumnStyles = useSearchColumnStyles();
-    const {leadingStyle: pinnedLeadingStyle, cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
+    const {cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -378,8 +378,7 @@ function ExpenseReportListItemRowWide({
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, pinnedCellContainerStyle]}>
                 {!!canSelectMultiple && (
-                    // The checkbox's own wrapper is a Reanimated view, which takes the pin's scroll-driven animation for its own.
-                    <View style={pinnedLeadingStyle}>
+                    <PinnedLeadingView>
                         <Checkbox
                             onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                             isChecked={isSelectAllChecked}
@@ -391,7 +390,7 @@ function ExpenseReportListItemRowWide({
                             style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                         />
-                    </View>
+                    </PinnedLeadingView>
                 )}
                 {columns.map((column) => {
                     const CellComponent = columnComponents[column as keyof typeof columnComponents];

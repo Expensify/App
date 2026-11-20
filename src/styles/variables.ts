@@ -670,8 +670,6 @@ export default {
     // Search table chrome, shared by the dynamic column sizing and the horizontal scroller.
     // The gap a row renders between two adjacent columns, matching its `gap3` styling.
     searchTableColumnGap: 12,
-    /** How far a pinned Spend table region's shadow reaches over the columns scrolling beneath it. */
-    pinnedColumnShadowWidth: 12,
     // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
     searchTableRowChromeWidth: (20 + 12) * 2,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.

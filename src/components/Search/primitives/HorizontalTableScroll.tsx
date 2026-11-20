@@ -1,7 +1,7 @@
 import ScrollView from '@components/ScrollView';
 import usePinnedScrollVariables from '@components/Search/hooks/usePinnedScrollVariables';
-import {usePinnedColumns} from '@components/Search/PinnedColumnsContext';
-import {PinnedGutterMasks} from '@components/Search/PinnedCovers';
+import {useLeftPinnedColumns} from '@components/Search/PinnedColumnsContext';
+import {PinnedGutterMask} from '@components/Search/PinnedCovers';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import {TABLE_COLUMN_SCROLLER_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
@@ -100,21 +100,23 @@ function HorizontalTableScroll({
 
     const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const containerRef = useRef<View>(null);
-    const {leftPinned} = usePinnedColumns();
-    const syncPinnedScrollVariables = usePinnedScrollVariables(containerRef, horizontalScrollViewRef, shouldScrollHorizontally, leftPinned.join());
+    const leftPinned = useLeftPinnedColumns();
 
-    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-        syncPinnedScrollVariables();
-    };
-
-    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
+    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table.
+    // Runs before the pinned variables are written, so they start from the restored offset.
     useLayoutEffect(() => {
         if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
             return;
         }
         horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
     }, [dataKey, shouldScrollHorizontally]);
+
+    const syncPinnedScrollVariables = usePinnedScrollVariables(containerRef, horizontalScrollViewRef, shouldScrollHorizontally, leftPinned);
+
+    const handleHorizontalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
+        syncPinnedScrollVariables();
+    };
 
     if (!shouldScrollHorizontally) {
         return children;
@@ -140,7 +142,7 @@ function HorizontalTableScroll({
             >
                 {children}
             </ScrollView>
-            <PinnedGutterMasks gutterWidth={styles.mh5.marginHorizontal} />
+            <PinnedGutterMask gutterWidth={styles.mh5.marginHorizontal} />
         </View>
     );
 }

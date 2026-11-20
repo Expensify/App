@@ -9,11 +9,11 @@ import {
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
-import {PinnedRowProvider, usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
-import {PinnedRowCovers} from '@components/Search/PinnedCovers';
+import {useLeftPinnedColumns, usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
+import {PinnedRowCover} from '@components/Search/PinnedCovers';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-import {useListItemHovered} from '@components/SelectionList/ListItemContext';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -87,19 +87,27 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
     );
 }
 
-/** The row's pinned cover, which matches the row's hover background that only the list item's children can read. */
-function ExpenseReportPinnedRowCovers({isSelected}: {isSelected: boolean}) {
+type ExpenseReportPinnedRowCoverProps = {
+    isSelected: boolean;
+
+    /** Whether the report is disabled, which keeps the row from showing its hover background. */
+    isDisabled: boolean;
+};
+
+/** The row's pinned cover, which matches the row's hover and focus background that only the list item's children can read. */
+function ExpenseReportPinnedRowCover({isSelected, isDisabled}: ExpenseReportPinnedRowCoverProps) {
     const styles = useThemeStyles();
-    const isHovered = useListItemHovered();
+    const isPointerHovered = useListItemHovered();
+    const {isFocusVisible, isInteractive} = useListItemContext();
 
     return (
-        <PinnedRowProvider
+        <PinnedRowCover
             isSelected={isSelected}
-            isHovered={isHovered}
-        >
-            {/* Reaches across the row's padding to meet its edges, like the header's cover does. */}
-            <PinnedRowCovers inset={{horizontal: styles.ph3.paddingHorizontal, vertical: variables.tableRowPaddingVertical}} />
-        </PinnedRowProvider>
+            // The same states `ListItemPressable` paints its hover background for.
+            isHovered={!isDisabled && ((isPointerHovered && isInteractive) || isFocusVisible)}
+            // Reaches across the row's padding to meet its edges, like the header's cover does.
+            inset={{horizontal: styles.ph3.paddingHorizontal, vertical: variables.tableRowPaddingVertical}}
+        />
     );
 }
 
@@ -128,6 +136,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {leadingStyle: pinnedLeadingStyle} = usePinnedColumnStyles();
+    const hasPinnedColumns = useLeftPinnedColumns().length > 0;
     /*
      * Selection for a non-empty expense report is keyed by child transaction ID, never by the report row key,
      * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
@@ -466,8 +475,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldDisableHoverStyle={isPendingDelete}
         >
             {/* Stretched to the row's height, so its pinned cover reaches the row's edges in rows taller than their content. */}
-            <View style={[styles.flex1, styles.userSelectNone, isLargeScreenWidth && [styles.alignSelfStretch, styles.justifyContentCenter]]}>
-                {isLargeScreenWidth && <ExpenseReportPinnedRowCovers isSelected={isSelected} />}
+            <View style={[styles.flex1, styles.userSelectNone, isLargeScreenWidth && hasPinnedColumns && [styles.alignSelfStretch, styles.justifyContentCenter]]}>
+                {isLargeScreenWidth && (
+                    <ExpenseReportPinnedRowCover
+                        isSelected={isSelected}
+                        isDisabled={!!item.isDisabled}
+                    />
+                )}
                 {!isLargeScreenWidth && (
                     <UserInfoAndActionButtonRow
                         item={liveReportItem}

@@ -24,9 +24,10 @@ function getScrollTimelineAnimation(keyframes: string[]): React.CSSProperties {
     };
 }
 
-const START_TRANSLATE: React.CSSProperties = canUseScrollTimeline
-    ? getScrollTimelineAnimation([PINNED_KEYFRAMES.START_TRANSLATE])
-    : {transform: `translateX(var(${PINNED_SCROLL_X_VARIABLE}, 0px))`};
+/** Without a scroll timeline, follows the offset the scroll handler writes. */
+const SCROLL_X_TRANSLATE: React.CSSProperties = {transform: `translateX(var(${PINNED_SCROLL_X_VARIABLE}, 0px))`};
+
+const START_TRANSLATE: React.CSSProperties = canUseScrollTimeline ? getScrollTimelineAnimation([PINNED_KEYFRAMES.START_TRANSLATE]) : SCROLL_X_TRANSLATE;
 
 // Above the row's cover, which sits above the cells scrolling beneath it.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- RN-web passes the animation properties through, which the native types don't model.
@@ -36,4 +37,4 @@ const PINNED_START_CELL_STYLE = {...START_TRANSLATE, zIndex: 2} as ViewStyle;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `auto` is a valid CSS z-index the native types don't model.
 const PINNED_CELL_CONTAINER_STYLE = {zIndex: 'auto'} as unknown as ViewStyle;
 
-export {PINNED_START_CELL_STYLE, PINNED_CELL_CONTAINER_STYLE, canUseScrollTimeline, getScrollTimelineAnimation};
+export {PINNED_START_CELL_STYLE, PINNED_CELL_CONTAINER_STYLE, SCROLL_X_TRANSLATE, canUseScrollTimeline, getScrollTimelineAnimation};
