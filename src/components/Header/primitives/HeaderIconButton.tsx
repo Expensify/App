@@ -8,10 +8,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-type HeaderTooltipIconButtonProps = {
+type HeaderTooltipIconButtonProps = WithRequiredSentryLabel & {
     /** Tooltip text, also used as the accessibility label. */
     tooltipText: string;
 
@@ -23,9 +24,6 @@ type HeaderTooltipIconButtonProps = {
 
     /** Optional fill color for the icon. Defaults to `theme.icon`. */
     iconFill?: string;
-
-    /** Sentry label for this button. */
-    sentryLabel?: string;
 
     /** Additional styles for the pressable, applied after the default `touchableButtonImage`. */
     style?: StyleProp<ViewStyle>;

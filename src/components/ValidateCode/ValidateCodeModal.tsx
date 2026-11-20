@@ -17,6 +17,7 @@ import {isValidValidateCode} from '@libs/ValidationUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -35,7 +36,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const illustrations = useMemoizedLazyIllustrations(['ValidateCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const signInHere = () => signInWithValidateCode(accountID, code, preferredLocale, undefined, undefined, undefined, session);
+    const signInHere = () => signInWithValidateCode(accountID, code, preferredLocale, session);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isValidCode = isValidValidateCode(code);
@@ -68,7 +69,13 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                             {translate('validateCodeModal.description')}
                             {!session?.authToken && (
                                 <>
-                                    {translate('validateCodeModal.or')} <TextLink onPress={signInHere}>{translate('validateCodeModal.signInHere')}</TextLink>
+                                    {translate('validateCodeModal.or')}{' '}
+                                    <TextLink
+                                        onPress={signInHere}
+                                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE_MODAL.SIGN_IN_HERE_LINK}
+                                    >
+                                        {translate('validateCodeModal.signInHere')}
+                                    </TextLink>
                                 </>
                             )}
                             .

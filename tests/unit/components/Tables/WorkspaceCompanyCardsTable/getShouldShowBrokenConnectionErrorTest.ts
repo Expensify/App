@@ -47,12 +47,37 @@ describe('getShouldShowBrokenConnectionError', () => {
         expect(getShouldShowBrokenConnectionError(CSV_FEED, feedErrors)).toBe(false);
     });
 
-    // A 434 card is left out of `isFeedConnectionBroken`, but the wallet still sends its holder here to fix it, so
-    // the page has to offer the fix.
-    it('shows the error for a direct feed whose only issue is an actionable scrape status', () => {
+    it('does not show the error for a direct feed whose only issue is an actionable scrape status', () => {
+        // Given a card issue such as 434 without a broken feed connection
         const feedErrors = buildFeedErrors({hasFeedConnectionIssue: true});
 
-        expect(getShouldShowBrokenConnectionError(DIRECT_FEED, feedErrors)).toBe(true);
+        // When deciding whether the whole feed needs a broken connection warning
+        const shouldShowError = getShouldShowBrokenConnectionError(DIRECT_FEED, feedErrors);
+
+        // Then an individual card issue must not label the feed as broken
+        expect(shouldShowError).toBe(false);
+    });
+
+    it('still shows a genuine broken direct connection alongside an actionable card issue', () => {
+        // Given a real connection failure coexisting with an individual card issue
+        const feedErrors = buildFeedErrors({isFeedConnectionBroken: true, hasFeedConnectionIssue: true});
+
+        // When deciding whether the feed needs a warning
+        const shouldShowError = getShouldShowBrokenConnectionError(DIRECT_FEED, feedErrors);
+
+        // Then the individual card issue must not hide the genuine failure
+        expect(shouldShowError).toBe(true);
+    });
+
+    it.each([DIRECT_FEED, COMMERCIAL_FEED, CSV_FEED])('still shows explicit feed errors alongside a card issue for %s', (feedName) => {
+        // Given a feed error without a broken scrape status, alongside an individual card issue
+        const feedErrors = buildFeedErrors({hasFeedErrors: true, hasFeedConnectionIssue: true});
+
+        // When deciding whether the feed needs a warning
+        const shouldShowError = getShouldShowBrokenConnectionError(feedName, feedErrors);
+
+        // Then explicit feed errors remain visible regardless of feed type
+        expect(shouldShowError).toBe(true);
     });
 
     it('does not show the error for a commercial feed whose only issue is an actionable scrape status', () => {

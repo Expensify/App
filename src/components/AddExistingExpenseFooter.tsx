@@ -1,9 +1,11 @@
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
@@ -49,8 +51,10 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -106,6 +110,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
+                        currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
                         policyCategories,
@@ -121,6 +126,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         delegateAccountID,
                         getCurrencyDecimals,
                         getCurrencySymbol,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     });
                 }
             },
@@ -137,6 +143,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ADD_EXISTING_EXPENSE.CONFIRM_BUTTON}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}

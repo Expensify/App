@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
+import type {AvatarCommonProps} from '@components/Avatar/types';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
@@ -13,7 +14,6 @@ import Hoverable from '@components/Hoverable';
 import type HoverableProps from '@components/Hoverable/types';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
-import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -33,6 +33,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -52,18 +53,18 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -94,7 +95,7 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable<'onPress' | 'onSecondaryInteraction'> &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -115,7 +116,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isBadgeCondensed?: boolean;
 
         isBadgeError?: boolean;
-        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
@@ -253,7 +253,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
         /** Additional styles for the avatar image when the icon type is an avatar */
-        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
+        avatarImageStyles?: AvatarCommonProps['imageStyles'];
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -280,6 +280,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
+
+        /** Background of the hovered item in place of the default hover background */
+        hoveredStyle?: StyleProp<ViewStyle>;
+
+        /** Added to the title's style while the item is hovered. Applies to plain text titles, not HTML or parsed ones. */
+        hoveredTitleStyle?: StyleProp<TextStyle>;
 
         rightIconAccountID?: number | string;
 
@@ -457,7 +463,6 @@ function MenuItem({
     isBadgeStrong,
     isBadgeCondensed,
     isBadgeError,
-    onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
     style,
@@ -534,6 +539,8 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    hoveredStyle,
+    hoveredTitleStyle,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -598,8 +605,6 @@ function MenuItem({
     const combinedStyle = [styles.popoverMenuItem, style];
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {isExecuting} = useMenuItemGroupState() ?? {};
-    const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {
@@ -653,32 +658,30 @@ function MenuItem({
         iconLeftPadding = {};
     }
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
-        [
-            styles.flexShrink1,
-            styles.popoverMenuText,
-            iconLeftPadding,
-            shouldShowBasicTitle ? {} : styles.textStrong,
-            numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : {},
-            styles.ltr,
-            isDeleted ? styles.offlineFeedbackDeleted : {},
-            shouldBreakWord ? styles.breakWord : {},
-            styles.mw100,
-        ],
-        (titleStyle ?? {}) as TextStyle,
-    );
+    const titleTextStyles: Array<StyleProp<TextStyle>> = [
+        styles.flexShrink1,
+        styles.popoverMenuText,
+        iconLeftPadding,
+        shouldShowBasicTitle ? {} : styles.textStrong,
+        numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
+        interactive && disabled ? {...styles.userSelectNone} : {},
+        styles.ltr,
+        isDeleted ? styles.offlineFeedbackDeleted : {},
+        shouldBreakWord ? styles.breakWord : {},
+        styles.mw100,
+    ];
+    const combinedTitleTextStyle = titleTextStyles.concat(titleStyle ?? {});
 
-    const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
+    const descriptionTextStyles: StyleProp<TextStyle> = [
         styles.textLabelSupporting,
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(fontScale.text),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(lineHeightScale.text),
         !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
-        (descriptionTextStyle as TextStyle) || styles.breakWord,
+        descriptionTextStyle || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
-    ]);
+    ];
 
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
@@ -699,6 +702,9 @@ function MenuItem({
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
+                        // A description on top labels the field, so it stays readable in session recordings even inside a masked container.
+                        // A description below the title can hold user data, like an email, so it keeps the class of its container
+                        fsClass={shouldShowDescriptionOnTop ? CONST.FULLSTORY.CLASS.UNMASK : undefined}
                     >
                         {description}
                     </Text>
@@ -791,19 +797,15 @@ function MenuItem({
         }
 
         if (event?.type === 'click') {
-            (event.currentTarget as HTMLElement).blur();
+            const target = event.currentTarget;
+            // On web the target is a DOM element that can lose focus; native targets have no blur method
+            if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
+                target.blur();
+            }
         }
 
         if (onPress && event) {
-            if (!singleExecution || !waitForNavigate) {
-                onPress(event);
-                return;
-            }
-            singleExecution(
-                waitForNavigate(() => {
-                    onPress(event);
-                }),
-            )();
+            onPress(event);
         }
     };
 
@@ -823,6 +825,10 @@ function MenuItem({
         onSecondaryInteraction?.(event);
     };
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
+
+    // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
+    // copy label.
+    const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
@@ -858,7 +864,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction, session) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -894,20 +900,28 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            (hoveredStyle ?? styles.hoveredComponentBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
-                                disabled={disabled || isExecuting}
+                                disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
+                                // The label repeats the title, so a masked title also masks the row that carries the label
+                                forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : undefined}
                                 accessible={shouldBeAccessible}
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
-                                sentryLabel={sentryLabel}
+                                sentryLabel={castToSentryLabel(pressableSentryLabel)}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -1075,7 +1089,7 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={[combinedTitleTextStyle, isHovered && hoveredTitleStyle]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
@@ -1131,8 +1145,6 @@ function MenuItem({
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}
                                                                 isCondensed={isBadgeCondensed}
-                                                                onPress={onBadgePress}
-                                                                pressable={!!onBadgePress}
                                                             />
                                                         )}
                                                         {furtherDetailsComponent}
@@ -1154,8 +1166,6 @@ function MenuItem({
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
                                                         error={isBadgeError}
-                                                        onPress={onBadgePress}
-                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -1268,8 +1278,6 @@ function MenuItem({
                                                 success={isBadgeSuccess}
                                                 isStrong={isBadgeStrong}
                                                 isCondensed={isBadgeCondensed}
-                                                onPress={onBadgePress}
-                                                pressable={!!onBadgePress}
                                             />
                                         )}
                                         {!!errorText && (

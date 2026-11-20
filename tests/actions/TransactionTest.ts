@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
@@ -42,33 +44,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
-    personalPolicyOutputCurrency?: string;
-    selfDMReportActions?: OnyxEntry<ReportActions>;
-    isTrackIntentUser: boolean | undefined;
-};
-
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: getCurrencyDecimalsLocal,
-        getCurrencySymbol: getCurrencySymbolLocal,
-        rules: undefined,
-        ...rest,
-    });
-}
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -141,6 +116,45 @@ const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const RORY_CASH_CARD_ID = 777;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
+    personalPolicyOutputCurrency?: string;
+    selfDMReportActions?: OnyxEntry<ReportActions>;
+    isTrackIntentUser: boolean | undefined;
+};
+
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+        ...rest,
+    });
+}
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport({reportID});
@@ -149,15 +163,18 @@ const getTransactionAndExpenseReports = (reportID: string) => {
     return {transactionReport, expenseReport};
 };
 
-OnyxUpdateManager();
-describe('actions/Transaction', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
+function createCurrentUserPersonalDetails(email: string, accountID: number): CurrentUserPersonalDetails {
+    return {
+        ...createPersonalDetails(accountID),
+        login: email,
+        email,
+        displayName: email,
         avatar: 'https://example.com/avatar.jpg',
     };
+}
+OnyxUpdateManager();
+describe('actions/Transaction', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = createCurrentUserPersonalDetails(RORY_EMAIL, RORY_ACCOUNT_ID);
 
     beforeAll(() => {
         Onyx.init({
@@ -342,6 +359,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
@@ -452,6 +470,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: destinationReport,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 policy: movePolicy,
                 allTransactions,
                 policyTagList: {},
@@ -553,6 +572,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 newReport: destinationReport,
                 policy: movePolicy,
                 allTransactions,
@@ -616,6 +636,7 @@ describe('actions/Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CARLOS_ACCOUNT_ID,
                     email: CARLOS_EMAIL,
+                    currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                     newReport: destinationReport,
                     policy: carouselPolicy,
                     allTransactions,
@@ -746,6 +767,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
                 email: RORY_EMAIL,
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: mockPolicy,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
@@ -815,6 +837,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
                 email: RORY_EMAIL,
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: mockPolicy,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: searchRowItem},
@@ -922,6 +945,7 @@ describe('actions/Transaction', () => {
                     isVendorMatchingBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
                     email: RORY_EMAIL,
+                    currentUserPersonalDetails,
                     newReport: destinationReport,
                     policy,
                     allTransactions: {
@@ -1057,6 +1081,7 @@ describe('actions/Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
                     email: RORY_EMAIL,
+                    currentUserPersonalDetails,
                     newReport,
                     policy,
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
@@ -1146,7 +1171,10 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                    isASAPSubmitBetaEnabled: false,
+                    personalDetailsByLogins: undefined,
+                });
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -1333,7 +1361,10 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                    isASAPSubmitBetaEnabled: false,
+                    personalDetailsByLogins: undefined,
+                });
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -1523,7 +1554,10 @@ describe('actions/Transaction', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                    isASAPSubmitBetaEnabled: false,
+                    personalDetailsByLogins: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1724,7 +1758,10 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {
+                    isASAPSubmitBetaEnabled: false,
+                    personalDetailsByLogins: undefined,
+                });
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -2061,6 +2098,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: ADMIN_ACCOUNT_ID,
                 email: ADMIN_EMAIL,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID),
                 policy: undefined,
                 policyTagList: {},
                 allTransactionViolation: {},
@@ -2074,6 +2112,7 @@ describe('actions/Transaction', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             });
             await waitForBatchedUpdates();
         };

@@ -1,14 +1,16 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FSClassContext from '@components/FSClassView/FSClassContext';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -226,8 +228,11 @@ function BaseModal({
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    // Only a modal that avoids the keyboard is lifted by it. One that doesn't stays put, so the margin would only grow
+    // its wrapper over the backdrop above it, where it swallows the taps meant to dismiss the modal.
     useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth || !avoidKeyboard) {
+            setModalOverlapsWithTopSafeArea(false);
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
@@ -245,6 +250,7 @@ function BaseModal({
         modalOverlapsWithTopSafeArea,
         canUseTouchScreen,
         isSmallScreenWidth,
+        avoidKeyboard,
     ]);
 
     const onViewLayout = (e: LayoutChangeEvent) => {
@@ -255,7 +261,7 @@ function BaseModal({
 
     // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {isResizable: isResizableSingleRHP} = useResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
@@ -432,18 +438,21 @@ function BaseModal({
                                     <View />
                                 </PressableWithoutFeedback>
                             )}
-                            <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                            <FSClassContext.Provider value={forwardedFSClass}>
+                                <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                                    <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                </HorizontalSafeAreaContext.Provider>
+                            </FSClassContext.Provider>
                         </Animated.View>
-                        {stackedResizableRHPWidth !== undefined &&
-                            isVisible && (
-                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
-                                <Animated.View
-                                    pointerEvents="box-none"
-                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
-                                >
-                                    <RHPResizeHandle />
-                                </Animated.View>
-                            )}
+                        {stackedResizableRHPWidth !== undefined && isVisible && (
+                            // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                            <Animated.View
+                                pointerEvents="box-none"
+                                style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                            >
+                                <RHPResizeHandle />
+                            </Animated.View>
+                        )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>

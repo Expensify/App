@@ -44,8 +44,12 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         creditedAmount: unknown;
         creditedCurrency: unknown;
         withdrawalIDs: unknown;
+        wiseQuote: unknown;
+        wiseQuoteRequest: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
+        isHiddenForBillReceiver: unknown;
+        isAwaitingActionFromCurrentUser: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;
@@ -55,6 +59,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActorAccountID: unknown;
         lastActionType: unknown;
         ownerAccountID: unknown;
+        billSenderAccountID: unknown;
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;

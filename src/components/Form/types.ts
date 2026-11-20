@@ -11,6 +11,7 @@ import type DatePicker from '@components/DatePicker';
 import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import type LabelledFileUploadAdapter from '@components/DynamicForm/adapters/LabelledFileUploadAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
@@ -103,7 +104,8 @@ type ValidInputs =
     | typeof YesNoAdapter
     | typeof TabsAdapter
     | typeof ToggleLinkAdapter
-    | typeof ListFieldAdapter;
+    | typeof ListFieldAdapter
+    | typeof LabelledFileUploadAdapter;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'stringList' | 'disabledListValues' | 'files' | 'listItems';
 type ValueTypeMap = {
@@ -214,6 +216,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
          * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
          */
         shouldScrollToEnd?: boolean;
+
+        /** Whether the scroll view moves a focused input into view on Android. Set it to false when the form scrolls to the input itself. */
+        shouldScrollChildToFocus?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
@@ -222,12 +227,14 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

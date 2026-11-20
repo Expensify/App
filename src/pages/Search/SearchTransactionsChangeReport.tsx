@@ -6,6 +6,7 @@ import useAlertModals from '@hooks/useAlertModals';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
@@ -13,6 +14,7 @@ import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
@@ -98,7 +100,9 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -182,6 +186,7 @@ function SearchTransactionsChangeReport() {
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
+                currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: policyForMovingExpenses,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
@@ -198,6 +203,7 @@ function SearchTransactionsChangeReport() {
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 ...allMatchingQueryParams,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             clearSelectedTransactions();
         });
@@ -291,6 +297,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             newReport: destinationReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -307,6 +314,7 @@ function SearchTransactionsChangeReport() {
             getCurrencyDecimals,
             getCurrencySymbol,
             ...allMatchingQueryParams,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -334,6 +342,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             policyTagList,
             transactions,
@@ -348,6 +357,7 @@ function SearchTransactionsChangeReport() {
             getCurrencyDecimals,
             getCurrencySymbol,
             ...allMatchingQueryParams,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         clearSelectedTransactions();
         Navigation.goBack();
@@ -373,6 +383,9 @@ function SearchTransactionsChangeReport() {
             hasMultipleSubmitters={hasMultipleSubmitters}
             areAllManagedCardsResolvable={areAllManagedCardsResolvable}
             autoReport={autoReport}
+            createReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.SEARCH.CHANGE_REPORT_REMOVE_FROM_REPORT}
         />
     );
 }

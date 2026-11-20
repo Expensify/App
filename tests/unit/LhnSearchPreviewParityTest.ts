@@ -69,8 +69,10 @@ function makeReport(overrides: Partial<Report> = {}): Report {
 const ORIGINAL_MESSAGE_BY_ACTION: Partial<Record<ReportAction['actionName'], Record<string, unknown>>> = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: {label: 'QuickBooks Online', errorMessage: 'Invalid credentials', recurrenceCount: 1},
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: {feedName: 'Visa', policyID: '6'},
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING]: {feedName: 'American Express Business', policyID: '6', warningDaysBeforeExpiry: 14},
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: {maskedAccountNumber: '1234'},
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: {maskedBankAccountNumber: '1234', policyID: '6'},
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE]: {policyID: '6', accountID: 2, bankName: 'Chase', lastFour: '1234'},
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: {email: 'bob@test.com', role: 'member', didJoinPolicy: true},
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE]: {email: 'bob@test.com', role: 'member'},
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO]: {
@@ -350,6 +352,7 @@ async function computeBothSurfaces({
     const card: Card | undefined = getExpensifyCardFromReportAction({reportAction: lhnLastAction, policy, cardList, workspaceCardList: undefined});
 
     const lhnOption = SidebarUtils.getOptionData({
+        lastOriginalAction: sortedData?.lastActions?.[report.reportID],
         report,
         reportAttributes: reportAttributesDerived?.[report.reportID],
         oneTransactionThreadReport: oneTransactionThreadReportID ? reportsById[oneTransactionThreadReportID] : undefined,
@@ -466,6 +469,7 @@ const SIMPLE_CHAIN_ACTIONS: Array<ReportAction['actionName']> = [
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
@@ -568,6 +572,7 @@ const SIMPLE_CHAIN_ACTIONS: Array<ReportAction['actionName']> = [
     CONST.REPORT.ACTIONS.TYPE.REROUTE,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP,
     CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
+    CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
     CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,

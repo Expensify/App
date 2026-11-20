@@ -14,9 +14,11 @@ import {
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isErrorResponseForFileDownload,
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
+    rejectWithFileDownloadError,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -151,6 +153,54 @@ describe('FileUtils', () => {
 
         it('honors a custom extension', () => {
             expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
+        });
+    });
+
+    describe('isErrorResponseForFileDownload', () => {
+        it.each(['report.csv', 'ABA_Report_123.aba'])('treats a JSON response to a %s download as an error', (fileName) => {
+            // Given the API responded to a CSV or ABA file download with JSON
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, fileName);
+
+            // Then it is, since the commands that return these files only respond with JSON when they fail
+            expect(isError).toBe(true);
+        });
+
+        it('treats the file content type as the file', () => {
+            // Given the API responded to an ABA file download with the file's own content type
+            const contentType = 'text/plain; charset=utf-8';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'ABA_Report_123.aba');
+
+            // Then it isn't, so the file gets saved
+            expect(isError).toBe(false);
+        });
+
+        it('does not treat JSON as an error for other files', () => {
+            // Given a JSON response to the download of a JSON file
+            const contentType = 'application/json';
+
+            // When checking whether the response is an error
+            const isError = isErrorResponseForFileDownload(contentType, 'attachment.json');
+
+            // Then it isn't, since JSON is what that file contains
+            expect(isError).toBe(false);
+        });
+    });
+
+    describe('rejectWithFileDownloadError', () => {
+        it('rejects with the error the API responded with', async () => {
+            // Given the API responded to a file download with an error
+            const response = createMock<Response>({json: () => Promise.resolve({jsonCode: 402, message: '402 Missing AU deposit account'})});
+
+            // When reading the error
+            const result = rejectWithFileDownloadError(response);
+
+            // Then it carries the API's code and message, so the caller can tell the user what went wrong
+            await expect(result).rejects.toMatchObject({status: '402', message: '402 Missing AU deposit account'});
         });
     });
 
@@ -669,6 +719,16 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('attachmentPicker.someFilesCantBeUploaded');
             expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
+        });
+
+        it('should return the generic selection error for an unreadable file instead of the corrupted-file copy', () => {
+            // Given a file that could not be read, e.g. its OS file changed after it was pasted
+            // When the error text is built
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID});
+
+            // Then it asks the user to try again rather than calling the file corrupted
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.errorWhileSelectingAttachment');
         });
 
         it('should return empty strings for null validation error', () => {

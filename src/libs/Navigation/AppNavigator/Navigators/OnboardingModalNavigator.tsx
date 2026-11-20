@@ -30,7 +30,6 @@ import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
@@ -51,7 +50,7 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = React.useRef<ComponentRef<typeof View>>(null);
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -105,17 +104,14 @@ function OnboardingModalNavigator() {
         },
     };
 
-    // If the account data is not loaded yet, we don't want to show the onboarding modal
-    if (isLoadingOnyxValue(accountMetadata)) {
-        return null;
-    }
-
     return (
         <NoDropZone>
             <Overlay />
             <View
                 ref={outerViewRef}
                 onClick={handleOuterClick}
+                // Lets FullStory exclude clicks outside the modal from the dead-click metric; the flow intentionally can't be skipped.
+                dataSet={{sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.OUTER_AREA}}
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>

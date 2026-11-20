@@ -1,5 +1,8 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DynamicFormFlow from '@components/DynamicForm';
+import type {DynamicFormValues} from '@components/DynamicForm/types';
+import {getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
+import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
@@ -12,9 +15,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 
-import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
-import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
+import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
+import {getSavedFileAnswers, getSourceOfWealthEntries} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -31,17 +35,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {DynamicFormPage, ReimbursementAccount} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 
-import US from './forms/US';
+import {getKeptSourceOfFunds, SOURCE_OF_FUNDS_PAGE_KEY} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
+import getWiseOnboardingForm, {getFieldOverNewFileLimit, getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
+import {getStringList} from './kycRequirementAttributes';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -64,6 +70,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
+    // A selector, so the check is cached now that only the early return below reads it
+    const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => isBankAccountEligibleForGlobalReimbursements(list?.[bankAccountID]?.accountData, list?.[bankAccountID]?.bankCurrency),
+    });
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -80,6 +90,18 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         goBackToIntro();
     }, [isWiseReimbursementsBetaEnabled, goBackToIntro]);
 
+    // A submitted business has nothing left to submit, and the back path follows the focused route, so introPath stays out of the effect and the status page opens once
+    const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccount?.accountData);
+    const openStatusPage = useEffectEvent(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true}));
+    // A deep link renders this page before the root state holds it, so the back path is not this account's intro until then
+    const isIntroPathReady = isWiseGlobalReimbursementsIntroPath(introPath, bankAccountID);
+    useEffect(() => {
+        if (!isOnboardingSubmitted || !isIntroPathReady) {
+            return;
+        }
+        openStatusPage();
+    }, [isOnboardingSubmitted, isIntroPathReady]);
+
     // The flow's inputs read the draft once, when a page mounts, so the prefill lands in the draft before the flow renders. It runs once per visit, since
     // swapping the flow for a loader later would drop an SSN the user is typing.
     const [isPrefillDone, setIsPrefillDone] = useState(false);
@@ -88,8 +110,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // which mounts the page again, so only a visit that opens without a page reads them. A read is not queued offline, so an offline visit uses what the
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
-    const shouldReadBusinessAccount = isNewVisit && !isOffline;
-    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+    const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
+    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID);
+    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(
+        introReadBankAccountID === bankAccountID && (!!businessAccount?.isLoading || businessAccount?.data?.bankAccountID === bankAccountID),
+    );
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
     useEffect(() => {
@@ -105,7 +130,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadBusinessAccount || hasBusinessAccountReadStarted || isPrefillDone) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [bankAccountID, shouldReadBusinessAccount, hasBusinessAccountReadStarted, isPrefillDone]);
     const isWaitingForBusinessAccount = shouldReadBusinessAccount && (!hasBusinessAccountReadStarted || !!businessAccount?.isLoading);
 
@@ -121,7 +146,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
         isWaitingForBankAccount ||
         isWaitingForBusinessAccount ||
-        isWaitingForConnection;
+        isWaitingForConnection ||
+        isOnboardingSubmitted;
 
     // The draft holds the answers for one bank account, so a visit for another account starts it over
     const draftBankAccountID = String(bankAccountID);
@@ -176,6 +202,92 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, missingPrefill);
     }, [isPrefillPending, missingPrefill]);
 
+    // The business page's save returns the requirements Expensify collects before Submit, such as enhanced due diligence for a high-risk industry
+    const isBusinessAccountForThisBank = businessAccount?.data?.bankAccountID === bankAccountID;
+    const kycRequirements = isBusinessAccountForThisBank ? businessAccount?.data?.wise?.kycRequirements : undefined;
+
+    // A reload or a direct link on one of the pages skips the visit's read, so this bank account's requirements are read without holding up the flow
+    const shouldReadRequirements = isPrefillDone && !isNewVisit && !isOffline && !isBusinessAccountForThisBank;
+    useEffect(() => {
+        if (!shouldReadRequirements) {
+            return;
+        }
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
+    }, [shouldReadRequirements, bankAccountID]);
+    const [hasRequirementsReadStarted, setHasRequirementsReadStarted] = useState(false);
+    if (shouldReadRequirements && businessAccount?.isLoading && !hasRequirementsReadStarted) {
+        setHasRequirementsReadStarted(true);
+    }
+    const isReadingRequirements = shouldReadRequirements && (!hasRequirementsReadStarted || !!businessAccount?.isLoading);
+
+    const draftValues = toDynamicFormValues(draft);
+    const form = getWiseOnboardingForm(kycRequirements, draftValues);
+
+    /**
+     * Saves a page to Wise as the user leaves it. The two source of wealth pages save one step, which the server replaces whole, so the daily operations page sends the picked sources too.
+     * Changing the picked sources drops the daily operations answers of the sources no longer picked, and the documents page leaves out the files of a source no longer picked.
+     */
+    const savePage = (page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) => {
+        const step = getOnboardingStep(form, page.key);
+        let stepAnswers = answers;
+        let stepPage: DynamicFormPage = {...page, key: step};
+        if (step === CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF) {
+            stepPage = {...stepPage, content: getVisibleContent(page.content, {...draftValues, ...answers}, getAllFields(getPages(form)))};
+        } else if (step === CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO) {
+            if (CONST.WISE.SOURCE_OF_FUNDS_KEY in answers) {
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY]: false});
+                stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]: draftValues[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]};
+            } else {
+                // Editing from the confirmation page skips the daily operations page, so the sources page sends the kept answers, and a new source does not fund them until that page says so
+                const pickedSources = getStringList(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]);
+                const sourceOfFunds = getKeptSourceOfFunds(pickedSources, draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]);
+                // A newly picked source can fund daily operations too, so the confirmation page asks the daily operations page again. A lone source's answer was filled in,
+                // not picked, so a second source leaves that page empty. The saved sources tell which were picked before, since the sources input drafts each pick as it is made.
+                const savedSourcesPage = isBusinessAccountForThisBank ? businessAccount?.data?.wise?.pages?.[CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO] : undefined;
+                const savedSources = getSourceOfWealthEntries(savedSourcesPage?.[CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]).map((entry) => entry.businessSourceOfWealthInfo);
+                const isFirstChoiceOfFunds = savedSources.length <= 1 && pickedSources.length > 1;
+                const hasNewSource = pickedSources.length > 1 && pickedSources.some((source) => !savedSources.includes(source));
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {
+                    [CONST.WISE.SOURCE_OF_FUNDS_KEY]: isFirstChoiceOfFunds ? [] : sourceOfFunds,
+                    [CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY]: hasNewSource,
+                });
+                stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds};
+            }
+        }
+        saveWiseOnboardingPage(bankAccountID, stepPage, stepAnswers, sensitiveAnswers);
+    };
+    // The server drops the files past its cap without an error, so a page asks for fewer before it saves
+    const validatePage = (page: DynamicFormPage, values: DynamicFormValues) => {
+        const fieldKey = getFieldOverNewFileLimit(form, page, values);
+        return fieldKey ? {[fieldKey]: translate('attachmentPicker.tooManyFiles', CONST.WISE.MAX_NEW_FILES_PER_SAVE)} : {};
+    };
+    const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
+
+    // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page.
+    // A newly picked source takes the user to the daily operations page, with the answers kept so far.
+    const sourceOfFundsReviewPageKey = draftValues[CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY] === true ? getRoutePageKey(form, SOURCE_OF_FUNDS_PAGE_KEY) : undefined;
+    const unansweredRequirementPageKey =
+        isPrefillDone && route.params.subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY
+            ? (sourceOfFundsReviewPageKey ?? getFirstUnansweredRequirementPageKey(form, draftValues))
+            : undefined;
+    useEffect(() => {
+        if (!unansweredRequirementPageKey) {
+            return;
+        }
+        Navigation.navigate(buildRoute(unansweredRequirementPageKey), {forceReplace: true});
+    }, [unansweredRequirementPageKey, buildRoute]);
+
+    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page.
+    // The confirmation page also waits for the read of the requirements, so Confirm cannot skip a requirement page that has not appeared yet.
+    const subPage = route.params.subPage;
+    const isAfterBusinessPage = !!subPage && subPage !== CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE && subPage !== CONST.WISE.ONBOARDING_STEP.BUSINESS;
+    const isConfirmationPageReadingRequirements = subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY && isReadingRequirements;
+    const isWaitingForRequirements =
+        isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey || isConfirmationPageReadingRequirements);
+
+    // A save records its step, and the flow names its pages by their URL-safe key
+    const unsavedRoutePageKeys = unsavedPageKeys.map((step) => getRoutePageKey(form, step) ?? step);
+
     if (isWaitingForConnection) {
         return (
             <ScreenWrapper testID="WiseBusinessOnboardingPage">
@@ -188,34 +300,36 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         );
     }
 
-    if (!isPrefillDone || !isWiseReimbursementsBetaEnabled) {
+    if (!isPrefillDone || !isWiseReimbursementsBetaEnabled || isOnboardingSubmitted) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    if (!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
+    if (!isEligible) {
         return <NotFoundPage onBackButtonPress={goBackToIntro} />;
     }
 
     return (
         <DynamicFormFlow
-            schema={US}
+            schema={form}
             formID={ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM}
             headerTitle={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')}
             confirmationTitle={translate('walletPage.wiseOnboarding.confirmationTitle')}
             testID="WiseBusinessOnboardingPage"
             layout="pages"
             maxFileSize={CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE}
-            buildRoute={(pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath)}
+            buildRoute={buildRoute}
             shouldReplaceRoute
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
-            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
+            onPageSubmit={savePage}
+            validatePage={validatePage}
             // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
             shouldDisableNextWhenOffline
             submitError={saveError}
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
             isSavingPages={isSaving}
-            unsavedPageKeys={unsavedPageKeys}
+            unsavedPageKeys={unsavedRoutePageKeys}
+            isLoading={isWaitingForRequirements}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => {
@@ -223,7 +337,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
                 if (isSaving || saveError) {
                     return;
                 }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, introPath), {forceReplace: true});
             }}
         />
     );

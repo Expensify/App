@@ -159,15 +159,34 @@ type CreateDistanceRequestInformation = {
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
-
-    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
-    writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
+};
+
+type DistanceRequestOnyxKeys =
+    | BuildOnyxDataForMoneyRequestKeys
+    | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
+    | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS
+    | typeof ONYXKEYS.GPS_DRAFT_DETAILS
+    | typeof ONYXKEYS.ODOMETER_DRAFT;
+
+/** A distance expense that planDistanceRequest built and commitDistanceRequest writes. */
+type DistanceRequestPlan = {
+    /** Null for a split, which builds no expense report. */
+    iouReport: OnyxInputValue<OnyxTypes.Report>;
+    chatReportID: string;
+    transactionID: string;
+    parameters: CreateDistanceRequestParams;
+    onyxData: OnyxData<DistanceRequestOnyxKeys>;
+    activeReportID: string;
+    shouldPlaySound: boolean;
+    shouldAddPendingNewTransaction: boolean;
+    shouldNotifyNewAction: boolean;
+    shouldSignalExpenseAdded: boolean;
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -1341,6 +1360,13 @@ function resetSplitShares(
     setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, getCurrencyDecimals, isDraft);
 }
 
+/**
+ * Merges `transactionChanges` into a transaction and stores the result as the split draft.
+ *
+ * `splitTransactionDraft` must be the transaction the changes should start from: the existing split draft when there
+ * is one, otherwise the saved transaction (see `useSplitDraftBaseTransaction`). This function does not fall back on
+ * its own, and passing `undefined` merges `null`, which clears the draft.
+ */
 function setDraftSplitTransaction(
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
@@ -1355,15 +1381,10 @@ function setDraftSplitTransaction(
     if (!transactionID) {
         return undefined;
     }
-    let draftSplitTransaction = splitTransactionDraft;
 
-    if (!draftSplitTransaction) {
-        draftSplitTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    }
-
-    const updatedTransaction = draftSplitTransaction
+    const updatedTransaction = splitTransactionDraft
         ? getUpdatedTransaction({
-              transaction: draftSplitTransaction,
+              transaction: splitTransactionDraft,
               transactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
@@ -2065,8 +2086,8 @@ function createSplitsAndOnyxData({
     };
 }
 
-/** Requests money based on a distance (e.g. mileage from a map) */
-function createDistanceRequest(distanceRequestInformation: CreateDistanceRequestInformation) {
+/** Builds a distance expense (e.g. mileage from a map) without writing anything. The plan captures report state as it is now, so pass it to commitDistanceRequest straight away. */
+function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestInformation): DistanceRequestPlan {
     const {
         report,
         participants,
@@ -2098,7 +2119,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         participantsPolicyTags,
         optimisticChatReportID,
         getCurrencyDecimals,
-        writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
         moneyRequestReportTransactions,
@@ -2106,10 +2126,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
-    transactionParams.comment = parsedComment;
     const {
         amount,
-        comment,
         distance,
         modifiedDistance,
         currency,
@@ -2151,13 +2169,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         : receipt;
 
     let parameters: CreateDistanceRequestParams;
-    let onyxData: OnyxData<
-        | BuildOnyxDataForMoneyRequestKeys
-        | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
-        | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS
-        | typeof ONYXKEYS.GPS_DRAFT_DETAILS
-        | typeof ONYXKEYS.ODOMETER_DRAFT
-    >;
+    let onyxData: OnyxData<DistanceRequestOnyxKeys>;
     let distanceIouReport: OnyxInputValue<OnyxTypes.Report> = null;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -2172,7 +2184,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             existingSplitChatReportID: report?.reportID,
             transactionParams: {
                 amount,
-                comment,
+                comment: parsedComment,
                 currency,
                 merchant,
                 created,
@@ -2214,7 +2226,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             waypoints: JSON.stringify(sanitizedWaypoints),
             customUnitRateID,
             customUnitPolicyID,
-            comment,
+            comment: parsedComment,
             created,
             category,
             tag,
@@ -2275,7 +2287,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 modifiedMerchant,
                 distance: modifiedDistance ?? distance,
                 currency,
-                comment,
+                comment: parsedComment,
                 created,
                 merchant,
                 receipt: optimisticReceipt,
@@ -2335,7 +2347,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         parameters = {
             amount: modifiedAmount ?? undefined,
-            comment,
+            comment: parsedComment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: transaction.transactionID,
@@ -2417,35 +2429,53 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         value: recentServerValidatedWaypoints,
     });
 
-    if (shouldPlaySoundParam) {
+    return {
+        iouReport: distanceIouReport,
+        chatReportID: parameters.chatReportID,
+        transactionID: parameters.transactionID,
+        parameters,
+        onyxData,
+        activeReportID: isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID,
+        shouldPlaySound: shouldPlaySoundParam,
+        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions),
+        shouldNotifyNewAction: !isMoneyRequestReport,
+        shouldSignalExpenseAdded: !!isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT,
+    };
+}
+
+/**
+ * Runs what planDistanceRequest leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ *
+ * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
+ * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search.
+ */
+function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
+    if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
 
-    const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions)) {
-        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
+    if (plan.shouldAddPendingNewTransaction) {
+        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
     API.writeWhenReady(
         WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
-        parameters,
-        onyxData,
-        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
-        {onWriteStarted: isMoneyRequestReport ? undefined : () => notifyNewAction(activeReportID, undefined, true)},
+        plan.parameters,
+        plan.onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`}),
+        {onWriteStarted: plan.shouldNotifyNewAction ? () => notifyNewAction(plan.activeReportID, undefined, true) : undefined},
     );
 
-    if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT) {
-        signalExpenseAddedGrowl(parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (plan.shouldSignalExpenseAdded) {
+        signalExpenseAddedGrowl(plan.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
-
-    return {iouReport: distanceIouReport, chatReportID: parameters.chatReportID, transactionID: parameters.transactionID};
 }
 
 export {
+    commitDistanceRequest,
     completeSplitBill,
-    createDistanceRequest,
     createSplitsAndOnyxData,
+    planDistanceRequest,
     resolveOptimisticSplitChatReportID,
     splitBill,
     splitBillAndOpenReport,

@@ -171,7 +171,10 @@ function SubscriptionSettings() {
                     }}
                 >
                     <View style={styles.mt5}>
-                        <MenuItemSectionRoot onPress={onSubscriptionSizePress}>
+                        <MenuItemSectionRoot
+                            onPress={onSubscriptionSizePress}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
+                        >
                             <MenuItemField.Row
                                 name={translate('subscription.details.subscriptionSize')}
                                 value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
@@ -313,6 +316,7 @@ function SubscriptionSettings() {
                                         <ToggleSettingOptionRow
                                             title={translate('subscription.subscriptionSettings.autoRenew')}
                                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_RENEW_SWITCH}
                                             onToggle={handleAutoRenewToggle}
                                             isActive={privateSubscription?.autoRenew}
                                         />
@@ -325,7 +329,8 @@ function SubscriptionSettings() {
                                     <View style={styles.mt3}>
                                         <ToggleSettingOptionRow
                                             customTitle={customTitle}
-                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoIncrease')}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_INCREASE_SWITCH}
                                             onToggle={handleAutoIncreaseToggle}
                                             isActive={privateSubscription?.addNewUsersAutomatically ?? false}
                                         />
@@ -337,7 +342,10 @@ function SubscriptionSettings() {
                     </>
                 )}
                 <View style={styles.mt5}>
-                    <MenuItemSectionRoot onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
+                    <MenuItemSectionRoot
+                        onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE}
+                    >
                         <MenuItemField.Row
                             name={translate('subscription.expensifyCode.title')}
                             value={isSecretPromoCode ? undefined : privatePromoCode}
@@ -361,6 +369,7 @@ function SubscriptionSettings() {
                 )}
                 <View style={styles.mb5}>
                     <MenuItemSectionRoot
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.TAX_EXEMPT}
                         onPress={() => {
                             requestTaxExempt();
                             navigateToConciergeChat({

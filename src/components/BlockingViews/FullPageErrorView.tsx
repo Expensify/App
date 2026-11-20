@@ -45,6 +45,12 @@ type FullPageErrorViewProps = {
     /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
     onButtonPress?: () => void;
 
+    /** Translation key for an optional link rendered below the subtitle */
+    linkTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the link. Without it the link dismisses the modal */
+    onLinkPress?: () => void;
+
     /** Illustration shown above the title */
     illustration?: FullPageErrorViewIllustration;
 
@@ -66,6 +72,8 @@ function FullPageErrorView({
     containerStyle,
     buttonTranslationKey,
     onButtonPress,
+    linkTranslationKey,
+    onLinkPress,
     illustration = 'BrokenMagnifyingGlass',
     illustrationWidth = variables.errorPageIconWidth,
     illustrationHeight = variables.errorPageIconHeight,
@@ -91,6 +99,8 @@ function FullPageErrorView({
                         containerStyle={[styles.gap5, containerStyle]}
                         buttonTranslationKey={buttonTranslationKey}
                         onButtonPress={onButtonPress}
+                        linkTranslationKey={linkTranslationKey}
+                        onLinkPress={onLinkPress}
                     />
                 </View>
             </ForceFullScreenView>

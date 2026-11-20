@@ -66,6 +66,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+const mockUseShouldReturnTripRooms = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: (type: string | undefined) => mockUseShouldReturnTripRooms(type),
+}));
+
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(LocaleContextProvider, null, children);
 }
@@ -99,6 +105,67 @@ describe('useAdvancedSearchFilters', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    describe('violation filter visibility', () => {
+        it('hides the violation filter when no workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned off, so Auth has no rule-based violations to match for this user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: false}));
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out so the user is not offered a filter that can only return nothing
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+
+        it('shows the violation filter when a workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: true}));
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+
+        it('shows the violation filter for a migrated Control workspace whose Rules come from Classic category rules', async () => {
+            // Given a Control workspace that never set areRulesEnabled but has a category rule from Expensify Classic,
+            // which is how migrated workspaces report that Rules are on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered, using the same Rules check as the has: violation options
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+
+        it("hides the violation filter when only another workspace's categories have rules", async () => {
+            // Given a migrated Control workspace with no category rules, and a workspace with Rules turned off
+            // that still has leftover category rules, since turning Rules off doesn't clear them
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {areRulesEnabled: false}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out, because each workspace is checked against its own categories
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
     });
 
     describe('category filter visibility', () => {
@@ -661,6 +728,7 @@ describe('useAdvancedSearchFilters', () => {
                 expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED);
                 expect(result.current.at(3)).toEqual([
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -681,6 +749,51 @@ describe('useAdvancedSearchFilters', () => {
             await waitFor(() => {
                 expect(result.current.at(1)?.slice(0, 2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]);
                 expect(result.current.at(2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]);
+            });
+        });
+    });
+
+    describe('trip filters', () => {
+        beforeEach(async () => {
+            // Two workspaces so the Workspace filter shows
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {role: CONST.POLICY.ROLE.ADMIN}));
+        });
+
+        afterEach(() => {
+            mockUseShouldReturnTripRooms.mockReset();
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+        });
+
+        it('only offers Status, Date, Workspace and From for trip rooms', async () => {
+            // Given a trip search with the TravelApproval beta, which returns trip rooms
+            mockUseShouldReturnTripRooms.mockReturnValue(true);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then only the filters a trip row has are offered, next to the type
+            await waitFor(() => {
+                expect(result.current.flat()).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ]);
+            });
+        });
+
+        it('keeps the expense filters for a trip search without the beta', async () => {
+            // Given a trip search without the TravelApproval beta, which is still an expense search
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then the expense filters like Merchant stay
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
             });
         });
     });

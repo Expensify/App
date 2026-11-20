@@ -40,7 +40,7 @@ function readOnyxValue<TKey extends OnyxKey>(key: TKey) {
         const connection = Onyx.connectWithoutView({
             key,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
@@ -204,6 +204,22 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // Then no page is unsaved, so Confirm is open again
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+    });
+
+    it('stops counting a save as running when the request queue gives up on it', async () => {
+        // Given a business page save that is running
+        const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const onyxData = writeSpy.mock.lastCall?.[2];
+        await Onyx.update(onyxData?.optimisticData ?? []);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
+
+        // When the queue gives up after its retries, which applies the failure data without the finally data
+        await Onyx.update(onyxData?.failureData ?? []);
+
+        // Then the flow stops waiting for the save and the page stays unsaved, so the confirmation page shows the error instead of a spinner that never ends
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
     });
 
     it('keeps a page unsaved when its earlier save succeeds but its later save fails', async () => {

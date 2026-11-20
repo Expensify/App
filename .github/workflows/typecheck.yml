@@ -4,7 +4,6 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths: ['**.js', '**.ts', '**.tsx', 'package.json', 'package-lock.json', '**/tsconfig*.json']
 
 concurrency:
@@ -16,13 +15,15 @@ jobs:
     if: ${{ (github.actor != 'OSBotify' || github.event_name == 'workflow_call') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
-      # The PR's target branch, so a PR into staging is not compared with main.
+      # Use the PR's target branch so staging and production PRs are not compared with main.
       # Reusable calls have no base ref, so they retain the existing main behavior.
       BASE_REF: ${{ github.base_ref || 'main' }}
     steps:
       - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       - name: Type check with TypeScript
         run: npm run typecheck

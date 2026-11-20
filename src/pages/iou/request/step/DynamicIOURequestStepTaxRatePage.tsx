@@ -72,7 +72,7 @@ function DynamicIOURequestStepTaxRatePage({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
+    const taxRateTitle = getTaxRateTitle(translate, policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
 
     const {updateTaxRate} = useUpdateTransactionTaxRate({transactionID, transaction, report, policy, isEditing, isEditingSplit: isEditingSplitBill});
 

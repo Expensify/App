@@ -239,7 +239,12 @@ const DYNAMIC_ROUTES = {
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
         entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
-        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+        getRoute: (bankAccountID: number | undefined, isPayingMultipleReports?: boolean) =>
+            getUrlWithParams(`global-reimbursements/${bankAccountID}`, {
+                // Shows the copy for several reports when bulk pay could not pay any of them
+                isPayingMultipleReports: isPayingMultipleReports ? 'true' : undefined,
+            }),
+        queryParams: ['isPayingMultipleReports'],
     },
     WISE_BUSINESS_ONBOARDING: {
         path: 'business-onboarding/:subPage?/:action?',
@@ -248,7 +253,18 @@ const DYNAMIC_ROUTES = {
     },
     WISE_ACCEPT_TERMS: {
         path: 'accept-terms',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+    },
+    WISE_KYC_REVIEW: {
+        path: 'kyc-review',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS],
+    },
+    WISE_ONBOARDING_STATUS: {
+        path: 'status',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+        // Wise's redirect after its KYC form adds the form's outcome as `status`
+        getRoute: (kycReviewFormStatus: string) => getUrlWithParams('status', {status: kycReviewFormStatus}),
+        queryParams: ['status'],
     },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
@@ -335,6 +351,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
             SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
         ],
+    },
+    PAYMENT_DETAILS: {
+        path: 'payment-details',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     EDIT_REPORT_FIELD: {
         path: 'edit/policyField/:policyID/:fieldID',
@@ -639,8 +659,9 @@ const DYNAMIC_ROUTES = {
             reportID: string | undefined;
             isWorkspacesOnly?: boolean;
             shouldExcludeWorkspaces?: boolean;
+            isFromConfirmation?: boolean;
         }) => {
-            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces, isFromConfirmation} = params;
             // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
             return getUrlWithParams('expense-participants', {
                 action,
@@ -649,9 +670,10 @@ const DYNAMIC_ROUTES = {
                 reportID,
                 isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
                 shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+                isFromConfirmation: isFromConfirmation ? 'true' : undefined,
             });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces', 'isFromConfirmation'],
     },
     MONEY_REQUEST_STEP_SCAN: {
         path: 'expense-scan',
@@ -712,15 +734,8 @@ const DYNAMIC_ROUTES = {
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
-        getRoute: (accountID?: number, login?: string, policyID?: string) => getUrlWithParams(`a/${accountID}`, {login, policyID}),
-        queryParams: ['login', 'policyID'],
-    },
-    PROFILE_DISPLAY_NAME: {
-        // `accountID` is carried as `memberAccountID` so it never collides with the `accountID` of the
-        // profile this is opened from.
-        path: 'display-name/:memberAccountID/:policyID',
-        entryScreens: [SCREENS.DYNAMIC_PROFILE],
-        getRoute: (memberAccountID: number, policyID: string) => `display-name/${memberAccountID}/${policyID}` as const,
+        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
+        queryParams: ['login'],
     },
     PROFILE_AVATAR: {
         path: 'avatar/:accountID',
@@ -1041,13 +1056,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1059,13 +1072,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_STATE: {
         path: 'state',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1116,6 +1127,10 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_CATEGORY_GL_CODE: {
         path: 'gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_VISIBLE_TO: {
+        path: 'visible-to',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
@@ -1258,6 +1273,30 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_OVERVIEW_ADDRESS: {
         path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    // The pages that ask the admin to change the workspace currency first. Opening the currency page on top of them keeps
+    // them behind it after a reload, which the Overview-only WORKSPACE_OVERVIEW_CURRENCY route can't do.
+    WORKSPACE_CURRENCY: {
+        path: 'workspace-currency',
+        entryScreens: [
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING,
+            SCREENS.WORKSPACE.WORKFLOWS,
+            SCREENS.WORKSPACE.INVOICES,
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+        ],
+        getRoute: ({isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {}) =>
+            getUrlWithParams('workspace-currency', {
+                isForcedToChangeCurrency: isForcedToChangeCurrency ? 'true' : undefined,
+                shouldStartExpensifyCardEnrollment: shouldStartExpensifyCardEnrollment ? 'true' : undefined,
+            }),
+        queryParams: ['isForcedToChangeCurrency', 'shouldStartExpensifyCardEnrollment'],
+    },
+    WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        path: 'government-rate-country/:currencyCode',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY],
+        getRoute: (currencyCode: string) => `government-rate-country/${currencyCode}` as const,
     },
     SUBSCRIPTION_DOWNGRADE_BLOCKED: {
         path: 'subscription-downgrade-blocked',
@@ -1456,6 +1495,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.MEMBER_DETAILS],
         getRoute: (cardID: string) => `card-details/${cardID}` as const,
     },
+    WORKSPACE_MEMBER_DISPLAY_NAME: {
+        path: 'display-name',
+        entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS],
+    },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         path: 'account',
         entryScreens: [
@@ -1494,6 +1537,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST,
             SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST,
         ],
         getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
@@ -1592,10 +1636,6 @@ const DYNAMIC_ROUTES = {
         path: 'reveal-validate-code/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
         getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
-    },
-    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        path: 'digital-details/update-address',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
     },
     WALLET_CARD_CHANGE_PIN: {
         path: 'change-pin/:cardID',
@@ -1855,6 +1895,10 @@ const DYNAMIC_ROUTES = {
         path: 'change-approver',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
+    REPORT_HISTORY: {
+        path: 'history',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     TASK_TITLE: {
         path: 'title',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1884,8 +1928,10 @@ const DYNAMIC_ROUTES = {
     },
     SPLIT_BILL_DETAILS: {
         path: 'split/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
-        getRoute: (reportActionID: string) => `split/${reportActionID}` as const,
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        // reportID is only needed from the Search root, which has no reportID of its own
+        getRoute: (reportActionID: string, reportID?: string) => getUrlWithParams(`split/${reportActionID}`, {reportID}),
+        queryParams: ['reportID'],
     },
     TASK_ASSIGNEE: {
         path: 'assignee',
@@ -2407,6 +2453,27 @@ const ROUTES = {
         route: 'insights/:dashboardID',
         getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
     },
+    INSIGHTS_DETAILS: {
+        route: 'insights/:dashboardID/details/:graphKey',
+        getRoute: ({
+            dashboardID,
+            graphKey,
+            itemKey,
+            periodEnd,
+            tagLevel,
+            parentTagPath,
+            asOfDate,
+        }: {
+            dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
+            graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
+            itemKey: string;
+            periodEnd?: string;
+            tagLevel?: number;
+            parentTagPath?: string;
+            asOfDate?: string;
+        }) =>
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
+    },
 
     EXPENSE_REPORT_RHP: {
         route: 'e/:reportID',
@@ -2440,18 +2507,13 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: {
         route: 'search/edit-multiple/tag/:tagListIndex',
         getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
     },
-    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
-    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
     SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
@@ -2594,6 +2656,7 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
+    SETTINGS_HOME_ADDRESS: 'settings/preferences/home-address',
     SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: {
         route: 'settings/security',
@@ -2650,10 +2713,6 @@ const ROUTES = {
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
-    },
-    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
-        route: 'settings/card/:cardID/update-address',
-        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
     },
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
@@ -2791,7 +2850,6 @@ const ROUTES = {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
-    SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_PRIVATE_PERSONAL_DETAILS: {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
@@ -2850,7 +2908,16 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            backTo?: string,
+            secureKey?: string,
+            isPendingCreation?: boolean,
+            sourceReportID?: string,
+            sourcePolicyID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2872,6 +2939,10 @@ const ROUTES = {
             // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
             if (sourceReportID) {
                 queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
+            }
+            // The workspace page the user was viewing when they opened Concierge from the side-pane button (native).
+            if (sourcePolicyID) {
+                queryParams.push(`sourcePolicyID=${encodeURIComponent(sourcePolicyID)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -3502,11 +3573,8 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT: {
         route: 'workspaces/:policyID/workflows/approvals/approval-limit',
-        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}` as const,
-    },
-    WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
-        route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
-        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
+        getRoute: (policyID: string, approverIndex: number, isAddingApprover?: boolean) =>
+            `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}${isAddingApprover ? '&isAddingApprover=true' : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
@@ -3528,6 +3596,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES route');
             }
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES: {
+        route: 'workspaces/:policyID/workflows/reimbursement-countries',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES route');
+            }
+            return `workspaces/${policyID}/workflows/reimbursement-countries` as const;
         },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
@@ -3808,9 +3885,9 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string, governmentRateCountry?: string) => {
             const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            const urlWithParams = reportID || upgradePlanType || governmentRateCountry ? getUrlWithParams(base, {reportID, upgradePlanType, governmentRateCountry}) : base;
             return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },
@@ -3966,6 +4043,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_DETAILS_ROLE: {
         route: 'workspaces/:policyID/members/:accountID/role',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
+    WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/:accountID/category-visibility',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/category-visibility` as const,
     },
     WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
@@ -4744,6 +4825,30 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/zoho-books/oauth',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,
     },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/travel-billing-payable-account` as const,
+    },
     POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT: {
         route: 'workspaces/:policyID/accounting/zoho-books/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/import` as const,
@@ -4767,6 +4872,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/zoho-books/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/zoho-books/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/zoho-books/export/card-account/${encodeURIComponent(feed)}` as const,
     },
     POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
         route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',
@@ -5566,6 +5687,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_IMPORT: {
         route: 'workspaces/:policyID/accounting/digits/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT: {
+        route: 'workspaces/:policyID/accounting/digits/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/digits/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/digits/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/digits/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',

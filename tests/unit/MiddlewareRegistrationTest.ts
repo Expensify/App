@@ -1,4 +1,6 @@
 import {
+    DiscardStaleSearchSnapshot,
+    MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -36,6 +38,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    MembersNeedCategoryError,
     HandleUnusedOptimisticID,
     ReplaceOptimisticAgentAccountID,
     Pagination,
@@ -43,6 +46,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
     HandleMovedScanFailedExpenses,
+    DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
     SaveResponseInOnyx,
     FraudMonitoring,
@@ -60,9 +64,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 17 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(17);
-        expect(new Set(registered).size).toBe(17);
+    it('registers all 19 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(19);
+        expect(new Set(registered).size).toBe(19);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -72,6 +76,7 @@ describe('Middleware registration', () => {
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });

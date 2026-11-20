@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {PromotedAction} from '@components/PromotedActionsBar';
@@ -30,20 +30,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
     getReportNotificationPreference,
-    hasAutomatedExpensifyAccountIDs,
     isConciergeChatReport,
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -53,7 +51,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -94,8 +92,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -105,9 +102,10 @@ function ProfilePage({route}: ProfilePageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'History', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const [personalDetailLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
-    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
+    const reportKey = isAnonymousUserSession(session) || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -115,8 +113,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
-    const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -161,7 +157,7 @@ function ProfilePage({route}: ProfilePageProps) {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const isCustomAgent = !!details?.isCustomAgent;
-    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isCustomAgent && !isEmptyObject(timezone) && isParticipantValidated;
+    const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone, isCustomAgent, isValidated: isParticipantValidated});
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -172,12 +168,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const formattedLogin = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login;
 
-    // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
-    const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
-    const hasDisplayNameSet = !!details?.firstName || !!details?.lastName;
-
     const hasAvatar = !!details?.avatar;
-    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
+    const isLoading = !!personalDetailLoadingState?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
@@ -216,7 +208,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+    if ((!isCurrentUser || report) && !isAnonymousUserSession(session)) {
         promotedActions.push(
             PromotedActions.message({
                 reportID: report?.reportID,
@@ -283,7 +275,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
 
                         {/* Don't display email if current user is anonymous */}
-                        {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                        {!(isCurrentUser && isAnonymousUserSession(session)) && login ? (
                             <MenuItemField
                                 name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 value={formattedLogin}
@@ -291,26 +283,16 @@ function ProfilePage({route}: ProfilePageProps) {
                                 {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
                             </MenuItemField>
                         ) : null}
-                        {canManageMemberDisplayName ? (
-                            <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
-                                <MenuItemField
-                                    name={translate('displayNamePage.headerTitle')}
-                                    value={displayName}
-                                    onPress={
-                                        !hasDisplayNameSet ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))) : undefined
-                                    }
-                                />
-                            </OfflineWithFeedback>
-                        ) : null}
                         {pronouns ? (
                             <MenuItemField
                                 name={translate('profilePage.preferredPronouns')}
                                 value={pronouns}
                             />
                         ) : null}
-                        {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                        {shouldShowLocalTime && !!timezone && <AutoUpdateTime timezone={timezone} />}
                         {isCurrentUser && (
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.EDIT_PROFILE}
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
@@ -321,40 +303,35 @@ function ProfilePage({route}: ProfilePageProps) {
                                 errors={agentPrompt?.promptErrors}
                                 errorRowStyles={[styles.mh5, styles.mb2]}
                             >
-                                <MenuItemWithTopDescription
-                                    description={translate('profilePage.customInstructions')}
-                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
-                                    shouldParseTitle
-                                    excludedMarkdownRules={['reportMentions']}
-                                    shouldTruncateTitle
+                                <MenuItemFieldHTML
+                                    sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CUSTOM_INSTRUCTIONS}
+                                    name={translate('profilePage.customInstructions')}
+                                    value={Parser.replace(Str.htmlDecode(agentPrompt?.prompt?.trim() ?? ''), {disabledRules: ['reportMentions']})}
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
-                                    shouldShowRightIcon
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
                                 />
                             </OfflineWithFeedback>
                         )}
                         {isOwnedAgent && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.COPILOT_INTO_ACCOUNT}
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={() => switchToDelegator(login)}
+                                // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
+                                onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
-                        {!!accountID && !isAnonymousUserSession() && (
+                        {!!accountID && !isAnonymousUserSession(session) && (
                             <MenuItemNavigation
-                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CHAT_HISTORY}
+                                title={translate(getChatHistoryTranslationKey(isCustomAgent, login))}
                                 icon={expensifyIcons.History}
-                                onPress={() => {
-                                    const query = buildQueryStringFromFilterFormValues({
-                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
-                                        from: [String(accountID)],
-                                    });
-                                    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
-                                }}
+                                onPress={() => navigateToChatHistory(accountID)}
                             />
                         )}
                         {shouldShowNotificationPreference && (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.NOTIFICATION_PREFERENCES}
                                 name={translate('notificationPreferencesPage.label')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
@@ -363,7 +340,10 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}>
+                            <MenuItem.Root
+                                onPress={callIfAuthenticated(() => navigateToPrivateNotes(report, currentUserAccountID, true), session)}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.PRIVATE_NOTES}
+                            >
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />
@@ -380,6 +360,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.VIDEO_CHAT}
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={expensifyIcons.Phone}
                                 onPress={() => {
@@ -389,6 +370,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.DEBUG}
                                 title={translate('debug.debug')}
                                 icon={expensifyIcons.Bug}
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}

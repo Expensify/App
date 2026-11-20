@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -14,24 +14,21 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {openReport} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -40,9 +37,6 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
-    /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
-
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -112,6 +106,9 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
+    /** Whether the action badge target is below the viewport */
+    isActionBadgeBelowViewport: boolean;
+
     /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
@@ -143,7 +140,6 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
-    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -165,21 +161,15 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef, getListRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
-    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
@@ -231,6 +221,8 @@ function useReportActionsScroll({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
@@ -244,7 +236,14 @@ function useReportActionsScroll({
         // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            scrollOffsetRef.current = contentOffset.y;
+            syncScrollSharedValues({
+                offset: contentOffset.y,
+                distanceToOldestEnd: contentSize.height - layoutMeasurement.height - contentOffset.y,
+                distanceToNewestEnd: contentOffset.y,
+                viewportHeight: layoutMeasurement.height,
+            });
         },
         actionBadgeTargetIndex,
         getVisibleIndexRange: () => {
@@ -272,12 +271,9 @@ function useReportActionsScroll({
         syncPillAfterComposerCollapse();
     }, [isComposerFullSize]);
 
-    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
-        conciergeChat,
+    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom, openReportAtLiveTail} = useReportActionsNewActionLiveTail({
         reportID,
-        introSelected,
-        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        policyID: report?.policyID,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -293,7 +289,6 @@ function useReportActionsScroll({
         treatAsNoPaginationAnchor,
         prevIsLoadingInitialReportActions,
         reportLoadingState,
-        fullPolicySnapshot,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -388,7 +383,8 @@ function useReportActionsScroll({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    // Only errors the user can actually see should pull the list down to them.
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
@@ -420,16 +416,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions: true,
-                currentUserAccountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                fullPolicySnapshot,
-            });
+            openReportAtLiveTail();
             reportScrollManager.scrollToBottom();
             return;
         }
@@ -444,6 +431,7 @@ function useReportActionsScroll({
         // The expanded composer covers the list, so the target never becomes viewable to hide the pill
         if (isComposerFullSize) {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
             setIsFloatingMessageCounterVisible(false);
         }
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
@@ -455,6 +443,10 @@ function useReportActionsScroll({
             return;
         }
         reportScrollManager.scrollToBottom();
+        // A list remounted for the live tail already sits at the bottom, so no scroll event corrects the offset left
+        // by the linked message. Sync it here, or the next content size change shows the Latest messages pill again.
+        scrollOffsetRef.current = 0;
+        setIsFloatingMessageCounterVisible(false);
         setIsScrollToBottomEnabled(false);
         completeLiveTailPruneAfterScrollToBottom();
     };
@@ -506,7 +498,7 @@ function useReportActionsScroll({
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
+        initialScrollIndexParams = isMobileWebLandscape ? {viewPosition: 1, viewOffset: windowHeight} : {viewOffset: windowHeight};
     }
 
     return {
@@ -514,6 +506,7 @@ function useReportActionsScroll({
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,

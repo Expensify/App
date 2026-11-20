@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
@@ -25,21 +26,20 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
+import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
-    getAmount,
-    getConvertedAmount,
     getCurrency,
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
     getReimbursable,
     getTaxName,
+    getTotalForDisplay,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
     isOnHold,
@@ -48,12 +48,14 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
+import {getTaxCodeForDisplay} from '@libs/TransactionUtils/tax';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -76,9 +78,11 @@ import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
 type TransactionItemRowWideProps = Omit<
     TransactionItemRowProps,
-    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
-> &
-    TransactionItemRowWideComputedData &
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR' | 'checkboxSentryLabel'
+> & {
+    /** A wide row shows its checkbox unless it shows a radio button, so it always needs the label. */
+    checkboxSentryLabel: SentryLabel;
+} & TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
 
 function searchHasFilterSelector(form: OnyxEntry<SearchAdvancedFiltersForm>) {
@@ -162,7 +166,7 @@ function TransactionItemRowWide({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const reportPolicyID = [report?.policyID, transactionItem.report?.policyID, transactionItem.policyID, transactionItem.policy?.id].find((policyID): policyID is string => !!policyID);
+    const reportPolicyID = [report?.policyID, transactionItem.report?.policyID, transactionItem.policy?.id].find((policyID): policyID is string => !!policyID);
     const effectivePolicyID = reportPolicyID ?? (isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : undefined);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -175,6 +179,9 @@ function TransactionItemRowWide({
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const reportForCustomColumns = transactionItem.report ?? report;
+    const session = useSession();
+    const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
+    const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -245,7 +252,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
+                        <TextCell text={transactionItem.formattedViolations ?? getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -362,6 +369,7 @@ function TransactionItemRowWide({
                             canEdit={canEditCategory}
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );
@@ -378,6 +386,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );
@@ -600,7 +609,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(translate, policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -609,7 +618,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
+                        <TextCell text={getTaxCodeForDisplay(transactionItem, policy)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -686,13 +695,7 @@ function TransactionItemRowWide({
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
                 const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
-                const hasConvertedAmount = transactionItem.convertedAmount != null;
-                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
-                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
-                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
-                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
-                // When converted, display in the report's output currency; otherwise use the transaction's own currency.
-                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                const {amount: totalAmount, currency: totalCurrency} = getTotalForDisplay(transactionItem, report?.currency ?? policy?.outputCurrency, isFromExpenseReport);
                 return (
                     <View
                         key={column}

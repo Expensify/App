@@ -1,3 +1,4 @@
+import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
@@ -25,7 +26,7 @@ import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
 import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
-type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
+type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'taxReclaimableOn' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
@@ -34,8 +35,14 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
+
+    /** Whether the workspace tracks tax and distance rates track tax. The tax reclaimable column also needs a rate with an amount. */
+    isDistanceRateTaxEnabled: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rates support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>>;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -52,8 +59,10 @@ function WorkspaceDistanceRatesTable({
     selectionEnabled,
     selectedKeys,
     canWriteDistanceRates,
+    isDistanceRateTaxEnabled,
     onRowSelectionChange,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -62,6 +71,7 @@ function WorkspaceDistanceRatesTable({
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const hasAnyDateBound = ratesData.some((item) => !!item.rate.startDate || !!item.rate.endDate);
+    const shouldShowTaxReclaimableColumn = isDistanceRateTaxEnabled && ratesData.some((item) => item.taxReclaimableAmount !== undefined);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
         {
@@ -69,7 +79,7 @@ function WorkspaceDistanceRatesTable({
             label: translate('workspace.distanceRates.status'),
             sortable: true,
             width: variables.tableStatusColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'name',
@@ -89,13 +99,26 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
+        ...(shouldShowTaxReclaimableColumn
+            ? ([
+                  {
+                      key: 'taxReclaimableOn',
+                      label: translate('workspace.taxes.taxReclaimableOn'),
+                      sortable: true,
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
+                  },
+              ] as const)
+            : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
                   {key: 'endDate', label: translate('workspace.distanceRates.endDate'), sortable: true},
               ] as const)
             : []),
-        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {containerStyles: [styles.justifyContentEnd]}},
+        {key: 'enabled', label: translate('common.enabled'), sortable: true, width: variables.tableSwitchColumnWidth, styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END}},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -118,6 +141,10 @@ function WorkspaceDistanceRatesTable({
 
         if (activeSorting.columnKey === 'rate') {
             return ((a.rate.rate ?? 0) - (b.rate.rate ?? 0)) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'taxReclaimableOn') {
+            return ((a.taxReclaimableAmount ?? 0) - (b.taxReclaimableAmount ?? 0)) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'startDate') {
@@ -145,6 +172,7 @@ function WorkspaceDistanceRatesTable({
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.EMPTY_STATE_ADD_RATE,
 
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
@@ -168,6 +196,7 @@ function WorkspaceDistanceRatesTable({
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
+            shouldShowTaxReclaimableColumn={shouldShowTaxReclaimableColumn}
             statusLabels={statusLabels}
             unit={unit}
         />
@@ -200,6 +229,7 @@ function WorkspaceDistanceRatesTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

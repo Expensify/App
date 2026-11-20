@@ -3,19 +3,24 @@ import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
+    isArchivedPolicy,
     isPolicyAdmin,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 
@@ -48,6 +53,22 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
+    // Building approval workflows is heavy on large accounts, so it runs in a selector and only reruns when its inputs change, not on every render
+    const nonMemberApproverPolicyIDSelector = (policies: OnyxCollection<Policy>) =>
+        Object.values(policies ?? {}).find(
+            (policy) =>
+                !!policy?.id &&
+                !isArchivedPolicy(policy) &&
+                hasApprovalWorkflowWithNonMemberApprover({
+                    policy,
+                    currentUserLogin,
+                    // Rules only route the workflows under the beta, so they aren't used otherwise
+                    rules: isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, policy.id) : undefined,
+                    isMultipleApproversBetaEnabled,
+                }),
+        )?.id;
+    const [nonMemberApproverPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: nonMemberApproverPolicyIDSelector});
+
     const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
         hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
     );
@@ -57,6 +78,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyErrorChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS, cleanPolicies.find(shouldShowPolicyError)],
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, cleanPolicies.find(shouldShowCustomUnitsError)],
+        [CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR, cleanPolicies.find(shouldShowUKFuelRateTaxError)],
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR, cleanPolicies.find(shouldShowEmployeeListError)],
         [
             CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
@@ -83,15 +105,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         ],
         [
             CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER,
-            cleanPolicies.find((cleanPolicy) =>
-                hasApprovalWorkflowWithNonMemberApprover({
-                    policy: cleanPolicy,
-                    currentUserLogin,
-                    // Rules only route the workflows under the beta, so they aren't used otherwise
-                    rules: isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, cleanPolicy?.id) : undefined,
-                    isMultipleApproversBetaEnabled,
-                }),
-            ),
+            nonMemberApproverPolicyID ? cleanPolicies.find((cleanPolicy) => cleanPolicy?.id === nonMemberApproverPolicyID) : undefined,
         ],
     ];
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [

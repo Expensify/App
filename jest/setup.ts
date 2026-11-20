@@ -166,13 +166,6 @@ jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardCon
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
-jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
-    const scheduleOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args): void => {
-        worklet(...args);
-    };
-    return scheduleOnLiveMarkdownRuntime;
-});
-
 jest.mock('@src/setup/telemetry', () => ({
     __esModule: true,
     default: jest.fn(),
@@ -344,7 +337,7 @@ jest.mock('react-native-nitro-fetch', () => ({
     removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),

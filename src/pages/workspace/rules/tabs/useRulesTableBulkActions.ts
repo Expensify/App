@@ -161,6 +161,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         rules,
         policyTags: policyTagsOnyx,
         translate,
+        convertToDisplayString,
         isOffline,
         onNavigate: Navigation.navigate,
     });

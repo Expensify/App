@@ -214,7 +214,6 @@ function MapViewImpl({
         };
     }, [mapRef]);
 
-    // cspell:ignore styledata
     // Keep the map labels in the user's preferred app locale and its disputed borders drawn from the user's
     // own worldview, reapplying whenever the map, the locale or the country changes.
     useEffect(() => {
@@ -233,10 +232,10 @@ function MapViewImpl({
             return;
         }
 
-        // The style must be loaded before labels and borders can be localized, so defer until it is ready.
-        map.once('styledata', applyLocalization);
+        // Wait until the style's sources exist so localization can reload their tiles.
+        map.once('style.load', applyLocalization);
         return () => {
-            map.off('styledata', applyLocalization);
+            map.off('style.load', applyLocalization);
         };
     }, [mapRef, preferredLocale, countryByIp]);
 
@@ -377,6 +376,9 @@ function MapViewImpl({
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
             style={[style, !interactive ? styles.pointerEventsNone : {}]}
+            // A click on the map can pick a route, and the canvas it lands on has no label, so the map reports every click
+            // under its own label. The map's buttons have labels of their own, which Sentry finds first.
+            dataSet={{sentryLabel: CONST.SENTRY_LABEL.MAP_VIEW.MAP, sentryLabelExact: true}}
             {...responder.panHandlers}
         >
             <div
@@ -445,6 +447,7 @@ function MapViewImpl({
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.CENTER_BUTTON}
                         onPress={centerMap}
                         accessibilityLabel={translate('common.center')}
                     >

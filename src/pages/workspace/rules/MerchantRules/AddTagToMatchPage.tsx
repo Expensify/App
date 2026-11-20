@@ -164,6 +164,7 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
                     }
                     footerContent={
                         <FormAlertWithSubmitButton
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.TAG_TO_MATCH_SAVE}
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={handleSave}

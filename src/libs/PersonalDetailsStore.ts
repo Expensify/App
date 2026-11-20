@@ -9,12 +9,6 @@ let loginToPersonalDetails: Record<string, PersonalDetails> = {};
 let accountIDToName: Record<string, string> = {};
 let allLogins: string[] = [];
 
-// Cleanup callers must wait for the initial read before treating an absent record as already removed.
-let resolvePersonalDetailsHydration!: () => void;
-const personalDetailsHydrationPromise = new Promise<void>((resolve) => {
-    resolvePersonalDetailsHydration = resolve;
-});
-
 function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<string, PersonalDetails> {
     const mapping: Record<string, PersonalDetails> = {};
     for (const personalDetail of Object.values(personalDetailsList)) {
@@ -43,7 +37,6 @@ Onyx.connectWithoutView({
             }
         }
         allLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
-        resolvePersonalDetailsHydration();
     },
 });
 
@@ -72,4 +65,4 @@ function getAllPersonalDetailLogins(): string[] {
     return allLogins;
 }
 
-export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin, getAccountIDToNameMap, getAllPersonalDetailLogins, personalDetailsHydrationPromise};
+export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin, getAccountIDToNameMap, getAllPersonalDetailLogins};

@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
-description: Learn what actions (Submit, Approve, Pay, Export, Hold) are available on reports based on role and report status.
-keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions]
+description: Learn which report actions, including merging reports, are available based on your role and report status.
+keywords: [New Expensify, report actions Expensify, merge reports, combine expense reports, merge approved reports, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions, change approver, reassign approver, bypass approvers]
 internalScope: Audience is all members. High level overview of what report actions are available based on role and report status. Does not cover step-by-step instructions for performing each action.
 ---
 
@@ -23,6 +23,11 @@ Use this guide to understand:
 - You can **pay** a report after it is **Approved** status and you are a **payer**
 - You can **export** a report when it is **Approved or Paid** status and you are an **admin or exporter**
 - You can **Hold** expenses when they should not move forward yet
+- You can use **Merge reports** to combine two or more eligible reports from the same submitter and workspace. Reports must be at the same approval stage; Outstanding and Approved reports must share an approver. Submitters can merge their own Draft reports or reports awaiting their first approval, current approvers can merge Outstanding reports assigned to them, and workspace admins can merge eligible Draft, Outstanding, or Approved reports.
+
+Merging keeps one selected report and deletes the others, including their report-level comments. [Learn how to merge reports](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-merge-reports).
+
+Only workspace admins can merge Approved reports; the retained report stays Approved and payable without going through approval again. Paid/reimbursed and Done/closed reports cannot be merged. Editable report fields must match across the selection. An accounting-export warning does not block merging, but exporting again may create duplicate accounting data.
 
 [Learn more about report statuses](articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions#report-statuses).
 
@@ -97,6 +102,7 @@ Use this guide to understand:
 - Mark reports as exported
 - Change approver
 - Bypass approvers
+- Reassign approver
 - Change workspace (before export)
 
 ---
@@ -140,7 +146,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Hold** | Draft, Outstanding, or Approved reports | Submitter, approver, Workspace Admin | Prevents expenses from moving forward |
 | **Change workspace** | Draft reports | Submitter | Moves the report to another workspace |
 | **Change workspace** | Before export | Approver, Workspace Admin | Moves the report to another workspace |
-| **Change approver** | Submitted reports | Workspace Admin | Adds or bypasses approvers |
+| **Change approver** | Submitted reports | Workspace Admin | Adds, bypasses, or reassigns approvers |
 | **Delete** | Draft reports only | Submitter, Workspace Admin | Removes the report. When a Workspace Admin deletes another member’s report, the expenses on it become Unreported instead of being deleted |
 | **Undelete** | Deleted expenses | Submitter | Restores a deleted expense |
 | **Unapprove** | After approval, before payment | Approver | Reverts approval |
@@ -158,7 +164,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
-| **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
+| **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve. "Reassign approver" skips the current approver and assigns the report to another workspace member, who then continues the rest of the workflow | |
 | **Delete** | Only on draft/unsubmitted reports | Submitter, Workspace Admin | Removes the report. A Workspace Admin can delete another member’s Draft report, which leaves the expenses on it Unreported in that member's account |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
@@ -182,6 +188,9 @@ Open a report to see available actions.
 
 - Primary actions (like **Submit**, **Approve**, or **Pay**) appear at the top of the report
 - Additional actions are available when you open the report and choose **More**
+- **Merge reports** is a selection action, not an individual report action, and is available on both web and mobile. Select **Spend > Reports**, then select specific reports:
+  - **On web:** Select the report checkboxes, then select **Merge reports** from the selection bar, or from **More** if it is not shown directly.
+  - **On mobile:** Press and hold a report, select **Select**, then select the checkboxes beside the other reports. Open **X selected** (where X is the number of selected reports), then select **Merge reports**.
 - Available actions change based on:
   - Your role
   - Report status
@@ -214,6 +223,10 @@ Payments can only be canceled before processing begins. Manual payments cannot b
 ## Why can’t I see “Bypass approvers”?
 
 Only workspace admins can bypass approvers. Some settings may prevent self-approval.
+
+## Why can’t I see **Reassign approver**?
+
+Only workspace admins can reassign an approver, and only while the report is Outstanding and waiting for approval on a workspace that has an approval workflow enabled.
 
 ## How do I invite a member to an expense report?
 

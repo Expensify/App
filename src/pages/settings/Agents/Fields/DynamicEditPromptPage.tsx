@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useAgentAccountID from '@hooks/useAgentAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -37,7 +36,7 @@ import {Platform, View} from 'react-native';
 
 type DynamicEditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>;
 
-function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) {
+function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,7 +48,7 @@ function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) 
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
+    const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
@@ -145,6 +144,8 @@ function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) 
                             type="markdown"
                             excludedMarkdownStyles={['mentionReport']}
                             defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
+                            maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                            sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PROMPT_PAGE.INSTRUCTIONS}
                             multiline
                             // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
                             autoGrowHeight={shouldAutoGrowPromptInput}

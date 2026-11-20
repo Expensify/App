@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 
@@ -72,7 +73,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-            setCurrentCountry(addressPart as Country | '');
+            setCurrentCountry(getCountryCode(addressPart) ?? '');
             setState('');
             setCity('');
             setZipcode('');

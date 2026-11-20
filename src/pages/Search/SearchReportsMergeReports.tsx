@@ -16,6 +16,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -70,6 +71,7 @@ function SearchMergeReports() {
     const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
@@ -195,6 +197,7 @@ function SearchMergeReports() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             policy: policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
@@ -212,6 +215,7 @@ function SearchMergeReports() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
 
         Navigation.dismissModal({
@@ -265,6 +269,7 @@ function SearchMergeReports() {
                     footerContent={
                         !isLoading && (
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.MERGE_REPORTS_CONFIRM_BUTTON}
                                 buttonText={translate('common.confirm')}
                                 onSubmit={mergeSelectedReports}
                                 message={hasReportFieldMismatch ? translate('search.mergeReports.reportFieldsMismatch') : ''}

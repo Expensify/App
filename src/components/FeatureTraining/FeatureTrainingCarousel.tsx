@@ -25,7 +25,7 @@ import PaginationDots from './primitives/PaginationDots';
 
 const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
 
-const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start', scrollSnapStop: 'always'} as ViewStyle) : {};
+const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? {scrollSnapAlign: 'start', scrollSnapStop: 'always'} : {};
 
 type BodyElement = ReactElement<React.ComponentProps<typeof Body>>;
 type BodyTextElement = ReactElement<React.ComponentProps<typeof BodyText>>;
@@ -76,15 +76,7 @@ function splitPageChildren(pageChildren: ReactNode): SplitPage {
     return {illustration, body, bodyText};
 }
 
-function FeatureTrainingCarousel({
-    onConfirm,
-    onClose,
-    onPageChange,
-    shouldUseScrollView = false,
-    width = variables.featureTrainingModalWidth,
-    confirmSentryLabel,
-    children,
-}: FeatureTrainingCarouselProps) {
+function FeatureTrainingCarousel({onConfirm, onClose, onPageChange, shouldUseScrollView = false, width = variables.featureTrainingModalWidth, children}: FeatureTrainingCarouselProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
     const horizontalListRef = useRef<RNFlatList<SplitPage>>(null);
@@ -168,7 +160,6 @@ function FeatureTrainingCarousel({
         willShowAgain: true,
         shouldShowLoadingImmediatelyOnPress: isLastPage ? undefined : false,
         isCarousel: true,
-        confirmSentryLabel,
         currentPage,
         pageCount: pages.length,
         isLastPage,

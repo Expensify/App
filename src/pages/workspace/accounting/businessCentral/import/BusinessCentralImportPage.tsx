@@ -27,6 +27,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -42,9 +43,10 @@ type CustomerMappingToggleRowProps = {
     onLockedPress: () => void;
     policy: WithPolicyConnectionsProps['policy'];
     policyID: string | undefined;
+    switchSentryLabel: SentryLabel;
 };
 
-function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, policy, policyID}: CustomerMappingToggleRowProps) {
+function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, policy, policyID, switchSentryLabel}: CustomerMappingToggleRowProps) {
     const styles = useThemeStyles();
     const config = policy?.connections?.businessCentral?.config;
     const mapping = config?.coding?.customerMappings?.[mappingName];
@@ -55,6 +57,7 @@ function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, 
         <ToggleSettingOptionRow
             title={label}
             switchAccessibilityLabel={label}
+            switchSentryLabel={switchSentryLabel}
             shouldPlaceSubtitleBelowSwitch
             wrapperStyle={[styles.mv3, styles.mh5]}
             isActive={isImported}
@@ -121,6 +124,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.accounts')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.ACCOUNTS_SWITCH}
                 subtitle={translate('workspace.businessCentral.accountsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={toggleRowStyle}
@@ -131,6 +135,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.businessCentral.items')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.items')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.ITEMS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={toggleRowStyle}
                 isActive={syncItems}
@@ -142,6 +147,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.businessCentral.enableNewCategories')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.enableNewCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.ENABLE_NEW_CATEGORIES_SWITCH}
                 subtitle={translate('workspace.businessCentral.enableNewCategoriesDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={toggleRowStyle}
@@ -164,6 +170,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                         onLockedPress={showPurchaseInvoiceRequiredModal}
                         policy={policy}
                         policyID={policyID}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.PROJECTS_SWITCH}
                     />
                     <CustomerMappingToggleRow
                         isLocked={!hasPurchaseInvoiceExport}
@@ -172,6 +179,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                         onLockedPress={showPurchaseInvoiceRequiredModal}
                         policy={policy}
                         policyID={policyID}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.CUSTOMERS_SWITCH}
                     />
                     {(businessCentralData?.dimensions ?? []).map((dimension) => {
                         const mapping = businessCentralConfig?.coding?.fieldMappings?.[dimension.id];
@@ -182,6 +190,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                                 key={dimension.id}
                                 title={dimension.name}
                                 switchAccessibilityLabel={dimension.name}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.DIMENSION_SWITCH}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={toggleRowStyle}
                                 isActive={isImported}
@@ -209,6 +218,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.accounting.taxes')}
                         switchAccessibilityLabel={translate('workspace.accounting.taxes')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.TAXES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={toggleRowStyle}
                         isActive={syncTaxRates}

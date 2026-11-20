@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
@@ -22,7 +22,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-type AvatarButtonWithIconProps = WithSentryLabel & {
+type AvatarButtonWithIconProps = WithRequiredSentryLabel & {
     /** Text to be used as a tooltip */
     text: string;
 

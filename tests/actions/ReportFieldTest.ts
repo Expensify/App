@@ -35,7 +35,7 @@ describe('actions/ReportField', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (workspace) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(workspace);
                 },
             });

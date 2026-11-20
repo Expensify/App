@@ -51,11 +51,9 @@ To connect your workspace:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces**
 2. Select your **Workspace**
-3. Click **More features**
-4. Scroll to **Integrate** and enable the **Accounting** toggle
-5. Click **Accounting** in the left-hand menu
-6. Click **Connect** next to **QuickBooks Online**
-7. Log in with your Intuit credentials when prompted
+3. Select **Connections**
+4. Select **QuickBooks Online**
+5. Log in with your Intuit credentials when prompted
 
 This will enable the connection between QuickBooks Online and import your settings into Expensify.
 
@@ -77,14 +75,15 @@ This will enable the connection between QuickBooks Online and import your settin
 
 A red dot means there’s a connection error. You’ll see this:
 
-- Next to **Accounting** in the left-hand menu
+- Next to **Connections** in the navigation menu
 - On the QuickBooks Online connection card
 
 This usually happens if the login details were entered incorrectly.
 
 To fix it:
 
-1. Click the **three-dot icon** next to the QuickBooks Online connection
-2. Select **Enter credentials**
-3. Enter your **Intuit login** again to reconnect
+1. On the **Connections** page, select **Fix** next to QuickBooks Online
+2. Select **More (⋮)**
+3. Select **Enter credentials**
+4. Enter your **Intuit login** again to reconnect
 

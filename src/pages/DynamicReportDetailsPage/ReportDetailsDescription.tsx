@@ -14,6 +14,7 @@ import {canEditReportDescription as canEditReportDescriptionUtil, getReportDescr
 
 import {canModifyTask} from '@userActions/Task';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -51,7 +52,10 @@ function ReportDetailsDescription({reportID}: ReportDetailsDescriptionProps) {
     return (
         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
             <MentionReportContext.Provider value={mentionReportContextValue}>
-                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
+                <MenuItem.Root
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.DESCRIPTION}
+                >
                     <MenuItem.Row>
                         <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
                             {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
