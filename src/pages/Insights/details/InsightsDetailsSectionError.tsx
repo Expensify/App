@@ -1,3 +1,4 @@
+/** Error state shown in place of the Details panel's content when its request fails */
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,6 @@ type InsightsDetailsSectionErrorProps = {
     onRetry: () => void;
 };
 
-/** Error state shown in place of the Details panel's content when its request fails */
 function InsightsDetailsSectionError({isStale, onRetry}: InsightsDetailsSectionErrorProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

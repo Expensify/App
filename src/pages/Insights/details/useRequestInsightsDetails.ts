@@ -1,3 +1,4 @@
+/** Requests the Details panel's data when it opens, and again when the query changes, the device comes back online, or the expenses change. */
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useNetwork from '@hooks/useNetwork';

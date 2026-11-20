@@ -1,3 +1,4 @@
+/** Summary section of the Details panel, with its Average row and tiles. */
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import ChartOfflineState from '@components/Search/ChartOfflineState';

@@ -1,3 +1,4 @@
+/** Loading skeleton of the Summary section's content */
 import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,6 @@ const LABEL_WIDTH = 80;
 const COMPARISON_WIDTH = 200;
 const VALUE_WIDTH = 96;
 
-/** Loading skeleton of the Summary section's content */
 function InsightsSummarySkeleton() {
     const styles = useThemeStyles();
 
