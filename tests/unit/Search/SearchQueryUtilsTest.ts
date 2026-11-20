@@ -920,6 +920,39 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant from:12345');
         });
 
+        test('adds both violation has values to a typed violation grouping', () => {
+            // Given typed violation groupings with no has filter, a receipt has value, and a negated receipt has value
+            const violationHasValues = `${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const withoutHas = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+            const withReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+            const withoutReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            // Then all get the violation has values, the same as choosing the grouping in the filters UI, so the Has pill shows.
+            // The negated receipt value stays on its own, so the violation values aren't negated along with it.
+            expect(withoutHas).toContain(`has:${violationHasValues}`);
+            expect(withReceipt).toContain(`has:${CONST.SEARCH.HAS_VALUES.RECEIPT},${violationHasValues}`);
+            expect(withoutReceipt).toContain(`-has:${CONST.SEARCH.HAS_VALUES.RECEIPT} `);
+            expect(withoutReceipt).toContain(` has:${violationHasValues}`);
+        });
+
+        test('keeps the violation has values typed with a violation grouping', () => {
+            // Given violation groupings typed with their own violation has value, positive and negated
+            const approvedOnly = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+            const excludingSubmitted = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const approvedOnlyResult = getQueryWithUpdatedValues(approvedOnly);
+            const excludingSubmittedResult = getQueryWithUpdatedValues(excludingSubmitted);
+
+            // Then the stages the user picked are kept as typed
+            expect(approvedOnlyResult).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+            expect(approvedOnlyResult).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(excludingSubmittedResult).toContain(`-has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            expect(excludingSubmittedResult).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        });
+
         test('returns query with updated view', () => {
             const userQuery = 'from:12345 view:bar';
 
