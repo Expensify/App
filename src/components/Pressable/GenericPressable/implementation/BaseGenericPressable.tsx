@@ -19,7 +19,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {DistributedOmit, ValueOf} from 'type-fest';
+import type {DistributedOmit} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -180,8 +180,8 @@ function GenericPressable({
         return !isDisabled ? pressOnce : undefined;
     };
 
-    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
-    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+    // The hook always needs a shortcut. Without `keyboardShortcut` it is inactive, so the ENTER placeholder is never subscribed.
+    useKeyboardShortcut(keyboardShortcut ?? CONST.KEYBOARD_SHORTCUTS.ENTER, onKeyboardShortcutPressHandler, {
         isActive: !!keyboardShortcut,
         shouldBubble: false,
         shouldPreventDefault: false,
@@ -204,7 +204,7 @@ function GenericPressable({
 
         if (isRoleLink && !hasHref && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
-            onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            onPressHandler(event.nativeEvent);
         }
     };
 
