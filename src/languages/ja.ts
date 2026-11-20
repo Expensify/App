@@ -1280,7 +1280,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
         topExpenses: '上位の経費',
-        noExpensesInRange: 'この範囲内に経費はありません',
         efficiency: '効率',
         workflowEfficiency: 'ワークフロー効率',
         averageProcessingTime: '平均処理時間',

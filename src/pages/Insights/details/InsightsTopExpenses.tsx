@@ -118,6 +118,10 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
         );
     }
 
+    if (isEmpty) {
+        return null;
+    }
+
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.p4, styles.borderBottom]}>
@@ -158,14 +162,6 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
                 />
             )}
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
-            {isEmpty && (
-                <Text
-                    variant="label"
-                    style={[styles.textSupporting, styles.p4]}
-                >
-                    {translate('insightsPage.noExpensesInRange')}
-                </Text>
-            )}
             {expenses.map((item, index) => (
                 <PressableWithFeedback
                     key={item.keyForList}

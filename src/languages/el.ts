@@ -1338,7 +1338,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Προβολή λεπτομερειών',
         viewAll: 'Προβολή όλων',
         topExpenses: 'Κορυφαίες δαπάνες',
-        noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
         efficiency: 'Αποδοτικότητα',
         workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
         averageProcessingTime: 'Μέσος χρόνος επεξεργασίας',

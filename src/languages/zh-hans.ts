@@ -1241,7 +1241,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: '查看详情',
         viewAll: '查看全部',
         topExpenses: '最高花费',
-        noExpensesInRange: '此范围内没有报销费用',
         efficiency: '效率',
         workflowEfficiency: '工作流程效率',
         averageProcessingTime: '平均处理时间',

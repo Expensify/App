@@ -1398,7 +1398,6 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
-        noExpensesInRange: 'No expenses in this range',
         summary: {
             over: (percentage: string) => `${percentage} over`,
             under: (percentage: string) => `${percentage} under`,

@@ -1291,7 +1291,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Bekijk details',
         viewAll: 'Alles bekijken',
         topExpenses: 'Belangrijkste uitgaven',
-        noExpensesInRange: 'Geen uitgaven in dit bereik',
         efficiency: 'Efficiëntie',
         workflowEfficiency: 'Workflow-efficiëntie',
         averageProcessingTime: 'Gemiddelde verwerkingstijd',
