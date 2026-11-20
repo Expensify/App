@@ -139,6 +139,7 @@ describe('UnreadIndicatorUpdater', () => {
         });
 
         afterEach(() => {
+            jest.useRealTimers();
             jest.restoreAllMocks();
         });
 
@@ -195,6 +196,27 @@ describe('UnreadIndicatorUpdater', () => {
             // Then a single scan used the latest data, where the report is read
             expect(scanSpy).toHaveBeenCalledTimes(1);
             expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
+        });
+
+        it('still scans while changes keep arriving and React never becomes idle', async () => {
+            // Given an unread chat and a thread that never becomes idle
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
+            render(<UnreadIndicatorUpdater />);
+            await waitForBatchedUpdatesWithAct();
+            expect(mockUpdateUnread).not.toHaveBeenCalled();
+            jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+
+            // When the report keeps changing every 200 ms for longer than the scan is allowed to wait
+            for (let change = 0; change < 8; change++) {
+                // eslint-disable-next-line no-await-in-loop
+                await act(async () => {
+                    jest.advanceTimersByTime(200);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageText: `change ${change}`});
+                });
+            }
+
+            // Then the badge was updated during the burst, instead of waiting for it to stop
+            expect(mockUpdateUnread).toHaveBeenCalledWith(1, ['1']);
         });
     });
 });
