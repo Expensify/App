@@ -127,6 +127,8 @@ import usePinSearchColumn from './hooks/usePinSearchColumn';
 import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
+import {PINNED_CELL_CONTAINER_STYLE} from './pinnedCellStyles';
+import {PinnedColumnsProvider} from './PinnedColumnsContext';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import SearchColumnPinItems from './SearchColumnPinItems';
@@ -1026,6 +1028,9 @@ function Search({
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
     const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
+    const leftPinnedColumns = useStableArrayReference(shouldPinColumns ? pinSearchColumn.pinnedColumns.left.filter((column) => columnsToShow.includes(column)) : NO_PINNED_COLUMNS.left);
+    // The header's wrapper is built here, above the pins' provider, so it takes the pinned cells' container style directly.
+    const pinnedCellContainerStyle = leftPinnedColumns.length > 0 ? PINNED_CELL_CONTAINER_STYLE : undefined;
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1626,7 +1631,7 @@ function Search({
     }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch, pinnedCellContainerStyle]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={orderedColumns}
@@ -1745,7 +1750,9 @@ function Search({
                 isExpenseReportType={isExpenseReportType}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
-                <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
+                <PinnedColumnsProvider leftPinned={leftPinnedColumns}>
+                    <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
+                </PinnedColumnsProvider>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
     );

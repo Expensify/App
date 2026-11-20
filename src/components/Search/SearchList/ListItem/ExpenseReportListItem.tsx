@@ -9,8 +9,11 @@ import {
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
+import {PinnedRowProvider, usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
+import {PinnedRowCovers} from '@components/Search/PinnedCovers';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemHovered} from '@components/SelectionList/ListItemContext';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -84,6 +87,22 @@ function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListI
     );
 }
 
+/** The row's pinned cover, which matches the row's hover background that only the list item's children can read. */
+function ExpenseReportPinnedRowCovers({isSelected}: {isSelected: boolean}) {
+    const styles = useThemeStyles();
+    const isHovered = useListItemHovered();
+
+    return (
+        <PinnedRowProvider
+            isSelected={isSelected}
+            isHovered={isHovered}
+        >
+            {/* Reaches across the row's padding to meet its edges, like the header's cover does. */}
+            <PinnedRowCovers inset={{horizontal: styles.ph3.paddingHorizontal, vertical: variables.tableRowPaddingVertical}} />
+        </PinnedRowProvider>
+    );
+}
+
 function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
@@ -108,6 +127,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const {leadingStyle: pinnedLeadingStyle} = usePinnedColumnStyles();
     /*
      * Selection for a non-empty expense report is keyed by child transaction ID, never by the report row key,
      * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
@@ -380,7 +400,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     if (descriptionMessages.length > 0) {
         getDescription = (
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                // Stays beside the checkbox it belongs to while the columns scroll beneath the left pins.
+                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone, isLargeScreenWidth && pinnedLeadingStyle]}
                 dataSet={{
                     [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
                 }}
@@ -444,7 +465,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
-            <View style={[styles.flex1, styles.userSelectNone]}>
+            {/* Stretched to the row's height, so its pinned cover reaches the row's edges in rows taller than their content. */}
+            <View style={[styles.flex1, styles.userSelectNone, isLargeScreenWidth && [styles.alignSelfStretch, styles.justifyContentCenter]]}>
+                {isLargeScreenWidth && <ExpenseReportPinnedRowCovers isSelected={isSelected} />}
                 {!isLargeScreenWidth && (
                     <UserInfoAndActionButtonRow
                         item={liveReportItem}

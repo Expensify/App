@@ -11,6 +11,8 @@ import React, {createContext, useContext} from 'react';
 import type {SearchColumnSizing} from './hooks/useSearchColumnWidths';
 import type {SearchColumnType} from './types';
 
+import {usePinnedColumnStyles} from './PinnedColumnsContext';
+
 /**
  * How the Search table's dynamically sized columns share its free space. Columns absent from this map keep the flex or
  * fixed width they are styled with, which is also the whole map's state when dynamic sizing doesn't apply.
@@ -63,9 +65,11 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
     const StyleUtils = useStyleUtils();
     const {columnWidths, sizedColumns, columnOptions, resizableColumnWidths} = useContext(SearchColumnWidthsContext);
 
+    const {getPinnedColumnStyle} = usePinnedColumnStyles();
+
     const isSizingColumns = Object.keys(columnWidths).length > 0;
 
-    return (columnName, options = {}) => {
+    const getColumnStyle = (columnName: SearchColumnType, options: GetReportTableColumnStylesParams): ViewStyle => {
         // Only for the table's own columns, and only where the caller didn't answer: an inner table rendered below this
         // one sizes its columns from its own rows, and a caller that names a variant knows something this doesn't.
         //
@@ -121,6 +125,13 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // being readable. `flex` is cleared because the base style sets it on exactly these columns, and leaving both
         // it and the properties below would make which one wins depend on emission order.
         return {...columnStyles, flex: undefined, flexGrow: 1, flexShrink: 1, flexBasis: sizing.width ?? 0, minWidth: sizing.minWidth, width: undefined};
+    };
+
+    // Pinning only paints and moves a cell, so it goes on top of whatever width the column was given.
+    return (columnName, options = {}) => {
+        const columnStyle = getColumnStyle(columnName, options);
+        const pinnedColumnStyle = getPinnedColumnStyle(columnName);
+        return pinnedColumnStyle ? {...columnStyle, ...pinnedColumnStyle} : columnStyle;
     };
 }
 

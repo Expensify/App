@@ -1,3 +1,6 @@
+import {PINNED_HEADER_ROW_DATA_SET} from '@components/Search/pinnedCellStyles/pinnedScrollVariables';
+import {usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
+import {PinnedRowCovers} from '@components/Search/PinnedCovers';
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
 import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
@@ -61,6 +64,9 @@ function SelectionTopBar({
     // Only with the checkbox, which then carries the row's vertical padding so the headings can span its full height.
     const shouldCheckboxCarryPadding = !!SearchTableHeader && canSelectMultiple;
     const columnResize = useColumnResizeController();
+    const {leadingStyle: pinnedLeadingStyle} = usePinnedColumnStyles();
+    // Only beside a column header, since the bar's checkbox otherwise has no columns to stay in line with.
+    const checkboxPinnedStyle = SearchTableHeader ? pinnedLeadingStyle : undefined;
 
     return (
         <View
@@ -72,11 +78,12 @@ function SelectionTopBar({
                 !!columnResize && !!SearchTableHeader && styles.zIndex1,
                 shouldCheckboxCarryPadding && [styles.pv0, styles.pb0],
             ]}
-            // The resize line starts at the row with this marker.
-            dataSet={columnResize ? TABLE_ROW_DATA_SET : undefined}
+            // The resize line starts at the row with this marker, and the pinned region is measured on this row's headings.
+            dataSet={{...(columnResize ? TABLE_ROW_DATA_SET : {}), ...(SearchTableHeader ? PINNED_HEADER_ROW_DATA_SET : {})}}
         >
+            {!!SearchTableHeader && <PinnedRowCovers shouldRoundTop />}
             {canSelectMultiple && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, shouldCheckboxCarryPadding && styles.pv2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, shouldCheckboxCarryPadding && styles.pv2, checkboxPinnedStyle]}>
                     <SearchSelectAllMenu
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}

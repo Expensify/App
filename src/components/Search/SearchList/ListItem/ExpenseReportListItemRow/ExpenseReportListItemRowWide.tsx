@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {usePinnedColumnStyles} from '@components/Search/PinnedColumnsContext';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
@@ -50,6 +51,7 @@ function ExpenseReportListItemRowWide({
     shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
     const getSearchColumnStyles = useSearchColumnStyles();
+    const {leadingStyle: pinnedLeadingStyle, cellContainerStyle: pinnedCellContainerStyle} = usePinnedColumnStyles();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -370,17 +372,18 @@ function ExpenseReportListItemRowWide({
 
     return (
         <View
-            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, pinnedCellContainerStyle]}
             // The resize line reads this marker to find the rows it spans.
             dataSet={TABLE_ROW_DATA_SET}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, pinnedCellContainerStyle]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={styles.m0}
+                        wrapperStyle={pinnedLeadingStyle}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.reportName ?? ''}
                         shouldStopMouseDownPropagation
