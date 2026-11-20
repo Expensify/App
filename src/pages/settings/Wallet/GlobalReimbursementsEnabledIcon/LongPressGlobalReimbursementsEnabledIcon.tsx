@@ -12,6 +12,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -24,7 +25,7 @@ function LongPressGlobalReimbursementsEnabledIcon({onPress}: GlobalReimbursement
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
-    const iconRef = useRef<View>(null);
+    const iconRef = useRef<ComponentRef<typeof View>>(null);
     const label = translate('walletPage.globalReimbursementsEnabled');
 
     return (

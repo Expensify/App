@@ -81,7 +81,7 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
     // Regression test for issue #97399. Opening an invoice from the invoice room lands on `/e/:reportID`
     // (SearchMoneyRequestReportPage). Its header "More → Delete" runs useExpenseActions' DELETE action, which calls
     // getNavigationUrlOnMoneyRequestDelete to build the navigate-back URL and stores it in
-    // NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL. Invoice reports are excluded by useGetIOUReportFromReportAction, so
+    // RAM_ONLY_PENDING_TRANSACTION_DELETE_URL. Invoice reports are excluded by useGetIOUReportFromReportAction, so
     // before the fallback iouReport was undefined, the URL was undefined, no navigation happened, and the RHP was
     // left on "Not here". With the fallback the URL must resolve to the invoice room.
     it('writes the invoice-room back URL when deleting the only expense of an invoice', async () => {
@@ -150,7 +150,7 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
         });
         await waitForBatchedUpdatesWithAct();
 
-        const backUrl = await getOnyxValue(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+        const backUrl = await getOnyxValue(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
         expect(backUrl).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
     });
 

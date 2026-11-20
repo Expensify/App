@@ -1,7 +1,7 @@
 import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
 type CartesianCanvasInputs = {
     chartWidth: number;

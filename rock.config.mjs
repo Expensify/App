@@ -33,6 +33,11 @@ export default {
             'patches',
             ...(isHybrid ? ['Mobile-Expensify/patches'] : []),
             '.github/actions/composite/getXcodeVersion/action.yml',
+            // The autolinking sources describe these local native modules only by name and version, so their native code has to be listed here.
+            'modules/*/ios/**',
+            'modules/*/android/**',
+            'modules/*/*.podspec',
+            'modules/ExpensifyNitroUtils/nitrogen/**',
         ],
         env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD', 'RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'],
         ignorePaths: ['Mobile-Expensify/Android/assets/app/shared/bundle.js'],

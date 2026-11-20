@@ -7,8 +7,8 @@ import scalePixels from './scalePixels';
 
 /**
  * Translate VictoryChart's `cornerRadius` attribute into victory-native's `roundedCorners` shape.
- * `pixelScale` multiplies every radius, so expanded charts rendered at a larger native size keep
- * their corners proportional to the inline chart.
+ * `pixelScale` multiplies every radius, so charts rendered at another size than their design size keep
+ * their corners proportional.
  */
 function parseCornerRadius(attribute: string, pixelScale = 1): RoundedCorners | undefined {
     const cornerRadius = parseAttribute(attribute);

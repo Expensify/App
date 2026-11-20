@@ -34,4 +34,3 @@ function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
 Root.displayName = 'PopoverMenu.Root';
 
 export default Root;
-export type {RootProps};

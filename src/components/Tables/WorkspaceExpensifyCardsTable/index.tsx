@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {InlineEditSaveResult} from '@components/EditableCell';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -105,6 +106,9 @@ type WorkspaceExpensifyCardsTableProps = {
 
     listFooterComponentStyle?: StyleProp<ViewStyle>;
     listContentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The actions the selected cards support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>>;
 };
 
 export default function WorkspaceExpensifyCardsTable({
@@ -122,6 +126,7 @@ export default function WorkspaceExpensifyCardsTable({
     listFooterComponent,
     listFooterComponentStyle,
     listContentContainerStyle,
+    bulkActionOptions,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -213,7 +218,8 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             styling: {
                 // editableCellHeader insets the right-aligned label to match the padded Limit cell.
-                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
@@ -228,7 +234,8 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             styling: {
                 // Same chrome as Limit so the two amount columns share a right edge even though Remaining is not editable.
-                containerStyles: [styles.justifyContentEnd, styles.editableCellHeader],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.remainingLimit, item.currency), fontSize: fontScale.text}],
@@ -345,8 +352,9 @@ export default function WorkspaceExpensifyCardsTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={listContentContainerStyle} />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }
 
-export type {WorkspaceExpensifyCardTableRowData, WorkspaceExpensifyCardTableColumnKey};
+export type {WorkspaceExpensifyCardTableRowData};

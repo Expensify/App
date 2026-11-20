@@ -112,7 +112,7 @@ const INCLUDED_NODE_MODULES = [
     /** @type {import('expo-modules-core')} */
     'expo-modules-core',
     'victory-native',
-    '@shopify/react-native-skia',
+    'react-native-skia',
 ];
 
 // Matches node_modules paths that are in the allowlist above
@@ -187,9 +187,6 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
     return {
         source: {
             define: getDefineValues(file),
-            // Rsbuild already treats images/fonts/pdf as static assets by default; .lottie needs to
-            // be added explicitly so it's emitted as a file instead of falling through to the JS pipeline.
-            assetsInclude: /\.lottie$/,
         },
         resolve: {
             alias: {
@@ -201,7 +198,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 'react-native$': 'react-native-web',
                 // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
-                // Required for @shopify/react-native-skia web support
+                // Required for react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
@@ -259,8 +256,15 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 // We can ignore the "module not installed" warning from lottie-react-native because we
                 // are not using the library for JSON format of Lottie animations.
                 // We also ignore React Compiler errors - they're deliberately warnings, not errors.
+                // react-native-skia tries `react-native/asset-registry` (React Native 0.87+) inside a try block before the older path, so the miss is
+                // expected. It must not be aliased to `false` like the older path: an empty module is truthy and would be used as the registry.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
+                config.ignoreWarnings = [
+                    ...(config.ignoreWarnings ?? []),
+                    /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/,
+                    /oxc-react-compiler-loader:/,
+                    /Module not found: Can't resolve 'react-native\/asset-registry'/,
+                ];
 
                 // Cache rules:
                 // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live
@@ -294,6 +298,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                         type: 'asset/source' as const,
                     },
                     {
+                        // Small Lottie archives cannot be inlined because they have no data URL MIME type.
                         test: /\.lottie$/,
                         type: 'asset/resource' as const,
                     },
@@ -445,7 +450,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
-                // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
+                // CanvasKit WASM binary for react-native-skia web support (uses the full build). Emitted
                 // under a versioned name so it can't be served stale against newer glue. The URL is passed to
                 // the app through the `__CANVASKIT_WASM_URL__` define above.
                 {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},

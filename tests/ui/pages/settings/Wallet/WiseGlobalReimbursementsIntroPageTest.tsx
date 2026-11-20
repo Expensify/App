@@ -137,13 +137,12 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
 
     it.each([
         [
-            'retires both banners when Continue opens the status page of a submitted onboarding',
+            'leaves the banners alone when Continue opens the status page of a submitted onboarding',
             CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
             {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW},
-            true,
         ],
-        ['leaves the banners to the form when Get started opens it', undefined, undefined, false],
-    ])('%s', async (_label, globalReimbursementProvider, wise, shouldDismiss) => {
+        ['leaves the banners alone when Get started opens the form', undefined, undefined],
+    ])('%s', async (_label, globalReimbursementProvider, wise) => {
         // Given the intro for a bank account at some point of its Wise onboarding
         await renderPage(createBusinessBankAccount(globalReimbursementProvider, wise));
 
@@ -151,7 +150,7 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         fireEvent.press(screen.getByTestId(PRIMARY_BUTTON_TEST_ID));
         await waitForBatchedUpdatesWithAct();
 
-        // Then only the status page path dismisses them here, since the form dismisses them itself once it opens
+        // Then neither banner is dismissed, since they hide on their own once any account has a saved Wise setup
         let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
         await TestHelper.getOnyxData({
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
@@ -159,7 +158,7 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
                 dismissedProductTraining = value;
             },
         });
-        expect(!!dismissedProductTraining?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]).toBe(shouldDismiss);
-        expect(!!dismissedProductTraining?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]).toBe(shouldDismiss);
+        expect(dismissedProductTraining?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]).toBeUndefined();
+        expect(dismissedProductTraining?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]).toBeUndefined();
     });
 });

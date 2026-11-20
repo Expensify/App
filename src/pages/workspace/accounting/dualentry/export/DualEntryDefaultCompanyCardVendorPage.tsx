@@ -66,7 +66,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualEntry.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.dualEntry.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />
