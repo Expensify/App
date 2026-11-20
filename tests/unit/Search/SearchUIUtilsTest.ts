@@ -3341,7 +3341,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should fill formattedViolations from the positive has filter only, ignoring a negated one', () => {
-            // Given an expense whose report has a submit snapshot and an approve snapshot with different violations,
+            // Given an expense with different submitted and approved violations,
             // and a query that includes approved violations but excludes submitted ones
             const violationsReportID = 'formatted-violations-report';
             const violationsTransactionID = 'formatted-violations-transaction';
@@ -3352,35 +3352,8 @@ describe('SearchUIUtils', () => {
                     ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
                     transactionID: violationsTransactionID,
                     reportID: violationsReportID,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationsReportID}`]: {
-                    submitted: {
-                        accountID: adminAccountID,
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2024-12-21 13:05:20',
-                        message: [],
-                        reportActionID: 'submitted',
-                        reportID: violationsReportID,
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}},
-                        },
-                    },
-                    approved: {
-                        accountID: adminAccountID,
-                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                        created: '2024-12-22 13:05:20',
-                        message: [],
-                        reportActionID: 'approved',
-                        reportID: violationsReportID,
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            expenseReportID: violationsReportID,
-                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.OVER_LIMIT}, {name: CONST.VIOLATIONS.MISSING_COMMENT}]}},
-                        },
-                    },
+                    submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
+                    approvedViolations: [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.MISSING_COMMENT],
                 },
             } as OnyxTypes.SearchResults['data'];
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
@@ -13714,6 +13687,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should not show Violations on expense search when no submitted-violation data is present', () => {
+            // Given an expense that Search returned without any violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13727,62 +13701,44 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+
+            // Then the Violations column is hidden, because it would be empty
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
-        test('Should not show Violations when FORWARDED snapshot data is present without a violation has-filter', () => {
+        test('Should not show Violations when approved violation names are present without a violation has-filter', () => {
+            // Given an expense that has approved violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
-                transactionID: 'forwarded-without-filter',
+                transactionID: 'approved-without-filter',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
                 reportID,
+                approvedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
 
             // @ts-expect-error minimal dataset for getColumnsToShow
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search without a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+
+            // Then the Violations column is hidden, because it only describes the violation filters
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should show Violations only when submitted-violation data is present', () => {
+            // Given an expense that Search returned with submitted violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13790,36 +13746,25 @@ describe('SearchUIUtils', () => {
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
                 reportID,
+                submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
 
             // @ts-expect-error minimal dataset for getColumnsToShow
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+
+            // Then the Violations column is shown
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should inject Violations into custom column layouts when submitted-violation data is present', () => {
+            // Given an expense with submitted violation names and a custom column layout without Violations
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13828,6 +13773,7 @@ describe('SearchUIUtils', () => {
                 modifiedMerchant: '',
                 category: 'Advertising',
                 reportID,
+                submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
             const customVisibleColumns = [
                 CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -13841,36 +13787,24 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data,
                 visibleColumns: customVisibleColumns,
                 shouldShowViolationsColumn: true,
             });
+
+            // Then Violations is added just before the total
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
 
         test('Should keep Violations in custom column layouts when the user selected it', () => {
+            // Given an expense without violation names and a custom column layout that includes Violations
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13891,26 +13825,18 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data,
                 visibleColumns: customVisibleColumns,
                 shouldShowViolationsColumn: true,
             });
+
+            // Then the column the user chose stays
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
@@ -16426,512 +16352,89 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('getSubmittedViolationsForTransaction', () => {
-        const transactionIDForViolations = 'tx-violations-1';
-        const otherTransactionID = 'tx-violations-2';
-
-        const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
-            violations?: {transactions: Record<string, Array<{name: string}>>},
-            reportActionID = 'submit-action-1',
-        ): OnyxTypes.ReportAction =>
-            ({
-                reportActionID,
-                actionName,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
-
-        test('returns undefined when reportActions or transactionID is missing', () => {
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction(undefined, transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([], transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED)], undefined, translateLocal)).toBeUndefined();
-        });
-
-        test('ignores non-submit report actions', () => {
-            const iouAction: OnyxTypes.ReportAction = {
-                reportActionID: 'iou-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    IOUTransactionID: transactionIDForViolations,
-                },
-            };
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([iouAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-
-        test('returns comma-separated translated violation labels from a SUBMITTED action', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
-            );
-        });
-
-        test('includes translated labels from SUBMITTED_AND_CLOSED actions', () => {
-            const submitAndCloseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('violations.shortName.receiptRequired'),
-            );
-        });
-
-        test('reads the snapshot recorded when an expense joined an already submitted report', () => {
-            const addExpenseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
-        });
-
-        test('aggregates across multiple submit actions and dedupes by name', () => {
-            const firstSubmit = createSubmittedAction(
-                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
-                    },
-                },
-                'submit-1',
-            );
-            const secondSubmit = createSubmittedAction(
-                CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                    },
-                },
-                'submit-2',
-            );
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.receiptRequired')}`,
-            );
-        });
-
-        test('omits receiptRequired when itemizedReceiptRequired is also present', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('violations.shortName.itemizedReceiptRequired'),
-            );
-        });
-
-        test('keeps receiptRequired from an earlier submit action that had no itemizedReceiptRequired', () => {
-            // Given a report submitted with only receiptRequired, then resubmitted with both receipt violations
-            const firstSubmit = createSubmittedAction(
-                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                    },
-                },
-                'submit-1',
-            );
-            const secondSubmit = createSubmittedAction(
-                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
-                    },
-                },
-                'submit-2',
-            );
-
-            // When the submitted violations column is built for the expense
-            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
-
-            // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
-            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
-        });
-
-        test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`,
-            );
-        });
-
-        test('omits the cash expense notice that only Classic records', () => {
-            // Given a submit snapshot taken by Classic, which records the cash expense notice next to another violation
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                },
-            });
-
-            // When the submitted violations column is built for the expense
-            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal);
-
-            // Then only the other violation is listed, so the column matches Search, Insights and the CSV export
-            expect(violations).toBe(translateLocal('violations.shortName.missingCategory'));
-        });
-
-        test('translates maxAge via violations.shortName', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MAX_AGE}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.maxAge'));
-            expect(translateLocal('violations.shortName.maxAge')).toBe('Date older than max expense age');
-        });
-
-        test('translates fieldRequired via violations.shortName', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.FIELD_REQUIRED}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.fieldRequired'));
-        });
-
-        test('falls back to the raw identifier when no short-name translation exists', () => {
-            const unknownViolationName = 'unknownSubmittedViolation';
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: unknownViolationName}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(unknownViolationName);
-        });
-
-        test('ignores violations for other transaction IDs', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                },
-            });
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-
-        test('returns undefined when submit actions have no violations for the transaction', () => {
-            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
-                transactions: {
-                    [transactionIDForViolations]: [],
-                },
-            });
-            const submitActionWithoutViolations = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
-
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-    });
-
-    describe('getApprovedViolationsForTransaction', () => {
-        const transactionIDForViolations = 'tx-approved-violations-1';
-        const otherTransactionID = 'tx-approved-violations-2';
-
-        const createApprovalAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED | typeof CONST.REPORT.ACTIONS.TYPE.APPROVED,
-            violations?: {transactions: Record<string, Array<{name: string}>>},
-            reportActionID = 'approval-action-1',
-        ): OnyxTypes.ReportAction =>
-            ({
-                reportActionID,
-                actionName,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    expenseReportID: '1',
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
-
-        test('returns undefined when reportActions or transactionID is missing', () => {
-            expect(SearchUIUtils.getApprovedViolationsForTransaction(undefined, transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([], transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED)], undefined, translateLocal)).toBeUndefined();
-        });
-
-        test('ignores report actions that are not APPROVED or FORWARDED', () => {
-            const submittedAction = {
-                reportActionID: 'submit-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    violations: {
-                        transactions: {
-                            [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                        },
-                    },
-                },
-            } as OnyxTypes.ReportAction;
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([submittedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-
-        test('returns comma-separated translated violation labels from a FORWARDED action', () => {
-            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                },
-            });
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
-            );
-        });
-
-        test('returns comma-separated translated violation labels from an APPROVED action', () => {
-            const approvedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.OVER_LIMIT}],
-                },
-            });
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([approvedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.overLimit')}`,
-            );
-        });
-
-        test('aggregates across APPROVED and FORWARDED actions and dedupes by name', () => {
-            const forwardedAction = createApprovalAction(
-                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
-                    },
-                },
-                'forward-1',
-            );
-            const approvedAction = createApprovalAction(
-                CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                    },
-                },
-                'approved-1',
-            );
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.receiptRequired')}`,
-            );
-        });
-
-        test('omits receiptRequired when itemizedReceiptRequired is also present', () => {
-            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
-                },
-            });
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                translateLocal('violations.shortName.itemizedReceiptRequired'),
-            );
-        });
-
-        test('keeps receiptRequired from an earlier approval action that had no itemizedReceiptRequired', () => {
-            // Given a report forwarded with only receiptRequired, then approved with both receipt violations
-            const forwardedAction = createApprovalAction(
-                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
-                    },
-                },
-                'forward-1',
-            );
-            const approvedAction = createApprovalAction(
-                CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                {
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
-                    },
-                },
-                'approved-1',
-            );
-
-            // When the approved violations column is built for the expense
-            const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
-
-            // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
-            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
-        });
-
-        test('falls back to the raw identifier when no short-name translation exists', () => {
-            const unknownViolationName = 'unknownApprovedViolation';
-            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
-                transactions: {
-                    [transactionIDForViolations]: [{name: unknownViolationName}],
-                },
-            });
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(unknownViolationName);
-        });
-
-        test('ignores violations for other transaction IDs', () => {
-            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
-                transactions: {
-                    [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                },
-            });
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-
-        test('returns undefined when approval actions have no violations for the transaction', () => {
-            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
-                transactions: {
-                    [transactionIDForViolations]: [],
-                },
-            });
-            const approvedActionWithoutViolations = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.APPROVED);
-
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getApprovedViolationsForTransaction([approvedActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
-        });
-    });
-
     describe('getViolationsForTransaction', () => {
-        const transactionIDForViolations = 'tx-has-violations-1';
-
-        const createSubmittedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
-            ({
-                reportActionID: 'submit-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
-
-        const createApprovedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
-            ({
-                reportActionID: 'approved-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    expenseReportID: '1',
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
+        const transaction = {
+            submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY, CONST.VIOLATIONS.MISSING_TAG],
+            approvedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY, CONST.VIOLATIONS.OVER_LIMIT],
+        };
 
         test('returns undefined when the has filter does not include submitted or approved violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, undefined, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.RECEIPT], translateLocal)).toBeUndefined();
+            // When the search has no has filter, or a has filter that is not about violations
+            const withoutHas = SearchUIUtils.getViolationsForTransaction(transaction, undefined, translateLocal);
+            const withReceiptHas = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.RECEIPT], translateLocal);
+
+            // Then the column has nothing to show, because it only describes the violation filters
+            expect(withoutHas).toBeUndefined();
+            expect(withReceiptHas).toBeUndefined();
         });
 
         test('returns only submitted violations when the has filter is submitted-violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal)).toBe(
-                translateLocal('violations.shortName.missingCategory'),
-            );
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then only the violations Search returned for the submit-time snapshots are shown
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}`);
         });
 
         test('returns only approved violations when the has filter is approved-violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], translateLocal)).toBe(
-                translateLocal('violations.shortName.missingComment'),
-            );
+            // When the search filters on approved violations
+            const violations = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], translateLocal);
+
+            // Then only the violations Search returned for the approve-time snapshots are shown
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.overLimit')}`);
         });
 
         test('combines submitted and approved violations and removes duplicates', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.OVER_LIMIT}],
-                    },
-                }),
-            ];
+            // Given an expense whose missing category violation was there both when submitted and when approved
 
-            expect(
-                SearchUIUtils.getViolationsForTransaction(
-                    reportActions,
-                    transactionIDForViolations,
-                    [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
-                    translateLocal,
-                ),
-            ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+            // When the search filters on both submitted and approved violations
+            const violations = SearchUIUtils.getViolationsForTransaction(
+                transaction,
+                [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                translateLocal,
+            );
+
+            // Then each violation is listed once
+            expect(violations).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`,
+            );
+        });
+
+        test('returns undefined when Search returned no violation names for the expense', () => {
+            // Given an expense whose violations were all dismissed before submitting, so Search returns no names for it
+
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction({}, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the column is empty
+            expect(violations).toBeUndefined();
+        });
+
+        test('shows the violation name itself when it has no short label', () => {
+            // Given an expense with a violation App has no short label for, like one added on the backend before App knows about it
+            const unknownViolationName = 'unknownSubmittedViolation';
+
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction({submittedViolations: [unknownViolationName]}, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the raw name is shown, so the cell is not left empty
+            expect(violations).toBe(unknownViolationName);
         });
 
         test('lists the labels alphabetically, whatever order the snapshot holds the names in', () => {
-            // Given a submit snapshot whose names are out of label order
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RULE_VIOLATION}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.CUSTOM_RULES}],
-                    },
-                }),
-            ];
+            // Given an expense whose submitted violation names are out of label order
+            const transactionWithUnsortedViolations = {
+                submittedViolations: [CONST.VIOLATIONS.RULE_VIOLATION, CONST.VIOLATIONS.MISSING_CATEGORY, CONST.VIOLATIONS.CUSTOM_RULES],
+            };
 
             // When the violations are read for a submitted-violation search
-            const violations = SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+            const violations = SearchUIUtils.getViolationsForTransaction(transactionWithUnsortedViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
 
             // Then the labels read alphabetically, matching the key the Violations column sorts by
             expect(violations).toBe(

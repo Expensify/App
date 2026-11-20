@@ -361,6 +361,12 @@ type SearchWorkflowStageGroup = SearchGroupBase & {
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
     declined?: boolean;
+
+    /** Submit-time violation names without those the submitter dismissed, only returned with a has:submitted-violation filter */
+    submittedViolations?: string[];
+
+    /** Approve-time violation names without those the submitter dismissed, only returned with a has:approved-violation filter */
+    approvedViolations?: string[];
 };
 
 /** Model of a report in the search results */

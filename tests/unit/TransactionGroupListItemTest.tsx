@@ -56,7 +56,6 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCashBackWithdrawalGroup: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'withdrawal-id' && !!item.isCashBack),
     getSettlementStatus: jest.fn(() => undefined),
     getSettlementStatusBadgeProps: jest.fn(() => null),
-    getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
     getViolationsForTransaction: jest.fn(() => ''),
