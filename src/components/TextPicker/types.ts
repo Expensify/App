@@ -56,9 +56,6 @@ type TextPickerProps = {
      */
     onValueCommitted?: (value: string) => void;
 
-    /** Text to display under the main menu item */
-    furtherDetails?: string;
-
     shouldShowTooltips?: boolean;
 
     /** The ID used to uniquely identify the input in a Form */

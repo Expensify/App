@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: '変更を保存',
         submit: '送信',
         submitAnyway: 'とにかく送信',
+        approveAnyway: 'このまま承認する',
         markAsDone: '完了にする',
         markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
@@ -579,6 +580,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} 日`,
             other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 時間`,
+            other: (count: number) => `${formattedCount ?? count} 時間`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 分`,
+            other: (count: number) => `${formattedCount ?? count} 分`,
         }),
         amount: '金額',
     },
@@ -1280,6 +1289,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        generatingAIInsights: 'AI インサイトを生成しています…',
+        generatingAIInsightsSubtitle: '1 分もかからないはずです',
+        readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
+        comparingWithYourAverage: '平均と比較',
+        lookingForAnythingUnusual: '異常な点がないか確認しています',
+        writingYourInsights: 'インサイトの記入',
         violationStage: {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
@@ -1553,6 +1568,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
+        confirmApproveReportViolations: {
+            title: 'それでも承認しますか？',
+            description: 'このレポートにはポリシー違反があります。変更を行わずに承認してもよろしいですか？',
+        },
         confirmSubmitReportViolations: {
             title: 'レポートを送信しますか？',
             description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
@@ -1679,6 +1698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
         rejectedThisReport: '却下しました',
         waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `支払いを開始しましたが、${vendorDisplayName} が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,
@@ -3266,6 +3286,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: '使い始める',
             headerTitle: 'グローバル払い戻し',
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
+            payingMultipleReportsSubtitle: '会社と従業員の銀行口座が異なる通貨を使用しているため、これらのレポートはいずれも支払えませんでした。',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `x${lastFour}で支払う` : '銀行口座で支払う'),
+            description: 'これらのレポートはグローバル払い戻しが必要なため、銀行口座で支払われませんでした。以下から手続きを開始してください。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
         wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',
@@ -7113,9 +7138,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            visibleTo: '表示対象',
+            membersCount: ({count}: {count: number}) => ({
+                one: 'メンバー 1 人',
+                other: `${count}名のメンバー`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `${categoryName} へのアクセス権を削除できません`,
+                bulkRemoveAccessTitle: 'これらのカテゴリへのアクセス権は削除できません',
                 description: ({count}: {count: number}) => ({
                     one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
                     other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
@@ -8473,6 +8506,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             timezoneInputLabel: 'タイムゾーン',
             timezoneInputHelpText: '自動レポート送信には、お客様のタイムゾーンが使用されます',
             timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
+            directReimbursementCurrencyTitle: '直接払い戻しではこの通貨を利用できません',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `このワークスペースは Expensify を通じてメンバーに直接払い戻しを行いますが、${currency} では利用できません。${currency} を使用するには、ワークフローで支払をオフにしてから再度オンにし、Expensify 外で支払が行われるようにしてください。`,
+            goToWorkflows: 'ワークフローに移動',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -10178,11 +10215,11 @@ ${reportName}`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `${customUnitName}レート「${rateName}」を追加しました`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `${customUnitName} の ${updatedField}「${customUnitRateName}」のレートを「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `距離レート「${customUnitRateName}」の税率を「${oldValue}（${oldTaxPercentage}）」から「${newValue}（${newTaxPercentage}）」に変更しました`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `距離レート「${customUnitRateName}」の税率を「${oldTaxRate}」から「${newTaxRate}」に変更しました`;
             }
-            return `距離レート「${customUnitRateName}」に税率「${newValue}（${newTaxPercentage}）」を追加しました`;
+            return `税率「${newTaxRate}」を距離単価「${customUnitRateName}」に追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10817,6 +10854,10 @@ ${reportName}`,
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
+            tooManyKeywords: `検索キーワードが多すぎます。キーワードを${CONST.SEARCH.MAX_KEYWORD_TOKENS}個以下にして、もう一度お試しください。`,
+            unsupportedGrouping: 'この検索ではグループ化やグラフ表示は使用できません。グループ化を解除し、テーブル表示を使用してください。',
+            invalidReportID: '有効なレポートIDを入力してください。未報告の経費を検索するには、status:unreported を使用してください。',
+            unsupportedFilter: 'この検索では "is:" フィルターは使用できません。未報告の経費を検索するには、status:unreported を使用してください。',
             emptyResults: {
                 title: '表示するものはありません',
                 subtitle: `検索条件を調整するか、＋ボタンを使って作成してみてください。`,

@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -4494,6 +4495,52 @@ describe('ReportUtils', () => {
             });
 
             expect(result).toContain('HiddenMarker');
+        });
+
+        it.each([
+            {
+                reportType: CONST.REPORT.TYPE.INVOICE,
+                expected: 'started payment, but is waiting for Vendor to add a bank account.',
+            },
+            {
+                reportType: CONST.REPORT.TYPE.EXPENSE,
+                expected: 'started payment, but is waiting for Vendor to add a personal bank account.',
+            },
+            {
+                reportType: CONST.REPORT.TYPE.IOU,
+                expected: 'started payment, but is waiting for Vendor to add a personal bank account.',
+            },
+        ])('names the report owner and asks for the right bank account on a $reportType report', ({reportType, expected}) => {
+            // Given a payment that waits for the report owner to add a bank account
+            const ownerAccountID = 780040;
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                reportActionID: '780041',
+                created: '2024-01-01 00:00:00',
+                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            });
+
+            // When the report shows the queued payment
+            const result = getReimbursementQueuedActionMessage({
+                reportAction,
+                report: createMock<Report>({
+                    reportID: '780042',
+                    type: reportType,
+                    ownerAccountID,
+                }),
+                translate: translateLocal,
+                formatPhoneNumber,
+                personalDetails: {
+                    [ownerAccountID]: {
+                        accountID: ownerAccountID,
+                        login: 'billing@vendor.com',
+                        displayName: 'Vendor',
+                    },
+                },
+            });
+
+            // Then an invoice asks its sender for a bank account, because an invoice sender can't be paid into a personal one
+            expect(result).toBe(expected);
         });
     });
 
@@ -14593,6 +14640,42 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
+        it('should give the sender a green dot on their invoice while it waits on them', () => {
+            // Given an invoice that Auth says waits on its sender, like for a bank account to finish a payment
+            const waitingInvoice: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID + 2,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isAwaitingActionFromCurrentUser: true,
+            };
+            const getReason = (report: Report) =>
+                getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    allReportActions: {},
+                });
+
+            // When the Inbox checks whether the invoice needs attention
+            // Then the sender gets a green dot, because they must act before the payment can finish
+            expect(getReason(waitingInvoice)?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+
+            // And the invoice shows no green dot once it stops waiting, or on a report that isn't an invoice
+            expect(
+                getReason({
+                    ...waitingInvoice,
+                    isAwaitingActionFromCurrentUser: false,
+                }),
+            ).toBeNull();
+            expect(getReason({...waitingInvoice, type: CONST.REPORT.TYPE.EXPENSE})).toBeNull();
+        });
+
         describe('card fraud alert', () => {
             const fraudReport: OptionData = {
                 ...createRandomReport(40000, undefined),
@@ -20700,6 +20783,7 @@ describe('ReportUtils', () => {
 
     describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
         const policyID = '1';
+        const ownerPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
 
         it('should return false when policy is undefined', () => {
             const report: Report = {
@@ -20709,7 +20793,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetailsByLogin)).toBe(false);
         });
 
         it('should return false when policy has preventSelfApproval false', () => {
@@ -20726,7 +20810,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetailsByLogin)).toBe(false);
         });
 
         it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
@@ -20743,7 +20827,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, {})).toBe(false);
         });
 
         it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
@@ -20780,7 +20864,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             expect(getNextApproverAccountID(report, undefined)).toBe(currentUserAccountID);
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
@@ -20799,7 +20883,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is open, and the submitter is the first of several approvers', async () => {
@@ -20852,12 +20936,11 @@ describe('ReportUtils', () => {
             expect(getNextApproverAccountID(report, undefined)).toBe(secondApproverAccountID);
 
             // Then submitting is still blocked, because the report is being submitted to the submitter themselves
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
         });
 
         it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
             const otherUserEmail = 'other@test.com';
-            const otherAccountID = 42;
             const policyWithPreventOn: Policy = {
                 ...createRandomPolicy(1),
                 id: policyID,
@@ -20887,13 +20970,9 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                ...participantsPersonalDetails,
-                [otherAccountID]: {accountID: otherAccountID, login: otherUserEmail},
-            });
             await waitForBatchedUpdates();
 
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
         });
 
         it('should return false when preventSelfApproval is true but report is not open or processing', () => {
@@ -20911,7 +20990,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
         });
     });
 
@@ -29571,6 +29650,43 @@ describe('ReportUtils', () => {
             );
 
             expect(result).toBe('Invoice #42');
+        });
+
+        it('should return the stored reportName for an invoice linked to a bill that has an invoice room', async () => {
+            // Given an invoice with a renamed stored name whose invoice room is loaded, so NewDot would compute its name
+            const invoiceRoom: Report = {
+                reportID: 'invoice-chat-125',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoom.reportID}`, invoiceRoom);
+            await waitForBatchedUpdates();
+            const invoiceReport: Report = {
+                reportID: 'invoice-report-791',
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceRoom.reportID,
+                reportName: 'Office chairs for March',
+                currency: 'USD',
+            };
+            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
+            const getName = (isInvoiceLinkedToBill: boolean) =>
+                getChatListItemReportName(
+                    {...createRandomReportAction(8)},
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                    isInvoiceLinkedToBill,
+                );
+
+            // When Search names the invoice with and without a link to a bill
+            // Then only the linked invoice shows its stored name, and other invoices keep the computed name
+            expect(getName(true)).toBe('Office chairs for March');
+            expect(getName(false)).toBe('PayerOwesMarker');
         });
 
         it('should pass derivedReportName to getReportName when falling through to default path', async () => {
