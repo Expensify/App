@@ -1,5 +1,5 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
-import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
+import type {ChartDataPoint, ChartValueFormatter, YAxisTickStep} from '@components/Charts/types';
 import formatChartCount, {MAX_COUNT_FRACTION_DIGITS} from '@components/Charts/utils/formatChartCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
+import DateUtils from '@libs/DateUtils';
 import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
@@ -47,9 +47,9 @@ type SearchChartDetails = SearchChartModel & {
 };
 
 /** Keeps a metric's Y-axis ticks on values its labels write differently, so no two ticks repeat a label like half an expense rounded to a whole one */
-const Y_AXIS_TICK_STEPS: Partial<Record<SearchChartMetric, number>> = {
+const Y_AXIS_TICK_STEPS: Partial<Record<SearchChartMetric, YAxisTickStep>> = {
     [CONST.SEARCH.CHART_METRIC.COUNT]: 1,
-    [CONST.SEARCH.CHART_METRIC.DURATION]: AVERAGE_DURATION_PRECISION_IN_SECONDS,
+    [CONST.SEARCH.CHART_METRIC.DURATION]: DateUtils.getAverageDurationTickStep,
 };
 
 type SearchChartViewProps = {

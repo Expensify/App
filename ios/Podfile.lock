@@ -3250,7 +3250,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-skia (2.11.2):
+  - react-native-skia (2.15.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -4913,7 +4913,7 @@ DEPENDENCIES:
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
+  - react-native-skia (from `../node_modules/react-native-skia`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-wallet (from `../node_modules/@expensify/react-native-wallet`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -5219,7 +5219,7 @@ EXTERNAL SOURCES:
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-skia:
-    :path: "../node_modules/@shopify/react-native-skia"
+    :path: "../node_modules/react-native-skia"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-wallet:
@@ -5482,7 +5482,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: 7f78a525e34c339d6b2397b09b5b398ff3cf5d44
   react-native-quick-base64: 38818f6dcca96d3306bf2ba0d72f19b774467a59
   react-native-safe-area-context: 13f162b385540f4d5d9374dd4d02bee388b29a66
-  react-native-skia: 5c913945db2625791c22a9a94e9207951841983b
+  react-native-skia: 1d2d0aca3deaa0e12b11c9ea9c7af079e40f5528
   react-native-view-shot: 0c80b98f04886e2742a2d6d106e244fa44be1afb
   react-native-wallet: 50c731341734b7d0ca2e58187c638c3b8d4df23d
   react-native-webview: 1d38615b215351b3c5a3403986603e885949ec8e
