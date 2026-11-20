@@ -9,7 +9,7 @@ import {useEffect, useEffectEvent, useState} from 'react';
 import useOnyx from './useOnyx';
 
 /**
- * Fetches the reimbursement countries the collect deposit account flow needs and reports whether that is in flight.
+ * Fetches the reimbursement countries the deposit account flows need and reports whether that is in flight.
  * Each page of the flow is its own navigation, so this only fires on the first page or when landing mid-flow.
  */
 function useLoadDepositAccountSetup(): boolean {

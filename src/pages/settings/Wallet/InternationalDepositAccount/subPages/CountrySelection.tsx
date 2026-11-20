@@ -1,4 +1,7 @@
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import navigateToUSBankAccountFlow from '@pages/settings/Wallet/InternationalDepositAccount/navigateToUSBankAccountFlow';
@@ -8,6 +11,7 @@ import {fetchCorpayFields} from '@userActions/BankAccounts';
 
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isUserValidatedSelector} from '@selectors/Account';
@@ -17,7 +21,14 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [selectedCountry, setSelectedCountry] = useState(formValues.bankCountry || '');
 
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const isDefaultWorkspacePayingWithABAFiles = !!defaultExpensePolicy?.reimbursement?.countries?.[CONST.COUNTRY.AU]?.additionalData?.isForABA;
+
     const onCountrySelected = () => {
+        if (selectedCountry === CONST.COUNTRY.AU && isDefaultWorkspacePayingWithABAFiles) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_ABA_BANK_ACCOUNT.getRoute());
+            return;
+        }
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
             navigateToUSBankAccountFlow(isUserValidated);
             return;
