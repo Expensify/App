@@ -214,17 +214,23 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 expect(secondScan).toEqual(firstScan);
             });
 
-            it('follows the report type, so a report that can no longer have a transaction thread is not counted for it', () => {
-                // Given report actions whose transaction thread made an expense report unread
+            it('follows the report type, so a thread only counts while the report can have one', () => {
+                // Given a report that was read before its own last message, but whose transaction thread was read after everything
+                const reportReadBeforeItsLastMessage = {lastReadTime: OLDER_MESSAGE_TIME, lastVisibleActionCreated: READ_TIME};
+                const threadReadAfterEverything = {lastReadTime: NEWER_MESSAGE_TIME, lastVisibleActionCreated: NEWER_MESSAGE_TIME};
                 const reportActions = getReportActions();
-                expect(scan(getReports(THREAD_UNREAD), reportActions)).toContain(EXPENSE_REPORT_ID);
 
-                // When the same actions are scanned for a report that is now a plain chat
-                const unreadReportIDs = scan(getReports(THREAD_UNREAD, {type: CONST.REPORT.TYPE.CHAT}), reportActions);
+                // When the same actions are scanned for an expense report, where the thread read time counts
+                const asExpenseReport = scan(getReports(threadReadAfterEverything, reportReadBeforeItsLastMessage), reportActions);
 
-                // Then the thread no longer counts, and it counts again when the report is an expense report again
-                expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
-                expect(scan(getReports(THREAD_UNREAD), reportActions)).toContain(EXPENSE_REPORT_ID);
+                // Then the report is read
+                expect(asExpenseReport).not.toContain(EXPENSE_REPORT_ID);
+
+                // When the same actions are scanned for a plain chat, which cannot have a transaction thread
+                const asChat = scan(getReports(threadReadAfterEverything, {...reportReadBeforeItsLastMessage, type: CONST.REPORT.TYPE.CHAT}), reportActions);
+
+                // Then the thread no longer counts and the report is unread, instead of repeating the earlier answer
+                expect(asChat).toContain(EXPENSE_REPORT_ID);
             });
 
             it('follows the chat report, which decides whether a lone pay action is the send money flow', () => {
