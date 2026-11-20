@@ -76,13 +76,14 @@ describe('MoreMenuPopover', () => {
         // When the menu is shown
         // Then every row navigates only once the sheet has closed, so no screen moves under the closing sheet
         expect(getMenuItems().every((item) => item.shouldCallAfterModalHide)).toBe(true);
-        // And only Accounting is highlighted, since that is where the user is, and it carries its todo badge
+        // And only Accounting is highlighted, since that is where the user is, and it carries its todo badge in green
         expect(
             getMenuItems()
                 .filter((item) => item.isSelected)
                 .map((item) => item.key),
         ).toEqual([MORE_MENU.ITEM.ACCOUNTING]);
         expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).badgeText).toBe('3');
+        expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).isBadgeSuccess).toBe(true);
         // And Workspaces shows the dot the More item shows in the bar
         expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).shouldShowRightComponent).toBe(true);
     });
