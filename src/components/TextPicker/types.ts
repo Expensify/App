@@ -77,6 +77,6 @@ type TextPickerProps = {
 
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
-    TextProps;
+    Omit<TextProps, 'ref'>;
 
 export type {TextSelectorModalProps, TextPickerProps};
