@@ -31,14 +31,16 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     const {translate} = useLocalize();
     const inputRef = useRef<ComponentRef<typeof RNTextInput> | null>(null);
 
-    const text = !isDescription ? merchantOrDescription : StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
+    const displayText = isDescription ? StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription)) : merchantOrDescription;
+    // Edit the Markdown form, like the full Description editor, so saving keeps the bold text, links and line breaks that the plain-text preview drops
+    const editValue = isDescription && canEdit ? Parser.htmlToMarkdown(merchantOrDescription) : displayText;
 
     // Normalize merchant values for save/equality checks (descriptions can keep whitespace)
     const getNormalizedValue = (value: string) => (isDescription ? value : value.trim());
 
     const {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
         canEdit,
-        text,
+        editValue,
         onSave ? (value) => onSave(getNormalizedValue(value)) : undefined,
         (value, originalValue) => getNormalizedValue(value) === getNormalizedValue(originalValue),
     );
@@ -93,6 +95,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                     onSubmitEditing={save}
                     onFocus={handleFocus}
                     autoFocus
+                    autoGrowSingleLine={isMultilineInput}
                     submitBehavior="blurAndSubmit"
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
@@ -105,7 +108,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         >
             <TextWithTooltip
                 shouldShowTooltip={shouldShowTooltip}
-                text={localValue}
+                text={displayText}
                 numberOfLines={1}
                 style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge]}
                 isSelectable

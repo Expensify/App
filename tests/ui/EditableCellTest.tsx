@@ -1,10 +1,11 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, userEvent} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {EditableCell} from '@components/EditableCell';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+import MerchantOrDescriptionCell from '@components/TransactionItemRow/DataCells/MerchantCell';
 import {WideRHPStateContext} from '@components/WideRHPContextProvider';
 import {defaultWideRHPStateContextValue} from '@components/WideRHPContextProvider/default';
 import type {WideRHPStateContextType} from '@components/WideRHPContextProvider/types';
@@ -53,11 +54,12 @@ jest.mock('@components/Hoverable', () => ({
 
 jest.mock('@components/Pressable/PressableWithFeedback', () => {
     const {TouchableOpacity} = jest.requireActual<typeof ReactNative>('react-native');
-    function mockPressableWithFeedback({children}: {children: React.ReactNode}) {
+    function mockPressableWithFeedback({children, onPress}: {children: React.ReactNode; onPress?: () => void}) {
         return (
             <TouchableOpacity
                 testID="mock-edit-button"
                 accessibilityRole="button"
+                onPress={onPress}
             >
                 {children}
             </TouchableOpacity>
@@ -236,5 +238,62 @@ describe('EditableCell', () => {
         // Then the cell re-renders and becomes editable
         expect(mockedUseResponsiveLayout).toHaveBeenCalled();
         expect(await screen.findByTestId('mock-edit-button')).toBeOnTheScreen();
+    });
+
+    describe('MerchantOrDescriptionCell description editing', () => {
+        function renderDescriptionCell(onSave: (value: string) => void) {
+            mockedUseResponsiveLayout.mockReturnValue(MAIN_PANE_LAYOUT);
+            return render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <MerchantOrDescriptionCell
+                        merchantOrDescription={'<strong>Client lunch</strong> <a href="https://example.com/r/1">receipt</a><br />second line'}
+                        shouldShowTooltip={false}
+                        isDescription
+                        canEdit
+                        onSave={onSave}
+                    />
+                </ComposeProviders>,
+            );
+        }
+
+        it('preserves bold, links and line breaks when appending to an inline description', async () => {
+            // Given a rich description whose formatting should survive edits to its text
+            const onSave = jest.fn();
+            renderDescriptionCell(onSave);
+
+            // When the user appends text to the value supplied by the inline editor
+            fireEvent.press(await screen.findByTestId('mock-edit-button'));
+            await userEvent.setup().type(screen.getByLabelText('Description'), ' ok', {submitEditing: true});
+
+            // Then saving passes the entire formatted description to the action
+            expect(onSave).toHaveBeenCalledWith('*Client lunch* [receipt](https://example.com/r/1)\nsecond line ok');
+        });
+
+        it('opens the inline description editor on the Markdown in a multiline input', async () => {
+            // Given a rich description whose line break only survives in a multiline input
+            renderDescriptionCell(jest.fn());
+
+            // When the user opens the inline editor
+            fireEvent.press(await screen.findByTestId('mock-edit-button'));
+
+            // Then the editor holds the same Markdown as the full Description editor, so nothing is flattened before the user types
+            const input = screen.getByLabelText('Description');
+            expect(input).toHaveProp('value', '*Client lunch* [receipt](https://example.com/r/1)\nsecond line');
+            expect(input).toHaveProp('multiline', true);
+        });
+
+        it('does not save a formatted description when the user leaves the editor without changes', async () => {
+            // Given the table displays a plain preview of a rich description
+            const onSave = jest.fn();
+            renderDescriptionCell(onSave);
+            expect(screen.getByText('Client lunch receipt second line')).toBeOnTheScreen();
+
+            // When the user opens the inline editor and leaves it without typing
+            fireEvent.press(await screen.findByTestId('mock-edit-button'));
+            fireEvent(screen.getByLabelText('Description'), 'blur');
+
+            // Then the difference between the preview and the editor never triggers a write
+            expect(onSave).not.toHaveBeenCalled();
+        });
     });
 });
