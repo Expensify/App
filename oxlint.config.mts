@@ -74,6 +74,7 @@ const restrictedImportPaths = [
     {name: 'lodash/isEqual', message: "Please use 'deepEqual' from 'fast-equals' instead."},
     {name: 'lodash', importNames: ['isEqual'], message: "Please use 'deepEqual' from 'fast-equals' instead."},
     {name: 'react-native-onyx', importNames: ['useOnyx'], message: "Please use '@hooks/useOnyx' instead."},
+    {name: 'react-native-onyx', importNames: ['useOnyxState'], message: "Please use '@hooks/useOnyxState' instead."},
     {name: '@src/utils/findNodeHandle', message: "Do not use 'findNodeHandle' as it is no longer supported on web."},
 ];
 
