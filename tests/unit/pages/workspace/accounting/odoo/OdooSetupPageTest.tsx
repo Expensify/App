@@ -2,8 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
-import useOnyx from '@hooks/useOnyx';
-
 import {connectToOdoo} from '@libs/actions/connections/Odoo';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -32,7 +30,9 @@ jest.mock('@hooks/useLocalize', () => () => ({
 }));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useAutoFocusInput', () => () => ({inputCallbackRef: jest.fn()}));
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+// The policy the page reads, passed through the page's selector like useOnyx does
+let mockPolicy: Partial<Policy> | undefined;
+jest.mock('@hooks/useOnyx', () => (_key: string, options?: {selector?: (policy: Partial<Policy> | undefined) => unknown}) => [options?.selector ? options.selector(mockPolicy) : mockPolicy]);
 jest.mock('@libs/actions/connections/Odoo', () => ({connectToOdoo: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn()}));
 jest.mock('@components/ConnectionLayout', () => ({children, shouldBeBlocked}: {children: React.ReactNode; shouldBeBlocked?: boolean}) => {
@@ -46,8 +46,6 @@ jest.mock('@components/Form/FormProvider', () => ({children, validate, onSubmit}
 jest.mock('@components/Form/InputWrapper', () => () => null);
 jest.mock('@components/RenderHTML', () => () => null);
 
-const mockedUseOnyx = jest.mocked(useOnyx);
-
 function renderPage() {
     return (
         // @ts-expect-error - the page only reads the route, so the navigation prop is left out
@@ -56,7 +54,7 @@ function renderPage() {
 }
 
 function renderOdooSetupPage(policy?: Partial<Policy>) {
-    mockedUseOnyx.mockReturnValue([policy, {status: 'loaded'}] as ReturnType<typeof useOnyx>);
+    mockPolicy = policy;
     return render(renderPage());
 }
 
@@ -98,10 +96,11 @@ describe('OdooSetupPage', () => {
         expect(mockLayoutProps.current?.shouldBeBlocked).toBe(true);
 
         // When the stored key stops working
-        mockedUseOnyx.mockReturnValue([
-            {connections: {odoo: {config: {url: 'https://acme.odoo.com', subsidiaryID: '1', isConfigured: true}, lastSync: {isAuthenticationError: true}}}},
-            {status: 'loaded'},
-        ] as ReturnType<typeof useOnyx>);
+        mockPolicy = {
+            connections: {
+                odoo: {config: {url: 'https://acme.odoo.com', subsidiaryID: '1', isConfigured: true}, lastSync: {isSuccessful: false, isAuthenticationError: true, source: 'AUTOSYNC'}},
+            },
+        };
         rerender(renderPage());
 
         // Then Reconnect can open the page again to enter a new key

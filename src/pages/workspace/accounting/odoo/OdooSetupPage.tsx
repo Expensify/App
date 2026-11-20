@@ -34,10 +34,10 @@ function OdooSetupPage({route}: OdooSetupPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const config = policy?.connections?.odoo?.config;
     // Reconnecting after the key stops working reopens this page, so only a working connection blocks it
-    const shouldBeBlocked = !!config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.ODOO);
+    const [shouldBeBlocked = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.connections?.odoo?.config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.ODOO),
+    });
 
     const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>) => {
         connectToOdoo(policyID, values[INPUT_IDS.ODOO_URL].trim(), values[INPUT_IDS.API_KEY].trim());
@@ -60,7 +60,7 @@ function OdooSetupPage({route}: OdooSetupPageProps) {
         <ConnectionLayout
             displayName="OdooSetupPage"
             headerTitle="workspace.odoo.odooSetup"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}

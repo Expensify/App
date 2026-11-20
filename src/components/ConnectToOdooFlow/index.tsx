@@ -3,18 +3,23 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 type ConnectToOdooFlowProps = {
     policyID: string;
 };
 
 function ConnectToOdooFlow({policyID}: ConnectToOdooFlowProps) {
+    // A replayed effect (e.g. in Strict Mode) must not open the setup page twice for one Connect press
+    const hasOpenedSetup = useRef(false);
+
     useEffect(() => {
+        if (hasOpenedSetup.current) {
+            return;
+        }
+        hasOpenedSetup.current = true;
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ODOO_SETUP.getRoute(policyID));
-        // This needs to run once as we will navigate away
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [policyID]);
 
     return null;
 }

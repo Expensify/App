@@ -3781,7 +3781,6 @@ type Connections = {
     /** Business Central integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: Connection<BusinessCentralConnectionData, BusinessCentralConnectionsConfig>;
 
-    /** Odoo integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ODOO]: Connection<OdooConnectionData, OdooConnectionsConfig>;
 
     /** Gusto integration connection */
