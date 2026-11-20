@@ -15,9 +15,10 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivatePersonalDetailsDiscardConfirmation from '@hooks/usePrivatePersonalDetailsDiscardConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
+import {setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,7 +37,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function PrivatePersonalDetailsPage() {
@@ -49,6 +50,7 @@ function PrivatePersonalDetailsPage() {
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    usePrivatePersonalDetailsDiscardConfirmation();
 
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
@@ -71,20 +73,6 @@ function PrivatePersonalDetailsPage() {
     const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || (defaultCountry && isCountryCode(defaultCountry) ? defaultCountry : ''));
     const [selectedState, setSelectedState] = useState(draftState || normalizedState);
-
-    // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
-    // payload as soon as we navigate to the confirm-validate-code RHP. Skip clearing in that case and let the confirm-validate-code
-    // success path (or the next intentional back out) handle cleanup.
-    const skipClearDraftOnUnmountRef = useRef(false);
-    useEffect(
-        () => () => {
-            if (skipClearDraftOnUnmountRef.current) {
-                return;
-            }
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        },
-        [],
-    );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
@@ -215,7 +203,6 @@ function PrivatePersonalDetailsPage() {
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
         setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, normalizedValues);
-        skipClearDraftOnUnmountRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
 

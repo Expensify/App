@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOpenReport from '@hooks/useOpenReport';
+import usePersonalBankAccountDiscardConfirmation from '@hooks/usePersonalBankAccountDiscardConfirmation';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
@@ -20,7 +21,7 @@ import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 
 import {addPersonalBankAccount, clearPersonalBankAccount, clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
-import {setDraftValues} from '@userActions/FormActions';
+import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -48,7 +49,7 @@ const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
 
 const infoPages = [
     {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalName},
-    {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: AddressWithDraft},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
     {pageName: SUB_PAGE_NAMES.VALIDATE_CODE, component: ValidateCode},
@@ -62,6 +63,15 @@ const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
 
 // The backend's errors for a wrong magic code and for too many wrong magic codes
 const VALIDATE_CODE_ERROR_SUBSTRINGS = ['magic code', 'failed attempts'];
+
+function AddressWithDraft(props: SubPageProps) {
+    return (
+        <Address
+            {...props}
+            shouldSaveDraft
+        />
+    );
+}
 
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
@@ -92,6 +102,11 @@ function AddPersonalBankAccountPage() {
     const kycWallRef = useContext(KYCWallContext);
 
     const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
+    const clearAbandonedBankAccount = () => {
+        clearPersonalBankAccount();
+        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+    };
+    usePersonalBankAccountDiscardConfirmation({onDiscard: clearAbandonedBankAccount});
     const exitReportID = fullPersonalBankAccount?.exitReportID;
     const [hasExitReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: Boolean});
     const [exitReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(exitReportID)}`, {selector: getReportPolicyID});
@@ -132,8 +147,10 @@ function AddPersonalBankAccountPage() {
         } else {
             exit();
         }
-        // Clear the flow's scratch state on every real exit path. The flow no longer clears on unmount.
-        clearPersonalBankAccount();
+        // An exit request can be cancelled. Abandonment cleanup belongs to the guard's confirmation callback.
+        if (shouldShowSuccess) {
+            clearAbandonedBankAccount();
+        }
     };
 
     const getAccountData = () => {

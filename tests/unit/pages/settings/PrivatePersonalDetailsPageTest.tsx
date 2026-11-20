@@ -15,6 +15,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import React from 'react';
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePrivatePersonalDetailsDiscardConfirmation', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
 jest.mock('@react-navigation/native', () => ({useRoute: () => ({params: {}})}));

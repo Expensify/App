@@ -61,6 +61,8 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPage
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
+        /** Defaults to preserving edits only outside edit substeps. Bank confirmation loops also preserve their edits. */
+        shouldSaveDraft?: boolean;
     };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -83,6 +85,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldDelayAutoFocus = false,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
+    shouldSaveDraft = !isEditing,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -113,7 +116,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         inputMode={inputMode}
                         defaultValue={defaultValue}
                         maxLength={maxLength}
-                        shouldSaveDraft={!isEditing}
+                        shouldSaveDraft={shouldSaveDraft}
                         shouldUseDefaultValue={shouldUseDefaultValue}
                         disabled={disabled}
                         placeholder={placeholder}

@@ -212,6 +212,7 @@ function openPersonalBankAccountSetupView({
         // Use set instead of merge so each new flow starts with only the fields we explicitly pass, not leftover fields from a previous flow.
         Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, Object.keys(personalBankAccountState).length > 0 ? personalBankAccountState : null);
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+        Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
 
         if (!isUserValidated) {
             // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.

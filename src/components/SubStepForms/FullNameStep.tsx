@@ -53,6 +53,8 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPagePro
 
         /** Whether the form submit button should be enabled when offline */
         enabledWhenOffline?: boolean;
+        /** Defaults to preserving edits only outside edit substeps. Bank confirmation loops also preserve their edits. */
+        shouldSaveDraft?: boolean;
     };
 
 type FullNameStepPropsWidened = Omit<FullNameStepProps<keyof OnyxFormValuesMapping>, never>;
@@ -78,6 +80,7 @@ function FullNameStepImpl({
     shouldShowPatriotActLink = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldSaveDraft = !isEditing,
 }: FullNameStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -140,7 +143,7 @@ function FullNameStepImpl({
                     aria-label={customFirstNameLabel ?? translate('personalInfoStep.legalFirstName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.firstName}
-                    shouldSaveDraft={!isEditing}
+                    shouldSaveDraft={shouldSaveDraft}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete="given-name"
@@ -152,7 +155,7 @@ function FullNameStepImpl({
                     aria-label={customLastNameLabel ?? translate('personalInfoStep.legalLastName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.lastName}
-                    shouldSaveDraft={!isEditing}
+                    shouldSaveDraft={shouldSaveDraft}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete="family-name"

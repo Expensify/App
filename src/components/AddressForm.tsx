@@ -15,6 +15,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
+import type {FormProviderProps} from './Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 
 import AddressSearch from './AddressSearch';
@@ -95,6 +96,7 @@ type AddressFormProps<TFormID extends AddressFormID> = ForwardedFSClassProps & {
      * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
      */
     addBottomSafeAreaPadding?: boolean;
+    onValueChange?: FormProviderProps['onValueChange'];
 };
 
 /** The values the address inputs start from and report changes to, shared by AddressForm with its AddressForm.Fields */
@@ -257,6 +259,7 @@ function AddressForm<TFormID extends AddressFormID>({
     forwardedFSClass,
     children,
     validate,
+    onValueChange,
 }: AddressFormProps<TFormID>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -345,6 +348,7 @@ function AddressForm<TFormID extends AddressFormID>({
             formID={formID}
             validate={validator}
             onSubmit={onSubmit}
+            onValueChange={onValueChange}
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}

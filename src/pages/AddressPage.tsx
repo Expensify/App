@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import type {FormProviderProps} from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -38,9 +39,10 @@ type AddressPageProps = {
     shouldRequireZip?: boolean;
 
     defaultCountry?: Country;
+    onValueChange?: FormProviderProps['onValueChange'];
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip, onValueChange}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -75,6 +77,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
             setCurrentCountry(getCountryCode(addressPart) ?? '');
             setState('');
+            onValueChange?.('', INPUT_IDS.STATE);
             setCity('');
             setZipcode('');
             return;
@@ -112,6 +115,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     <AddressForm
                         formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                         onSubmit={updateAddress}
+                        onValueChange={onValueChange}
                         submitButtonText={translate('common.save')}
                         city={city}
                         country={currentCountry}

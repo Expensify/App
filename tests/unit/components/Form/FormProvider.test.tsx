@@ -105,6 +105,27 @@ function RegisteredInput({inputID = 'name' as keyof Form}: {inputID?: keyof Form
 }
 
 describe('FormProvider', () => {
+    it('reports edits without treating input registration as an edit', async () => {
+        // Given a locally managed form whose owner tracks edits
+        const onValueChange = jest.fn();
+        render(
+            <FormProvider
+                formID={FORM_ID}
+                onSubmit={jest.fn()}
+                onValueChange={onValueChange}
+                submitButtonText="Save"
+                enabledWhenOffline
+            >
+                <RegisteredInput />
+            </FormProvider>,
+        );
+        expect(onValueChange).not.toHaveBeenCalled();
+        // When its registered input is changed
+        fireEvent.press(screen.getByTestId('mock-input-name'));
+        await waitForBatchedUpdatesWithAct();
+        // Then the owner receives the value rather than a touched/registration notification
+        expect(onValueChange).toHaveBeenCalledWith('value', 'name');
+    });
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

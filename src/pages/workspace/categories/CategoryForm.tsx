@@ -1,4 +1,5 @@
 import FormProvider from '@components/Form/FormProvider';
+import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
@@ -28,9 +29,10 @@ type CategoryFormProps = {
 
     /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */
     addBottomSafeAreaPadding?: boolean;
+    onValueChange?: FormProviderProps['onValueChange'];
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, addBottomSafeAreaPadding = true}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, addBottomSafeAreaPadding = true, onValueChange}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -57,6 +59,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, a
         <FormProvider
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
             onSubmit={submit}
+            onValueChange={onValueChange}
             submitButtonText={translate('common.save')}
             validate={validateEdit ?? validate}
             style={[styles.mh5, styles.flex1]}
