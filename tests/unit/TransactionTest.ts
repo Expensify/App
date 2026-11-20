@@ -1,11 +1,14 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useOnyx from '@hooks/useOnyx';
 
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
     dismissDuplicateTransactionViolation,
+    getDuplicateTransactionDetails,
     markAsCash,
     removeWaypoint,
     sanitizeWaypointsForAPI,
@@ -17,6 +20,7 @@ import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {setForceOffline} from '@libs/NetworkState';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isRecord} from '@libs/ObjectUtils';
@@ -44,6 +48,7 @@ import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, Re
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '../../src/libs/TransactionUtils/duplicates';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
@@ -54,14 +59,6 @@ import * as TestHelper from '../utils/TestHelper';
 import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    personalPolicyOutputCurrency?: string;
-};
 type CapturedOnyxData = {
     optimisticData?: Array<{key: string; value: unknown}>;
     successData?: Array<{key: string; value: unknown}>;
@@ -74,23 +71,6 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
     return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
-}
-
-// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions: undefined,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
-        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
-        rules: undefined,
-        ...rest,
-    });
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -115,10 +95,57 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [CURRENT_USER_EMAIL]: {accountID: CURRENT_USER_ID, login: CURRENT_USER_EMAIL},
+};
 const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    personalPolicyOutputCurrency?: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+};
+
+// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    personalDetailsByLogins = CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+    ...rest
+}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions: undefined,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins,
+        ...rest,
+    });
+}
 
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
@@ -175,7 +202,6 @@ describe('Transaction', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ID]: currentUserPersonalDetails},
                 ...reportCollectionDataSet,
             },
         });
@@ -690,6 +716,91 @@ describe('Transaction', () => {
                 expect(sourceReportStateUpdate.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
+                mockAPIWrite.mockRestore();
+            }
+        });
+
+        it('updates the source submitted report next step to wait on the approver when it keeps other expenses', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const policyID = 'approvalPolicyMove';
+            const approverEmail = 'approver-move@example.com';
+            const approverAccountID = 555;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -300,
+                transactionCount: 3,
+            };
+
+            // Given a submitted report on a basic-approval workspace that keeps other expenses after the move
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            await loadReports();
+
+            // When one of its expenses is moved to another report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                currentUserPersonalDetails,
+                newReport: report,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                reports,
+                transactionViolations: {},
+                isTrackIntentUser: false,
+                cardList: undefined,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+            });
+            await waitForBatchedUpdates();
+
+            try {
+                // Then the source report stays submitted, so its optimistic next step waits on the workspace approver
+                const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
+                const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                if (!sourceReportUpdate) {
+                    throw new Error('Expected a typed source report update');
+                }
+
+                expect(sourceReportUpdate.value.nextStep).toEqual({
+                    actorAccountID: approverAccountID,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                });
+            } finally {
                 mockAPIWrite.mockRestore();
             }
         });
@@ -3451,6 +3562,81 @@ describe('Transaction', () => {
         });
     });
 
+    describe('getDuplicateTransactionDetails', () => {
+        const TRANSACTION_ID = 'duplicateTransaction';
+        const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${TRANSACTION_ID}` as const;
+        const TIMEOUT_MS = 10 * 1000;
+
+        afterEach(async () => {
+            jest.useRealTimers();
+            setForceOffline(false);
+            mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('sets the loading flag while the request is in flight and clears it when the request finishes', async () => {
+            // Given a request that hasn't been answered yet
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, so the review page can show a loader instead of a partial list
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the server answers
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the review page renders the duplicates
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('clears the loading flag after the timeout when the request never finishes', async () => {
+            // Given a request that never gets an answer, which is what a read that throws looks like to the flag
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick', 'queueMicrotask']});
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested and the timeout hasn't passed
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await jest.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+
+            // Then the flag is still set
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the timeout passes
+            await jest.advanceTimersByTimeAsync(1);
+
+            // Then the flag is cleared, so the user isn't stuck on the loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('does not set the loading flag offline', async () => {
+            // Given the user is offline, where a read applies none of its Onyx data
+            setForceOffline(true);
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is never set, so it can't be left stuck on with nothing to clear it
+            expect(await getOnyxValue(LOADING_KEY)).toBeUndefined();
+        });
+
+        it('does nothing without a transaction ID', async () => {
+            // Given no transaction to look up
+            const fetchCallCount = mockFetch.mock.calls.length;
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent
+            expect(mockFetch.mock.calls.length).toBe(fetchCallCount);
+        });
+    });
+
     describe('dismissDuplicateTransactionViolation', () => {
         it('should optimistically remove DUPLICATED_TRANSACTION violation and add dismissed violation report action', async () => {
             const transactionID = 'dismissTxn1';
@@ -3498,6 +3684,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3565,6 +3752,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3645,6 +3833,7 @@ describe('Transaction', () => {
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3685,6 +3874,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3724,6 +3914,7 @@ describe('Transaction', () => {
                     {transactionID: unflaggedTransactionID, violations: []},
                 ],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3782,6 +3973,7 @@ describe('Transaction', () => {
                     {transactionID: unflaggedTransactionID, violations: []},
                 ],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3793,6 +3985,71 @@ describe('Transaction', () => {
             expect(Object.values(unflaggedThreadActions ?? {})).toHaveLength(0);
 
             await mockFetch.resume();
+        });
+
+        it('should set the next step to wait on the approver when dismissing duplicates on a submitted report', async () => {
+            const transactionID = 'dismissTxnApprover';
+            const threadReportID = 'threadDismissApprover';
+            const policyID = 'approvalPolicyDismiss';
+            const approverEmail = 'approver-dismiss@example.com';
+            const approverAccountID = 556;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+            const submittedReport: Report = {
+                ...createExpenseReport(8),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                transactionCount: 2,
+            };
+
+            mockFetch.pause();
+
+            // Given a submitted report on a basic-approval workspace whose only violation is a duplicate
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const iouAction = generateIOUAction(transaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: {...iouAction, childReportID: threadReportID}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            // When the duplicate violation is dismissed
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: submittedReport,
+                policy,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report stays submitted with no other violations, so its optimistic next step waits on the workspace approver
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
+            expect(optimisticReport?.nextStep).toEqual({
+                actorAccountID: approverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         describe('integration with useOnyx', () => {
@@ -3842,6 +4099,7 @@ describe('Transaction', () => {
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
                         isTrackIntentUser: false,
+                        personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                         rules: undefined,
                     });
                     await waitForBatchedUpdates();
@@ -3899,7 +4157,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A, TXN_C])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
 
         expect(onyxData.successData?.length).toBe(1);
         const successEntry = onyxData.successData?.at(0);
@@ -3920,7 +4178,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData?.length).toBe(1);
@@ -3939,10 +4197,30 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toBeNull();
+    });
+
+    it('should clean the duplicate violation of a peer whose report is not loaded', () => {
+        // Given a peer on a report that is missing from Onyx, e.g. right after clearing the cache
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+        const transactions = {
+            ...makeTransactionCollection(TXN_A),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_B}`]: createMock<Transaction>({transactionID: TXN_B, reportID: 'unloadedPeerReport'}),
+        };
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        // When transaction A is removed from the duplicate violations
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, transactions, transactionViolations);
+
+        // Then the peer's violation is still cleared, so it isn't left as a one-sided duplicate
+        expect(onyxData.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(onyxData.optimisticData?.at(0)?.value).toBeNull();
     });
 
     it('should preserve failureData for rollback with original violations', () => {
@@ -3954,7 +4232,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: originalBViolations,
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.failureData?.length).toBe(1);
         const failureEntry = onyxData.failureData?.at(0);
@@ -3970,7 +4248,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A]), makeCategoryViolation()],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toEqual([makeCategoryViolation()]);
@@ -3990,7 +4268,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
         };
 
-        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+        removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
 
         expect(onyxData.optimisticData?.length).toBe(1);
         expect(onyxData.successData).toBeUndefined();

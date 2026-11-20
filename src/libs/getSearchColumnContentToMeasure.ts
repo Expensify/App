@@ -29,6 +29,7 @@ import {
     isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
     isTransactionQuarterGroupListItemType,
+    isTransactionViolationGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionTagGroupListItemType,
     isTransactionWeekGroupListItemType,
@@ -115,6 +116,7 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
@@ -158,6 +160,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'common.week',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]: 'common.year',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER]: 'common.quarter',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION]: 'search.filters.groupBy.violation',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: 'workspace.common.customField1',
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: 'workspace.common.customField2',
     [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: 'common.internationalReimbursementIDs',
@@ -329,7 +332,7 @@ function getWithdrawalIDGroupColumnContentToMeasure(column: SearchColumnType, it
 
 /**
  * Returns the name a group row renders in the column it is grouped by, for the groupings whose row is nothing more than
- * that name: a category, a tag, a merchant, or a period.
+ * that name: a category, a tag, a merchant, a period, or a violation.
  *
  * Returns `null` for a row that isn't one of those, so the caller can go on looking rather than treat it as empty.
  */
@@ -367,6 +370,10 @@ function getGroupNameColumnContentToMeasure(column: SearchColumnType, item: Sear
 
     if (isTransactionQuarterGroupListItemType(item)) {
         return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER ? [{text: item.formattedQuarter}] : [];
+    }
+
+    if (isTransactionViolationGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION ? [{text: item.formattedViolation}] : [];
     }
 
     return null;

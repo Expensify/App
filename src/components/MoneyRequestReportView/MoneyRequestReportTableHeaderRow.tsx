@@ -59,6 +59,9 @@ type MoneyRequestReportTableHeaderRowProps = {
 
     /** True when the table scrolls horizontally, so the column headers must stay visible */
     shouldScrollHorizontally: boolean;
+
+    /** Replaces each column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 
 /**
@@ -77,6 +80,7 @@ function MoneyRequestReportTableHeaderRow({
     amountColumnSize,
     taxAmountColumnSize,
     shouldScrollHorizontally,
+    children,
 }: MoneyRequestReportTableHeaderRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -136,7 +140,9 @@ function MoneyRequestReportTableHeaderRow({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onSortPress={onSortPress}
-                    />
+                    >
+                        {children}
+                    </MoneyRequestReportTableHeader>
                 )}
             </View>
         </OfflineWithFeedback>

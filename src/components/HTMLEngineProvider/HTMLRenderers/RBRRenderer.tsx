@@ -2,7 +2,6 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
@@ -14,7 +13,7 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
     const htmlAttribs = tnode.attributes;
     const isSmall = htmlAttribs?.issmall !== undefined;
     const shouldShowEllipsis = htmlAttribs?.shouldshowellipsis !== undefined;
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const flattenStyle = StyleSheet.flatten(style);
 
     return (
         <TNodeChildrenRenderer
