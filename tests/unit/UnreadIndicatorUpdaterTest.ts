@@ -82,8 +82,6 @@ describe('UnreadIndicatorUpdaterTest', () => {
         const READ_TIME = '2023-08-10 07:15:44.030';
         const OLDER_MESSAGE_TIME = '2023-08-08 07:15:44.030';
         const NEWER_MESSAGE_TIME = '2023-08-12 07:15:44.030';
-
-        // Unread only counts for messages written by someone else
         const OTHER_USER_ACCOUNT_ID = 2;
 
         const getReports = (thread: {lastReadTime: string; lastVisibleActionCreated: string}) => ({
@@ -95,7 +93,6 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 lastVisibleActionCreated: OLDER_MESSAGE_TIME,
                 lastActorAccountID: OTHER_USER_ACCOUNT_ID,
                 lastMessageText: 'test',
-                // Without a notification preference the report counts as hidden for the user
                 participants: {[TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             },
             [`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`]: {

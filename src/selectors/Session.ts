@@ -13,7 +13,6 @@ const emailSelector = (session: OnyxEntry<Session>) => session?.email;
 
 const accountIDSelector = (session: OnyxEntry<Session>) => session?.accountID;
 
-/** Keeps only the email and account ID, so subscribers don't re-render on unrelated session changes like a token refresh */
 const emailAndAccountIDSelector = (session: OnyxEntry<Session>) => session && {email: session.email, accountID: session.accountID};
 
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;

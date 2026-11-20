@@ -24,12 +24,9 @@ function UnreadIndicatorUpdater() {
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {currentReportID} = useCurrentReportIDState();
-    // The scan only checks whether a draft exists, so typing within one draft must not rerun it
     const [hasDraftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`, {selector: hasDraftCommentSelector});
     const [unreadReportIDs, setUnreadReportIDs] = useState<string[]>();
 
-    // The scan covers every report, so it waits until React is idle instead of running inside the renders of a send.
-    // A change cancels the scan that is still waiting, so changes that arrive before React is idle share one scan.
     useEffect(() => {
         const task = Scheduler.scheduleWhenIdle(() => {
             setUnreadReportIDs(
@@ -47,7 +44,6 @@ function UnreadIndicatorUpdater() {
     }, [reports, currentReportID, hasDraftComment, reportNameValuePairs, reportActions, reportAttributes, currentUser?.email, currentUser?.accountID, conciergeReportID]);
 
     useEffect(() => {
-        // Nothing is published before the first scan, so the badge and title keep their value instead of dropping to zero while it waits
         if (!unreadReportIDs) {
             return;
         }
