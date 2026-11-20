@@ -17028,7 +17028,7 @@ describe('SearchUIUtils', () => {
         });
 
         test.each<[SearchAdvancedFiltersKey, Partial<SearchAdvancedFiltersForm>, string]>([
-            [FILTER_KEYS.TRAVEL_TYPE, {travelType: [CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL]}, 'Flight, Car rental'],
+            [FILTER_KEYS.TRAVEL_TYPE, {travelType: [CONST.SEARCH.TRAVEL_TYPE.FLIGHT, CONST.SEARCH.TRAVEL_TYPE.CAR]}, 'Flight, Car rental'],
             [FILTER_KEYS.TRAVEL_TYPE_NOT, {travelTypeNot: [CONST.SEARCH.TRAVEL_TYPE.HOTEL]}, 'Hotel'],
             [FILTER_KEYS.TRAVEL_PLATFORM, {travelPlatform: [CONST.SEARCH.TRAVEL_PLATFORM.AMEX_GBT, CONST.SEARCH.TRAVEL_PLATFORM.OTHER]}, 'Amex GBT/Egencia, Other'],
             [FILTER_KEYS.TRAVEL_PLATFORM_NOT, {travelPlatformNot: [CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL]}, 'Expensify Travel'],
