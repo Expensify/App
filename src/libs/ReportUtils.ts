@@ -11596,7 +11596,7 @@ type ShouldReportBeInOptionListParams = {
     currentUserAccountID?: number;
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
-    draftComment: string | undefined;
+    hasDraftComment: boolean | undefined;
     conciergeReportID: string | undefined;
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
@@ -11616,7 +11616,7 @@ function reasonForReportToBeInOptionList({
     isBillPayBetaEnabled = false,
     excludeEmptyChats,
     doesReportHaveViolations,
-    draftComment,
+    hasDraftComment,
     includeSelfDM = false,
     login,
     currentUserLogin,
@@ -11698,7 +11698,7 @@ function reasonForReportToBeInOptionList({
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
 
-    if (draftComment) {
+    if (hasDraftComment) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
