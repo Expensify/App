@@ -44,7 +44,7 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <WisePaymentPrompt buttonText={translate('iou.pay')}>
+                <WisePaymentPrompt buttonText={confirmText}>
                     <WiseQuotePaymentSummary
                         reportID={reportID}
                         isPayingUnheldOnly={isPayingUnheldOnly}

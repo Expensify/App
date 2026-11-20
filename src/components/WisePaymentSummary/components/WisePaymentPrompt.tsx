@@ -33,11 +33,14 @@ function WisePaymentPrompt({children, buttonText}: WisePaymentPromptProps) {
     const insets = useSafeAreaInsets();
     const {isContentWrappedInScrollView} = useContext(ModalContext);
 
+    // Non-breaking spaces keep the quoted button text, like "Pay $10.10", on one line in the disclosure
+    const unbreakableButtonText = buttonText.replaceAll(' ', ' ');
+
     const content = (
         <>
             {children}
             <View style={styles.mt5}>
-                <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText})} />
+                <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: unbreakableButtonText})} />
             </View>
         </>
     );
