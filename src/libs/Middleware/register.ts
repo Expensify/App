@@ -1,6 +1,7 @@
 import {addMiddleware} from '@libs/Request';
 
 import {
+    DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
@@ -55,7 +56,7 @@ function registerMiddlewares() {
     // Handle supportal permission denial centrally
     addMiddleware(SupportalPermission);
 
-    // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
+    // Handle the global reimbursements pay signal (Corpay or Wise): drop the failed PAY action and the report error, and hold the signal back for Search bulk pay, which lists its unpaid reports itself.
     addMiddleware(GlobalReimbursementPayError);
 
     // Show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without.
@@ -81,6 +82,9 @@ function registerMiddlewares() {
     // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
+
+    // DiscardStaleSearchSnapshot - Drops snapshots explicitly invalidated before inline edits. Must run before SaveResponseInOnyx.
+    addMiddleware(DiscardStaleSearchSnapshot);
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);

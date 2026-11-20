@@ -4,7 +4,6 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -255,20 +254,28 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             )}
                         </Hoverable>
                         <OfflineWithFeedback pendingAction={report?.pendingFields?.description}>
-                            <MenuItemWithTopDescription
-                                shouldRenderAsHTML
-                                description={translate('task.description')}
-                                title={shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report?.description ?? '') : (report?.description ?? '')}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
-                                shouldShowRightIcon={!isDisableInteractive}
-                                disabled={disableState}
-                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                shouldGreyOutWhenDisabled={false}
-                                numberOfLinesTitle={0}
-                                interactive={!isDisableInteractive}
-                                shouldUseDefaultCursorWhenDisabled
+                            <MenuItem.Root
+                                onPress={
+                                    !isDisableInteractive ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path)), session) : undefined
+                                }
+                                style={[styles.pv2, styles.taskDescriptionMenuItem]}
                                 sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('task.description')}>
+                                        {!!report?.description && (
+                                            <MenuItem.FieldValueHTML>
+                                                {shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report.description) : report.description}
+                                            </MenuItem.FieldValueHTML>
+                                        )}
+                                    </MenuItemField.Content>
+                                    {!isDisableInteractive && (
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
                             <MenuItem.Root

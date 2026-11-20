@@ -78,6 +78,7 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
+import type DomainAccountMergeRequest from './DomainAccountMergeRequest';
 import type DomainErrors from './DomainErrors';
 import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
@@ -90,6 +91,7 @@ import type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
@@ -164,7 +166,7 @@ import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard} from './PersonalCard';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsLoadingState} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
@@ -370,7 +372,7 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
-    PersonalDetailsMetadata,
+    PersonalDetailsLoadingState,
     PlaidData,
     Policy,
     PolicyCategories,
@@ -510,6 +512,7 @@ export type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
@@ -554,6 +557,7 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
+    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,
