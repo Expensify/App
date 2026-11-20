@@ -1,3 +1,4 @@
+import useMultiScanEducationalModal from '@hooks/useMultiScanEducationalModal';
 import useOnyx from '@hooks/useOnyx';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
@@ -17,24 +18,20 @@ import React, {createContext, useContext, useState} from 'react';
 type MultiScanState = {
     isMultiScanEnabled: boolean;
     canUseMultiScan: boolean;
-    showEducationalPopup: boolean;
 };
 
 type MultiScanActions = {
     toggleMultiScan: () => void;
-    dismissEducationalPopup: () => void;
     disableMultiScan: () => void;
 };
 
 const defaultState: MultiScanState = {
     isMultiScanEnabled: false,
     canUseMultiScan: false,
-    showEducationalPopup: false,
 };
 
 const defaultActions: MultiScanActions = {
     toggleMultiScan: () => {},
-    dismissEducationalPopup: () => {},
     disableMultiScan: () => {},
 };
 
@@ -57,7 +54,7 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
     const {iouType, routeName} = useScanRouteParams();
 
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
-    const [showEducationalPopup, setShowEducationalPopup] = useState(false);
+    const showMultiScanEducationalModal = useMultiScanEducationalModal();
     const [dismissedProductTrainingResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
@@ -67,7 +64,9 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
 
     function toggleMultiScan() {
         if (!shouldSuppressPromotionalUI && !dismissedProductTrainingResult?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
-            setShowEducationalPopup(true);
+            showMultiScanEducationalModal()?.then(() => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
+            });
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         removeDraftTransactionsByIDs(draftTransactionIDs, true);
@@ -78,23 +77,13 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
         setIsMultiScanEnabled(false);
     }
 
-    function dismissEducationalPopup() {
-        // Defer dismissal to avoid updating state during the modal close animation
-        requestAnimationFrame(() => {
-            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
-            setShowEducationalPopup(false);
-        });
-    }
-
     const stateValue: MultiScanState = {
         isMultiScanEnabled,
         canUseMultiScan,
-        showEducationalPopup,
     };
 
     const actionsValue: MultiScanActions = {
         toggleMultiScan,
-        dismissEducationalPopup,
         disableMultiScan,
     };
 

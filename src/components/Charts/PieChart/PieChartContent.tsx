@@ -248,7 +248,7 @@ function PieChartCanvas({
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
+                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && !!onSlicePress && styles.cursorPointer]}
                 onTouchStart={onChartTouchStart}
             >
                 {processedSlices.length > 0 && (

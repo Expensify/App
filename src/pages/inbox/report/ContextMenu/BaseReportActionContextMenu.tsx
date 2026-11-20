@@ -5,6 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -244,6 +245,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestReportArchived = useReportIsArchived(iouReportID);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
+    const [moneyRequestChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -354,7 +356,7 @@ function BaseReportActionContextMenu({
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser(session) && !isAnonymousAction) {
             hideContextMenu(false, () => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn(session);
             });
         } else {
             callback();
@@ -394,6 +396,7 @@ function BaseReportActionContextMenu({
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
@@ -411,6 +414,7 @@ function BaseReportActionContextMenu({
                                 childReportActions,
                                 originalReportActions,
                                 reportIDToName,
+                                accountIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -457,6 +461,7 @@ function BaseReportActionContextMenu({
                                 iouTransactionViolations,
                                 iouTransactionReport,
                                 moneyRequestActionChildReport,
+                                moneyRequestChatReport,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,
@@ -466,6 +471,7 @@ function BaseReportActionContextMenu({
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
                                 rules,
+                                isThreadReportParentAction,
                             };
 
                             if ('renderContent' in contextAction) {

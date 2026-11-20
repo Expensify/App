@@ -21,6 +21,7 @@ import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 
 import {openTravelDotLink} from '@userActions/Link';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -32,6 +33,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CarTripDetails from './CarTripDetails';
@@ -47,7 +49,6 @@ type DynamicTripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, ty
 
 function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons([
-        'NewWindow',
         'Plane',
         'PlaneCircleSlash',
         'Bed',
@@ -75,6 +76,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const {transactionID, sequenceIndex, pnr, reportID} = route.params;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`);
@@ -146,37 +148,47 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                             personalDetails={travelerPersonalDetails}
                         />
                     )}
-                    <MenuItem
+                    <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_MODIFY_TRIP}
-                        title={translate('travel.modifyTrip')}
-                        icon={icons.Pencil}
-                        iconRight={icons.NewWindow}
-                        shouldShowRightIcon
-                        onPress={() => {
+                        onPress={callIfAuthenticated(() => {
                             setIsModifyTripLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
                                 setIsModifyTripLoading(false);
                             });
-                        }}
-                        wrapperStyle={styles.mt3}
-                        shouldShowLoadingSpinnerIcon={isModifyTripLoading}
-                        disabled={isModifyTripLoading || isOffline}
-                    />
-                    <MenuItem
+                        }, session)}
+                        style={styles.mt3}
+                        isDisabled={isModifyTripLoading || isOffline}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>{isModifyTripLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Pencil} />}</MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('travel.modifyTrip')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.NewWindowIcon />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                    <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_TRIP_SUPPORT}
-                        title={translate('travel.tripSupport')}
-                        icon={icons.Phone}
-                        iconRight={icons.NewWindow}
-                        shouldShowRightIcon
-                        onPress={() => {
+                        onPress={callIfAuthenticated(() => {
                             setIsTripSupportLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {
                                 setIsTripSupportLoading(false);
                             });
-                        }}
-                        shouldShowLoadingSpinnerIcon={isTripSupportLoading}
-                        disabled={isTripSupportLoading || isOffline}
-                    />
+                        }, session)}
+                        isDisabled={isTripSupportLoading || isOffline}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>{isTripSupportLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Phone} />}</MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('travel.tripSupport')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.NewWindowIcon />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

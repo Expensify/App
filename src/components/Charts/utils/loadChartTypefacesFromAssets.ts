@@ -1,6 +1,6 @@
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
+import type {SkTypeface} from 'react-native-skia';
 
 type ChartFontLoadErrorHandler = (assetKey: string, error: unknown) => void;
 

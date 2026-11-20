@@ -11,7 +11,7 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -27,6 +27,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {getSearchQueryError} from '@libs/SearchQueryUtils';
 import {
     getCustomColumnDefault,
     getFiltersFormWithTripRoomStatuses,
@@ -196,11 +197,18 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const queryError = currentSearchQueryJSON ? getSearchQueryError(currentSearchQueryJSON, currentSearchResults?.search) : undefined;
+    const canSave = !!currentSearchQueryJSON && !queryError;
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
+            return;
+        }
+
+        if (!canSave) {
             return;
         }
 
@@ -241,6 +249,7 @@ function SearchSavePage() {
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                isSubmitDisabled={!canSave}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
             >
                 <InputWrapper
@@ -251,6 +260,15 @@ function SearchSavePage() {
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
                 />
+                {!!queryError && (
+                    <Text
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="polite"
+                        style={[styles.formError, styles.mt2]}
+                    >
+                        {translate(queryError)}
+                    </Text>
+                )}
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
                 {appliedFilters.length > 0 ? (
                     appliedFilters.map((filter) => (

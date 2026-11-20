@@ -29,6 +29,7 @@ function AmountFormFieldInput({
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
     onSubmitEditing,
+    submitBehavior = 'submit',
     testID,
     touchableInputWrapperStyle,
     style,
@@ -73,7 +74,7 @@ function AmountFormFieldInput({
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            submitBehavior="submit"
+            submitBehavior={submitBehavior}
             testID={testID}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             value={formattedNumber}

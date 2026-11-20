@@ -3,6 +3,7 @@ import {BROWSER_EXTENSION_URL_PATTERNS} from '@libs/isBrowserExtensionError';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    canvasKitNoiseFilterIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
@@ -28,7 +29,12 @@ import makeDebugTransport from './debugTransport';
  * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
  * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
+];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);

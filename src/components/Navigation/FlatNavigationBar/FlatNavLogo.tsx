@@ -8,15 +8,19 @@ import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
 type FlatNavLogoProps = {
     onPress: () => void;
+
+    /** Whether the navigation bar is visually collapsed, so the logo fades out and stops accepting interaction. */
+    isCollapsed?: boolean;
 };
 
 /** Expensify wordmark at the top of the flat navigation bar, which leads Home like the logo in the icon bar. */
-function FlatNavLogo({onPress}: FlatNavLogoProps) {
+function FlatNavLogo({onPress, isCollapsed = false}: FlatNavLogoProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
@@ -27,7 +31,11 @@ function FlatNavLogo({onPress}: FlatNavLogoProps) {
             accessibilityLabel={translate('common.home')}
             testID="ExpensifyLogoButton"
             onPress={onPress}
+            linkRoute={ROUTES.HOME}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+            aria-hidden={isCollapsed}
+            tabIndex={isCollapsed ? -1 : 0}
+            disabled={isCollapsed}
         >
             <Icon
                 src={icons.ExpensifyWordmark}

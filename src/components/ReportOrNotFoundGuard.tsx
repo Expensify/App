@@ -80,7 +80,7 @@ function getReportOrNotFoundDecision({
 type ReportOrNotFoundGuardProps = {
     reportID: string | undefined;
     shouldRequireReportID?: boolean;
-    children: ReactElement;
+    children: ReactElement | null;
 };
 
 function ReportOrNotFoundGuard({reportID, shouldRequireReportID = true, children}: ReportOrNotFoundGuardProps) {
@@ -88,7 +88,7 @@ function ReportOrNotFoundGuard({reportID, shouldRequireReportID = true, children
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
     const isFocused = useIsFocused();
