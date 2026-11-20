@@ -469,10 +469,11 @@ describe('OnyxDerived', () => {
             });
             await waitForBatchedUpdates();
 
-            // Get initial computed value reference
+            // Given the attributes were computed for a report owned by the account that is about to be renamed
             const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
 
-            // Change the displayName - this should trigger full recomputation
+            // When the display name changes, which must make the config recompute that report
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 '1': {
                     displayName: 'Jane Doe',
@@ -484,12 +485,15 @@ describe('OnyxDerived', () => {
             // Get the computed value after displayName change
             const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // The computed value should not be the same object (new computation happened)
-            expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+            // Then the spy proves the report was recomputed, and the entry is equal because the name is not an attribute
+            expect(generateReportAttributesSpy).toHaveBeenCalled();
+            expect(derivedReportAttributesAfterDisplayNameChange?.reports[mockReport.reportID]).toEqual(initialDerivedReportAttributes?.reports[mockReport.reportID]);
+
+            generateReportAttributesSpy.mockRestore();
         });
 
         it('should only recompute reports that reference the changed accountID when a display name changes', () => {
-            // Two reports: one owned by account 2, the other owned by account 3.
+            // Given two reports, one owned by account 2 and the other by account 3, both already computed once
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
                 [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
@@ -556,7 +560,8 @@ describe('OnyxDerived', () => {
                 ],
                 personalDetailsSource,
             );
-            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            // When only account 2's display name changes, we count which reports the per-report generator is run for
+            const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
             const afterChange = reportAttributes.compute(
                 [
                     reports,
@@ -581,9 +586,88 @@ describe('OnyxDerived', () => {
                 {...personalDetailsSource, currentValue: initial},
             );
 
-            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
-            expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
+            // Then only the report that references the account is recomputed, and the other one is carried over by reference
+            expect(generateReportAttributesSpy).toHaveBeenCalledTimes(1);
+            expect(generateReportAttributesSpy).toHaveBeenCalledWith(expect.objectContaining({report: expect.objectContaining({reportID: 'ref_report'})}));
+            expect(afterChange.reports.ref_report).toEqual(initial.reports.ref_report);
             expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
+
+            generateReportAttributesSpy.mockRestore();
+        });
+
+        describe('skipping the write when no attribute changed', () => {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` as const;
+
+            beforeEach(async () => {
+                jest.restoreAllMocks();
+                await Onyx.set(reportKey, mockReport);
+                await waitForBatchedUpdates();
+            });
+
+            it('should keep the previous value and not write it again when only a non-attribute field changes', async () => {
+                // Given the report attributes were computed and stored
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // When a field the config does not read changes, as lastReadTime does when a report is marked as read
+                await Onyx.merge(reportKey, {lastReadTime: '2023-01-02 00:00:00.000'});
+                await waitForBatchedUpdates();
+
+                // Then the current value is kept, so subscribers are not woken
+                expect(setDerivedValueSpy.mock.calls.filter(([key]) => key === ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toHaveLength(0);
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBe(initialValue);
+            });
+
+            it('should write a new value when an attribute changes', async () => {
+                // Given the report attributes were computed and stored
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // When an error is added, which changes the attributes
+                await Onyx.merge(reportKey, {errorFields: {addWorkspaceRoom: {'1234567890': 'Error message'}}});
+                await waitForBatchedUpdates();
+
+                // Then the change is written, so the skip never hides a real change
+                expect(setDerivedValueSpy.mock.calls.filter(([key]) => key === ONYXKEYS.DERIVED.REPORT_ATTRIBUTES).length).toBeGreaterThan(0);
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(updatedValue?.reports[mockReport.reportID].reportErrors).toEqual({'1234567890': 'Error message'});
+            });
+
+            it('should write a new value when only the locale changes', async () => {
+                // Given the attributes were computed for English, loaded explicitly because an earlier test may have changed it
+                await IntlStore.load(CONST.LOCALES.EN);
+                await waitForBatchedUpdates();
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(initialValue?.locale).toBe(CONST.LOCALES.EN);
+
+                // When the locale changes while every entry stays identical
+                await IntlStore.load(CONST.LOCALES.ES);
+                await waitForBatchedUpdates();
+
+                // Then the value is written, because entries hold localized text
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(updatedValue?.locale).toBe(CONST.LOCALES.ES);
+            });
+
+            it('should write a new value when one report is replaced by another and the report count is the same', async () => {
+                // Given the report attributes were computed and stored for one report
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const otherReportID = 'test_2';
+
+                // When that report is removed and a different one is added in the same update
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.SET, key: reportKey, value: null},
+                    {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT}${otherReportID}`, value: {...mockReport, reportID: otherReportID}},
+                ]);
+                await waitForBatchedUpdates();
+
+                // Then a swap that keeps the key count equal is not mistaken for no change
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(Object.keys(updatedValue?.reports ?? {})).toEqual([otherReportID]);
+            });
         });
 
         describe('reportErrors', () => {
@@ -857,6 +941,67 @@ describe('OnyxDerived', () => {
         });
     });
 
+    describe('visibleReportActions skipping the write when no entry changed', () => {
+        const reportID = '10';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        const countWrites = (spy: jest.SpyInstance) => spy.mock.calls.filter(([key]) => key === ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS).length;
+
+        beforeEach(async () => {
+            jest.restoreAllMocks();
+            await Onyx.multiSet({
+                [reportKey]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT}),
+                [actionsKey]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep the same value and not write it when a report update leaves its visibility unchanged', async () => {
+            // Given the visibility was computed for a report
+            const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+            // When the report is marked as read, which recomputes its entry but changes nothing in it
+            await Onyx.merge(reportKey, {lastReadTime: '2023-01-02 00:00:00.000'});
+            await waitForBatchedUpdates();
+
+            // Then the old value is kept, so subscribers of the key are not notified for nothing
+            expect(countWrites(setDerivedValueSpy)).toBe(0);
+            expect(await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS)).toBe(initialValue);
+        });
+
+        it('should write a new value when an action is added', async () => {
+            // Given the visibility was computed for a report
+            const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+
+            // When a new action arrives (control for the skip above)
+            await Onyx.merge(actionsKey, {'2': getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})});
+            await waitForBatchedUpdates();
+
+            // Then the new action gets an entry in a new value
+            const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(updatedValue).not.toBe(initialValue);
+            expect(Object.keys(updatedValue?.[reportID] ?? {})).toHaveLength(2);
+        });
+
+        it('should write a new value when one report is replaced by another and the report count is the same', async () => {
+            // Given the visibility was computed for one report
+            const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+
+            // When that report's actions are removed and another report's actions are added in one update
+            await Onyx.update([
+                {onyxMethod: Onyx.METHOD.SET, key: actionsKey, value: null},
+                {onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}11`, value: {'5': getFakeReportAction(5, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})}},
+            ]);
+            await waitForBatchedUpdates();
+
+            // Then a swap that keeps the key count equal is not mistaken for no change
+            const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(updatedValue).not.toBe(initialValue);
+            expect(Object.keys(updatedValue ?? {})).toEqual(['11']);
+        });
+    });
+
     describe('sortedReportActions', () => {
         it('applies a REPORT change that is coalesced with a REPORT_ACTIONS change for another report', async () => {
             const chatReportID = '10';
@@ -946,6 +1091,87 @@ describe('OnyxDerived', () => {
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('201');
             expect(derived?.sortedActions?.[expenseReportID]?.at(0)?.reportActionID).toBe('201');
+        });
+
+        describe('skipping the write when no entry changed', () => {
+            const reportID = '10';
+            const otherReportID = '11';
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const otherActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${otherReportID}` as const;
+            const countWrites = (spy: jest.SpyInstance) => spy.mock.calls.filter(([key]) => key === ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS).length;
+
+            beforeEach(async () => {
+                jest.restoreAllMocks();
+                await Onyx.multiSet({
+                    [reportKey]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT}),
+                    [actionsKey]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('should keep the same value and not write it when a report update leaves its actions unchanged', async () => {
+                // Given the sorted actions were computed for a report
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // When the report is marked as read, which recomputes its entry but changes nothing in it
+                await Onyx.merge(reportKey, {lastReadTime: '2023-01-02 00:00:00.000'});
+                await waitForBatchedUpdates();
+
+                // Then the old value is kept, so subscribers of the key are not notified for nothing
+                expect(countWrites(setDerivedValueSpy)).toBe(0);
+                expect(await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS)).toBe(initialValue);
+            });
+
+            it('should write a new value when an action is added', async () => {
+                // Given the sorted actions were computed for a report
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // When a new action arrives (control for the skip above)
+                await Onyx.merge(actionsKey, {'2': getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})});
+                await waitForBatchedUpdates();
+
+                // Then the change is written and visible in the stored value
+                expect(countWrites(setDerivedValueSpy)).toBeGreaterThan(0);
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(updatedValue?.sortedActions[reportID]).toHaveLength(2);
+            });
+
+            it('should write a new value when one report is replaced by another and the report count is the same', async () => {
+                // Given the sorted actions were computed for one report
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+
+                // When that report's actions are removed and another report's actions are added in one update
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.SET, key: actionsKey, value: null},
+                    {onyxMethod: Onyx.METHOD.SET, key: otherActionsKey, value: {'5': getFakeReportAction(5, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})}},
+                ]);
+                await waitForBatchedUpdates();
+
+                // Then a swap that keeps the key count equal is not mistaken for no change
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(Object.keys(updatedValue?.sortedActions ?? {})).toEqual([otherReportID]);
+            });
+
+            it('should write a new value when a report is removed', async () => {
+                // Given the sorted actions were computed for two reports
+                await Onyx.set(otherActionsKey, {'5': getFakeReportAction(5, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})});
+                await waitForBatchedUpdates();
+                const initialValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+
+                // When one report's actions are removed while the other entry stays identical
+                await Onyx.set(otherActionsKey, null);
+                await waitForBatchedUpdates();
+
+                // Then the lower key count alone makes the value change
+                const updatedValue = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+                expect(updatedValue).not.toBe(initialValue);
+                expect(Object.keys(updatedValue?.sortedActions ?? {})).toEqual([reportID]);
+            });
         });
     });
 

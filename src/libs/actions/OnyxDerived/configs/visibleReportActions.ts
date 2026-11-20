@@ -9,6 +9,7 @@ import {
 import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import {reuseUnchanged} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +17,8 @@ import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {shallowEqual} from 'fast-equals';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
@@ -198,6 +201,9 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        return result;
+        if (!currentValue) {
+            return result;
+        }
+        return reuseUnchanged(result, currentValue, shallowEqual);
     },
 });

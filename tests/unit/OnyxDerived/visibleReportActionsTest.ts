@@ -8,6 +8,9 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
+import {getFakeReportAction} from '../../utils/ReportTestUtils';
+
 describe('visibleReportActions', () => {
     describe('SESSION detected via triggeredKeys', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
@@ -259,5 +262,42 @@ describe('visibleReportActions', () => {
         expect(promotedResult[reportID]?.[whisperActionID]).toBe(true);
         expect(promotedResult[reportID]?.[deletedWhisperActionID]).toBe(false);
         expect(promotedResult[policyReportWithoutWhisperID]).toBe(currentValue[policyReportWithoutWhisperID]);
+    });
+
+    describe('keeping the current value', () => {
+        const reportID = 'A';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const commentAction = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: {[commentAction.reportActionID]: commentAction}};
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {}, {}, {}];
+        const compute = (
+            currentValue: VisibleReportActionsDerivedValue | undefined,
+            triggeredKey?: OnyxKey,
+            sourceValues?: Parameters<typeof visibleReportActionsConfig.compute>[1]['sourceValues'],
+        ) => visibleReportActionsConfig.compute(args, {currentValue, sourceValues, triggeredKeys: new Set<OnyxKey>(triggeredKey ? [triggeredKey] : [])});
+
+        it('returns the same value for a policy update that changes no visibility', () => {
+            // Given a computed value
+            const currentValue = compute(undefined);
+
+            // When a policy changes while no report refers to it
+            const result = compute(currentValue, ONYXKEYS.COLLECTION.POLICY, {[ONYXKEYS.COLLECTION.POLICY]: {[`${ONYXKEYS.COLLECTION.POLICY}p1`]: createRandomPolicy(1)}});
+
+            // Then the reference is kept so the engine can skip the write
+            expect(result).toBe(currentValue);
+        });
+
+        it('returns a new value when a session recompute drops a report that no longer has actions', () => {
+            // Given a computed value that still holds a report which lost its actions
+            const currentValue: VisibleReportActionsDerivedValue = {...compute(undefined), B: {}};
+
+            // When the session triggers a full recompute
+            const result = compute(currentValue, ONYXKEYS.SESSION);
+
+            // Then the stale report is gone, so the value is new even though the remaining entry is unchanged
+            expect(result).not.toBe(currentValue);
+            expect(result.B).toBeUndefined();
+            expect(result[reportID]).toBe(currentValue[reportID]);
+        });
     });
 });

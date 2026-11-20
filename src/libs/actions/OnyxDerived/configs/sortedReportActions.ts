@@ -2,6 +2,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {getCombinedReportActions, getOneTransactionThreadReportID, getSortedReportActions, withDEWRoutedActionsArray} from '@libs/ReportActionsUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import {reuseUnchanged} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +11,33 @@ import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValue
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {shallowEqual} from 'fast-equals';
+
 const EMPTY_VALUE: SortedReportActionsDerivedValue = {sortedActions: {}, lastActions: {}, transactionThreadIDs: {}};
+
+function areActionListsEqual(previous: ReportAction[], next: ReportAction[]): boolean {
+    if (previous.length !== next.length) {
+        return false;
+    }
+    for (let i = 0; i < previous.length; i++) {
+        if (previous[i] !== next[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function reuseUnchangedValue(next: SortedReportActionsDerivedValue, currentValue: SortedReportActionsDerivedValue | undefined): SortedReportActionsDerivedValue {
+    if (!currentValue) {
+        return next;
+    }
+    const sortedActions = reuseUnchanged(next.sortedActions, currentValue.sortedActions, areActionListsEqual);
+    const lastActions = reuseUnchanged(next.lastActions, currentValue.lastActions, shallowEqual);
+    // Thread IDs are strings or undefined, so the reference check inside the helper already decides equality.
+    const transactionThreadIDs = reuseUnchanged(next.transactionThreadIDs, currentValue.transactionThreadIDs, () => false);
+    const isUnchanged = sortedActions === currentValue.sortedActions && lastActions === currentValue.lastActions && transactionThreadIDs === currentValue.transactionThreadIDs;
+    return isUnchanged ? currentValue : {sortedActions, lastActions, transactionThreadIDs};
+}
 
 function computeForReport(
     reportID: string,
@@ -120,7 +147,7 @@ export default createOnyxDerivedValueConfig({
                 }
             }
 
-            return {sortedActions, lastActions, transactionThreadIDs};
+            return reuseUnchangedValue({sortedActions, lastActions, transactionThreadIDs}, currentValue);
         }
 
         // Full recompute on first load or when the network changes
@@ -149,7 +176,7 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        return {sortedActions, lastActions, transactionThreadIDs};
+        return reuseUnchangedValue({sortedActions, lastActions, transactionThreadIDs}, currentValue);
     },
 });
 

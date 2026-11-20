@@ -282,10 +282,8 @@ describe('sortedReportActions', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
         });
 
-        // Then the expense report is recomputed because its chat report changed, and the unrelated report keeps its sorted actions
-        expect(result.sortedActions[expenseReportID]).not.toBe(currentValue.sortedActions[expenseReportID]);
-        expect(result.sortedActions[expenseReportID]).toEqual(currentValue.sortedActions[expenseReportID]);
-        expect(result.sortedActions[unrelatedReportID]).toBe(currentValue.sortedActions[unrelatedReportID]);
+        // Then the recompute finds every entry unchanged, so the same value is returned and the write is skipped
+        expect(result).toBe(currentValue);
     });
 
     it('updates the last action of an expense report when its transaction thread gets a new action', () => {

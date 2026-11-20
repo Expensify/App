@@ -24,4 +24,28 @@ const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) 
         skipCacheCheck: true,
     });
 
-export {hasKeyTriggeredCompute, setDerivedValue};
+/**
+ * Returns `previous` when `next` holds the same entries, otherwise `next`. Entries of `next` that equal their previous entry
+ * are swapped for the previous reference first, so a changed value still keeps the references of the entries that did not change.
+ */
+function reuseUnchanged<V>(next: Record<string, V>, previous: Record<string, V>, isEqual: (previousEntry: NonNullable<V>, nextEntry: NonNullable<V>) => boolean): Record<string, V> {
+    let hasChanged = false;
+    const keys = Object.keys(next);
+    for (const key of keys) {
+        const entry = next[key];
+        const previousEntry = previous[key];
+        if (previousEntry === entry && (entry !== undefined || key in previous)) {
+            continue;
+        }
+        if (previousEntry && entry && isEqual(previousEntry, entry)) {
+            // eslint-disable-next-line no-param-reassign -- swapping in the previous reference is the purpose of this helper
+            next[key] = previousEntry;
+            continue;
+        }
+        hasChanged = true;
+    }
+    // A removed key leaves the count lower even when every remaining entry is unchanged.
+    return hasChanged || keys.length !== Object.keys(previous).length ? next : previous;
+}
+
+export {hasKeyTriggeredCompute, setDerivedValue, reuseUnchanged};

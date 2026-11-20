@@ -46,6 +46,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [PERF-20](rules/perf-20-no-ad-hoc-deferral.md) — Defer heavy work to happen after visual transitions
 - [PERF-21](rules/perf-21-rows-read-own-data.md) — List rows read their own Onyx data
 - [PERF-22](rules/perf-22-row-single-member-subscriptions.md) — List rows subscribe to single collection members
+- [PERF-23](rules/perf-23-derived-value-keeps-reference.md) — Derived values keep their reference when nothing changed
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components

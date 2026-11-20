@@ -6,8 +6,7 @@ import {deepEqual} from 'fast-equals';
  * Returns the IDs of reports whose derived attributes changed between two snapshots (including entries that were
  * removed), or `undefined` when none did.
  *
- * The derived value is rewritten with Onyx.set on every recompute, which re-creates entries even when nothing changed,
- * so entries are compared by value rather than by reference.
+ * Entries are compared by value because Onyx.set copies the derived value, so unchanged entries arrive as new objects.
  */
 function getReportAttributesUpdates(
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,

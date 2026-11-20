@@ -29,7 +29,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
-import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
+import {hasKeyTriggeredCompute, reuseUnchanged} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -50,6 +50,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {deepEqual} from 'fast-equals';
 
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
@@ -956,10 +957,13 @@ export default createOnyxDerivedValueConfig({
         previousChildReportIDsByChat = childReportIDsByChat;
         previousChatReportIDByChildReportID = chatReportIDByChildReportID;
 
-        return {
-            reports: reportAttributes,
-            locale: preferredLocale ?? null,
-        };
+        const nextLocale = preferredLocale ?? null;
+        // Entries hold localized text, so a locale change always produces a new value.
+        if (!currentValue?.reports || currentValue.locale !== nextLocale) {
+            return {reports: reportAttributes, locale: nextLocale};
+        }
+        const nextReports = reuseUnchanged(reportAttributes, currentValue.reports, deepEqual);
+        return nextReports === currentValue.reports ? currentValue : {reports: nextReports, locale: nextLocale};
     },
     // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full
     // change (see the engine's resetForClear). Otherwise the rehydrated data is diffed against the stale
