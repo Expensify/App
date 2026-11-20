@@ -73,6 +73,8 @@ Choose how frequently expenses are submitted:
 
 If **Submissions** is disabled, expenses remain in the **Unreported** state until a member manually adds them to a report, and reports must be submitted manually. Use this configuration if you do not want expenses to be automatically added to reports.
 
+**Note:** Workspaces that Expensify creates when you choose **Track expenses for my business** or **Organize my personal spending** during onboarding start with **Workflows** disabled. **Submissions** is already enabled with the frequency set to **Manually**, so expenses are added to a report for you, but the report isn't submitted until you submit it. You'll see these settings after you enable **Workflows**.
+
 ---
 
 ## How Payments work
