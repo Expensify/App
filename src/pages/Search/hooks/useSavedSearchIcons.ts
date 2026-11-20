@@ -11,6 +11,10 @@ type SavedSearchCollection = Record<string, SaveSearchItem>;
  * every unrelated Onyx update or state change in the frequently-rerendering menus that consume this.
  */
 function useSavedSearchIcons(savedSearches: SavedSearchCollection | undefined): Map<string, ReturnType<typeof getSavedSearchIconName>> {
+    // This hook calls no other hooks, so React Compiler skips it unless it is opted in. Without memoization it returns a
+    // new map on every render, and the menus rebuild every tab from it.
+    'use memo';
+
     const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
     for (const item of Object.values(savedSearches ?? {})) {
         if (iconNames.has(item.query)) {

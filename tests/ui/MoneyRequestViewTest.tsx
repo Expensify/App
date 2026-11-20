@@ -264,7 +264,7 @@ describe('MoneyRequestView edit fields', () => {
 
         // Then the detail view shows the MCC without dropping the existing expense editor.
         expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
-        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
     });
 
     it('shows additional fields in the saved column order and updates them when the preference changes', async () => {
@@ -286,7 +286,7 @@ describe('MoneyRequestView edit fields', () => {
         expect(additionalFields).toHaveLength(2);
         expect(additionalFields.at(0)).toBe(screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'));
         expect(additionalFields.at(1)).toBe(screen.getByLabelText('common.mcc, 0012'));
-        expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+        expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
         expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
 
         // When the user turns off Exchange rate in the report's column settings.
@@ -357,8 +357,7 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
         });
     });
 
@@ -416,7 +415,6 @@ describe('MoneyRequestView edit fields', () => {
                 renderedRows.find(({description}) => description === longTagName),
                 renderedRows.find(({description}) => description?.startsWith('iou.amount')),
                 renderedRows.find(({description}) => description === 'common.description'),
-                renderedRows.find(({description}) => description === 'common.merchant'),
                 renderedRows.find(({description}) => description === 'common.report'),
             ];
 
@@ -474,7 +472,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
         });
         expect(screen.queryByLabelText(fieldLabel('common.category'))).not.toBeOnTheScreen();
         expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
@@ -660,8 +658,8 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.merchant')})).toBeNull();
         });
     });
 
@@ -699,7 +697,7 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
             expect(screen.getByRole('button', {name: fieldLabel('common.date')})).toBeOnTheScreen();
         });
     });
@@ -740,7 +738,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
-            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.merchant'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.merchant')})).toBeNull();
             expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
             expect(screen.queryByRole('button', {name: fieldLabel('common.date')})).not.toBeOnTheScreen();
         });

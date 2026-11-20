@@ -3,10 +3,10 @@ import type {LabelRotation, WrappedLabelConfig} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import VictoryTheme, {GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
-import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import React from 'react';
+import {Group, Paragraph, vec} from 'react-native-skia';
 
 type ChartXAxisLabelsProps = {
     /** Original (non-truncated) label strings from the data. */

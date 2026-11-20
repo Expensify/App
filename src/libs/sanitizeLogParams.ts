@@ -17,6 +17,11 @@ const SENSITIVE_KEYS = new Set([
     'clientSecret',
     'cardNumber',
     'cardCVV',
+    // Expensify Card PIN commands send the PIN, and the card reveal commands return the PIN and full card details under these names.
+    'pin',
+    'pan',
+    'cvv',
+    'expiration',
     'signedChallenge',
     'nonce',
     'nonceSignature',
