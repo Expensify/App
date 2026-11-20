@@ -1928,7 +1928,7 @@
 "../../src/stories/Form.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/stories/HeaderWithBackButton.stories.tsx"	"no-restricted-imports"	2
 "../../src/stories/MenuItem.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	29
+"../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	25
 "../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	22
 "../../src/stories/NumberWithSymbolForm.stories.tsx"	"@typescript-eslint/no-deprecated/CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX"	1
 "../../src/stories/NumberWithSymbolForm.stories.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	3
