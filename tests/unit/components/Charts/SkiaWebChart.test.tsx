@@ -11,15 +11,15 @@ import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNo
 import type {ComponentType} from 'react';
 
 import * as Sentry from '@sentry/react-native';
-import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
+import {LoadSkiaWeb} from 'react-native-skia/lib/module/web';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason', () => jest.fn());
 
-jest.mock('@shopify/react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
+jest.mock('react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
 
 jest.mock('@libs/telemetry/integrations/canvasKitNoiseFilter', () => ({markCanvasKitLoadStarted: jest.fn()}));
 

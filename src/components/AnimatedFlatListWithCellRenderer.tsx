@@ -63,7 +63,7 @@ type ReanimatedFlatListPropsWithLayout<T> = {
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
     onScroll?: FlatListProps<Item>['onScroll'];
-    inverted?: boolean | null | undefined;
+    inverted?: FlatListProps<Item>['inverted'];
     ref?: Ref<FlatList>;
 };
 

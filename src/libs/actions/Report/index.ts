@@ -8226,6 +8226,7 @@ function convertIOUReportToExpenseReport(
         ...getNegatedReportTotals(iouReport),
     };
 
+    // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;

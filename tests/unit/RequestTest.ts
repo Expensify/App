@@ -4,10 +4,10 @@ import Log from '@src/libs/Log';
 import * as Request from '@src/libs/Request';
 import type {Middleware} from '@src/libs/Request';
 import {endSpan, endSpanWithAttributes, startSpan} from '@src/libs/telemetry/activeSpans';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type Onyx from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -123,9 +123,17 @@ test('Request.processWithMiddleware() passes real Error rejections through untou
         });
 });
 
-test('Request.processWithMiddleware() measures the request phases for measured commands only', () => {
-    // Given a Search request, which is in MEASURED_REQUEST_PHASE_COMMANDS
-    return Request.processWithMiddleware({command: READ_COMMANDS.SEARCH, data: {authToken: 'testToken'}}).then(() => {
+test('Request.processWithMiddleware() measures the request phases for measured commands only', async () => {
+    // Given a Search request, which is in MEASURED_REQUEST_PHASE_COMMANDS, whose snapshot already holds a first page of two transactions
+    const hash = 123;
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const;
+    await Onyx.merge(snapshotKey, {data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {transactionID: '1'}, [`${ONYXKEYS.COLLECTION.TRANSACTION}2` as const]: {transactionID: '2'}}});
+
+    // And a middleware that merges the next page into the snapshot, the way SaveResponseInOnyx applies a read response
+    Request.addMiddleware((response) => response.then((data) => Onyx.merge(snapshotKey, {data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}3` as const]: {transactionID: '3'}}}).then(() => data)));
+
+    // When the Search response is processed
+    return Request.processWithMiddleware({command: READ_COMMANDS.SEARCH, data: {authToken: 'testToken', hash}}).then(() => {
         // Then every phase around the network call and the Onyx apply is opened under the SearchData names, and each one is closed again
         const startedSpanIds = mockStartSpan.mock.calls.map(([spanId]) => spanId);
         const endedSpanIds = [...mockEndSpan.mock.calls, ...mockEndSpanWithAttributes.mock.calls].map(([spanId]) => spanId);
@@ -134,8 +142,13 @@ test('Request.processWithMiddleware() measures the request phases for measured c
         expect([...endedSpanIds].sort()).toEqual([...startedSpanIds].sort());
 
         // And the server's requestID is stamped on the phases that can see it, so one attempt's spans can be joined in Sentry
+        // And the Apply span counts the stored snapshots and every entry loaded so far, not only the page this response carried
         const applySpanId = startedSpanIds.find((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY}_`));
-        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: MOCK_REQUEST_ID});
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(applySpanId, {
+            [CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: MOCK_REQUEST_ID,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_SNAPSHOT_COUNT]: 1,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES]: 3,
+        });
 
         // And an unmeasured command opens no phase spans at all
         jest.clearAllMocks();
