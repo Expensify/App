@@ -1,4 +1,12 @@
-import {isTryNewDotLoading, hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
+import {
+    isTryNewDotLoading,
+    hasBeenInNewDot30Days,
+    isOldAppRedirectBlocked,
+    shouldBlockOldAppExit,
+    shouldHideOldAppRedirect,
+    shouldUseClassicOnWeb,
+    shouldUseOldApp,
+} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 
@@ -84,6 +92,21 @@ describe('TryNewDotUtils', () => {
         });
 
         expect(shouldUseOldApp(tryNewDot)).toBe(false);
+    });
+
+    it.each<[string, TryNewDot | undefined, boolean]>([
+        ['an account that chose New Expensify', createMock<TryNewDot>({classicRedirect: {dismissed: false}}), false],
+        ['an account that chose Classic', createMock<TryNewDot>({classicRedirect: {dismissed: true}}), true],
+        ['a mobile-locked account that chose Classic', createMock<TryNewDot>({isLockedToNewApp: true, classicRedirect: {dismissed: true}}), true],
+        ['an account whose choice has no dismissed flag', createMock<TryNewDot>({classicRedirect: {}}), true],
+        ['an account that was never offered New Expensify', undefined, true],
+    ])('matches the backend on the web for %s', (_, tryNewDot, expected) => {
+        // Given the account's tryNewDot setting, which the backend reads to pick the product on the web
+        // When the app picks the product for the web
+        const shouldUseClassic = shouldUseClassicOnWeb(tryNewDot);
+
+        // Then only an explicit choice of New Expensify keeps it out of Classic, as in the backend, so the mobile lock doesn't count
+        expect(shouldUseClassic).toBe(expected);
     });
 
     it('does not apply the mobile-only lock to web Classic gating', () => {

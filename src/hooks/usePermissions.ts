@@ -26,7 +26,7 @@ export default function usePermissions(): UsePermissions {
             isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas ?? undefined, betaConfiguration ?? undefined, betaOverrides ?? undefined, environment),
 
             // Prefer isBetaEnabled. This exists for the consumers that must tell "off" apart from "not loaded yet",
-            // currently the inactive vendor violation and the approval mode next steps, reached from many components
+            // currently the inactive vendor violation, the approval mode next steps and the experience cookie repair
             isBetaEnabledOrUnknown: (beta: Beta) =>
                 betas === undefined ? undefined : Permissions.isBetaEnabled(beta, betas ?? undefined, betaConfiguration ?? undefined, betaOverrides ?? undefined, environment),
         };

@@ -315,6 +315,75 @@ describe('actions/App', () => {
         await expect(onServerDataReady()).resolves.toBeUndefined();
     });
 
+    describe('RAM_ONLY_HAS_FRESH_APP_DATA', () => {
+        beforeEach(async () => {
+            // An app loaded in an earlier session, so reconnecting doesn't fall back to OpenApp
+            await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+            await waitForBatchedUpdates();
+        });
+
+        it.each([
+            ['OpenApp', () => App.openApp()],
+            ['a full ReconnectApp', () => App.reconnectApp()],
+            ['an incremental ReconnectApp', () => App.reconnectApp(123)],
+        ] as const)('is set together with the response data of %s', async (_, startApp) => {
+            // Given a server that returns the account's settings
+            mockFetch.mockAPICommand(WRITE_COMMANDS.OPEN_APP, () => ({
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: {classicRedirect: {dismissed: true}}}],
+            }));
+            mockFetch.mockAPICommand(WRITE_COMMANDS.RECONNECT_APP, () => ({
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: {classicRedirect: {dismissed: true}}}],
+            }));
+            let tryNewDotWhenFlagged: unknown;
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.RAM_ONLY_HAS_FRESH_APP_DATA,
+                callback: (hasFreshAppData) => {
+                    if (!hasFreshAppData) {
+                        return;
+                    }
+                    // Onyx.get captures the cached value right away, which is what a subscriber reacting to the flag sees
+                    Onyx.get(ONYXKEYS.NVP_TRY_NEW_DOT).then((value) => (tryNewDotWhenFlagged = value));
+                },
+            });
+
+            // When the app starts
+            startApp();
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, and anyone who reacts to it already sees the server's settings
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_FRESH_APP_DATA)).toBe(true);
+            expect(tryNewDotWhenFlagged).toEqual({classicRedirect: {dismissed: true}});
+            connection.unsubscribe();
+        });
+
+        it('is not set when the server rejects the request', async () => {
+            // Given a server that fails the request
+            mockFetch.fail();
+
+            // When the app reconnects
+            App.reconnectApp();
+            await waitForBatchedUpdates();
+
+            // Then the loading state is cleared, but nothing claims the data is fresh
+            expect(await getOnyxValue(ONYXKEYS.IS_LOADING_REPORT_DATA)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_FRESH_APP_DATA)).toBeUndefined();
+        });
+
+        it.each([
+            ['GetMissingOnyxMessages', () => App.getMissingOnyxUpdates(1, 2)],
+            ['ReconnectApp with side effects', () => App.reconnectAppWithSideEffects()],
+            ['the final ReconnectApp after reliable updates', () => App.finalReconnectAppAfterActivatingReliableUpdates()],
+        ] as const)('is not set by %s, which can finish before the app start', async (_, sendRequest) => {
+            // Given an app that has loaded before, whose start request hasn't finished yet
+            // When a request outside the app start succeeds
+            await sendRequest();
+            await waitForBatchedUpdates();
+
+            // Then the flag stays unset, so it can't run ahead of the OpenApp or ReconnectApp data
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_FRESH_APP_DATA)).toBeUndefined();
+        });
+    });
+
     describe('getNonOptimisticPolicyIDs', () => {
         it('should return empty array when policies is empty object', () => {
             const result = App.getNonOptimisticPolicyIDs({});

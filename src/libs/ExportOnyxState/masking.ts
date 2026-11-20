@@ -562,6 +562,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     // Holds report names, which often include the submitter's name
     ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
     ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+    ONYXKEYS.RAM_ONLY_HAS_FRESH_APP_DATA,
     ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
     ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
     // Holds a raw route, and a search route can carry an unencoded email in its "name" param
