@@ -157,6 +157,8 @@ function TransactionListItemWide<TItem extends ListItem>({
         },
     ];
 
+    const canShowHoverStyle = !item.isDisabled && !shouldDisableHoverStyle;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -178,7 +180,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
                 }}
                 onHoverIn={handleOnHoverIn}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[canShowHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -205,7 +207,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     <PinnedRowProvider
                         isSelected={isSelected}
                         // The same states the row's own hover background shows for.
-                        isHovered={isFocused || (hovered && !item.isDisabled && !shouldDisableHoverStyle)}
+                        isHovered={isFocused || (hovered && canShowHoverStyle)}
                     >
                         <TransactionItemRow
                             transactionItem={transactionItem}

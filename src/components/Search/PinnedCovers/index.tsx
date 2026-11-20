@@ -89,7 +89,8 @@ const MASK_STYLE: React.CSSProperties = {
     top: 0,
     bottom: 0,
     left: 0,
-    zIndex: 3,
+    // Above the scroller beside it, whose rows slide into the margin. The scroller is its own stacking context, so any layer above it will do.
+    zIndex: 1,
     pointerEvents: 'none',
     opacity: `var(${PINNED_START_COVER_OPACITY_VARIABLE}, 0)`,
 };

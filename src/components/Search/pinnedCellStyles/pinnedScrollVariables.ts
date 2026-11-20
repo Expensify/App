@@ -1,3 +1,5 @@
+/** The CSS variables and data attributes the Spend table's scroller, pinned cells and covers share. */
+
 /** How far the Spend table has scrolled sideways, in px. */
 const PINNED_SCROLL_X_VARIABLE = '--table-scroll-x';
 
