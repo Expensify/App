@@ -361,6 +361,156 @@ describe('findUnusedStyles', () => {
         });
     });
 
+    describe('Index style functions', () => {
+        it.each([
+            ['an object with satisfies', 'const plainStyles = () => ({entryStyle: {width: 1} satisfies ViewStyle}) satisfies Styles;'],
+            ['a helper call', 'const plainStyles = (theme: ThemeColors) => ({entryStyle: someHelper(theme)}) satisfies Styles;'],
+            ['a shorthand property', 'const staticStyles = () => ({entryStyle}) satisfies Styles;'],
+            ['a Platform.select call', 'const staticStyles = () => ({entryStyle: Platform.select({web: {width: 1}, default: {}})}) satisfies Styles;'],
+            ['an as const body', 'const staticStyles = () => ({entryStyle: {width: 1}}) as const;'],
+            ['a block body with a return', 'const staticStyles = () => { const local = 1; return {entryStyle: {width: local}}; };'],
+        ])('should report an unused style written as %s', (_name, stylesContent) => {
+            // Given a style that is written in a shape other than a plain object literal or a method, and that nothing uses
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the finder looks for unused styles
+            const result = finder.findUnusedStyles();
+
+            // Then it is reported, because only plain object literals and methods used to be recorded, so an unused style written any other way was never caught
+            expect(result.map((style) => style.key)).toEqual(['entryStyle']);
+        });
+
+        it('should unwrap StyleSheet.create with satisfies', () => {
+            // Given the staticStyles shape of src/styles/index.ts, where the object is the argument of StyleSheet.create followed by satisfies
+            const stylesContent = Str.dedent(`
+                const staticStyles = (theme: ThemeColors) =>
+                    StyleSheet.create({
+                        wrappedStyle: {
+                            color: 'red',
+                        },
+                    }) satisfies StaticStyles;
+            `);
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the finder looks for unused styles
+            const result = finder.findUnusedStyles();
+
+            // Then the wrapped key is still found, otherwise the check would read 0 definitions from index.ts and stay green while blind
+            expect(result.map((style) => style.key)).toEqual(['wrappedStyle']);
+        });
+
+        it('should track arrow function entries as definitions', () => {
+            // Given a dynamicStyles function whose entries are arrow functions, one of which is used
+            const stylesContent = Str.dedent(`
+                const dynamicStyles = (theme: ThemeColors) => ({
+                    unusedDynamicStyle: (isSmall: boolean) => ({width: isSmall ? 1 : 2}),
+                    usedDynamicStyle: (isSmall: boolean) => ({width: isSmall ? 3 : 4}),
+                });
+            `);
+            setupMockFiles(stylesContent, 'styles.usedDynamicStyle(true);');
+
+            // When the finder looks for unused styles
+            const result = finder.findUnusedStyles();
+
+            // Then only the unused one is reported, so dead dynamic styles do not pile up unnoticed while used ones are not flagged
+            expect(result.map((style) => style.key)).toEqual(['unusedDynamicStyle']);
+        });
+
+        it('should never record allowlisted keys', () => {
+            // Given an allowlisted design scale key next to a regular key, both without usages
+            const stylesContent = Str.dedent(`
+                const staticStyles = () => ({
+                    finePrintStrong: {fontSize: 9},
+                    siblingStyle: {fontSize: 10},
+                });
+            `);
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the finder looks for unused styles
+            const result = finder.findUnusedStyles();
+
+            // Then only the regular key is reported, so the intentionally kept design scale key does not fail CI
+            expect(result.map((style) => style.key)).toEqual(['siblingStyle']);
+        });
+
+        it('should count a string literal as a usage only in the dynamic style key files', () => {
+            // Given a style whose key is only chosen as a string literal, the way the avatar sizing files do for styles[styleKey]
+            const stylesContent = Str.dedent(`
+                const styles = (theme: ThemeColors) => ({
+                    singleAvatarXSmall: {
+                        width: 24,
+                    },
+                }) satisfies Styles;
+            `);
+            const sizingContent = `const key: 'singleAvatarXSmall' = 'singleAvatarXSmall';`;
+
+            // When the literal sits in a regular source file, and when the same literal sits in one of the sizing files
+            mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/components/Test.tsx']);
+            mockReadFileSync.mockReturnValueOnce(stylesContent).mockReturnValueOnce(sizingContent);
+            const resultInRegularFile = new ComprehensiveStylesFinder('/test').findUnusedStyles();
+
+            mockGlobSync.mockReturnValueOnce(['src/styles/index.ts']).mockReturnValueOnce(['src/components/Avatar/layouts/getDiagonalAvatarSizing.ts']);
+            mockReadFileSync.mockReturnValueOnce(stylesContent).mockReturnValueOnce(sizingContent);
+            const resultInSizingFile = new ComprehensiveStylesFinder('/test').findUnusedStyles();
+
+            // Then the literal only counts there, so a dead key cannot hide behind an unrelated string elsewhere
+            expect(resultInRegularFile.map((style) => style.key)).toEqual(['singleAvatarXSmall']);
+            expect(resultInSizingFile).toEqual([]);
+        });
+    });
+
+    describe('Index structure guard', () => {
+        const createEntries = (count: number) => Array.from({length: count}, (_, index) => `entry${index}: {width: ${index}},`).join('\n');
+
+        it('should name the style function that yields no definitions', () => {
+            // Given an index file where dynamicStyles no longer exists under that name, e.g. after a rename
+            const stylesContent = `
+                const staticStyles = () => ({${createEntries(600)}});
+                const renamedDynamicStyles = () => ({entry: {width: 1}});
+                const plainStyles = () => ({plainEntry: {width: 1}});
+            `;
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the structure is checked after the scan
+            finder.findUnusedStyles();
+
+            // Then the problem names dynamicStyles, so losing one function cannot hide behind the total of the others
+            expect(finder.getIndexStructureProblem()).toContain('dynamicStyles');
+        });
+
+        it('should report a total below the floor', () => {
+            // Given an index file where all three functions are read but yield only a few definitions
+            const stylesContent = `
+                const staticStyles = () => ({a: {width: 1}});
+                const dynamicStyles = () => ({b: () => ({width: 1})});
+                const plainStyles = () => ({c: {width: 1}});
+            `;
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the structure is checked after the scan
+            finder.findUnusedStyles();
+
+            // Then the problem reports the low total, so a refactor that silently drops most of the file fails loudly
+            expect(finder.getIndexStructureProblem()).toContain('Read only 3 style definitions');
+        });
+
+        it('should report no problem for a healthy index file', () => {
+            // Given an index file where every function yields definitions and the total reaches the floor
+            const stylesContent = `
+                const staticStyles = () => ({${createEntries(500)}});
+                const dynamicStyles = () => ({b: () => ({width: 1})});
+                const plainStyles = () => ({c: {width: 1}});
+            `;
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the structure is checked after the scan
+            finder.findUnusedStyles();
+
+            // Then there is no problem, so the guard does not fail a correctly read file
+            expect(finder.getIndexStructureProblem()).toBeUndefined();
+        });
+    });
+
     // Helper function to setup common mock scenarios
     function setupMockFiles(stylesContent: string, componentContent: string) {
         // First call: finding style files
