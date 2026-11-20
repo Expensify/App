@@ -53,6 +53,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
@@ -64,11 +65,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const styles = useThemeStyles();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -110,10 +109,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         };
     }, []);
 
-    const submit = () => {
+    const submit = async () => {
         if (!policyID) {
             return;
         }
+
+        const [workspaceCardFeeds, countryByIp] = await Onyx.multiGet([ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COUNTRY]);
 
         const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
         const institutionId = !!getPlaidInstitutionId(bankName);
