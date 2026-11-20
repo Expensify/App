@@ -151,9 +151,7 @@ async function writeRepeatedly(write: (index: number) => Promise<void>) {
     expect(screen.getAllByText(/^Report /)).toHaveLength(APPROVE_REPORT_COUNT);
     listRenderCount = 0;
     for (let i = 0; i < WRITES_PER_SCENARIO; i++) {
-        // eslint-disable-next-line no-await-in-loop
         await write(i);
-        // eslint-disable-next-line no-await-in-loop
         await waitForBatchedUpdates();
     }
     console.debug(`[TodoSearchLiveData] TodoList renders during writes: ${listRenderCount}`);
