@@ -12,10 +12,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useShouldSignInThroughClassic from '@hooks/useShouldSignInThroughClassic';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
+import {openClassicSignIn} from '@libs/ClassicSignIn';
 import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
@@ -191,6 +193,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const isSupportalSession = useIsSupportalSession();
     const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
+    const shouldSignInThroughClassic = useShouldSignInThroughClassic();
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -230,6 +233,13 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
             setHasInitiatedSAMLLogin(false);
         }
     }, [credentials?.login, isUsingValidateCode, setIsUsingValidateCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+
+    useEffect(() => {
+        if (!shouldSignInThroughClassic) {
+            return;
+        }
+        openClassicSignIn();
+    }, [shouldSignInThroughClassic]);
 
     const {
         shouldShowLoginForm,
@@ -340,6 +350,10 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
         navigateBack,
     }));
     useAndroidBackButtonHandler(navigateBack);
+
+    if (shouldSignInThroughClassic) {
+        return null;
+    }
 
     return (
         <ColorSchemeWrapper>
