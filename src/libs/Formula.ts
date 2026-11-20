@@ -8,7 +8,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
+import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, parseISO, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
 
 import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
@@ -876,9 +876,11 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
         const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
         const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
+        // Expense dates are stored without a time, like "2025-01-20". new Date() reads that as midnight UTC, which is
+        // the previous day west of UTC, so parseISO reads it as local midnight to keep the day the backend uses.
         return {
-            startDate: oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate,
-            endDate: newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate,
+            startDate: oldestTransactionDateString ? parseISO(oldestTransactionDateString) : currentDate,
+            endDate: newestTransactionDateString ? parseISO(newestTransactionDateString) : currentDate,
         };
     }
 
