@@ -71,7 +71,7 @@ type IOURequestEditReportCommonProps = {
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
-    removeFromReport?: () => void;
+    removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
     /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
     isCreatingExpense?: boolean;

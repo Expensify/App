@@ -563,6 +563,7 @@ export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetP
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
+export type {default as SetPolicyCategoryMemberVisibilityParams} from './SetPolicyCategoryMemberVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -707,6 +708,9 @@ export type {default as QueueExportSearchWithTemplateParams} from './QueueExport
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
 export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
 export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
+export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
+export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
+export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
 export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';

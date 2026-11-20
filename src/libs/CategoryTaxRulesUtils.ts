@@ -6,6 +6,8 @@ import CONST from '@src/CONST';
 import type {Policy, TaxRate} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import {formatTaxRateName} from './PolicyUtils/tax';
+
 /** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */
 function hasUsableTaxRates(policy: Policy | undefined): boolean {
     return !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
@@ -16,19 +18,19 @@ function isSelectableTaxRate(taxRate: TaxRate): boolean {
     return !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-/** The `Name (Value)` tax label. Prefers the workspace rate so renames read correctly, then the label the rule saved
- * inline, then the raw ID. Callers with no inline label should check `getTaxByID` first: an ID is a fallback for
- * a rule that carries its own name, not something to show an admin. */
+/** The tax label from `formatTaxRateName`. Prefers the workspace rate so renames read correctly, then the label the
+ * rule saved inline, then the raw ID. Callers with no inline label should check `getTaxByID` first: an ID is a fallback
+ * for a rule that carries its own name, not something to show an admin. */
 function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined, savedTaxRate?: {name?: string; value?: string}): string {
     if (!taxID) {
         return '';
     }
     const taxRate = policy?.taxRates?.taxes?.[taxID];
     if (taxRate) {
-        return `${taxRate.name} (${taxRate.value})`;
+        return formatTaxRateName(taxRate.name, taxRate.value);
     }
     if (savedTaxRate?.name && savedTaxRate.value) {
-        return `${savedTaxRate.name} (${savedTaxRate.value})`;
+        return formatTaxRateName(savedTaxRate.name, savedTaxRate.value);
     }
     return taxID;
 }

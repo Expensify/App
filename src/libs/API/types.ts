@@ -341,6 +341,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_CATEGORY_MAX_AMOUNT: 'SetPolicyCategoryMaxAmount',
     SET_POLICY_CATEGORY_APPROVER: 'SetPolicyCategoryApprover',
     SET_POLICY_MEMBER_CATEGORY_VISIBILITY: 'SetPolicyMemberCategoryVisibility',
+    SET_POLICY_CATEGORY_MEMBER_VISIBILITY: 'SetPolicyCategoryMemberVisibility',
     SET_POLICY_CATEGORY_TAX: 'SetPolicyCategoryTax',
     SET_POLICY_TAXES_CURRENCY_DEFAULT: 'SetPolicyCurrencyDefaultTax',
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
@@ -695,6 +696,9 @@ const WRITE_COMMANDS = {
     QUEUE_BULK_PAY_REPORTS: 'QueueBulkPayReports',
     QUEUE_BULK_APPROVE_REPORTS: 'QueueBulkApproveReports',
     QUEUE_BULK_SUBMIT_REPORTS: 'QueueBulkSubmitReports',
+    QUEUE_BULK_HOLD_EXPENSES: 'QueueBulkHoldExpenses',
+    QUEUE_BULK_UNHOLD_EXPENSES: 'QueueBulkUnholdExpenses',
+    QUEUE_BULK_REJECT_EXPENSES: 'QueueBulkRejectExpenses',
     QUEUE_BULK_CHANGE_REPORT_POLICY: 'QueueBulkChangeReportPolicy',
     QUEUE_BULK_MARK_AS_EXPORTED: 'QueueBulkMarkAsExported',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
@@ -1161,6 +1165,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT]: Parameters.SetPolicyCategoryMaxAmountParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER]: Parameters.SetPolicyCategoryApproverParams;
     [WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY]: Parameters.SetPolicyMemberCategoryVisibilityParams;
+    [WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY]: Parameters.SetPolicyCategoryMemberVisibilityParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES]: null;
@@ -1586,6 +1591,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS]: Parameters.QueueBulkPayReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS]: Parameters.QueueBulkApproveReportsParams;
     [WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS]: Parameters.QueueBulkSubmitReportsParams;
+    [WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES]: Parameters.QueueBulkHoldExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES]: Parameters.QueueBulkUnholdExpensesParams;
+    [WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES]: Parameters.QueueBulkRejectExpensesParams;
     [WRITE_COMMANDS.QUEUE_BULK_CHANGE_REPORT_POLICY]: Parameters.QueueBulkChangeReportPolicyParams;
     [WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED]: Parameters.QueueBulkMarkAsExportedParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;

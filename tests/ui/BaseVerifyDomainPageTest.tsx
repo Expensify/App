@@ -45,7 +45,11 @@ const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementatio
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
-function renderVerifyDomainPage() {
+function renderVerifyDomainPage(
+    {initialParams}: {initialParams?: Partial<WorkspacesDomainModalNavigatorParamList[typeof SCREENS.WORKSPACES_VERIFY_DOMAIN]>} = {
+        initialParams: {domainAccountID: DOMAIN_ACCOUNT_ID},
+    },
+) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <PortalProvider>
@@ -54,7 +58,7 @@ function renderVerifyDomainPage() {
                         <Stack.Screen
                             name={SCREENS.WORKSPACES_VERIFY_DOMAIN}
                             component={WorkspacesVerifyDomainPage}
-                            initialParams={{domainAccountID: DOMAIN_ACCOUNT_ID}}
+                            initialParams={initialParams}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>
@@ -92,6 +96,20 @@ describe('BaseVerifyDomainPage', () => {
         apiReadSpy.mockClear();
         navigateSpy.mockClear();
         dismissModalSpy.mockClear();
+    });
+
+    it.each([undefined, {}])('renders NotFoundPage when verification params are %p', async (initialParams) => {
+        // Given navigation state without the required domain ID, which must not reach domain validation
+
+        // When the verification screen is mounted directly, rather than through URL matching
+        renderVerifyDomainPage({initialParams});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user gets a recoverable fallback without mounting the verification flow or fetching a code
+        expect(screen.getByText(TestHelper.translateLocal('notFound.notHere'))).toBeTruthy();
+        expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(apiReadSpy).not.toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, expect.anything(), expect.anything());
     });
 
     it('renders the DNS verification screen for a non-admin on an already-validated domain instead of NotFoundPage', async () => {

@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -546,6 +548,7 @@ type DismissDuplicateTransactionViolationProps = {
         violations: TransactionViolations;
     }>;
     isTrackIntentUser: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 /**
@@ -562,6 +565,7 @@ function dismissDuplicateTransactionViolation({
     rules,
     currentTransactionViolations = [],
     isTrackIntentUser,
+    personalDetailsByLogins,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
@@ -592,6 +596,7 @@ function dismissDuplicateTransactionViolation({
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
 
         optimisticData.push({
@@ -884,6 +889,7 @@ type ChangeTransactionsReportProps = {
     jsonQuery?: string;
     hash?: number;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 
     /** When true, each transaction gets an UNDELETED_TRANSACTION action from the caller instead of the normal move action. */
     isUndelete?: boolean;
@@ -912,6 +918,7 @@ function getChangeTransactionsReportOnyxData({
     isVendorMatchingBetaEnabled,
     cardList,
     currentUserPersonalDetails,
+    personalDetailsByLogins,
     isUndelete,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -2092,6 +2099,7 @@ function getChangeTransactionsReportOnyxData({
             shouldFixViolations: shouldFixViolationsForReport,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
 
         const optimisticPendingFields = {

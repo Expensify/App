@@ -16,7 +16,7 @@ import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {toIndexMap} from '@libs/RuleUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1969,12 +1969,21 @@ describe('actions/Duplicate', () => {
                 pendingFields: undefined,
             };
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
-            const sourceTransaction: Transaction = {...mockTransaction, reportID: sourceExpenseReport.reportID, amount: mockTransaction.amount * -1, comment: restOfComment};
+            // Expense reports store a refund and its edited tax with the opposite sign to their displayed values
+            const sourceTransaction: Transaction = {
+                ...mockTransaction,
+                reportID: sourceExpenseReport.reportID,
+                amount: 1000,
+                taxAmount: 48,
+                taxCode: 'tax-rate-5',
+                comment: restOfComment,
+            };
 
             await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
             await waitForBatchedUpdates();
 
             // When the expense is duplicated with that expense report as the target
@@ -2011,7 +2020,16 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then the duplicate is requested on the source expense report, not on the report the workspace chat points at
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({iouReportID: sourceExpenseReport.reportID}), expect.objectContaining({}));
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REQUEST_MONEY,
+                expect.objectContaining({iouReportID: sourceExpenseReport.reportID, amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}),
+                expect.objectContaining({}),
+            );
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls);
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
         });
 
         it('should create a duplicate time expense successfully', async () => {
@@ -3373,6 +3391,29 @@ describe('actions/Duplicate', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
+        it('preserves the signed tax when duplicating a report with a negative expense', async () => {
+            // Given a refund whose nonzero tax was edited and saved with the expense report storage sign
+            const sourceReport: Report = {reportID: 'source-report', type: CONST.REPORT.TYPE.EXPENSE, policyID: mockPolicy.id};
+            const sourceTransaction = createCashTransaction('refund', {reportID: sourceReport.reportID, amount: 1000, taxAmount: 48, taxCode: 'tax-rate-5'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await waitForBatchedUpdates();
+
+            // When the whole report is duplicated, its expense uses the same signed API contract
+            duplicateReport(getDefaultParams([sourceTransaction], {sourceReport}));
+            await waitForBatchedUpdates();
+
+            // Then the duplicate keeps the original tax and the source remains unchanged
+            const requestCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestCalls).toHaveLength(1);
+            const [, params] = getRequiredWriteCall(requestCalls);
+            expect(params).toEqual(expect.objectContaining({amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}));
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
+        });
+
         it('should filter out credit card import transactions', async () => {
             const cashTx = createCashTransaction('cash1');
             const cardTx = createCashTransaction('card1', {
@@ -4076,12 +4117,16 @@ describe('actions/Duplicate', () => {
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => String(call[1].iouReportID)));
             expect(iouReportIDs.size).toBe(1);
 
             // Then the expense-added growl is signaled
             expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
             expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            // And no copy is flagged as new, since every copy lands on a report this action created, though the later ones look like an insertion by count
+            const [copyReportID] = [...iouReportIDs];
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
         it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
