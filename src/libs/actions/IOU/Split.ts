@@ -89,7 +89,6 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
@@ -161,7 +160,6 @@ type CreateDistanceRequestInformation = {
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
@@ -184,7 +182,6 @@ type DistanceRequestPlan = {
     onyxData: OnyxData<DistanceRequestOnyxKeys>;
     activeReportID: string;
     shouldPlaySound: boolean;
-    shouldAddPendingNewTransaction: boolean;
     shouldNotifyNewAction: boolean;
     shouldSignalExpenseAdded: boolean;
 };
@@ -2121,7 +2118,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
-        moneyRequestReportTransactions,
         reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2437,14 +2433,13 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         onyxData,
         activeReportID: isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID,
         shouldPlaySound: shouldPlaySoundParam,
-        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions),
         shouldNotifyNewAction: !isMoneyRequestReport,
         shouldSignalExpenseAdded: !!isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT,
     };
 }
 
 /**
- * Runs what planDistanceRequest leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ * Runs what planDistanceRequest leaves out, in this order: the sound, the request, then the Expense added message.
  *
  * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
  * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search.
@@ -2452,10 +2447,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
 function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
-    }
-
-    if (plan.shouldAddPendingNewTransaction) {
-        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
     API.writeWhenReady(
