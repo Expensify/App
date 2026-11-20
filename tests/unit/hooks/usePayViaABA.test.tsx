@@ -3,7 +3,10 @@ import {act, renderHook} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PayViaABADownloadModal from '@components/PayViaABADownloadModal';
+import type {PayViaABADownloadModalProps} from '@components/PayViaABADownloadModal';
 
 import usePayViaABA from '@hooks/usePayViaABA';
 
@@ -23,11 +26,16 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockShowDecisionModal = jest.fn();
-jest.mock('@hooks/useDecisionModal', () => ({
-    __esModule: true,
-    default: () => ({showDecisionModal: mockShowDecisionModal}),
+const mockShowModal = jest.fn<Promise<ModalStateChangePayload>, [{component: unknown; props?: Partial<PayViaABADownloadModalProps>}]>(() => Promise.resolve({action: 'CLOSE'}));
+jest.mock('@components/Modal/Global/ModalContext', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@components/Modal/Global/ModalContext'),
+    useModal: () => ({showModal: mockShowModal}),
 }));
+
+/** Gets the failure message the download modal would show, from the props it was opened with */
+function getDownloadFailedMessage(error?: HttpsError) {
+    return mockShowModal.mock.calls.at(0)?.[0].props?.getDownloadFailedMessage?.(error);
+}
 
 let mockIsAccountLocked = false;
 const mockShowLockedAccountModal = jest.fn();
@@ -100,6 +108,20 @@ describe('usePayViaABA', () => {
         );
     });
 
+    it('shows the download modal for the ABA file', async () => {
+        // Given a payment via ABA
+        const abaFileRequest = Promise.resolve({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+        jest.mocked(payViaABA).mockReturnValueOnce(abaFileRequest);
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+
+        // Then the download modal waits for the file, so it can save it once the report is paid
+        expect(mockShowModal).toHaveBeenCalledWith({component: PayViaABADownloadModal, props: expect.objectContaining({abaFileRequest})});
+    });
+
     it('tells the user when the ABA file fails to download', async () => {
         // Given a payment via ABA
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
@@ -107,16 +129,10 @@ describe('usePayViaABA', () => {
         act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
 
         // When the download fails
-        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
-        onDownloadFailed?.();
+        const message = getDownloadFailedMessage();
 
         // Then the same "download failed" message as other file downloads is shown
-        expect(mockShowDecisionModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: translateLocal('common.downloadFailedTitle'),
-                prompt: translateLocal('common.downloadFailedDescription'),
-            }),
-        );
+        expect(message).toBe(translateLocal('common.downloadFailedDescription'));
     });
 
     it("names the employee when the ABA file can't pay them because they have no bank account", async () => {
@@ -130,16 +146,10 @@ describe('usePayViaABA', () => {
         act(() => result.current.payReportsViaABA([{reportID: '123', ownerAccountID: employeeAccountID}], policy));
 
         // When the download fails because they're missing a deposit account
-        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
-        onDownloadFailed?.(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
+        const message = getDownloadFailedMessage(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
 
         // Then the admin is told who needs to add one, since trying again won't work until they do
-        expect(mockShowDecisionModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: translateLocal('common.downloadFailedTitle'),
-                prompt: translateLocal('iou.missingABADepositAccount', {name: 'Tom Jones'}),
-            }),
-        );
+        expect(message).toBe(translateLocal('iou.missingABADepositAccount', {name: 'Tom Jones'}));
     });
 
     it("tells the admin that someone is missing a bank account when it doesn't know who", async () => {
@@ -149,16 +159,10 @@ describe('usePayViaABA', () => {
         act(() => result.current.payReportsViaABA([{reportID: '123'}, {reportID: '456'}], policy));
 
         // When the download fails because one of their submitters is missing a deposit account
-        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
-        onDownloadFailed?.(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
+        const message = getDownloadFailedMessage(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
 
         // Then the admin is still told why, without a name, since the error doesn't say which report it was
-        expect(mockShowDecisionModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: translateLocal('common.downloadFailedTitle'),
-                prompt: translateLocal('iou.submittersMissingABADepositAccount'),
-            }),
-        );
+        expect(message).toBe(translateLocal('iou.submittersMissingABADepositAccount'));
     });
 
     it('shows the locked account modal instead of downloading the ABA file', async () => {
@@ -194,12 +198,12 @@ describe('usePayViaABA', () => {
         expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
     });
 
-    it('is loading while the ABA file downloads', async () => {
-        // Given an ABA file that takes a while to download
-        let finishDownload: () => void = () => {};
+    it('is loading until the ABA payment finishes', async () => {
+        // Given an ABA payment that takes a while
+        let finishPayment: () => void = () => {};
         jest.mocked(payViaABA).mockReturnValueOnce(
             new Promise((resolve) => {
-                finishDownload = resolve;
+                finishPayment = () => resolve(undefined);
             }),
         );
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
@@ -207,14 +211,29 @@ describe('usePayViaABA', () => {
 
         // When a report is paid via ABA
         act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
 
-        // Then it's loading, so the Pay button can show the user something is happening
+        // Then it's still loading, so the Pay button can't start a second payment for the same report
         expect(result.current.isDownloadingABAFile).toBe(true);
 
-        // When the download finishes
-        await act(async () => finishDownload());
+        // When the payment finishes
+        await act(async () => finishPayment());
 
         // Then it stops loading
+        expect(result.current.isDownloadingABAFile).toBe(false);
+    });
+
+    it('stops loading when the ABA payment fails', async () => {
+        // Given an ABA payment that fails
+        jest.mocked(payViaABA).mockImplementationOnce(() => Promise.reject(new Error('Failed to download the ABA file')));
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Pay button is usable again, so the admin can retry
         expect(result.current.isDownloadingABAFile).toBe(false);
     });
 });

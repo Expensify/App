@@ -1,5 +1,4 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -9,9 +8,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getBusinessBankAccountForPayment, shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
-import type HttpsError from '@libs/Errors/HttpsError';
+import HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
@@ -1096,16 +1094,45 @@ type PayViaABAFunctionParams = {
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    translate: LocalizedTranslate;
-    onDownloadFailed: (error?: HttpsError) => void;
     onPaid?: () => void;
 };
 
+type ABAFile = {
+    fileName: string;
+    content: string;
+};
+
+type PayViaABAResponse = {
+    jsonCode?: number;
+    message?: string;
+    ABA?: string;
+};
+
 /**
- * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
- * Resolves once the download has finished or failed.
+ * Reads the ABA file's text from the PayViaABA response. The API currently sends the file itself, but soon will send a
+ * JSON response with the file's text in `ABA`.
  */
-async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
+async function getABAFileContent(response: Response): Promise<string> {
+    if (response.headers.get('content-type') !== 'application/json') {
+        if (!response.ok) {
+            throw new Error('Failed to download the ABA file');
+        }
+        return response.text();
+    }
+    return response.json().then((data: PayViaABAResponse) => {
+        if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.ABA === undefined) {
+            throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
+        }
+        return data.ABA;
+    });
+}
+
+/**
+ * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
+ * when it creates the file. Resolves with nothing when the user can't pay, and rejects with the backend's error when it
+ * doesn't send the file.
+ */
+async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | undefined> {
     const {
         reportIDs,
         policy,
@@ -1118,13 +1145,11 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        translate,
-        onDownloadFailed,
         onPaid,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return;
+        return undefined;
     }
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
@@ -1137,41 +1162,23 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
 
     // Matches the file names Classic gives ABA files
     const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
-    let hasDownloadFailed = false;
-    const handleDownloadFailed = (error?: HttpsError) => {
-        hasDownloadFailed = true;
-        onDownloadFailed(error);
-    };
 
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
-    return fileDownload(
-        translate,
-        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
-        fileName,
-        '',
-        false,
-        formData,
-        CONST.NETWORK.METHOD.POST,
-        handleDownloadFailed,
-        undefined,
-        false,
-    ).then(() => {
-        if (hasDownloadFailed) {
-            return;
-        }
+    const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
+    const content = await getABAFileContent(response);
 
-        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
-        // reappearing before the BE's pusher updates arrive.
-        Onyx.update(
-            reportIDs.map((reportID) => ({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
-            })),
-        );
-        onPaid?.();
-    });
+    // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
+    // reappearing before the BE's pusher updates arrive.
+    Onyx.update(
+        reportIDs.map((reportID) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+        })),
+    );
+    onPaid?.();
+    return {fileName, content};
 }
 
 function markReportPaymentReceived(
@@ -1482,4 +1489,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
-export type {PayMoneyRequestFunctionParams};
+export type {ABAFile, PayMoneyRequestFunctionParams};
