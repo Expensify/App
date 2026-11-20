@@ -12452,6 +12452,7 @@ const translations = {
         nonDefaultReimbursable: 'Reimbursable differs from workspace default',
         nonDefaultTag: 'Tag differs from workspace default',
         nonDefaultTax: 'Tax differs from workspace default',
+        nonDefaultVendor: 'Vendor differs from workspace default',
         modifiedAmount: (type?: ViolationDataType, displayPercentVariance?: number) => {
             switch (type) {
                 case 'distance':
@@ -12705,6 +12706,7 @@ const translations = {
             nonDefaultReimbursable: 'Non-default reimbursable setting',
             nonDefaultTag: 'Non-default tag',
             nonDefaultTax: 'Non-default tax',
+            nonDefaultVendor: 'Non-default vendor',
             nonExpensiworksExpense: 'Non-Expensiworks expense',
             overAutoApprovalLimit: 'Over auto-approval limit',
             overCategoryLimit: 'Over category limit',
