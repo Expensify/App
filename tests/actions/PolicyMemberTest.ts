@@ -367,6 +367,79 @@ describe('actions/PolicyMember', () => {
             expect(policy?.reimburser).toBe('owner@gmail.com');
         });
     });
+
+    describe('checkBulkTransferPolicyBillingOwner', () => {
+        it('returns the workspaces the server says can be taken over together', async () => {
+            // Given the server can take over billing for two of the three listed workspaces
+            mockFetch?.mockAPICommand?.(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, () => ({policyIDs: ['1', '2']}));
+
+            // When the transfer flow checks all three
+            const policyIDs = await Member.checkBulkTransferPolicyBillingOwner(['1', '2', '3']);
+
+            // Then it sends them as one list and gets back the two the server returned
+            const body = TestHelper.getFetchMockCalls(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER).at(0)?.[1]?.body;
+            expect(body instanceof FormData ? body.get('policyIDList') : undefined).toBe('1,2,3');
+            expect(policyIDs).toEqual(['1', '2']);
+        });
+
+        it('returns no workspaces when the check fails', async () => {
+            // Given the server refuses the check, for example because the user owes money
+            mockFetch?.fail?.();
+
+            // When the transfer flow checks the workspaces
+            const policyIDs = await Member.checkBulkTransferPolicyBillingOwner(['1', '2']);
+
+            // Then nothing is offered, so the flow continues with the single workspace and shows that step's error
+            expect(policyIDs).toEqual([]);
+        });
+    });
+
+    describe('queueBulkTransferPolicyBillingOwner', () => {
+        it('takes over billing for every listed workspace from the transfer flow', async () => {
+            // Given the workspace whose transfer flow is open
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            mockFetch?.pause?.();
+
+            // When the user takes over all three of the owner's workspaces
+            Member.queueBulkTransferPolicyBillingOwner(fakePolicy.id, [fakePolicy.id, '2', '3']);
+            await waitForBatchedUpdates();
+
+            // Then the page shows it's loading until the server queues the transfer
+            let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.isLoading).toBe(true);
+            expect(policy?.isChangeOwnerSuccessful).toBe(false);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // And once it does, the success page can say how many workspaces are moving
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER).at(0)?.[1]?.body;
+            expect(body instanceof FormData ? body.get('policyIDList') : undefined).toBe(`${fakePolicy.id},2,3`);
+            policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.isLoading).toBe(false);
+            expect(policy?.isChangeOwnerSuccessful).toBe(true);
+            expect(policy?.changeOwnerPolicyCount).toBe(3);
+        });
+
+        it('shows the error page when the server refuses the transfer', async () => {
+            // Given the server refuses to queue the transfer
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            mockFetch?.fail?.();
+
+            // When the user takes over all of the owner's workspaces
+            Member.queueBulkTransferPolicyBillingOwner(fakePolicy.id, [fakePolicy.id, '2']);
+            await waitForBatchedUpdates();
+
+            // Then the flow is marked failed, which sends the user to the error page
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.isLoading).toBe(false);
+            expect(policy?.isChangeOwnerSuccessful).toBe(false);
+            expect(policy?.isChangeOwnerFailed).toBe(true);
+            expect(policy?.changeOwnerPolicyCount).toBeUndefined();
+        });
+    });
     describe('addBillingCardAndRequestPolicyOwnerChange', () => {
         it('Add billing card and change the workspace`s owner', async () => {
             const fakePolicy: PolicyType = createRandomPolicy(0);
