@@ -70,14 +70,14 @@ type IOURequestEditReportCommonProps = {
     selectedPolicyID?: string;
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
-    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void | Promise<void>;
     removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
     /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
     isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
-    createReport?: () => void;
+    createReport?: () => void | Promise<void>;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;

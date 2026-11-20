@@ -44,6 +44,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -73,13 +74,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
     const ownerPersonalDetails = getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails;
     const [transactions] = useTransactionsByID(transactionIDs);
@@ -101,17 +96,21 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const reports = useChangeTransactionsReportReports(transactions, selectedReport?.reportID);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
+    const selectReport = async (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
 
+        const [allPolicyCategories, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+            ONYXKEYS.COLLECTION.POLICY_TAGS,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
         const reportsForCall = newReport?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${newReport.reportID}`]: newReport, ...reports} : reports;
@@ -133,7 +132,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 reports: reportsForCall,
                 rules,
                 cardList,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
                 delegateAccountID,
@@ -148,10 +147,17 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
-    const removeFromReport = () => {
+    const removeFromReport = async () => {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
+        const [personalPolicyID, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.PERSONAL_POLICY_ID,
+            ONYXKEYS.COLLECTION.POLICY_TAGS,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
         const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             isVendorMatchingBetaEnabled,
@@ -167,7 +173,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             reports,
             rules,
             cardList,
-            isTrackIntentUser,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
             delegateAccountID,
@@ -182,17 +188,18 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
-    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+    const createReportForPolicy = async (shouldDismissEmptyReportsConfirmation?: boolean) => {
         if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpenses?.id) {
             return;
         }
 
+        const [rules, introSelected] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_INTRO_SELECTED]);
         const optimisticReport = createNewReport(
             ownerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
-            isTrackIntentUser,
+            isTrackIntentUserSelector(introSelected),
             getCurrencyDecimals,
             rules,
             false,
@@ -218,14 +225,18 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
 
     const canCreateReport = !!policyForMovingExpensesID || shouldSelectPolicy || hasUnreportedManagedCardTransactions;
 
-    const createReport = () => {
+    const createReport = async () => {
         const restrictionPolicy = policyForMovingExpenses;
-        if (
-            restrictionPolicy &&
-            shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
-        ) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
-            return;
+        if (restrictionPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
+                return;
+            }
         }
         if (hasPerDiemTransactions) {
             handleCreateReport();
