@@ -1,11 +1,7 @@
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useAnchoredInfoPopover from '@hooks/useAnchoredInfoPopover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 
 import variables from '@styles/variables';
 
@@ -14,7 +10,7 @@ import CONST from '@src/CONST';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -70,33 +66,9 @@ function useWorkspaceCardLabelPopover() {
 function WorkspaceCardLabel({title, description, displayValue, valueStyle, valueAccessory, footer, children, style, containerStyle}: WorkspaceCardLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {windowWidth} = useWindowDimensions();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-        style: [styles.p4, styles.pb4],
-    });
-
     const [isVisible, setVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
-    const anchorRef = useRef(null);
-
-    useEffect(() => {
-        if (!anchorRef.current || !isVisible) {
-            return;
-        }
-
-        const position = getClickedTargetLocation(anchorRef.current);
-        const BOTTOM_MARGIN_OFFSET = 3;
-
-        setAnchorPosition({
-            top: position.top + position.height + BOTTOM_MARGIN_OFFSET,
-            left: position.left,
-        });
-    }, [isVisible, windowWidth]);
+    const {anchorRef, anchorPosition, contentPaddingStyle, outerStyle, innerContainerStyle} = useAnchoredInfoPopover(isVisible);
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler memoizes this, no manual useMemo needed
     const popoverContextValue: WorkspaceCardLabelPopoverContextValue = {closePopover: () => setVisible(false)};
@@ -132,13 +104,13 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}
-                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
-                innerContainerStyle={!shouldUseNarrowLayout ? styles.cardLabelTooltipContainer : undefined}
+                outerStyle={outerStyle}
+                innerContainerStyle={innerContainerStyle}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={bottomSafeAreaPaddingStyle}>
+                <View style={contentPaddingStyle}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
