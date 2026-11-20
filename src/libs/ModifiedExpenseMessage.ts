@@ -196,10 +196,10 @@ function getMovedFromOrToReportMessage(
 }
 
 /**
- * The fields a rules modified message can name. A rule can set more than these, the vendor for one, and the backend
- * sends back whatever it applied, so a field with no label here is left out rather than rendered without one.
+ * The fields a rules modified message can name. The backend sends back whatever a rule applied, so a field with
+ * no label here is left out rather than rendered without one.
  */
-const RULES_MODIFIED_FIELDS_WITH_LABELS = new Set<string>(['amount', 'category', 'comment', 'description', 'merchant', 'tag', 'tax']);
+const RULES_MODIFIED_FIELDS_WITH_LABELS = new Set<string>(['amount', 'category', 'comment', 'description', 'merchant', 'tag', 'tax', 'vendor']);
 
 function getRulesModifiedMessage(
     translate: LocalizedTranslate,
@@ -241,6 +241,11 @@ function getRulesModifiedMessage(
         if (key === 'tag') {
             return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value ?? ''), isFirst);
         }
+        if (key === 'vendor') {
+            const vendorEntry = modifiedFields[key];
+            return translate('iou.rulesModifiedFields.common', key, vendorEntry?.name || vendorEntry?.externalID || '', isFirst);
+        }
+
         // The backend saves description as comment, so display it with the description label.
         if (key === 'comment') {
             return translate('iou.rulesModifiedFields.common', 'description', String(value), isFirst);
