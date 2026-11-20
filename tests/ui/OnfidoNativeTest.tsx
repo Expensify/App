@@ -53,6 +53,25 @@ describe('Onfido (native)', () => {
         jest.restoreAllMocks();
     });
 
+    it('reports an error instead of starting the SDK without a token', () => {
+        // Given the bank account page renders the flow after its stored token was cleared
+        const onError = jest.fn();
+
+        // When the component mounts with an empty token
+        render(
+            <Onfido
+                sdkToken=""
+                onSuccess={jest.fn()}
+                onUserExit={jest.fn()}
+                onError={onError}
+            />,
+        );
+
+        // Then the SDK is never created, because the iOS SDK crashes the app on a token it can't read, and the page is told about the error so it can go back
+        expect(EntrustIdv.instances).toHaveLength(0);
+        expect(onError).toHaveBeenCalledWith(CONST.ERROR.UNKNOWN_ERROR);
+    });
+
     it('starts the SDK once on mount', () => {
         // Given the component is rendered
         const {instance} = renderOnfido();

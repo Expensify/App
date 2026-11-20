@@ -34,6 +34,14 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
+        // The iOS SDK crashes the app with a fatal error ("Failed to process SDK Token") when it can't read the token. The bank account
+        // page renders this component even when the stored token was cleared, so an empty token is reported as an error instead.
+        if (!sdkToken) {
+            Log.hmmm('Onfido native flow was opened without an SDK token');
+            onError(CONST.ERROR.UNKNOWN_ERROR);
+            return;
+        }
+
         // Without a mode the SDK follows the device's light or dark setting, which can differ from the theme the user picked in the app.
         const themeMode = theme.colorScheme === CONST.COLOR_SCHEME.DARK ? ThemeMode.Dark : ThemeMode.Light;
         const brandColors: ThemeColors = {
