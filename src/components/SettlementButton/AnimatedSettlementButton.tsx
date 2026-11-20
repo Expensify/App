@@ -173,8 +173,9 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        variant={isDEWApprovalLoading ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
+                        sentryLabel={sentryLabel}
                     >
                         {!!icon && <Button.Icon src={icon} />}
                         <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
