@@ -479,7 +479,6 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/hooks/useAdvancedSearchFilters.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/hooks/useAssignCard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutocompleteSuggestions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutoCreateTrackWorkspace.ts"	"no-restricted-imports"	1
@@ -529,7 +528,6 @@
 "../../src/hooks/useLoadDepositAccountSetup.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useMarkdownStyle.ts"	"rulesdir/no-raw-typography"	3
 "../../src/hooks/useMergeResultConfirmationConfig.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingFlow.ts"	"rulesdir/no-onyx-loading-status"	3
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1839,8 +1837,6 @@
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/AgentRules/AddAgentRulePage.tsx"	"react/no-unstable-nested-components"	1
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"no-restricted-imports"	1
@@ -1902,7 +1898,6 @@
 "../../src/pages/workspace/WorkspaceOverviewClientIDPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewDescriptionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

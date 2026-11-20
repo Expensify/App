@@ -23,7 +23,7 @@ import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingE
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import variables from '@styles/variables';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -64,11 +65,47 @@ type BasicRuleMenuItem = {
 
 const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
 
+type IndividualExpenseRuleRowProps = {
+    item: BasicRuleMenuItem;
+    onPress?: () => void;
+};
+
+function IndividualExpenseRuleRow({item, onPress}: IndividualExpenseRuleRowProps) {
+    const styles = useThemeStyles();
+    return (
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <MenuItem.Root
+                onPress={onPress}
+                style={styles.sectionMenuItemTopDescription}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+            >
+                <MenuItem.Row style={styles.gap0}>
+                    <MenuItem.Leading>
+                        <View style={styles.mr5}>
+                            <MenuItem.IconNarrow src={item.icon} />
+                        </View>
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>
+                        {!!item.description && <MenuItem.Description numberOfLines={1}>{item.description}</MenuItem.Description>}
+                    </MenuItem.Content>
+                    {!!onPress && (
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    )}
+                </MenuItem.Row>
+            </MenuItem.Root>
+        </OfflineWithFeedback>
+    );
+}
+
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // Every toggle here owes a locked-out member the read-only modal, the way the pre-revamp section gave all four of
     // them. Splitting this section out dropped it, so a member saw a lock with nothing explaining it. Only the modal is
     // taken from the hook: its `canWrite` is the `canWriteRules` prop already.
@@ -241,29 +278,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const renderMenuItems = (items: BasicRuleMenuItem[]) =>
         items.map((item) => (
-            <OfflineWithFeedback
-                pendingAction={item.pendingAction}
+            <IndividualExpenseRuleRow
                 key={item.key}
-            >
-                <MenuItem
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    iconWidth={variables.iconSizeNormal}
-                    iconHeight={variables.iconSizeNormal}
-                    shouldIconUseAutoWidthStyle
-                    shouldShowBasicTitle
-                    innerContainerStyle={styles.gap5}
-                    titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
-                    descriptionTextStyle={[styles.ml0, styles.breakWord]}
-                    shouldShowRightIcon={canWriteRules}
-                    onPress={() => handleMenuItemPress(item)}
-                    interactive={canWriteRules}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
-                    numberOfLinesDescription={1}
-                />
-            </OfflineWithFeedback>
+                item={item}
+                onPress={canWriteRules ? callIfAuthenticated(() => handleMenuItemPress(item), session) : undefined}
+            />
         ));
 
     return (
