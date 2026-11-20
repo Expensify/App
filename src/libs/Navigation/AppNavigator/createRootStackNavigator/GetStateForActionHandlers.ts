@@ -374,13 +374,14 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
     // this on web would make browser Back skip that report while React Navigation keeps it.
     const shouldPreserveFocusedReportsStack = isNativePlatform && targetTabIndex === existingTabState.index;
 
+    // Spend screens have no sidebar to duplicate. Skipped when Spend is focused, so submits made on Spend do not grow its stack
+    const shouldKeepExistingTabScreens =
+        !isNativePlatform && !getIsNarrowLayout() && focusedTargetTab.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && targetTabIndex !== existingTabState.index;
+
     const updatedTabRoutes = existingTabState.routes.map((route, index) => {
         if (index !== targetTabIndex) {
             return route;
         }
-        // Spend screens have no sidebar to duplicate. Skipped when Spend is focused, so submits made on Spend do not grow its stack
-        const shouldKeepExistingTabScreens =
-            !isNativePlatform && !getIsNarrowLayout() && focusedTargetTab.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && targetTabIndex !== existingTabState.index;
         return getTargetTabRoute(route, focusedTargetTab, shouldPreserveFocusedReportsStack, shouldKeepExistingTabScreens);
     });
     return {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
