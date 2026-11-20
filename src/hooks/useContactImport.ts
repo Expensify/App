@@ -64,7 +64,6 @@ function useContactImport(): UseContactImportResult {
     useContactPermissions({
         importAndSaveContacts,
         setContacts,
-        contactPermissionState,
         setContactPermissionState,
     });
 

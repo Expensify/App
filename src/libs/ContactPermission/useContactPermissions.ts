@@ -12,11 +12,10 @@ import {getContactPermission} from './index';
 type UseContactPermissionsProps = {
     importAndSaveContacts: () => void;
     setContacts: (contacts: never[]) => void;
-    contactPermissionState: PermissionStatus;
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
-function useContactPermissions({importAndSaveContacts, setContacts, contactPermissionState, setContactPermissionState}: UseContactPermissionsProps): void {
+function useContactPermissions({importAndSaveContacts, setContacts, setContactPermissionState}: UseContactPermissionsProps): void {
     const checkPermissionAndUpdateContacts = () => {
         return getContactPermission()
             .then((newStatus) => {
@@ -25,9 +24,9 @@ function useContactPermissions({importAndSaveContacts, setContacts, contactPermi
                 if (isNewStatusGranted) {
                     importAndSaveContacts();
                 } else {
-                    if (newStatus !== contactPermissionState) {
-                        setContactPermissionState(newStatus);
-                    }
+                    // Don't read the current status here: the focus effect below would then run again each time the status
+                    // changes, and the first import changes it, so every focus would import the contacts twice
+                    setContactPermissionState(newStatus);
                     setContacts([]);
                 }
             })
