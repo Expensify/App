@@ -34,7 +34,6 @@ describe('NegatableFilter', () => {
             <NegatableFilter
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
                 isNegated={false}
-                isNegationDisabled
                 negationDisabledTooltip="Not available with violation filter"
                 onNegationChange={onNegationChange}
             />,
@@ -50,13 +49,13 @@ describe('NegatableFilter', () => {
         expect(onNegationChange).toHaveBeenCalledWith(false);
     });
 
-    it('keeps negation enabled by default and omits its tooltip', () => {
+    it.each([false, true])('keeps negation enabled without a disabling tooltip (isNegated=%s)', (isNegated) => {
         // Given an existing caller that supplies no disabled state
         const onNegationChange = jest.fn();
         render(
             <NegatableFilter
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
-                isNegated={false}
+                isNegated={isNegated}
                 onNegationChange={onNegationChange}
             />,
         );

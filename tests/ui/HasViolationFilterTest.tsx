@@ -9,8 +9,13 @@ import Tooltip from '@components/Tooltip';
 import {VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
+
+const mockUseOnyx = jest.fn((key: string) => [
+    key === ONYXKEYS.COLLECTION.POLICY ? {[`${ONYXKEYS.COLLECTION.POLICY}test`]: {id: 'test', type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true}} : undefined,
+]);
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
@@ -26,7 +31,7 @@ jest.mock('@components/Search/FilterComponents/NegatableFilter', () => jest.fn((
 jest.mock('@hooks/useTheme', () => () => ({}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@hooks/useOnyx', () => (key: string) => mockUseOnyx(key));
 
 describe('Has filter required violation stages', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
@@ -45,17 +50,24 @@ describe('Has filter required violation stages', () => {
 
     function renderHasFilter(violationNames: Array<'overLimit'> | undefined, value: string[] = [...VIOLATION_HAS_VALUES], isNegated = false) {
         const onChange = jest.fn();
-        render(
-            <ListFilterContent
-                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
-                value={value}
-                violationNames={violationNames}
-                isNegated={isNegated}
-                policyID={undefined}
-                onChange={onChange}
-                onNegationChange={jest.fn()}
-            />,
-        );
+        function HasFilterHost() {
+            const [selectedValues, setSelectedValues] = React.useState(value);
+            return (
+                <ListFilterContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
+                    value={selectedValues}
+                    violationNames={violationNames}
+                    isNegated={isNegated}
+                    policyID={undefined}
+                    onChange={(newValue) => {
+                        onChange(newValue);
+                        setSelectedValues(Array.isArray(newValue) ? newValue : []);
+                    }}
+                    onNegationChange={jest.fn()}
+                />
+            );
+        }
+        render(<HasFilterHost />);
         return onChange;
     }
 
@@ -93,7 +105,7 @@ describe('Has filter required violation stages', () => {
         const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
 
         // Then the negative option explains why it is unavailable rather than describing it as required
-        expect(props).toEqual(expect.objectContaining({isNegationDisabled: true, negationDisabledTooltip: 'search.filters.notAvailableWithViolationFilter'}));
+        expect(props?.negationDisabledTooltip).toBe('search.filters.notAvailableWithViolationFilter');
     });
 
     it.each([{violationNames: undefined}, {violationNames: []}])('allows Has negation without a positive violation filter (%j)', ({violationNames}) => {
@@ -104,7 +116,7 @@ describe('Has filter required violation stages', () => {
         const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
 
         // Then the negative option remains available without a disabled tooltip
-        expect(props).toEqual(expect.objectContaining({isNegationDisabled: false, negationDisabledTooltip: undefined}));
+        expect(props?.negationDisabledTooltip).toBeUndefined();
     });
 
     it('does not disable negation on other filters while positive violations are selected', () => {
@@ -125,7 +137,19 @@ describe('Has filter required violation stages', () => {
         const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
 
         // Then the Has-only restriction does not apply
-        expect(props).toEqual(expect.objectContaining({isNegationDisabled: false, negationDisabledTooltip: undefined}));
+        expect(props?.negationDisabledTooltip).toBeUndefined();
+    });
+
+    it('keeps an already-negated Has filter enabled with a positive violation filter', () => {
+        // Given over-limit expenses filtered to exclude receipts
+        renderHasFilter(['overLimit'], [CONST.SEARCH.HAS_VALUES.RECEIPT], true);
+
+        // When the already-negated Has popup opens
+        const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
+
+        // Then the selected negative option has no disabling tooltip
+        expect(props?.isNegated).toBe(true);
+        expect(props?.negationDisabledTooltip).toBeUndefined();
     });
 
     it.each(VIOLATION_HAS_VALUES)('locks the remaining %s stage after the other stage is unchecked', (stage) => {

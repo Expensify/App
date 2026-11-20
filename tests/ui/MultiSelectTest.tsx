@@ -45,6 +45,49 @@ describe('MultiSelect', () => {
         mockedSelectionList.mockClear();
     });
 
+    it('uses the latest item metadata for disabling and tooltips without changing the row renderer', () => {
+        // Given a selected item whose parent marks it required
+        const item: MultiSelectItem<string> = {text: 'Required item', value: 'required', isDisabled: true, tooltipText: 'Required'};
+        const onChange = jest.fn();
+        const {rerender} = render(
+            <MultiSelect
+                value={[item]}
+                items={[item]}
+                onChange={onChange}
+            />,
+        );
+        const initialProps = mockedSelectionList.mock.lastCall?.[0];
+        const row = initialProps?.data.at(0);
+        if (!row) {
+            throw new Error('Missing selected row');
+        }
+
+        // When the disabled row is selected, then its metadata blocks the change
+        expect(row).toEqual(expect.objectContaining({isDisabled: true, tooltipText: 'Required'}));
+        act(() => initialProps?.onSelectRow?.(row));
+        expect(onChange).not.toHaveBeenCalled();
+
+        // When the parent removes the restriction, even though the selected item still holds the old metadata
+        rerender(
+            <MultiSelect
+                value={[item]}
+                items={[{...item, isDisabled: false, tooltipText: undefined}]}
+                onChange={onChange}
+            />,
+        );
+        const updatedProps = mockedSelectionList.mock.lastCall?.[0];
+        const updatedRow = updatedProps?.data.at(0);
+        if (!updatedRow) {
+            throw new Error('Missing updated row');
+        }
+
+        // Then the latest items control availability and the stable renderer can remove the row normally
+        expect(updatedProps?.ListItem).toBe(initialProps?.ListItem);
+        expect(updatedRow).toEqual(expect.objectContaining({isDisabled: false, tooltipText: undefined}));
+        act(() => updatedProps?.onSelectRow?.(updatedRow));
+        expect(onChange).toHaveBeenCalledWith([]);
+    });
+
     it('floats pre-selected items to the top on first render', () => {
         const preselected = buildItem(10);
 

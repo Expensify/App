@@ -50,6 +50,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.columns = [];
         }
 
+        // Only explicit Violation edits normalize its required stages; unrelated refinements preserve typed queries that omit Has.
         if (CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION in newValues) {
             updatedFilterFormValues.has = getHasValuesWithRequiredViolations(updatedFilterFormValues);
         }

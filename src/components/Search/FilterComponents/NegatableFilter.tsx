@@ -20,19 +20,17 @@ import type {ListFilterContentProps} from './ListFilterContent';
 type NegatableFilterProps = React.PropsWithChildren & {
     isNegated: boolean;
 
-    /** Disables only the negative option; the positive option stays available. */
-    isNegationDisabled?: boolean;
-
-    /** Shown on hover only while negation is disabled. */
+    /** When set, disables the negative option and explains why on hover; the positive option stays available. */
     negationDisabledTooltip?: string;
     baseFilterKey: ListFilterContentProps['baseFilterKey'] | TextInputFilterContentProps['baseFilterKey'];
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
 };
 
-function NegatableFilter({baseFilterKey, isNegated, isNegationDisabled = false, negationDisabledTooltip, children, style, onNegationChange}: NegatableFilterProps) {
+function NegatableFilter({baseFilterKey, isNegated, negationDisabledTooltip, children, style, onNegationChange}: NegatableFilterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isNegationDisabled = !!negationDisabledTooltip;
 
     if (!isFilterNegatable(baseFilterKey)) {
         return children;
@@ -60,7 +58,7 @@ function NegatableFilter({baseFilterKey, isNegated, isNegationDisabled = false, 
                     </Button>
                     <Tooltip
                         text={negationDisabledTooltip}
-                        shouldRender={isNegationDisabled && !!negationDisabledTooltip}
+                        shouldRender={isNegationDisabled}
                     >
                         <View style={styles.flex1}>
                             <Button

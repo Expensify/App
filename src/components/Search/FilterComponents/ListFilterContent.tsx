@@ -126,6 +126,9 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
         policies: policies ?? {},
         policyIDsWithCategoryRules,
         selectedValues,
+    }).map((item) => {
+        const isDisabled = isLastRequiredViolationHasValue(item.value, selectedValues, violationNames);
+        return {...item, isDisabled, tooltipText: isDisabled ? translate('search.filters.requiredWithViolationFilter') : undefined};
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
@@ -133,14 +136,6 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
         <MultiSelect
             items={items}
             value={multiSelectValues}
-            getItemState={(item, selectedItems) => {
-                const isDisabled = isLastRequiredViolationHasValue(
-                    item.value,
-                    selectedItems.map((selectedItem) => selectedItem.value),
-                    violationNames,
-                );
-                return {isDisabled, tooltipText: isDisabled ? translate('search.filters.requiredWithViolationFilter') : undefined};
-            }}
             selectionListStyle={selectionListStyle}
             isNegatable={isFilterNegatable(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)}
             footer={footer}
@@ -217,7 +212,7 @@ function ListFilterContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
-    const isNegationDisabled = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length;
+    const isNegationDisabled = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length && !isNegated;
     const selectionListTextInputStyle = [selectionListTextInputStyleProp, isFilterKeyNegatable && styles.pt2];
 
     let content;
@@ -374,7 +369,6 @@ function ListFilterContent({
             style={style}
             baseFilterKey={baseFilterKey}
             isNegated={isNegated}
-            isNegationDisabled={isNegationDisabled}
             negationDisabledTooltip={isNegationDisabled ? translate('search.filters.notAvailableWithViolationFilter') : undefined}
             onNegationChange={onNegationChange}
         >

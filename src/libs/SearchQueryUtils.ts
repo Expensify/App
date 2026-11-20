@@ -967,7 +967,7 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
     return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
-/** UI filter edits make the implicit violation stages explicit; typed queries keep their original semantics. */
+/** Add both violation stages when a supported positive violation filter has no stage selected. */
 function getHasValuesWithRequiredViolations(values: Partial<SearchAdvancedFiltersForm>): SearchAdvancedFiltersForm['has'] | undefined {
     if (!values.violationName?.length || !isFilterSupported(FILTER_KEYS.VIOLATION, values.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) || hasValuesIncludeViolationFilter(values.has)) {
         return values.has;

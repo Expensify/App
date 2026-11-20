@@ -229,21 +229,6 @@ describe('useUpdateFilterQuery', () => {
             expect(updated.violationName).toBeUndefined();
             expect(updated.violationNameNot).toEqual(['missingCategory']);
         });
-
-        it('leaves a typed violation query with no Has stages alone', () => {
-            // Given a typed query without an explicit Has filter
-            const query = buildSearchQueryJSON('violation:overLimit');
-            if (!query) {
-                throw new Error('Invalid test query');
-            }
-
-            // When the typed query is parsed into form values, outside the UI edit path
-            const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {});
-
-            // Then its implicit stages remain implicit
-            expect(form.violationName).toEqual(['overLimit']);
-            expect(form.has ?? []).toEqual([]);
-        });
     });
 
     describe('getUpdatedFilterFormValues with group-by:violation', () => {

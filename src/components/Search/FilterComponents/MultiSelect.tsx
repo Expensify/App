@@ -31,6 +31,8 @@ type MultiSelectItem<T> = {
     icons?: Icon[];
     leftElement?: ReactNode;
     searchableText?: string;
+    isDisabled?: boolean;
+    tooltipText?: string;
 
     /** Optional supporting text rendered on a second line beneath `text` */
     alternateText?: string;
@@ -38,9 +40,6 @@ type MultiSelectItem<T> = {
 
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     items: Array<MultiSelectItem<T>>;
-
-    /** Recomputed from the live selection, including changes not yet applied to the query. */
-    getItemState?: (item: MultiSelectItem<T>, selectedItems: Array<MultiSelectItem<T>>) => MultiSelectItemState;
 
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
@@ -71,12 +70,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     isSearching?: boolean;
 };
 
-type MultiSelectItemState = {
-    isDisabled?: boolean;
+type MultiSelectFilterListItemData = ListItem & {
     tooltipText?: string;
 };
-
-type MultiSelectFilterListItemData = ListItem & MultiSelectItemState;
 
 function MultiSelectFilterListItem(props: ListItemProps<MultiSelectFilterListItemData>) {
     return (
@@ -96,7 +92,6 @@ function MultiSelect<T extends string>({
     shouldShowLoadingPlaceholder,
     value,
     items,
-    getItemState,
     isSearchable,
     isNegatable,
     itemHeight,
@@ -153,9 +148,10 @@ function MultiSelect<T extends string>({
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
         leftElement: item.leftElement,
+        isDisabled: item.isDisabled,
+        tooltipText: item.tooltipText,
         // Without vertical padding a two line title still fits the estimated row height
         itemStyle: item.alternateText ? undefined : styles.pv0,
-        ...getItemState?.(item, selectedItems),
     }));
 
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
@@ -232,7 +228,7 @@ function MultiSelect<T extends string>({
                     shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
-                    ListItem={getItemState ? MultiSelectFilterListItem : MultiSelectListItem}
+                    ListItem={MultiSelectFilterListItem}
                     titleNumberOfLines={2}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
