@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 
 import pkg from '../../package.json';
 import CONFIG from '../../src/CONFIG';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '../../src/libs/API/types';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -55,5 +56,19 @@ test('Enhance parameters adds correct parameters for a command that requires aut
             clientUpdateID: -1,
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
+    });
+});
+
+test('Enhance parameters keeps the authToken a caller passes instead of the session one', () => {
+    // Given a session token, and LogOut sending a different token, as the 2FA flows also do
+    const command = SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT;
+    const callerAuthToken = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIyIn0.Y2FsbGVy';
+    Onyx.merge(ONYXKEYS.SESSION, {email: 'test-user@test.com', authToken: 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxIn0.c2Vzc2lvbg'});
+    return waitForBatchedUpdates().then(() => {
+        // When the parameters are enhanced
+        const finalParameters = enhanceParameters(command, {authToken: callerAuthToken});
+
+        // Then the caller's token wins, so HttpUtils builds the Authorization header from the same token the server receives
+        expect(finalParameters.authToken).toBe(callerAuthToken);
     });
 });
