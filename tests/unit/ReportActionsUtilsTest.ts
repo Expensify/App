@@ -3498,8 +3498,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for REIMBURSED action from NewDot', () => {
-            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for REIMBURSED action that Auth hides', () => {
+            // Given a REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
                 reportActionID: '1',
@@ -3512,6 +3512,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3565,8 +3566,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
-            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for MARKED_REIMBURSED action that Auth hides', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                 reportActionID: '1',
@@ -3579,6 +3580,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3586,67 +3588,26 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
-            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
-            const reportID = `newDotReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+        it.each([CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED] as const)('shows a NewDot %s action that Auth shows', (actionName) => {
+            // Given a NewDot payment action on an invoice. Auth sends it with shouldShow true, because paying a bill adds no IOU PAY action to its invoice.
+            const reportAction = {
+                actionName,
                 reportActionID: '1',
                 created: '2025-01-01',
                 message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
                 originalMessage: {isNewDot: true},
-            };
+                shouldShow: true,
+            } as ReportAction;
 
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+            // When the action's visibility is checked
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
 
-            // Then only invoices show it, because other reports show their IOU PAY action instead
-            expect(actual).toBe(isVisible);
-        });
-
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
-            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
-            const reportID = `newDotMarkedReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                reportActionID: '2',
-                created: '2026-10-30 21:11:55.001',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: 'marked this report as reimbursed',
-                    },
-                ],
-                originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
-            };
-
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
-
-            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
-            expect(actual).toBe(isVisible);
+            // Then it shows, because App follows shouldShow instead of isNewDot
+            expect(actual).toBe(true);
         });
 
         it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
-            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment, and Auth shows payment actions on invoices.
             const reportID = 'paidInvoiceWithPaySibling';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
@@ -3665,7 +3626,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
+                shouldShow: true,
             };
             const payAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -3690,26 +3651,6 @@ describe('ReportActionsUtils', () => {
 
             // Then it stays hidden, because the IOU PAY action already shows the payment
             expect(actual).toBe(false);
-        });
-
-        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
-            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
-            const reportID = 'invoiceFromActionReportID';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
-            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                reportID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {isNewDot: true},
-            };
-
-            // When the action's visibility is checked without a reportID
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
-
-            // Then it shows, because the action's own reportID tells that it belongs to an invoice
-            expect(actual).toBe(true);
         });
 
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
@@ -3974,18 +3915,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is hidden because approve-only members cannot create policy rooms
             expect(actual).toBe(false);
@@ -4014,18 +3944,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);
@@ -7036,6 +6955,54 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
+
+        it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
+            // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: '',
+                    newValue: 'id_STANDARD_VAT_(20%)',
+                    oldTaxPercentage: '',
+                    newTaxPercentage: '20%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the percentage is shown once
+            expect(actual).toBe('added the tax rate "id_STANDARD_VAT_(20%)" to the distance rate "Default Rate"');
+        });
+
+        it('should not repeat the percentage when the previous tax rate of a rate already ends with it', () => {
+            // Given a rate moved from a tax rate whose code ends with its percentage to one whose code doesn't
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'id_STANDARD_VAT_(20%)',
+                    newValue: 'id_TAX_RATE_1',
+                    oldTaxPercentage: '20%',
+                    newTaxPercentage: '5%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the previous tax rate shows its percentage once, and the new one still gets its percentage added
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "id_TAX_RATE_1 (5%)" (previously "id_STANDARD_VAT_(20%)")');
+        });
     });
 
     describe('getWorkspaceCustomUnitUpdatedMessage', () => {
@@ -8025,6 +7992,29 @@ describe('ReportActionsUtils', () => {
 
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
         });
     });
 
