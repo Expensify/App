@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsTabVisible from '@hooks/useIsTabVisible';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -161,10 +160,10 @@ function InsightsDashboardContent({
 }: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const shouldScrollMainHeader = shouldUseNarrowLayout && isInLandscapeMode;
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
@@ -375,10 +374,10 @@ function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboard
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
-    const shouldScrollMainHeader = useIsMobileWebLandscape();
+    const shouldScrollMainHeader = shouldUseNarrowLayout && isInLandscapeMode;
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
