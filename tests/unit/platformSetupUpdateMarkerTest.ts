@@ -124,20 +124,32 @@ describe('service worker registration', () => {
         }
     }
 
+    it('registers the worker on New Expensify’s own host without touching Cache Storage', async () => {
+        // Given New Expensify on its own host, where saving media is never blocked
+        jest.mocked(isSharedProductHost).mockReturnValue(false);
+
+        // When the app starts
+        await startAppAndLoad();
+
+        // Then the worker is registered as before the shared host existed
+        expect(register).toHaveBeenCalledTimes(1);
+        expect(deleteCache).not.toHaveBeenCalled();
+        expect(openCache).not.toHaveBeenCalled();
+    });
+
     it.each([
-        ['on New Expensify’s own host', false, undefined, true],
-        ['for a New Expensify user on the shared host', true, CONST.EXPERIENCE_COOKIE.VALUES.NEW, true],
-        ['for an Expensify Classic user on the shared host', true, CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, false],
-        ['without the experience cookie on the shared host', true, undefined, false],
-    ] as const)('registers the worker %s only when it should', async (_, isShared, cookie, shouldRegister) => {
-        // Given the host and the product the experience cookie selects
-        jest.mocked(isSharedProductHost).mockReturnValue(isShared);
+        ['for a New Expensify user', CONST.EXPERIENCE_COOKIE.VALUES.NEW, true],
+        ['for an Expensify Classic user', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC, false],
+        ['without the experience cookie', undefined, false],
+    ] as const)('registers the worker on the shared host %s only when it should', async (_, cookie, shouldRegister) => {
+        // Given the shared host and the product the experience cookie selects
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
         jest.mocked(readExperienceCookie).mockReturnValue(cookie);
 
         // When the app starts
         await startAppAndLoad();
 
-        // Then only users who would have the worker on New Expensify's own host get it, and saved media is unblocked first
+        // Then only New Expensify users get the worker, and saved media is unblocked first
         expect(register).toHaveBeenCalledTimes(shouldRegister ? 1 : 0);
         expect(deleteCache).toHaveBeenCalledTimes(shouldRegister ? 1 : 0);
         if (shouldRegister) {
@@ -178,7 +190,9 @@ describe('service worker registration', () => {
     });
 
     it('registers the worker even when unblocking saved media fails', async () => {
-        // Given Cache Storage that rejects
+        // Given a New Expensify user on the shared host, and Cache Storage that rejects
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
         deleteCache.mockRejectedValue(new Error('Cache Storage unavailable'));
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 

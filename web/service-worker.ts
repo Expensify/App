@@ -131,7 +131,7 @@ async function openSavedApp(options: RouteHandlerCallbackOptions): Promise<Respo
         console.error('Failed to read the saved app; trying the network.', error);
         return undefined;
     });
-    return cachedResponse ?? upgradeNavigationStrategy.handle(options);
+    return cachedResponse ?? openUpgradedApp(options, clientID);
 }
 
 async function openSharedPage(options: RouteHandlerCallbackOptions): Promise<Response> {
@@ -165,10 +165,10 @@ if (isSharedProductHost) {
 }
 
 // Navigation routes are registered first, so upgrades to / and /index.html bypass the precached HTML.
-// Clean URLs are off, so a navigation to /index stays with the server instead of receiving /index.html.
+// On the shared host clean URLs are off, so a navigation to /index stays with the server instead of receiving /index.html.
 // Workbox replaces this exact property with the build's precache manifest.
 // eslint-disable-next-line no-underscore-dangle
-precacheAndRoute(self.__WB_MANIFEST, {cleanURLs: false});
+precacheAndRoute(self.__WB_MANIFEST, isSharedProductHost ? {cleanURLs: false} : undefined);
 
 const userMediaPlugin: WorkboxPlugin = {
     // A custom cacheWillUpdate replaces Workbox's default filter, so it saves only successful and opaque responses as that filter does.
@@ -192,6 +192,7 @@ registerRoute(
         sameOrigin && !(isSharedProductHost && CLASSIC_ASSET_PATHS.test(url.pathname)) && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
     new StaleWhileRevalidate({
         cacheName: USER_MEDIA_CACHE_NAME,
-        plugins: [userMediaPlugin, new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS})],
+        // Only the shared host blocks saving media, so other hosts keep Workbox's default filter
+        plugins: [...(isSharedProductHost ? [userMediaPlugin] : []), new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS})],
     }),
 );

@@ -67,25 +67,31 @@ function canUseServiceWorker(): boolean {
     return !isSharedProductHost() || readExperienceCookie() === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
 }
 
+/**
+ * Only the host that serves both products blocks saved media, when the user signs out of Classic or switches to it,
+ * so New Expensify's own hosts register the worker without touching Cache Storage.
+ */
 async function registerServiceWorker(): Promise<void> {
-    // Another tab can switch to Classic before this page loads, so the cookie is read again before each step
-    if (!canUseServiceWorker()) {
-        return;
-    }
+    if (isSharedProductHost()) {
+        // Another tab can switch to Classic before this page loads, so the cookie is read again before each step
+        if (!canUseServiceWorker()) {
+            return;
+        }
 
-    // Signing out of Classic or switching to it blocks saving media until the app starts again for a New Expensify user
-    try {
-        await unblockUserMedia();
-    } catch (error) {
-        // Soft-fail: a block that stays only stops media from being saved, so we only log the error to the console
-        // eslint-disable-next-line no-console
-        console.warn('[SW] failed to unblock saved media', error);
-    }
+        // The block holds until the app starts again for a New Expensify user
+        try {
+            await unblockUserMedia();
+        } catch (error) {
+            // Soft-fail: a block that stays only stops media from being saved, so we only log the error to the console
+            // eslint-disable-next-line no-console
+            console.warn('[SW] failed to unblock saved media', error);
+        }
 
-    // A switch to Classic while the block was being removed needs the block back and no worker
-    if (!canUseServiceWorker()) {
-        await blockAndClearUserMedia();
-        return;
+        // A switch to Classic while the block was being removed needs the block back and no worker
+        if (!canUseServiceWorker()) {
+            await blockAndClearUserMedia();
+            return;
+        }
     }
     await navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'});
 }

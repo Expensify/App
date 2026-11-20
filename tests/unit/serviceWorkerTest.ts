@@ -199,10 +199,8 @@ describe('service worker navigation', () => {
         expect(mockRegistrationOrder).toEqual(['route', 'precache', 'route']);
         expect(mockNetworkOnly.mock.calls.at(0)?.[0].networkTimeoutSeconds).toBeUndefined();
 
-        // And precache does not answer /index with /index.html
-        expect(mockPrecacheAndRoute).toHaveBeenCalledWith(undefined, {
-            cleanURLs: false,
-        });
+        // And precache keeps Workbox's defaults on New Expensify's own host
+        expect(mockPrecacheAndRoute).toHaveBeenCalledWith(undefined, undefined);
     });
 
     it('preserves the browser navigation request instead of reconstructing it', () => {
@@ -291,6 +289,23 @@ describe('service worker navigation', () => {
 
         // Then the temporary redirect state is gone, so the saved app can be used normally again
         expect(mockMatchPrecache).toHaveBeenCalledWith('/index.html');
+    });
+
+    it('keeps a redirect on the network when the installed shell is missing', async () => {
+        // Given an ordinary visit without a saved shell, whose network response is a redirect
+        mockMatchPrecache.mockResolvedValueOnce(undefined);
+        const response = createMock<Response>({type: 'basic'});
+        mockUpgradeNavigation.mockResolvedValueOnce(createMock<Response>({type: 'opaqueredirect'})).mockResolvedValueOnce(response);
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+        const event = new MockFetchEvent('page-without-shell');
+
+        // When the browser follows the redirect
+        await handler?.({url: new URL('https://new.expensify.com/r/123'), event});
+        const result = await handler?.({url: new URL('https://new.expensify.com/destination'), event: new MockFetchEvent(event.resultingClientId)});
+
+        // Then the destination also loads from the network, as for an upgrade, instead of a shell that may still be missing
+        expect(result).toBe(response);
+        expect(mockMatchPrecache).toHaveBeenCalledTimes(1);
     });
 
     it('forgets an abandoned upgrade redirect', async () => {
@@ -393,6 +408,9 @@ describe('service worker navigation', () => {
             expect(getNavigationRoute(0).options.allowlist).toEqual(SIGN_OUT_NAVIGATION_PATHS);
             expect(getNavigationRoute(1).options.allowlist).toEqual(APP_ONLY_NAVIGATION_PATHS);
             expect(getNavigationRoute(2).options.allowlist).toEqual(SHARED_NAVIGATION_PATHS);
+
+            // And precache does not answer /index with /index.html, so a Classic /index reaches the server
+            expect(mockPrecacheAndRoute).toHaveBeenCalledWith(undefined, {cleanURLs: false});
         });
 
         it.each([
@@ -616,6 +634,21 @@ describe('service worker navigation', () => {
     });
 
     describe('user media', () => {
+        beforeEach(() => {
+            startWorker(SHARED_PRODUCT_HOST);
+        });
+
+        it('keeps Workbox defaults for saved media on New Expensify’s own host', () => {
+            // Given New Expensify on its own host, where saving media is never blocked
+            // When the worker starts
+            startWorker(OTHER_HOST);
+
+            // Then the media cache only expires old entries, as before the shared host existed
+            const plugins = mockStaleWhileRevalidate.mock.calls.at(0)?.[0].plugins;
+            expect(plugins).toHaveLength(1);
+            expect(plugins?.at(0)?.cacheWillUpdate).toBeUndefined();
+        });
+
         it.each([
             [200, true],
             [0, true],
