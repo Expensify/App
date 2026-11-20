@@ -254,6 +254,7 @@ function BaseValidateCodeForm({
      * Request a validateCode be sent to verify this contact method
      */
     const resendValidateCode = () => {
+        setCanShowError(true);
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
         countdownRef.current?.resetCountdown();
@@ -377,7 +378,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError ? (finalValidateError ?? defaultValidateCodeError) : defaultValidateCodeError}
+                errors={canShowError && !isEmptyObject(finalValidateError) ? finalValidateError : defaultValidateCodeError}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();
