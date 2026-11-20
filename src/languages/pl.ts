@@ -7250,6 +7250,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             createFailureMessage: 'Wystąpił błąd podczas tworzenia kategorii, spróbuj ponownie',
             addCategory: 'Dodaj kategorię',
             createCategoryFromSearch: (categoryName: string) => `Utwórz kategorię „${categoryName}”`,
+            availableToMember: (memberName: string) => `Dostępne dla ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Niedostępne dla ${memberName}`,
             editCategory: 'Edytuj kategorię',
             editCategories: 'Edytuj kategorie',
             findCategory: 'Znajdź kategorię',

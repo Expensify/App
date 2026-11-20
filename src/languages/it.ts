@@ -7218,6 +7218,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
             addCategory: 'Aggiungi categoria',
             createCategoryFromSearch: (categoryName: string) => `Crea categoria «${categoryName}»`,
+            availableToMember: (memberName: string) => `Disponibile per ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Non disponibile per ${memberName}`,
             editCategory: 'Modifica categoria',
             editCategories: 'Modifica categorie',
             findCategory: 'Trova categoria',

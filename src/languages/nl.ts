@@ -7211,6 +7211,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
             createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
+            availableToMember: (memberName: string) => `Beschikbaar voor ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Niet beschikbaar voor ${memberName}`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',

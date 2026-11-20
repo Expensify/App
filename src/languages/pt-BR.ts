@@ -7221,6 +7221,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
             addCategory: 'Adicionar categoria',
             createCategoryFromSearch: (categoryName: string) => `Criar categoria “${categoryName}”`,
+            availableToMember: (memberName: string) => `Disponível para ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Indisponível para ${memberName}`,
             editCategory: 'Editar categoria',
             editCategories: 'Editar categorias',
             findCategory: 'Encontrar categoria',

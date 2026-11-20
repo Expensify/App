@@ -182,6 +182,7 @@ function TransactionItemRowWide({
     const session = useSession();
     const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
     const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
+    const categorySubmitterAccountID = isOwnExpense ? undefined : (transactionItem.report ?? report)?.ownerAccountID;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -370,6 +371,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -387,6 +389,7 @@ function TransactionItemRowWide({
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );

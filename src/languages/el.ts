@@ -7377,6 +7377,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             createFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη δημιουργία της κατηγορίας, παρακαλούμε δοκιμάστε ξανά',
             addCategory: 'Προσθήκη κατηγορίας',
             createCategoryFromSearch: (categoryName: string) => `Δημιουργία κατηγορίας «${categoryName}»`,
+            availableToMember: (memberName: string) => `Διαθέσιμο για ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Μη διαθέσιμο για ${memberName}`,
             editCategory: 'Επεξεργασία κατηγορίας',
             editCategories: 'Επεξεργαστείτε κατηγορίες',
             findCategory: 'Εύρεση κατηγορίας',
