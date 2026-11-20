@@ -8,7 +8,7 @@ import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewProps, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -49,6 +49,7 @@ type RequiredAccessibilityLabel =
 type PressHandlerProp = 'onPress' | 'onLongPress';
 
 type PressableProps = RNPressableProps &
+    Pick<ViewProps, 'onMouseEnter' | 'onMouseLeave'> &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
     WithSentryLabelWhenPressable<PressHandlerProp> & {

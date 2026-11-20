@@ -574,7 +574,7 @@ describe('Composer imperative refs', () => {
         jest.mocked(isMobileChrome).mockReturnValue(mobile);
         const onKeyPress = jest.fn<ReturnType<NonNullable<ComposerProps['onKeyPress']>>, Parameters<NonNullable<ComposerProps['onKeyPress']>>>();
         render(<WebComposer onKeyPress={onKeyPress} />, {createNodeMock: () => mockMarkdownInput});
-        const event = createMock<TextInputKeyPressEvent>({nativeEvent: new KeyboardEvent('keydown', {key: 'Enter', isComposing, keyCode})});
+        const event = Object.assign(createMock<TextInputKeyPressEvent>({}), {nativeEvent: new KeyboardEvent('keydown', {key: 'Enter', isComposing, keyCode})});
 
         // When Enter is delivered through the actual web Composer handler and unchanged IME helper.
         act(() => markdownProps().onKeyPress?.(event));
