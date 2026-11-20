@@ -1,3 +1,5 @@
+import {waitFor} from '@testing-library/react-native';
+
 import {initReconnect} from '@libs/actions/Reconnect';
 import {READ_COMMANDS, WRITE_COMMANDS, AUTHENTICATION_COMMAND} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
@@ -426,14 +428,7 @@ describe('APITests', () => {
         // When the app comes back online and the queue runs
         setHasRadio(true);
 
-        for (let i = 0; i < 100 && PersistedRequests.getAll().length + (PersistedRequests.getOngoingRequest() ? 1 : 0) > 0; i++) {
-            // eslint-disable-next-line no-await-in-loop
-            await new Promise((resolve) => {
-                setTimeout(resolve, 5);
-            });
-            // eslint-disable-next-line no-await-in-loop
-            await waitForBatchedUpdates();
-        }
+        await waitFor(() => expect(PersistedRequests.getAll().length + (PersistedRequests.getOngoingRequest() ? 1 : 0)).toBe(0), {timeout: 5000});
 
         const callsFor = (amount: number) => xhr.mock.calls.filter(([command, data]) => command === MOCK_COMMAND && data[SPLIT_AMOUNT_PARAM] === amount);
         const authenticateCalls = xhr.mock.calls.filter(([command]) => command === AUTHENTICATION_COMMAND);
