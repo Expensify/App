@@ -41,8 +41,18 @@ export default createOnyxDerivedValueConfig({
         }
 
         // Consumers of this key compare by reference, so handing back `currentValue` when nothing moved keeps them
-        // from re-rendering, and lets the engine skip the write entirely. Every `REPORT` write recomputes this, and
-        // for an account with no outstanding reports the result is a fresh empty object every time.
-        return currentValue && shallowEqual(currentValue, outstandingReportsByPolicyID) ? currentValue : outstandingReportsByPolicyID;
+        // from re-rendering, and lets the engine skip the write entirely. Every `REPORT` write recomputes this, mostly
+        // for chat messages that touch no outstanding report. Each workspace's reports are a fresh object here, so a
+        // workspace whose reports are unchanged keeps its previous object, otherwise the top-level check never matches.
+        let hasChanged = !currentValue || Object.keys(currentValue).length !== Object.keys(outstandingReportsByPolicyID).length;
+        for (const [policyID, reportsForPolicy] of Object.entries(outstandingReportsByPolicyID)) {
+            const previousReportsForPolicy = currentValue?.[policyID];
+            if (previousReportsForPolicy && shallowEqual(previousReportsForPolicy, reportsForPolicy)) {
+                outstandingReportsByPolicyID[policyID] = previousReportsForPolicy;
+                continue;
+            }
+            hasChanged = true;
+        }
+        return currentValue && !hasChanged ? currentValue : outstandingReportsByPolicyID;
     },
 });

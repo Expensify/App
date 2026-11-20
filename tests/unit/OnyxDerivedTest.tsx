@@ -1334,5 +1334,71 @@ describe('OnyxDerived', () => {
             expect(hook.result.current[0]).not.toBe(valueBefore);
             expect(hook.result.current[0]?.[POLICY_ID]?.[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]).toBeTruthy();
         });
+
+        it('should keep the outstanding reports reference when a chat report changes and outstanding reports exist', async () => {
+            // Given an account with an outstanding expense report and a component that reads the whole derived value
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                    reportID: EXPENSE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: POLICY_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+            const {hook, getRenderCount} = renderHookWithoutSelector(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+            const rendersBefore = getRenderCount();
+            expect(valueBefore?.[POLICY_ID]?.[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]).toBeTruthy();
+
+            // When messages land in a chat that is not an outstanding report
+            await act(async () => {
+                for (let i = 0; i < 5; i++) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {lastMessageText: `message ${i}`});
+                }
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the workspace's reports are rebuilt as a fresh but equal object, which must not reach the consumer
+            expect(hook.result.current[0]).toBe(valueBefore);
+            expect(getRenderCount()).toBe(rendersBefore);
+        });
+
+        it('should only replace the reports of the workspace whose outstanding report changed', async () => {
+            // Given outstanding expense reports on two workspaces
+            const otherPolicyID = 'policy2';
+            const otherExpenseReportID = '300';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                    reportID: EXPENSE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: POLICY_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${otherExpenseReportID}`, {
+                    reportID: otherExpenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: otherPolicyID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+            const {hook} = renderHookWithoutSelector(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+
+            // When the report on the first workspace is renamed
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportName: 'Renamed report'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the consumer sees the rename, and the untouched workspace keeps its previous object
+            const [valueAfter] = hook.result.current;
+            expect(valueAfter).not.toBe(valueBefore);
+            expect(valueAfter?.[POLICY_ID]?.[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]?.reportName).toBe('Renamed report');
+            expect(valueAfter?.[otherPolicyID]).toBe(valueBefore?.[otherPolicyID]);
+        });
     });
 });
