@@ -157,7 +157,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS]: {
-                            path: ROUTES.SETTINGS_HOME_ADDRESS,
+                            path: ROUTES.SETTINGS_HOME_ADDRESS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DEVICE_MANAGEMENT]: {
