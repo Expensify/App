@@ -1,4 +1,5 @@
 import LinkButton from '@components/Button/composed/LinkButton';
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SortableColumnMenu from '@components/Search/SortableColumnMenu';
 
@@ -29,7 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
@@ -157,7 +157,7 @@ type MoneyRequestReportTransactionListProps = {
     onContentSizeChange: (width: number, height: number) => void;
 
     /** FlashList onViewableItemsChanged callback. */
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: ViewableItemsChangedHandler;
 
     /** FlashList onEndReached callback. */
     onEndReached: () => void;

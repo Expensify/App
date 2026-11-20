@@ -990,6 +990,7 @@ const SCREENS = {
         DYNAMIC_CATEGORY_EDIT: 'Dynamic_Category_Edit',
         DYNAMIC_CATEGORY_PAYROLL_CODE: 'Dynamic_Category_Payroll_Code',
         DYNAMIC_CATEGORY_GL_CODE: 'Dynamic_Category_GL_Code',
+        DYNAMIC_CATEGORY_VISIBLE_TO: 'Dynamic_Category_Visible_To',
         DYNAMIC_CATEGORY_SETTINGS: 'Dynamic_Category_Settings',
         DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER: 'Dynamic_Category_Flag_Amounts_Over',
         DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR: 'Dynamic_Expense_Limit_Type_Selector',

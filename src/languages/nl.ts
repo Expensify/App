@@ -582,6 +582,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} dag`,
             other: (count: number) => `${formattedCount ?? count} dagen`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} uur`,
+            other: (count: number) => `${formattedCount ?? count} uur`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuut`,
+            other: (count: number) => `${formattedCount ?? count} minuten`,
+        }),
         amount: 'Bedrag',
     },
     socials: {
@@ -3305,6 +3313,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
+            payingMultipleReportsSubtitle: 'Geen van deze rapporten kon worden betaald, omdat de bankrekeningen van het bedrijf en de medewerker verschillende valuta gebruiken.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+            description: 'Deze rapporten zijn niet met de bankrekening betaald, omdat ze wereldwijde terugbetalingen vereisen. Start het proces hieronder.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
         wiseMoreInfoNeeded: 'Meer informatie nodig om wereldwijde terugbetalingen in te schakelen',
@@ -7214,9 +7227,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            visibleTo: 'Zichtbaar voor',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 lid',
+                other: `${count} leden`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Toegang tot ${categoryName} kan niet worden verwijderd`,
+                bulkRemoveAccessTitle: 'Toegang tot deze categorieën kan niet worden verwijderd',
                 description: ({count}: {count: number}) => ({
                     one: '1 lid zou geen categorieën meer hebben om uit te kiezen. Werk de zichtbaarheid van diens categorieën bij en probeer het opnieuw:',
                     other: `${count} leden zouden geen categorieën meer hebben om uit te kiezen. Werk hun categoriezichtbaarheid bij en probeer het daarna opnieuw:`,
@@ -8588,6 +8609,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             timezoneInputLabel: 'Tijdzone',
             timezoneInputHelpText: 'Je tijdzone wordt gebruikt voor het automatisch indienen van rapporten',
             timezoneErrorMessage: 'Tijdzone kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
+            directReimbursementCurrencyTitle: 'Valuta niet beschikbaar met directe terugbetaling',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Deze workspace betaalt leden rechtstreeks terug via Expensify, wat niet beschikbaar is in ${currency}. Ga naar Workflows en zet Betalingen uit en weer aan om ${currency} te gebruiken, zodat betalingen buiten Expensify plaatsvinden.`,
+            goToWorkflows: 'Naar workflows',
         },
         officeLocations: {
             title: 'Kantoorlokaties',
@@ -10347,11 +10372,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft ${customUnitName}-tarief „${rateName}” toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `heeft het belastingtarief van het kilometertarief "${customUnitRateName}" gewijzigd naar "${newValue} (${newTaxPercentage})" (voorheen "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `heeft het belastingtarief van het afstandstarief "${customUnitRateName}" gewijzigd naar "${newTaxRate}" (voorheen "${oldTaxRate}")`;
             }
-            return `heeft het belastingtarief "${newValue} (${newTaxPercentage})" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
+            return `heeft het belastingtarief "${newTaxRate}" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10995,6 +11020,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
+            tooManyKeywords: `Je zoekopdracht bevat te veel trefwoorden. Gebruik maximaal ${CONST.SEARCH.MAX_KEYWORD_TOKENS} trefwoorden en probeer het opnieuw.`,
+            unsupportedGrouping: 'Deze zoekopdracht ondersteunt geen groepering of grafiekweergave. Verwijder de groepering en gebruik de tabelweergave.',
+            invalidReportID: 'Voer een geldige rapport-ID in. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
+            unsupportedFilter: 'Het filter "is:" wordt niet ondersteund voor deze zoekopdracht. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
             emptyResults: {
                 title: 'Niets om weer te geven',
                 subtitle: `Probeer je zoekcriteria aan te passen of iets te maken met de knop +.`,
@@ -11054,6 +11083,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             openMenu: ({columnName}: {columnName: string}) => `Kolomopties voor ${columnName}`,
             sortAscending: 'Oplopend sorteren',
             sortDescending: 'Aflopend sorteren',
+            pinLeft: 'Links vastzetten',
+            pinRight: 'Rechts vastzetten',
+            unpin: 'Losmaken',
             hideColumn: 'Kolom verbergen',
             resetColumnSizes: 'Kolombreedtes opnieuw instellen',
         },
