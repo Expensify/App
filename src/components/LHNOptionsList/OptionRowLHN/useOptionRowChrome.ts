@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {ColorValue, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 
 import {useState} from 'react';
 import {StyleSheet} from 'react-native';
@@ -42,11 +42,10 @@ function useOptionRowChrome({isOptionFocused, viewMode, shouldUseFlatNavigationB
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
 
-    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    const sidebarInnerRowStyles: StyleProp<ViewStyle> = isInFocusMode
+        ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+        : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter];
+    const sidebarInnerRowStyle = StyleSheet.flatten(sidebarInnerRowStyles);
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
     const defaultHoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;

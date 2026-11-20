@@ -17,6 +17,7 @@ import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type MenuItemFieldInput from '@components/MenuItemFieldInput';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
@@ -40,7 +41,6 @@ import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInf
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
-import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
 import type TypeSelector from '@pages/workspace/reports/TypeSelector';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
@@ -89,7 +89,7 @@ type ValidInputs =
     | typeof EmojiPickerButtonDropdown
     | typeof NetSuiteCustomListPicker
     | typeof NetSuiteCustomFieldMappingPicker
-    | typeof NetSuiteMenuWithTopDescriptionForm
+    | typeof MenuItemFieldInput
     | typeof InitialListValueSelector
     | typeof TypeSelector
     | typeof CountryPicker
@@ -227,12 +227,14 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
