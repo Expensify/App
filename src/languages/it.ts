@@ -2332,6 +2332,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `In attesa che il pagamento annullato completi l'elaborazione${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Pagamento in sospeso, attendi un altro aggiornamento.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ops! Sembra che tu stia inviando a <strong>te stesso</strong>. L’approvazione dei tuoi stessi report è <strong>vietata</strong> dal tuo workspace. Invia questo report a qualcun altro oppure contatta il tuo amministratore per cambiare la persona a cui lo invii.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11655,7 +11656,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 reimbursementRefundedWithoutBankAccount: 'I fondi sono stati restituiti. Puoi riprovare a effettuare il pagamento.',
                 reimbursementHeld:
                     'Pagamento in sospeso mentre il nostro partner completa una verifica. Aspetta un altro aggiornamento. Chatta con <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'La revisione è stata completata e il tuo pagamento è in arrivo. Il tasso di cambio finale potrebbe modificarne l’importo.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Pagamento effettuato, i fondi dovrebbero arrivare entro il ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Pagamento effettuato.',
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',

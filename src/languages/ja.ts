@@ -2311,6 +2311,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `キャンセルされた支払いの処理が完了するまでお待ちください${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `支払いを保留しています。続報をお待ちください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `おっと！ <strong>ご自身</strong>に提出しようとしているようです。ご自身のレポートを承認することは、ワークスペースによって<strong>禁止</strong>されています。別の相手にこのレポートを提出するか、提出先を変更してもらうよう管理者に連絡してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11464,7 +11465,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: '資金は返金されました。支払いを再試行できます。',
                 reimbursementHeld:
                     'パートナーによる審査が完了するまで支払いを保留しています。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。',
-                reimbursementReleased: '審査が完了し、お支払いは送金手続き中です。最終的な為替レートにより金額が変わる場合があります。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `支払いは送金されました。資金は${expectedDate}までに到着する見込みです。`,
+                reimbursementReleasedWithoutDate: '支払いが実行されました。',
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

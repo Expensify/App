@@ -2337,6 +2337,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Zahlung ausgesetzt, warten Sie auf eine weitere Aktualisierung.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder kontaktieren Sie Ihre Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11709,7 +11710,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 reimbursementRefundedWithoutBankAccount: 'Gelder wurden zurückgebucht. Sie können die Zahlung erneut versuchen.',
                 reimbursementHeld:
                     'Zahlung zurückgestellt, während unser Partner eine Prüfung abschließt. Warten Sie auf ein weiteres Update. Chatten Sie mit <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Die Prüfung ist abgeschlossen und Ihre Zahlung ist unterwegs. Der endgültige FX-Kurs kann den Betrag noch ändern.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Zahlung freigegeben, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.`,
+                reimbursementReleasedWithoutDate: 'Zahlung freigegeben.',
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',

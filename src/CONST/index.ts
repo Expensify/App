@@ -2760,6 +2760,7 @@ const CONST = {
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_FOR_CANCELLED_REIMBURSEMENT: 'waitingForCancelledReimbursement',
+            WAITING_FOR_PAYMENT_REVIEW: 'waitingForPaymentReview',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
