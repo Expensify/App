@@ -1,5 +1,9 @@
 import type {WriteReadyBarrier} from '@libs/API';
 
+import type {QuickAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 type CreateTransactionParams = {
     /** Whether the user granted the location permission, which decides if GPS coordinates are attached to a scan. */
     locationPermissionGranted: boolean;
@@ -33,6 +37,12 @@ type SendMoneyOptions = {
 
     /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
     shouldStartTracking: boolean;
+
+    /** Last used quick action, read by the caller so the write itself stays synchronous. */
+    quickAction: OnyxEntry<QuickAction>;
+
+    /** Whether the report the money is sent in already has transactions, read by the caller so the write itself stays synchronous. */
+    hasReportTransactions: boolean;
 };
 
 export type {SubmissionHandle, SendMoneyOptions, CreateTransactionParams};

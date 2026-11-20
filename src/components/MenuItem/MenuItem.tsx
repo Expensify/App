@@ -14,7 +14,6 @@ import Hoverable from '@components/Hoverable';
 import type HoverableProps from '@components/Hoverable/types';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
-import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -34,6 +33,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -60,7 +60,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
@@ -95,7 +95,7 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable<'onPress' | 'onSecondaryInteraction'> &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -116,7 +116,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isBadgeCondensed?: boolean;
 
         isBadgeError?: boolean;
-        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
@@ -464,7 +463,6 @@ function MenuItem({
     isBadgeStrong,
     isBadgeCondensed,
     isBadgeError,
-    onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
     style,
@@ -607,8 +605,6 @@ function MenuItem({
     const combinedStyle = [styles.popoverMenuItem, style];
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {isExecuting} = useMenuItemGroupState() ?? {};
-    const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {
@@ -809,15 +805,7 @@ function MenuItem({
         }
 
         if (onPress && event) {
-            if (!singleExecution || !waitForNavigate) {
-                onPress(event);
-                return;
-            }
-            singleExecution(
-                waitForNavigate(() => {
-                    onPress(event);
-                }),
-            )();
+            onPress(event);
         }
     };
 
@@ -837,6 +825,10 @@ function MenuItem({
         onSecondaryInteraction?.(event);
     };
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
+
+    // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
+    // copy label.
+    const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
@@ -918,7 +910,7 @@ function MenuItem({
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
-                                disabled={disabled || isExecuting}
+                                disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
@@ -929,7 +921,7 @@ function MenuItem({
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
-                                sentryLabel={sentryLabel}
+                                sentryLabel={castToSentryLabel(pressableSentryLabel)}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -1153,8 +1145,6 @@ function MenuItem({
                                                                 success={isBadgeSuccess}
                                                                 isStrong={isBadgeStrong}
                                                                 isCondensed={isBadgeCondensed}
-                                                                onPress={onBadgePress}
-                                                                pressable={!!onBadgePress}
                                                             />
                                                         )}
                                                         {furtherDetailsComponent}
@@ -1176,8 +1166,6 @@ function MenuItem({
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
                                                         error={isBadgeError}
-                                                        onPress={onBadgePress}
-                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -1290,8 +1278,6 @@ function MenuItem({
                                                 success={isBadgeSuccess}
                                                 isStrong={isBadgeStrong}
                                                 isCondensed={isBadgeCondensed}
-                                                onPress={onBadgePress}
-                                                pressable={!!onBadgePress}
                                             />
                                         )}
                                         {!!errorText && (
