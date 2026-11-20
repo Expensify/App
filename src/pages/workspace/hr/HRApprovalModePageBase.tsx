@@ -11,7 +11,6 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,7 +22,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
-import type {MergeApprovalMode, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -32,6 +31,7 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode;
 
@@ -42,13 +42,7 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | undefined;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
     getHeaderTitle: (providerName: string) => string;
-    handleSave: (params: {
-        policyID: string;
-        draftApprovalMode: T;
-        currentApprovalMode: T | undefined;
-        rules: OnyxCollection<Rule>;
-        connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>;
-    }) => void;
+    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | undefined; rules: OnyxCollection<Rule>}) => void;
     saveSentryLabel: SentryLabel;
 };
 
@@ -66,8 +60,6 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const providerName = config.getProviderName(policy);
     const currentApprovalMode = config.getCurrentApprovalMode(policy);
@@ -100,16 +92,18 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     ];
     const selectedApprovalModeKey = approvalModeOptions.find((option) => option.isSelected)?.keyForList;
 
-    const saveApprovalMode = () => {
+    const saveApprovalMode = async () => {
         if (!draftApprovalMode) {
             return;
         }
 
-        config.handleSave({policyID, draftApprovalMode, currentApprovalMode, rules, connectionSyncProgress});
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
+        config.handleSave({policyID, draftApprovalMode, currentApprovalMode, rules});
         Navigation.goBack();
     };
 
-    const confirmSaveApprovalMode = () => {
+    const confirmSaveApprovalMode = async () => {
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         // In every mode but custom the provider's syncs set the approvers, so the backend deletes the workspace's approval workflow rules
         const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules(rules, policyID) && draftApprovalMode !== config.approvalModes.CUSTOM;
         showConfirmModal({

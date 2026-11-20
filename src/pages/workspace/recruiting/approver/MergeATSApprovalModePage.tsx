@@ -12,7 +12,6 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +35,7 @@ import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
 import MergeATSFinalApproverMenuItem from './MergeATSFinalApproverMenuItem';
@@ -61,7 +61,6 @@ function MergeATSApprovalModePage({
     const currentApprovalMode = getMergeATSApprovalMode(policy);
     const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApprovalMode} = useMergeATSApprovalDraftActions();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.
     const isApproverMissing = selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && !finalApprover;
@@ -90,11 +89,12 @@ function MergeATSApprovalModePage({
         },
     ];
 
-    const saveApprovalMode = () => {
+    const saveApprovalMode = async () => {
         if (!selectedApprovalMode) {
             return;
         }
 
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         updateMergeApprovalMode({
             policyID,
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
@@ -110,7 +110,8 @@ function MergeATSApprovalModePage({
         Navigation.goBack();
     };
 
-    const confirmSaveApprovalMode = () => {
+    const confirmSaveApprovalMode = async () => {
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         // Leaving custom replaces the approval routing the admin set up by hand. In every mode but custom the recruiting
         // provider's syncs set the approvers, so the backend also deletes the workspace's approval workflow rules. Those
         // are the only changes worth warning about.

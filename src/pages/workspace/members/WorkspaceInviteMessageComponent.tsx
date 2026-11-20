@@ -75,6 +75,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
@@ -114,8 +115,6 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -226,7 +225,7 @@ function WorkspaceInviteMessageComponent({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- the drafts are only read once, when the page opens
     }, []);
 
-    const sendInvitation = () => {
+    const sendInvitation = async () => {
         Keyboard.dismiss();
         const categoryNames = shouldShowCategoryVisibilityRow ? categoryVisibilityDraftNames : undefined;
         // A member needs at least one category, so an invite whose chosen categories are all gone waits for the admin to pick again
@@ -240,6 +239,7 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
+        const approvalWorkflow = await Onyx.get(ONYXKEYS.APPROVAL_WORKFLOW);
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         // Unlike the announce room, category visibility includes members with errors, so limiting the invitees doesn't take
