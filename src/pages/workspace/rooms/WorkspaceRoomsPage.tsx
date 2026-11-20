@@ -24,7 +24,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite, isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canCreateRoomsOnPolicy, isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -159,7 +159,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
-    const canCreateRooms = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
+    const canCreateRooms = canCreateRoomsOnPolicy(policy, session?.email ?? '');
 
     const roomsTableHeader =
         shouldUseNarrowLayout && canCreateRooms ? (

@@ -2,8 +2,8 @@ import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRe
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import resolvePadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolvePadding';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {SkTypeface} from 'react-native-skia';
 
 import lodashMerge from 'lodash/merge';
 

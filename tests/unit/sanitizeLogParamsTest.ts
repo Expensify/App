@@ -53,6 +53,31 @@ describe('sanitizeLogParams', () => {
         });
     });
 
+    it('redacts the Expensify Card PIN that card PIN commands send', () => {
+        // Given the parameters of a PIN change, which the API logs before sending and again if the request fails
+        const params = {command: 'ChangeCardPIN', cardID: 123, pin: '1234', signedChallenge: '{"signature":"secret"}', authenticationMethod: 'BIOMETRICS'};
+
+        // When they are sanitized for the logs
+        const result = sanitizeLogParams(params);
+
+        // Then the PIN is redacted, so it never reaches the server logs, and the card and authentication method stay readable
+        expect(result).toEqual({command: 'ChangeCardPIN', cardID: 123, pin: '<redacted>', signedChallenge: '<redacted>', authenticationMethod: 'BIOMETRICS'});
+    });
+
+    it('redacts the PIN and card details that card reveal commands return', () => {
+        // Given the responses of the PIN and card reveal commands, which the Logging middleware logs
+        const revealPINResponse = {jsonCode: 200, pin: '1234'};
+        const revealCardResponse = {jsonCode: 200, pan: '4111111111111111', expiration: '0430', cvv: '123'};
+
+        // When they are sanitized for the logs
+        const revealPINResult = sanitizeLogParams(revealPINResponse);
+        const revealCardResult = sanitizeLogParams(revealCardResponse);
+
+        // Then the PIN, card number, expiry and CVV are redacted, and the response code stays readable
+        expect(revealPINResult).toEqual({jsonCode: 200, pin: '<redacted>'});
+        expect(revealCardResult).toEqual({jsonCode: 200, pan: '<redacted>', expiration: '<redacted>', cvv: '<redacted>'});
+    });
+
     it('redacts the inputs of a Wise onboarding page, which can hold an SSN', () => {
         // Given the parameters of a page save whose inputs carry an SSN, which the API logs before sending
         const params = {command: 'UpdateWiseOnboardingAdditionalData', step: 'representative', inputs: JSON.stringify({ssn: '123456789'})};

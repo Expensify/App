@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -7,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import Navigation, {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchKeyForDataType, isExistingSearchKey, savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, doesQueryMatchDefaultFilterKeysAndType, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, doesQueryMatchSearchContext, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -47,8 +48,9 @@ function selectSearchKeyParam(state: NavigationState | undefined) {
  */
 function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, suggestedSearches: Record<SearchKey, SearchTypeMenuItem>) {
     const navigation = useNavigation();
+    const {accountID} = useCurrentUserPersonalDetails();
     const searchKeyParam = useRootNavigationState((state) => selectSearchKeyParam(state ?? navigation.getState()));
-    const definedSearchKeyParam = usePreviousDefined(searchKeyParam);
+    const definedSearchKeyParam = usePreviousDefined(searchKeyParam, accountID);
     const isSearchScreenFocused = searchKeyParam !== undefined;
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
@@ -104,7 +106,7 @@ function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, 
     // A saved search is exempt from that validation, because it's the user's own query and they're free to change
     // it however they like without it becoming a different search.
     const isSearchKeyFromParamValid =
-        !!searchKeyFromParam && (!!searchKeyToSavedSearchID(searchKeyFromParam) || doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, paramDefaultSearchQueryJSON));
+        !!searchKeyFromParam && (!!searchKeyToSavedSearchID(searchKeyFromParam) || doesQueryMatchSearchContext(currentSearchQueryJSON, paramDefaultSearchQueryJSON, searchKeyFromParam));
 
     const currentSearchKey = isSearchKeyFromParamValid ? searchKeyFromParam : getSearchKeyForQuery(currentSearchQueryJSON);
     const currentDefaultSearchQueryJSON = isSearchKeyFromParamValid ? paramDefaultSearchQueryJSON : getDefaultSearchQueryJSON(currentSearchKey);

@@ -32,6 +32,9 @@ const layoutTransitionStyle: ViewStyle =
 const fadeTransitionStyle: ViewStyle =
     Platform.OS === 'web' ? {transition: `opacity ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease, transform ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
+// Collapsed, a flat navigation bar row shows only its icon: the row's inset and padding on each side around the icon.
+const FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH = 2 * (variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding) + variables.iconSizeNormal;
+
 // The account avatar's box is wider than a row's icon, so collapsed it would sit right of the icon column.
 // Sliding it by half that difference lines it up, and a transform animates where a padding change would jump.
 const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
@@ -156,7 +159,7 @@ function useSearchSidebarToggleButtonStyle() {
  * ignores the peek.
  */
 function getFlatNavigationBarLayoutWidth(isCollapsed: boolean): number {
-    return isCollapsed ? variables.flatNavigationBarCollapsedWidth : variables.flatNavigationBarWidth;
+    return isCollapsed ? FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH : variables.flatNavigationBarWidth;
 }
 
 /** The layout box the flat navigation bar reserves, which eases with the bar so the content beside it follows. */
@@ -180,6 +183,7 @@ function getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed: boolean): V
 
 export {
     COLLAPSE_SURFACE,
+    FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH,
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     layoutTransitionStyle,
     getCollapseFadeStyle,
@@ -195,3 +199,4 @@ export {
     useSearchSidebarCollapseFadeStyle,
     useSearchSidebarToggleButtonStyle,
 };
+export type {CollapseSurface};
