@@ -142,6 +142,8 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             isHovered={false}
             chatReport={chatReportR14932}
             personalDetails={personalDetails}
+            managerID={iouReportR14932.managerID ?? CONST.DEFAULT_NUMBER_ID}
+            ownerAccountID={iouReportR14932.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID}
             report={iouReportR14932}
             policy={undefined}
             transaction={item}

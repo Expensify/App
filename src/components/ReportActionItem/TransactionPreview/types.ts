@@ -106,7 +106,11 @@ type TransactionPreviewContentProps = {
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
-    reportPreviewAction?: ReportAction;
+    /** Approver of the expense, used to pick its personal details */
+    managerID: number;
+
+    /** Submitter of the expense, used to pick its personal details */
+    ownerAccountID: number;
 
     /** Whether to show payer/receiver data in the preview */
     shouldShowPayerAndReceiver?: boolean;

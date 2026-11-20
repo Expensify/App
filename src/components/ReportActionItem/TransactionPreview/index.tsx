@@ -1,10 +1,11 @@
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import ControlSelection from '@libs/ControlSelection';
@@ -13,7 +14,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {getReviewNavigationRoute, getTransactionPreviewParticipantIDs} from '@libs/TransactionPreviewUtils';
 import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType} from '@libs/TransactionUtils';
 import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
 
@@ -59,7 +60,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
-    const personalDetails = usePersonalDetails();
+    const {managerID, ownerAccountID} = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicateIDs = violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
@@ -118,6 +120,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
+                    managerID={managerID}
+                    ownerAccountID={ownerAccountID}
                     transaction={transactionPreview}
                     transactionRawAmount={transactionRawAmount}
                     report={report}
@@ -143,6 +147,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
+            managerID={managerID}
+            ownerAccountID={ownerAccountID}
             transaction={originalTransaction ?? transaction}
             transactionRawAmount={transactionRawAmount}
             report={report}
@@ -154,7 +160,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
-            reportPreviewAction={reportPreviewAction}
             shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
