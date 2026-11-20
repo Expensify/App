@@ -84,4 +84,23 @@ describe('useRowFocusSync', () => {
         // Then the list keeps its highlight, which the arrow keys still move from the search input
         expect(setFocusedIndex).not.toHaveBeenCalled();
     });
+
+    it('tracks focus across a compound search input and its sibling viewport', () => {
+        // Given a root with separate search and viewport children, with focus on a viewport row.
+        const {container, searchInput, firstRow, secondRow, outsideControl} = createList();
+        const viewport = document.createElement('div');
+        container.append(viewport);
+        viewport.append(firstRow, secondRow);
+        const {setFocusedIndex} = renderRowFocusSync(container);
+        firstRow.focus();
+
+        // When focus moves to the sibling search field and then leaves the root.
+        searchInput.focus();
+        expect(setFocusedIndex).not.toHaveBeenCalled();
+        outsideControl.focus();
+
+        // Then only leaving the entire compound list clears the focused row.
+        expect(setFocusedIndex).toHaveBeenCalledTimes(1);
+        expect(setFocusedIndex).toHaveBeenCalledWith(-1);
+    });
 });

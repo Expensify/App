@@ -1,30 +1,26 @@
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTagList, matchesParentTagPath} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import {getTagListSections} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useDeferredValue, useEffect} from 'react';
+import React, {startTransition, useDeferredValue, useState} from 'react';
 
-const TAG_SEARCH_DEBOUNCE_MS = 100;
+import type {TagPickerModel} from './TagPickerResults';
+
+import TagPickerResults from './TagPickerResults';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -88,6 +84,68 @@ const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
     ];
 };
 
+type TagPickerSearchFieldProps = {
+    canSearch: boolean;
+    isLoading: boolean;
+    shouldAutoFocusSearchInput: boolean;
+    onQueryChange: (query: string) => void;
+};
+
+function TagPickerSearchField({canSearch, isLoading, shouldAutoFocusSearchInput, onQueryChange}: TagPickerSearchFieldProps) {
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {translate} = useLocalize();
+    const [query, setQuery] = useState('');
+
+    if (!canSearch) {
+        return null;
+    }
+
+    const updateQuery = (value: string) => {
+        setQuery(value);
+        // An urgent input update must not render the parent that builds the results.
+        startTransition(() => onQueryChange(value));
+    };
+
+    return (
+        <SelectionListWithSections.SearchInput
+            ref={inputCallbackRef as (ref: BaseTextInputRef | null) => void}
+            label={translate('common.search')}
+            value={query}
+            onChangeText={updateQuery}
+            autoFocus={shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()}
+            isLoading={isLoading}
+        />
+    );
+}
+
+type TagPickerSearchProps = Pick<TagPickerProps, 'onSubmit' | 'onRenderedRowCountChange'> & {
+    model: TagPickerModel;
+    shouldAutoFocusSearchInput: boolean;
+    addBottomSafeAreaPadding: boolean;
+};
+
+function TagPickerSearch({model, shouldAutoFocusSearchInput, onSubmit, onRenderedRowCountChange, addBottomSafeAreaPadding}: TagPickerSearchProps) {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    return (
+        <SelectionListWithSections.Root>
+            <TagPickerSearchField
+                canSearch={model.canSearch}
+                isLoading={model.isLoading}
+                shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
+                onQueryChange={setSearchQuery}
+            />
+            <TagPickerResults
+                model={model}
+                searchQuery={searchQuery}
+                onSelectTag={onSubmit}
+                onRenderedRowCountChange={onRenderedRowCountChange}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            />
+        </SelectionListWithSections.Root>
+    );
+}
+
 function TagPicker({
     selectedTag,
     transactionTag,
@@ -111,17 +169,27 @@ function TagPicker({
     });
     const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
-    const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const {translate, localeCompare} = useLocalize();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('', TAG_SEARCH_DEBOUNCE_MS);
-
     // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
     const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
 
     const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.[tagListName] ?? [];
-    // Keep rebuilding the tag sections off the urgent render by continuing to show the previous list while React catches up.
-    const policyTagList = useDeferredValue(getTagList(policyTags, tagListIndex));
+    const currentPolicyTagList = getTagList(policyTags, tagListIndex);
+    // Tag lists can have identical display names, so use the key of the selected Onyx entry.
+    const tagListKey = Object.entries(policyTags ?? {}).find(([, list]) => list === currentPolicyTagList)?.[0];
+    const policyTagSnapshot = {
+        policyID,
+        tagListIndex,
+        tagListName,
+        tagListKey,
+        policyTagList: currentPolicyTagList,
+        isLoadingNewOptions: isLoadingPolicyTags && !additionalTagsToInclude?.length,
+    };
+    // Defer loading and tags together, but never show tags from a different workspace or list.
+    const deferredTagSnapshot = useDeferredValue(policyTagSnapshot);
+    const hasListBeenReplaced = deferredTagSnapshot.tagListKey !== undefined && deferredTagSnapshot.tagListKey !== tagListKey;
+    const isSameTagList =
+        deferredTagSnapshot.policyID === policyID && deferredTagSnapshot.tagListIndex === tagListIndex && deferredTagSnapshot.tagListName === tagListName && !hasListBeenReplaced;
+    const {policyTagList, isLoadingNewOptions} = isSameTagList ? deferredTagSnapshot : policyTagSnapshot;
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
@@ -171,60 +239,25 @@ function TagPicker({
         }
     }
 
-    const tagSections = getTagListSections({
-        searchValue: debouncedSearchValue,
+    const model: TagPickerModel = {
         selectedOptions,
+        selectedTag,
         tags: enabledTags,
         recentlyUsedTags: policyRecentlyUsedTagsList,
-        localeCompare,
-        translate,
-        shouldShowGLCode,
+        shouldShowGLCode: !!shouldShowGLCode,
+        shouldOrderListByTagName,
         searchInputThreshold,
-    });
-    const sections = tagSections.map((section) => ({
-        ...section,
-        data: (shouldOrderListByTagName ? section.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
-    }));
-
-    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
-    const renderedRowCount = sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
-
-    useEffect(() => {
-        if (debouncedSearchValue) {
-            return;
-        }
-        onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
-
-    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
-    // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
-    const isLoadingNewOptions = isLoadingPolicyTags && !additionalTagsToInclude?.length;
-
-    const textInputOptions = {
-        value: searchValue,
-        onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, debouncedSearchValue),
-        label: translate('common.search'),
-        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
-        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
-        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+        canSearch: availableTagsCount >= searchInputThreshold,
+        isLoading: isLoadingNewOptions,
     };
 
     return (
-        <SelectionListWithSections
-            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
-            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-            sections={isLoadingNewOptions ? getEmptyArray<never>() : sections}
-            ListItem={SingleSelectListItem}
-            style={{sectionTitleStyles: styles.mt5}}
-            textInputOptions={textInputOptions}
-            shouldShowTextInput={availableTagsCount >= searchInputThreshold}
-            shouldShowLoadingPlaceholder={isLoadingNewOptions}
-            isLoadingNewOptions={isLoadingNewOptions}
-            initiallyFocusedItemKey={selectedOptionKey}
-            onSelectRow={onSubmit}
+        <TagPickerSearch
+            model={model}
+            onSubmit={onSubmit}
+            shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
+            onRenderedRowCountChange={onRenderedRowCountChange}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }

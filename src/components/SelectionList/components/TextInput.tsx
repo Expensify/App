@@ -1,9 +1,7 @@
 import type {TextInputOptions} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,7 +19,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
-type TextInputProps = {
+import SelectionListSearchStatus from './SelectionListSearchStatus';
+
+type SelectionListTextFieldProps = {
     ref?: React.RefObject<BaseTextInputRef | null> | null;
 
     /** Configuration options for the text input including label, placeholder, validation, etc. */
@@ -47,15 +47,15 @@ type TextInputProps = {
     onFocusChange: (focused: boolean) => void;
 
     shouldShowTextInput?: boolean;
-    shouldShowLoadingPlaceholder?: boolean;
-
-    /** Whether to show the loading indicator for new options */
-    isLoadingNewOptions?: boolean;
-
     focusTextInput: () => void;
 };
 
-function TextInput({
+type TextInputProps = SelectionListTextFieldProps & {
+    shouldShowLoadingPlaceholder?: boolean;
+    isLoadingNewOptions?: boolean;
+};
+
+function SelectionListTextField({
     ref,
     options,
     accessibilityLabel,
@@ -65,14 +65,11 @@ function TextInput({
     onPress,
     onKeyPress,
     onFocusChange,
-    shouldShowLoadingPlaceholder,
-    isLoadingNewOptions,
     shouldShowTextInput,
     focusTextInput,
-}: TextInputProps) {
+}: SelectionListTextFieldProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
     // The compact search input must be sized by the physical device width, not by `shouldUseNarrowLayout`. Using
     // `shouldUseNarrowLayout` would grow the input to the tall mobile size whenever it is rendered inside an
     // RHP/narrow pane on web/desktop, so `isSmallScreenWidth` is intentionally used here to keep it compact.
@@ -83,7 +80,6 @@ function TextInput({
         value,
         onChangeText,
         errorText,
-        headerMessage,
         hint,
         disableAutoFocus,
         placeholder,
@@ -97,20 +93,7 @@ function TextInput({
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const noResultsFoundText = translate('common.noResultsFound');
-    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
-    const hasNoData = dataLength === 0 && !shouldShowLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || hasNoData);
-    const trimmedSearchValue = value?.trim() ?? '';
-    const suggestionsCount = dataLength ?? 0;
-    const suggestionsAnnouncement =
-        !!shouldShowTextInput && !shouldShowLoadingPlaceholder && !isLoadingNewOptions && suggestionsCount > 0
-            ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue)
-            : '';
-
-    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
-    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -150,55 +133,67 @@ function TextInput({
     }
 
     return (
+        <View style={[styles.ph5, styles.pb3, style?.containerStyle]}>
+            <BaseTextInput
+                ref={mergedRef}
+                onKeyPress={onKeyPress}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                // Use the smaller "above the table" search input size. The compact height cannot fit a
+                // floating label, so the label is rendered as a placeholder while a11y is preserved via accessibilityLabel.
+                accessibilityLabel={accessibilityLabel ?? label}
+                hint={hint}
+                role={CONST.ROLE.PRESENTATION}
+                value={value}
+                placeholder={placeholder ?? label}
+                placeholderTextColor={theme.textSupporting}
+                maxLength={maxLength}
+                onChangeText={handleTextInputChange}
+                inputMode={inputMode}
+                selectTextOnFocus
+                spellCheck={false}
+                onSubmitEditing={onSubmit}
+                onPress={onPress}
+                submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
+                isLoading={isLoading}
+                shouldHideClearButton={false}
+                testID="selection-list-text-input"
+                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SEARCH_INPUT}
+                errorText={errorText}
+                autoCorrect={!disableAutoCorrect}
+                shouldInterceptSwipe={shouldInterceptSwipe ?? false}
+                // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the input stays
+                // the compact 34px size on web/desktop even inside the RHP/narrow pane, and only grows to 46px on mobile.
+                touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
+                inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
+            />
+        </View>
+    );
+}
+
+function TextInput({shouldShowLoadingPlaceholder, isLoadingNewOptions, ...props}: TextInputProps) {
+    const {translate} = useLocalize();
+    const {options, dataLength, shouldShowTextInput} = props;
+    const hasNoData = dataLength === 0 && !shouldShowLoadingPlaceholder;
+    const shouldShowMessage = !isLoadingNewOptions || options?.headerMessage !== translate('common.noResultsFound') || hasNoData;
+
+    return (
         <>
-            <View style={[styles.ph5, styles.pb3, style?.containerStyle]}>
-                <BaseTextInput
-                    ref={mergedRef}
-                    onKeyPress={onKeyPress}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    // Use the smaller "above the table" search input size. The compact height cannot fit a
-                    // floating label, so the label is rendered as a placeholder while a11y is preserved via accessibilityLabel.
-                    accessibilityLabel={accessibilityLabel ?? label}
-                    hint={hint}
-                    role={CONST.ROLE.PRESENTATION}
-                    value={value}
-                    placeholder={placeholder ?? label}
-                    placeholderTextColor={theme.textSupporting}
-                    maxLength={maxLength}
-                    onChangeText={handleTextInputChange}
-                    inputMode={inputMode}
-                    selectTextOnFocus
-                    spellCheck={false}
-                    onSubmitEditing={onSubmit}
-                    onPress={onPress}
-                    submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
-                    isLoading={isLoading}
-                    shouldHideClearButton={false}
-                    testID="selection-list-text-input"
-                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SEARCH_INPUT}
-                    errorText={errorText}
-                    autoCorrect={!disableAutoCorrect}
-                    shouldInterceptSwipe={shouldInterceptSwipe ?? false}
-                    // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the input stays
-                    // the compact 34px size on web/desktop even inside the RHP/narrow pane, and only grows to 46px on mobile.
-                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
-                    textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
-                    inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
+            <SelectionListTextField {...props} />
+            {shouldShowTextInput && (
+                <SelectionListSearchStatus
+                    query={options?.value ?? ''}
+                    itemCount={dataLength ?? 0}
+                    message={shouldShowMessage ? options?.headerMessage : undefined}
+                    isLoading={isLoadingNewOptions}
+                    shouldAnnounceSuggestions={!shouldShowLoadingPlaceholder}
+                    style={options?.style?.headerMessageStyle}
                 />
-            </View>
-            {shouldShowHeaderMessage && (
-                <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text
-                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        aria-hidden
-                    >
-                        {headerMessage}
-                    </Text>
-                </View>
             )}
         </>
     );
 }
 
 export default TextInput;
+export {SelectionListTextField};

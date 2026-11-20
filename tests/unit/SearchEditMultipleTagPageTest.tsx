@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import type {SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+import type {SelectionListViewportProps} from '@components/SelectionList/SelectionListWithSections/SelectionListViewport';
 import type {ListItem} from '@components/SelectionList/types';
 
 import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
@@ -24,11 +24,16 @@ const POLICY_ID = 'A1B2C3';
 
 type SavedTagPayload = {tag: string | null; bulkEditTagChanges: Record<string, string | null>};
 
-// Capture the props TagPicker passes to SelectionList so we can fire its onSelectRow (that is saveTag).
-const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);
+// Capture the viewport's onSelectRow so the test can exercise the page's saveTag callback.
+const mockSelectionList = jest.fn<null, [SelectionListViewportProps<ListItem>]>(() => null);
 jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
     __esModule: true,
-    default: (props: SelectionListWithSectionsProps<ListItem>) => mockSelectionList(props),
+    default: {
+        Root: ({children}: {children: React.ReactNode}) => children,
+        SearchInput: () => null,
+        SearchStatus: () => null,
+        Viewport: (props: SelectionListViewportProps<ListItem>) => mockSelectionList(props),
+    },
 }));
 
 // Strip the chrome so the page renders in jsdom without navigation/safe-area plumbing.

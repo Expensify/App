@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
 import CategoryPicker from '@components/CategoryPicker';
 import type {CategoryPickerProps} from '@components/CategoryPicker';
@@ -19,7 +19,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
  * These tests lock in the scoping added by the `shouldAutoFocusSearchInput` prop: the search input's
  * `disableAutoFocus` must stay `true` for the 8 page-level callers (which omit the prop) and only flip
  * to `false` when a caller opts in AND the surface can focus on screen focus (non-touch). We assert the
- * boolean threaded into `SelectionList`, NOT that the input actually receives focus — the real focus path
+ * autofocus option passed to the search input, NOT that the input actually receives focus — the real focus path
  * runs through `useFocusEffect` + a `setTimeout` racing the popover animation, which is verified on device.
  */
 
@@ -28,9 +28,15 @@ jest.mock('@libs/API');
 // Capture the props the pickers pass down to SelectionList so we can assert on `textInputOptions.disableAutoFocus`.
 // Prefix `mock` so jest allows the variable inside the factory below.
 const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);
+const mockTagSearchInput = jest.fn<null, [{autoFocus: boolean}]>(() => null);
 jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
     __esModule: true,
-    default: (props: SelectionListWithSectionsProps<ListItem>) => mockSelectionList(props),
+    default: Object.assign((props: SelectionListWithSectionsProps<ListItem>) => mockSelectionList(props), {
+        Root: ({children}: {children: React.ReactNode}) => children,
+        SearchInput: (props: {autoFocus: boolean}) => mockTagSearchInput(props),
+        SearchStatus: () => null,
+        Viewport: () => null,
+    }),
 }));
 
 // Drives the second column of the truth table (touch vs non-touch). No mock for this exists in jest/ or
@@ -69,13 +75,22 @@ const renderCategoryPicker = (shouldAutoFocusSearchInput?: boolean) => {
 };
 
 const renderTagPicker = (shouldAutoFocusSearchInput?: boolean) => {
-    const props: TagPickerProps = {policyID: POLICY_ID, selectedTag: '', tagListName: 'Tag', tagListIndex: 0, onSubmit: jest.fn(), shouldAutoFocusSearchInput};
+    const props: TagPickerProps = {
+        policyID: POLICY_ID,
+        selectedTag: '',
+        tagListName: 'Tag',
+        tagListIndex: 0,
+        onSubmit: jest.fn(),
+        shouldAutoFocusSearchInput,
+        additionalTagsToInclude: ['Engineering'],
+        searchInputThreshold: 1,
+    };
     return render(<TagPicker {...props} />);
 };
 
 const pickers = [
-    {name: 'CategoryPicker', renderPicker: renderCategoryPicker},
-    {name: 'TagPicker', renderPicker: renderTagPicker},
+    {name: 'CategoryPicker', renderPicker: renderCategoryPicker, getDisableAutoFocus: getLastDisableAutoFocus},
+    {name: 'TagPicker', renderPicker: renderTagPicker, getDisableAutoFocus: () => mockTagSearchInput.mock.lastCall?.[0].autoFocus === false},
 ] as const;
 
 // Truth table for `disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus())`.
@@ -85,9 +100,10 @@ const cases = [
     {description: 'opted in + canFocus false → disabled (large-screen touch, e.g. iPad)', shouldAutoFocusSearchInput: true, canFocus: false, expectedDisableAutoFocus: true},
 ] as const;
 
-describe.each(pickers)('$name shouldAutoFocusSearchInput threading', ({renderPicker}) => {
+describe.each(pickers)('$name shouldAutoFocusSearchInput threading', ({renderPicker, getDisableAutoFocus}) => {
     beforeEach(() => {
         mockSelectionList.mockClear();
+        mockTagSearchInput.mockClear();
         mockedCanFocusInputOnScreenFocus.mockReset();
     });
 
@@ -98,45 +114,6 @@ describe.each(pickers)('$name shouldAutoFocusSearchInput threading', ({renderPic
         // Flush the pickers' async useOnyx subscriptions so their re-render settles inside act().
         await waitForBatchedUpdatesWithAct();
 
-        expect(getLastDisableAutoFocus()).toBe(expectedDisableAutoFocus);
+        expect(getDisableAutoFocus()).toBe(expectedDisableAutoFocus);
     });
-});
-
-it('updates TagPicker search text immediately and filters only after typing pauses', async () => {
-    // Given a picker with two selectable tags and a visible search input.
-    render(
-        <TagPicker
-            policyID={POLICY_ID}
-            selectedTag=""
-            tagListName="Tag"
-            tagListIndex={0}
-            onSubmit={jest.fn()}
-            additionalTagsToInclude={['Engineering', 'Finance']}
-            searchInputThreshold={2}
-        />,
-    );
-    await waitForBatchedUpdatesWithAct();
-
-    const getListProps = () => mockSelectionList.mock.lastCall?.[0];
-    const getTagNames = () => getListProps()?.sections.flatMap(({data}) => data.map(({text}) => text));
-    expect(getTagNames()).toEqual(['Engineering', 'Finance']);
-
-    jest.useFakeTimers();
-    try {
-        // When the user edits the query again before the first debounce expires.
-        act(() => getListProps()?.textInputOptions?.onChangeText?.('Eng'));
-        act(() => jest.advanceTimersByTime(50));
-        act(() => getListProps()?.textInputOptions?.onChangeText?.('Fin'));
-
-        // Then the input echoes the latest query without filtering on either keystroke.
-        expect(getListProps()?.textInputOptions?.value).toBe('Fin');
-        act(() => jest.advanceTimersByTime(99));
-        expect(getTagNames()).toEqual(['Engineering', 'Finance']);
-
-        // Then only the final query is applied once its debounce expires.
-        act(() => jest.advanceTimersByTime(1));
-        expect(getTagNames()).toEqual(['Finance']);
-    } finally {
-        jest.useRealTimers();
-    }
 });
