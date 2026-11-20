@@ -40,7 +40,7 @@ import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItemFieldInput from './MenuItemFieldInput';
 import ScrollView from './ScrollView';
 import Switch from './Switch';
 import Text from './Text';
@@ -261,12 +261,10 @@ function WorkspaceConfirmationForm({
                             <>
                                 <View style={styles.mhn5}>
                                     <InputWrapper
-                                        InputComponent={MenuItemWithTopDescription}
+                                        InputComponent={MenuItemFieldInput}
                                         inputID={INPUT_IDS.PLAN_TYPE}
-                                        description={translate('workspace.common.planType')}
-                                        title={getUserFriendlyWorkspaceType(userPlanType, translate)}
-                                        interactive
-                                        shouldShowRightIcon
+                                        name={translate('workspace.common.planType')}
+                                        displayValue={getUserFriendlyWorkspaceType(userPlanType, translate)}
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
                                         }}
@@ -277,12 +275,10 @@ function WorkspaceConfirmationForm({
 
                                 <View style={styles.mhn5}>
                                     <InputWrapper
-                                        InputComponent={MenuItemWithTopDescription}
+                                        InputComponent={MenuItemFieldInput}
                                         inputID={INPUT_IDS.OWNER}
-                                        description={translate('workspace.common.workspaceOwner')}
-                                        title={ownerDisplayName}
-                                        interactive
-                                        shouldShowRightIcon
+                                        name={translate('workspace.common.workspaceOwner')}
+                                        displayValue={ownerDisplayName}
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
                                         }}

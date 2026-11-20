@@ -7,6 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ReactNode} from 'react';
+
 import React from 'react';
 
 import type {SearchColumnType} from './types';
@@ -31,6 +33,9 @@ type SortableColumnMenuProps = {
     /** Labels the heading that opens the menu. */
     sentryLabel: SentryLabel;
 
+    /** Items placed between the sort options and Hide column, such as `SearchColumnPinItems`. */
+    children?: ReactNode;
+
     itemSentryLabels: {
         SORT_ASCENDING: SentryLabel;
         SORT_DESCENDING: SentryLabel;
@@ -40,7 +45,7 @@ type SortableColumnMenuProps = {
     };
 };
 
-function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels}: SortableColumnMenuProps) {
+function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels, children}: SortableColumnMenuProps) {
     const {columnName, label, alignment, hasResizeHandle, sorting, labelProps} = useSortableColumn();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Columns', 'EyeDisabled', 'RotateLeft']);
@@ -73,6 +78,7 @@ function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels}: Sort
                     />
                 )}
                 {!!sorting && !!columnEditing && <ColumnHeaderMenu.Separator />}
+                {children}
                 {!!columnEditing?.hidableColumns.has(columnName) && (
                     <ColumnHeaderMenu.Item
                         text={translate('search.columnMenu.hideColumn')}

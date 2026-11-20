@@ -93,6 +93,17 @@ const tests = [
         },
     },
     {
+        // cspell:disable-next-line
+        query: 'type:expense reportid:1234',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {operator: 'eq', left: 'reportID', right: '1234'},
+        },
+    },
+    {
         query: parserCommonTests.complex,
         expected: {
             type: 'expense',

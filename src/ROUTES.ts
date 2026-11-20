@@ -239,7 +239,12 @@ const DYNAMIC_ROUTES = {
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
         entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
-        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+        getRoute: (bankAccountID: number | undefined, isPayingMultipleReports?: boolean) =>
+            getUrlWithParams(`global-reimbursements/${bankAccountID}`, {
+                // Shows the copy for several reports when bulk pay could not pay any of them
+                isPayingMultipleReports: isPayingMultipleReports ? 'true' : undefined,
+            }),
+        queryParams: ['isPayingMultipleReports'],
     },
     WISE_BUSINESS_ONBOARDING: {
         path: 'business-onboarding/:subPage?/:action?',
@@ -1122,6 +1127,10 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_CATEGORY_GL_CODE: {
         path: 'gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_VISIBLE_TO: {
+        path: 'visible-to',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
