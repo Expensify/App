@@ -138,4 +138,34 @@ describe('deriveSelectedReports', () => {
         // Then both reports count as selected, so the Merge reports option can appear
         expect(reports.map(({reportID}) => reportID)).toEqual(['report_a', 'report_b']);
     });
+
+    it("keeps each selected report's own reject eligibility", () => {
+        // Given two reports where only the first can be rejected by the current user, and the second has no loaded rows
+        const data = [buildReportGroup('report_a', [buildTransaction({keyForList: 'tx_1', transactionID: 'tx_1'})], {canReject: true}), buildReportGroup('report_b', [], {canReject: false})];
+
+        // When the user selects both reports
+        const reports = deriveSelectedReports(buildSelected('tx_1', 'report_b'), data);
+
+        // Then each report keeps its own flag, so a bulk Reject can be hidden when any selected report can't be rejected
+        expect(reports.map(({reportID, canReject}) => ({reportID, canReject}))).toEqual([
+            {reportID: 'report_a', canReject: true},
+            {reportID: 'report_b', canReject: false},
+        ]);
+    });
+
+    it("takes an expense row's reject eligibility from its selection entry", () => {
+        // Given two expense rows, where the selection entry of the second says its report can't be rejected
+        const data = [buildTransaction({keyForList: 'tx_1', transactionID: 'tx_1'}), buildTransaction({keyForList: 'tx_2', transactionID: 'tx_2', reportID: 'report_b'})];
+        const selectedTransactions = buildSelected('tx_1', 'tx_2');
+        selectedTransactions.tx_2 = {...selectedTransactions.tx_2, canReject: false};
+
+        // When the reports are derived from the expense view
+        const reports = deriveSelectedReports(selectedTransactions, data);
+
+        // Then each report uses the flag its selection entry already computed, so both views answer the same reject check
+        expect(reports.map(({reportID, canReject}) => ({reportID, canReject}))).toEqual([
+            {reportID: 'report_a', canReject: true},
+            {reportID: 'report_b', canReject: false},
+        ]);
+    });
 });

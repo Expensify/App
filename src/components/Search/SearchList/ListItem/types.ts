@@ -353,6 +353,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Whether the current user can change the approver of this report */
         canChangeApprover: boolean;
 
+        /** Whether the current user can reject this report, by the same check as the report's own Reject action */
+        canReject: boolean;
+
         /** Pre-computed total display spend amount */
         totalDisplaySpend?: number;
 

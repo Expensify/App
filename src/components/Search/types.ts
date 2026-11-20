@@ -137,6 +137,7 @@ type SelectedReports = {
     canApprove: boolean;
     canSubmit: boolean;
     canChangeApprover: boolean;
+    canReject: boolean;
     total: number;
     currency?: string;
     chatReportID: string | undefined;

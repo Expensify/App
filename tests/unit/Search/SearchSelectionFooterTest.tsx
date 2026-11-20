@@ -185,6 +185,7 @@ function buildSelectedReport(reportID: string, total: number): SelectedReports {
         canApprove: false,
         canSubmit: false,
         canChangeApprover: false,
+        canReject: false,
         total,
         chatReportID: undefined,
     };

@@ -79,6 +79,7 @@ function buildReportGroup(index: number, key: string, transactions: TransactionL
         canApprove: false,
         canSubmit: false,
         canChangeApprover: false,
+        canReject: false,
     };
 }
 

@@ -140,6 +140,7 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
     canApprove: false,
     canSubmit: false,
     canChangeApprover: false,
+    canReject: false,
 };
 
 const mockTransaction: TransactionListItemType = {
@@ -265,6 +266,7 @@ const mockNonEmptyReport: TransactionReportGroupListItemType = {
     canApprove: false,
     canSubmit: false,
     canChangeApprover: false,
+    canReject: false,
 };
 
 const mockReport: TransactionReportGroupListItemType = {
@@ -312,6 +314,7 @@ const mockReport: TransactionReportGroupListItemType = {
     canApprove: false,
     canSubmit: false,
     canChangeApprover: false,
+    canReject: false,
     transactions: [],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',
