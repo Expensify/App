@@ -6,9 +6,10 @@ import AppStateMonitor from '@libs/AppStateMonitor';
 import UnreadIndicatorUtils from '@libs/UnreadIndicatorUpdater';
 import updateUnread, {setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 /** Keeps the tab title and app badge unread count in sync. Renders nothing. */
 function UnreadIndicatorUpdater() {
@@ -20,25 +21,42 @@ function UnreadIndicatorUpdater() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {currentReportID} = useCurrentReportIDState();
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`);
+    const getUnreadReportIDsRef = useRef<ReturnType<typeof UnreadIndicatorUtils.createUnreadReportsTracker> | null>(null);
+    const unreadReportIDsRef = useRef<string[]>([]);
+    const publishedUnreadReportIDsRef = useRef<string | undefined>(undefined);
 
-    // React Compiler caches this on its inputs, so it only reruns when one of them changes
-    const unreadReports = UnreadIndicatorUtils.getUnreadReportsForUnreadIndicator(reports, currentReportID, draftComment, {
-        reportNameValuePairs,
-        reportActions,
-        reportAttributes,
-        currentUserLogin: session?.email,
-        currentUserAccountID: session?.accountID,
-        conciergeReportID,
-    });
-    const unreadReportIDs = unreadReports.map((report) => report?.reportID).filter((reportID): reportID is string => !!reportID);
+    // Sending or receiving a message changes several of these at once, so wait for them to settle before checking the changed reports
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (!getUnreadReportIDsRef.current) {
+                getUnreadReportIDsRef.current = UnreadIndicatorUtils.createUnreadReportsTracker();
+            }
+            const unreadReportIDs = getUnreadReportIDsRef.current(reports, currentReportID, draftComment, {
+                reportNameValuePairs,
+                reportActions,
+                reportAttributes,
+                currentUserLogin: session?.email,
+                currentUserAccountID: session?.accountID,
+                conciergeReportID,
+            });
+            unreadReportIDsRef.current = unreadReportIDs;
+
+            const unreadReportIDsKey = unreadReportIDs.join(',');
+            if (unreadReportIDsKey === publishedUnreadReportIDsRef.current) {
+                return;
+            }
+            publishedUnreadReportIDsRef.current = unreadReportIDsKey;
+            updateUnread(unreadReportIDs.length, unreadReportIDs);
+        }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+
+        return () => clearTimeout(timeout);
+    }, [reports, currentReportID, draftComment, reportNameValuePairs, reportActions, reportAttributes, session?.email, session?.accountID, conciergeReportID]);
 
     useEffect(() => {
-        const publish = () => updateUnread(unreadReportIDs.length, unreadReportIDs);
-        publish();
+        const publish = () => updateUnread(unreadReportIDsRef.current.length, unreadReportIDsRef.current);
         setUnreadUpdateCallback(publish);
-        const unsubscribe = AppStateMonitor.addBecameActiveListener(publish);
-        return unsubscribe;
-    }, [unreadReportIDs]);
+        return AppStateMonitor.addBecameActiveListener(publish);
+    }, []);
 
     return null;
 }
