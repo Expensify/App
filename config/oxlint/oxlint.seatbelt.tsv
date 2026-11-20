@@ -1098,7 +1098,7 @@
 "../../src/pages/inbox/report/DynamicReportDetailsExportPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ReportActionCompose/SilentCommentUpdater/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionEmoji.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
