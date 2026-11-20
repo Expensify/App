@@ -5,7 +5,9 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {detachReceipt, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {addComment} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {flush as flushSequentialQueue, waitForIdle} from '@libs/Network/SequentialQueue';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
@@ -1066,7 +1068,7 @@ describe('actions/IOU/Receipt', () => {
         const currentUserPersonalDetails = {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL};
         let mockFetch: MockFetch;
 
-        const getTransaction = () => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const getTransaction = () => getOnyxValue(transactionKey);
         const getThread = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
         const getActions = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
         const getQueuedReplacement = () => getAllPersistedRequests().find((request) => request.command === WRITE_COMMANDS.REPLACE_RECEIPT);
@@ -1182,7 +1184,7 @@ describe('actions/IOU/Receipt', () => {
             const transaction = await getTransaction();
             expect(transaction?.receipt?.source).toBe(originalReceipt.source);
             const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
-            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(originalReceipt.source);
+            expect(snapshot?.data?.[transactionKey]?.receipt?.source).toBe(originalReceipt.source);
             expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(expect.objectContaining({source: 'third.jpg'}));
             expect((await getThread())?.lastVisibleActionCreated).toBe(originalTimestamp);
             expect((await getThread())?.lastReadTime).toBe(originalTimestamp);
@@ -1190,6 +1192,77 @@ describe('actions/IOU/Receipt', () => {
             for (const id of supersededIDs) {
                 expect(actions?.[id]).toBeUndefined();
             }
+        });
+
+        it('preserves a successful intervening comment when the surviving receipt upload fails', async () => {
+            // Given a comment queued between receipt replacements, with distinct timestamps for each activity
+            const timeSpy = jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-01-01 00:00:01.000');
+            await replaceWithLatestState('first.jpg');
+            const supersededIDs = getAuditActionIDs(getQueuedReplacement());
+            timeSpy.mockReturnValue('2026-01-01 00:00:02.000');
+            addComment({
+                report: await getThread(),
+                notifyReportID: threadReportID,
+                ancestors: [],
+                text: 'Keep this comment after the receipt upload fails',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                conciergeReportID: undefined,
+            });
+            await waitForBatchedUpdates();
+            const commentThread = await getThread();
+            const commentRequest = getAllPersistedRequests().find((request) => request.command === WRITE_COMMANDS.ADD_COMMENT);
+            const commentID = String(commentRequest?.data?.reportActionID);
+
+            // When further replacements discard both earlier uploads, only the comment and latest upload are sent
+            timeSpy.mockReturnValue('2026-01-01 00:00:03.000');
+            await replaceWithLatestState('second.jpg');
+            supersededIDs.push(...getAuditActionIDs(getQueuedReplacement()));
+            timeSpy.mockReturnValue('2026-01-01 00:00:04.000');
+            await replaceWithLatestState('third.jpg');
+            expect(getAllPersistedRequests().map((request) => request.command)).toEqual([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.REPLACE_RECEIPT]);
+            mockFetch.mockAPICommand(WRITE_COMMANDS.REPLACE_RECEIPT, () => ({jsonCode: 400}));
+            await reconnect();
+
+            // Then comment success survives upload rollback, including its activity and read timestamps
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REPLACE_RECEIPT, 1);
+            const thread = await getThread();
+            expect(thread?.lastVisibleActionCreated).toBe(commentThread?.lastVisibleActionCreated);
+            expect(thread?.lastReadTime).toBe(commentThread?.lastReadTime);
+            expect(thread?.lastVisibleActionCreated).not.toBe(originalTimestamp);
+            expect(thread?.lastReadTime).not.toBe(originalTimestamp);
+            const actions = await getActions();
+            expect(actions?.[commentID]).toBeDefined();
+            expect(actions?.[commentID]?.pendingAction).toBeFalsy();
+            expect(actions?.[commentID]?.isOptimisticAction).toBeFalsy();
+            expect(actions?.[commentID]?.errors).toBeFalsy();
+            for (const id of supersededIDs) {
+                expect(actions?.[id]).toBeUndefined();
+            }
+            const transaction = await getTransaction();
+            expect(transaction?.receipt?.source).toBe(originalReceipt.source);
+            expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(expect.objectContaining({source: 'third.jpg'}));
+        });
+
+        it.each(['lastVisibleActionCreated', 'lastReadTime'] as const)('preserves independently advanced %s on upload failure', async (timestampField) => {
+            // Given activity that advances only one timestamp after an unsent receipt replacement
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-01-01 00:00:01.000');
+            await replaceWithLatestState('first.jpg');
+            const activityTimestamp = '2026-01-01 00:00:02.000';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {[timestampField]: activityTimestamp});
+
+            // When the next replacement fails, only timestamps written by the discarded upload should be undone
+            jest.mocked(DateUtils.getDBTime).mockReturnValue('2026-01-01 00:00:03.000');
+            await replaceWithLatestState('second.jpg');
+            mockFetch.fail();
+            await reconnect();
+
+            // Then the activity timestamp survives while the other timestamp returns to its original baseline
+            const thread = await getThread();
+            expect(thread?.lastVisibleActionCreated).toBe(timestampField === 'lastVisibleActionCreated' ? activityTimestamp : originalTimestamp);
+            expect(thread?.lastReadTime).toBe(timestampField === 'lastReadTime' ? activityTimestamp : originalTimestamp);
         });
 
         it('sends a crop of an unsent replacement with replacement audit actions', async () => {
@@ -1220,15 +1293,15 @@ describe('actions/IOU/Receipt', () => {
             jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(undefined);
             await replaceWithLatestState('third.jpg');
 
-            // Then a failed upload restores even snapshots absent from its own failure data
+            // And when the surviving upload fails
             mockFetch.fail();
             await reconnect();
 
-            // Then no touched snapshot rolls back to the first file, whose upload was discarded
+            // Then no touched snapshot rolls back to the first file, including snapshots absent from the latest failure data
             expect((await getTransaction())?.receipt?.source).toBe(originalReceipt.source);
             for (const hash of opensAnotherSearch ? [snapshotHash, secondSnapshotHash] : [snapshotHash]) {
                 const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
-                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(originalReceipt.source);
+                expect(snapshot?.data?.[transactionKey]?.receipt?.source).toBe(originalReceipt.source);
             }
         });
 

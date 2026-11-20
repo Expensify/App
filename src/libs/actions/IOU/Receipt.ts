@@ -277,11 +277,39 @@ function withOriginalSnapshotReceipt(update: AnyOnyxUpdate, originalTransactionV
     };
 }
 
+/** Undo receipt timestamps without rewinding activity that happened between the discarded uploads. */
+function inheritReportTimestamps(update: AnyOnyxUpdate, supersededRequests: AnyRequest[]): AnyOnyxUpdate {
+    const key: unknown = update.key;
+    if (typeof key !== 'string' || !isRecord(update.value)) {
+        return update;
+    }
+    const value = {...update.value};
+    const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key.slice(ONYXKEYS.COLLECTION.REPORT.length)}`;
+    // A newer discarded upload may itself have inherited a rollback that preserves an intervening comment.
+    for (const request of supersededRequests.toReversed()) {
+        // Optimistic updates are not persisted, but the failed receipt-added action retains the timestamp they wrote.
+        const addedActionID = getStringField(request, 'reportActionID');
+        const actionsValue: unknown = request.failureData?.find((entry) => entry.key === actionsKey)?.value;
+        const addedAction = addedActionID && isRecord(actionsValue) ? actionsValue[addedActionID] : undefined;
+        const failureValue: unknown = request.failureData?.find((entry) => entry.key === update.key)?.value;
+        if (!isRecord(addedAction) || typeof addedAction.created !== 'string' || !isRecord(failureValue)) {
+            continue;
+        }
+        for (const field of ['lastVisibleActionCreated', 'lastReadTime'] as const) {
+            if (field in failureValue && value[field] === addedAction.created) {
+                value[field] = failureValue[field];
+            }
+        }
+    }
+    return {...update, value};
+}
+
 /** Restore the state before the unsent replacements, while retaining the latest upload's errors and retry data. */
 function inheritOriginalRollback(
     failureData: Array<OnyxUpdate<ReplaceReceiptOnyxKey>>,
     originalUpdates: Map<string, AnyOnyxUpdate>,
     transactionKey: string,
+    supersededRequests: AnyRequest[],
 ): Array<OnyxUpdate<ReplaceReceiptOnyxKey>> {
     if (originalUpdates.size === 0) {
         return failureData;
@@ -291,6 +319,9 @@ function inheritOriginalRollback(
         const originalUpdate = originalUpdates.get(update.key);
         if (update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
             return withOriginalSnapshotReceipt(originalUpdate ?? update, originalTransactionValue, transactionKey);
+        }
+        if (update.key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            return inheritReportTimestamps(update, supersededRequests);
         }
         if (!originalUpdate) {
             return update;
@@ -615,7 +646,7 @@ function replaceReceipt({
     API.write(
         WRITE_COMMANDS.REPLACE_RECEIPT,
         parameters,
-        {optimisticData, successData, failureData: inheritOriginalRollback(failureData, originalRollbackUpdates, transactionKey)},
+        {optimisticData, successData, failureData: inheritOriginalRollback(failureData, originalRollbackUpdates, transactionKey, supersededRequests)},
         {checkAndFixConflictingRequest: (requests) => resolveReplaceReceiptConflicts(requests, transactionID)},
     );
 }
