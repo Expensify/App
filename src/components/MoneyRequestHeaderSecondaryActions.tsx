@@ -51,6 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -103,7 +104,6 @@ import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdo
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import {ModalActions} from './Modal/Global/ModalContext';
-import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
@@ -130,7 +130,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowCollapse',
@@ -314,7 +313,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: duplicateTargetReport,
                 existingTransactionDraft,
-                personalDetails,
+                personalDetails: getAllPersonalDetails(),
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},

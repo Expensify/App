@@ -3,6 +3,7 @@ import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import Log from '@libs/Log';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +22,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
@@ -45,7 +45,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -72,7 +71,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,

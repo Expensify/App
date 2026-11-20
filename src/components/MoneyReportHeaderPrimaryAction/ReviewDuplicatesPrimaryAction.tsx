@@ -1,5 +1,4 @@
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +9,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getOrCreateTransactionThreadReportID} from '@libs/TransactionThreadNavigationUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
@@ -30,7 +30,6 @@ import useTransactionThreadData from './useTransactionThreadData';
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
 
     const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -86,7 +85,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
                                   hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                   currentUserEmail: email,
                                   currentUserAccountID: accountID,
-                                  personalDetails,
+                                  personalDetails: getAllPersonalDetails(),
                                   fullPolicySnapshotLastModifiedByPolicyID:
                                       moneyRequestReport?.policyID && fullPolicySnapshotLastModified ? {[moneyRequestReport.policyID]: fullPolicySnapshotLastModified} : undefined,
                               },

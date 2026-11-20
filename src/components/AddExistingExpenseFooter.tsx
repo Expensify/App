@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {isIOUReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -29,7 +30,7 @@ import React from 'react';
 
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import {usePersonalDetails, useSession} from './OnyxListItemProvider';
+import {useSession} from './OnyxListItemProvider';
 
 type AddExistingExpenseFooterProps = {
     /** Selected transaction IDs */
@@ -53,7 +54,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
@@ -94,7 +94,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         transactionViolations,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         quickAction,
-                        personalDetails,
+                        personalDetails: getAllPersonalDetails(),
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,

@@ -13,7 +13,6 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -59,6 +58,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {
     canEditWorkspaceSettings,
     canUnarchivePolicy,
@@ -292,8 +292,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
-    const personalDetails = usePersonalDetails();
-
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
@@ -371,7 +369,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
-        const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const ownerDisplayName = getPersonalDetail(policy?.ownerAccountID)?.displayName ?? '';
         const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 

@@ -1,6 +1,5 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import Icon from '@components/Icon';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
@@ -24,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getTransactionDisplayAmount} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
@@ -60,7 +60,6 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -95,7 +94,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserEmail,
             currentUserAccountID,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             fullPolicySnapshotLastModifiedByPolicyID,
         });
         setActiveTransactionIDs(

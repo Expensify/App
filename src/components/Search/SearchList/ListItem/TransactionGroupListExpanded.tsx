@@ -1,7 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import LinkButton from '@components/Button/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSyncedHorizontalScroll} from '@components/Search/hooks/useSyncedHorizontalScroll';
@@ -30,6 +29,7 @@ import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
@@ -89,7 +89,6 @@ function TransactionGroupListExpandedImpl({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
@@ -233,7 +232,7 @@ function TransactionGroupListExpandedImpl({
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
-                        personalDetails,
+                        personalDetails: getAllPersonalDetails(),
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         delegateAccountID,
@@ -254,7 +253,7 @@ function TransactionGroupListExpandedImpl({
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
-                    personalDetails,
+                    personalDetails: getAllPersonalDetails(),
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
