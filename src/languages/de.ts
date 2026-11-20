@@ -8453,6 +8453,13 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             netSuiteOAuthMigrationRequired: 'Aktualisieren Sie Ihre NetSuite-Verbindung bis Februar 2027 auf OAuth 2.0.',
             netSuiteOAuthMigrationRequiredUrgent: 'Ihre NetSuite-Verbindung muss umgehend auf OAuth 2.0 aktualisiert werden.',
             netSuiteOAuthUpgradeNow: 'Jetzt upgraden',
+            connectPage: {
+                title: (integrationName: string) => `Mit ${integrationName} verbinden`,
+                importChartOfAccounts: 'Kontenplan importieren',
+                importCodingFields: 'Kontierungsfelder importieren',
+                exportApprovedExpenses: 'Genehmigte Ausgaben exportieren',
+                exportPaymentsAndSettlements: 'Zahlungen und Abrechnungen exportieren',
+            },
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',

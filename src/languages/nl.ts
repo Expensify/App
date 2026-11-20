@@ -8386,6 +8386,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             netSuiteOAuthMigrationRequired: 'Upgrade je NetSuite-verbinding naar OAuth 2.0 vóór februari 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Je NetSuite-verbinding moet onmiddellijk worden bijgewerkt naar OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Nu upgraden',
+            connectPage: {
+                title: (integrationName: string) => `Verbinden met ${integrationName}`,
+                importChartOfAccounts: 'Rekeningschema importeren',
+                importCodingFields: 'Boekingsvelden importeren',
+                exportApprovedExpenses: 'Goedgekeurde uitgaven exporteren',
+                exportPaymentsAndSettlements: 'Betalingen en verrekeningen exporteren',
+            },
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',

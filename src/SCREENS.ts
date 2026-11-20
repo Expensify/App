@@ -633,6 +633,7 @@ const SCREENS = {
             ZOHO_BOOKS_ORGANIZATION_SELECTOR: 'Policy_Accounting_Zoho_Books_Organization_Selector',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             CLAIM_OFFER: 'Policy_Accounting_Claim_Offer',
+            CONNECT: 'Policy_Accounting_Connect',
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
             XERO_CUSTOMER: 'Policy_Accounting_Xero_Import_Customer',

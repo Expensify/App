@@ -166,8 +166,16 @@ function getIntegrationAccountingMethod(policy: Policy | undefined, connectedInt
     }
 }
 
+type ConnectPageConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.CONNECT_PAGE_CONNECTION_NAMES>;
+
+/** Whether connecting this integration starts on the connect page instead of its setup flow */
+function isConnectPageConnectionName(connectionName: string | undefined): connectionName is ConnectPageConnectionName {
+    return (CONST.POLICY.CONNECTIONS.CONNECT_PAGE_CONNECTION_NAMES as readonly string[]).includes(connectionName ?? '');
+}
+
 export {
     getAccountingConnectionNames,
+    isConnectPageConnectionName,
     getUberConnectionErrorDirectlyFromPolicy,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
@@ -181,3 +189,4 @@ export {
     getConnectionExporters,
     getIntegrationAccountingMethod,
 };
+export type {ConnectPageConnectionName};

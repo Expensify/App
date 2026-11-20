@@ -6,14 +6,15 @@ import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
 import BaseConnectToQuickbooksOnlineFlow from './BaseConnectToQuickbooksOnlineFlow';
 
-function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: ConnectToQuickbooksOnlineFlowProps) {
+function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, isSandbox}: ConnectToQuickbooksOnlineFlowProps) {
     return (
         <BaseConnectToQuickbooksOnlineFlow
             policyID={policyID}
             isIntuitEnterpriseSuite={isIntuitEnterpriseSuite}
-            onConnect={(isSandbox) => {
+            isSandbox={isSandbox}
+            onConnect={(shouldConnectToSandbox) => {
                 // On native the setup opens in an in-app WebView.
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.getRoute(policyID, isIntuitEnterpriseSuite, isSandbox));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.getRoute(policyID, isIntuitEnterpriseSuite, shouldConnectToSandbox));
             }}
         />
     );

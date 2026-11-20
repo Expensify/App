@@ -8576,6 +8576,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             netSuiteOAuthMigrationRequired: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite σε OAuth 2.0 έως τον Φεβρουάριο 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Η σύνδεσή σας με το NetSuite απαιτεί άμεση αναβάθμιση σε OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
+            connectPage: {
+                title: (integrationName: string) => `Σύνδεση με ${integrationName}`,
+                importChartOfAccounts: 'Εισαγωγή σχεδίου λογαριασμών',
+                importCodingFields: 'Εισαγωγή πεδίων κωδικοποίησης',
+                exportApprovedExpenses: 'Εξαγωγή εγκεκριμένων εξόδων',
+                exportPaymentsAndSettlements: 'Εξαγωγή πληρωμών και διακανονισμών',
+            },
         },
         hr: {
             connectionsSubtitle:

@@ -8086,6 +8086,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             netSuiteOAuthMigrationRequired: '请在 2027 年 2 月前将您的 NetSuite 连接升级到 OAuth 2.0。',
             netSuiteOAuthMigrationRequiredUrgent: '您的 NetSuite 连接需要立即升级到 OAuth 2.0。',
             netSuiteOAuthUpgradeNow: '立即升级',
+            connectPage: {
+                title: (integrationName: string) => `连接到 ${integrationName}`,
+                importChartOfAccounts: '导入科目表',
+                importCodingFields: '导入编码字段',
+                exportApprovedExpenses: '导出已批准报销费用',
+                exportPaymentsAndSettlements: '导出付款和结算',
+            },
         },
         export: {
             notReadyHeading: '尚未准备好导出',

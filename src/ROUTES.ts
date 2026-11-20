@@ -3821,6 +3821,7 @@ const ROUTES = {
             shouldDisconnectIntegrationBeforeConnecting?: boolean,
             isIntuitEnterpriseSuite?: boolean,
             tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>,
+            isSandbox?: boolean,
         ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
@@ -3841,6 +3842,9 @@ const ROUTES = {
                 }
                 if (isIntuitEnterpriseSuite !== undefined) {
                     queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
+                if (isSandbox !== undefined) {
+                    queryParams += `&isSandbox=${isSandbox}`;
                 }
             }
             return `workspaces/${policyID}/connections${queryParams}` as const;
@@ -5039,6 +5043,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ADVANCED route');
             }
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CONNECT: {
+        route: 'workspaces/:policyID/accounting/connect/:connectionName',
+        getRoute: (policyID: string | undefined, connectionName: ConnectionName, isIntuitEnterpriseSuite = false) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CONNECT route');
+            }
+            return `workspaces/${policyID}/accounting/connect/${connectionName}${isIntuitEnterpriseSuite ? '?isIntuitEnterpriseSuite=true' : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_CLAIM_OFFER: {

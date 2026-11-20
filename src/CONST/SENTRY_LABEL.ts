@@ -2182,6 +2182,8 @@ const SENTRY_LABEL = {
                 XERO: 'WorkspaceAccounting-ClaimOfferConnect-Xero',
                 UBER: 'WorkspaceAccounting-ClaimOfferConnect-Uber',
             },
+            CONNECT_PAGE_CONNECT: 'WorkspaceAccounting-ConnectPageConnect',
+            CONNECT_PAGE_CONNECT_SANDBOX: 'WorkspaceAccounting-ConnectPageConnectSandbox',
             TRAVEL_BILLING_RECONCILIATION_ACCOUNT: {
                 QBO: 'WorkspaceAccounting-TravelBillingReconciliationAccount-QBO',
                 XERO: 'WorkspaceAccounting-TravelBillingReconciliationAccount-Xero',
