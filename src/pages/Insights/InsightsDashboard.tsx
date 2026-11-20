@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -372,20 +373,24 @@ function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboard
     return Object.values(dashboards ?? {}).some(hasDashboardResponse);
 }
 
-/** Returns the graphs of the loaded dashboard entries, by hash */
-function selectLoadedGraphs(
+/** Returns each graph from the first loaded dashboard entry among its fallback hashes */
+function selectFallbackGraphs(
     dashboards: OnyxCollection<InsightsDashboardRecord>,
     dashboardID: InsightsDashboardID,
     hashes: Partial<Record<InsightsGraphKey, number[]>> | undefined,
-): Record<number, InsightsDashboardRecord['graphs']> {
-    const loadedGraphs: Record<number, InsightsDashboardRecord['graphs']> = {};
-    for (const hash of Object.values(hashes ?? {}).flat()) {
-        const entry = dashboards?.[`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`];
-        if (hasDashboardResponse(entry)) {
-            loadedGraphs[hash] = entry?.graphs;
+): NonNullable<InsightsDashboardRecord['graphs']> {
+    const fallbackGraphs: NonNullable<InsightsDashboardRecord['graphs']> = {};
+    for (const [graphKey, graphHashes] of ObjectUtils.typedEntries(hashes ?? {})) {
+        for (const hash of graphHashes ?? []) {
+            const entry = dashboards?.[`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`];
+            const graph = hasDashboardResponse(entry) ? entry?.graphs?.[graphKey] : undefined;
+            if (graph) {
+                fallbackGraphs[graphKey] = graph;
+                break;
+            }
         }
     }
-    return loadedGraphs;
+    return fallbackGraphs;
 }
 
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
@@ -463,7 +468,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
     const averageFallbackHashes = query?.averageFallbackHashes;
     const [fallbackGraphs] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
-        selector: (dashboards) => selectLoadedGraphs(dashboards, dashboardID, averageFallbackHashes),
+        selector: (dashboards) => selectFallbackGraphs(dashboards, dashboardID, averageFallbackHashes),
     });
     const isCurrentDashboardLoaded = hasDashboardResponse(dashboard);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
@@ -477,9 +482,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const {graphKey} = chartQuery.chart;
-        const graph = isCurrentDashboardLoaded
-            ? dashboard?.graphs?.[graphKey]
-            : averageFallbackHashes?.[graphKey]?.map((fallbackHash) => fallbackGraphs?.[fallbackHash]?.[graphKey]).find((fallbackGraph) => !!fallbackGraph);
+        const graph = isCurrentDashboardLoaded ? dashboard?.graphs?.[graphKey] : fallbackGraphs?.[graphKey];
         return {
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
