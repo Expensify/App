@@ -48,12 +48,20 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     // An operand saved without a comparison currency matches in whatever currency the expense carries, so a saved
     // rule keeps that as Any rather than being silently pinned to the workspace currency when it is reopened.
     const [currency, setCurrency] = useState(form?.amountToMatch ? (savedValue.currency ?? '') : (policy?.outputCurrency ?? CONST.CURRENCY.USD));
+    const [hasInvalidAmount, setHasInvalidAmount] = useState(false);
 
     const keepMatchType = useMatchTypeDiscard('amountMatchType', form?.amountMatchType);
 
     const goBack = () => Navigation.goBack(backToRoute);
 
     const onSubmit = () => {
+        // An empty field clears the condition, so a value that is not a number has to be rejected rather than
+        // formatted away, or saving a lone minus sign would widen the rule to every amount.
+        const trimmedAmount = amount.trim();
+        if (trimmedAmount && !Number.isFinite(Number(trimmedAmount))) {
+            setHasInvalidAmount(true);
+            return;
+        }
         keepMatchType();
         updateDraftMerchantRule({amountToMatch: formatAmountFilterValue(amount, currency || undefined)});
         goBack();
@@ -84,7 +92,11 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
                     amount={amount}
                     currency={currency}
                     label={translate('iou.amount')}
-                    onAmountChange={setAmount}
+                    errorText={hasInvalidAmount ? translate('common.error.invalidAmount') : undefined}
+                    onAmountChange={(newAmount) => {
+                        setHasInvalidAmount(false);
+                        setAmount(newAmount);
+                    }}
                     onCurrencyChange={setCurrency}
                     ref={(ref) => inputCallbackRef(isTextInputRef(ref) ? ref : null)}
                 />
