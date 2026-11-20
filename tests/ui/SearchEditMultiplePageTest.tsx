@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -30,6 +30,7 @@ import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from
 import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {ComponentProps} from 'react';
+import type ReactNative from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -76,11 +77,20 @@ jest.mock('@hooks/usePermissions', () => () => ({
 // Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
 const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
 const mockValueByRow: Record<string, string | undefined> = {};
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value}: ExpenseFieldDropdownMockProps) => {
+const mockOnVisibilityChangeByRow: Record<string, ((isVisible: boolean) => void) | undefined> = {};
+type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value' | 'onVisibilityChange'>;
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value, onVisibilityChange}: ExpenseFieldDropdownMockProps) => {
     mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
     mockValueByRow[name] = value;
+    mockOnVisibilityChangeByRow[name] = onVisibilityChange;
     return null;
+});
+
+// The Enter shortcut only registers on web, so a marker stands in for it to show whether Save is listening for Enter.
+const ENTER_SHORTCUT_TEST_ID = 'SaveEnterShortcut';
+jest.mock('@components/Button/primitives/ButtonKeyboardShortcut', () => {
+    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
+    return () => <MockView testID="SaveEnterShortcut" />;
 });
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -194,6 +204,7 @@ describe('SearchEditMultiplePage', () => {
         for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
             delete mockShouldOpenInDropdownByRow[rowName];
             delete mockValueByRow[rowName];
+            delete mockOnVisibilityChangeByRow[rowName];
         }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
@@ -617,6 +628,41 @@ describe('SearchEditMultiplePage', () => {
             throw new Error('No scroll view');
         }
         expect(within(scrollView).getByText('Save')).toBeOnTheScreen();
+        expect(screen.getAllByText('Save')).toHaveLength(1);
+    });
+
+    it('stops listening for Enter while a list is open, so Enter in the list does not save the page behind it', async () => {
+        // Given the Edit multiple page with its Reimbursable row
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+
+        // When the row's list opens with no option focused
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(true));
+
+        // Then Save no longer takes Enter, which would otherwise save every selected expense behind the list
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
+
+        // When the list closes
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(false));
+
+        // Then Enter saves the page again
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('stops listening for Enter while the currency picker is open', async () => {
+        // Given the Edit multiple page with an editable amount shown in EUR
+        await selectTransactions([OPEN_TRANSACTION_ID], {currency: CONST.CURRENCY.EUR});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the currency picker is opened from the amount row
+        fireEvent.press(screen.getByText(CONST.CURRENCY.EUR));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save no longer takes Enter, so Enter in the picker does not save the page
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
     });
 
     it('accepts a negative amount when every selected expense allows one', async () => {

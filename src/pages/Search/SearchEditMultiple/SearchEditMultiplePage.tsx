@@ -223,6 +223,7 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const currencyButtonRef = useRef<View>(null);
     const shouldSaveButtonBeInScrollView = useShouldFooterBeInsideList();
 
@@ -456,7 +457,8 @@ function SearchEditMultiplePage() {
             isDisabled={isSaving}
             style={[styles.m5]}
         >
-            <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+            {/* An open list with no row focused leaves Enter unclaimed, so it would otherwise save the page behind the list. */}
+            {!isDropdownVisible && !isCurrencyPickerVisible && <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />}
             <Button.Text>{translate('common.save')}</Button.Text>
         </Button>
     );
@@ -575,6 +577,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areCategoriesEnabled && (
                         <ExpenseFieldDropdown
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.category')}
                             value={draftTransaction?.category ?? ''}
                             numberOfLinesValue={2}
@@ -602,6 +605,7 @@ function SearchEditMultiplePage() {
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
                                 <ExpenseFieldDropdown
+                                    onVisibilityChange={setIsDropdownVisible}
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
@@ -626,6 +630,7 @@ function SearchEditMultiplePage() {
                         })}
                     {isTaxTrackingEnabled && (
                         <ExpenseFieldDropdown
+                            onVisibilityChange={setIsDropdownVisible}
                             name={taxRateName}
                             value={selectedTaxRate}
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
@@ -645,6 +650,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areSelectedTransactionsReimbursable && (
                         <ExpenseFieldDropdown
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.reimbursable')}
                             value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
                             shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
@@ -663,6 +669,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areSelectedTransactionsBillable && (
                         <ExpenseFieldDropdown
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.billable')}
                             value={getPendingBooleanTitle(draftTransaction?.billable)}
                             shouldOpenInDropdown={!isBillableDisabled}
@@ -681,6 +688,7 @@ function SearchEditMultiplePage() {
                     )}
                     {areAttendeesEnabled && (
                         <ExpenseFieldDropdown
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('iou.attendees')}
                             valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
                             hasValueComponent={hasDraftAttendees}
