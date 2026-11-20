@@ -594,10 +594,15 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         searchType?: SearchDataTypes;
         accountID?: number;
         columns?: SearchColumnType[];
-        newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         onUndelete?: (transaction: Transaction) => void;
+
+        /** Owned by the list, so Enter on the focused row can open and close the group too */
+        isExpanded: boolean;
+
+        /** Asks the list to open or close the group */
+        onToggle: () => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -665,7 +670,6 @@ function isGroupChildrenContainerItem(item: SearchListItem): item is GroupChildr
 
 type GroupChildrenContentProps = {
     item: GroupChildrenContainerItemType;
-    isExpanded: boolean;
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
     columns?: SearchColumnType[];
@@ -675,7 +679,6 @@ type GroupChildrenContentProps = {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
-    newTransactionID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

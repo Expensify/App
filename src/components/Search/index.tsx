@@ -761,14 +761,9 @@ function Search({
                 }
             }
 
+            // The list opens and closes groups that aren't reports itself, so they shouldn't reach here. If one does, stop
+            // before the report navigation below, since it has no report to open.
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
-                handleSearch({
-                    queryJSON: item.transactionsQueryJSON,
-                    searchKey: undefined,
-                    offset: 0,
-                    shouldCalculateTotals: false,
-                    isLoading: false,
-                });
                 return;
             }
 
@@ -909,7 +904,6 @@ function Search({
         },
         [
             markReportRHPWidth,
-            handleSearch,
             unmarkReportRHPWidth,
             introSelected,
             personalDetails,

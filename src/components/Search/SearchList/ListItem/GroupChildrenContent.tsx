@@ -12,8 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
@@ -22,7 +21,6 @@ import useGroupChildren from './useGroupChildren';
 
 function GroupChildrenContent({
     item,
-    isExpanded,
     groupBy,
     searchType,
     columns,
@@ -32,10 +30,8 @@ function GroupChildrenContent({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
-    newTransactionID,
 }: GroupChildrenContentProps) {
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const isScreenFocused = useIsFocused();
     const {isOffline} = useNetwork();
 
     const groupItem = item;
@@ -55,19 +51,6 @@ function GroupChildrenContent({
     const isEmpty = transactions.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
-    const refreshTransactions = () => {
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-        });
-    };
-
     const searchTransactions = (pageSize = 0) => {
         if (!groupItem.transactionsQueryJSON) {
             return;
@@ -80,36 +63,6 @@ function GroupChildrenContent({
             isLoading: !!transactionsSnapshot?.search?.isLoading,
         });
     };
-
-    useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
-            return;
-        }
-        refreshTransactions();
-        // Only refresh when a new transaction is created in this group — refreshTransactions is excluded to avoid infinite loops
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newTransactionID, isExpanded]);
-
-    useEffect(() => {
-        if (!isExpanded || isExpenseReportType) {
-            return;
-        }
-        refreshTransactions();
-        // Only fetch on expand — refreshTransactions and isExpenseReportType are excluded to prevent re-fetching on every render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isExpanded]);
-
-    const wasScreenFocusedRef = React.useRef(isScreenFocused);
-    useEffect(() => {
-        const didReturnToScreen = wasScreenFocusedRef.current === false && isScreenFocused === true;
-        wasScreenFocusedRef.current = isScreenFocused;
-        if (!didReturnToScreen || !isExpanded || isExpenseReportType) {
-            return;
-        }
-        refreshTransactions();
-        // Only refresh when returning to this screen while expanded — other deps excluded to avoid redundant fetches
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isScreenFocused]);
 
     let filteredViolations: Record<string, TransactionViolation[]>;
     if (!snapshotData) {

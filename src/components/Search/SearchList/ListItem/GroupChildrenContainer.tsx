@@ -15,6 +15,7 @@ import GroupChildrenContent from './GroupChildrenContent';
 import {useGroupCheckboxState} from './useGroupChildren';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
+    isExpanded: boolean;
     isFirstItem?: boolean;
     isLastItem?: boolean;
 };
@@ -33,7 +34,6 @@ function GroupChildrenContainer({
     onUndelete,
     isFirstItem = false,
     isLastItem,
-    newTransactionID,
 }: GroupChildrenContainerProps) {
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -63,7 +63,6 @@ function GroupChildrenContainer({
                     >
                         <GroupChildrenContent
                             item={item}
-                            isExpanded={isContentVisible}
                             groupBy={groupBy}
                             searchType={searchType}
                             columns={columns}
@@ -73,7 +72,6 @@ function GroupChildrenContainer({
                             onLongPressRow={onLongPressRow}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
-                            newTransactionID={newTransactionID}
                         />
                     </Animated.View>
                 ) : null}
