@@ -164,6 +164,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns numbered commercial card feed names for search display', () => {
+        // Given generic and special commercial feeds without nicknames
         const companyCards = createCompanyCardFeedsWithRawKeys([`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'vcfanzfav1', 'cdfbmo', 'vcfcitibank2']);
         const cardFeedsWithNumberedCommercialFeeds: OnyxCollection<CardFeeds> = {
             sharedNVP_private_domain_member_1234: {
@@ -174,12 +175,14 @@ describe('Card Feed Utils', () => {
             },
         };
 
+        // When the Spend filter builds its feed options
         const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsWithNumberedCommercialFeeds, {}, translateLocal);
+        // Then special provider names and slot numbers are preserved without changing feed identities
         expect(cardFeedsForDisplay).toEqual({
             '1234_vcf2': {id: '1234_vcf2', fundID: '1234', feed: 'vcf2', name: 'Visa 2'},
             '1234_vcfanzfav1': {id: '1234_vcfanzfav1', fundID: '1234', feed: 'vcfanzfav1', name: 'ANZ NZ 1'},
-            '1234_cdfbmo': {id: '1234_cdfbmo', fundID: '1234', feed: 'cdfbmo', name: 'Mastercard'},
-            '1234_vcfcitibank2': {id: '1234_vcfcitibank2', fundID: '1234', feed: 'vcfcitibank2', name: 'Visa'},
+            '1234_cdfbmo': {id: '1234_cdfbmo', fundID: '1234', feed: 'cdfbmo', name: 'BMO'},
+            '1234_vcfcitibank2': {id: '1234_vcfcitibank2', fundID: '1234', feed: 'vcfcitibank2', name: 'Citi Visa 2'},
         });
     });
 

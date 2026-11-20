@@ -1548,6 +1548,18 @@ describe('CardUtils', () => {
             const feedName = getCustomOrFormattedFeedName(translateLocal, numberedVisaFeedForCustomName, customFeedName);
             expect(feedName).toBe(customFeedName);
         });
+
+        it('Should prefer a nickname over a special commercial feed default', () => {
+            // Given a special commercial feed with a nickname from the admin
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Special backend feed keys are not all represented in the frontend feed union.
+            const feed = 'cdfaoc2' as Parameters<typeof getCustomOrFormattedFeedName>[1];
+            // When its title is formatted with and without the cards suffix
+            const withSuffix = getCustomOrFormattedFeedName(translateLocal, feed, customFeedName);
+            const withoutSuffix = getCustomOrFormattedFeedName(translateLocal, feed, customFeedName, false);
+            // Then the nickname wins in either consumer
+            expect(withSuffix).toBe(customFeedName);
+            expect(withoutSuffix).toBe(customFeedName);
+        });
     });
 
     describe('getDefaultCommercialFeedDisplayName', () => {
@@ -1569,6 +1581,68 @@ describe('CardUtils', () => {
             // When its default name is derived
             const feedName = getDefaultCommercialFeedDisplayName(feed);
             // Then only slots without a suffix omit the number
+            expect(feedName).toBe(expectedFeedName);
+        });
+
+        // cspell:words cdffoo cdfaocfoo
+        const specialCommercialFeedCases = [
+            ['cdf', 'Mastercard'],
+            ['cdfaoc', 'Key Bank Key2Purchase'],
+            ['cdfaoc1', 'Key Bank Key2Purchase 1'],
+            ['cdfaoc2', 'Key Bank Key2Purchase 2'],
+            ['cdfkey', 'Key Bank Key2Business'],
+            ['cdfairplus', 'AirPlus'],
+            ['cdfbmo', 'BMO'],
+            ['cdfbrex', 'Brex'],
+            ['cdfcitibank', 'Citi Mastercard'],
+            ['vcfcitibank', 'Citi Visa'],
+            ['vcfccf', 'Citi CCF'],
+            ['vcfccf42', 'Citi CCF 42'],
+            ['vcfcgi', 'Citi CGI'],
+            ['cdfcsi', 'CSI Global'],
+            ['cdfsdf', 'Diners Club SDF'],
+            ['cdfdcf', 'Diners Club DCF'],
+            ['cdfhsbc', 'HSBC Mastercard'],
+            ['vcfhsbc', 'HSBC Visa'],
+            ['vcfext', 'HSBC Visa External'],
+            ['cdfvirt', 'Mastercard Virtual'],
+            ['cdfseb', 'SEB Kort'],
+            ['cdfubt', 'UBT'],
+            ['cdfwex', 'WEX'],
+            ['vcfubs', 'UBS'],
+            ['vcfintecoms', 'NBSA'],
+            ['vcfbbva', 'BBVA'],
+            ['vcffpcu', 'FPCU'],
+            ['cdfhierarchy', 'Mastercard Hierarchy'],
+            ['vcfhierarchy', 'Visa Hierarchy'],
+            ['cdfvirthierarchy', 'Mastercard Virtual Hierarchy'],
+            ['cdfcitihierarchy', 'Citi Mastercard Hierarchy'],
+            ['vcfcgihierarchy', 'Citi CGI Hierarchy'],
+            ['vcfccfhierarchy', 'Citi CCF Hierarchy'],
+            ['vcfhsbchierarchy', 'HSBC Visa Hierarchy'],
+            ['vcf', 'Visa'],
+            ['vcfmock', 'Mock Commercial Feed'],
+            ['vcfmock1', 'Mock Commercial Feed'],
+            ['vcfmock2', 'Mock Commercial Feed 2'],
+            ['gl1025', 'American Express'],
+            ['gl1205', 'American Express Hierarchy'],
+            ['gl12052', 'American Express Hierarchy 2'],
+            ['vcfanzfav', 'ANZ NZ'],
+            ['vcfanzfav1', 'ANZ NZ 1'],
+            ['anzfav', 'ANZ NZ'],
+            ['anzfav2', 'ANZ NZ 2'],
+            ['vcfanz', 'ANZ'],
+            ['cdffoo', 'Mastercard FOO'],
+            ['cdfaocfoo2', 'Key Bank Key2Purchase FOO2'],
+            [`cdfaoc2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Key Bank Key2Purchase 2'],
+        ];
+
+        it.each(specialCommercialFeedCases)('Should distinguish special commercial feed %s as %s', (feed, expectedFeedName) => {
+            // Given a backend feed key that may share a prefix with another commercial feed
+            // When its default title is derived using the most specific prefix
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Exercise backend variants and unknown suffixes outside the frontend feed union.
+            const feedName = getDefaultCommercialFeedDisplayName(feed as Parameters<typeof getDefaultCommercialFeedDisplayName>[0]);
+            // Then the provider, variant, and slot remain distinguishable
             expect(feedName).toBe(expectedFeedName);
         });
     });
