@@ -83,4 +83,22 @@ describe('flat nav tab bar slot and More menu', () => {
         expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
         expect(activeItems).toEqual([]);
     });
+
+    it('should highlight More with no active entry for a saved search while every saved search is pending delete', () => {
+        // Given an offline user on a saved search whose saved searches are all pending delete, so the Saved section is
+        // still visible but has no search to open
+        const sections = createSections([]).map((section) => (section.id === FLAT_NAV.SECTION.SAVED ? {...section, items: [createSavedSearchItem({isDisabled: true})]} : section));
+        const focus = {
+            focusedTabRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+            activeFlatNavSectionID: getActiveFlatNavItem(sections, savedSearchIDToSearchKey('1'))?.sectionID,
+        };
+
+        // When the slot and the More entries are built
+        const slot = getFlatNavTabBarSlot(focus);
+        const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
+
+        // Then More is highlighted while its menu has no active entry, since the menu leaves out a Saved row that would open nothing
+        expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
+        expect(activeItems).toEqual([]);
+    });
 });

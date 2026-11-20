@@ -105,6 +105,20 @@ describe('getMoreMenuItems', () => {
         expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
     });
 
+    it('should keep Saved while one saved search can still be opened', () => {
+        // Given an offline user who deleted one of two saved searches, so the Saved section has a disabled row followed by a live one
+        const savedSection: FlatNavSection = {
+            ...getSection(FLAT_NAV.SECTION.SAVED),
+            items: [createSavedSearchItem({isDisabled: true}), createSavedSearchItem({key: savedSearchIDToSearchKey('2'), savedSearchID: '2'})],
+        };
+
+        // When the More entries are built
+        const items = getItems({sections: [getSection(FLAT_NAV.SECTION.ACCOUNTING), savedSection]});
+
+        // Then Saved stays listed, because a press on it still opens the live saved search
+        expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED, MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
+    });
+
     it('should draw the Workspaces dot with the color the tab bar uses', () => {
         // Given the Workspaces dot color the tab bar draws, and no dot at all
         // When the Workspaces entry is built for each
