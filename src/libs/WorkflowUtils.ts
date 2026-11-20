@@ -754,8 +754,11 @@ function convertApprovalWorkflowToPolicyEmployees({
     const approvalLimits = isRemoving ? [] : getApprovalWorkflowRoutes(approvalWorkflow.approvers).approvalLimits;
 
     // An approver's employee settings route the reports of every workflow they're in. Removing this workflow leaves alone the
-    // settings of approvers that other members' reports still reach, and saving it keeps the routes those reports take.
-    const approverEmailsReachedByOthers = getApproverEmailsReachedByOtherMembers(previousEmployeeList, new Set(approvalWorkflow.members.map(({email}) => email)), defaultApprover);
+    // settings of approvers that other members' reports still reach, and saving it keeps the routes those reports take. Members
+    // this save moves out of the workflow submit to the default approver from now on, and members without an approver of their
+    // own submit to this workflow when it's the default one, so neither counts as another member.
+    const memberEmails = new Set([...approvalWorkflow.members, ...(membersToRemove ?? [])].map(({email}) => email));
+    const approverEmailsReachedByOthers = getApproverEmailsReachedByOtherMembers(previousEmployeeList, memberEmails, approvalWorkflow.isDefault ? undefined : defaultApprover);
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const isReachedByOthers = approverEmailsReachedByOthers.has(approver.email);
 
