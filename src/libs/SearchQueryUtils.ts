@@ -30,6 +30,7 @@ import type {
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +51,7 @@ import type {
     SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType, SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -240,6 +241,8 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+const SEARCH_TYPES_SUPPORTING_GROUP_BY = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP]);
+const SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE]);
 
 /** Group-bys only Insights queries use, because the Search command doesn't return data for them */
 const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]);
@@ -1369,6 +1372,43 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
     return getCachedSearchQueryJSON(query, rawQuery);
 }
 
+/** Returns the validation error for this query from the matching snapshot or from client checks. */
+function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode' | 'errorTranslationKey'>): TranslationPaths | undefined {
+    if (search?.hash === queryJSON.hash && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+        return search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle';
+    }
+
+    // The parser can return an array for `type:expense,invoice`, but Auth requires one search type.
+    if (typeof queryJSON.type !== 'string') {
+        return 'errorPage.wrongTypeSubtitle';
+    }
+
+    const type = queryJSON.type.toLowerCase();
+    // Auth only groups expense, invoice and trip searches. Insights-only group-bys are skipped because the Search
+    // action drops them from the request, so Auth never sees them.
+    if (queryJSON.groupBy && isGroupBySupportedBySearch(queryJSON.groupBy) && !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type)) {
+        return 'search.searchResults.unsupportedGrouping';
+    }
+
+    for (const filter of queryJSON.flatFilters) {
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && filter.filters.length > CONST.SEARCH.MAX_KEYWORD_TOKENS) {
+            return 'search.searchResults.tooManyKeywords';
+        }
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS && type !== CONST.SEARCH.DATA_TYPES.CHAT) {
+            return 'search.searchResults.unsupportedFilter';
+        }
+        if (
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID &&
+            SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID.has(type) &&
+            filter.filters.some(({value}) => String(value) === CONST.REPORT.UNREPORTED_REPORT_ID)
+        ) {
+            return 'search.searchResults.invalidReportID';
+        }
+    }
+
+    return undefined;
+}
+
 /**
  * Formats a given `SearchQueryJSON` object into the string version of query.
  * This format of query is the most basic string format and is used as the query param `q` in search URLs.
@@ -1523,8 +1563,12 @@ function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undef
     return changedOptions.filter(Boolean).length;
 }
 
-function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'>) {
     if (!currentQueryJSON) {
+        return false;
+    }
+
+    if (getSearchQueryError(currentQueryJSON, search)) {
         return false;
     }
 
@@ -3680,6 +3724,7 @@ export {
     isSearchBeforeViolationsSnapshotStarted,
     isFilterSupported,
     buildSearchQueryJSON,
+    getSearchQueryError,
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
     buildQueryStringWithResetDisplay,
