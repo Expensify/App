@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
@@ -33,6 +34,7 @@ import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isMapDistanceRequest as isMapDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
 
+import useReportDeepLinkOnOpen from '@pages/inbox/report/useReportDeepLinkOnOpen';
 import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 
@@ -76,6 +78,26 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const privateIsArchived = useReportIsArchived(reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+
+    // Wait until a loading phase has been seen, so the render before the fetch starts doesn't show not-found
+    const isLoadingInitialReportActions = !!reportLoadingState?.isLoadingInitialReportActions;
+    const [hasSeenReportLoading, setHasSeenReportLoading] = useState(isLoadingInitialReportActions);
+    if (isLoadingInitialReportActions && !hasSeenReportLoading) {
+        setHasSeenReportLoading(true);
+    }
+
+    // The split's transaction lives on no real report and only comes back with the chat's OpenReport,
+    // which nothing sends when the split is opened from Search or after a cache reset. Only the data is needed, so the chat stays unread.
+    // A load of the chat that is already running carries it too, so only fetch when none has been seen
+    const isSplitTransactionMissing = !!IOUTransactionID && isEmptyObject(transaction);
+    useReportDeepLinkOnOpen({
+        reportID,
+        isReportLoaded: !isSplitTransactionMissing,
+        shouldFetchReport: !hasSeenReportLoading,
+        shouldMarkAsRead: false,
+        shouldKeepManualUnreadMarker: true,
+    });
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -159,6 +181,10 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
     };
+
+    if (isSplitTransactionMissing && (!hasSeenReportLoading || isLoadingInitialReportActions)) {
+        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+    }
 
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">

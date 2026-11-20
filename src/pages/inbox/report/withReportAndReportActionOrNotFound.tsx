@@ -53,6 +53,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isBetaEnabled} = usePermissions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -93,7 +94,8 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 
     // Perform all the loading checks
-    const isLoadingReport = isLoadingReportData && !report?.reportID;
+    // Clearing the cache (also from another tab) wipes IS_LOADING_REPORT_DATA and the report, but keeps IS_LOADING_APP set
+    const isLoadingReport = (isLoadingReportData || !!isLoadingApp) && !report?.reportID;
     const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isReportArchived));
