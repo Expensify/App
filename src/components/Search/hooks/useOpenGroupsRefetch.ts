@@ -1,12 +1,8 @@
-/**
- * Keeps a grouped Search's open groups up to date after they have opened: fetches a group's expenses again when an expense
- * is created in it, and every open group's when the user comes back to the screen. The list does this rather than the group
- * rows, because it reuses rows as it scrolls, so an open group scrolled out of view has no row to fetch it.
- */
+/** Fetches a grouped Search's open groups again when an expense is created in one or the user comes back to the screen. */
 import type {SearchListItem, TransactionGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
-import {search} from '@libs/actions/Search';
+import {hasInFlightSearch, search} from '@libs/actions/Search';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem} from '@libs/SearchUIUtils';
 
 import type {Transaction} from '@src/types/onyx';
@@ -38,6 +34,10 @@ function getOpenGroups(data: SearchListItem[], expandedGroups: Set<string>): Ope
 
 /** Fetches the first page of a group's expenses, for when it opens and whenever the list refreshes it after that */
 function fetchGroupFirstPage(queryJSON: SearchQueryJSON) {
+    // Fetching the first page while a "show more" page is loading would reset the group's offset under it.
+    if (hasInFlightSearch(queryJSON.hash)) {
+        return;
+    }
     search({queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
 }
 

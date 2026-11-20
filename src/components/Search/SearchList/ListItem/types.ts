@@ -584,7 +584,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         nonPersonalAndWorkspaceCards?: CardList;
         onUndelete?: (transaction: Transaction) => void;
 
-        /** Owned by the list, so Enter on the focused row can open and close the group too */
+        /** Owned by the list */
         isExpanded: boolean;
 
         /** Asks the list to open or close the group */

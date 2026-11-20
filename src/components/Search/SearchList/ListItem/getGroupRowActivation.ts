@@ -1,6 +1,3 @@
-/**
- * Decides what activating a grouped Search row does, so a click and Enter on the focused row behave the same.
- */
 import {isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';

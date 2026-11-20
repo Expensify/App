@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useOpenGroupsRefetch from '@components/Search/hooks/useOpenGroupsRefetch';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
-import {search} from '@libs/actions/Search';
+import {hasInFlightSearch, search} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -19,17 +19,21 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
+    hasInFlightSearch: jest.fn(() => false),
 }));
 
 const mockSearch = jest.mocked(search);
+const mockHasInFlightSearch = jest.mocked(hasInFlightSearch);
 
 const FOOD_QUERY = buildSearchQueryJSON('type:expense category:Food');
 const TRAVEL_QUERY = buildSearchQueryJSON('type:expense category:Travel');
+const OFFICE_QUERY = buildSearchQueryJSON('type:expense category:Office');
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
 const DATA = [
     {keyForList: 'Food', category: 'Food', transactions: [], transactionsQueryJSON: FOOD_QUERY},
     {keyForList: 'Travel', category: 'Travel', transactions: [], transactionsQueryJSON: TRAVEL_QUERY},
+    {keyForList: 'Office', category: 'Office', transactions: [], transactionsQueryJSON: OFFICE_QUERY},
     {keyForList: 'Report', category: 'Food', transactions: []},
 ] as unknown as SearchListItem[];
 
@@ -50,6 +54,7 @@ function renderRefetch(initialProps: HookProps) {
 
 beforeEach(() => {
     mockSearch.mockClear();
+    mockHasInFlightSearch.mockReturnValue(false);
     mockIsScreenFocused.current = true;
 });
 
@@ -65,8 +70,8 @@ describe('useOpenGroupsRefetch', () => {
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
-    it('fetches an open group again when an expense is created in it, whether or not its row is on screen', () => {
-        // Given two open groups, which may be scrolled out of view, since the list fetches them rather than their rows
+    it('fetches an open group again when an expense is created in it', () => {
+        // Given two open groups
         const expandedGroups = new Set(['Food', 'Travel']);
         const {rerender} = renderRefetch({expandedGroups});
 
@@ -114,10 +119,12 @@ describe('useOpenGroupsRefetch', () => {
         mockIsScreenFocused.current = true;
         rerender({expandedGroups});
 
-        // Then each open group is fetched again, so its expenses match the totals that may have changed meanwhile
+        // Then each open group is fetched again, so its expenses match the totals that may have changed meanwhile, and the
+        // closed one isn't, because opening it fetches it
         expect(mockSearch).toHaveBeenCalledTimes(2);
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: FOOD_QUERY, offset: 0}));
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: TRAVEL_QUERY, offset: 0}));
+        expect(mockSearch).not.toHaveBeenCalledWith(expect.objectContaining({queryJSON: OFFICE_QUERY}));
     });
 
     it('does not fetch an open group that has no search of its own', () => {
@@ -134,5 +141,22 @@ describe('useOpenGroupsRefetch', () => {
 
         // Then no search runs
         expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch an open group again while another page of it is loading', () => {
+        // Given two open groups, one of which is still loading its "show more" page
+        const expandedGroups = new Set(['Food', 'Travel']);
+        const {rerender} = renderRefetch({expandedGroups});
+        mockHasInFlightSearch.mockImplementation((hash) => hash === FOOD_QUERY?.hash);
+
+        // When the user comes back to the screen
+        mockIsScreenFocused.current = false;
+        rerender({expandedGroups});
+        mockIsScreenFocused.current = true;
+        rerender({expandedGroups});
+
+        // Then only the other group is fetched, because fetching the first page would reset the loading group's offset under it
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: TRAVEL_QUERY, offset: 0}));
     });
 });

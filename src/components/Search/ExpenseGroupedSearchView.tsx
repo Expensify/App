@@ -19,9 +19,9 @@ import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useState} from 'react';
 
-import type {SearchListItem} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
-import type {SearchQueryJSON, SelectedTransactions} from './types';
+import type {SelectedTransactions} from './types';
 
 import useOpenGroupsRefetch, {fetchGroupFirstPage} from './hooks/useOpenGroupsRefetch';
 import {NO_OPEN_GROUPS} from './hooks/useOpenGroupsRegistry';
@@ -125,19 +125,18 @@ function ExpenseGroupedSearchView({
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
     // Fetch on open here rather than in the row, because the list reuses rows as it scrolls, and a reused row that lands
     // on an open group would fetch it again.
-    const toggleGroup = (key: string, transactionsQueryJSON: SearchQueryJSON | undefined) => {
-        if (!expandedGroups.has(key) && transactionsQueryJSON) {
-            fetchGroupFirstPage(transactionsQueryJSON);
-        }
-        setExpandedGroups((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) {
-                next.delete(key);
-            } else {
-                next.add(key);
+    const toggleGroup = (key: string) => {
+        const next = new Set(expandedGroups);
+        if (next.has(key)) {
+            next.delete(key);
+        } else {
+            next.add(key);
+            const group = data.find((item): item is TransactionGroupListItemType => isTransactionGroupListItemType(item) && item.keyForList === key);
+            if (group?.transactionsQueryJSON) {
+                fetchGroupFirstPage(group.transactionsQueryJSON);
             }
-            return next;
-        });
+        }
+        setExpandedGroups(next);
     };
 
     if (expandedGroups.size > 0) {
@@ -203,7 +202,7 @@ function ExpenseGroupedSearchView({
             handleSelectRow({...item, keyForList: groupKey});
         }
         if (shouldToggle && groupKey) {
-            toggleGroup(groupKey, item.transactionsQueryJSON);
+            toggleGroup(groupKey);
         }
     };
 
@@ -255,7 +254,7 @@ function ExpenseGroupedSearchView({
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isExpanded={expandedGroups.has(originalKey)}
-                    onToggle={() => toggleGroup(originalKey, item.transactionsQueryJSON)}
+                    onToggle={() => toggleGroup(originalKey)}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={toggle}
                     onLongPressRow={onLongPressRow}
@@ -325,7 +324,7 @@ function ExpenseGroupedSearchView({
                         if (!groupKey) {
                             return;
                         }
-                        toggleGroup(groupKey, isTransactionGroupListItemType(item) ? item.transactionsQueryJSON : undefined);
+                        toggleGroup(groupKey);
                     }}
                     onUndelete={handleUndelete}
                     isFirstItem={index === firstVisibleIndex}

@@ -2,10 +2,11 @@ import {act} from '@testing-library/react-native';
 
 /**
  * Test-only wrapper around `BaseSearchList` that still renders the real list, but captures its `onSelectRow` and `data`.
- * The list only calls `onSelectRow` when Enter is pressed on its focused row, so this lets a test press Enter on any row.
+ * The list calls `onSelectRow` when Enter is pressed on its focused row, so this lets a test activate any row the same way,
+ * without going through the keyboard handler.
  *
- * Wire it up with `jest.mock('@components/Search/SearchList/BaseSearchList', ...)` returning this module's default export
- * through `jest.requireActual`, and call `resetMockBaseSearchList` in `beforeEach`.
+ * Wire it up with `jest.mock('@components/Search/SearchList/BaseSearchList', ...)` returning this module's default export,
+ * which is the mocked module, through `jest.requireActual`, and call `resetMockBaseSearchList` in `beforeEach`.
  */
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
@@ -29,8 +30,8 @@ function MockBaseSearchList(props: CapturedListProps) {
     return createElement(ActualBaseSearchList, props);
 }
 
-/** Presses Enter on the first row the list renders that matches, the way the list does when that row has keyboard focus. */
-function pressEnterOnListRow(isRow: (item: SearchListItem) => boolean, rowDescription: string) {
+/** Calls the list's `onSelectRow` with the first row it renders that matches, the way Enter on the focused row does. */
+function activateListRow(isRow: (item: SearchListItem) => boolean, rowDescription: string) {
     const row = capturedListProps.data?.find(isRow);
     if (!row) {
         throw new Error(`No row for ${rowDescription}`);
@@ -43,5 +44,5 @@ function resetMockBaseSearchList() {
     capturedListProps.data = undefined;
 }
 
-export default MockBaseSearchList;
-export {pressEnterOnListRow, resetMockBaseSearchList};
+export default {__esModule: true, default: MockBaseSearchList};
+export {activateListRow, resetMockBaseSearchList};

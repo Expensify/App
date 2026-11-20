@@ -21,9 +21,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
-import type MockBaseSearchList from '../../utils/mockBaseSearchList';
+import type MockBaseSearchListModule from '../../utils/mockBaseSearchList';
 
-import {pressEnterOnListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
+import {activateListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -85,11 +85,8 @@ jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({
     },
 }));
 
-// Renders the real list, but lets a test press Enter on any row.
-jest.mock('@components/Search/SearchList/BaseSearchList', () => {
-    const {default: mockBaseSearchList} = jest.requireActual<{default: typeof MockBaseSearchList}>('../../utils/mockBaseSearchList');
-    return {__esModule: true, default: mockBaseSearchList};
-});
+// Renders the real list, but lets a test activate any row.
+jest.mock('@components/Search/SearchList/BaseSearchList', () => jest.requireActual<{default: typeof MockBaseSearchListModule}>('../../utils/mockBaseSearchList').default);
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({
     __esModule: true,
     default: (props: {item: {groupKeyForList: string}; isLastItem: boolean}) => {
@@ -150,7 +147,10 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds group rows, each carrying one child transaction and a query whose hash is 100 plus its index. `isPendingDelete` flags the group row itself, and `isCashBack` makes it a cash back withdrawal. */
+/**
+ * Builds group rows, each carrying one child transaction and a query whose hash is 100 plus its index.
+ * `isPendingDelete` flags the group row itself, and `isCashBack` makes it a cash back withdrawal.
+ */
 function createMockGroupData(groups: Array<{isPendingDelete?: boolean; isCashBack?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
@@ -225,9 +225,9 @@ function isGroupExpanded(groupKeyForList: string): boolean | undefined {
     return capturedHeaders.findLast((row) => row.groupKeyForList === groupKeyForList)?.isExpanded;
 }
 
-/** Presses Enter on the header row of a group, the way the list does when that row has keyboard focus. */
-function pressEnterOnHeader(groupKeyForList: string) {
-    pressEnterOnListRow((item) => isGroupHeaderItem(item) && item.groupKeyForList === groupKeyForList, `header ${groupKeyForList}`);
+/** Activates the header row of a group, the way Enter on the focused header does. */
+function activateHeader(groupKeyForList: string) {
+    activateListRow((item) => isGroupHeaderItem(item) && item.groupKeyForList === groupKeyForList, `header ${groupKeyForList}`);
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -289,7 +289,7 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         expect(isGroupExpanded('group-0')).toBe(false);
 
         // When Enter is pressed on the first group's header
-        pressEnterOnHeader('group-0');
+        activateHeader('group-0');
 
         // Then the group opens and fetches its expenses once, and nothing is selected because a card group has no page to open
         expect(isGroupExpanded('group-0')).toBe(true);
@@ -299,7 +299,7 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: {hash: 100}, offset: 0}));
 
         // When Enter is pressed on it again
-        pressEnterOnHeader('group-0');
+        activateHeader('group-0');
 
         // Then it closes, like a second click, without fetching again
         expect(isGroupExpanded('group-0')).toBe(false);
@@ -313,7 +313,7 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         await waitForBatchedUpdates();
 
         // When Enter is pressed on the report's header
-        pressEnterOnHeader('group-0');
+        activateHeader('group-0');
 
         // Then the report is selected under its own key, and the group doesn't open
         expect(onSelectRow).toHaveBeenCalledTimes(1);
@@ -328,7 +328,7 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         await waitForBatchedUpdates();
 
         // When Enter is pressed on its header
-        pressEnterOnHeader('group-0');
+        activateHeader('group-0');
 
         // Then it neither opens nor selects anything
         expect(isGroupExpanded('group-0')).toBe(false);

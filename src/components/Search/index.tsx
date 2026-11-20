@@ -66,7 +66,6 @@ import {
     isTripListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
-    isTransactionReportGroupListItemType,
     isTransactionSearchType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -756,12 +755,6 @@ function Search({
                 if (shouldOpenTransactionThread) {
                     return;
                 }
-            }
-
-            // The list opens and closes groups that aren't reports itself, so they shouldn't reach here. If one does, stop
-            // before the report navigation below, since it has no report to open.
-            if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
-                return;
             }
 
             if (!isTransactionItem && !isReportActionListItemType(item) && !isTaskListItemType(item) && !isTransactionGroupListItemType(item)) {

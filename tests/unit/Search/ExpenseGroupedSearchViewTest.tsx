@@ -20,9 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {Profiler, useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
-import type MockBaseSearchList from '../../utils/mockBaseSearchList';
+import type MockBaseSearchListModule from '../../utils/mockBaseSearchList';
 
-import {pressEnterOnListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
+import {activateListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -112,11 +112,8 @@ jest.mock('@components/Search/SearchList/ListItem/TransactionGroupListItem', () 
     };
 });
 
-// Renders the real list, but lets a test press Enter on any row.
-jest.mock('@components/Search/SearchList/BaseSearchList', () => {
-    const {default: mockBaseSearchList} = jest.requireActual<{default: typeof MockBaseSearchList}>('../../utils/mockBaseSearchList');
-    return {__esModule: true, default: mockBaseSearchList};
-});
+// Renders the real list, but lets a test activate any row.
+jest.mock('@components/Search/SearchList/BaseSearchList', () => jest.requireActual<{default: typeof MockBaseSearchListModule}>('../../utils/mockBaseSearchList').default);
 
 // Capture SelectionTopBar props so the selection-count math can be asserted directly.
 type CapturedTopBarProps = {selectedItemsLength: number; totalItems: number; isSelectAllChecked: boolean | undefined};
@@ -173,8 +170,8 @@ function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']
 /**
  * Builds group rows, each carrying child transactions. `deletedTransactions` marks transaction indices as
  * pending-delete; `isPendingDelete` flags the group row itself, which is what a whole-group delete does.
+ * `hasTransactionsQuery` gives the group a query of its own to fetch its expenses with, its hash being 100 plus its index.
  */
-/** Builds group rows. `hasTransactionsQuery` gives the group a query of its own to fetch its expenses with, its hash being 100 plus its index. */
 function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>; isPendingDelete?: boolean; hasTransactionsQuery?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
@@ -270,9 +267,9 @@ function renderView(overrides: RenderOverrides = {}) {
     };
 }
 
-/** Presses Enter on a group row, the way the list does when that row has keyboard focus. */
-function pressEnterOnRow(keyForList: string) {
-    pressEnterOnListRow((item) => item.keyForList === keyForList, keyForList);
+/** Activates a group row, the way Enter on the focused row does. */
+function activateRow(keyForList: string) {
+    activateListRow((item) => item.keyForList === keyForList, keyForList);
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -467,7 +464,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         await waitForBatchedUpdates();
 
         // When Enter is pressed on the group
-        pressEnterOnRow('group-0');
+        activateRow('group-0');
 
         // Then its first page is fetched once, the same as when it is clicked open
         expect(search).toHaveBeenCalledTimes(1);
@@ -482,7 +479,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         expect(mockRowExpanded['group-0']).toBe(false);
 
         // When Enter is pressed on the first group
-        pressEnterOnRow('group-0');
+        activateRow('group-0');
 
         // Then it opens, and nothing is selected because a card group has no page to open
         expect(mockRowExpanded['group-0']).toBe(true);
@@ -490,7 +487,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         expect(onSelectRow).not.toHaveBeenCalled();
 
         // When Enter is pressed on it again
-        pressEnterOnRow('group-0');
+        activateRow('group-0');
 
         // Then it closes
         expect(mockRowExpanded['group-0']).toBe(false);
@@ -507,7 +504,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         await waitForBatchedUpdates();
 
         // When Enter is pressed on it
-        pressEnterOnRow('group-0');
+        activateRow('group-0');
 
         // Then the report is selected under its own key, and the row doesn't open
         expect(onSelectRow).toHaveBeenCalledTimes(1);
@@ -523,7 +520,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         await waitForBatchedUpdates();
 
         // When Enter is pressed on that group
-        pressEnterOnRow('group-0');
+        activateRow('group-0');
 
         // Then it stays closed and nothing is selected
         expect(mockRowExpanded['group-0']).toBe(false);

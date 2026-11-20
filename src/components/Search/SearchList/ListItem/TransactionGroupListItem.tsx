@@ -150,10 +150,11 @@ function TransactionGroupListItemImpl({
 
     // Reset "show more" when the group closes or the list reuses this row for another group, so a group always opens at
     // its first page.
-    const visibleLimitOwner = `${groupItem.keyForList}:${isExpanded}`;
-    const [prevVisibleLimitOwner, setPrevVisibleLimitOwner] = useState(visibleLimitOwner);
-    if (prevVisibleLimitOwner !== visibleLimitOwner) {
-        setPrevVisibleLimitOwner(visibleLimitOwner);
+    const [prevKeyForList, setPrevKeyForList] = useState(groupItem.keyForList);
+    const [prevIsExpanded, setPrevIsExpanded] = useState(isExpanded);
+    if (prevKeyForList !== groupItem.keyForList || prevIsExpanded !== isExpanded) {
+        setPrevKeyForList(groupItem.keyForList);
+        setPrevIsExpanded(isExpanded);
         setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     }
 

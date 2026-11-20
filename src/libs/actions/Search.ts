@@ -1292,6 +1292,22 @@ function markPageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
     pageRequestedSearch = {hash, shouldCalculateTotals};
 }
 
+/** The part of an in-flight request's dedupe key shared by every page of the query */
+function getSearchDedupeKeyPrefix(hash: number) {
+    return `${hash}_`;
+}
+
+/** Whether any page of this query is still waiting for its response */
+function hasInFlightSearch(hash: number) {
+    const keyPrefix = getSearchDedupeKeyPrefix(hash);
+    for (const dedupeKey of inFlightSearchRequests.keys()) {
+        if (dedupeKey.startsWith(keyPrefix)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
 function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
     if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
@@ -1404,7 +1420,7 @@ function search({
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${getSearchDedupeKeyPrefix(queryJSON.hash)}${offset ?? 0}`;
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
@@ -2865,6 +2881,7 @@ export {
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
     consumePageRequestedSearch,
+    hasInFlightSearch,
     clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};

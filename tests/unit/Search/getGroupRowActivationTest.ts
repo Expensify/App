@@ -81,4 +81,15 @@ describe('getGroupRowActivation', () => {
         // Then nothing happens, because Search ignores taps and Enter on any row that is pending delete
         expect(activation).toEqual({shouldSelect: false, shouldToggle: false});
     });
+
+    it('does nothing for a report group that is pending delete', () => {
+        // Given a report deleted offline, which would otherwise open the report
+        const group = {...buildReportGroup(1, 'report_1', transactions), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When the row is activated in an expense report search
+        const activation = getGroupRowActivation(group, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
+        // Then nothing happens, because the pending delete check comes before opening the report
+        expect(activation).toEqual({shouldSelect: false, shouldToggle: false});
+    });
 });
