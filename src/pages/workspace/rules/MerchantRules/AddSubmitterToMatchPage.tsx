@@ -33,10 +33,10 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
     const submitters = useExpenseDefaultSubmitterNames(policy);
 
     // Stored as account IDs, which is what the `from` filter carries. A member whose personal details have not
-    // loaded is listed under a generated ID, which no expense carries, so picking them would save a rule that
-    // can never match.
+    // loaded is listed under a generated ID, and one invited offline holds a temporary ID until the invite
+    // syncs. Neither is an ID an expense carries, so picking them would save a rule that can never match.
     const submitterItems: RuleConditionItem[] = members
-        .filter(({hasKnownAccountID}) => hasKnownAccountID)
+        .filter(({hasKnownAccountID, details}) => hasKnownAccountID && !details.isOptimisticPersonalDetail)
         .map(({accountID, details}) => ({
             value: String(accountID),
             text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
