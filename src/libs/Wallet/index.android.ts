@@ -24,16 +24,25 @@ function rejectPaymentCredentials(): Promise<AndroidPaymentCredentialsResponse> 
 
 /** Answers Google's request for the Google OPC with a second CreateDigitalWallet call tied to Google's server session */
 function createPaymentCredentialsHandler(card: Card, walletData: AndroidWalletData, signal?: AbortSignal) {
-    return async ({serverSessionId, tokenRequestorId}: onPaymentCredentialsRequestPayload): Promise<AndroidPaymentCredentialsResponse> => {
+    return async ({serverSessionId, walletId, tokenRequestorId}: onPaymentCredentialsRequestPayload): Promise<AndroidPaymentCredentialsResponse> => {
         try {
             if (signal?.aborted) {
                 throw new Error('Wallet attempt canceled');
             }
+            const isTokenRequestorIDSupported = !!tokenRequestorId && TOKEN_REQUESTOR_ID_REGEX.test(tokenRequestorId);
+
+            // The backend tracks token requestor IDs it can't accept through this log, the ID itself is left out
+            if (tokenRequestorId && !isTokenRequestorIDSupported) {
+                Log.info('[GoogleUPP] Dropped an unsupported tokenRequestorID', false, {length: tokenRequestorId.length});
+            }
             const credentials = await createGoogleOpaquePaymentCard({
                 cardID: card.cardID,
                 serverSessionID: serverSessionId,
-                ...(tokenRequestorId && TOKEN_REQUESTOR_ID_REGEX.test(tokenRequestorId) ? {tokenRequestorID: tokenRequestorId} : {}),
+                ...(isTokenRequestorIDSupported ? {tokenRequestorID: tokenRequestorId} : {}),
                 ...walletData,
+
+                // Google's wallet ID identifies the device the card is added to, on phones it matches the first call
+                walletAccountID: walletId,
             });
             if (signal?.aborted) {
                 throw new Error('Wallet attempt canceled');

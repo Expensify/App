@@ -1,5 +1,6 @@
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import type * as WalletModule from '@libs/Wallet';
 import {handleAddCardToWallet as addAndroid} from '@libs/Wallet/index.android';
 import {handleAddCardToWallet as addIOS} from '@libs/Wallet/index.ios';
@@ -375,31 +376,39 @@ describe('Android Unified Push Provisioning', () => {
         // When the credentials handler runs with Google's callback data.
         const result = await handler(credentialsRequest);
 
-        // Then the same card and device are sent with the session and requestor, and both OPCs go back to Google.
+        // Then the same card and device go with Google's wallet ID, session and requestor, and both OPCs go back to Google.
         expect(mockRequest).toHaveBeenCalledTimes(2);
         expect(mockRequest).toHaveBeenLastCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
             platform: 'android',
             appVersion: pkg.version,
             cardID: 123,
             deviceID: 'device',
-            walletAccountID: 'wallet',
+            walletAccountID: credentialsRequest.walletId,
             serverSessionID: credentialsRequest.serverSessionId,
             tokenRequestorID: '1234567890',
         });
         expect(result).toEqual(credentials);
     });
 
-    it.each([null, '', 'abc', '1234567890123456'])('leaves a token requestor ID of %p out of the second call', async (tokenRequestorId) => {
+    it.each([
+        [null, false],
+        ['', false],
+        ['abc', true],
+        ['1234567890123456', true],
+    ])('leaves a token requestor ID of %p out of the second call', async (tokenRequestorId, shouldLogDrop) => {
         // Given a token requestor ID the backend would reject, or none at all.
+        const logSpy = jest.spyOn(Log, 'info');
         const handler = await startProvisioning(usCard);
         mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...credentials}));
 
         // When the credentials handler runs.
         await handler({...credentialsRequest, tokenRequestorId});
 
-        // Then the second call carries the server session only.
+        // Then the second call carries the server session only, and a dropped ID is logged so the backend can track it.
         expect(mockRequest.mock.calls.at(1)?.[1]).not.toHaveProperty('tokenRequestorID');
         expect(mockRequest.mock.calls.at(1)?.[1]).toHaveProperty('serverSessionID', credentialsRequest.serverSessionId);
+        expect(logSpy.mock.calls.some(([message]) => message === '[GoogleUPP] Dropped an unsupported tokenRequestorID')).toBe(shouldLogDrop);
+        logSpy.mockRestore();
     });
 
     it.each([
