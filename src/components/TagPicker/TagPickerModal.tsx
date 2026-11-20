@@ -1,17 +1,16 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 
-import useOnyx from '@hooks/useOnyx';
+import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
+import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 
-import TagPicker from '.';
+import {TagPickerList, useTagPickerOptions} from '.';
 
 type TagPickerModalProps = {
     /** The policy whose tags should be shown */
@@ -47,13 +46,19 @@ function TagPickerModal({
     onSelected,
     tagListIndex = 0,
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    isVisible,
     onClose,
+    onModalHide,
     ...popoverProps
 }: TagPickerModalProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [renderedRowCount, setRenderedRowCount] = useState<number>();
-    const policyTagList = getTagList(policyTags, tagListIndex);
-    const tagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
+    const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
+    const options = useTagPickerOptions({policyID, selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}, shouldPrepareOptions);
+    const {rowCount, updateSearchActive} = usePickerPopoverRowCount(options.unfilteredSections, searchKey);
+    const [search, setSearch] = useState({searchKey, value: ''});
+    const setSearchValue = (value: string) => {
+        setSearch({searchKey, value});
+        updateSearchActive(!!value);
+    };
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -68,24 +73,22 @@ function TagPickerModal({
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
+            isVisible={isVisible}
             onClose={onClose}
-            optionCount={renderedRowCount ?? tagsCount}
-            isSearchable={tagsCount >= searchInputThreshold}
-            title={policyTagList.name}
+            onModalHide={finishClosing}
+            optionCount={rowCount}
+            isSearchable={options.hasSearchablePolicyTags}
+            title={options.tagListName}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            <TagPicker
-                onRenderedRowCountChange={setRenderedRowCount}
+            <TagPickerList
+                options={options}
+                searchValue={search.searchKey === searchKey ? search.value : ''}
+                setSearchValue={setSearchValue}
                 policyID={policyID}
-                tagListName={policyTagList.name}
-                tagListIndex={tagListIndex}
                 selectedTag={selectedTag}
-                transactionTag={transactionTag}
-                hasDependentTags={hasDependentTags}
-                shouldShowGLCode={shouldShowGLCode}
                 onSubmit={handleTagSelected}
                 shouldAutoFocusSearchInput
-                searchInputThreshold={searchInputThreshold}
             />
         </AnchoredSelectionListPopover>
     );
