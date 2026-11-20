@@ -28,6 +28,8 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function UpdateDelegateRoleSelectionListHeader() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isAccountValidated = account?.validated ?? false;
 
     return (
         <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -84,7 +86,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         }
                         // Downgrading from full access to submitter removes privileges, so it is applied directly
                         // without requiring the magic code that every other role change goes through.
-                        if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER) {
+                        if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER && isAccountValidated) {
                             updateDelegateRole({
                                 email: login,
                                 role: option.value,
