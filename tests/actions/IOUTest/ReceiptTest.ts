@@ -17,6 +17,7 @@ import * as API from '@src/libs/API';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, SearchResults} from '@src/types/onyx';
+import type {AnyRequest} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
@@ -1057,6 +1058,7 @@ describe('actions/IOU/Receipt', () => {
 
     describe('offline receipt replacements', () => {
         const transactionID = '107135';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
         const threadReportID = '107136';
         const snapshotHash = 918273645;
         const originalReceipt = {source: 'original.jpg', filename: 'original.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN};
@@ -1068,7 +1070,7 @@ describe('actions/IOU/Receipt', () => {
         const getThread = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
         const getActions = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
         const getQueuedReplacement = () => getAllPersistedRequests().find((request) => request.command === WRITE_COMMANDS.REPLACE_RECEIPT);
-        const getAuditActionIDs = (request: ReturnType<typeof getQueuedReplacement>) =>
+        const getAuditActionIDs = (request: AnyRequest | undefined) =>
             [request?.data?.reportActionID, request?.data?.receiptRemovedReportActionID].filter((id): id is string => typeof id === 'string' && id !== '0');
 
         const replaceWithLatestState = async (source: string, isSameReceipt?: boolean) => {
@@ -1122,10 +1124,7 @@ describe('actions/IOU/Receipt', () => {
             });
             const transaction = {...createRandomTransaction(Number(transactionID)), receipt: originalReceipt};
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
-                // @ts-expect-error: Only the transaction data is needed in this snapshot fixture
-                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
-            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, createMock<SearchResults>({data: {[transactionKey]: {receipt: originalReceipt}}}));
             jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(createMock<SearchQueryJSON>({hash: snapshotHash}));
         });
 
@@ -1212,15 +1211,16 @@ describe('actions/IOU/Receipt', () => {
             const secondSnapshotHash = snapshotHash + 1;
             if (opensAnotherSearch) {
                 const transaction = await getTransaction();
-                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${secondSnapshotHash}`, {
-                    // @ts-expect-error: Only transaction data is needed in this search fixture
-                    data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
-                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${secondSnapshotHash}`, createMock<SearchResults>({data: {[transactionKey]: {receipt: transaction?.receipt}}}));
             }
 
-            // When the user switches searches or leaves search, replaces again, and the surviving upload fails
+            // When the user replaces in another search or outside search, then replaces once more outside search
             jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(opensAnotherSearch ? createMock<SearchQueryJSON>({hash: secondSnapshotHash}) : undefined);
             await replaceWithLatestState('second.jpg');
+            jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(undefined);
+            await replaceWithLatestState('third.jpg');
+
+            // Then a failed upload restores even snapshots absent from its own failure data
             mockFetch.fail();
             await reconnect();
 

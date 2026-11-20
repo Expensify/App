@@ -12,7 +12,7 @@ import {
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
-import type {AnyRequest} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
 
@@ -23,7 +23,7 @@ describe('RequestConflictUtils', () => {
         const replace = (transactionID: string, isRollback?: boolean): AnyRequest => ({command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID}, isRollback});
         const detach = (transactionID: string): AnyRequest => ({command: WRITE_COMMANDS.DETACH_RECEIPT, data: {transactionID}});
 
-        it.each<[string, AnyRequest[], ReturnType<typeof resolveReplaceReceiptConflicts>]>([
+        it.each<[string, AnyRequest[], ConflictActionData]>([
             ['empty queue', [], {conflictAction: {type: 'push'}}],
             ['another transaction', [replace('2')], {conflictAction: {type: 'push'}}],
             [

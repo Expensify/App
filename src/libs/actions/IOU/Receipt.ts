@@ -253,6 +253,30 @@ function getOriginalRollbackUpdates(supersededRequests: AnyRequest[]): Map<strin
     return originalUpdates;
 }
 
+/** A search first opened during these replacements must not restore a file that was never uploaded. */
+function withOriginalSnapshotReceipt(update: AnyOnyxUpdate, originalTransactionValue: unknown, transactionKey: string): AnyOnyxUpdate {
+    const key: unknown = update.key;
+    const snapshotValue: unknown = update.value;
+    if (
+        typeof key !== 'string' ||
+        !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) ||
+        !isRecord(originalTransactionValue) ||
+        !('receipt' in originalTransactionValue) ||
+        !isRecord(snapshotValue) ||
+        !isRecord(snapshotValue.data) ||
+        !isRecord(snapshotValue.data[transactionKey])
+    ) {
+        return update;
+    }
+    return {
+        ...update,
+        value: {
+            ...snapshotValue,
+            data: {...snapshotValue.data, [transactionKey]: {...snapshotValue.data[transactionKey], receipt: originalTransactionValue.receipt}},
+        },
+    };
+}
+
 /** Restore the state before the unsent replacements, while retaining the latest upload's errors and retry data. */
 function inheritOriginalRollback(
     failureData: Array<OnyxUpdate<ReplaceReceiptOnyxKey>>,
@@ -265,24 +289,8 @@ function inheritOriginalRollback(
     const originalTransactionValue: unknown = originalUpdates.get(transactionKey)?.value;
     const inheritedFailureData = failureData.map((update): OnyxUpdate<ReplaceReceiptOnyxKey> => {
         const originalUpdate = originalUpdates.get(update.key);
-        const snapshotValue: unknown = (originalUpdate ?? update).value;
-        // A search first opened during these replacements also contains an unsent file, not the server's receipt.
-        if (
-            update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) &&
-            isRecord(originalTransactionValue) &&
-            'receipt' in originalTransactionValue &&
-            isRecord(snapshotValue) &&
-            isRecord(snapshotValue.data) &&
-            isRecord(snapshotValue.data[transactionKey])
-        ) {
-            const snapshotUpdate: AnyOnyxUpdate = {
-                ...(originalUpdate ?? update),
-                value: {
-                    ...snapshotValue,
-                    data: {...snapshotValue.data, [transactionKey]: {...snapshotValue.data[transactionKey], receipt: originalTransactionValue.receipt}},
-                },
-            };
-            return snapshotUpdate;
+        if (update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) {
+            return withOriginalSnapshotReceipt(originalUpdate ?? update, originalTransactionValue, transactionKey);
         }
         if (!originalUpdate) {
             return update;
@@ -302,7 +310,7 @@ function inheritOriginalRollback(
     const ownKeys = new Set<string>(failureData.map((update) => update.key));
     for (const [key, originalUpdate] of originalUpdates) {
         if (!ownKeys.has(key)) {
-            inheritedFailureData.push(originalUpdate);
+            inheritedFailureData.push(withOriginalSnapshotReceipt(originalUpdate, originalTransactionValue, transactionKey));
         }
     }
     return inheritedFailureData;
