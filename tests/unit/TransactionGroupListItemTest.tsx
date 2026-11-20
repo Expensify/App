@@ -62,6 +62,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getViolationsForTransaction: jest.fn(() => ''),
     isTransactionDayGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'day'),
     isTransactionApproverGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'approver'),
+    isTransactionViolationGroupListItemType: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'violation'),
 }));
 
 jest.mock('@react-navigation/native', () => ({

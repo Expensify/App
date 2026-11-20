@@ -51,7 +51,10 @@ function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDet
             />
             <View style={styles.flex1}>
                 <Text style={styles.textStrong}>{getPaymentMethodDescription(card.accountType, card.accountData, translate)}</Text>
-                <Text style={styles.mutedNormalTextLabel}>
+                <Text
+                    style={styles.mutedNormalTextLabel}
+                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                >
                     {translate('subscription.cardSection.cardInfo', card.accountData.addressName ?? '', `${cardMonth} ${card.accountData.cardYear ?? ''}`, card.accountData.currency ?? '')}
                 </Text>
             </View>

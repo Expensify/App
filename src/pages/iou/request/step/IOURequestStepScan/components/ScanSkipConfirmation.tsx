@@ -56,6 +56,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import Camera from './Camera';
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
@@ -87,23 +88,15 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [personalDetails] = useAllPersonalDetails();
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {isOffline} = useNetwork();
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
@@ -167,7 +160,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
-    const submitDirectly = (files: ReceiptFile[], locationPermissionGranted: boolean) => {
+    const submitDirectly = async (files: ReceiptFile[], locationPermissionGranted: boolean) => {
         cancelShutterSpans();
 
         const {chatReportID, optimisticChatReportID} = resolveChatTargetForScan({
@@ -182,6 +175,16 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
 
         const firstReceiptFile = files.at(0);
+        const [quickAction, policyRecentlyUsedCurrencies, activePolicyID, recentWaypoints, userLocation, onboarding, transactionDrafts, conciergeChat] = await Onyx.multiGet([
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            ONYXKEYS.USER_LOCATION,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+            `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+        ]);
 
         // Split bill flow
         if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
@@ -279,8 +282,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             policyParams: {policy, policyTagList},
             billable: false,
             reimbursable: defaultReimbursable,
-            isSelfTourViewed,
-            allTransactionDrafts,
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
+            allTransactionDrafts: validTransactionDraftsSelector(transactionDrafts),
             personalDetails,
             recentWaypoints,
             optimisticTransactionIDs,

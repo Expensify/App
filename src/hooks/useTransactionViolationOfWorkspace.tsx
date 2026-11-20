@@ -11,8 +11,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from './useOnyx';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
-    const [allReports, reportsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [transactionsByReportID, transactionsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsByReportIDSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [transactionsByReportID] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsByReportIDSelector});
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
     );
@@ -27,7 +27,7 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     }
 
-    const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
                 return {};
@@ -53,9 +53,6 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
     return {
         reportsToArchive,
         transactionViolations,
-        reportsResult,
-        transactionsResult,
-        transactionViolationsResult,
     };
 }
 
