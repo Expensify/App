@@ -40,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isActionLoadingSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -69,6 +70,8 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // The button keeps loading while an action on the report is in flight, such as a payment held until the backend answers, so it can't be paid twice
+    const [isPaymentInFlight] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {selector: isActionLoadingSelector});
 
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
@@ -257,7 +260,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile || !!isPaymentInFlight}
         />
     );
 }

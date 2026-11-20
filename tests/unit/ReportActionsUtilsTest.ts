@@ -18,7 +18,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
@@ -3950,6 +3950,86 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(true);
         });
+
+        it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', () => {
+            // Given a policy chat where the current user has the approve-only role
+            const reportID = '9001';
+            const policyID = 'policy_approve_only';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Approve Only Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is hidden because approve-only members cannot create policy rooms
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for an actionable report mention whisper when the user can create rooms on the policy', () => {
+            // Given a policy chat where the current user has the member role
+            const reportID = '9002';
+            const policyID = 'policy_member';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Member Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is visible because regular members can create policy rooms
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -6956,6 +7036,54 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
+
+        it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
+            // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: '',
+                    newValue: 'id_STANDARD_VAT_(20%)',
+                    oldTaxPercentage: '',
+                    newTaxPercentage: '20%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the percentage is shown once
+            expect(actual).toBe('added the tax rate "id_STANDARD_VAT_(20%)" to the distance rate "Default Rate"');
+        });
+
+        it('should not repeat the percentage when the previous tax rate of a rate already ends with it', () => {
+            // Given a rate moved from a tax rate whose code ends with its percentage to one whose code doesn't
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'id_STANDARD_VAT_(20%)',
+                    newValue: 'id_TAX_RATE_1',
+                    oldTaxPercentage: '20%',
+                    newTaxPercentage: '5%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the previous tax rate shows its percentage once, and the new one still gets its percentage added
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "id_TAX_RATE_1 (5%)" (previously "id_STANDARD_VAT_(20%)")');
+        });
     });
 
     describe('getWorkspaceCustomUnitUpdatedMessage', () => {
@@ -7945,6 +8073,29 @@ describe('ReportActionsUtils', () => {
 
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
         });
     });
 
