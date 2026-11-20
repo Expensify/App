@@ -9083,6 +9083,18 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
         });
 
+        it('warns one month ahead for a Capital One feed without a custom name', () => {
+            // Given a one-month warning for a Capital One feed without a custom name, so Auth sends the internal feed name as the feed name
+            const capitalOneFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: capitalOneFeed, feedName: capitalOneFeed, warningDaysBeforeExpiry: 30});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the bank and says consent is needed in one month
+            expect(result).toContain('<strong>Capital One</strong> card connection will need renewed consent in one month');
+        });
+
         it('keeps the custom feed name', () => {
             // Given a warning for a feed the admin renamed
             const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});

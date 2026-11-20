@@ -6351,6 +6351,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         CONSENT_EXPIRY_WARNING_DAYS: {
+            ONE_MONTH: 30,
             TWO_WEEKS: 14,
             ONE_WEEK: 7,
         },
