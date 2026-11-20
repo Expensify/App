@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 
 // eslint-disable-next-line no-restricted-imports
-import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
+import {getCountryCodeForRegionCode, parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 import {Str} from 'expensify-common';
 
 /**
@@ -70,4 +70,4 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber, getCountryCodeForRegionCode};
