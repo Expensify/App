@@ -175,6 +175,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         onShowPreviousMessages,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
     } = useReportActionsListScroll({
@@ -202,6 +203,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         const isComposerReady = shouldShowConciergeWelcome || (!shouldShowInitialViewportSkeleton && loadedInitialViewportListID === listID);
         setIsReady(isComposerReady);
     }, [listID, loadedInitialViewportListID, setIsReady, shouldShowConciergeWelcome, shouldShowInitialViewportSkeleton]);
+
+    const shouldShowActionBadgePill = !isProduction && (isActionBadgeAboveViewport || isActionBadgeBelowViewport);
 
     const {renderItem, extraData} = useReportActionsListRenderItem({
         ...reportActionsListData,
@@ -291,8 +294,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadgePill ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadgePill ? reportAttributes?.brickRoadStatus : undefined}
+                isActionBadgeTargetBelow={isActionBadgeBelowViewport}
                 onActionBadgePress={scrollToActionBadgeTarget}
             />
             <ReportActionsListPaddingView

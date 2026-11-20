@@ -1,5 +1,5 @@
-import {JsiSkApi} from '@shopify/react-native-skia/lib/module/skia/web';
-import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web/LoadSkiaWeb';
+import {JsiSkApi} from 'react-native-skia/lib/module/skia/web';
+import {LoadSkiaWeb} from 'react-native-skia/lib/module/web/LoadSkiaWeb';
 
 import canvaskitInitOptions from './canvaskit';
 

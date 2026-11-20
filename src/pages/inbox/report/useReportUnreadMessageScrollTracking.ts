@@ -1,11 +1,16 @@
 import CONST from '@src/CONST';
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
+import type {ViewToken} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
+
+/** FlashList and LegendList both report viewability here, and only FlashList's tokens carry a timestamp */
+type ListViewToken = Omit<ViewToken<unknown>, 'timestamp'> & {timestamp?: number};
+
+type ViewableItemsInfo = {viewableItems: ListViewToken[]; changed: ListViewToken[]};
 
 type Args = {
     reportID: string;
@@ -55,9 +60,10 @@ export default function useReportUnreadMessageScrollTracking({
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
+    const [isActionBadgeBelowViewport, setIsActionBadgeBelowViewport] = useState(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
-        previousViewableItems: ViewToken[];
+        previousViewableItems: ListViewToken[];
         reportID: string;
         unreadMarkerReportActionIndex: number;
         isFocused: boolean;
@@ -147,7 +153,7 @@ export default function useReportUnreadMessageScrollTracking({
         }
     };
 
-    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: ViewableItemsInfo) => {
         if (!ref.current.isFocused) {
             return;
         }
@@ -184,15 +190,20 @@ export default function useReportUnreadMessageScrollTracking({
             ref.current.onUnreadActionVisible();
         }
 
-        // Track whether the action badge target is above the viewport.
+        // Track whether the action badge target is out of view above or below the viewport
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
         if (badgeTargetIndex !== -1) {
             // Viewability snapshots can predate the new row's measured layout, so prefer the live range.
             const visibleRange = ref.current.getVisibleIndexRange?.();
-            const isAbove = isInverted ? badgeTargetIndex > (visibleRange?.endIndex ?? maxIndex) : badgeTargetIndex < (visibleRange?.startIndex ?? minIndex);
+            const startIndex = visibleRange?.startIndex ?? minIndex;
+            const endIndex = visibleRange?.endIndex ?? maxIndex;
+            const isAbove = isInverted ? badgeTargetIndex > endIndex : badgeTargetIndex < startIndex;
+            const isBelow = isInverted ? badgeTargetIndex < startIndex : badgeTargetIndex > endIndex;
             setIsActionBadgeAboveViewport(isAbove);
+            setIsActionBadgeBelowViewport(isBelow);
         } else {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
         }
     };
 
@@ -217,8 +228,12 @@ export default function useReportUnreadMessageScrollTracking({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
     };
 }
+
+export type {ViewableItemsInfo};

@@ -188,6 +188,8 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     insightsAICardWidth: 250,
+    insightsAILoadingAnimationSize: 40,
+    insightsAIReservedTextLines: 2,
     insightsRankingTableBarHeight: 8,
     insightsRankingTableBarMinWidth: 4,
     insightsRankingTableShareLabelSpace: 56,

@@ -13,13 +13,13 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
+import type {ViewableItemsInfo} from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -94,13 +94,16 @@ type UseReportActionsScrollResult = {
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
     /** Viewability handler that drives the floating counter and badge visibility */
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: (info: ViewableItemsInfo) => void;
 
     /** Whether the floating "new messages" counter is visible */
     isFloatingMessageCounterVisible: boolean;
 
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
+
+    /** Whether the action badge target is below the viewport */
+    isActionBadgeBelowViewport: boolean;
 
     /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
@@ -212,6 +215,8 @@ function useReportActionsScroll({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
@@ -445,6 +450,7 @@ function useReportActionsScroll({
         // The expanded composer covers the list, so the target never becomes viewable to hide the pill
         if (isComposerFullSize) {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
             setIsFloatingMessageCounterVisible(false);
         }
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
@@ -467,6 +473,7 @@ function useReportActionsScroll({
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         shouldBeAlignedToTop,

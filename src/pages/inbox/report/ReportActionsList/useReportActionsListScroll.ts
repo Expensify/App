@@ -198,6 +198,7 @@ function useReportActionsListScroll({
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         shouldBeAlignedToTop,
@@ -443,6 +444,7 @@ function useReportActionsListScroll({
         onShowPreviousMessages,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         legendListProps: {

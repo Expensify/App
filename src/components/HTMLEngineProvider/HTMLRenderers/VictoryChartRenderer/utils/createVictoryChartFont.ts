@@ -7,9 +7,9 @@
  * positioning with linear metrics and no hinting lays the text out at its exact size, so a fitted chart reads
  * like a proportionally smaller copy of the design-size one.
  */
-import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
+import type {SkFont, SkTypeface} from 'react-native-skia';
 
-import {FontHinting, Skia} from '@shopify/react-native-skia';
+import {FontHinting, Skia} from 'react-native-skia';
 
 function createVictoryChartFont(typeface: SkTypeface, size: number): SkFont {
     const font = Skia.Font(typeface, size);

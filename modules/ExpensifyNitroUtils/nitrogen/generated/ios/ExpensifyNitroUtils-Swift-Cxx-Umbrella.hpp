@@ -16,8 +16,12 @@ namespace margelo::nitro::utils { struct Contact; }
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
 // Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
+// Forward declaration of `SharedFile` to properly resolve imports.
+namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declaration of `VerticalBarEdge` to properly resolve imports.
@@ -28,7 +32,9 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 #include "ContactFields.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridShareActionHandlerSpec.hpp"
 #include "HybridVerticalBarModuleSpec.hpp"
+#include "SharedFile.hpp"
 #include "StringHolder.hpp"
 #include "VerticalBarEdge.hpp"
 #include <NitroModules/Promise.hpp>
@@ -55,6 +61,8 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 // Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 
