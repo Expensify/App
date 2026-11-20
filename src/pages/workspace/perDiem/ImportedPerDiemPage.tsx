@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
-import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {findDuplicateColumnLabel, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -98,10 +98,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         if (missingRequiredColumns) {
             errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
-            const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            const duplicate = findDuplicateColumnLabel(columns, columnRoles);
+            if (duplicate) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
                 errors = {};
             }

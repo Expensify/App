@@ -389,6 +389,16 @@ function findDuplicate(array: string[]): string | null {
     return null;
 }
 
+/** Returns the duplicate field's display label, keeping unknown roles invalid even when no label is available. */
+function findDuplicateColumnLabel(columns: string[], columnRoles: ColumnRole[]): string | null {
+    const duplicate = findDuplicate(columns);
+    if (!duplicate) {
+        return null;
+    }
+
+    return columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate;
+}
+
 /**
  * Converts a numeric index to an Excel-style column name.
  */
@@ -497,4 +507,13 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
     return {approversByRow, error};
 }
 
-export {findColumnName, findDuplicate, generateColumnNames, getApproverColumnRole, getCompanyCardColumnMappings, getImportedApprovers, normalizeImportedAmount, parseApproverColumnRole};
+export {
+    findColumnName,
+    findDuplicateColumnLabel,
+    generateColumnNames,
+    getApproverColumnRole,
+    getCompanyCardColumnMappings,
+    getImportedApprovers,
+    normalizeImportedAmount,
+    parseApproverColumnRole,
+};

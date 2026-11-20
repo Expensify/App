@@ -153,6 +153,36 @@ describe('ImportedMembersPage', () => {
         });
     });
 
+    it.each([
+        [CONST.CSV_IMPORT_COLUMNS.APPROVE_TO, 'Forward to'],
+        [CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD, 'Approval limit'],
+        [CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE, 'Over limit forward to'],
+    ])('shows the display label for duplicate %s mappings', async (value, label) => {
+        // Given a valid email mapping and two columns mapped to the same member field
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL, value, value],
+                [
+                    ['Email', 'user@example.com'],
+                    [label, ''],
+                    [label, ''],
+                ],
+            ),
+        );
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers');
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user tries to import the duplicate mapping
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error names the displayed field, not its internal key, and prevents importing
+        expect(screen.getByText(new RegExp(`single field.*"${label}"`))).toBeTruthy();
+        expect(screen.queryByText(new RegExp(`single field.*"${value}"`))).toBeNull();
+        expect(importPolicyMembersSpy).not.toHaveBeenCalled();
+    });
+
     it('routes the Submit upgrade to Control when importing Control-only columns (approvals branch)', async () => {
         // Map email + a Control-only column (submitTo) but no Control-only role, so the gate takes the `approvals` branch
         await seedOnyx(

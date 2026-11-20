@@ -17,7 +17,7 @@ import Tab from '@libs/actions/Tab';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {
     findColumnName,
-    findDuplicate,
+    findDuplicateColumnLabel,
     generateColumnNames,
     getApproverColumnRole,
     getImportedApprovers,
@@ -140,11 +140,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             return {required: translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text)};
         }
 
-        const duplicate = findDuplicate(columns);
+        const duplicate = findDuplicateColumnLabel(columns, columnRoles);
         if (duplicate) {
-            // Approver columns have internal names like approverLimit2, so the error names them by their label instead
-            const duplicateName = shouldUseApprovalWorkflowRules ? (columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate) : duplicate;
-            return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', duplicateName)};
+            return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', duplicate)};
         }
 
         const decimals = getCurrencyDecimals(currency);
