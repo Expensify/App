@@ -1,5 +1,6 @@
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,6 +48,7 @@ function ConnectionStatusMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Hourglass']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (!message && !actionText) {
@@ -79,7 +81,8 @@ function ConnectionStatusMessage({
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
             {!!statusIcon && (
-                <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
+                // The slot is as wide as the largest icon, so the text starts at the same place whichever icon a status shows
+                <View style={[styles.offlineFeedbackErrorDot, styles.mr2, styles.alignItemsCenter, StyleUtils.getWidthStyle(variables.iconSizeNormal)]}>
                     <Icon
                         src={statusIcon.src}
                         fill={statusIcon.fill}
