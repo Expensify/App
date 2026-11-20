@@ -1,3 +1,4 @@
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
@@ -9,6 +10,7 @@ import getPlatform from '@libs/getPlatform';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
@@ -28,7 +30,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React from 'react';
+import React, {useRef} from 'react';
 
 import SuccessPageBase from './SuccessPageBase';
 
@@ -68,8 +70,12 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
 
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+    // Got it and the header arrow dismiss this screen themselves. Mark that before they navigate so this
+    // listener does not swap Home a second time when their dismiss arrives.
+    const isLeavingForcedFlowRef = useRef(false);
 
     const completeForcedOnboarding2FAHandoff = () => {
+        isLeavingForcedFlowRef.current = true;
         clearTwoFactorAuthData(is2FAEnabled, true);
         const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
@@ -80,12 +86,34 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     };
 
     const sendForcedSetupUserHome = () => {
+        isLeavingForcedFlowRef.current = true;
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
                 clearTwoFactorAuthData(is2FAEnabled, true);
             },
         });
     };
+
+    // Android back, browser back, and a press outside the RHP remove this screen without calling the handlers above.
+    // Swap Home under the panel and let that back finish. Cancelling the back makes the browser roll the URL back,
+    // and the later reveal then fights that rollback.
+    useBeforeRemove(() => {
+        if (isLeavingForcedFlowRef.current || !(isForcedSetupFlow || shouldReturnToOnboardingAfter2FA)) {
+            return;
+        }
+        isLeavingForcedFlowRef.current = true;
+        if (shouldReturnToOnboardingAfter2FA) {
+            clearTwoFactorAuthData(is2FAEnabled, true);
+            const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+            Navigation.replaceFullscreenUnderRHP(ROUTES.HOME);
+            TransitionTracker.runAfterTransitions({
+                callback: () => resumeOnboardingAfterRequired2FASetup(onboardingFlowParams),
+                waitForUpcomingTransition: 'navigation',
+            });
+            return;
+        }
+        Navigation.replaceFullscreenUnderRHP(ROUTES.HOME);
+    });
 
     const goBack = () => {
         if (shouldReturnToOnboardingAfter2FA) {
