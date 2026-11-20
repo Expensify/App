@@ -216,7 +216,7 @@ index 8e3db51..e66d406 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +136,221 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +136,232 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -235,7 +235,8 @@ index 8e3db51..e66d406 100644
 +    // A second sort uses insertBefore. That drops a selection whose anchor
 +    // sits in a moved row, so hold it while the primary button is down.
 +    const isPointerDownRef = useRef(false);
-+    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
++    const pendingFocusRestoreRef = useRef(null);
++    const [sortVersion, bumpSortVersion] = useReducer((x) => x + 1, 0);
 +    const scheduleSortRef = useRef(() => { });
 +    const shouldHoldSort = useCallback(() => {
 +        if (isPointerDownRef.current) {
@@ -264,7 +265,10 @@ index 8e3db51..e66d406 100644
 +        }
 +        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
 +        const container = containerRef.current;
-+        let movedRows = false;
++        const activeElement = typeof document !== "undefined" ? document.activeElement : null;
++        if (container && activeElement instanceof HTMLElement && container.contains(activeElement)) {
++            pendingFocusRestoreRef.current = activeElement;
++        }
 +        if (container) {
 +            const rowByIndex = new Map();
 +            const markers = container.querySelectorAll("[data-flashlist-index]");
@@ -278,15 +282,13 @@ index 8e3db51..e66d406 100644
 +                const row = rowByIndex.get(entries[i][1].index);
 +                if (row) {
 +                    container.appendChild(row);
-+                    movedRows = true;
 +                }
 +            }
 +        }
-+        // The DOM order is already visual. A React commit here rewrites every
-+        // inverted row style and drops a selection that starts in the same frame.
-+        if (!movedRows) {
-+            bumpSortVersion();
-+        }
++        // Pointer is up and no selection is inside the list, so sync React's
++        // child order now. Leaving it stale makes the next render move every
++        // row again and drop a selection the rescue listener no longer owns.
++        bumpSortVersion();
 +    }, [inverted, shouldHoldSort]);
 +    const shouldDeferSort = useCallback(() => isScrolling() || shouldHoldSort(), [isScrolling, shouldHoldSort]);
 +    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, shouldDeferSort);
@@ -403,6 +405,15 @@ index 8e3db51..e66d406 100644
 +        return clearPendingSort;
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [renderStack, renderId]);
++    useLayoutEffect(() => {
++        const activeElement = pendingFocusRestoreRef.current;
++        pendingFocusRestoreRef.current = null;
++        if (Platform.OS !== "web" || !activeElement || !activeElement.isConnected || document.activeElement === activeElement) {
++            return;
++        }
++        // appendChild drops focus, and this commit runs after the row's useSyncFocus effect.
++        activeElement.focus({ preventScroll: true });
++    }, [sortVersion]);
 +    // Track input modality globally. Capture-phase document listeners so
 +    // we observe events before any handler can call `stopPropagation()`.
 +    // `pointerdown` covers mouse/touch/pen; `keydown` covers Tab and
