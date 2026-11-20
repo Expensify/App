@@ -96,6 +96,9 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
 
+        /** Whether a click outside releases the modal's focus. A modal that ignores those clicks should keep it. */
+        shouldDeactivateFocusTrapOnClickOutside?: boolean;
+
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
          * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.

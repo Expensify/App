@@ -12,6 +12,9 @@ type FocusTrapForModalProps = {
     shouldPreventScroll?: boolean;
     shouldReturnFocus?: boolean;
 
+    /** Whether a click outside releases focus. A modal that ignores those clicks keeps focus instead. */
+    shouldDeactivateOnClickOutside?: boolean;
+
     /**
      * The element that opened this trap, a popover's anchor. Only consulted when `document.activeElement`
      * is `body` at activation time: triggers that blur themselves to avoid a focus ring (the FAB, the composer

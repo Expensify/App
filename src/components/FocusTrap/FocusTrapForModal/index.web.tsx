@@ -18,7 +18,15 @@ function resolveLauncherElement(ref: FocusTrapForModalProps['launcherRef']): HTM
     return node;
 }
 
-function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true, launcherRef}: FocusTrapForModalProps) {
+function FocusTrapForModal({
+    children,
+    active,
+    initialFocus = false,
+    shouldPreventScroll = false,
+    shouldReturnFocus = true,
+    shouldDeactivateOnClickOutside = true,
+    launcherRef,
+}: FocusTrapForModalProps) {
     // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
     // How many traps were already active when we opened. focus-trap pushes us onto the stack *after* onActivate and
@@ -72,7 +80,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 onPostDeactivate: onFocusTrapPostDeactivate,
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
-                clickOutsideDeactivates: true,
+                clickOutsideDeactivates: shouldDeactivateOnClickOutside,
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,

@@ -11,7 +11,7 @@ import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
-import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {BulkAction, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -20,6 +20,8 @@ import {useEffect, useRef} from 'react';
 
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 type UseSearchAutoRefetch = {
@@ -56,6 +58,15 @@ type UseSearchAutoRefetch = {
     /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
 };
+
+/** The running Select all jobs as one string, so a job's progress doesn't wake Search. */
+function runningBulkActionKeysSelector(bulkActions: OnyxCollection<BulkAction>): string {
+    return Object.entries(bulkActions ?? {})
+        .filter(([, bulkAction]) => bulkAction?.state === CONST.BULK_ACTION.STATE.RUNNING)
+        .map(([key]) => key)
+        .sort()
+        .join(',');
+}
 
 /**
  * Triggers a search when a transaction or report action is added so the snapshot reflects it.
@@ -232,6 +243,36 @@ function useSearchAutoRefetch({
         searchResults?.search?.isLoading,
         shouldReturnTripRooms,
         isInPreloadedTab,
+    ]);
+
+    const [runningBulkActionKeys = ''] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION, {selector: runningBulkActionKeysSelector});
+    const previousRunningBulkActionKeys = usePrevious(runningBulkActionKeys);
+
+    // A Select all job changes reports the results already show, so search again once one stops running.
+    useEffect(() => {
+        if (!isFocused || isOffline || shouldReturnTripRooms || !previousRunningBulkActionKeys) {
+            return;
+        }
+        const runningKeys = new Set(runningBulkActionKeys.split(','));
+        if (previousRunningBulkActionKeys.split(',').every((key) => runningKeys.has(key))) {
+            return;
+        }
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
+            },
+        });
+    }, [
+        runningBulkActionKeys,
+        previousRunningBulkActionKeys,
+        isFocused,
+        isOffline,
+        shouldReturnTripRooms,
+        queryJSON,
+        searchKey,
+        offset,
+        shouldCalculateTotals,
+        searchResults?.search?.isLoading,
     ]);
 
     useEffect(() => {

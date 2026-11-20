@@ -325,3 +325,34 @@ describe('FocusTrapForModal — launcher capture', () => {
         });
     });
 });
+
+describe('FocusTrapForModal — clicks outside', () => {
+    beforeEach(() => {
+        capturedOptions = null;
+    });
+
+    it('releases focus on a click outside by default', () => {
+        // Given a modal that closes when someone clicks outside it
+        // When its focus trap is rendered
+        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
+
+        // Then a click outside releases focus along with the modal
+        expect(capturedOptions?.clickOutsideDeactivates).toBe(true);
+    });
+
+    it('keeps focus on a click outside a modal that ignores it', () => {
+        // Given a modal that stays open when someone clicks outside it, like a running Select all job's status
+        // When its focus trap is rendered
+        render(
+            <FocusTrapForModal
+                active
+                shouldDeactivateOnClickOutside={false}
+            >
+                {null}
+            </FocusTrapForModal>,
+        );
+
+        // Then focus stays inside, so Tab can't reach the page behind it
+        expect(capturedOptions?.clickOutsideDeactivates).toBe(false);
+    });
+});
