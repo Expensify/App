@@ -1,36 +1,38 @@
-/** Covers account verification before changing an existing copilot's access. */
+/** Covers account verification at both copilot access page entry points. */
 import {act, render} from '@testing-library/react-native';
 
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import {updateDelegateRole} from '@libs/actions/Delegate';
+import {requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import UpdateDelegateRolePage from '@pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateRolePage';
+import UpdateDelegateValidateCodePage from '@pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 
-type RoleOption = {value: DelegateRole; isSelected: boolean};
-type ListProps = {
-    data: RoleOption[];
-    onSelectRow: (option: RoleOption) => void;
-};
-type PageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
-
 const LOGIN = 'agent@example.com';
-const ROLE_ROUTE = ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(LOGIN, CONST.DELEGATE_ROLE.ALL);
-const mockVerifyRoute = `${ROLE_ROUTE}/${DYNAMIC_ROUTES.VERIFY_ACCOUNT.path}`;
+const OWNER_LOGIN = 'owner@example.com';
+const VALIDATE_CODE = '123456';
+type RoleOption = {value: DelegateRole; isSelected: boolean};
+type ListProps = {data: RoleOption[]; onSelectRow: (option: RoleOption) => void};
+type RolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
+type ConfirmPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE>;
 const mockSelectionList = jest.fn<null, [ListProps]>(() => null);
+const mockUseOnyx = jest.fn<[unknown], [string]>();
 let mockAccount: Account;
-let mockResumeAfterTransition: (() => void) | undefined;
-let mockNavigationStateListener: (() => void) | undefined;
 
 jest.mock('@components/SelectionList', () => (props: ListProps) => mockSelectionList(props));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => () => null);
@@ -47,44 +49,65 @@ jest.mock(
             children,
 );
 jest.mock('@components/HeaderWithBackButton', () => () => null);
-jest.mock('@hooks/useLocalize', () => () => ({
-    translate: (key: string) => key,
+jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
+jest.mock('@components/ValidateCodeActionModal/ValidateCodeActionContent', () => jest.fn(() => null));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({}));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (login: string) => login}));
+jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+    const [value] = mockUseOnyx(key);
+    return [options?.selector ? options.selector(value) : value];
+});
+jest.mock('@libs/actions/Delegate', () => ({updateDelegateRole: jest.fn(), clearDelegateErrorsByField: jest.fn()}));
+jest.mock('@libs/actions/User', () => ({
+    requestValidateCodeAction: jest.fn(),
+    validateSecondaryLogin: jest.fn(),
+    clearContactMethodErrors: jest.fn(),
+    clearUnvalidatedNewContactMethodAction: jest.fn(),
 }));
-jest.mock('@hooks/useOnyx', () => (_key: string, options?: {selector?: (account: Account) => unknown}) => [options?.selector ? options.selector(mockAccount) : mockAccount]);
-jest.mock('@libs/actions/Delegate', () => ({updateDelegateRole: jest.fn()}));
-jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => () => mockVerifyRoute);
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-    dismissModal: jest.fn(),
-    getActiveRouteWithoutParams: jest.fn(),
-    runAfterTransition: jest.fn(),
-    runAfterUpcomingTransition: jest.fn(),
-}));
-jest.mock('@libs/Navigation/navigationRef', () => ({addListener: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn(), dismissModal: jest.fn()}));
 
-// Navigation is provided by the navigator in the app; this page only uses the Navigation singleton.
+// The pages route through the Navigation singleton instead of the navigator prop.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-const navigation = {} as PageProps['navigation'];
+const roleNavigation = {} as RolePageProps['navigation'];
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const confirmNavigation = {} as ConfirmPageProps['navigation'];
 
-function renderPage(currentRole: DelegateRole = CONST.DELEGATE_ROLE.ALL) {
-    const page = (
-        <UpdateDelegateRolePage
-            navigation={navigation}
-            route={{
-                key: 'update-delegate-role',
-                name: SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE,
-                params: {login: LOGIN, currentRole},
-            }}
-        />
-    );
+function renderPage(page: React.ReactElement) {
     const result = render(page);
     return {
+        ...result,
+        refreshAccount: () => result.rerender(React.cloneElement(page)),
         validateAccount: () => {
             mockAccount = {...mockAccount, validated: true};
             result.rerender(React.cloneElement(page));
         },
     };
+}
+
+function renderRolePage(currentRole: DelegateRole = CONST.DELEGATE_ROLE.ALL) {
+    return renderPage(
+        <UpdateDelegateRolePage
+            navigation={roleNavigation}
+            route={{key: 'role', name: SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE, params: {login: LOGIN, currentRole}}}
+        />,
+    );
+}
+
+function renderConfirmPage(newRole: DelegateRole = CONST.DELEGATE_ROLE.ALL) {
+    return renderPage(
+        <UpdateDelegateValidateCodePage
+            navigation={confirmNavigation}
+            route={{key: 'confirm', name: SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE, params: {login: LOGIN, currentRole: CONST.DELEGATE_ROLE.SUBMITTER, newRole}}}
+        />,
+    );
+}
+
+function getCodeForm() {
+    const props = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
+    if (!props) {
+        throw new Error('Code form not mounted');
+    }
+    return props;
 }
 
 function selectRole(role: DelegateRole) {
@@ -96,132 +119,153 @@ function selectRole(role: DelegateRole) {
     act(() => props.onSelectRow(option));
 }
 
-describe('UpdateDelegateRolePage', () => {
+describe('Copilot access account verification', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockAccount = {
-            validated: false,
-            delegatedAccess: {
-                delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.ALL}],
-            },
-        };
-        mockResumeAfterTransition = undefined;
-        mockNavigationStateListener = undefined;
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(mockVerifyRoute);
-        const queueResume = (callback: () => void) => {
-            mockResumeAfterTransition = callback;
-            return {cancel: jest.fn()};
-        };
-        jest.mocked(Navigation.runAfterTransition).mockImplementation(queueResume);
-        jest.mocked(Navigation.runAfterUpcomingTransition).mockImplementation(queueResume);
-        jest.mocked(navigationRef).addListener.mockImplementation((_event, listener) => {
-            // The hook registers a state listener that does not inspect the event argument.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            mockNavigationStateListener = listener as () => void;
-            return jest.fn();
+        mockAccount = {validated: false, primaryLogin: OWNER_LOGIN, delegatedAccess: {delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.ALL}]}};
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.ACCOUNT) {
+                return [mockAccount];
+            }
+            return [undefined];
         });
     });
 
-    it('verifies the owner before downgrading an agent copilot, then resumes without an action code', () => {
-        // Given an unvalidated owner whose agent already has full copilot access
-        const {validateAccount} = renderPage();
+    it.each([CONST.DELEGATE_ROLE.ALL, CONST.DELEGATE_ROLE.SUBMITTER])('requires account verification on entry with current role %s', (currentRole) => {
+        // Given an unvalidated owner opening Change access level, or its equivalent deep link
+        mockAccount.delegatedAccess = {delegates: [{email: LOGIN, role: currentRole}]};
 
-        // When they select submit-only access, no role update may be sent before verification
-        selectRole(CONST.DELEGATE_ROLE.SUBMITTER);
-        expect(Navigation.navigate).toHaveBeenCalledWith(mockVerifyRoute);
+        // When the role-selection page opens, before any role is selected
+        renderRolePage(currentRole);
+        act(() => getCodeForm().sendValidateCode());
+
+        // Then only account verification is available, regardless of the direction of the eventual change
+        expect(mockSelectionList).not.toHaveBeenCalled();
+        expect(getCodeForm().validateCodeReasonCode).toBe(COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT);
+        expect(requestValidateCodeAction).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
+        expect(updateDelegateRole).not.toHaveBeenCalled();
+    });
+
+    it('waits for successful account validation before allowing a downgrade', () => {
+        // Given an unvalidated owner entering the access flow
+        const {refreshAccount, validateAccount} = renderRolePage();
+
+        // When a code is submitted but the server has not yet marked the account validated
+        act(() => getCodeForm().handleSubmitForm(VALIDATE_CODE));
+        refreshAccount();
+        expect(validateSecondaryLogin).toHaveBeenCalledWith(OWNER_LOGIN, VALIDATE_CODE);
+        expect(mockSelectionList).not.toHaveBeenCalled();
         expect(updateDelegateRole).not.toHaveBeenCalled();
 
-        // Then successful account validation resumes the selected downgrade after the verification screen closes
+        // Then successful validation reveals role selection; only selecting a new role applies the downgrade
         validateAccount();
-        act(() => mockResumeAfterTransition?.());
-        expect(updateDelegateRole).toHaveBeenCalledTimes(1);
-        expect(updateDelegateRole).toHaveBeenCalledWith({
-            email: LOGIN,
-            role: CONST.DELEGATE_ROLE.SUBMITTER,
-            delegatedAccess: mockAccount.delegatedAccess,
-            validateCode: undefined,
-        });
+        expect(mockSelectionList).toHaveBeenCalled();
+        expect(updateDelegateRole).not.toHaveBeenCalled();
+        selectRole(CONST.DELEGATE_ROLE.SUBMITTER);
+        expect(updateDelegateRole).toHaveBeenCalledWith({email: LOGIN, role: CONST.DELEGATE_ROLE.SUBMITTER, delegatedAccess: mockAccount.delegatedAccess, validateCode: undefined});
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_COPILOT);
     });
 
-    it('verifies the owner before opening the separate confirmation for increased access', () => {
-        // Given an unvalidated owner increasing an existing copilot's privileges
-        mockAccount.delegatedAccess = {
-            delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.SUBMITTER}],
-        };
-        const {validateAccount} = renderPage(CONST.DELEGATE_ROLE.SUBMITTER);
+    it('still requires action confirmation for an upgrade after account validation', () => {
+        // Given an unvalidated owner with a submit-only copilot
+        mockAccount.delegatedAccess = {delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.SUBMITTER}]};
+        const {validateAccount} = renderRolePage(CONST.DELEGATE_ROLE.SUBMITTER);
 
-        // When full access is selected, account verification must happen first
-        selectRole(CONST.DELEGATE_ROLE.ALL);
-        expect(Navigation.navigate).toHaveBeenCalledWith(mockVerifyRoute);
-        expect(updateDelegateRole).not.toHaveBeenCalled();
-
-        // Then account validation continues to action confirmation without granting access yet
+        // When account validation completes and full access is selected
         validateAccount();
-        act(() => mockResumeAfterTransition?.());
-        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(LOGIN, CONST.DELEGATE_ROLE.ALL));
-        expect(updateDelegateRole).not.toHaveBeenCalled();
-    });
-
-    it('abandons the change when account verification is cancelled', () => {
-        // Given a pending downgrade waiting for account verification
-        const {validateAccount} = renderPage();
-        selectRole(CONST.DELEGATE_ROLE.SUBMITTER);
-
-        // When the owner leaves verification and validates elsewhere later
-        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROLE_ROUTE);
-        act(() => mockNavigationStateListener?.());
-        validateAccount();
-
-        // Then the abandoned change must not run or schedule a resume
-        expect(mockResumeAfterTransition).toBeUndefined();
-        expect(updateDelegateRole).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
-    });
-
-    it('downgrades a validated account directly using the current stored role', () => {
-        // Given a validated owner and a route whose role is older than the current Onyx role
-        mockAccount.validated = true;
-        renderPage(CONST.DELEGATE_ROLE.SUBMITTER);
-
-        // When the owner reduces the current full access
-        selectRole(CONST.DELEGATE_ROLE.SUBMITTER);
-
-        // Then no verification or action code is needed
-        expect(updateDelegateRole).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_COPILOT);
-    });
-
-    it('keeps action confirmation for a validated owner increasing access', () => {
-        // Given a validated owner with a submit-only copilot
-        mockAccount = {
-            validated: true,
-            delegatedAccess: {
-                delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.SUBMITTER}],
-            },
-        };
-        renderPage(CONST.DELEGATE_ROLE.SUBMITTER);
-
-        // When they choose full access
         selectRole(CONST.DELEGATE_ROLE.ALL);
 
-        // Then only the existing role-change confirmation is opened
-        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        // Then the selected copilot and new role continue to the separate action confirmation
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(LOGIN, CONST.DELEGATE_ROLE.ALL));
         expect(updateDelegateRole).not.toHaveBeenCalled();
     });
 
-    it('does not verify or update when the selected role is unchanged', () => {
-        // Given an unvalidated owner viewing the existing access level
-        renderPage();
+    it.each([CONST.DELEGATE_ROLE.ALL, CONST.DELEGATE_ROLE.SUBMITTER])('guards a direct confirmation link for role %s', (newRole) => {
+        // Given an unvalidated owner who bypasses the menu and role-selection page
+        // When they open the confirmation URL directly
+        renderConfirmPage(newRole);
+        act(() => {
+            getCodeForm().sendValidateCode();
+            getCodeForm().handleSubmitForm(VALIDATE_CODE);
+        });
+
+        // Then account verification handles the code, and the protected page cannot send a role request or navigate away
+        expect(requestValidateCodeAction).toHaveBeenCalledTimes(1);
+        expect(requestValidateCodeAction).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
+        expect(validateSecondaryLogin).toHaveBeenCalledWith(OWNER_LOGIN, VALIDATE_CODE);
+        expect(updateDelegateRole).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('continues the intended confirmation after validating from a deep link', () => {
+        // Given a direct link to increase a submit-only copilot to full access
+        mockAccount.delegatedAccess = {delegates: [{email: LOGIN, role: CONST.DELEGATE_ROLE.SUBMITTER}]};
+        const {validateAccount} = renderConfirmPage();
+
+        // When the owner successfully validates their account
+        validateAccount();
+        act(() => getCodeForm().sendValidateCode());
+
+        // Then the role-change code is requested for the original copilot, and submitting it updates the intended role
+        expect(getCodeForm().validateCodeReasonCode).toBe(COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_DELEGATE);
+        expect(requestValidateCodeAction).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_DELEGATE, reasonTargetEmail: LOGIN});
+        act(() => getCodeForm().handleSubmitForm(VALIDATE_CODE));
+        expect(updateDelegateRole).toHaveBeenCalledWith({email: LOGIN, role: CONST.DELEGATE_ROLE.ALL, validateCode: VALIDATE_CODE, delegatedAccess: mockAccount.delegatedAccess});
+    });
+
+    it.each([renderRolePage, renderConfirmPage])('waits for account hydration before mounting either flow (%#)', (openPage) => {
+        // Given account validation status has not loaded yet
+        mockAccount.validated = undefined;
+
+        // When either protected page is opened directly
+        const {refreshAccount} = openPage();
+
+        // Then neither verification nor role-change content mounts prematurely
+        expect(FullscreenLoadingIndicator).toHaveBeenCalled();
+        expect(ValidateCodeActionContent).not.toHaveBeenCalled();
+        expect(mockSelectionList).not.toHaveBeenCalled();
+        mockAccount.validated = false;
+        refreshAccount();
+        expect(getCodeForm().validateCodeReasonCode).toBe(COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT);
+    });
+
+    it.each([renderRolePage, renderConfirmPage])('returns to Copilots when account verification is cancelled (%#)', (openPage) => {
+        // Given verification is the first step of either access page
+        const {unmount} = openPage();
+
+        // When the owner backs out instead of verifying
+        act(() => getCodeForm().onClose?.());
+        unmount();
+
+        // Then cancellation returns to Copilots without applying an access change
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_COPILOT);
+        expect(updateDelegateRole).not.toHaveBeenCalled();
+    });
+
+    it('downgrades a validated owner directly using the current stored role', () => {
+        // Given a validated owner and a stale role in the URL
+        mockAccount.validated = true;
+        renderRolePage(CONST.DELEGATE_ROLE.SUBMITTER);
+
+        // When the owner reduces their copilot's current full access
+        selectRole(CONST.DELEGATE_ROLE.SUBMITTER);
+
+        // Then the existing direct downgrade behavior is preserved
+        expect(ValidateCodeActionContent).not.toHaveBeenCalled();
+        expect(updateDelegateRole).toHaveBeenCalledTimes(1);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_COPILOT);
+    });
+
+    it('closes without updating when a validated owner selects the current role', () => {
+        // Given a validated owner viewing the existing access level
+        mockAccount.validated = true;
+        renderRolePage();
 
         // When they select the already selected role
         selectRole(CONST.DELEGATE_ROLE.ALL);
 
-        // Then the modal closes without any verification or update
+        // Then the modal closes without any request
         expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(updateDelegateRole).not.toHaveBeenCalled();
     });
 });

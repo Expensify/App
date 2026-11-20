@@ -1,4 +1,3 @@
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -9,7 +8,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {updateDelegateRole} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +22,8 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 
 import {delegatesSelector} from '@selectors/Account';
 import React from 'react';
+
+import DelegateRoleAccountValidation from './DelegateRoleAccountValidation';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
@@ -48,11 +48,10 @@ function UpdateDelegateRoleSelectionListHeader() {
     );
 }
 
-function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
+function UpdateDelegateRolePageContent({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeChangeRole?: () => void) => resumeChangeRole?.());
 
     const currentDelegate = delegatedAccess?.delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
@@ -85,33 +84,34 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             includeSafeAreaPaddingBottom={false}
             testID="UpdateDelegateRolePage"
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('delegate.accessLevel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <SelectionList
-                    alternateNumberOfSupportedLines={4}
-                    initiallyFocusedItemKey={matchingRole}
-                    shouldUpdateFocusedIndex
-                    customListHeader={<UpdateDelegateRoleSelectionListHeader />}
-                    onSelectRow={(option) => {
-                        if (!option.value || option.isSelected) {
-                            Navigation.dismissModal();
-                            return;
-                        }
-                        // Creating a personal agent can grant copilot access before its owner validates their account.
-                        if (!isUserValidated) {
-                            verifyAccountAndResume(() => changeRole(option.value));
-                            return;
-                        }
-                        changeRole(option.value);
-                    }}
-                    data={roleOptions}
-                    ListItem={SingleSelectListItem}
-                />
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButton
+                title={translate('delegate.accessLevel')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <SelectionList
+                alternateNumberOfSupportedLines={4}
+                initiallyFocusedItemKey={matchingRole}
+                shouldUpdateFocusedIndex
+                customListHeader={<UpdateDelegateRoleSelectionListHeader />}
+                onSelectRow={(option) => {
+                    if (!option.value || option.isSelected) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    changeRole(option.value);
+                }}
+                data={roleOptions}
+                ListItem={SingleSelectListItem}
+            />
         </ScreenWrapper>
+    );
+}
+
+function UpdateDelegateRolePage(props: UpdateDelegateRolePageProps) {
+    return (
+        <DelegateRoleAccountValidation navigateForwardTo={ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(props.route.params.login, props.route.params.currentRole)}>
+            <UpdateDelegateRolePageContent {...props} />
+        </DelegateRoleAccountValidation>
     );
 }
 
