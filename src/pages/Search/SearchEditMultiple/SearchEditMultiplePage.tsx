@@ -61,6 +61,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -224,7 +225,7 @@ function SearchEditMultiplePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-    const currencyButtonRef = useRef<View>(null);
+    const currencyButtonRef = useRef<ComponentRef<typeof View>>(null);
     const shouldSaveButtonBeInScrollView = useShouldFooterBeInsideList();
 
     // On touch devices Enter is the only way to add a new line to the description, so it saves only with a hardware keyboard.

@@ -2,10 +2,10 @@ import type {OverlayPositionValue, ThemeStyles} from '@styles/index';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-type RHPFrameStyleParams = {
+type RHPFrameStyleParams<TWidth extends OverlayPositionValue> = {
     styles: ThemeStyles;
 
-    animatedWidth: OverlayPositionValue;
+    animatedWidth: TWidth;
 
     /** Committed width of the single floating card, which a drag overrides live in CSS. */
     singleRHPWidth: number;
@@ -16,6 +16,6 @@ type RHPFrameStyleParams = {
     shouldUseCenteredFrame: boolean;
 };
 
-type GetRHPFrameStyle = (params: RHPFrameStyleParams) => StyleProp<ViewStyle>;
+type GetRHPFrameStyle = <TWidth extends OverlayPositionValue>(params: RHPFrameStyleParams<TWidth>) => StyleProp<ViewStyle | {width: TWidth}>;
 
 export default GetRHPFrameStyle;
