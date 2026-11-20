@@ -3,9 +3,11 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {SharedValue} from 'react-native-reanimated';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'sentryLabel'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = WithRequiredSentryLabel & Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 type ToggleItemWithKey = ToggleItem & {key: string};
 

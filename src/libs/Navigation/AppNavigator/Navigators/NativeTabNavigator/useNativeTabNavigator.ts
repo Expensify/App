@@ -16,37 +16,32 @@ import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
 
-import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import {useNavigationState, useRoute} from '@react-navigation/native';
 import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getActiveTabRoute from './getActiveTabRoute';
+import {isNavigationToNativeTabItem} from './nativeTabItemUtils';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
-
-/**
- * Root-level tab screens where the swipe-back gesture should be disabled.
- * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
- * WORKSPACE.INITIAL is intentionally excluded, since swiping back from it returns to the workspace list.
- */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
 }
 
-function useNativeTabNavigator() {
+type NativeTabNavigatorParams = {
+    /** Whether the bar shows the flat nav items: Home, Inbox, Expenses, Reports and More */
+    isFlatNavTabBarEnabled?: boolean;
+};
+
+function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorParams = {}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const navigation = useNavigation();
-    const parentNavigation = navigation.getParent();
-    const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
     const route = useRoute();
     // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
     // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
@@ -58,24 +53,28 @@ function useNativeTabNavigator() {
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
 
+    const workspacesDotColor = workspacesIndicatorStatus ? workspacesIndicatorColor : undefined;
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
+        [isFlatNavTabBarEnabled ? SCREENS.NATIVE_TAB_ITEM.MORE : NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
     };
+    // Only the items in the bar get a label: the iOS labels are sized by how many items the bar has, and a tab without
+    // a label is hidden from the bar.
     const tabLabels: Record<string, string> = {
         [SCREENS.HOME]: translate('common.home'),
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
-        [SCREENS.INSIGHTS]: translate('common.insights'),
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+        ...(isFlatNavTabBarEnabled
+            ? {
+                  [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: translate('common.expenses'),
+                  [SCREENS.NATIVE_TAB_ITEM.REPORTS]: translate('common.reports'),
+                  [SCREENS.NATIVE_TAB_ITEM.MORE]: translate('common.more'),
+              }
+            : {
+                  [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+                  [SCREENS.INSIGHTS]: translate('common.insights'),
+                  [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+              }),
     };
-
-    useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
-            return;
-        }
-        parentNavigation.setOptions({gestureEnabled: !isFocusedRouteTabRoot});
-    }, [isFocusedRouteTabRoot, shouldUseNarrowLayout, parentNavigation]);
 
     useEffect(() => {
         if (!isRealizedNavigationState(tabState)) {
@@ -88,6 +87,8 @@ function useNativeTabNavigator() {
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
     // state by overriding the bottom-tab router's getInitialState, the same pattern SplitRouter
     // uses for its split navigators.
+    // A placeholder of the flat nav bar is never focused and never enters the history: the bar navigates to it when the
+    // user selects it, and its tab press handler navigates to the route it stands for instead.
     const tabRouterOverride = <Action extends NavigationAction>(
         originalRouter: Router<TabNavigationState<TabNavigatorParamList>, Action>,
     ): Partial<Router<TabNavigationState<TabNavigatorParamList>, Action>> => ({
@@ -95,11 +96,12 @@ function useNativeTabNavigator() {
             const preserved = getPreservedNavigatorState<TabNavigationState<TabNavigatorParamList>>(route.key);
             return preserved ? originalRouter.getRehydratedState(preserved, configOptions) : originalRouter.getInitialState(configOptions);
         },
+        getStateForAction: (state, action, configOptions) => (isNavigationToNativeTabItem(action) ? state : originalRouter.getStateForAction(state, action, configOptions)),
     });
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

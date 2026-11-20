@@ -343,6 +343,22 @@ const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> 
         },
     },
     {
+        query: 'violation:missingCategory,overLimit',
+        expected: {
+            autocomplete: {
+                key: 'violationName',
+                value: 'overLimit',
+                start: 26,
+                length: 9,
+                negated: false,
+            },
+            ranges: [
+                {key: 'violationName', value: 'missingCategory', negated: false, start: 10, length: 15},
+                {key: 'violationName', value: 'overLimit', negated: false, start: 26, length: 9},
+            ],
+        },
+    },
+    {
         query: 'type:expense -merchant*:Uber',
         expected: {
             autocomplete: null,
@@ -894,7 +910,7 @@ describe('autocomplete parser - escaped values', () => {
 describe('autocomplete parser ordinary consumers', () => {
     test.each([
         ['createdBy:alice', 'createdBy', 'alice'],
-        ['ReportID:123', 'ReportID', '123'],
+        ['ReportID:123', 'reportID', '123'],
         ['TAXRATE:20', 'TAXRATE', '20'],
         ['report-field-LongSuffix:value', 'reportField-LongSuffix', 'value'],
         ['merchant:""', 'merchant', ''],
