@@ -17047,7 +17047,19 @@ describe('SearchUIUtils', () => {
             const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.TRAVEL_PLATFORM, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
             // Then the options follow the approved design, with Expensify Travel first and Other last
-            expect(options.map((option) => option.text)).toEqual(['Expensify Travel', 'Amex GBT/Egencia', 'SAP Concur', 'Navan', 'FCM', 'Flight Centre', 'Serko', 'CTM', 'Other']);
+            expect(options.map((option) => option.text)).toEqual([
+                'Expensify Travel',
+                'Amex GBT/Egencia',
+                'SAP Concur',
+                'Navan',
+                'FCM',
+                'Flight Centre',
+                'Serko',
+                'CTM',
+                'BCD Travel',
+                'Perk',
+                'Other',
+            ]);
         });
 
         test('continues to use common translations for is filter values', () => {
