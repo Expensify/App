@@ -16,12 +16,19 @@ import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useOnyx from './useOnyx';
 import {usePersonalDetail} from './usePersonalDetails';
 
-function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true, policyOverride?: OnyxEntry<Policy>): TransactionViolations {
+function useTransactionViolations(
+    transactionID?: string,
+    shouldShowRterForSettledReport = true,
+    policyOverride?: OnyxEntry<Policy>,
+    reportPolicyFromCaller?: OnyxEntry<Policy>,
+): TransactionViolations {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
-    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    // Callers that already hold a narrowed report policy pass it, so writes to unrelated policy fields don't re-render them
+    const [subscribedReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyFromCaller ? undefined : iouReport?.policyID}`);
+    const reportPolicy = reportPolicyFromCaller ?? subscribedReportPolicy;
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);

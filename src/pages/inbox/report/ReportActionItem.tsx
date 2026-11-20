@@ -206,7 +206,6 @@ function ReportActionItem({
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
-    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
@@ -285,6 +284,8 @@ function ReportActionItem({
     // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,
     // so subscribing on every row would re-render the whole list on each send.
     const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSendingMoney ? report?.chatReportID : undefined)}`);
+    // Only the send money cleanup reads this policy, so report preview rows don't re-render on every policy write
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(isSendingMoney ? iouReport?.policyID : undefined)}`);
 
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);
