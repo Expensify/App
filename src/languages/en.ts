@@ -11652,6 +11652,8 @@ const translations = {
                 [CONST.SEARCH.TRAVEL_PLATFORM.FLIGHT_CENTRE]: 'Flight Centre',
                 [CONST.SEARCH.TRAVEL_PLATFORM.SERKO]: 'Serko',
                 [CONST.SEARCH.TRAVEL_PLATFORM.CTM]: 'CTM',
+                [CONST.SEARCH.TRAVEL_PLATFORM.BCD_TRAVEL]: 'BCD Travel',
+                [CONST.SEARCH.TRAVEL_PLATFORM.PERK]: 'Perk',
                 [CONST.SEARCH.TRAVEL_PLATFORM.OTHER]: 'Other',
             },
             withdrawalType: {
