@@ -7759,6 +7759,8 @@ const CONST = {
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
     },
+    // Lives in our own CONST until the reason is added to expensify-common's VALIDATE_CODE_REASONS
+    ENABLE_TWO_FACTOR_AUTH_VALIDATE_CODE_REASON: 'enable_two_factor_auth',
     TWO_FACTOR_AUTH_STEPS: {
         COPY_CODES: 'COPY_CODES',
         VERIFY: 'VERIFY',

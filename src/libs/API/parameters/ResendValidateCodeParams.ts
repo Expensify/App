@@ -36,6 +36,11 @@ type ResendValidateCodeForApproveDigitalWalletParams = {
     reasonCardID: number;
 };
 
+// Lives in our own CONST until the reason is added to expensify-common's VALIDATE_CODE_REASONS
+type ResendValidateCodeForEnableTwoFactorAuthParams = {
+    reasonCode: typeof CONST_APP.ENABLE_TWO_FACTOR_AUTH_VALIDATE_CODE_REASON;
+};
+
 type ResendValidateCodeForAddDelegateParams = {
     reasonCode: typeof CONST.VALIDATE_CODE_REASONS.ADD_DELEGATE;
     reasonTargetEmail: string;
@@ -58,6 +63,7 @@ type ResendValidateCodeParams =
     | ResendValidateCodeForReplaceCardParams
     | ResendValidateCodeForReportCardFraudParams
     | ResendValidateCodeForApproveDigitalWalletParams
+    | ResendValidateCodeForEnableTwoFactorAuthParams
     | ResendValidateCodeForAddDelegateParams
     | ResendValidateCodeForUpdateDelegateParams;
 

@@ -2736,6 +2736,8 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         errorStepCodes: '続行する前にコードをコピーまたはダウンロードしてください',
         stepVerify: '確認',
+        enterSecurityCode: (contactMethod: string) => `2 要素認証を設定するために、${contactMethod} に送信されたセキュリティコードを入力してください。1～2 分以内に届きます。`,
+        securityCodeRejected: 'そのセキュリティコードは有効ではなかったため、新しいコードをお送りしました。',
         scanCode: '次の端末でQRコードをスキャンしてください:',
         authenticatorApp: '認証アプリ',
         addKey: 'または、この秘密キーを認証アプリに追加してください:',
