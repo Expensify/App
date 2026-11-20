@@ -35,29 +35,29 @@ import {getPeriodTitle} from './insightsDetailsItem';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummarySkeleton from './InsightsSummarySkeleton';
 
+/** Periods the average is shown for */
+type AveragePeriodGroupBy = Exclude<InsightsTimeGroupBy, typeof CONST.SEARCH.GROUP_BY.YEAR>;
+
 const VERSUS_AVERAGE_PERIOD_KEYS = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.summary.versusAverageDay',
     [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.summary.versusAverageWeek',
     [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.summary.versusAverageMonth',
     [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.summary.versusAverageQuarter',
-    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.summary.versusAverageYear',
-} as const satisfies Record<InsightsTimeGroupBy, TranslationPaths>;
+} as const satisfies Record<AveragePeriodGroupBy, TranslationPaths>;
 
 const HISTORY_NEEDED_KEYS = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.summary.daysOfHistoryNeeded',
     [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.summary.weeksOfHistoryNeeded',
     [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.summary.monthsOfHistoryNeeded',
     [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.summary.quartersOfHistoryNeeded',
-    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.summary.yearsOfHistoryNeeded',
-} as const satisfies Record<InsightsTimeGroupBy, TranslationPaths>;
+} as const satisfies Record<AveragePeriodGroupBy, TranslationPaths>;
 
 const AVERAGE_TILE_KEYS = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.summary.dayAverage',
     [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.summary.weekAverage',
     [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.summary.monthAverage',
     [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.summary.quarterAverage',
-    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.summary.yearAverage',
-} as const satisfies Record<InsightsTimeGroupBy, TranslationPaths>;
+} as const satisfies Record<AveragePeriodGroupBy, TranslationPaths>;
 
 type InsightsSummaryProps = {
     query: InsightsDetailsQuery;
@@ -102,7 +102,7 @@ type SummaryAverageComparisonProps = {
     /** The graph the item was clicked on, which decides the wording of the comparison */
     graphKey: InsightsGraphKey;
 
-    periodGroupBy: InsightsTimeGroupBy;
+    periodGroupBy: AveragePeriodGroupBy;
     currency: string;
 };
 
@@ -197,6 +197,8 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
     const isSpendOverTime = graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME;
     const comparison = summary ? getInsightsAverageComparison(summary) : undefined;
     const hasAverage = !!comparison && comparison.type !== INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY;
+    // The average covers the 12 months before the period, which never hold enough complete years to compare
+    const averagePeriodGroupBy = periodGroupBy === CONST.SEARCH.GROUP_BY.YEAR ? undefined : periodGroupBy;
 
     const periodTitle = getPeriodTitle(periodGroupBy, period, dateFnsLocale);
 
@@ -230,29 +232,35 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsSummarySkeleton />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.READY && !!summary && !!comparison && (
                 <>
-                    <View style={[styles.p4, styles.gap1, styles.borderBottom]}>
-                        <Text
-                            variant="label"
-                            style={styles.textSupporting}
-                        >
-                            {translate('insightsPage.compare.average')}
-                        </Text>
-                        <SummaryAverageComparison
-                            comparison={comparison}
-                            graphKey={graphKey}
-                            periodGroupBy={periodGroupBy}
-                            currency={currency}
-                        />
-                    </View>
+                    {!!averagePeriodGroupBy && (
+                        <View style={[styles.p4, styles.gap1, styles.borderBottom]}>
+                            <Text
+                                variant="label"
+                                style={styles.textSupporting}
+                            >
+                                {translate('insightsPage.compare.average')}
+                            </Text>
+                            <SummaryAverageComparison
+                                comparison={comparison}
+                                graphKey={graphKey}
+                                periodGroupBy={averagePeriodGroupBy}
+                                currency={currency}
+                            />
+                        </View>
+                    )}
                     <View style={[styles.flexRow, styles.gap5, styles.p4, styles.borderBottom]}>
                         <SummaryTile
                             label={isSpendOverTime ? translate('common.spend') : translate('insightsPage.summary.periodSpend', getShortPeriodName())}
                             value={convertToDisplayString(summary.total, currency)}
                         />
-                        <SummaryTile
-                            label={translate(AVERAGE_TILE_KEYS[periodGroupBy], hasAverage ? summary.averagePeriodCount : MIN_AVERAGE_PERIOD_COUNT)}
-                            value={hasAverage ? convertToDisplayString(summary.average ?? 0, currency) : undefined}
-                        />
+                        {averagePeriodGroupBy ? (
+                            <SummaryTile
+                                label={translate(AVERAGE_TILE_KEYS[averagePeriodGroupBy], hasAverage ? summary.averagePeriodCount : MIN_AVERAGE_PERIOD_COUNT)}
+                                value={hasAverage ? convertToDisplayString(summary.average ?? 0, currency) : undefined}
+                            />
+                        ) : (
+                            <View style={styles.flex1} />
+                        )}
                     </View>
                     <View style={[styles.flexRow, styles.gap5, styles.p4]}>
                         <SummaryTile
