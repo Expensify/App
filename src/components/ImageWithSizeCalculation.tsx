@@ -12,6 +12,7 @@ import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndica
 import type {ImageObjectPosition} from './Image/types';
 
 import RESIZE_MODES from './Image/resizeModes';
+import {getImageLoadSource} from './ImageLoadEventContext';
 import ImageWithLoading from './ImageWithLoading';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
@@ -78,13 +79,15 @@ function ImageWithSizeCalculation({
     const source = typeof url === 'string' ? {uri: url} : url;
 
     const onError = () => {
-        Log.hmmm('Unable to fetch image to calculate size', {url});
+        Log.hmmm('Unable to fetch image to calculate size');
         onLoadFailure?.();
     };
 
     return (
         // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
+            // Remount on a new source so a recycled row doesn't inherit the old stall state
+            key={getImageLoadSource(source)}
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
             source={source}

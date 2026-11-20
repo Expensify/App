@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import ImageWithSizeCalculation from '@components/ImageWithSizeCalculation';
 
 import CONST from '@src/CONST';
@@ -105,8 +106,38 @@ describe('ImageWithSizeCalculation', () => {
         // When the image emits a real error
         fireEvent(screen.getByTestId('image'), 'error');
 
-        // Then the size fetch is reported as failed
+        // Then the size fetch is reported as failed, without the URL, which can be a signed receipt link
         expect(mockLogHmmm).toHaveBeenCalledTimes(1);
+        expect(mockLogHmmm).toHaveBeenCalledWith('Unable to fetch image to calculate size');
         expect(onLoadFailure).toHaveBeenCalledTimes(1);
+    });
+    it('watches a new source from scratch when a recycled row swaps the image', () => {
+        // Given a receipt thumbnail whose load stalled, like a Search row on a slow network
+        const reportImageLoadEvent = jest.fn();
+        const renderWithUrl = (url: string) => (
+            <ImageLoadEventContext.Provider value={reportImageLoadEvent}>
+                <ImageWithSizeCalculation
+                    url={url}
+                    isAuthTokenRequired={false}
+                    onMeasure={jest.fn()}
+                />
+            </ImageLoadEventContext.Provider>
+        );
+        const {rerender} = render(renderWithUrl(IMAGE_URI));
+        fireEvent(screen.getByTestId('image'), 'loadStart');
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // When the row is reused for another receipt whose image also stalls
+        const otherUri = 'https://example.com/other-receipt.jpg';
+        rerender(renderWithUrl(otherUri));
+        fireEvent(screen.getByTestId('image'), 'loadStart');
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+        });
+
+        // Then the second stall is reported against the new source instead of being hidden by the first one
+        expect(reportImageLoadEvent).toHaveBeenLastCalledWith({type: 'stall', reason: 'ceiling', component: 'ImageWithLoading', source: otherUri});
     });
 });

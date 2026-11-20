@@ -2,6 +2,7 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import ImageLoadTimeoutNotice from '@components/ImageLoadTimeoutNotice';
 import Lightbox from '@components/Lightbox';
 import LoadingIndicator from '@components/LoadingIndicator';
@@ -9,6 +10,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 
 import useClickZoomPan from '@hooks/useClickZoomPan';
 import useImageLoadStall from '@hooks/useImageLoadStall';
+import type {ImageLoadStallReason} from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +24,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ImageViewProps from './types';
@@ -43,6 +45,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const {isOffline} = useNetwork();
     const scrollableRef = useRef<ComponentRef<typeof View> & HTMLDivElement>(null);
     const canUseTouchScreen = canUseTouchScreenUtil();
+    const reportImageLoadEvent = useContext(ImageLoadEventContext);
 
     const [isLoading, setIsLoading] = useState(true);
     const [hasLoadFailed, setHasLoadFailed] = useState(false);
@@ -85,6 +88,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     };
 
     const handleError = () => {
+        reportImageLoadEvent?.({type: 'error', afterTimeout: hasLoadTimedOutRef.current, component: 'ImageView', source: url});
         // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
         if (hasLoadTimedOutRef.current) {
             return;
@@ -94,18 +98,24 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     };
 
     /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
-    const handleLoadTimeout = () => {
+    const handleLoadTimeout = (reason: ImageLoadStallReason) => {
+        reportImageLoadEvent?.({type: 'stall', reason, component: 'ImageView', source: url});
         updateLoadTimedOut(true);
         setIsLoading(false);
     };
 
     const retryLoad = () => {
+        reportImageLoadEvent?.({type: 'retry', component: 'ImageView', source: url});
         updateLoadTimedOut(false);
         setIsLoading(true);
         setReloadKey((key) => key + 1);
     };
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
+        // Loading after a stall or a retry counts as a recovery
+        if (hasLoadTimedOutRef.current || reloadKey > 0) {
+            reportImageLoadEvent?.({type: 'recovered', component: 'ImageView', source: url});
+        }
         setImageSize(size);
         updateLoadTimedOut(false);
     };

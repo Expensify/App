@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import ImageLoadEventContext from '@components/ImageLoadEventContext';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
@@ -37,6 +38,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {resolveTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
+import {createReceiptImageLoadReporter} from '@libs/telemetry/ReceiptImageLoadLog';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
     getRequestType,
@@ -752,10 +754,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     };
 
     return (
-        <AttachmentModalContainer
-            navigation={navigation}
-            contentProps={contentProps}
-        />
+        <ImageLoadEventContext.Provider value={isOdometerImage ? undefined : createReceiptImageLoadReporter(transaction, 'modal')}>
+            <AttachmentModalContainer
+                navigation={navigation}
+                contentProps={contentProps}
+            />
+        </ImageLoadEventContext.Provider>
     );
 }
 
