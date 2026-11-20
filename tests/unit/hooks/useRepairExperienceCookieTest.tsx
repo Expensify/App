@@ -20,6 +20,9 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockOpenClassic = jest.fn();
+let mockInitialURL: string | null = null;
+
+jest.mock('@components/InitialURLContextProvider', () => ({useInitialURLState: () => ({initialURL: mockInitialURL, isAuthenticatedAtStartup: false})}));
 
 jest.mock('@hooks/useOpenClassic', () => ({__esModule: true, default: () => mockOpenClassic}));
 jest.mock('@libs/ExperienceCookie', () => ({
@@ -92,6 +95,7 @@ describe('useRepairExperienceCookie', () => {
     beforeEach(async () => {
         await Onyx.clear();
         sessionStorage.clear();
+        mockInitialURL = null;
         jest.clearAllMocks();
         jest.mocked(isSharedProductHost).mockReturnValue(true);
         arrangeCookie(CONST.EXPERIENCE_COOKIE.VALUES.NEW);
@@ -187,6 +191,24 @@ describe('useRepairExperienceCookie', () => {
         await receiveFreshAppData();
 
         // Then nothing changes, and the tab can repair the cookie again, because staying here ends any back and forth
+        expect(mockOpenClassic).not.toHaveBeenCalled();
+        expect(clearExperienceCookie).not.toHaveBeenCalled();
+        expect(sessionStorage.getItem(REPAIR_KEY)).toBeNull();
+    });
+
+    it.each<[string, AccountState]>([
+        ['an account in the beta that prefers Classic', {prefersClassic: true}],
+        ['an account outside the beta', {betas: OUTSIDE_BETA}],
+    ])('stays in New Expensify and allows a later repair when %s opened a secure link', async (_, account) => {
+        // Given a cookie that would normally send the account to Classic, and a secure link that must reach its report
+        mockInitialURL = 'https://new.expensify.com/r/123?secureKey=abc';
+        await arrangeAccount(account);
+        await renderRepair();
+
+        // When the server responds
+        await receiveFreshAppData();
+
+        // Then the user isn't moved, because the report is the purpose of the visit, and the tab stays free to repair the cookie on a later start
         expect(mockOpenClassic).not.toHaveBeenCalled();
         expect(clearExperienceCookie).not.toHaveBeenCalled();
         expect(sessionStorage.getItem(REPAIR_KEY)).toBeNull();

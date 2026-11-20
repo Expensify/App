@@ -3,9 +3,12 @@
  * updates the cookie from the account's settings. When the account stops using New Expensify elsewhere or leaves the beta,
  * the user never reaches Classic, so after the server's first response this opens Classic once to let it rewrite the cookie.
  */
+import {useInitialURLState} from '@components/InitialURLContextProvider';
+
 import {clearExperienceCookie, isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
 import {shouldUseClassicOnWeb} from '@libs/TryNewDotUtils';
+import {hasSecureLinkKey} from '@libs/Url';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +68,7 @@ function useRepairExperienceCookie() {
     const isAnonymousSession = useIsAnonymousUser();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const openClassic = useOpenClassic();
+    const {initialURL} = useInitialURLState();
 
     // Only the first server response for an account decides, so the user is never sent to Classic in the middle of a session
     const hasDecided = useRef(false);
@@ -90,7 +94,9 @@ function useRepairExperienceCookie() {
         // Only a `new` cookie keeps the user away from Classic. Without it, the user opened a New Expensify link on purpose, and Classic handles the cookie on the next visit.
         const isOutsideBeta = isInBeta === false;
         const prefersClassic = isInBeta === true && shouldUseClassic;
-        const shouldRepair = !isCookieFromOtherUser && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
+        // A secure link must reach its report. The URL the app opened with is checked, because the report screen removes the key from the current one.
+        const isOpenedViaSecureLink = hasSecureLinkKey(initialURL);
+        const shouldRepair = !isCookieFromOtherUser && !isOpenedViaSecureLink && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
 
         // Opening Classic leaves this page, so it waits while requests, such as changes made offline, are still queued
         if (shouldRepair && (hasQueuedRequests || hasOngoingRequest)) {
@@ -119,6 +125,7 @@ function useRepairExperienceCookie() {
         isDelegateSession,
         isSupportalSession,
         isAnonymousSession,
+        initialURL,
         isBetaEnabledOrUnknown,
         openClassic,
         hasQueuedRequests,
