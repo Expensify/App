@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import CategoryPicker from '@components/CategoryPicker';
 import type {CategoryPickerProps} from '@components/CategoryPicker';
@@ -100,4 +100,43 @@ describe.each(pickers)('$name shouldAutoFocusSearchInput threading', ({renderPic
 
         expect(getLastDisableAutoFocus()).toBe(expectedDisableAutoFocus);
     });
+});
+
+it('updates TagPicker search text immediately and filters only after typing pauses', async () => {
+    // Given a picker with two selectable tags and a visible search input.
+    render(
+        <TagPicker
+            policyID={POLICY_ID}
+            selectedTag=""
+            tagListName="Tag"
+            tagListIndex={0}
+            onSubmit={jest.fn()}
+            additionalTagsToInclude={['Engineering', 'Finance']}
+            searchInputThreshold={2}
+        />,
+    );
+    await waitForBatchedUpdatesWithAct();
+
+    const getListProps = () => mockSelectionList.mock.lastCall?.[0];
+    const getTagNames = () => getListProps()?.sections.flatMap(({data}) => data.map(({text}) => text));
+    expect(getTagNames()).toEqual(['Engineering', 'Finance']);
+
+    jest.useFakeTimers();
+    try {
+        // When the user edits the query again before the first debounce expires.
+        act(() => getListProps()?.textInputOptions?.onChangeText?.('Eng'));
+        act(() => jest.advanceTimersByTime(50));
+        act(() => getListProps()?.textInputOptions?.onChangeText?.('Fin'));
+
+        // Then the input echoes the latest query without filtering on either keystroke.
+        expect(getListProps()?.textInputOptions?.value).toBe('Fin');
+        act(() => jest.advanceTimersByTime(99));
+        expect(getTagNames()).toEqual(['Engineering', 'Finance']);
+
+        // Then only the final query is applied once its debounce expires.
+        act(() => jest.advanceTimersByTime(1));
+        expect(getTagNames()).toEqual(['Finance']);
+    } finally {
+        jest.useRealTimers();
+    }
 });

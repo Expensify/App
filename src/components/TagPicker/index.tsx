@@ -3,6 +3,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +22,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useEffect, useState} from 'react';
+import React, {useDeferredValue, useEffect} from 'react';
+
+const TAG_SEARCH_DEBOUNCE_MS = 100;
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -111,13 +114,14 @@ function TagPicker({
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('', TAG_SEARCH_DEBOUNCE_MS);
 
     // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
     const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
 
     const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.[tagListName] ?? [];
-    const policyTagList = getTagList(policyTags, tagListIndex);
+    // Keep rebuilding the tag sections off the urgent render by continuing to show the previous list while React catches up.
+    const policyTagList = useDeferredValue(getTagList(policyTags, tagListIndex));
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
@@ -144,31 +148,31 @@ function TagPicker({
             : baseTags;
     }
 
-    const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
-        if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
-            return policyTagsWithAdditions;
+    // When the selected option is included explicitly, it takes precedence over the policy tag and the parent filter.
+    const parentTag =
+        hasDependentTags && !shouldShowDisabledAndSelectedOption
+            ? getTagArrayFromName(transactionTag ?? '')
+                  .slice(0, tagListIndex)
+                  .join(':')
+            : undefined;
+    const enabledTags: Array<PolicyTag | SelectedTagOption> = shouldShowDisabledAndSelectedOption ? [...selectedOptions] : [];
+    const selectedName = selectedOptions.at(0)?.name;
+    let availableTagsCount = enabledTags.length;
+    for (const policyTag of Object.values(policyTagsWithAdditions)) {
+        if (shouldShowDisabledAndSelectedOption && (!policyTag.enabled || policyTag.name === selectedName)) {
+            continue;
         }
-
-        if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
-            // Truncate transactionTag to the current level (e.g., "California:North")
-            const parentTag = getTagArrayFromName(transactionTag ?? '')
-                .slice(0, tagListIndex)
-                .join(':');
-
-            return Object.values(policyTagsWithAdditions).filter((policyTag) => matchesParentTagPath(policyTag, parentTag));
+        if (parentTag !== undefined && !matchesParentTagPath(policyTag, parentTag)) {
+            continue;
         }
-
-        const selectedNames = new Set(selectedOptions.map((s) => s.name));
-
-        return [...selectedOptions, ...Object.values(policyTagsWithAdditions).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
-    };
-
-    const enabledTags = getEnabledTags();
-    const enabledTagsList = Array.isArray(enabledTags) ? enabledTags : Object.values(enabledTags ?? {});
-    const availableTagsCount = enabledTagsList.filter((tag) => tag.enabled).length;
+        enabledTags.push(policyTag);
+        if (policyTag.enabled) {
+            availableTagsCount++;
+        }
+    }
 
     const tagSections = getTagListSections({
-        searchValue,
+        searchValue: debouncedSearchValue,
         selectedOptions,
         tags: enabledTags,
         recentlyUsedTags: policyRecentlyUsedTagsList,
@@ -186,11 +190,11 @@ function TagPicker({
     const renderedRowCount = sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
 
     useEffect(() => {
-        if (searchValue) {
+        if (debouncedSearchValue) {
             return;
         }
         onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, searchValue, onRenderedRowCountChange]);
+    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
 
     // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
     // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
@@ -199,7 +203,7 @@ function TagPicker({
     const textInputOptions = {
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, debouncedSearchValue),
         label: translate('common.search'),
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
