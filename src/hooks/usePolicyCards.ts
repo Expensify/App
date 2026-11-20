@@ -1,5 +1,4 @@
-import {getFundIdFromSettingsKey, getPolicyLinkedExpensifyCardFeedIDs} from '@libs/CardUtils';
-import {getTravelBillingFeedID} from '@libs/TravelBillingUtils';
+import {getExpensifyCardFeedIDs, getFundIdFromSettingsKey, getPolicyLinkedExpensifyCardFeedIDs} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +53,7 @@ function usePolicyCards(policyID: string | undefined): PolicyCards {
             const fundID = getFundIdFromSettingsKey(key);
             // A fund backing the workspace account is the workspace's own, so each of its programs is in reach.
             if (!!workspaceAccountID && fundID === workspaceAccountID) {
-                feedIDs.push(`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, getTravelBillingFeedID(fundID));
+                feedIDs.push(...getExpensifyCardFeedIDs(fundID));
                 continue;
             }
             if (!policyID) {

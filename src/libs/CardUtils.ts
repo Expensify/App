@@ -66,7 +66,6 @@ import {getLatestError} from './ErrorUtils';
 import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {hasInProgressVBBA} from './ReimbursementAccountUtils';
 import StringUtils from './StringUtils';
-import {getTravelBillingFeedID} from './TravelBillingUtils';
 
 /**
  * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
@@ -2032,6 +2031,11 @@ function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | u
     return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
 }
 
+/** A fund's Expensify Card feed and its Travel Billing feed, which the cards are stored under separately. */
+function getExpensifyCardFeedIDs(fundID: string | number): [string, string] {
+    return [`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`];
+}
+
 /**
  * The feed IDs of one fund's programs that `policyID` is linked to.
  *
@@ -2043,13 +2047,14 @@ function getPolicyLinkedExpensifyCardFeedIDs(settings: ExpensifyCardSettings, fu
     const isLinkedToPolicy = (base: ExpensifyCardSettingsBase | undefined) =>
         !!base && (isPolicyIDInLinkedExpensifyCardPolicyList(base.linkedPolicyIDs, policyID) || base.preferredPolicy?.toUpperCase() === policyID.toUpperCase());
 
+    const [cardFeedID, travelFeedID] = getExpensifyCardFeedIDs(fundID);
     const feedIDs: string[] = [];
     const isLinkedToCardProgram = isLinkedToPolicy(settings) || CARD_PROGRAM_KEYS.some((key) => isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, key)));
     if (isLinkedToCardProgram) {
-        feedIDs.push(`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`);
+        feedIDs.push(cardFeedID);
     }
     if (isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, CONST.TRAVEL.PROGRAM_TRAVEL_US))) {
-        feedIDs.push(getTravelBillingFeedID(fundID));
+        feedIDs.push(travelFeedID);
     }
     return feedIDs;
 }
@@ -2725,6 +2730,7 @@ export {
     getCardSettings,
     getSettlementAccountErrors,
     getCardProgramKey,
+    getExpensifyCardFeedIDs,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPolicyLinkedExpensifyCardFeedIDs,
     getPreferredPolicyFromExpensifyCardSettings,
