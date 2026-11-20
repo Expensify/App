@@ -1091,10 +1091,11 @@ function setMoneyRequestDateAttribute(transactionID: string, start: string, end:
     });
 }
 
-function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
+function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false, isCurrencySet = false) {
     const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         [fieldToUpdate]: currency,
+        ...(isCurrencySet && {isCurrencySet: true}),
     });
 }
 

@@ -5,6 +5,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,6 +17,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import React from 'react';
@@ -45,7 +47,7 @@ type CapturedSelectorProps = {
     iouType?: IOUType;
     participants?: Participant[];
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
-    onParticipantsAdded?: (participants: Participant[]) => void;
+    onParticipantsAdded?: (participants: Participant[], policy?: Policy) => void;
     onFinish?: () => void;
 };
 
@@ -271,7 +273,7 @@ describe('DynamicIOURequestStepParticipants', () => {
     describe('Opened from the confirmation', () => {
         const PARTICIPANT_ACCOUNT_ID = 2;
 
-        async function renderFromConfirmation() {
+        async function renderFromConfirmation(transactionOverrides: Partial<Transaction> = {}) {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             const selfDMReport = {
                 ...createRandomReport(Number(SELF_DM_REPORT_ID), CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -286,6 +288,7 @@ describe('DynamicIOURequestStepParticipants', () => {
                 created: '2026-09-07',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                 participants: [],
+                ...transactionOverrides,
             });
             await waitForBatchedUpdates();
 
@@ -366,6 +369,49 @@ describe('DynamicIOURequestStepParticipants', () => {
 
             // And the route shown after going back gets the new iouType
             expect(Navigation.setParams).toHaveBeenCalledWith({iouType: expectedIOUType}, undefined, STACK_KEY);
+        });
+
+        it.each([
+            {description: 'an untouched amount', amount: 0, isAmountSet: false, currency: 'USD', shouldUpdateCurrency: true},
+            {description: 'an entered amount', amount: 1000, isAmountSet: true, currency: 'USD', shouldUpdateCurrency: false},
+            {description: 'an explicitly entered zero', amount: 0, isAmountSet: true, currency: 'USD', shouldUpdateCurrency: false},
+            {description: 'an explicitly selected currency', amount: 0, isAmountSet: false, isCurrencySet: true, currency: 'EUR', shouldUpdateCurrency: false},
+        ])('follows recipient currency only for unset amounts: $description', async ({amount, isAmountSet, isCurrencySet, currency, shouldUpdateCurrency}) => {
+            // Given different workspace and Payment currencies, preserve any amount/currency the user already chose.
+            const personalPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'GBP'};
+            const workspacePolicy = {...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.TEAM), outputCurrency: 'AUD'};
+            await Onyx.set(ONYXKEYS.PERSONAL_POLICY_ID, personalPolicy.id);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicy.id}`, workspacePolicy);
+            await renderFromConfirmation({amount, isAmountSet, currency, merchant: 'Lunch', comment: {comment: 'Keep description'}});
+            if (isCurrencySet) {
+                act(() => setMoneyRequestCurrency(TRANSACTION_ID, currency, false, true));
+                await waitForBatchedUpdates();
+            }
+
+            const selections: Array<{participant: Participant; policy?: Policy; expectedCurrency: string}> = [
+                {participant: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'recipient@user.com', selected: true}, expectedCurrency: 'GBP'},
+                {participant: {policyID: workspacePolicy.id, reportID: '4', isPolicyExpenseChat: true, selected: true}, policy: workspacePolicy, expectedCurrency: 'AUD'},
+                {participant: {reportID: SELF_DM_REPORT_ID, isSelfDM: true, selected: true}, expectedCurrency: 'GBP'},
+            ];
+            const selectRecipient = (participant: Participant, policy?: Policy) => {
+                act(() => latestSelectorProps.onParticipantsAdded?.([participant], policy));
+            };
+            for (const {participant, policy, expectedCurrency} of selections) {
+                // When the user changes To between an individual, a workspace and the self DM.
+                selectRecipient(participant, policy);
+                await waitForBatchedUpdates();
+
+                // Then defaults follow each accepted selection without changing the amount or other entered data.
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+                expect(draft).toMatchObject({
+                    amount,
+                    isAmountSet,
+                    currency: shouldUpdateCurrency ? expectedCurrency : currency,
+                    merchant: 'Lunch',
+                    comment: {comment: 'Keep description'},
+                });
+            }
         });
 
         it('keeps the category when the unreported expense moves to the workspace its categories came from', async () => {

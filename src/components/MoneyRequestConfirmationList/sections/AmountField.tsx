@@ -277,7 +277,7 @@ function AmountField({
 
         // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
         if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
-            setMoneyRequestCurrency(transactionID, value);
+            setMoneyRequestCurrency(transactionID, value, false, true);
         } else {
             persistMainDraftTotal(updatedAmount, value);
         }
