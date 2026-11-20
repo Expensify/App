@@ -264,9 +264,7 @@ function SearchChangeApproverPage() {
     };
     const approverTypes = getApproverTypes();
     // Keep this selection inline so React Compiler preserves caching for selectedPolicies and approverTypes.
-    const activeApproverType = approverTypes.some(({keyForList}) => keyForList === selectedApproverType)
-        ? selectedApproverType
-        : (approverTypes.at(0)?.keyForList ?? APPROVER_TYPE.ADD_APPROVER);
+    const activeApproverType = getSelectedApproverType({approverTypes, selectedApproverType});
 
     const changeApprover = () => {
         if (activeApproverType === APPROVER_TYPE.ADD_APPROVER) {
