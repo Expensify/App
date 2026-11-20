@@ -1,4 +1,3 @@
-import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
     getCurrency,
@@ -16,10 +15,9 @@ import {
 } from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 
 /** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
@@ -238,7 +236,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'reportID' | 'managedCard' | 'reimbursable' | 'bank' | 'comment'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -250,6 +248,9 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
         reportID: t.reportID,
         managedCard: t.managedCard,
         reimbursable: t.reimbursable,
+        bank: t.bank,
+        // Only the card feed's reimbursable setting is needed, so the slice doesn't change while the description is edited
+        comment: {forceReimbursable: t.comment?.forceReimbursable},
     };
     return slice;
 };
@@ -371,29 +372,10 @@ function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTyp
     return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
 }
 
-// --- InvoiceSenderField ---
-
-type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
-
-const invoiceSenderWorkspaceSelector = (p: OnyxEntry<OnyxTypes.Policy>): InvoiceSenderWorkspace => {
-    if (!p) {
-        return undefined;
-    }
-    return {id: p.id, name: p.name, avatarURL: p.avatarURL};
-};
-
-const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
-
 export {
     amountSliceSelector,
     attendeeSliceSelector,
     categoryStateSelector,
-    createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
     transactionTagSelector,
     dateStateSelector,
@@ -401,7 +383,6 @@ export {
     descriptionStateSelector,
     distanceMapSliceSelector,
     invoiceSenderSliceSelector,
-    invoiceSenderWorkspaceSelector,
     merchantStateSelector,
     perDiemSliceSelector,
     receiptSliceSelector,

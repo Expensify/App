@@ -62,6 +62,7 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidCountryForFeed,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getSelectedFeed,
@@ -1436,6 +1437,34 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('getPlaidCountryForFeed', () => {
+        const currencyList = {
+            ETB: {symbol: 'Br', name: 'Ethiopian Birr', ISO4217: '230', countries: ['ET']},
+        };
+
+        it('Should return the feed country instead of the country of the workspace currency', () => {
+            // Given a US Plaid feed linked to a workspace whose currency is ETB, which only maps to Ethiopia, a country Plaid does not support
+            const feedCountry = CONST.COUNTRY.US;
+
+            // When the country to reconnect the feed with is picked
+            const country = getPlaidCountryForFeed(feedCountry, 'ETB', currencyList);
+
+            // Then it is the feed's country, because Plaid rejects a link token request for Ethiopia
+            expect(country).toBe(CONST.COUNTRY.US);
+        });
+
+        it('Should fall back to the country of the workspace currency when the feed has no country', () => {
+            // Given a Plaid feed with no stored country on an ETB workspace
+            const feedCountry = undefined;
+
+            // When the country to reconnect the feed with is picked
+            const country = getPlaidCountryForFeed(feedCountry, 'ETB', currencyList);
+
+            // Then it comes from the workspace currency, since that is the only hint left
+            expect(country).toBe('ET');
+        });
+    });
+
     describe('getSelectedFeed', () => {
         it('Should return last selected custom feed', () => {
             const lastSelectedCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
@@ -1587,10 +1616,10 @@ describe('CardUtils', () => {
         // cspell:words cdffoo cdfaocfoo
         const specialCommercialFeedCases = [
             ['cdf', 'Mastercard'],
-            ['cdfaoc', 'Key Bank Key2Purchase'],
-            ['cdfaoc1', 'Key Bank Key2Purchase 1'],
-            ['cdfaoc2', 'Key Bank Key2Purchase 2'],
-            ['cdfkey', 'Key Bank Key2Business'],
+            ['cdfaoc', 'AOC Solutions / Key Bank - Key2Purchase'],
+            ['cdfaoc1', 'AOC Solutions / Key Bank - Key2Purchase 1'],
+            ['cdfaoc2', 'AOC Solutions / Key Bank - Key2Purchase 2'],
+            ['cdfkey', 'Key Bank - Key2Business'],
             ['cdfairplus', 'AirPlus'],
             ['cdfbmo', 'BMO'],
             ['cdfbrex', 'Brex'],
@@ -1606,7 +1635,7 @@ describe('CardUtils', () => {
             ['vcfhsbc', 'HSBC Visa'],
             ['vcfext', 'HSBC Visa External'],
             ['cdfvirt', 'Mastercard Virtual'],
-            ['cdfseb', 'SEB Kort'],
+            ['cdfseb', 'SEB Kort EuroCard'],
             ['cdfubt', 'UBT'],
             ['cdfwex', 'WEX'],
             ['vcfubs', 'UBS'],
@@ -1633,8 +1662,8 @@ describe('CardUtils', () => {
             ['anzfav2', 'ANZ NZ 2'],
             ['vcfanz', 'ANZ'],
             ['cdffoo', 'Mastercard FOO'],
-            ['cdfaocfoo2', 'Key Bank Key2Purchase FOO2'],
-            [`cdfaoc2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'Key Bank Key2Purchase 2'],
+            ['cdfaocfoo2', 'AOC Solutions / Key Bank - Key2Purchase FOO2'],
+            [`cdfaoc2${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}12345`, 'AOC Solutions / Key Bank - Key2Purchase 2'],
         ];
 
         it.each(specialCommercialFeedCases)('Should distinguish special commercial feed %s as %s', (feed, expectedFeedName) => {

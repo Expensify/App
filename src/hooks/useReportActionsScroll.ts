@@ -28,6 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useState} from 'react';
 
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -105,6 +106,9 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
+    /** Whether the action badge target is below the viewport */
+    isActionBadgeBelowViewport: boolean;
+
     /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
@@ -157,8 +161,9 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef, getListRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
@@ -216,6 +221,8 @@ function useReportActionsScroll({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
@@ -229,7 +236,14 @@ function useReportActionsScroll({
         // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            scrollOffsetRef.current = contentOffset.y;
+            syncScrollSharedValues({
+                offset: contentOffset.y,
+                distanceToOldestEnd: contentSize.height - layoutMeasurement.height - contentOffset.y,
+                distanceToNewestEnd: contentOffset.y,
+                viewportHeight: layoutMeasurement.height,
+            });
         },
         actionBadgeTargetIndex,
         getVisibleIndexRange: () => {
@@ -417,6 +431,7 @@ function useReportActionsScroll({
         // The expanded composer covers the list, so the target never becomes viewable to hide the pill
         if (isComposerFullSize) {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
             setIsFloatingMessageCounterVisible(false);
         }
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
@@ -483,7 +498,7 @@ function useReportActionsScroll({
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
+        initialScrollIndexParams = isMobileWebLandscape ? {viewPosition: 1, viewOffset: windowHeight} : {viewOffset: windowHeight};
     }
 
     return {
@@ -491,6 +506,7 @@ function useReportActionsScroll({
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,

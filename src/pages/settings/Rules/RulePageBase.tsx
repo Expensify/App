@@ -20,7 +20,7 @@ import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {formatTaxRateName, getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -211,7 +211,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.TAX}
                             name={translate('common.tax')}
-                            value={selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined}
+                            value={selectedTaxRate ? formatTaxRateName(selectedTaxRate.name, selectedTaxRate.value) : undefined}
                             onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash)}
                         />
                     )}

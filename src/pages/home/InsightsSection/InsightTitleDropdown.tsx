@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -25,9 +24,11 @@ import type {ComponentRef} from 'react';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {HomeInsightConfig} from './useHomeInsightConfigs';
+
 type InsightTitleDropdownProps = {
     /** The insight options to list in the dropdown, in display order */
-    configs: SearchTypeMenuItem[];
+    configs: HomeInsightConfig[];
 
     selectedKey: SearchKey;
 
@@ -44,7 +45,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket']) as Partial<Record<ExpensifyIconName, IconAsset>>;
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket', 'Tag']) as Partial<Record<ExpensifyIconName, IconAsset>>;
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const triggerRef = useRef<ComponentRef<typeof View>>(null);
@@ -70,6 +71,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
         icon: icons[config.icon],
         isSelected: config.key === selectedKey,
         onSelected: () => onSelect(config.key),
+        sentryLabel: config.sentryLabel,
     }));
 
     return (

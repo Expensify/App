@@ -1,9 +1,12 @@
+import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
+import {buildMentionedRoomPlaceholderMap} from '@hooks/useReportIDToNameMap';
+
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
 
@@ -35,7 +38,7 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
-    accountIDToName?: Record<string, string>;
+    personalDetailsList?: PersonalDetailsList;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -588,7 +591,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 
 function buildConciergeDraftReportAction({
     actorAccountID,
-    accountIDToName,
+    personalDetailsList,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -615,8 +618,14 @@ function buildConciergeDraftReportAction({
         return null;
     }
 
+    const accountIDToName = personalDetailsList ? buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(html)) : undefined;
+
     // Default to Concierge so existing call sites that don't pass an actor stay byte-identical.
     const resolvedActorAccountID = actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
+
+    // The draft renders from its HTML, and its text is never shown, so mentioned rooms get a placeholder name
+    // instead of making the draft subscribe to every report.
+    const text = Parser.htmlToText(html, {accountIDToName, reportIDToName: buildMentionedRoomPlaceholderMap(html)});
 
     return {
         reportActionID,
@@ -625,7 +634,7 @@ function buildConciergeDraftReportAction({
         actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName})}],
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
@@ -705,7 +714,7 @@ function applyConciergeDraftEvent(
     event: ConciergeDraftEvent,
     reportID: string,
     isGroupPolicyReport: boolean,
-    accountIDToName?: Record<string, string>,
+    personalDetailsList?: PersonalDetailsList,
 ): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
@@ -728,7 +737,7 @@ function applyConciergeDraftEvent(
     const nextReportAction =
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
-            accountIDToName,
+            personalDetailsList,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,

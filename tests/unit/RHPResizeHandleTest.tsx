@@ -1,12 +1,15 @@
 import {fireEvent, render} from '@testing-library/react-native';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type RHPResizeHandleComponent from '@components/RHPResizeHandle';
 
 import {resetPaneWidth, setPaneWidth} from '@libs/actions/PaneWidth';
+import {translate} from '@libs/Localize';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -16,6 +19,10 @@ const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResize
 
 // The native helpers never touch the DOM, so the web ones are loaded by their file name too.
 jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/singleRHPWidth/index.ts'));
+
+// Without a LocaleContextProvider every translation is empty, so the label and the announced widths are read in English instead.
+const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
 jest.mock('@libs/actions/PaneWidth', () => ({
     setPaneWidth: jest.fn(),
@@ -41,6 +48,10 @@ function renderHandle() {
     // jsdom has no pointer capture.
     handleElement.setPointerCapture = jest.fn();
 
+    // jsdom doesn't track how an element got focus.
+    let isFocusVisible = false;
+    jest.spyOn(handleElement, 'matches').mockImplementation((selector: string) => selector === ':focus-visible' && isFocusVisible);
+
     // The test renderer leaves refs empty, so the line's ref gets a real element to take the snapped width the handle sets on the DOM.
     const lineElement = document.createElement('div');
 
@@ -62,6 +73,33 @@ function renderHandle() {
     const firePointer = (eventName: PointerEventName, clientX: number) =>
         fireEvent(getHandle(), eventName, {button: 0, clientX, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()});
 
+    /** Fires a key press carrying only what the handle reads, returning the spies that tell whether the handle took the key. */
+    const fireKey = (eventName: 'keyDown' | 'keyUp', key: string, {repeat = false} = {}) => {
+        const keyEvent = {key, repeat, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()};
+        fireEvent(getHandle(), eventName, keyEvent);
+        return keyEvent;
+    };
+
+    /** Presses and releases a key, as a tap of it does. */
+    const pressKey = (key: string) => {
+        fireKey('keyDown', key);
+        fireKey('keyUp', key);
+    };
+
+    const fireFocus = (isFromKeyboard: boolean) => {
+        isFocusVisible = isFromKeyboard;
+        fireEvent(getHandle(), 'focus', {currentTarget: handleElement});
+    };
+
+    const fireBlur = () => {
+        isFocusVisible = false;
+        fireEvent(getHandle(), 'blur', {currentTarget: handleElement});
+    };
+
+    const readHandleProps = (): Record<string, unknown> => getHandle().props;
+
+    const isLineShown = () => screen.UNSAFE_root.findAll((node) => node.type === 'div').length > 1;
+
     const readLiveWidth = () => document.documentElement.style.getPropertyValue(WIDTH_VARIABLE);
 
     const rerenderHandle = () => screen.rerender(<RHPResizeHandle />);
@@ -74,10 +112,12 @@ function renderHandle() {
     /** Reads the width set on the line's DOM node mid-drag, which overrides the one React renders. */
     const readPaintedLineWidth = () => lineElement.style.width;
 
-    return {...screen, firePointer, readLineWidth, readPaintedLineWidth, readLiveWidth, rerenderHandle};
+    return {...screen, handleElement, firePointer, fireKey, pressKey, fireFocus, fireBlur, readHandleProps, isLineShown, readLineWidth, readPaintedLineWidth, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockSavedWidth = 400;
@@ -306,5 +346,194 @@ describe('RHPResizeHandle', () => {
         expect(liveWidthMidDrag).toBe('');
         expect(setPaneWidth).not.toHaveBeenCalled();
         expect(resetPaneWidth).not.toHaveBeenCalled();
+    });
+
+    it('exposes the edge to assistive technology as a focusable separator holding the width', () => {
+        // Given a single RHP saved at 400px, in a window that lets it range from 380px to 800px
+        const {readHandleProps} = renderHandle();
+
+        // When the handle renders
+        const handleProps = readHandleProps();
+
+        // Then it can be reached with Tab and is announced as a named vertical separator at the RHP's width, within the bounds a drag has
+        expect(handleProps.role).toBe('separator');
+        expect(handleProps.tabIndex).toBe(0);
+        expect(handleProps['aria-label']).toBe('Resize panel');
+        expect(handleProps['aria-orientation']).toBe('vertical');
+        expect(handleProps['aria-valuenow']).toBe(400);
+        expect(handleProps['aria-valuemin']).toBe(MIN_WIDTH);
+        expect(handleProps['aria-valuemax']).toBe(MAX_WIDTH);
+
+        // And it's read out in pixels, the same as a table column's edge
+        expect(handleProps['aria-valuetext']).toBe('400 pixels');
+    });
+
+    it('widens on the left arrow and narrows on the right one, saving the width once the key is released', () => {
+        // Given a single RHP saved at 400px, its edge focused
+        const {handleElement, fireKey, readLiveWidth, rerenderHandle} = renderHandle();
+
+        // When the left arrow is pressed and held for one repeat
+        const arrowLeft = fireKey('keyDown', 'ArrowLeft');
+        fireKey('keyDown', 'ArrowLeft', {repeat: true});
+
+        // Then the edge moves left a step per press, widening the cards right away without scrolling anything, and nothing is
+        // saved yet, since each save's render would pull the edge back mid-hold
+        const widenedWidth = 400 + 2 * CONST.RESIZE_HANDLE.KEYBOARD_STEP;
+        expect(readLiveWidth()).toBe(`${widenedWidth}px`);
+        expect(arrowLeft.preventDefault).toHaveBeenCalled();
+        expect(setPaneWidth).not.toHaveBeenCalled();
+
+        // And the announced width follows each press, since nothing renders until the key is released
+        expect(handleElement.getAttribute('aria-valuenow')).toBe(String(widenedWidth));
+        expect(handleElement.getAttribute('aria-valuetext')).toBe(`${widenedWidth} pixels`);
+
+        // When the key is released
+        fireKey('keyUp', 'ArrowLeft');
+
+        // Then the width is saved once, the same way a drag saves it
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, widenedWidth]]);
+
+        // When the saved width renders and the right arrow is tapped
+        jest.clearAllMocks();
+        mockSavedWidth = widenedWidth;
+        rerenderHandle();
+        fireKey('keyDown', 'ArrowRight');
+        fireKey('keyUp', 'ArrowRight');
+
+        // Then the edge moves back right, narrowing the cards by a step
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, widenedWidth - CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+    });
+
+    it.each([
+        ['widest', MAX_WIDTH, 'ArrowLeft'],
+        ['narrowest', MIN_WIDTH, 'ArrowRight'],
+    ])('stops at the %s width a drag allows', (_, savedWidth: number, key: string) => {
+        // Given a single RHP already at a bound
+        mockSavedWidth = savedWidth;
+        const {pressKey, readLiveWidth} = renderHandle();
+
+        // When the arrow pushing past it is tapped
+        pressKey(key);
+
+        // Then nothing is painted or saved, the same as dragging past the bound
+        expect(readLiveWidth()).toBe('');
+        expect(setPaneWidth).not.toHaveBeenCalled();
+        expect(resetPaneWidth).not.toHaveBeenCalled();
+    });
+
+    it('drops the saved width when the arrow keys land on the default', () => {
+        // Given a single RHP saved a step narrower than the default
+        mockSavedWidth = DEFAULT_WIDTH - CONST.RESIZE_HANDLE.KEYBOARD_STEP;
+        const {pressKey} = renderHandle();
+
+        // When the left arrow is tapped
+        pressKey('ArrowLeft');
+
+        // Then the saved width is dropped rather than pinned to the default, the same as a drag that snaps onto it
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(setPaneWidth).not.toHaveBeenCalled();
+    });
+
+    it('steps off the default width without snapping back to it', () => {
+        // Given a single RHP at the default width
+        mockSavedWidth = DEFAULT_WIDTH;
+        const {pressKey} = renderHandle();
+
+        // When the left arrow is tapped, moving it less than the drag's snap threshold
+        pressKey('ArrowLeft');
+
+        // Then the width moves a step anyway, since snapping would keep the arrow keys from ever leaving the default
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, DEFAULT_WIDTH + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+    });
+
+    it.each(['Enter', ' '])('resets the width on %p, the same as a click, once while it is held', (key: string) => {
+        // Given a single RHP saved at 400px, its edge focused
+        const {fireKey} = renderHandle();
+
+        // When the key is pressed and held for one repeat
+        const keyDown = fireKey('keyDown', key);
+        fireKey('keyDown', key, {repeat: true});
+
+        // Then the saved width is dropped once, without the key reaching the page or global shortcuts
+        expect(jest.mocked(resetPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH]]);
+        expect(keyDown.stopPropagation).toHaveBeenCalled();
+    });
+
+    it('saves an arrow-key width when focus leaves before the key is released', () => {
+        // Given a single RHP saved at 400px, its edge moved by the left arrow
+        const {fireKey, fireBlur} = renderHandle();
+        fireKey('keyDown', 'ArrowLeft');
+
+        // When focus moves on, so the key release lands elsewhere
+        fireBlur();
+
+        // Then the width is saved anyway, rather than left painted until the next render drops it
+        expect(jest.mocked(setPaneWidth).mock.calls).toEqual([[ONYXKEYS.SINGLE_RHP_WIDTH, 400 + CONST.RESIZE_HANDLE.KEYBOARD_STEP]]);
+    });
+
+    it('keeps the arrow-key width when the saved width changes mid-hold', () => {
+        // Given a single RHP saved at 400px, its edge moved a step by a held left arrow
+        const {fireKey, readLiveWidth, rerenderHandle} = renderHandle();
+        fireKey('keyDown', 'ArrowLeft');
+
+        // When the saved width changes underneath it, as a window resize re-clamps it
+        mockSavedWidth = 390;
+        rerenderHandle();
+
+        // Then the cards stay where the key put them
+        expect(readLiveWidth()).toBe(`${400 + CONST.RESIZE_HANDLE.KEYBOARD_STEP}px`);
+    });
+
+    it('ignores the arrow keys mid-drag', () => {
+        // Given a drag in progress at 500px
+        const {firePointer, pressKey, readLiveWidth} = renderHandle();
+        firePointer('pointerDown', 1000);
+        firePointer('pointerMove', 900);
+
+        // When an arrow key is tapped before the drag ends
+        pressKey('ArrowLeft');
+
+        // Then the drag keeps the width, and nothing is saved behind its back
+        expect(readLiveWidth()).toBe('500px');
+        expect(setPaneWidth).not.toHaveBeenCalled();
+    });
+
+    it('shows the line while the edge has keyboard focus', () => {
+        // Given a single RHP whose edge isn't hovered
+        const {fireFocus, fireBlur, fireKey, isLineShown} = renderHandle();
+
+        // When its edge is focused by a pointer press
+        fireFocus(false);
+
+        // Then no line appears, since a press shows it only while hovered or dragging
+        expect(isLineShown()).toBe(false);
+
+        // When a key acts on it
+        fireKey('keyDown', 'ArrowLeft');
+
+        // Then the line appears, so the user sees which edge the arrow keys move
+        expect(isLineShown()).toBe(true);
+
+        // When focus moves on, and then comes back from the keyboard
+        fireBlur();
+        expect(isLineShown()).toBe(false);
+        fireFocus(true);
+
+        // Then the line shows straight away
+        expect(isLineShown()).toBe(true);
+    });
+
+    it('leaves other keys and modified arrows to the page', () => {
+        // Given a single RHP whose edge has focus
+        const {fireKey, readLiveWidth} = renderHandle();
+
+        // When Tab and Escape are pressed
+        const tab = fireKey('keyDown', 'Tab');
+        const escape = fireKey('keyDown', 'Escape');
+
+        // Then they keep their usual jobs, moving focus on and closing the RHP, and the width is untouched
+        expect(tab.preventDefault).not.toHaveBeenCalled();
+        expect(escape.stopPropagation).not.toHaveBeenCalled();
+        expect(readLiveWidth()).toBe('');
     });
 });

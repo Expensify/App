@@ -12,6 +12,10 @@ jest.mock('@libs/telemetry/startTabNavigationSpans');
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn());
 
 describe('tabScreenListeners', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('opens the Inbox chat list only when Inbox is pressed from another tab with a report open', () => {
         // Given Inbox left with a report open, which the native bar does not switch to, so JS opens it at the chat list like InboxTabButton
         const inboxWithReport = {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT}], index: 1}};
@@ -56,5 +60,30 @@ describe('tabScreenListeners', () => {
         expect(isNativeTabSelectionEnabled(NAVIGATORS.WORKSPACE_NAVIGATOR, anonymous)).toBe(false);
         expect(isNativeTabSelectionEnabled(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, anonymous)).toBe(false);
         expect(isNativeTabSelectionEnabled(SCREENS.HOME, anonymous)).toBe(true);
+    });
+
+    it('switches natively to Expenses and Reports like Spend, and never to More', () => {
+        // Given a signed-in user whose Inbox and Workspaces tabs would not be switched natively, and an anonymous user
+        const unrestored = {isAnonymousUser: false, isInboxAtChatList: false, isWorkspacesTabRestored: false};
+        const anonymous = {isAnonymousUser: true, isInboxAtChatList: true, isWorkspacesTabRestored: true};
+
+        // When the native selection of the flat nav placeholders is decided
+        // Then Expenses and Reports switch natively like the Spend tab they open, so the iOS bar does not slide back,
+        // except for anonymous users, who get the sign-in instead
+        expect(isNativeTabSelectionEnabled(SCREENS.NATIVE_TAB_ITEM.EXPENSES, unrestored)).toBe(true);
+        expect(isNativeTabSelectionEnabled(SCREENS.NATIVE_TAB_ITEM.REPORTS, unrestored)).toBe(true);
+        expect(isNativeTabSelectionEnabled(SCREENS.NATIVE_TAB_ITEM.EXPENSES, anonymous)).toBe(false);
+        expect(isNativeTabSelectionEnabled(SCREENS.NATIVE_TAB_ITEM.REPORTS, anonymous)).toBe(false);
+        // And More is never selected by a tap, because it opens a menu rather than a tab
+        expect(isNativeTabSelectionEnabled(SCREENS.NATIVE_TAB_ITEM.MORE, unrestored)).toBe(false);
+    });
+
+    it('leaves the placeholder presses to their own handlers', () => {
+        // Given the Expenses placeholder, whose press is handled with Onyx data by FlatNavTabPressListeners
+        // When it is pressed
+        tabScreenListeners({route: {name: SCREENS.NATIVE_TAB_ITEM.EXPENSES}, navigation: {isFocused: () => false}, session: undefined}).tabPress();
+
+        // Then the shared handlers do nothing, so the sign-in check and the spans do not run twice
+        expect(interceptAnonymousUser).not.toHaveBeenCalled();
     });
 });
