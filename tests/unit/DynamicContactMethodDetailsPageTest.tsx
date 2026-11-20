@@ -1,12 +1,14 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
+import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicContactMethodDetailsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -153,6 +155,7 @@ describe('DynamicContactMethodDetailsPage', () => {
     });
 
     it('calls Navigation.goBack when contact method becomes validated and screen is focused', async () => {
+        // Given an unverified contact with an error left over from a previous attempt.
         Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail});
         Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
         Onyx.merge(ONYXKEYS.LOGINS, {
@@ -161,12 +164,21 @@ describe('DynamicContactMethodDetailsPage', () => {
 
                 partnerUserID: fakeEmail,
                 validatedDate: '',
+                errorFields: {validateLogin: {[Date.now()]: 'Stale verification error'}},
             },
         });
         await waitForBatchedUpdates();
 
         render(<ContactMethodDetailsPageRenderer />);
         await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('Stale verification error')).toBeNull();
+        // When a resend fails without submitting the form.
+        fireEvent(screen.UNSAFE_getByType(ValidateCodeCountdown), 'countdownFinish');
+        mockFetch.fail();
+        fireEvent.press(screen.UNSAFE_getByProps({sentryLabel: CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}));
+        // Then the user sees the resend error and returns once verification succeeds.
+        expect(await screen.findByText('contacts.genericFailureMessages.requestContactMethodValidateCode')).toBeOnTheScreen();
+        mockFetch.succeed();
 
         await act(async () => {
             Onyx.merge(ONYXKEYS.LOGINS, {
