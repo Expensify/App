@@ -18,6 +18,7 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -33,7 +34,10 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
+import HomeTodoReportNavigation from './MoneyRequestReportView/HomeTodoReportNavigation';
+import HomeTodoReviewAutoAdvance from './MoneyRequestReportView/HomeTodoReviewAutoAdvance';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportView/MoneyRequestReportNavigationCounter';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
@@ -117,14 +121,20 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     // precedence wherever this report is anchored to one.
     const shouldShowReportNavigation = !shouldShowTransactionNavigation && isReportInSearch;
 
+    const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
+
+    // A report opened from a Home to-do row pages through that row's reports instead of search results.
+    const [homeTodoReview] = useOnyx(ONYXKEYS.RAM_ONLY_HOME_TODO_REVIEW);
+    const isInHomeTodoReview = backTo === ROUTES.HOME && !!reportIDProp && !!homeTodoReview?.reportIDs.includes(reportIDProp);
+    const shouldShowHomeTodoNavigation = !shouldShowTransactionNavigation && !shouldShowReportNavigation && isInHomeTodoReview && (homeTodoReview?.reportIDs.length ?? 0) > 1;
+
     const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);
     const shouldRenderActionsInHeaderRow = shouldShowHeaderButtonsInHeaderRow && !hasStatusOrNextStep;
     // A narrow header has room for one control beside the title, and prev/next wins it: the arrows are the only way
     // to reach this expense's siblings, whereas the search router is still one back-press away on the screen the
     // user came from. Where no arrows are rendered the magnifier keeps its place, as it did before.
-    const shouldDisplaySearchRouter = !isReportInRHP || (isSmallScreenWidth && !shouldShowTransactionNavigation && !shouldShowReportNavigation);
-
-    const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
+    const shouldDisplaySearchRouter =
+        (!isReportInRHP && !shouldShowHomeTodoNavigation) || (isSmallScreenWidth && !shouldShowTransactionNavigation && !shouldShowReportNavigation && !shouldShowHomeTodoNavigation);
 
     const primaryAction = useReportPrimaryAction(reportIDProp);
 
@@ -200,6 +210,21 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             />
                         )
                     )}
+                    {shouldShowHomeTodoNavigation && !!homeTodoReview && !!reportIDProp && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {/* A narrow header keeps only the arrows, as the Spend report navigation does */}
+                            {shouldShowHeaderButtonsInHeaderRow && (
+                                <MoneyRequestReportNavigationCounter
+                                    current={homeTodoReview.reportIDs.indexOf(reportIDProp) + 1}
+                                    total={homeTodoReview.reportIDs.length}
+                                />
+                            )}
+                            <HomeTodoReportNavigation
+                                reportID={reportIDProp}
+                                reportIDs={homeTodoReview.reportIDs}
+                            />
+                        </View>
+                    )}
                 </View>
             </HeaderWithBackButton>
             {!shouldShowHeaderButtonsInHeaderRow && (
@@ -219,6 +244,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldRenderActionsInRow={shouldShowHeaderButtonsInHeaderRow && !shouldRenderActionsInHeaderRow}
             />
             <HeaderLoadingBar />
+            {isInHomeTodoReview && !!homeTodoReview && !!reportIDProp && (
+                <HomeTodoReviewAutoAdvance
+                    reportID={reportIDProp}
+                    searchKey={homeTodoReview.searchKey}
+                    reportIDs={homeTodoReview.reportIDs}
+                />
+            )}
         </View>
     );
 }

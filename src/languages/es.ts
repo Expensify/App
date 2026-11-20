@@ -1162,6 +1162,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Revisa 1 solicitud de administrador de dominio',
                 other: `Revisa ${count} solicitudes de administrador de dominio`,
             }),
+            reportSubmitted: 'Informe enviado',
+            reportApproved: 'Informe aprobado',
+            reportPaid: 'Informe pagado',
+            reportExported: 'Informe exportado',
         },
         gettingStartedSection: {
             title: 'Primeros pasos',

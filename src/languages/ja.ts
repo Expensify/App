@@ -1138,6 +1138,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `${count} 件のドメイン管理者リクエストを確認`,
                 other: `${count} 件のドメイン管理者リクエストを確認`,
             }),
+            reportSubmitted: 'レポートを送信しました',
+            reportApproved: 'レポートを承認しました',
+            reportPaid: 'レポートは支払済みです',
+            reportExported: 'レポートをエクスポートしました',
         },
         upcomingTravel: '今後の出張',
         upcomingTravelSection: {

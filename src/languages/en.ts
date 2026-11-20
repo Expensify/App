@@ -1284,6 +1284,10 @@ const translations = {
                 other: `Review ${count} domain admin requests`,
             }),
             begin: 'Begin',
+            reportSubmitted: 'Report submitted',
+            reportApproved: 'Report approved',
+            reportPaid: 'Report paid',
+            reportExported: 'Report exported',
             emptyStateMessages: {
                 thumbsUpStarsTitle: "You're done!",
                 thumbsUpStarsDescription: 'Thumbs up to you, stay tuned for more tasks.',

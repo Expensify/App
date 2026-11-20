@@ -1150,6 +1150,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Prüfen Sie 1 Domain-Admin-Anfrage',
                 other: `Prüfen Sie ${count} Domain-Admin-Anfragen`,
             }),
+            reportSubmitted: 'Bericht eingereicht',
+            reportApproved: 'Bericht genehmigt',
+            reportPaid: 'Bericht bezahlt',
+            reportExported: 'Bericht exportiert',
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {

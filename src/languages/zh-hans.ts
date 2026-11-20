@@ -1112,6 +1112,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `审核 ${count} 个域管理员请求`,
                 other: `审核 ${count} 个域管理员请求`,
             }),
+            reportSubmitted: '报表已提交',
+            reportApproved: '报销单已批准',
+            reportPaid: '报销单已支付',
+            reportExported: '报表已导出',
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {

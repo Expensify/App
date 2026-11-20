@@ -1149,6 +1149,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Beoordeel 1 domeinbeheerdersverzoek',
                 other: `Beoordeel ${count} domeinbeheerdersverzoeken`,
             }),
+            reportSubmitted: 'Declaratie ingediend',
+            reportApproved: 'Rapport goedgekeurd',
+            reportPaid: 'Rapport betaald',
+            reportExported: 'Rapport geëxporteerd',
         },
         upcomingTravel: 'Aankomende reizen',
         upcomingTravelSection: {

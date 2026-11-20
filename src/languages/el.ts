@@ -1212,6 +1212,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Είστε καλυμμένος',
                 f1FlagsDescription: 'Έχετε ολοκληρώσει όλες τις εκκρεμείς εργασίες.',
             },
+            reportSubmitted: 'Η αναφορά υποβλήθηκε',
+            reportApproved: 'Η αναφορά εγκρίθηκε',
+            reportPaid: 'Η έκθεση πληρώθηκε',
+            reportExported: 'Η αναφορά εξαχθεί',
         },
         recentlyAddedSection: {
             title: 'Προστέθηκαν πρόσφατα',
