@@ -1,10 +1,17 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchSelectionContext} from '@components/Search/SearchContext';
+import type {SearchSelectionContextValue} from '@components/Search/types';
+
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import type useSingleExecution from '@hooks/useSingleExecution';
 
 import {createNewReport} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 
@@ -30,12 +37,16 @@ jest.mock('@libs/actions/Report', () => ({
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => jest.fn(() => ({openCreateReportConfirmation: mockOpenCreateReportConfirmation})));
+jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
+
+// Web does not use the native pressable guard, so these tests must rely on the button's loading guard.
+jest.mock('@hooks/useSingleExecution', () => jest.requireActual<{default: typeof useSingleExecution}>('@hooks/useSingleExecution/index.ts'));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     dismissModal: jest.fn(),
-    setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -59,20 +70,22 @@ const REPORT_ID = 'report-1';
 
 const Stack = createPlatformStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>();
 
-function renderPage() {
+function renderPage(selectedTransactionIDs: string[] = []) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator>
-                        <Stack.Screen
-                            name={SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT}
-                            component={DynamicNewReportWorkspaceSelectionPage}
-                            initialParams={{}}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </PortalProvider>
+            <SearchSelectionContext value={createMock<SearchSelectionContextValue>({selectedTransactions: {}, selectedTransactionIDs, excludedTransactions: {}})}>
+                <PortalProvider>
+                    <NavigationContainer>
+                        <Stack.Navigator>
+                            <Stack.Screen
+                                name={SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT}
+                                component={DynamicNewReportWorkspaceSelectionPage}
+                                initialParams={{}}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </PortalProvider>
+            </SearchSelectionContext>
         </ComposeProviders>,
     );
 }
@@ -106,6 +119,19 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+    return policy;
+}
+
+/**
+ * Selecting a workspace only stages it. The report is created when the user presses Create.
+ * The two-step press keeps these tests aligned with that flow.
+ */
+async function selectWorkspaceAndCreate(workspaceName: string) {
+    fireEvent.press(await screen.findByText(workspaceName));
+    await waitForBatchedUpdatesWithAct();
+
+    fireEvent.press(await screen.findByText('Create'));
+    await waitForBatchedUpdatesWithAct();
 }
 
 describe('NewReportWorkspaceSelectionPage', () => {
@@ -113,11 +139,258 @@ describe('NewReportWorkspaceSelectionPage', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
+    beforeEach(() => {
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it.each([true, false])('places Create inside the scrollable list only when the footer hook returns %s', async (shouldFooterBeInsideList) => {
+        // Given the shared hook decides whether the keyboard leaves room for a fixed footer.
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(shouldFooterBeInsideList);
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When this page renders its workspace list.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Create scrolls with the list only in the layout selected by the hook.
+        expect(await screen.findByRole('button', {name: 'Create'})).toBeOnTheScreen();
+        const createInsideList = within(screen.getByTestId('selection-list')).queryByRole('button', {name: 'Create'});
+        if (shouldFooterBeInsideList) {
+            expect(createInsideList).toBeOnTheScreen();
+        } else {
+            expect(createInsideList).not.toBeOnTheScreen();
+        }
+    });
+
+    it('shows an error without creating a report until a workspace is selected and confirmed', async () => {
+        // Given no workspace is selected, Create must remain available to explain the required selection.
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+        expect(createButton).toBeEnabled();
+        expect(screen.queryByText('Please select a workspace')).not.toBeOnTheScreen();
+
+        // When Create is pressed without a selection, validation must prevent both creation paths.
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error explains the missing selection without creating a report or opening confirmation.
+        expect(await screen.findByText('Please select a workspace')).toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+        await waitFor(() => expect(createButton).toBeEnabled());
+
+        // When a workspace is selected, only the validation error should clear.
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then selecting a row still requires an explicit Create press.
+        expect(screen.queryByText('Please select a workspace')).not.toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+    });
+
+    it.each([
+        {
+            name: 'deleted',
+            removeEligibility: () => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null),
+        },
+        {
+            name: 'pending deletion',
+            removeEligibility: () => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        },
+        {
+            name: 'no longer accessible to the user',
+            removeEligibility: () => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: null, employeeList: {[EMAIL]: null}}),
+        },
+    ])('rejects a staged workspace that is $name before Create is pressed', async ({removeEligibility}) => {
+        // Given the user has staged a workspace that is currently eligible.
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+
+        // When a live policy update removes eligibility before submission.
+        await act(async () => {
+            await removeEligibility();
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(POLICY_NAME)).not.toBeOnTheScreen();
+        fireEvent.press(await screen.findByRole('button', {name: 'Create'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then neither creation path may use the stale selection.
+        expect(await screen.findByText('Please select a workspace')).toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('rejects a staged workspace when per diem becomes unavailable before Create is pressed', async () => {
+        // Given a selected per diem expense and a workspace that can initially accept it.
+        const transactionID = 'per-diem-transaction';
+        const customUnitID = 'per-diem-unit';
+        await act(async () => {
+            await seedBaseOnyx({customUnits: {[customUnitID]: {customUnitID, name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, enabled: true, rates: {}}}});
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({transactionID, reportID: REPORT_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM, pendingAction: null}),
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage([transactionID]);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the workspace disables per diem while its selection is staged.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {customUnits: {[customUnitID]: {enabled: false}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(POLICY_NAME)).not.toBeOnTheScreen();
+        fireEvent.press(await screen.findByRole('button', {name: 'Create'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then submission must respect the current per diem filter rather than the old row.
+        expect(await screen.findByText('Please select a workspace')).toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('keeps a staged workspace valid when search hides its row', async () => {
+        // Given enough eligible workspaces to show search and a workspace staged before searching.
+        await act(async () => {
+            const policy = await seedBaseOnyx();
+            for (let index = 0; index < CONST.STANDARD_LIST_ITEM_LIMIT; index++) {
+                const policyID = `other-policy-${index}`;
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...policy, id: policyID, name: `Other Workspace ${index}`});
+            }
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+
+        // When search hides the selected workspace without changing its eligibility.
+        fireEvent.changeText(await screen.findByLabelText('Search'), 'Other Workspace');
+        await waitFor(() => expect(screen.queryByText(POLICY_NAME)).not.toBeOnTheScreen());
+        fireEvent.press(await screen.findByRole('button', {name: 'Create'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Create still uses the staged workspace from the unfiltered eligible list.
+        expect(screen.queryByText('Please select a workspace')).not.toBeOnTheScreen();
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(useCreateEmptyReportConfirmation).mock.lastCall?.[0]).toEqual(expect.objectContaining({policyID: POLICY_ID, policyName: POLICY_NAME}));
+    });
+
+    it('allows workspace names to wrap to two lines', async () => {
+        // Given a workspace name can exceed the available row width.
+        const longWorkspaceName = 'A long workspace name that needs a second line in the workspace selection page';
+        await act(async () => {
+            await seedBaseOnyx({name: longWorkspaceName});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the workspace selection page renders its rows.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the name supports two lines instead of truncating to one.
+        expect(await screen.findByText(longWorkspaceName)).toHaveProp('numberOfLines', 2);
+    });
+
+    it('creates only one report when Create is pressed twice before navigation runs', async () => {
+        // Given a selected workspace can create directly, but navigation has not run yet.
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}txn-1`, createMock<Transaction>({transactionID: 'txn-1', reportID: REPORT_ID, pendingAction: null}));
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+
+        // When both presses arrive before React commits the loading state, only one should be accepted.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- The outer act deliberately batches both presses to reproduce the race before loading commits.
+        act(() => {
+            fireEvent.press(createButton);
+            fireEvent.press(createButton);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a single report and destination are created while navigation is still queued.
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
+        expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('opens confirmation once on a double press and permits retry after cancellation', async () => {
+        // Given the workspace has an empty report, Create must open confirmation rather than create immediately.
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+
+        // When overlapping presses arrive, they should produce only one confirmation prompt.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- The outer act deliberately batches both presses to reproduce the race before loading commits.
+        act(() => {
+            fireEvent.press(createButton);
+            fireEvent.press(createButton);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no report is created before confirmation.
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+
+        // When the user cancels, the staged selection must remain usable for a fresh attempt.
+        act(() => {
+            jest.mocked(useCreateEmptyReportConfirmation).mock.lastCall?.[0].onCancel?.();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => expect(createButton).toBeEnabled());
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then confirmation can reopen and its accepted result creates exactly one report.
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalledTimes(2);
+        act(() => {
+            jest.mocked(useCreateEmptyReportConfirmation).mock.lastCall?.[0].onConfirm(false);
+        });
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
     });
 
     it('opens the empty-report confirmation when there are no transactions for the user report', async () => {
@@ -129,8 +402,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByText(POLICY_NAME));
-        await waitForBatchedUpdatesWithAct();
+        await selectWorkspaceAndCreate(POLICY_NAME);
 
         expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
         expect(mockCreateNewReport).not.toHaveBeenCalled();
@@ -151,8 +423,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByText(POLICY_NAME));
-        await waitForBatchedUpdatesWithAct();
+        await selectWorkspaceAndCreate(POLICY_NAME);
 
         expect(mockCreateNewReport).toHaveBeenCalled();
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();

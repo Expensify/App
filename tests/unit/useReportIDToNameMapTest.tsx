@@ -1,6 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap, {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import useReportIDToNameMap, {
+    buildMentionedRoomPlaceholderMap,
+    buildReportIDToNameMap,
+    getMentionedReportIDs,
+    getReportIDToNameMapForRoomsInMarkdown,
+    useMentionedReportIDToNameMap,
+} from '@hooks/useReportIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -196,6 +202,75 @@ describe('getMentionedReportIDs', () => {
 
         // Then nothing needs to be looked up
         expect(reportIDs).toEqual([]);
+    });
+});
+
+describe('useMentionedReportIDToNameMap', () => {
+    const renderMentioned = async (html: string | undefined) => {
+        const hook = renderHook(() => useMentionedReportIDToNameMap(html));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        return hook;
+    };
+
+    it('maps only the reports mentioned in the HTML', async () => {
+        // Given three reports, two of which are mentioned
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, createReport('2', {reportName: '#announce'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}3`, createReport('3', {reportName: undefined}));
+
+        // When mapping the mentioned reports
+        const {result} = await renderMentioned('<mention-report reportID="1"/> and <mention-report reportID="3"/>');
+
+        // Then the unmentioned report is left out and the fallback name is still the reportID
+        const adminsRoomID = '1';
+        const unnamedReportID = '3';
+        expect(result.current).toEqual({[adminsRoomID]: '#admins', [unnamedReportID]: unnamedReportID});
+    });
+
+    it('keeps the same reference when an unrelated report changes', async () => {
+        // Given a map scoped to one mentioned report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, createReport('2', {reportName: '#announce'}));
+        const {result} = await renderMentioned('<mention-report reportID="1"/>');
+        const firstResult = result.current;
+
+        // When a report that is not mentioned is renamed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportName: '#renamed'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the selector output is unchanged, so the caller does not re-render for that write
+        expect(result.current).toBe(firstResult);
+    });
+
+    it('updates when a mentioned report is renamed', async () => {
+        // Given a map scoped to one mentioned report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+        const {result} = await renderMentioned('<mention-report reportID="1"/>');
+        expect(result.current['1']).toBe('#admins');
+
+        // When that report is renamed
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: '#renamed'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the new name is what htmlToMarkdown will see
+        expect(result.current['1']).toBe('#renamed');
+    });
+
+    it('returns an empty map when nothing is mentioned', async () => {
+        // Given reports exist but the HTML mentions none of them
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, createReport('1', {reportName: '#admins'}));
+
+        // When mapping the mentioned reports
+        const {result} = await renderMentioned('plain text');
+
+        // Then no report is walked or returned
+        expect(result.current).toEqual({});
     });
 });
 
