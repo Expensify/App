@@ -8506,6 +8506,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             timezoneInputLabel: 'タイムゾーン',
             timezoneInputHelpText: '自動レポート送信には、お客様のタイムゾーンが使用されます',
             timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
+            directReimbursementCurrencyTitle: '直接払い戻しではこの通貨を利用できません',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `このワークスペースは Expensify を通じてメンバーに直接払い戻しを行いますが、${currency} では利用できません。${currency} を使用するには、ワークフローで支払をオフにしてから再度オンにし、Expensify 外で支払が行われるようにしてください。`,
+            goToWorkflows: 'ワークフローに移動',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -10850,6 +10854,10 @@ ${reportName}`,
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
+            tooManyKeywords: `検索キーワードが多すぎます。キーワードを${CONST.SEARCH.MAX_KEYWORD_TOKENS}個以下にして、もう一度お試しください。`,
+            unsupportedGrouping: 'この検索ではグループ化やグラフ表示は使用できません。グループ化を解除し、テーブル表示を使用してください。',
+            invalidReportID: '有効なレポートIDを入力してください。未報告の経費を検索するには、status:unreported を使用してください。',
+            unsupportedFilter: 'この検索では "is:" フィルターは使用できません。未報告の経費を検索するには、status:unreported を使用してください。',
             emptyResults: {
                 title: '表示するものはありません',
                 subtitle: `検索条件を調整するか、＋ボタンを使って作成してみてください。`,

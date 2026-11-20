@@ -9475,6 +9475,10 @@ const translations = {
             timezoneInputLabel: 'Timezone',
             timezoneInputHelpText: 'Your timezone is used for automatic report submission',
             timezoneErrorMessage: "Timezone couldn't be changed. Please try again or contact support.",
+            directReimbursementCurrencyTitle: 'Currency not available with direct reimbursement',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `This workspace reimburses members directly through Expensify, which isn't available in ${currency}. To use ${currency}, go to Workflows and turn Payments off and back on, so payments are made outside Expensify.`,
+            goToWorkflows: 'Go to workflows',
             currencyInputDisabledText: (currency: string) => `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
@@ -11417,6 +11421,10 @@ const translations = {
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
+            tooManyKeywords: `Your search has too many keywords. Use ${CONST.SEARCH.MAX_KEYWORD_TOKENS} or fewer keywords and try again.`,
+            unsupportedGrouping: "This search doesn't support grouping or chart views. Remove the grouping and use table view.",
+            invalidReportID: 'Enter a valid report ID. To find unreported expenses, use status:unreported.',
+            unsupportedFilter: `The "is:" filter isn't supported for this search. To find unreported expenses, use status:unreported.`,
             emptyResults: {
                 title: 'Nothing to show',
                 subtitle: `Try adjusting your search criteria or creating something with the + button.`,

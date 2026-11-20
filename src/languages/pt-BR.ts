@@ -8622,6 +8622,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             timezoneInputLabel: 'Fuso horário',
             timezoneInputHelpText: 'Seu fuso horário é usado para o envio automático de relatórios',
             timezoneErrorMessage: 'Não foi possível alterar o fuso horário. Tente novamente ou entre em contato com o suporte.',
+            directReimbursementCurrencyTitle: 'Moeda indisponível com reembolso direto',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espaço de trabalho reembolsa os membros diretamente pelo Expensify, o que não está disponível em ${currency}. Para usar ${currency}, acesse Fluxos de trabalho e desative e reative Pagamentos, para que os pagamentos sejam feitos fora do Expensify.`,
+            goToWorkflows: 'Ir para fluxos de trabalho',
         },
         officeLocations: {
             title: 'Locais do escritório',
@@ -11008,6 +11012,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
+            tooManyKeywords: `Sua pesquisa tem palavras-chave demais. Use no máximo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} palavras-chave e tente novamente.`,
+            unsupportedGrouping: 'Esta pesquisa não permite agrupamentos nem visualizações em gráfico. Remova o agrupamento e use a visualização em tabela.',
+            invalidReportID: 'Insira um ID de relatório válido. Para encontrar despesas não relatadas, use status:unreported.',
+            unsupportedFilter: 'O filtro "is:" não é compatível com esta pesquisa. Para encontrar despesas não relatadas, use status:unreported.',
             emptyResults: {
                 title: 'Nada para mostrar',
                 subtitle: `Tente ajustar seus critérios de pesquisa ou criar algo com o botão +.`,

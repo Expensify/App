@@ -8700,6 +8700,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             timezoneInputLabel: 'Fuseau horaire',
             timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
             timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
+            directReimbursementCurrencyTitle: 'Devise non disponible avec le remboursement direct',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Cet espace de travail rembourse les membres directement via Expensify, ce qui n’est pas disponible en ${currency}. Pour utiliser ${currency}, allez dans Workflows et désactivez puis réactivez Paiements, afin que les paiements soient effectués en dehors d’Expensify.`,
+            goToWorkflows: 'Aller aux workflows',
         },
         officeLocations: {
             title: 'Sites de bureau',
@@ -11112,6 +11116,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
+            tooManyKeywords: `Votre recherche contient trop de mots-clés. Utilisez ${CONST.SEARCH.MAX_KEYWORD_TOKENS} mots-clés ou moins et réessayez.`,
+            unsupportedGrouping: 'Cette recherche ne prend en charge ni le regroupement ni les vues graphiques. Supprimez le regroupement et utilisez la vue tableau.',
+            invalidReportID: 'Saisissez un identifiant de rapport valide. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
+            unsupportedFilter: 'Le filtre "is:" ne peut pas être utilisé pour cette recherche. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
             emptyResults: {
                 title: 'Rien à afficher',
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,

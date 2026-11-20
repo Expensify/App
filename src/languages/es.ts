@@ -8766,6 +8766,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             timezoneInputLabel: 'Zona horaria',
             timezoneInputHelpText: 'Tu zona horaria se usa para el envío automático de informes',
             timezoneErrorMessage: 'No se pudo cambiar la zona horaria. Por favor, inténtalo de nuevo o contacta con soporte.',
+            directReimbursementCurrencyTitle: 'Moneda no disponible con el reembolso directo',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espacio de trabajo reembolsa a los miembros directamente a través de Expensify, lo cual no está disponible en ${currency}. Para usar ${currency}, ve a Flujos de trabajo y desactiva y vuelve a activar Realizar o seguir pagos, para que los pagos se hagan fuera de Expensify.`,
+            goToWorkflows: 'Ir a flujos de trabajo',
         },
         officeLocations: {
             title: 'Ubicaciones de oficinas',
@@ -11006,6 +11010,10 @@ ${reportName}`,
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
+            tooManyKeywords: `Tu búsqueda tiene demasiadas palabras clave. Usa ${CONST.SEARCH.MAX_KEYWORD_TOKENS} o menos e inténtalo de nuevo.`,
+            unsupportedGrouping: 'Esta búsqueda no admite agrupaciones ni vistas de gráficos. Quita la agrupación y usa la vista de tabla.',
+            invalidReportID: 'Introduce un ID de informe válido. Para buscar gastos sin reportar, usa status:unreported.',
+            unsupportedFilter: 'El filtro "is:" no es compatible con esta búsqueda. Para buscar gastos sin reportar, usa status:unreported.',
             emptyResults: {
                 title: 'No hay nada que ver aquí',
                 subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón +.`,
