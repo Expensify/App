@@ -1,6 +1,8 @@
-import CONST from '@src/CONST';
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 
+import CONST from '@src/CONST';
+
+import type {ViewToken} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
@@ -58,7 +60,7 @@ export default function useReportUnreadMessageScrollTracking({
     const [isActionBadgeBelowViewport, setIsActionBadgeBelowViewport] = useState(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
-        previousViewableItems: ViewToken[];
+        previousViewableItems: Array<ViewToken<unknown>>;
         reportID: string;
         unreadMarkerReportActionIndex: number;
         isFocused: boolean;
@@ -148,7 +150,7 @@ export default function useReportUnreadMessageScrollTracking({
         }
     };
 
-    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: Parameters<ViewableItemsChangedHandler>[0]) => {
         if (!ref.current.isFocused) {
             return;
         }
