@@ -41,6 +41,10 @@ function getReportType(report: OnyxEntry<Report>) {
     return report?.type;
 }
 
+function getReportLastReadTime(report: OnyxEntry<Report>) {
+    return report?.lastReadTime;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -456,6 +460,7 @@ export {
     getArchiveReason,
     getReportChatType,
     getReportType,
+    getReportLastReadTime,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,

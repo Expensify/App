@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const isInConciergePage = useIsInConciergePage();
     const {syncScrollSharedValues} = useActionListContext();
 
     // This screen replaces the report list, so the header could stay hidden by the list's last scroll with no way
@@ -39,17 +41,20 @@ function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWel
     return (
         <ScrollView
             style={!shouldUseNarrowLayout && styles.flexGrow0}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            // Without a history button under the welcome text, the text keeps the same gap from the composer on its own
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, isInConciergePage && styles.pb8]}
             keyboardShouldPersistTaps="handled"
             onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <View style={styles.conciergeAskColumn}>
                 <AskConciergeEmptyState />
-                <ConciergeChatHistoryToggle
-                    isHistoryShown={false}
-                    onPress={onShowPreviousMessages}
-                    containerStyles={styles.pv5}
-                />
+                {!isInConciergePage && (
+                    <ConciergeChatHistoryToggle
+                        isHistoryShown={false}
+                        onPress={onShowPreviousMessages}
+                        containerStyles={styles.pv5}
+                    />
+                )}
             </View>
         </ScrollView>
     );

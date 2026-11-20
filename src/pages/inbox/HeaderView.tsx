@@ -25,6 +25,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -114,6 +115,8 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
+import ConciergeNewChatIconButton from './ConciergeNewChatIconButton';
+import ConciergePageHistoryButton from './ConciergePageHistoryButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -176,6 +179,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
     const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
+    const isInConciergePage = useIsInConciergePage();
+
+    // The Concierge page starts new conversations from the New button of its list
+    const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
+    const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -294,7 +302,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    const shouldShowTalkToHuman = isConciergeChat;
+    // Each Concierge conversation is its own thread on the Concierge page, so its threads offer a human too. A support ticket already has one.
+    const shouldShowTalkToHuman = isConciergeChat || (isInConciergePage && isConciergeThread && !isSupportTicketReport);
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
@@ -536,7 +545,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
+                                    {shouldShowNewConciergeChatButton && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -549,6 +558,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {isInNarrowConciergePage && !isConciergeChat && <ConciergeNewChatIconButton />}
+                                {isInNarrowConciergePage && <ConciergePageHistoryButton />}
                                 <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
@@ -566,8 +577,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         </PressableWithoutFeedback>
                                     </Tooltip>
                                 )}
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
+                                {shouldDisplaySearchRouter && !isInNarrowConciergePage && <SearchButton style={styles.ml2} />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && !isInConciergePage && <SidePanelButton />}
                             </View>
                         </View>
                     )}
@@ -575,7 +586,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
                 )}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
+                {!isLoading && shouldShowNewConciergeChatButton && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
                         <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>

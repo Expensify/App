@@ -638,6 +638,7 @@ const translations = {
         restrictions: 'Restrictions',
         tagGLCode: 'Tag GL code',
         concierge: {
+            title: 'Concierge',
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
             subtitle: 'Your personal AI assistant',
@@ -13299,6 +13300,7 @@ const translations = {
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
         connectionsMoved: 'All your connections in one place',
+        conciergeHistory: 'Find your past Concierge chats here',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

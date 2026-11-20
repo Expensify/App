@@ -26,6 +26,7 @@ const SCREENS = {
         MORE: 'NativeTabItem_More',
     },
     REPORT: 'Report',
+    CONCIERGE_SIDEBAR: 'ConciergeSidebar',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',

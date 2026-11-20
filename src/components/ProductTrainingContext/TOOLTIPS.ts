@@ -17,6 +17,7 @@ const {
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
     CONNECTIONS_MOVED,
+    CONCIERGE_HISTORY,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<
@@ -121,6 +122,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: CONNECTIONS_MOVED,
         priority: 1650,
         // The workspace menu limits it to members who can read Connections
+        shouldShow: () => true,
+    },
+    [CONCIERGE_HISTORY]: {
+        content: 'productTrainingTooltip.conciergeHistory',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_HISTORY, isDismissedUsingCloseButton),
+        name: CONCIERGE_HISTORY,
+        priority: 1640,
         shouldShow: () => true,
     },
 };

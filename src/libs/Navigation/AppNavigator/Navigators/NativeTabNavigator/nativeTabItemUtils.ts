@@ -19,6 +19,8 @@ import type {ValueOf} from 'type-fest';
 
 import type {NativeTabGlyphName, NativeTabName} from './NATIVE_TAB_GLYPHS';
 
+import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
+
 type NativeTabItemName = ValueOf<typeof SCREENS.NATIVE_TAB_ITEM>;
 
 /** A route that can have an item in the native tab bar. */
@@ -34,6 +36,13 @@ const NATIVE_TAB_ITEM_NAMES: ReadonlySet<string> = new Set(Object.values(SCREENS
 
 function isNativeTabItemName(routeName: string): routeName is NativeTabItemName {
     return NATIVE_TAB_ITEM_NAMES.has(routeName);
+}
+
+const FLAT_NAV_TAB_BAR_SLOTS: ReadonlySet<string> = new Set(Object.values(FLAT_NAV_TAB_BAR_SLOT));
+
+/** Whether the route can have an item in the native tab bar. A tab with no glyph, like the Concierge page, never has one. */
+function isNativeTabRouteName(routeName: string): routeName is NativeTabRouteName {
+    return isNativeTabItemName(routeName) || (routeName in NATIVE_TAB_GLYPHS && !FLAT_NAV_TAB_BAR_SLOTS.has(routeName));
 }
 
 /** Placeholders draw the glyph of their slot, every other tab the glyph of its route. */
@@ -70,5 +79,5 @@ function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavS
     return Object.values(SCREENS.NATIVE_TAB_ITEM).find((itemName) => NATIVE_TAB_ITEM_SLOTS[itemName] === slot);
 }
 
-export {findSearchTabRoute, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
+export {findSearchTabRoute, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNativeTabRouteName, isNavigationToNativeTabItem};
 export type {NativeTabRouteName};

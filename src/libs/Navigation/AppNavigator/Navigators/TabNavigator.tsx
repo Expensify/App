@@ -31,6 +31,7 @@ import TabRootGestureController from './TabRootGestureController';
 
 const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
+const LazyConciergeSplitNavigator = lazy(() => import('./ConciergeSplitNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 const LazyInsightsPage = lazy(() => import('@pages/Insights/InsightsPage'));
@@ -80,6 +81,7 @@ function HomePageScreen() {
     );
 }
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+const ConciergeSplitNavigatorScreen = withSuspense(LazyConciergeSplitNavigator);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 const InsightsPageScreen = withSuspense(LazyInsightsPage);
@@ -117,6 +119,10 @@ function TabNavigator() {
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR}
+                    component={ConciergeSplitNavigatorScreen}
                 />
                 <Tab.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
