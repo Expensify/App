@@ -427,7 +427,6 @@ const WRITE_COMMANDS = {
     SHARE_TRACKED_EXPENSE: 'ShareTrackedExpense',
     LEAVE_POLICY: 'LeavePolicy',
     QUEUE_BULK_LEAVE_POLICY: 'QueueBulkLeavePolicy',
-    QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER: 'QueueBulkTransferPolicyBillingOwner',
     DISMISS_VIOLATION: 'DismissViolation',
     SEND_INVOICE: 'SendInvoice',
     PAY_INVOICE: 'PayInvoice',
@@ -1277,7 +1276,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
     [WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY]: Parameters.QueueBulkLeavePolicyParams;
-    [WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER]: Parameters.QueueBulkTransferPolicyBillingOwnerParams;
     [WRITE_COMMANDS.DISMISS_VIOLATION]: Parameters.DismissViolationParams;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
@@ -1993,7 +1991,6 @@ type ReadCommandParameters = {
 const SIDE_EFFECT_REQUEST_COMMANDS = {
     REVOKE_ALL_SESSIONS: 'RevokeAllSessions',
     AUTHENTICATE_PUSHER: 'AuthenticatePusher',
-    CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER: 'CheckBulkTransferPolicyBillingOwner',
     GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     GET_SUPPORTAL_REASON: 'GetSupportalReason',
@@ -2057,7 +2054,6 @@ type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_ALL_SESSIONS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER]: Parameters.CheckBulkTransferPolicyBillingOwnerParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SUPPORTAL_REASON]: Parameters.GetSupportalReasonParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET]: Parameters.CreateSupportTicketParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;

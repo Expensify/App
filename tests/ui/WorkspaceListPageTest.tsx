@@ -313,11 +313,11 @@ describe('WorkspaceListPage', () => {
         pressRowCheckbox(0);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the single workspace actions are dropped and the actions that apply to either workspace are offered
+        // Then the single workspace actions, Transfer owner among them, are dropped and the actions that apply to either workspace are offered
         expect(screen.getByText('2 selected')).toBeOnTheScreen();
         expect(screen.queryByText('Set as default')).not.toBeOnTheScreen();
         expect(screen.getByText('Export members')).toBeOnTheScreen();
-        expect(screen.getByText('Transfer owner')).toBeOnTheScreen();
+        expect(screen.queryByText('Transfer owner')).not.toBeOnTheScreen();
         expect(screen.getByText('Leave')).toBeOnTheScreen();
     });
 

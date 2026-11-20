@@ -251,6 +251,7 @@ const WORKSPACES_BULK_ACTIONS_ORDER: WorkspacesBulkActionType[] = [
 
 const SINGLE_WORKSPACE_BULK_ACTIONS = new Set<WorkspacesBulkActionType>([
     CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.SET_AS_DEFAULT,
+    CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER,
     CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS,
     CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DUPLICATE,
     CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE,
@@ -266,7 +267,7 @@ function canApplyWorkspacesBulkAction(type: WorkspacesBulkActionType, row: Works
             // Making the workspace the default would break expense creation routing for members without create-expenses permission.
             return !row.isArchived && !row.isDefault && !row.isJoinRequestPending && !context.isRestrictedToPreferredPolicy && canRoleCreateExpenses(row.role);
         case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS:
-            return !row.isArchived && canRoleWriteMembers(row.role, row.type);
+            return canRoleWriteMembers(row.role, row.type);
         case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER:
             return isAdmin && !isOwner && context.canRenderTransferOwnerButton;
         case CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.COPY_SETTINGS:

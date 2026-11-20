@@ -7,9 +7,7 @@ import type {
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
-    CheckBulkTransferPolicyBillingOwnerParams,
     QueueBulkExportPolicyMembersParams,
-    QueueBulkTransferPolicyBillingOwnerParams,
     RequestWorkspaceOwnerChangeParams,
     UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
@@ -853,40 +851,6 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     };
 
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
-}
-
-/**
- * Asks the backend which of the workspaces can have their billing transferred to the current user.
- * Resolves to undefined when the check could not run, such as while offline.
- */
-async function checkBulkTransferPolicyBillingOwner(policyIDs: string[]): Promise<string[] | undefined> {
-    const params: CheckBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
-
-    try {
-        // The confirmation names the workspaces the transfer would skip, so it needs the result before it opens.
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return undefined;
-        }
-        return response.policyIDs ?? [];
-    } catch {
-        return undefined;
-    }
-}
-
-function queueBulkTransferPolicyBillingOwner(policyIDs: string[]) {
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = policyIDs.map((policyID) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        value: {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-        },
-    }));
-
-    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
-
-    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {failureData});
 }
 
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
@@ -1787,8 +1751,6 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
-    checkBulkTransferPolicyBillingOwner,
-    queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,

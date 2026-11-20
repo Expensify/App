@@ -426,7 +426,6 @@ describe('WorkspacesSettingsUtils', () => {
             // Then each action is offered once and runs only on the workspaces it applies to, so the rest are skipped
             expect(actions).toEqual([
                 {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS, policyIDs: ['owned', 'other']},
-                {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER, policyIDs: ['other']},
                 {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.ARCHIVE, policyIDs: ['owned']},
                 {type: CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.LEAVE, policyIDs: ['other']},
             ]);
@@ -446,7 +445,7 @@ describe('WorkspacesSettingsUtils', () => {
             expect(multipleSelectionTypes).not.toContain(CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.DELETE);
         });
 
-        it('offers Unarchive and Transfer owner only on an archived workspace', () => {
+        it('offers only Export members, Transfer owner and Unarchive on an archived workspace', () => {
             // Given an archived workspace the user owns, and an archived one they only administer
             const archivedOwned = buildRow({isArchived: true});
             const archivedAdministered = buildRow({policyID: 'other', ownerAccountID: 2, isArchived: true});
@@ -455,9 +454,9 @@ describe('WorkspacesSettingsUtils', () => {
             const ownedTypes = getWorkspacesBulkActions([archivedOwned], context).map((action) => action.type);
             const administeredTypes = getWorkspacesBulkActions([archivedAdministered], context).map((action) => action.type);
 
-            // Then the owner can unarchive it and an admin can transfer it, but nothing that changes an archived workspace is offered
-            expect(ownedTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE]);
-            expect(administeredTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER]);
+            // Then members can be exported from either, the owner can unarchive it and an admin can transfer it, but nothing that changes an archived workspace is offered
+            expect(ownedTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS, CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.UNARCHIVE]);
+            expect(administeredTypes).toEqual([CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.EXPORT_MEMBERS, CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER]);
         });
 
         it('offers Export members only to roles that can manage members', () => {
