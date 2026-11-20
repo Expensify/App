@@ -12,7 +12,7 @@
 
 - Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/11091, https://github.com/software-mansion/react-native-reanimated/issues/11089
 - E/App issue: https://github.com/Expensify/App/issues/104799
-- PR introducing patch: https://github.com/Expensify/App/pull/105098
+- PR introducing patch: https://github.com/Expensify/App/pull/107624
 
 ### [react-native-reanimated+4.7.0+002+start-exiting-from-current-values.patch](react-native-reanimated+4.7.0+002+start-exiting-from-current-values.patch)
 
@@ -26,7 +26,7 @@
 
 - Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/11093, https://github.com/software-mansion/react-native-reanimated/issues/11092
 - E/App issue: https://github.com/Expensify/App/issues/104799
-- PR introducing patch: https://github.com/Expensify/App/pull/105098
+- PR introducing patch: https://github.com/Expensify/App/pull/107624
 
 ### [react-native-reanimated+4.7.0+003+preserve-native-css-animations-during-exiting.patch](react-native-reanimated+4.7.0+003+preserve-native-css-animations-during-exiting.patch)
 
@@ -42,4 +42,4 @@
 
 - Upstream PR/issue: Not submitted yet; the author requested review before upstream submission: https://github.com/Expensify/App/issues/104799#issuecomment-7048341552. Source patch: https://github.com/thelullabyy/-reanimated-issue/blob/f2cdb4ac18cb6663b1a77c4c04117b7bbe00e97d/patches/react-native-reanimated%2B4.7.1%2Bpreserve-css-during-native-exit.patch#L1
 - E/App issue: https://github.com/Expensify/App/issues/104799
-- PR introducing patch: Replacement PR for https://github.com/Expensify/App/pull/105098
+- PR introducing patch: https://github.com/Expensify/App/pull/107624
