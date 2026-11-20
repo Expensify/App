@@ -2649,8 +2649,10 @@ const isIOUActionMatchingTransactionList = (
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
+const oneTransactionThreadReportTypesSet = new Set<Report['type']>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.TYPE.INVOICE]);
+
 function canHaveOneTransactionThread(type: Report['type']): boolean {
-    return type === CONST.REPORT.TYPE.IOU || type === CONST.REPORT.TYPE.EXPENSE || type === CONST.REPORT.UNSUPPORTED_TYPE.BILL || type === CONST.REPORT.TYPE.INVOICE;
+    return oneTransactionThreadReportTypesSet.has(type);
 }
 
 /**
