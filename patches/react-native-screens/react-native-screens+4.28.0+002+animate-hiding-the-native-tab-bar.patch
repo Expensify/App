@@ -1,7 +1,15 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -22,6 +22,119 @@
+@@ -15,6 +15,7 @@
+ #import "RNSConvert.h"
+ #import "RNSDefines.h"
+ #import "RNSLog.h"
++#import "RNSScreen.h"
+ #import "RNSTabBarController.h"
+ #import "RNSTabsBottomAccessoryComponentView.h"
+ #import "RNSTabsBottomAccessoryHelper.h"
+@@ -22,6 +23,119 @@
  
  namespace react = facebook::react;
  
@@ -121,7 +129,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - Modified React Subviews extension
  
  @interface RNSTabsHostComponentView ()
-@@ -51,6 +164,13 @@
+@@ -51,6 +165,15 @@ @implementation RNSTabsHostComponentView {
  
    RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
  
@@ -130,12 +138,14 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  UIView *_Nullable _tabBarStripView;
 +  NSUInteger _tabBarStripTabIndex;
 +  CGRect _tabBarStripRect;
++  __weak UINavigationController *_tabBarRootStack;
++  NSString *_Nullable _tabBarRootScreenId;
 +  NSUInteger _tabBarRetryToken;
 +
  #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
    UIView *_Nullable _bottomAccessoryWrapperView;
  #endif // RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
-@@ -60,6 +180,12 @@
+@@ -60,6 +183,12 @@ - (instancetype)initWithFrame:(CGRect)frame
  {
    if (self = [super initWithFrame:frame]) {
      [self initState];
@@ -148,7 +158,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
    }
    return self;
  }
-@@ -121,6 +247,224 @@
+@@ -121,6 +250,236 @@ - (void)invalidateImpl
    });
  }
  
@@ -170,6 +180,12 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    }
 +  }
 +  return NO;
++}
++
++// A stack screen keeps the key of its route, so a root that was rendered again is still recognised.
++static NSString *_Nullable RNSStackScreenId(UIViewController *_Nullable controller)
++{
++  return [controller isKindOfClass:[RNSScreen class]] ? ((RNSScreen *)controller).screenView.screenId : nil;
 +}
 +
 +// The glass the tab items sit on is a private view of the bar, found by its class name.
@@ -206,8 +222,12 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  UIViewController *from = [coordinator viewControllerForKey:UITransitionContextFromViewControllerKey];
 +  NSUInteger toIndex = [stackController.viewControllers indexOfObject:target];
 +  NSUInteger fromIndex = [stackController.viewControllers indexOfObject:from];
-+  BOOL hiding = toIndex == 1 && fromIndex == 0;
-+  BOOL showing = toIndex == 0 && fromIndex == NSNotFound;
++  // A narrow split navigator renders only its last two screens, so the first screen of the stack is not always its root.
++  // A push between two screens above the root also goes from index 0 to 1, but the bar is already hidden then, and a pop
++  // to the first screen comes back to the root only when it is the screen the bar left from.
++  BOOL hiding = toIndex == 1 && fromIndex == 0 && !_controller.isTabBarHidden;
++  BOOL showing = toIndex == 0 && fromIndex == NSNotFound &&
++      (_tabBarRootStack != stackController || [_tabBarRootScreenId isEqualToString:RNSStackScreenId(target)]);
 +  // The bar only travels with the screen when the screen hides it, as some screens above the root keep it. A pop started
 +  // from JS, like the header back button, updates the prop before the stack pops, so a pop goes by the bar itself.
 +  if (!(hiding && _tabBarHidden) && !(showing && _controller.isTabBarHidden)) {
@@ -229,6 +249,8 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    _tabBarStripView.layer.masksToBounds = YES;
 +    _tabBarStripRect = stripRect;
 +    _tabBarStripTabIndex = _controller.selectedIndex;
++    _tabBarRootStack = stackController;
++    _tabBarRootScreenId = RNSStackScreenId(from);
 +  }
 +  UIView *stripView = _tabBarStripTabIndex == _controller.selectedIndex ? _tabBarStripView : nil;
 +  CGRect stripRect = _tabBarStripRect;
@@ -373,7 +395,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +586,16 @@
+@@ -242,9 +601,16 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;
