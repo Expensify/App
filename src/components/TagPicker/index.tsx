@@ -208,7 +208,7 @@ type TagPickerListProps = Pick<
     setSearchValue: (value: string) => void;
 };
 
-function TagPickerList({
+function useTagPickerListProps({
     selectedTag,
     policyID,
     shouldOrderListByTagName = false,
@@ -247,23 +247,26 @@ function TagPickerList({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    return (
-        <SelectionListWithSections
-            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
-            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-            sections={isLoadingNewOptions ? getEmptyArray<never>() : sections}
-            ListItem={SingleSelectListItem}
-            style={{sectionTitleStyles: styles.mt5}}
-            textInputOptions={textInputOptions}
-            shouldShowTextInput={options.shouldShowTextInput}
-            shouldShowLoadingPlaceholder={isLoadingNewOptions}
-            isLoadingNewOptions={isLoadingNewOptions}
-            initiallyFocusedItemKey={selectedOptionKey}
-            onSelectRow={onSubmit}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
-        />
-    );
+    return {
+        // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+        // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+        sections: isLoadingNewOptions ? getEmptyArray<never>() : sections,
+        ListItem: SingleSelectListItem,
+        style: {sectionTitleStyles: styles.mt5},
+        textInputOptions,
+        shouldShowTextInput: options.shouldShowTextInput,
+        shouldShowLoadingPlaceholder: isLoadingNewOptions,
+        isLoadingNewOptions,
+        initiallyFocusedItemKey: selectedOptionKey,
+        onSelectRow: onSubmit,
+        addBottomSafeAreaPadding,
+        titleNumberOfLines: CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES,
+    };
+}
+
+function TagPickerList(props: TagPickerListProps) {
+    const listProps = useTagPickerListProps(props);
+    return <SelectionListWithSections {...listProps} />;
 }
 
 function TagPicker({
@@ -277,7 +280,7 @@ function TagPicker({
     shouldShowDisabledAndSelectedOption,
     additionalTagsToInclude,
     searchInputThreshold,
-    ...listProps
+    ...pickerProps
 }: TagPickerProps) {
     const [searchValue, setSearchValue] = useState('');
     const options = useTagPickerOptions({
@@ -292,17 +295,8 @@ function TagPicker({
         additionalTagsToInclude,
         searchInputThreshold,
     });
-    return (
-        <TagPickerList
-            {...listProps}
-            policyID={policyID}
-            selectedTag={selectedTag}
-            additionalTagsToInclude={additionalTagsToInclude}
-            options={options}
-            searchValue={searchValue}
-            setSearchValue={setSearchValue}
-        />
-    );
+    const listProps = useTagPickerListProps({...pickerProps, policyID, selectedTag, additionalTagsToInclude, options, searchValue, setSearchValue});
+    return <SelectionListWithSections {...listProps} />;
 }
 
 export default TagPicker;

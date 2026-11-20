@@ -174,7 +174,7 @@ type CategoryPickerListProps = Pick<
     setSearchValue: (value: string) => void;
 };
 
-function CategoryPickerList({
+function useCategoryPickerListProps({
     selectedCategory,
     policyID,
     onSubmit,
@@ -286,39 +286,32 @@ function CategoryPickerList({
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
-    return (
-        <SelectionListWithSections
-            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
-            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-            sections={isLoadingNewOptions ? getEmptyArray<never>() : visibleSections}
-            onSelectRow={selectCategory}
-            ListItem={SingleSelectListItem}
-            shouldShowTextInput={options.shouldShowTextInput}
-            textInputOptions={textInputOptions}
-            shouldShowLoadingPlaceholder={isLoadingNewOptions}
-            isLoadingNewOptions={isLoadingNewOptions}
-            initiallyFocusedItemKey={selectedOptionKey}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
-        />
-    );
+    return {
+        // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+        // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+        sections: isLoadingNewOptions ? getEmptyArray<never>() : visibleSections,
+        onSelectRow: selectCategory,
+        ListItem: SingleSelectListItem,
+        shouldShowTextInput: options.shouldShowTextInput,
+        textInputOptions,
+        shouldShowLoadingPlaceholder: isLoadingNewOptions,
+        isLoadingNewOptions,
+        initiallyFocusedItemKey: selectedOptionKey,
+        addBottomSafeAreaPadding,
+        titleNumberOfLines: CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES,
+    };
 }
 
-function CategoryPicker({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold, ...listProps}: CategoryPickerProps) {
+function CategoryPickerList(props: CategoryPickerListProps) {
+    const listProps = useCategoryPickerListProps(props);
+    return <SelectionListWithSections {...listProps} />;
+}
+
+function CategoryPicker({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold, ...pickerProps}: CategoryPickerProps) {
     const options = useCategoryPickerOptions({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    return (
-        <CategoryPickerList
-            {...listProps}
-            policyID={policyID}
-            selectedCategory={selectedCategory}
-            ownerAccountID={ownerAccountID}
-            options={options}
-            searchValue={searchValue}
-            debouncedSearchValue={debouncedSearchValue}
-            setSearchValue={setSearchValue}
-        />
-    );
+    const listProps = useCategoryPickerListProps({...pickerProps, policyID, selectedCategory, ownerAccountID, options, searchValue, debouncedSearchValue, setSearchValue});
+    return <SelectionListWithSections {...listProps} />;
 }
 
 export default CategoryPicker;
