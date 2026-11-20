@@ -1,6 +1,6 @@
 import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
-import {areAllSelectedPoliciesLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+import {areAllSelectedPoliciesLoaded, areAllSelectedReportsLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,30 +52,36 @@ describe('SearchChangeApproverPage', () => {
 
     describe('getSelectedApproverType', () => {
         it('should keep the selected approver type when it remains available', () => {
-            expect(
-                getSelectedApproverType({
-                    approverTypes: [ADD_APPROVER_OPTION, BYPASS_APPROVER_OPTION],
-                    selectedApproverType: APPROVER_TYPE.BYPASS_APPROVER,
-                }),
-            ).toBe(APPROVER_TYPE.BYPASS_APPROVER);
+            // Given the user picked Bypass from a menu that still offers it
+            const approverTypes = [ADD_APPROVER_OPTION, BYPASS_APPROVER_OPTION];
+
+            // When resolving the active approver type
+            const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.BYPASS_APPROVER});
+
+            // Then the user's choice is kept so the confirm button applies what they picked
+            expect(result).toBe(APPROVER_TYPE.BYPASS_APPROVER);
         });
 
         it('should fall back to the first available option when the selected option is hidden', () => {
-            expect(
-                getSelectedApproverType({
-                    approverTypes: [BYPASS_APPROVER_OPTION],
-                    selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
-                }),
-            ).toBe(APPROVER_TYPE.BYPASS_APPROVER);
+            // Given the default Add selection, but a dynamic external workflow hides Add and leaves only Bypass
+            const approverTypes = [BYPASS_APPROVER_OPTION];
+
+            // When resolving the active approver type
+            const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.ADD_APPROVER});
+
+            // Then the first visible option is used so the menu never highlights or confirms a hidden option
+            expect(result).toBe(APPROVER_TYPE.BYPASS_APPROVER);
         });
 
         it('should fall back to add approver when there are no available options', () => {
-            expect(
-                getSelectedApproverType({
-                    approverTypes: [],
-                    selectedApproverType: APPROVER_TYPE.REASSIGN_APPROVER,
-                }),
-            ).toBe(APPROVER_TYPE.ADD_APPROVER);
+            // Given a menu with no options, such as while the selection is still loading
+            const approverTypes: Array<{keyForList: ApproverType}> = [];
+
+            // When resolving the active approver type
+            const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.REASSIGN_APPROVER});
+
+            // Then it returns the default type, since the empty menu offers nothing to confirm
+            expect(result).toBe(APPROVER_TYPE.ADD_APPROVER);
         });
     });
 
@@ -211,7 +217,48 @@ describe('SearchChangeApproverPage', () => {
         });
     });
 
+    describe('areAllSelectedReportsLoaded', () => {
+        it('should return false until every selected report is in Onyx', () => {
+            // Given two selected reports, but only one has been fetched
+            const selectedReports = [{reportID: 'reportA'}, {reportID: 'reportB'}];
+
+            // When checking whether the selection's reports are ready
+            const result = areAllSelectedReportsLoaded(selectedReports, {reportA: buildReport('reportA')});
+
+            // Then wait for both, because a missing report hides Bypass and would make the menu look empty
+            expect(result).toBe(false);
+        });
+
+        it('should return true when every selected report is in Onyx', () => {
+            // Given a selection whose reports have all been fetched
+            const selectedReports = [{reportID: 'reportA'}];
+
+            // When checking whether the selection's reports are ready
+            const result = areAllSelectedReportsLoaded(selectedReports, {reportA: buildReport('reportA')});
+
+            // Then the menu can be trusted to show every available action
+            expect(result).toBe(true);
+        });
+    });
+
     describe('shouldAutoApplyApprover', () => {
+        it('should return false when Bypass is the only available option', () => {
+            // Given a dynamic external workflow selection where Bypass is the only option left
+            const selectedReports = [{reportID: 'reportA'}];
+
+            // When the page decides whether to apply the option without a confirmation
+            const result = shouldAutoApplyApprover({
+                isLoadingBulkChangeApproverPage: false,
+                selectedReports,
+                onyxReports: {reportA: buildReport('reportA')},
+                approverTypes: [BYPASS_APPROVER_OPTION],
+                selectedApproverType: APPROVER_TYPE.BYPASS_APPROVER,
+            });
+
+            // Then it waits for the confirm button, because Bypass approves every selected report
+            expect(result).toBe(false);
+        });
+
         it('should return false when no reports are selected', () => {
             const result = shouldAutoApplyApprover({
                 isLoadingBulkChangeApproverPage: false,
@@ -316,18 +363,6 @@ describe('SearchChangeApproverPage', () => {
                 onyxReports: {reportA: buildReport('reportA'), reportB: buildReport('reportB')},
                 approverTypes: [ADD_APPROVER_OPTION],
                 selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
-            });
-
-            expect(result).toBe(true);
-        });
-
-        it('should return true when the only available option is bypass-approver and it matches', () => {
-            const result = shouldAutoApplyApprover({
-                isLoadingBulkChangeApproverPage: false,
-                selectedReports: [{reportID: 'reportA'}],
-                onyxReports: {reportA: buildReport('reportA')},
-                approverTypes: [BYPASS_APPROVER_OPTION],
-                selectedApproverType: APPROVER_TYPE.BYPASS_APPROVER,
             });
 
             expect(result).toBe(true);

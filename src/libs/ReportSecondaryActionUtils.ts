@@ -1242,7 +1242,9 @@ function getSecondaryReportActions({
         isLoadingSecurityGroup,
         areStrictPolicyRulesEnabled,
     });
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled) {
+    // A dynamic external workflow picks the next approver, so members, whose only change is a reassignment, cannot change it.
+    const canMemberChangeApprover = canReassignReportAsApprover && !hasDynamicExternalWorkflow(policy);
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canMemberChangeApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 

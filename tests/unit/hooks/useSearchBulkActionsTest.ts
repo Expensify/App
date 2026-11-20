@@ -432,6 +432,48 @@ describe('useSearchBulkActions - CSV export flow', () => {
         },
     );
 
+    it('hides change approver from a current approver on a dynamic external workflow', () => {
+        // Given a member who is the current approver of a report on a dynamic external workflow, without the admin capability
+        mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                chatReportID: 'chat1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: 100,
+            },
+        ];
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    policyID: 'policy1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+                    id: 'policy1',
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                },
+            },
+        };
+
+        // When the bulk action menu is rendered from search snapshot data
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the action is hidden, because the workflow picks the next approver and a member's only change is a reassignment
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(false);
+    });
+
     it('uses the unreported-expenses warning for a single expense report', async () => {
         // Given a single selected expense report
         mockSelectedTransactions = {report1: makeSelectedTransaction()};
