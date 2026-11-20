@@ -9,6 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {updateDelegateRole} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {DelegateRole} from '@src/types/onyx/Account';
 
 import {delegatesSelector} from '@selectors/Account';
 import React from 'react';
@@ -28,8 +30,6 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function UpdateDelegateRoleSelectionListHeader() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isAccountValidated = account?.validated ?? false;
 
     return (
         <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -52,9 +52,25 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeChangeRole?: () => void) => resumeChangeRole?.());
 
     const currentDelegate = delegatedAccess?.delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
+
+    const changeRole = (role: DelegateRole) => {
+        // Reducing access does not require an action code once the owner's account is validated.
+        if (matchingRole === CONST.DELEGATE_ROLE.ALL && role === CONST.DELEGATE_ROLE.SUBMITTER) {
+            updateDelegateRole({
+                email: login,
+                role,
+                delegatedAccess,
+                validateCode: undefined,
+            });
+            Navigation.goBack(ROUTES.SETTINGS_COPILOT);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
+    };
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
@@ -84,19 +100,12 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             Navigation.dismissModal();
                             return;
                         }
-                        // Downgrading from full access to submitter removes privileges, so it is applied directly
-                        // without requiring the magic code that every other role change goes through.
-                        if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER && isAccountValidated) {
-                            updateDelegateRole({
-                                email: login,
-                                role: option.value,
-                                delegatedAccess,
-                                validateCode: undefined,
-                            });
-                            Navigation.goBack(ROUTES.SETTINGS_COPILOT);
+                        // Creating a personal agent can grant copilot access before its owner validates their account.
+                        if (!isUserValidated) {
+                            verifyAccountAndResume(() => changeRole(option.value));
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, option?.value));
+                        changeRole(option.value);
                     }}
                     data={roleOptions}
                     ListItem={SingleSelectListItem}
