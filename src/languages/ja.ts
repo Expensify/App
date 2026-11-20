@@ -2652,6 +2652,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>ご不明な点がありましたら、お気軽に<concierge-link>Concierge までお問い合わせください</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: 'Expensify Classic に移動',
         },
+        mergePendingDomainAdmin: {
+            heading: 'ドメイン制限付きメール',
+            description: '<muted-text><centered-text>アカウントの統合リクエストを承認するため、ドメイン管理者に通知されました。</centered-text></muted-text>',
+            gotIt: '了解しました',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text><strong>${email.split('@').at(1) ?? ''}</strong> によって管理されているため、<strong>${email}</strong> はマージできません。サポートが必要な場合は、<concierge-link>Concierge までお問い合わせください</concierge-link>。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

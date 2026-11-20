@@ -1,5 +1,6 @@
-/** Server-persisted pending domain-controlled account merge request awaiting admin approval. */
+/** A pending request from a domain-controlled account owner to merge their account into a target account. */
 type DomainAccountMergeRequest = {
+    /** Backend-assigned ID that keys the Onyx entry. */
     requestID: string;
 
     requesterAccountID: number;
@@ -12,7 +13,7 @@ type DomainAccountMergeRequest = {
 
     targetDomainAccountID: number;
 
-    /** ISO timestamp of when the request was persisted. */
+    /** ISO timestamp of when the request was created. */
     createdAt: string;
 };
 
