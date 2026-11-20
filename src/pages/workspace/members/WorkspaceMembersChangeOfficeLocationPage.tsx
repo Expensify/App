@@ -11,7 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -39,7 +39,6 @@ type WorkspaceMembersChangeOfficeLocationPageProps = Omit<WithPolicyAndFullscree
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION>;
 
 function WorkspaceMembersChangeOfficeLocationPage({policy, route}: WorkspaceMembersChangeOfficeLocationPageProps) {
-    const [personalDetails] = useAllPersonalDetails();
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -50,6 +49,7 @@ function WorkspaceMembersChangeOfficeLocationPage({policy, route}: WorkspaceMemb
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
+    const [personalDetails] = usePersonalDetailsByIDs(selectedAccountIDs);
 
     useRedirectToWorkspaceMembersWithoutSelection({
         policyID,

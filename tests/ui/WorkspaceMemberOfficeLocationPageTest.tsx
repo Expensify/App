@@ -3,7 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +34,7 @@ jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.
 jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)})));
-jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: jest.fn()}));
+jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetailsByIDs: jest.fn()}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
@@ -81,7 +81,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useAllPersonalDetails).mockReturnValue([createMock<PersonalDetailsList>(personalDetails), {status: 'loaded'}]);
+        jest.mocked(usePersonalDetailsByIDs).mockReturnValue([createMock<PersonalDetailsList>(personalDetails), {status: 'loaded'}]);
         jest.mocked(canMemberWrite).mockReturnValue(true);
     });
 

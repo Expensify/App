@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
@@ -35,8 +35,8 @@ type WorkspaceMemberOfficeLocationPageProps = Omit<WithPolicyAndFullscreenLoadin
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION>;
 
 function WorkspaceMemberOfficeLocationPage({policy, route}: WorkspaceMemberOfficeLocationPageProps) {
-    const [personalDetails] = useAllPersonalDetails();
     const accountID = Number(route.params.accountID);
+    const [personalDetails] = usePersonalDetailsByIDs([accountID]);
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
