@@ -11,9 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasDraftCommentSelector} from '@src/selectors/Report';
 import {emailAndAccountIDSelector} from '@src/selectors/Session';
 
-import {useEffect, useRef, useState} from 'react';
-
-const MAX_SCAN_WAIT_MS = 1000;
+import {useEffect, useState} from 'react';
 
 /** Keeps the tab title and app badge unread count in sync. Renders nothing. */
 function UnreadIndicatorUpdater() {
@@ -28,20 +26,9 @@ function UnreadIndicatorUpdater() {
     const {currentReportID} = useCurrentReportIDState();
     const [hasDraftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`, {selector: hasDraftCommentSelector});
     const [unreadReportIDs, setUnreadReportIDs] = useState<string[]>();
-    const pendingSinceRef = useRef<number>(undefined);
 
     useEffect(() => {
-        if (pendingSinceRef.current === undefined) {
-            pendingSinceRef.current = Date.now();
-        }
-        const remainingMs = Math.max(0, MAX_SCAN_WAIT_MS - (Date.now() - pendingSinceRef.current));
-        const deadlineTimer = setTimeout(scan, remainingMs);
-        const idleTask = Scheduler.scheduleWhenIdle(scan);
-
-        function scan() {
-            clearTimeout(deadlineTimer);
-            idleTask.cancel();
-            pendingSinceRef.current = undefined;
+        const task = Scheduler.scheduleWhenIdle(() => {
             setUnreadReportIDs(
                 UnreadIndicatorUtils.getUnreadReportIDsForUnreadIndicator(reports, currentReportID, hasDraftComment, {
                     reportNameValuePairs,
@@ -52,12 +39,8 @@ function UnreadIndicatorUpdater() {
                     conciergeReportID,
                 }),
             );
-        }
-
-        return () => {
-            clearTimeout(deadlineTimer);
-            idleTask.cancel();
-        };
+        });
+        return () => task.cancel();
     }, [reports, currentReportID, hasDraftComment, reportNameValuePairs, reportActions, reportAttributes, currentUser?.email, currentUser?.accountID, conciergeReportID]);
 
     useEffect(() => {
