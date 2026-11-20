@@ -7,7 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
-import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowOnyx, Approver, ApproverForkBranch, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
@@ -24,6 +24,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {Str} from 'expensify-common';
+
 import type {ApprovalWorkflowRulesDiff} from './RuleUtils';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -33,7 +35,6 @@ import {rand64} from './NumberUtils';
 import {
     canMemberWrite,
     evaluateApprovalWorkflowRule,
-    getApprovalWorkflow,
     getDefaultApprover,
     isExpensifyTeam,
     isNonMemberApprover,
@@ -104,11 +105,23 @@ type GetApproversParams = {
      * the chain, flagged, instead of the chain silently stopping before them.
      */
     policy?: OnyxEntry<Policy>;
+
+    /**
+     * Whether the chain is for approval workflow rules, which can't follow every route employee settings send reports
+     * down, so those routes fork from it, see `Approver.forkBranches`. Without the rules, the employee settings are what
+     * the workflow saves, so it has no forks.
+     */
+    shouldFindForks?: boolean;
 };
 
 /** Whether the approver only gets the reports over an amount, which makes them an optional over-limit approver */
 function isOptionalOverLimitApprover(approver: Approver | undefined): boolean {
     return approver?.overLimitAmount !== undefined;
+}
+
+/** Whether approval workflow rules send a report for `amount` to the approver, which skips an optional over-limit approver the report isn't over */
+function doesApproverGetReport(approver: Approver, amount: number): boolean {
+    return approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
 }
 
 /**
@@ -257,17 +270,214 @@ type BuildApproversFromRoutesParams = {
     canRouteTo: (email: string) => boolean;
 
     buildApprover: (email: string) => Approver;
+
+    /**
+     * Whether employee settings route the reports, rather than approval workflow rules. Employee settings can send some of
+     * the reports that reach an approver down a branch that never comes back to the workflow, see `Approver.forkBranches`.
+     */
+    isRoutedByEmployeeSettings?: boolean;
 };
+
+type AddEmployeeRouteApproversParams = {
+    /** The workflow's approvers so far, which the route's approvers are added to */
+    approvers: Approver[];
+
+    route: RouteApprover[];
+
+    /** Approval limit the route's reports are over */
+    overLimitAmount: number | undefined;
+
+    /** The routes of the reports over the higher approval limits */
+    higherRoutes: RouteApprover[][];
+
+    buildApprover: (email: string) => Approver;
+
+    /** Approvers whose employee settings send some of the reports that reach them where the workflow doesn't */
+    forkApprovers: Set<Approver>;
+};
+
+/** The index of the approver a report goes to after the one at `previousIndex`: the first after them who hasn't approved it yet */
+function getNextApproverIndex(approvers: Approver[], previousIndex: number, approvedEmails: Set<string>): number {
+    return approvers.findIndex((approver, index) => index > previousIndex && !approver.isCircularReference && !approvedEmails.has(approver.email));
+}
+
+/** Whether the reports on the route get to the approver */
+function doesRouteGoThrough(route: RouteApprover[], email: string): boolean {
+    return route.some((routeApprover) => routeApprover.email === email);
+}
+
+/**
+ * Add to the workflow's approvers the ones employee settings send a route's reports over an approval limit to. The
+ * approvers new to the workflow that the route goes through before coming back to it are optional over-limit approvers,
+ * as long as every bigger report that gets that far goes through them too. A route that never comes back, skips some of
+ * the workflow's approvers, or goes through approvers bigger reports skip, forks from it. Its approvers are left out,
+ * apart from the ones before the first approver bigger reports skip, or only the first of those when the route doesn't
+ * come back, and the fork goes on whoever sends the reports away.
+ */
+function addEmployeeRouteApprovers({approvers, route, overLimitAmount, higherRoutes, buildApprover, forkApprovers}: AddEmployeeRouteApproversParams) {
+    const approvedEmails = new Set(route.slice(0, 1).map(({email}) => email));
+    let previousIndex = 0;
+    let position = 1;
+    while (position <= route.length) {
+        const previousApprover = approvers.at(previousIndex);
+        if (!previousApprover) {
+            return;
+        }
+
+        // Every optional over-limit approver the workflow has so far is for a lower limit than this route's, so they all get the report
+        const nextIndex = getNextApproverIndex(approvers, previousIndex, approvedEmails);
+        const nextEmail = nextIndex === -1 ? undefined : approvers.at(nextIndex)?.email;
+        const routeApprover = route.at(position);
+
+        // The report's approvals end here, where its route ends or would go back to someone who already approved it, so
+        // any approver the workflow has next never gets it
+        if (!routeApprover || routeApprover.isCircularReference) {
+            if (nextEmail) {
+                forkApprovers.add(previousApprover);
+            }
+            return;
+        }
+
+        if (routeApprover.email === nextEmail) {
+            approvedEmails.add(routeApprover.email);
+            previousIndex = nextIndex;
+            position++;
+            continue;
+        }
+
+        // The report comes back to the workflow when it goes to approvers new to the workflow first, and then to the approver
+        // the workflow has next, or to no one when the workflow has no one next either
+        const detour: RouteApprover[] = [];
+        for (const detourApprover of route.slice(position)) {
+            if (detourApprover.isCircularReference || approvers.some((approver) => approver.email === detourApprover.email)) {
+                break;
+            }
+            detour.push(detourApprover);
+        }
+        // The report skips the approver the workflow has next for one it already has, so it forks here
+        if (detour.length === 0) {
+            forkApprovers.add(previousApprover);
+            return;
+        }
+
+        // Approval workflow rules give an optional over-limit approver every report over their limit, so the detour's approvers
+        // only join the workflow up to the first one that some bigger report reaching the approver before the detour skips
+        const biggerRoutes = higherRoutes.filter((higherRoute) => doesRouteGoThrough(higherRoute, previousApprover.email));
+        const unsharedPosition = detour.findIndex((detourApprover) => !biggerRoutes.every((biggerRoute) => doesRouteGoThrough(biggerRoute, detourApprover.email)));
+        const sharedDetour = unsharedPosition === -1 ? detour : detour.slice(0, unsharedPosition);
+
+        const returnApprover = route.at(position + detour.length);
+        const returnEmail = returnApprover?.isCircularReference ? undefined : returnApprover?.email;
+        if (returnEmail === nextEmail) {
+            const sharedApprovers = sharedDetour.map(({email}) => ({...buildApprover(email), isCircularReference: false, overLimitAmount}));
+            approvers.splice(previousIndex + 1, 0, ...sharedApprovers);
+
+            // A detour that comes back after an approver some bigger reports skip forks away from the last approver they share
+            if (sharedApprovers.length < detour.length) {
+                forkApprovers.add(sharedApprovers.at(-1) ?? previousApprover);
+                return;
+            }
+            for (const {email} of detour) {
+                approvedEmails.add(email);
+            }
+            previousIndex += detour.length;
+            position += detour.length;
+            continue;
+        }
+
+        // The over-limit approver new to the workflow still gets the reports over the limit, so the fork goes on them, unless
+        // bigger reports skip them, or the reports already fork away at the approver who sends them there
+        const firstDetourEmail = sharedDetour.at(0)?.email;
+        if (firstDetourEmail && !forkApprovers.has(previousApprover)) {
+            const forkApprover = {...buildApprover(firstDetourEmail), isCircularReference: false, overLimitAmount};
+            approvers.splice(previousIndex + 1, 0, forkApprover);
+            forkApprovers.add(forkApprover);
+            return;
+        }
+        forkApprovers.add(previousApprover);
+        return;
+    }
+}
+
+type GetForkBranchesParams = {
+    /** Where the fork's approver is among the workflow's approvers */
+    forkIndex: number;
+
+    approvers: Approver[];
+
+    routes: RouteApprover[][];
+
+    /** The report total each route is for */
+    routeAmounts: number[];
+
+    approvalLimits: number[];
+
+    buildApprover: (email: string) => Approver;
+};
+
+/**
+ * Where employee settings send the reports that leave the workflow right after a fork's approver, by report total, lowest
+ * totals first. A report that goes on to the approver the workflow has next isn't part of the fork: the workflow shows where
+ * it goes, and if it leaves the workflow later, that's the fork of the approver it leaves from. No report in the totals of a
+ * route that doesn't reach the approver gets to them, so a branch can also cover those totals where that makes its range
+ * simpler.
+ */
+function getForkBranches({forkIndex, approvers, routes, routeAmounts, approvalLimits, buildApprover}: GetForkBranchesParams): ApproverForkBranch[] {
+    const forkEmail = approvers.at(forkIndex)?.email;
+    const emailsAfterForkByRoute = routes.map((route) => {
+        const forkPosition = route.findIndex(({email, isCircularReference}) => email === forkEmail && !isCircularReference);
+        if (forkPosition === -1) {
+            return undefined;
+        }
+        const circularPosition = route.findIndex(({isCircularReference}) => isCircularReference);
+        return route.slice(forkPosition + 1, circularPosition === -1 ? undefined : circularPosition).map(({email}) => email);
+    });
+
+    // Who approval workflow rules send a report for `amount` to after the fork's approver. A flagged circular reference
+    // doesn't get it, since the report's approvals end before them.
+    const getNextWorkflowEmail = (amount: number) =>
+        approvers.find((approver, index) => index > forkIndex && !approver.isCircularReference && doesApproverGetReport(approver, amount))?.email;
+
+    const routeIndexesByEmailsAfterFork = new Map<string, {emails: string[]; routeIndexes: number[]}>();
+    for (const [routeIndex, emails] of emailsAfterForkByRoute.entries()) {
+        if (!emails || emails.at(0) === getNextWorkflowEmail(routeAmounts.at(routeIndex) ?? 0)) {
+            continue;
+        }
+        const key = JSON.stringify(emails);
+        const branch = routeIndexesByEmailsAfterFork.get(key) ?? {emails, routeIndexes: []};
+        branch.routeIndexes.push(routeIndex);
+        routeIndexesByEmailsAfterFork.set(key, branch);
+    }
+
+    return [...routeIndexesByEmailsAfterFork.values()]
+        .flatMap(({emails, routeIndexes}) => {
+            const branchApprovers = emails.map((email) => {
+                const {displayName} = buildApprover(email);
+                return {email, displayName};
+            });
+            return getAmountRanges(routeIndexes, approvalLimits, (routeIndex) => !emailsAfterForkByRoute.at(routeIndex)).map((range) => ({...range, approvers: branchApprovers}));
+        })
+        .sort((a, b) => (a.over ?? Number.NEGATIVE_INFINITY) - (b.over ?? Number.NEGATIVE_INFINITY));
+}
 
 /**
  * Build a workflow's approvers from the routes reports take through it. Only the approval limits change where a report goes,
  * so a report up to the lowest one, one between each pair, and one over the highest cover every route. The route of the
  * reports within every limit gives the approvers everyone gets. An approver a report over a limit goes through on top of
  * them is an optional over-limit approver for that limit, right after the approver who sends them the report. Where a
- * report over a limit leaves the route of the reports within it, it's taken to come back to it, so approvers it skips
- * still get every report.
+ * report over a limit leaves the route of the reports within it, approval workflow rules are taken to bring it back, so
+ * approvers it skips still get every report. Employee settings can send it away for good instead, which forks the workflow,
+ * see `addEmployeeRouteApprovers`.
  */
-function buildApproversFromRoutes({firstEmail, approvalLimits = [], getNextApproverEmail, getApprovalLimit, canRouteTo, buildApprover}: BuildApproversFromRoutesParams): Approver[] {
+function buildApproversFromRoutes({
+    firstEmail,
+    approvalLimits = [],
+    getNextApproverEmail,
+    getApprovalLimit,
+    canRouteTo,
+    buildApprover,
+    isRoutedByEmployeeSettings = false,
+}: BuildApproversFromRoutesParams): Approver[] {
     const limits = new Set(approvalLimits);
     const getRoute = (amount: number): RouteApprover[] => {
         const route: RouteApprover[] = [];
@@ -292,16 +502,30 @@ function buildApproversFromRoutes({firstEmail, approvalLimits = [], getNextAppro
 
     // An approval limit only shows up once a report reaches its approver, so the routes are walked again until they find no new one
     let sortedLimits: number[] = [];
+    let routeAmounts: number[] = [];
     let routes: RouteApprover[][] = [];
     let limitCount: number;
     do {
         limitCount = limits.size;
         sortedLimits = [...limits].sort((a, b) => a - b);
-        routes = [...sortedLimits, (sortedLimits.at(-1) ?? 0) + 1].map(getRoute);
+        routeAmounts = [...sortedLimits, (sortedLimits.at(-1) ?? 0) + 1];
+        routes = routeAmounts.map(getRoute);
     } while (limits.size > limitCount);
 
     const [routeWithinLimits = [], ...routesOverLimits] = routes;
     const approvers: Approver[] = routeWithinLimits.map(({email, isCircularReference}) => ({...buildApprover(email), isCircularReference}));
+    if (isRoutedByEmployeeSettings) {
+        const forkApprovers = new Set<Approver>();
+        for (const [routeIndex, route] of routesOverLimits.entries()) {
+            addEmployeeRouteApprovers({approvers, route, overLimitAmount: sortedLimits.at(routeIndex), higherRoutes: routesOverLimits.slice(routeIndex + 1), buildApprover, forkApprovers});
+        }
+        return approvers.map((approver, index) =>
+            forkApprovers.has(approver)
+                ? {...approver, forkBranches: getForkBranches({forkIndex: index, approvers, routes, routeAmounts, approvalLimits: sortedLimits, buildApprover})}
+                : approver,
+        );
+    }
+
     for (const [routeIndex, route] of routesOverLimits.entries()) {
         // The same approver can approve at different steps for different amounts, so each step of the route is looked for
         // after the approver before it rather than anywhere in the workflow
@@ -348,7 +572,7 @@ function buildApproversFromRoutes({firstEmail, approvalLimits = [], getNextAppro
 }
 
 /** Get the list of approvers for a given email */
-function calculateApprovers({employees, firstEmail, personalDetailsByEmail, policy}: GetApproversParams): Approver[] {
+function calculateApprovers({employees, firstEmail, personalDetailsByEmail, policy, shouldFindForks = false}: GetApproversParams): Approver[] {
     // Reports still route to an approver who left the workspace, so show them flagged for the admin to replace
     const isFlaggedNonMember = (email: string) => !employees[email] && !!policy && isNonMemberApprover(policy, email);
 
@@ -367,42 +591,16 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail, poli
                 ...(isFlaggedNonMember(email) ? {isNotWorkspaceMember: true} : {pendingAction: employee?.pendingAction, errors: employee?.errors}),
             };
         },
+        isRoutedByEmployeeSettings: shouldFindForks,
     });
 }
 
 /**
- * Whether the employee settings route some of a workflow's reports differently from its approvers. It happens when an
- * over-limit approver sends reports somewhere other than back to the approvers after the one who sent them, so a report
- * skips some of the approvers shown, or goes to approvers who aren't. Saved as rules, every report goes through the
- * approvers shown.
+ * Whether employee settings send some of the workflow's reports where it doesn't, see `Approver.forkBranches`. Saving the
+ * workflow as approval workflow rules would send every report along it instead, so only removing its forks does that.
  */
-function hasHiddenEmployeeRoutes(approvers: Approver[], employees: PolicyEmployeeList): boolean {
-    const firstEmail = approvers.at(0)?.email;
-    if (!firstEmail) {
-        return false;
-    }
-
-    const limits = [...Object.values(employees).map((employee) => getEmployeeApprovalLimit(employee)), ...approvers.map((approver) => approver.overLimitAmount)].filter(
-        (limit): limit is number => limit !== undefined,
-    );
-    const amounts = [...new Set([0, ...limits, ...limits.map((limit) => limit + 1)])];
-    return amounts.some((amount) => {
-        const employeeRoute: string[] = [];
-        let email: string | undefined = firstEmail;
-        while (email && !employeeRoute.includes(email)) {
-            employeeRoute.push(email);
-            email = getEmployeeNextApproverEmail(employees[email], amount);
-        }
-
-        const approverRoute = [
-            ...new Set(
-                approvers
-                    .filter((approver) => !approver.isCircularReference && (approver.overLimitAmount === undefined || amount > approver.overLimitAmount))
-                    .map((approver) => approver.email),
-            ),
-        ];
-        return employeeRoute.join(',') !== approverRoute.join(',');
-    });
+function hasApprovalWorkflowForks(approvalWorkflow: Pick<ApprovalWorkflow, 'approvers'> | undefined): boolean {
+    return !!approvalWorkflow?.approvers.some((approver) => !!approver.forkBranches);
 }
 
 /** Build a Member from a policy employee using personal details for avatar/displayName */
@@ -1052,7 +1250,7 @@ function getApprovalWorkflowRoutes(approvers: Approver[]): {approvalLimits: numb
         const route: number[] = [];
         const approvedEmails = new Set<string>();
         for (const [index, approver] of approvers.entries()) {
-            const getsReport = approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
+            const getsReport = doesApproverGetReport(approver, amount);
 
             // A report skips an approver who already approved it
             if (getsReport && !approvedEmails.has(approver.email)) {
@@ -1128,6 +1326,100 @@ function getApproverTitles({approvers, getTitle, currency, translate, convertToD
         position++;
         return title;
     });
+}
+
+type GetApprovalForkDescriptionParams = {
+    /** Approver whose employee settings fork some of the workflow's reports away from it */
+    forkApprover: Approver;
+
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+};
+
+/** A step the reports take after a fork's approver, for the report totals in its range */
+type ApprovalForkStep = {
+    approver: Pick<Approver, 'email' | 'displayName'>;
+
+    /**
+     * Who sends the approver the reports. A final approval names them only when the reports come straight from the fork's
+     * approver. Otherwise the steps leading to it come first in the description and show who passes the reports on.
+     */
+    sender: Pick<Approver, 'email' | 'displayName'> | undefined;
+
+    isFinalApproval: boolean;
+
+    range: AmountRange;
+
+    /** Where the step comes in the description */
+    position: number;
+};
+
+/**
+ * The lines describing a fork, as HTML: what its approver does in the workflow, then the steps the reports take after
+ * them, from the lowest report totals up, each final approval after the steps leading to it: who approves the reports
+ * after whom, and who final approves them.
+ */
+function getApprovalForkDescription({forkApprover, currency, translate, formatPhoneNumber, convertToDisplayString}: GetApprovalForkDescriptionParams): string[] {
+    // Display names are rendered as HTML, so they're escaped. A member who never set a name shows their login.
+    const getName = ({displayName}: Pick<Approver, 'displayName'>) => Str.htmlEncode(Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName);
+    const formatAmount = (amount: number) => convertToDisplayString(amount, currency);
+    const getRange = ({over, upTo}: AmountRange) => {
+        if (over !== undefined && upTo !== undefined) {
+            return translate('workflowsApprovalForkPage.betweenAmounts', {lowerAmount: formatAmount(over), upperAmount: formatAmount(upTo)});
+        }
+        if (upTo !== undefined) {
+            return translate('workflowsApprovalForkPage.underAmount', {amount: formatAmount(upTo)});
+        }
+        return over === undefined ? undefined : translate('workflowsApprovalForkPage.overAmount', {amount: formatAmount(over)});
+    };
+
+    const lines = [
+        forkApprover.overLimitAmount === undefined
+            ? translate('workflowsApprovalForkPage.approvesReportsInWorkflow', {approver: getName(forkApprover)})
+            : translate('workflowsApprovalForkPage.approvesReportsOverAmountInWorkflow', {approver: getName(forkApprover), amount: formatAmount(forkApprover.overLimitAmount)}),
+    ];
+    const branchSteps = (forkApprover.forkBranches ?? []).flatMap(({over, upTo, approvers}) => {
+        const range = {over, upTo};
+        return [
+            ...approvers.slice(0, -1).map((approver, index) => ({approver, sender: index === 0 ? forkApprover : (approvers.at(index - 1) ?? forkApprover), isFinalApproval: false, range})),
+            {approver: approvers.at(-1) ?? forkApprover, sender: approvers.length === 1 ? forkApprover : undefined, isFinalApproval: true, range},
+        ];
+    });
+
+    // Branches can share steps and only split after them, so a step the reports take in adjacent ranges of totals is
+    // described once, for all of them. It comes where it first comes up, or, for a final approval, where it last does, so
+    // it follows the steps leading to it.
+    const steps: ApprovalForkStep[] = [];
+    const lastStepByKey = new Map<string, ApprovalForkStep>();
+    for (const [position, {approver, sender, isFinalApproval, range}] of branchSteps.entries()) {
+        const key = JSON.stringify([approver.email, sender?.email, isFinalApproval]);
+        const lastStep = lastStepByKey.get(key);
+
+        // The ranges come lowest first, so a range is adjacent to the step's last one unless there's a gap between them
+        if (lastStep && (lastStep.range.upTo === undefined || range.over === undefined || range.over <= lastStep.range.upTo)) {
+            lastStep.range = {over: lastStep.range.over, upTo: lastStep.range.upTo === undefined || range.upTo === undefined ? undefined : Math.max(lastStep.range.upTo, range.upTo)};
+            lastStep.position = isFinalApproval ? position : lastStep.position;
+            continue;
+        }
+        const step = {approver, sender, isFinalApproval, range, position};
+        steps.push(step);
+        lastStepByKey.set(key, step);
+    }
+
+    for (const {approver, sender, isFinalApproval, range} of steps.sort((a, b) => a.position - b.position)) {
+        const name = getName(approver);
+        const rangeText = getRange(range);
+        if (!sender) {
+            lines.push(translate('workflowsApprovalForkPage.finalApprovesReports', {approver: name, range: rangeText}));
+        } else if (isFinalApproval) {
+            lines.push(translate('workflowsApprovalForkPage.finalApprovesReportsFrom', {approver: name, sender: getName(sender), range: rangeText}));
+        } else {
+            lines.push(translate('workflowsApprovalForkPage.approvesReportsFrom', {approver: name, sender: getName(sender), range: rangeText}));
+        }
+    }
+    return lines;
 }
 
 /**
@@ -1427,15 +1719,18 @@ function buildApprovalWorkflowRulesForSave(
     // Compare against the default workflow's own rules, or - before it has any - against the shapes the
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
+    const employeeListDefaultApprovers = hasRuleBasedDefault ? [] : calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}, shouldFindForks: true});
     const defaultWorkflowRules = hasRuleBasedDefault
         ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
-        : buildApprovalWorkflowRules({
-              members: approvalWorkflow.members,
-              approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}}),
-              isDefault: true,
-          });
+        : buildApprovalWorkflowRules({members: approvalWorkflow.members, approvers: employeeListDefaultApprovers, isDefault: true});
     const defaultWorkflowRuleShapes = new Set(defaultWorkflowRules.map(getRuleShape));
-    const matchesDefaultWorkflow = rulesAsDefault.length > 0 && rulesAsDefault.every((rule) => defaultWorkflowRuleShapes.has(getRuleShape(rule)));
+
+    // An `employeeList` chain with forks sends some reports where its rules wouldn't, so a workflow saved as rules never
+    // matches it, which is how removing the default workflow's forks saves it
+    const matchesDefaultWorkflow =
+        !hasApprovalWorkflowForks({approvers: employeeListDefaultApprovers}) &&
+        rulesAsDefault.length > 0 &&
+        rulesAsDefault.every((rule) => defaultWorkflowRuleShapes.has(getRuleShape(rule)));
 
     if (!matchesDefaultWorkflow) {
         // `rulesAsDefault` is already the answer when this workflow is itself the default one.
@@ -1768,6 +2063,7 @@ function buildApproverChainFromRules({submitter, rules, employees, personalDetai
                 errors: employees[email]?.errors,
             };
         },
+        isRoutedByEmployeeSettings: !submission && approvalRules.length === 0,
     });
 }
 
@@ -1799,47 +2095,6 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
  */
 function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
     return !isEmptyObject(getApprovalWorkflowRulesForPolicy(rulesCollection, policyID));
-}
-
-/**
- * Whether the policy's approval workflows are read from and saved as approval workflow rules.
- *
- * Under the `MULTIPLE_APPROVERS` beta, saving a workflow writes rules, and from then on the rules route the policy's
- * reports instead of `employeeList`. A policy without rules stays on `employeeList` while its reports reach an over-limit
- * approver: `employeeList` sends a report over the approval limit on down the over-limit approver's own chain, while
- * rules bring it back to the workflow after them, so writing rules would change where those reports go.
- *
- * Only the advanced approval chain sends reports over the limit, and only from an approver a member's reports reach.
- * Turning approvals off resets `submitsTo` and `forwardsTo` but leaves `approvalLimit` and `overLimitForwardsTo` behind,
- * so those leftovers don't keep a policy off rules.
- *
- * @param hasRules whether approval workflow rules route the policy's reports, see `hasApprovalWorkflowRules`
- */
-function shouldUseApprovalWorkflowRules(policy: OnyxEntry<Policy>, hasRules: boolean, isMultipleApproversBetaEnabled: boolean): boolean {
-    if (!isMultipleApproversBetaEnabled) {
-        return false;
-    }
-
-    const approvalMode = getApprovalWorkflow(policy);
-    if (hasRules || approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC) {
-        return true;
-    }
-
-    // A member without a submitsTo submits to the default approver. `employeeList` can hold a null entry at runtime, so read it optionally
-    const employees = policy?.employeeList ?? {};
-    const reachedApproverEmails = new Set<string>();
-    for (const firstApproverEmail of [getDefaultApprover(policy), ...Object.values(employees).map((employee) => employee?.submitsTo)]) {
-        let approverEmail = firstApproverEmail;
-        while (approverEmail && !reachedApproverEmails.has(approverEmail)) {
-            if (employees[approverEmail]?.overLimitForwardsTo) {
-                return false;
-            }
-            reachedApproverEmails.add(approverEmail);
-            approverEmail = employees[approverEmail]?.forwardsTo;
-        }
-    }
-
-    return true;
 }
 
 /**
@@ -2178,7 +2433,7 @@ function convertApprovalWorkflowRulesToWorkflows({
     if (firstWorkflow && !firstWorkflow.isDefault) {
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy}),
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy, shouldFindForks: true}),
             isDefault: true,
         });
     }
@@ -2198,7 +2453,7 @@ type HasApprovalWorkflowWithNonMemberApproverParams = {
     /** The policy's approval-workflow rules keyed by ruleID, which route the workflows under the `MULTIPLE_APPROVERS` beta */
     rules?: Record<string, ApprovalWorkflowRule>;
 
-    /** Whether the `MULTIPLE_APPROVERS` beta is enabled, which builds the workflows from rules, see `shouldUseApprovalWorkflowRules` */
+    /** Whether the `MULTIPLE_APPROVERS` beta is enabled, which builds the workflows from rules */
     isMultipleApproversBetaEnabled: boolean;
 };
 
@@ -2220,11 +2475,9 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         return false;
     }
 
-    const shouldUseRules = shouldUseApprovalWorkflowRules(policy, !isEmptyObject(rules), isMultipleApproversBetaEnabled);
-
-    // Without rules, an approver is only flagged when the default approver or some employee's `submitsTo`,
+    // Without the beta, an approver is only flagged when the default approver or some employee's `submitsTo`,
     // `forwardsTo` or `overLimitForwardsTo` points at a non-member, so skip building the workflows when none does
-    if (!shouldUseRules) {
+    if (!isMultipleApproversBetaEnabled) {
         const hasNonMemberRoute =
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
             Object.values(policy?.employeeList ?? {}).some(
@@ -2239,8 +2492,8 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
 
     // Only the approver flags are read, so personal details and sorting are skipped
     const params = {policy, personalDetails: {}, localeCompare: () => 0, currentUserLogin, rules};
-    const {approvalWorkflows} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
-    const shownApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
+    const {approvalWorkflows} = isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    const shownApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
 
     return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault)));
 }
@@ -2264,11 +2517,12 @@ export {
     buildApprovalWorkflowRules,
     buildApprovalWorkflowRulesForSave,
     calculateApprovers,
-    hasHiddenEmployeeRoutes,
+    hasApprovalWorkflowForks,
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
+    getApprovalForkDescription,
     getApproverTitles,
     getApproversFromImportedApprovers,
     getFirstApproverByMemberEmail,
@@ -2296,6 +2550,5 @@ export {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
-    shouldUseApprovalWorkflowRules,
     updateWorkflowDataOnApproverRemoval,
 };

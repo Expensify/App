@@ -3542,6 +3542,7 @@ ${amount} per ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `da ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Se il report supera ${amount}`,
         finalApprover: 'Approvazione finale',
+        approvalForkTooltip: 'C’è un problema con questo flusso di lavoro. Fai clic per visualizzarlo.',
         manager: 'Responsabile',
         submitFrequency: 'Frequenza di invio',
         submitOn: 'Invia il',
@@ -3616,9 +3617,6 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Modifica il flusso di approvazione',
         deleteTitle: 'Elimina flusso di approvazione',
         deletePrompt: 'Sei sicuro di voler eliminare questo flusso di approvazione? Tutti i membri seguiranno successivamente il flusso predefinito.',
-        hiddenRoutesTitle: 'Alcuni report verranno instradati diversamente',
-        hiddenRoutesPrompt:
-            'Questo flusso di lavoro è stato configurato con approvatori che inviano alcuni report ad altri approvatori in base al totale del report. Salvandolo restano solo gli approvatori mostrati qui, quindi ogni report passerà da loro.',
     },
     workflowsExpensesFromPage: {
         title: 'Spese dal',
@@ -3646,6 +3644,30 @@ ${amount} per ${merchant} - ${date}`,
         removeApprover: 'Rimuovi approvatore',
         next: 'Avanti',
         enterAmountError: 'Inserisci un importo valido',
+    },
+    workflowsApprovalForkPage: {
+        title: 'Biforcazione di approvazione',
+        description: () => ({
+            one: 'Questo flusso di lavoro ha ereditato da Expensify Classic una biforcazione nel flusso di approvazione diversa dal flusso di lavoro configurato.',
+            other: 'Questo flusso di lavoro ha ereditato da Expensify Classic delle biforcazioni nel flusso di approvazione diverse dal flusso di lavoro configurato.',
+        }),
+        forkNumber: ({number}: {number: number}) => `Biforcazione ${number}`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> approva i report in questo flusso di lavoro.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
+            `<strong>${approver}</strong> approva i report oltre ${amount} in questo flusso di lavoro.`,
+        approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> approva i report di <strong>${sender}</strong> ${range}.` : `<strong>${approver}</strong> approva i report di <strong>${sender}</strong>.`,
+        finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
+            range ? `<strong>${approver}</strong> dà l’approvazione finale ai report ${range}.` : `<strong>${approver}</strong> dà l’approvazione finale ai report.`,
+        finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
+            range
+                ? `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong>.`,
+        underAmount: ({amount}: {amount: string}) => `sotto ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `oltre ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tra ${lowerAmount} e ${upperAmount}`,
+        removeFork: 'Rimuovi biforcazione',
+        removeForks: 'Rimuovi biforcazioni',
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',

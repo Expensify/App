@@ -2162,6 +2162,8 @@ const SENTRY_LABEL = {
             APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',
             APPROVAL_SECTION_APPROVER: 'WorkspaceWorkflows-ApprovalSectionApprover',
             APPROVAL_SECTION_SHOW_ALL_MEMBERS: 'WorkspaceWorkflows-ApprovalSectionShowAllMembers',
+            APPROVAL_SECTION_FORK: 'WorkspaceWorkflows-ApprovalSectionFork',
+            APPROVAL_FORK_REMOVE: 'WorkspaceWorkflows-ApprovalForkRemove',
             REMOVE_APPROVER: 'WorkspaceWorkflows-RemoveApprover',
             ADD_APPROVALS_SWITCH: 'WorkspaceWorkflows-AddApprovalsSwitch',
             COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH: 'WorkspaceWorkflows-CollectEmployeeBankDetailsSwitch',
