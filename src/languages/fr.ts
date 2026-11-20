@@ -8399,6 +8399,14 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des données Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Initialisation de la connexion à Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Synchronisation des sociétés';
+                        case 'odooSyncAccounts':
+                            return 'Synchronisation du plan comptable';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Synchronisation des plans analytiques';
+                        case 'odooSyncTaxRates':
+                            return 'Synchronisation des taux de taxe';
                         case 'odooSyncConnection':
                             return 'Initialisation de la connexion à Odoo';
                         case 'campfireSyncImportData':

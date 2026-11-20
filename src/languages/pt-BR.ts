@@ -8324,6 +8324,14 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicializando conexão com o Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Sincronizando empresas';
+                        case 'odooSyncAccounts':
+                            return 'Sincronizando plano de contas';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Sincronizando planos analíticos';
+                        case 'odooSyncTaxRates':
+                            return 'Sincronizando taxas de imposto';
                         case 'odooSyncConnection':
                             return 'Iniciando conexão com o Odoo';
                         case 'campfireSyncImportData':

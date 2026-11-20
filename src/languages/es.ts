@@ -8246,6 +8246,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Sincronizando empresas';
+                        case 'odooSyncAccounts':
+                            return 'Sincronizando plan de cuentas';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Sincronizando planes analíticos';
+                        case 'odooSyncTaxRates':
+                            return 'Sincronizando tasas de impuestos';
                         case 'odooSyncConnection':
                             return 'Iniciando conexión con Odoo';
                         case 'campfireSyncImportData':

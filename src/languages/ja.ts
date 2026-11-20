@@ -8215,6 +8215,14 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Zoho Books データを同期しています';
                         case 'zohoBooksSyncConnection':
                             return 'Zoho Books への接続を初期化しています';
+                        case 'odooSyncSubsidiaries':
+                            return '会社を同期しています';
+                        case 'odooSyncAccounts':
+                            return '勘定科目表を同期しています';
+                        case 'odooSyncAnalyticPlans':
+                            return '分析プランを同期しています';
+                        case 'odooSyncTaxRates':
+                            return '税率を同期しています';
                         case 'odooSyncConnection':
                             return 'Odoo への接続を初期化しています';
                         case 'campfireSyncImportData':

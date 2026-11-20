@@ -8376,6 +8376,14 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Zoho Books-Daten werden synchronisiert';
                         case 'zohoBooksSyncConnection':
                             return 'Verbindung zu Zoho Books wird initialisiert';
+                        case 'odooSyncSubsidiaries':
+                            return 'Unternehmen werden synchronisiert';
+                        case 'odooSyncAccounts':
+                            return 'Kontenplan wird synchronisiert';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Analysepläne werden synchronisiert';
+                        case 'odooSyncTaxRates':
+                            return 'Steuersätze werden synchronisiert';
                         case 'odooSyncConnection':
                             return 'Verbindung zu Odoo wird initialisiert';
                         case 'campfireSyncImportData':

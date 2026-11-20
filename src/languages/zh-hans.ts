@@ -8014,6 +8014,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Zoho Books 数据';
                         case 'zohoBooksSyncConnection':
                             return '正在初始化与 Zoho Books 的连接';
+                        case 'odooSyncSubsidiaries':
+                            return '正在同步公司';
+                        case 'odooSyncAccounts':
+                            return '正在同步科目表';
+                        case 'odooSyncAnalyticPlans':
+                            return '正在同步分析计划';
+                        case 'odooSyncTaxRates':
+                            return '正在同步税率';
                         case 'odooSyncConnection':
                             return '正在初始化与 Odoo 的连接';
                         case 'campfireSyncImportData':

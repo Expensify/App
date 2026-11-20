@@ -8499,6 +8499,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Γίνεται συγχρονισμός εταιρειών';
+                        case 'odooSyncAccounts':
+                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Γίνεται συγχρονισμός αναλυτικών σχεδίων';
+                        case 'odooSyncTaxRates':
+                            return 'Γίνεται συγχρονισμός φορολογικών συντελεστών';
                         case 'odooSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Odoo';
                         case 'campfireSyncImportData':

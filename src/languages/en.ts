@@ -9035,6 +9035,14 @@ const translations = {
                             return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Syncing companies';
+                        case 'odooSyncAccounts':
+                            return 'Syncing chart of accounts';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Syncing analytic plans';
+                        case 'odooSyncTaxRates':
+                            return 'Syncing tax rates';
                         case 'odooSyncConnection':
                             return 'Initializing connection to Odoo';
                         case 'campfireSyncImportData':
@@ -9064,6 +9072,7 @@ const translations = {
                         case 'businessCentralSyncImportData':
                             return 'Loading data';
                         default: {
+                            console.log('statege', stage);
                             return `Translation missing for stage: ${stage}`;
                         }
                     }

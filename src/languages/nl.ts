@@ -8309,6 +8309,14 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
+                        case 'odooSyncSubsidiaries':
+                            return 'Bedrijven synchroniseren';
+                        case 'odooSyncAccounts':
+                            return 'Rekeningschema synchroniseren';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Analytische plannen synchroniseren';
+                        case 'odooSyncTaxRates':
+                            return 'Belastingspercentages synchroniseren';
                         case 'odooSyncConnection':
                             return 'Verbinding met Odoo initialiseren';
                         case 'campfireSyncImportData':
