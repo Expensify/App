@@ -1,4 +1,3 @@
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -19,9 +18,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {DelegateRole} from '@src/types/onyx/Account';
 
 import {delegatesSelector} from '@selectors/Account';
 import React from 'react';
+
+import DelegateRoleAccountValidation from './DelegateRoleAccountValidation';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
@@ -46,13 +48,28 @@ function UpdateDelegateRoleSelectionListHeader() {
     );
 }
 
-function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
+function UpdateDelegateRolePageContent({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
 
     const currentDelegate = delegatedAccess?.delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
+
+    const changeRole = (role: DelegateRole) => {
+        // Reducing access does not require an action code once the owner's account is validated.
+        if (matchingRole === CONST.DELEGATE_ROLE.ALL && role === CONST.DELEGATE_ROLE.SUBMITTER) {
+            updateDelegateRole({
+                email: login,
+                role,
+                delegatedAccess,
+                validateCode: undefined,
+            });
+            Navigation.goBack(ROUTES.SETTINGS_COPILOT);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
+    };
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
@@ -67,40 +84,34 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             includeSafeAreaPaddingBottom={false}
             testID="UpdateDelegateRolePage"
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('delegate.accessLevel')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <SelectionList
-                    alternateNumberOfSupportedLines={4}
-                    initiallyFocusedItemKey={matchingRole}
-                    shouldUpdateFocusedIndex
-                    customListHeader={<UpdateDelegateRoleSelectionListHeader />}
-                    onSelectRow={(option) => {
-                        if (!option.value || option.isSelected) {
-                            Navigation.dismissModal();
-                            return;
-                        }
-                        // Downgrading from full access to submitter removes privileges, so it is applied directly
-                        // without requiring the magic code that every other role change goes through.
-                        if (currentRole === CONST.DELEGATE_ROLE.ALL && option.value === CONST.DELEGATE_ROLE.SUBMITTER) {
-                            updateDelegateRole({
-                                email: login,
-                                role: option.value,
-                                delegatedAccess,
-                                validateCode: undefined,
-                            });
-                            Navigation.goBack(ROUTES.SETTINGS_COPILOT);
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE.getRoute(login, option?.value));
-                    }}
-                    data={roleOptions}
-                    ListItem={SingleSelectListItem}
-                />
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButton
+                title={translate('delegate.accessLevel')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <SelectionList
+                alternateNumberOfSupportedLines={4}
+                initiallyFocusedItemKey={matchingRole}
+                shouldUpdateFocusedIndex
+                customListHeader={<UpdateDelegateRoleSelectionListHeader />}
+                onSelectRow={(option) => {
+                    if (!option.value || option.isSelected) {
+                        Navigation.dismissModal();
+                        return;
+                    }
+                    changeRole(option.value);
+                }}
+                data={roleOptions}
+                ListItem={SingleSelectListItem}
+            />
         </ScreenWrapper>
+    );
+}
+
+function UpdateDelegateRolePage(props: UpdateDelegateRolePageProps) {
+    return (
+        <DelegateRoleAccountValidation navigateForwardTo={ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(props.route.params.login, props.route.params.currentRole)}>
+            <UpdateDelegateRolePageContent {...props} />
+        </DelegateRoleAccountValidation>
     );
 }
 
