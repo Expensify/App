@@ -1,11 +1,15 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type * as PolicyPaymentsUtils from '@libs/PolicyUtils/payments';
 
 import {WorkspaceOverviewCurrencyPage} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
 import type {WorkspaceOverviewCurrencyPageProps} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
+
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,9 +30,11 @@ const mockPolicy = createMock<Policy>({
     name: 'Acme',
     outputCurrency: CONST.CURRENCY.AUD,
 });
+const directReimbursementPolicy = createMock<Policy>({...mockPolicy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
 let mockEnrollmentRoute = '';
 let mockIsBetaEnabled = false;
 let mockIsUkEuCurrencySupported = false;
+const mockShowConfirmModal = jest.fn();
 const mockOnyxKeys = ONYXKEYS;
 // The Connections page that opened the currency page on top of itself
 const mockDynamicBackPath = `workspaces/${POLICY_ID}/connections`;
@@ -37,7 +43,7 @@ jest.mock('@components/CurrencySelectionList', () => {
     const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({onSelect}: {onSelect: (item: CurrencyListItem) => void}) => (
         <>
-            {['USD', 'GBP', 'EUR', 'AUD'].map((currencyCode) => (
+            {['USD', 'GBP', 'EUR', 'AUD', 'HKD'].map((currencyCode) => (
                 <Pressable
                     key={currencyCode}
                     testID={`currency-${currencyCode}`}
@@ -64,6 +70,10 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
+}));
 jest.mock('@hooks/useDynamicBackPath', () => ({
     __esModule: true,
     default: () => mockDynamicBackPath,
@@ -108,7 +118,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         setNavigationActionToMicrotaskQueue: jest.fn(),
     },
 }));
-jest.mock('@libs/PolicyUtils', () => ({goBackFromInvalidPolicy: jest.fn()}));
+jest.mock('@libs/PolicyUtils', () => ({
+    goBackFromInvalidPolicy: jest.fn(),
+    // The real check runs so the tests cover the policy and currency the page passes in
+    isCurrencyChangeBlockedByDirectReimbursement: (...args: Parameters<typeof PolicyPaymentsUtils.isCurrencyChangeBlockedByDirectReimbursement>) =>
+        jest.requireActual<typeof PolicyPaymentsUtils>('@libs/PolicyUtils/payments').isCurrencyChangeBlockedByDirectReimbursement(...args),
+}));
 jest.mock('@libs/ReimbursementAccountUtils', () => ({
     hasInProgressUSDVBBA: () => false,
 }));
@@ -138,9 +153,9 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseRoute = jest.mocked(useRoute);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
-function renderPage(shouldStartExpensifyCardEnrollment = true, screenName: string = SCREENS.WORKSPACE.CURRENCY) {
+function renderPage(shouldStartExpensifyCardEnrollment = true, screenName: string = SCREENS.WORKSPACE.CURRENCY, policy: Policy = mockPolicy) {
     mockUseRoute.mockReturnValue(createMock<ReturnType<typeof useRoute>>({name: screenName, params: {shouldStartExpensifyCardEnrollment}}));
-    const props = createMock<WorkspaceOverviewCurrencyPageProps>({policy: mockPolicy});
+    const props = createMock<WorkspaceOverviewCurrencyPageProps>({policy});
     render(<WorkspaceOverviewCurrencyPage {...props} />);
 }
 
@@ -150,6 +165,7 @@ describe('WorkspaceOverviewCurrencyPage', () => {
         mockEnrollmentRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)});
         mockIsBetaEnabled = false;
         mockIsUkEuCurrencySupported = false;
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
     });
 
     it('opens the add bank account flow after selecting USD when no eligible account exists', () => {
@@ -193,6 +209,46 @@ describe('WorkspaceOverviewCurrencyPage', () => {
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
+    });
+
+    it('sends the admin to Workflows instead of changing a currency that Direct reimbursement blocks', async () => {
+        // Given a workspace on Direct reimbursement, which the server won't let switch to HKD
+        renderPage(false, SCREENS.WORKSPACE.CURRENCY, directReimbursementPolicy);
+
+        // When the admin picks HKD and confirms the explanation
+        fireEvent.press(screen.getByTestId('currency-HKD'));
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+
+        // Then the admin lands on the Payments tab of Workflows to change reimbursement, and no currency change reaches the server
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.editor.directReimbursementCurrencyTitle'}));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.PAYMENTS));
+        expect(updateGeneralSettings).not.toHaveBeenCalled();
+    });
+
+    it('keeps the currency unchanged when the admin dismisses the Direct reimbursement explanation', async () => {
+        // Given a workspace on Direct reimbursement and an admin who cancels the explanation
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
+        renderPage(false, SCREENS.WORKSPACE.CURRENCY, directReimbursementPolicy);
+
+        // When the admin picks HKD
+        fireEvent.press(screen.getByTestId('currency-HKD'));
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalled());
+
+        // Then the admin stays on the picker and nothing is sent
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(updateGeneralSettings).not.toHaveBeenCalled();
+    });
+
+    it('changes the currency without the explanation when Direct reimbursement supports it', () => {
+        // Given a workspace on Direct reimbursement, where the server accepts GBP
+        renderPage(false, SCREENS.WORKSPACE.CURRENCY, directReimbursementPolicy);
+
+        // When the admin picks GBP
+        fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.GBP}`));
+
+        // Then the change is sent with no explanation, so supported currencies are not blocked
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(updateGeneralSettings).toHaveBeenCalledWith(directReimbursementPolicy, directReimbursementPolicy.name, CONST.CURRENCY.GBP, undefined, expect.anything());
     });
 
     it('goes back to the page that opened it once a currency is chosen on top of that page', () => {

@@ -58,6 +58,67 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
 
     if (!shouldUseNarrowLayout) {
+        // Built outside the Hoverable callback so hovering the sidebar doesn't re-render every tab
+        const sidebarTabs = (
+            <View style={styles.flex1}>
+                <PressableWithFeedback
+                    role={CONST.ROLE.LINK}
+                    accessibilityLabel={translate('common.home')}
+                    accessible
+                    testID="ExpensifyLogoButton"
+                    onPress={navigateToNewDotHome}
+                    linkRoute={ROUTES.HOME}
+                    wrapperStyle={styles.leftNavigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+                >
+                    <ImageSVG
+                        style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                        src={expensifyIcons.ExpensifyAppIcon}
+                        aria-hidden
+                    />
+                </PressableWithFeedback>
+                <PressableWithFeedback
+                    onPress={navigateToNewDotHome}
+                    linkRoute={ROUTES.HOME}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.home')}
+                    style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                >
+                    {({hovered}) => (
+                        <TabBarItem
+                            icon={expensifyIcons.Home}
+                            label={translate('common.home')}
+                            isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                            isHovered={hovered}
+                        />
+                    )}
+                </PressableWithFeedback>
+                <InboxTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout
+                />
+                <SearchTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout
+                />
+                <InsightsTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout
+                />
+                <WorkspacesTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout
+                />
+                <NavigationTabBarAvatar
+                    style={styles.leftNavigationTabBarItem}
+                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                    onPress={navigateToSettings}
+                />
+            </View>
+        );
+        const floatingActionButton = <NavigationTabBarFloatingActionButton />;
+
         return (
             <>
                 {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
@@ -67,65 +128,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             style={styles.leftNavigationTabBarContainer}
                             testID="NavigationTabBar"
                         >
-                            <View style={styles.flex1}>
-                                <PressableWithFeedback
-                                    role={CONST.ROLE.LINK}
-                                    accessibilityLabel={translate('common.home')}
-                                    accessible
-                                    testID="ExpensifyLogoButton"
-                                    onPress={navigateToNewDotHome}
-                                    linkRoute={ROUTES.HOME}
-                                    wrapperStyle={styles.leftNavigationTabBarItem}
-                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
-                                >
-                                    <ImageSVG
-                                        style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                        src={expensifyIcons.ExpensifyAppIcon}
-                                        aria-hidden
-                                    />
-                                </PressableWithFeedback>
-                                <PressableWithFeedback
-                                    onPress={navigateToNewDotHome}
-                                    linkRoute={ROUTES.HOME}
-                                    role={CONST.ROLE.TAB}
-                                    accessibilityLabel={translate('common.home')}
-                                    style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                                >
-                                    {({hovered}) => (
-                                        <TabBarItem
-                                            icon={expensifyIcons.Home}
-                                            label={translate('common.home')}
-                                            isSelected={selectedTab === NAVIGATION_TABS.HOME}
-                                            isHovered={hovered}
-                                        />
-                                    )}
-                                </PressableWithFeedback>
-                                <InboxTabButton
-                                    selectedTab={selectedTab}
-                                    isWideLayout
-                                />
-                                <SearchTabButton
-                                    selectedTab={selectedTab}
-                                    isWideLayout
-                                />
-                                <InsightsTabButton
-                                    selectedTab={selectedTab}
-                                    isWideLayout
-                                />
-                                <WorkspacesTabButton
-                                    selectedTab={selectedTab}
-                                    isWideLayout
-                                />
-                                <NavigationTabBarAvatar
-                                    style={styles.leftNavigationTabBarItem}
-                                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                                    onPress={navigateToSettings}
-                                />
-                            </View>
+                            {sidebarTabs}
                             <View style={styles.leftNavigationTabBarFAB}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
-                                <NavigationTabBarFloatingActionButton />
+                                {floatingActionButton}
                             </View>
                         </View>
                     )}
