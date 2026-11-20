@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameErrors} from '@libs/ValidationUtils';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -27,6 +29,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
+import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -35,11 +38,14 @@ type WorkspaceMemberDisplayNamePageProps = PlatformStackScreenProps<SettingsNavi
 function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params.accountID);
+    const routeAccountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const [memberPersonalDetails] = usePersonalDetail(accountID);
+    const [routeLogin] = usePersonalDetail(routeAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const memberLogin = memberPersonalDetails?.login;
+    // The route can carry an ID generated from the login instead of the member's real one, so resolve the member by login like Member details does.
+    const memberLogin = routeLogin ?? getMemberLoginByAccountID(policy, routeAccountID);
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
     const isPolicyMember = !!memberLogin && !!policy?.employeeList?.[memberLogin];
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path);
