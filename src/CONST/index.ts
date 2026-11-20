@@ -8563,7 +8563,7 @@ const CONST = {
         TRAVEL_PLATFORM: {
             EXPENSIFY_TRAVEL: 'expensifyTravel',
             AMEX_GBT: 'amexGBT',
-            SAP_CONCUR: 'sapConcur',
+            CONCUR: 'concur',
             NAVAN: 'navan',
             FCM: 'fcm',
             FLIGHT_CENTRE: 'flightCentre',

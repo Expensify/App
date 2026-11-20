@@ -11646,7 +11646,7 @@ const translations = {
                 label: 'Travel platform',
                 [CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL]: 'Expensify Travel',
                 [CONST.SEARCH.TRAVEL_PLATFORM.AMEX_GBT]: 'Amex GBT/Egencia',
-                [CONST.SEARCH.TRAVEL_PLATFORM.SAP_CONCUR]: 'SAP Concur',
+                [CONST.SEARCH.TRAVEL_PLATFORM.CONCUR]: 'SAP Concur',
                 [CONST.SEARCH.TRAVEL_PLATFORM.NAVAN]: 'Navan',
                 [CONST.SEARCH.TRAVEL_PLATFORM.FCM]: 'FCM',
                 [CONST.SEARCH.TRAVEL_PLATFORM.FLIGHT_CENTRE]: 'Flight Centre',
