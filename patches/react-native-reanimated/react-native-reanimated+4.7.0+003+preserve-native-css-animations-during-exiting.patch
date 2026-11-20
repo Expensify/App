@@ -1,0 +1,748 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.cpp
+@@ -15,7 +15,11 @@
+ jsi::Value ViewStylesRepository::getNodeProp(
+     const std::shared_ptr<const ShadowNode> &shadowNode,
+     const std::string &propName) {
+-  const auto resolvedNode = getNewestNode(shadowNode);
++  return getResolvedNodeProp(getNewestNode(shadowNode), propName);
++}
++
++jsi::Value ViewStylesRepository::getResolvedNodeProp(
++    const std::shared_ptr<const ShadowNode> &resolvedNode, const std::string &propName) {
+   const auto *layoutableShadowNode = dynamic_cast<const LayoutableShadowNode *>(resolvedNode.get());
+ 
+   if (propName == "width" || propName == "height" || propName == "top" || propName == "left") {
+@@ -60,7 +64,8 @@
+     return jsi::Value::undefined();
+   }
+ 
+-  return getNodeProp(parentNode, propName);
++  // The parent belongs to the child's snapshot, even if another exit retained an older copy.
++  return getResolvedNodeProp(parentNode, propName);
+ }
+ 
+ std::shared_ptr<const ShadowNode> ViewStylesRepository::getNewestNode(
+@@ -88,6 +93,15 @@
+ 
+   const auto ancestors = shadowNode->getFamily().getAncestors(*root);
+   if (ancestors.empty()) {
++    if (retainedRootsProvider_) {
++      if (const auto retainedRoot = retainedRootsProvider_(shadowNode->getTag())) {
++        const auto retainedAncestors = shadowNode->getFamily().getAncestors(*retainedRoot);
++        if (!retainedAncestors.empty()) {
++          const auto &deepest = retainedAncestors.back();
++          return deepest.first.get().getChildren().at(deepest.second);
++        }
++      }
++    }
+     return shadowNode;
+   }
+ 
+@@ -110,7 +124,15 @@
+   if (it == lastMountedRootBySurface_.end()) {
+     return nullptr;
+   }
+-  return dom::getParentNode(it->second, *shadowNode);
++  if (const auto parent = dom::getParentNode(it->second, *shadowNode)) {
++    return parent;
++  }
++  if (retainedRootsProvider_) {
++    if (const auto root = retainedRootsProvider_(shadowNode->getTag())) {
++      return dom::getParentNode(root, *shadowNode);
++    }
++  }
++  return nullptr;
+ }
+ 
+ void ViewStylesRepository::setLastMountedRoot(const RootShadowNode::Shared &rootShadowNode) {
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/CSS/misc/ViewStylesRepository.h
+@@ -10,9 +10,12 @@
+ #include <react/renderer/dom/DOM.h>
+ #include <react/renderer/uimanager/UIManager.h>
+ 
++#include <functional>
+ #include <memory>
+ #include <string>
+ #include <unordered_map>
++#include <utility>
++#include <vector>
+ 
+ namespace reanimated::css {
+ 
+@@ -35,6 +38,9 @@
+ 
+   void setLastMountedRoot(const RootShadowNode::Shared &rootShadowNode);
+   void removeSurface(SurfaceId surfaceId);
++  void setRetainedRootsProvider(std::function<RootShadowNode::Shared(Tag)> provider) {
++    retainedRootsProvider_ = std::move(provider);
++  }
+ 
+  private:
+   std::shared_ptr<UIManager> uiManager_;
+@@ -42,10 +48,13 @@
+   std::shared_ptr<AnimatedPropsRegistry> animatedPropsRegistry_;
+ 
+   std::unordered_map<SurfaceId, RootShadowNode::Shared> lastMountedRootBySurface_;
++  std::function<RootShadowNode::Shared(Tag)> retainedRootsProvider_;
+ 
+   std::shared_ptr<const ShadowNode> getNewestNode(const std::shared_ptr<const ShadowNode> &shadowNode) const;
+   std::shared_ptr<const ShadowNode> getParentNode(const std::shared_ptr<const ShadowNode> &shadowNode) const;
+ 
++  jsi::Value getResolvedNodeProp(const std::shared_ptr<const ShadowNode> &node, const std::string &propName);
++
+   static folly::dynamic getPropertyValue(const folly::dynamic &value, const PropertyPath &propertyPath);
+ };
+ 
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/ReanimatedMountHook.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/ReanimatedMountHook.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/ReanimatedMountHook.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/ReanimatedMountHook.cpp
+@@ -4,6 +4,7 @@
+ #include <reanimated/Tools/ReanimatedSystraceSection.h>
+ 
+ #include <memory>
++#include <unordered_set>
+ 
+ namespace reanimated {
+ 
+@@ -53,8 +54,24 @@
+     reaShadowNode->unsetReanimatedMountTrait();
+   }
+ 
++  // A mounting proxy can read synchronous props while holding its own lock.
++  // Query it before taking the registry lock to avoid the inverse lock order.
++  std::vector<Tag> removableTags;
+   {
+     auto lock = updatesRegistryManager_->lock();
++    removableTags = updatesRegistryManager_->getRemovableTags();
++  }
++  std::unordered_set<Tag> retainedTags;
++  if (layoutAnimationsProxyRegistry_) {
++    for (const auto tag : removableTags) {
++      if (layoutAnimationsProxyRegistry_->isViewRetained(tag)) {
++        retainedTags.insert(tag);
++      }
++    }
++  }
++
++  {
++    auto lock = updatesRegistryManager_->lock();
+     // Record the mounted tree for relative-length resolution.
+     viewStylesRepository_->setLastMountedRoot(rootShadowNode);
+ 
+@@ -62,7 +79,9 @@
+     // animations run every mount carries the mount trait, so returning early here
+     // would skip removals for the whole animation and leak unmounted nodes if the
+     // tree is torn down mid-animation.
+-    updatesRegistryManager_->handleNodeRemovals(*rootShadowNode);
++    updatesRegistryManager_->handleNodeRemovals(rootShadowNode, [&retainedTags](const Tag tag) {
++      return retainedTags.contains(tag);
++    });
+ 
+     if (!isReanimatedMount) {
+       // When a commit from React Native has finished, we reset the skip commit
+@@ -84,6 +103,7 @@
+   }
+ 
+   auto lock = updatesRegistryManager_->lock();
++  updatesRegistryManager_->removeSurface(surfaceId);
+   viewStylesRepository_->removeSurface(surfaceId);
+ }
+ 
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.cpp
+@@ -4,6 +4,7 @@
+ #include <react/debug/react_native_assert.h>
+ 
+ #include <memory>
++#include <unordered_set>
+ #include <utility>
+ #include <vector>
+ 
+@@ -73,9 +74,12 @@
+ void UpdatesRegistryManager::unmarkNodeAsRemovable(Tag viewTag) {
+   react_native_assert(isLockedByCurrentThread());
+   removableShadowNodes_.erase(viewTag);
++  retainedRoots_.erase(viewTag);
+ }
+ 
+-void UpdatesRegistryManager::handleNodeRemovals(const RootShadowNode &rootShadowNode) {
++void UpdatesRegistryManager::handleNodeRemovals(
++    const RootShadowNode::Shared &rootShadowNode,
++    const std::function<bool(Tag)> &isViewRetained) {
+   react_native_assert(isLockedByCurrentThread());
+   RemovableShadowNodes remainingShadowNodes;
+ 
+@@ -84,19 +88,139 @@
+       continue;
+     }
+ 
+-    if (shadowNodeFamily->getAncestors(rootShadowNode).empty()) {
++    if (shadowNodeFamily->getSurfaceId() != rootShadowNode->getSurfaceId()) {
++      remainingShadowNodes.emplace(tag, shadowNodeFamily);
++      continue;
++    }
++
++    if (shadowNodeFamily->getAncestors(*rootShadowNode).empty()) {
++      // An exiting ancestor keeps native children mounted after React removes them.
++      // Their CSS animations still need the old tree for Yoga and relative values.
++      if (isViewRetained(tag)) {
++        if (!retainedRoots_.contains(tag)) {
++          const auto previous = lastMountedRoots_.find(rootShadowNode->getSurfaceId());
++          if (previous != lastMountedRoots_.end()) {
++            retainedRoots_.emplace(tag, previous->second);
++          }
++        }
++        remainingShadowNodes.emplace(tag, shadowNodeFamily);
++        continue;
++      }
+       for (auto &registry : registries_) {
+         registry->remove(tag);
+       }
+       staticPropsRegistry_->remove(tag);
++      retainedRoots_.erase(tag);
+     } else {
++      retainedRoots_.erase(tag);
+       remainingShadowNodes.emplace(tag, shadowNodeFamily);
+     }
+   }
+ 
+   removableShadowNodes_ = std::move(remainingShadowNodes);
++  lastMountedRoots_[rootShadowNode->getSurfaceId()] = rootShadowNode;
++}
++
++std::vector<Tag> UpdatesRegistryManager::getRemovableTags() const {
++  react_native_assert(isLockedByCurrentThread());
++  std::vector<Tag> tags;
++  for (const auto &[tag, _] : removableShadowNodes_) {
++    tags.push_back(tag);
++  }
++  return tags;
++}
++
++RootShadowNode::Shared UpdatesRegistryManager::getRetainedRoot(const Tag tag) const {
++  react_native_assert(isLockedByCurrentThread());
++  const auto it = retainedRoots_.find(tag);
++  return it == retainedRoots_.end() ? nullptr : it->second;
++}
++
++std::vector<Tag> UpdatesRegistryManager::getRetainedTags() const {
++  react_native_assert(isLockedByCurrentThread());
++  std::vector<Tag> tags;
++  for (const auto &[tag, _] : retainedRoots_) {
++    tags.push_back(tag);
++  }
++  return tags;
++}
++
++void UpdatesRegistryManager::releaseRetainedNodes(const std::vector<Tag> &tags) {
++  react_native_assert(isLockedByCurrentThread());
++  for (const auto tag : tags) {
++    if (retainedRoots_.erase(tag) == 0) {
++      continue;
++    }
++    for (const auto &registry : registries_) {
++      registry->remove(tag);
++    }
++    staticPropsRegistry_->remove(tag);
++    removableShadowNodes_.erase(tag);
++  }
+ }
+ 
++std::vector<RootShadowNode::Shared> UpdatesRegistryManager::getRetainedRoots(const SurfaceId surfaceId) const {
++  react_native_assert(isLockedByCurrentThread());
++  std::vector<RootShadowNode::Shared> roots;
++  std::unordered_set<const RootShadowNode *> seen;
++  for (const auto &[tag, root] : retainedRoots_) {
++    if (root->getSurfaceId() == surfaceId && seen.insert(root.get()).second) {
++      roots.push_back(root);
++    }
++  }
++  return roots;
++}
++
++void UpdatesRegistryManager::updateRetainedRoot(
++    const RootShadowNode::Shared &oldRoot,
++    const RootShadowNode::Shared &newRoot) {
++  react_native_assert(isLockedByCurrentThread());
++  for (auto &[tag, root] : retainedRoots_) {
++    if (root == oldRoot) {
++      root = newRoot;
++    }
++  }
++}
++
++PropsMap UpdatesRegistryManager::getRetainedProps(
++    const RootShadowNode::Shared &root,
++    const PropsMap &propsMap) const {
++  react_native_assert(isLockedByCurrentThread());
++  PropsMap retainedProps;
++  for (const auto &[family, props] : propsMap) {
++    const auto it = retainedRoots_.find(family->getTag());
++    if (it != retainedRoots_.end() && it->second == root) {
++      retainedProps.emplace(family, props);
++    }
++  }
++  return retainedProps;
++}
++
++bool UpdatesRegistryManager::shouldUpdateRetainedView(
++    const Tag tag,
++    const RootShadowNode::Shared &root) const {
++  react_native_assert(isLockedByCurrentThread());
++  const auto it = retainedRoots_.find(tag);
++  return it == retainedRoots_.end() || it->second == root;
++}
++
++void UpdatesRegistryManager::removeSurface(const SurfaceId surfaceId) {
++  react_native_assert(isLockedByCurrentThread());
++  lastMountedRoots_.erase(surfaceId);
++  for (auto it = removableShadowNodes_.begin(); it != removableShadowNodes_.end();) {
++    if (it->second->getSurfaceId() != surfaceId) {
++      ++it;
++      continue;
++    }
++    for (const auto &registry : registries_) {
++      registry->remove(it->first);
++    }
++    staticPropsRegistry_->remove(it->first);
++    retainedRoots_.erase(it->first);
++    it = removableShadowNodes_.erase(it);
++  }
++}
++
+ PropsMap UpdatesRegistryManager::collectProps() {
+   react_native_assert(isLockedByCurrentThread());
+   PropsMap propsMap;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/Fabric/updates/UpdatesRegistryManager.h
+@@ -7,6 +7,7 @@
+ #include <reanimated/Fabric/updates/UpdatesRegistry.h>
+ 
+ #include <atomic>
++#include <functional>
+ #include <memory>
+ #include <unordered_map>
+ #include <utility>
+@@ -46,8 +47,19 @@
+ 
+   void markNodeAsRemovable(const std::shared_ptr<const ShadowNode> &shadowNode);
+   void unmarkNodeAsRemovable(Tag viewTag);
+-  void handleNodeRemovals(const RootShadowNode &rootShadowNode);
++  void handleNodeRemovals(
++      const RootShadowNode::Shared &rootShadowNode,
++      const std::function<bool(Tag)> &isViewRetained);
++  std::vector<Tag> getRemovableTags() const;
++  RootShadowNode::Shared getRetainedRoot(Tag tag) const;
++  std::vector<Tag> getRetainedTags() const;
++  void releaseRetainedNodes(const std::vector<Tag> &tags);
++  std::vector<RootShadowNode::Shared> getRetainedRoots(SurfaceId surfaceId) const;
++  PropsMap getRetainedProps(const RootShadowNode::Shared &root, const PropsMap &propsMap) const;
++  bool shouldUpdateRetainedView(Tag tag, const RootShadowNode::Shared &root) const;
++  void updateRetainedRoot(const RootShadowNode::Shared &oldRoot, const RootShadowNode::Shared &newRoot);
++  void removeSurface(SurfaceId surfaceId);
+   PropsMap collectProps();
+   void mergeRegistryProps(Tag viewTag, folly::dynamic &target);
+ 
+ #ifdef ANDROID
+@@ -66,6 +78,8 @@
+   std::atomic<bool> isPaused_;
+   std::atomic<bool> shouldCommitAfterPause_;
+   RemovableShadowNodes removableShadowNodes_;
++  std::unordered_map<SurfaceId, RootShadowNode::Shared> lastMountedRoots_;
++  std::unordered_map<Tag, RootShadowNode::Shared> retainedRoots_;
+   std::vector<std::shared_ptr<UpdatesRegistry>> registries_;
+   const std::shared_ptr<StaticPropsRegistry> staticPropsRegistry_;
+ 
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.cpp
+@@ -224,6 +224,7 @@
+   configLock.unlock();
+   flushLayoutAnimationOperations(lock);
+ 
++  appendRetainedViewUpdates(filteredMutations);
+   addOngoingAnimations(filteredMutations);
+ 
+   cleanupAnimations(transaction, propsParserContext, flushStructuralMutations);
+@@ -249,8 +250,27 @@
+   }
+   const auto nodeIt = lightNodes_.find(node->current.tag);
+   return nodeIt != lightNodes_.end() && nodeIt->second == node;
++}
++
++std::optional<ShadowView> LayoutAnimationsProxy::getRetainedView(const Tag tag) const {
++  const auto it = lightNodes_.find(tag);
++  if (it == lightNodes_.end() || !it->second->isExiting() || it->second->state == ExitingState::DELETED) {
++    return std::nullopt;
++  }
++  return it->second->current;
+ }
+ 
++void LayoutAnimationsProxy::updateRetainedView(const ShadowView &view) const {
++  const auto it = lightNodes_.find(view.tag);
++  if (it != lightNodes_.end()) {
++    it->second->current = view;
++#ifdef ANDROID
++    it->second->accumulatedRawProps = view.props->rawProps;
++    it->second->propsNeedResolve = false;
++#endif
++  }
++}
++
+ // the only erase of lightNodes_ once the tree is initialized
+ void LayoutAnimationsProxy::unmapLightNode(const std::shared_ptr<LightNode> &node) const {
+   const auto it = lightNodes_.find(node->current.tag);
+@@ -258,5 +278,6 @@
+     return;
+   }
+   lightNodes_.erase(it);
++  retainedViewUpdates_.erase(node->current.tag);
+   if (node == topScreen_) {
+     topScreen_ = nullptr;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy.h
+@@ -160,6 +160,8 @@
+   }
+ 
+   void applySynchronousProps(const UpdatesBatch &updatesBatch, bool trackInLightTree) const override;
++  std::optional<ShadowView> getRetainedView(Tag tag) const override;
++  void updateRetainedView(const ShadowView &view) const override;
+ 
+   void reconcileContradictedRemovals(const ShadowViewMutationList &mutations, ShadowViewMutationList &filteredMutations)
+       const;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.cpp
+@@ -66,6 +66,7 @@
+   layoutAnimationOperations_.clear();
+   pendingLayoutAnimations_.clear();
+   updateMap_.clear();
++  retainedViewUpdates_.clear();
+   layoutAnimations_.clear();
+   completedAnimations_.clear();
+ }
+@@ -102,6 +103,58 @@
+   return surfaceId_;
+ }
+ 
++bool LayoutAnimationsProxyCommon::isViewRetained(const Tag tag) const {
++  const auto lock = std::unique_lock<std::recursive_mutex>(mutex);
++  return getRetainedView(tag).has_value();
++}
++
++void LayoutAnimationsProxyCommon::enqueueRetainedViewUpdates(std::vector<RetainedViewUpdate> updates) const {
++  const auto lock = std::unique_lock<std::recursive_mutex>(mutex);
++  for (auto &update : updates) {
++    const auto tag = update.view.tag;
++    if (getRetainedView(tag)) {
++      if (const auto previous = retainedViewUpdates_.find(tag); previous != retainedViewUpdates_.end()) {
++        auto props = previous->second.props;
++        props.update(update.props);
++        update.props = std::move(props);
++      }
++      retainedViewUpdates_.insert_or_assign(tag, std::move(update));
++    }
++  }
++  if (!retainedViewUpdates_.empty()) {
++    requestLayoutAnimationFlush_(surfaceId_);
++  }
++}
++
++void LayoutAnimationsProxyCommon::appendRetainedViewUpdates(ShadowViewMutationList &mutations) const {
++  for (const auto &[tag, update] : retainedViewUpdates_) {
++    const auto retainedView = getRetainedView(tag);
++    // A completed exit or a re-created tag must not receive the old view's updates.
++    if (!retainedView) {
++      continue;
++    }
++    auto oldView = *retainedView;
++    auto animation = layoutAnimations_.find(tag);
++    if (animation != layoutAnimations_.end()) {
++      oldView = animation->second.currentView;
++    }
++    auto newView = oldView;
++    newView.layoutMetrics = update.view.layoutMetrics;
++    newView.props = mergeSynchronousProps(oldView, update.props);
++    updateRetainedView(newView);
++
++    // A layout animation owns separate prop copies, so its next frame must
++    // include the CSS values instead of overwriting them with the old style.
++    applySynchronousPropsToLayoutAnimation(tag, update.props);
++    if (animation != layoutAnimations_.end()) {
++      animation->second.finalView.layoutMetrics = newView.layoutMetrics;
++      animation->second.currentView = newView;
++    }
++    mutations.push_back(ShadowViewMutation::UpdateMutation(oldView, newView, update.parentTag));
++  }
++  retainedViewUpdates_.clear();
++}
++
+ void LayoutAnimationsProxyCommon::transferConfigFromNativeID(const std::string &nativeIdString, const int tag) const {
+   if (nativeIdString.empty() || nativeIdString.length() > 9) {
+     return;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyCommon.h
+@@ -40,6 +40,12 @@
+   bool shouldRemove;
+ };
+ 
++struct RetainedViewUpdate {
++  ShadowView view;
++  Tag parentTag;
++  folly::dynamic props;
++};
++
+ struct ManagedLayoutAnimationStart {
+   Tag tag;
+   LayoutAnimationType type;
+@@ -121,10 +127,15 @@
+   virtual void shadowTreeWillCommit(bool /*isSurfaceRemoval*/) {}
+   virtual void surfaceDidUnmount();
+   virtual void applySynchronousProps(const UpdatesBatch &updatesBatch, bool trackInLightTree) const;
++  bool isViewRetained(Tag tag) const;
++  void enqueueRetainedViewUpdates(std::vector<RetainedViewUpdate> updates) const;
+   ~LayoutAnimationsProxyCommon() override = default;
+ 
+   void flushLayoutAnimationOperations() const;
+ 
+  protected:
++  virtual std::optional<ShadowView> getRetainedView(Tag tag) const = 0;
++  virtual void updateRetainedView(const ShadowView &view) const = 0;
++  void appendRetainedViewUpdates(ShadowViewMutationList &mutations) const;
+   Props::Shared mergeSynchronousProps(const ShadowView &view, const folly::dynamic &props) const;
+   bool hasLayoutAnimationRecords() const;
+@@ -166,6 +177,7 @@
+   const SurfaceId surfaceId_;
+   mutable std::recursive_mutex mutex;
+   mutable std::unordered_map<Tag, UpdateValues> updateMap_;
++  mutable std::unordered_map<Tag, RetainedViewUpdate> retainedViewUpdates_;
+   mutable Rect window_{0, 0};
+   mutable std::unordered_map<Tag, LayoutAnimation> layoutAnimations_;
+   // endLayoutAnimation runs outside pullTransaction on both platforms, so its
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.cpp
+@@ -111,4 +111,28 @@
+   return instances;
+ }
+ 
++bool LayoutAnimationsProxyRegistry::isViewRetained(const Tag tag) const {
++  for (const auto &instance : instances()) {
++    if (instance->isViewRetained(tag)) {
++      return true;
++    }
++  }
++  return false;
++}
++
++void LayoutAnimationsProxyRegistry::enqueueRetainedViewUpdates(
++    const SurfaceId surfaceId,
++    std::vector<RetainedViewUpdate> updates) {
++  std::shared_ptr<LayoutAnimationsProxyCommon> instance;
++  {
++    const std::lock_guard<std::mutex> lock(instancesMutex_);
++    const auto it = instances_.find(surfaceId);
++    if (it == instances_.end()) {
++      return;
++    }
++    instance = it->second;
++  }
++  instance->enqueueRetainedViewUpdates(std::move(updates));
++}
++
+ } // namespace reanimated
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxyRegistry.h
+@@ -27,6 +27,8 @@
+   std::optional<SurfaceId> onGestureCancel(int tag);
+   void flushLayoutAnimationOperations() const;
+   void applySynchronousProps(const UpdatesBatch &updatesBatch, bool trackInLightTree);
++  bool isViewRetained(Tag tag) const;
++  void enqueueRetainedViewUpdates(SurfaceId surfaceId, std::vector<RetainedViewUpdate> updates);
+ 
+  private:
+   std::vector<std::shared_ptr<LayoutAnimationsProxyCommon>> instances() const;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+@@ -75,6 +75,7 @@
+   configLock.unlock();
+   flushLayoutAnimationOperations(lock);
+ 
++  appendRetainedViewUpdates(filteredMutations);
+   addOngoingAnimations(filteredMutations);
+   cleanupCompletedAnimations(filteredMutations, propsParserContext);
+ 
+@@ -83,6 +84,25 @@
+   return MountingTransaction{surfaceId, transactionNumber, std::move(filteredMutations), telemetry};
+ }
+ 
++std::optional<ShadowView> LayoutAnimationsProxy_Legacy::getRetainedView(const Tag tag) const {
++  const auto it = nodeForTag_.find(tag);
++  if (it == nodeForTag_.end() || !it->second->isMutationNode()) {
++    return std::nullopt;
++  }
++  const auto node = std::static_pointer_cast<MutationNode>(it->second);
++  if (node->state == ExitingState_Legacy::DELETED || node->state == ExitingState_Legacy::MOVED) {
++    return std::nullopt;
++  }
++  return node->mutation.oldChildShadowView;
++}
++
++void LayoutAnimationsProxy_Legacy::updateRetainedView(const ShadowView &view) const {
++  const auto it = nodeForTag_.find(view.tag);
++  if (it != nodeForTag_.end() && it->second->isMutationNode()) {
++    std::static_pointer_cast<MutationNode>(it->second)->mutation.oldChildShadowView = view;
++  }
++}
++
+ // The LayoutAnimationDriver can pair a final keyframe update with the withheld
+ // Remove/Delete it replays in the same transaction; we emit removals first, so
+ // the update would reach the mounting layer after its view was deleted.
+@@ -123,6 +143,7 @@
+       continue;
+     }
+     auto node = std::static_pointer_cast<MutationNode>(it->second);
++    retainedViewUpdates_.erase(tag);
+     completedAnimations_.erase(tag);
+     updateMap_.erase(tag);
+     // Flush the withheld Remove/Delete for this tag (and its withheld subtree)
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.h b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.h
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.h
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.h
+@@ -98,6 +98,8 @@
+ }
+ 
+ struct LayoutAnimationsProxy_Legacy : public LayoutAnimationsProxyCommon {
++  std::optional<ShadowView> getRetainedView(Tag tag) const override;
++  void updateRetainedView(const ShadowView &view) const override;
+   mutable std::unordered_map<Tag, std::shared_ptr<Node>> nodeForTag_;
+   mutable std::unordered_set<std::shared_ptr<MutationNode>> deadNodes_;
+   mutable bool surfaceToRemove_ = false;
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+@@ -3,6 +3,7 @@
+ #include <react/debug/react_native_assert.h>
+ #include <react/featureflags/ReactNativeFeatureFlags.h>
+ #include <react/renderer/core/RawProps.h>
++#include <react/renderer/mounting/Differentiator.h>
+ #include <react/renderer/scheduler/Scheduler.h>
+ #include <react/renderer/uimanager/UIManagerBinding.h>
+ #include <react/renderer/uimanager/primitives.h>
+@@ -770,6 +771,21 @@
+   flushLayoutAnimationOperations();
+   executeLayoutAnimationsRequests();
+ 
++  // Completed layout exits may produce a mounting pull without a new React commit.
++  // Clean their CSS state here as well, so finite CSS animations cannot retain a tree forever.
++  std::vector<Tag> retainedTags;
++  {
++    auto lock = updatesRegistryManager_->lock();
++    retainedTags = updatesRegistryManager_->getRetainedTags();
++  }
++  std::erase_if(retainedTags, [this](const auto tag) {
++    return layoutAnimationsProxyRegistry_->isViewRetained(tag);
++  });
++  if (!retainedTags.empty()) {
++    auto lock = updatesRegistryManager_->lock();
++    updatesRegistryManager_->releaseRetainedNodes(retainedTags);
++  }
++
+   UpdatesBatch synchronousUpdatesBatch;
+   std::unordered_map<SurfaceId, PropsMap> propsMapBySurface;
+   bool flushRegistry = false;
+@@ -1116,6 +1132,68 @@
+ 
+   // No registry lock is held here - shadowTree.commit re-enters via ReanimatedCommitHook.
+   for (auto const &[surfaceId, propsMap] : propsMapBySurface) {
++    std::vector<RootShadowNode::Shared> retainedRoots;
++    {
++      auto lock = updatesRegistryManager_->lock();
++      retainedRoots = updatesRegistryManager_->getRetainedRoots(surfaceId);
++    }
++    for (const auto &oldRoot : retainedRoots) {
++      PropsMap retainedProps;
++      {
++        auto lock = updatesRegistryManager_->lock();
++        retainedProps = updatesRegistryManager_->getRetainedProps(oldRoot, propsMap);
++      }
++      std::unordered_map<Tag, folly::dynamic> rawPropsByTag;
++      for (const auto &[family, props] : retainedProps) {
++        folly::dynamic merged = folly::dynamic::object();
++        for (const auto &rawProps : props) {
++          merged.update(static_cast<folly::dynamic>(rawProps));
++        }
++        rawPropsByTag.emplace(family->getTag(), std::move(merged));
++      }
++      if (retainedProps.empty()) {
++        continue;
++      }
++
++      // Retained views are absent from the live React tree. Lay out a private
++      // snapshot so percentage lengths, flex layout and descendants still update.
++      auto newRoot = cloneShadowTreeWithNewProps(*oldRoot, retainedProps);
++      newRoot->layoutIfNeeded();
++      const auto mutations = calculateShadowViewMutations(*oldRoot, *newRoot);
++      if (std::ranges::any_of(mutations, [](const auto &mutation) {
++            return mutation.type != ShadowViewMutation::Update;
++          })) {
++        // Retained native children still use the mounting proxy's indices. A reordered
++        // or flattened tree must not replace their snapshot without reconciliation.
++        continue;
++      }
++      std::vector<RetainedViewUpdate> updates;
++      for (const auto &mutation : mutations) {
++        if (mutation.type != ShadowViewMutation::Update) {
++          continue;
++        }
++        const auto tag = mutation.newChildShadowView.tag;
++        if (!layoutAnimationsProxyRegistry_->isViewRetained(tag)) {
++          continue;
++        }
++        {
++          auto lock = updatesRegistryManager_->lock();
++          if (!updatesRegistryManager_->shouldUpdateRetainedView(tag, oldRoot)) {
++            continue;
++          }
++        }
++        const auto props = rawPropsByTag.find(tag);
++        updates.push_back({
++            mutation.newChildShadowView,
++            mutation.parentTag,
++            props == rawPropsByTag.end() ? folly::dynamic::object() : props->second});
++      }
++      layoutAnimationsProxyRegistry_->enqueueRetainedViewUpdates(surfaceId, std::move(updates));
++      {
++        auto lock = updatesRegistryManager_->lock();
++        updatesRegistryManager_->updateRetainedRoot(oldRoot, newRoot);
++      }
++    }
+     shadowTreeRegistry.visit(surfaceId, [&](ShadowTree const &shadowTree) {
+       const auto status = shadowTree.commit(
+           [&](RootShadowNode const &oldRootShadowNode) -> RootShadowNode::Unshared {
+@@ -1228,6 +1306,15 @@
+   }
+ 
+   initializeLayoutAnimationsProxyRegistry();
++  // Interpolators hold this repository, so a strong capture would keep the
++  // manager and its animation registries alive after the module is destroyed.
++  viewStylesRepository_->setRetainedRootsProvider(
++      [weakManager = std::weak_ptr(updatesRegistryManager_)](const Tag tag) {
++        if (const auto manager = weakManager.lock()) {
++          return manager->getRetainedRoot(tag);
++        }
++        return RootShadowNode::Shared{};
++      });
+ 
+   const std::function<void()> request = [weakThis = weak_from_this()]() {
+     auto strongThis = weakThis.lock();
