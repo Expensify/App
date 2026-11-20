@@ -271,10 +271,6 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const finishUpgrade = () => {
-        continueAfterUpgrade();
-    };
-
     const participant = transaction?.participants?.[0];
     const adminParticipant =
         isDistanceRateUpgrade && participant?.accountID
@@ -343,10 +339,6 @@ function DynamicIOURequestStepUpgrade({
         policyDataRef.current = policyData;
     };
 
-    const upgradeWorkspace = () => {
-        createWorkspaceForUpgrade();
-    };
-
     const createWorkspaceFromForm = async (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const {introSelected, onboardingPurposeSelected, isSelfTourViewed, conciergeChat} = await getWorkspaceCreationOnyxData();
         const policyData = Policy.createWorkspace({
@@ -374,10 +366,6 @@ function DynamicIOURequestStepUpgrade({
         setIsUpgraded(true);
     };
 
-    const createConfirmedWorkspace = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createWorkspaceFromForm(params);
-    };
-
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
@@ -395,7 +383,7 @@ function DynamicIOURequestStepUpgrade({
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     {!!isUpgraded && (
                         <UpgradeConfirmation
-                            afterUpgradeAcknowledged={finishUpgrade}
+                            afterUpgradeAcknowledged={continueAfterUpgrade}
                             confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
@@ -406,7 +394,7 @@ function DynamicIOURequestStepUpgrade({
                     {!isUpgraded && (
                         <UpgradeIntro
                             feature={feature}
-                            onUpgrade={upgradeWorkspace}
+                            onUpgrade={createWorkspaceForUpgrade}
                             upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
@@ -420,7 +408,7 @@ function DynamicIOURequestStepUpgrade({
             {!isUpgraded && showConfirmationForm && (
                 <WorkspaceConfirmationForm
                     policyOwnerEmail={session?.email ?? ''}
-                    onSubmit={createConfirmedWorkspace}
+                    onSubmit={createWorkspaceFromForm}
                     onBackButtonPress={() => setShowConfirmationForm(false)}
                     addBottomSafeAreaPadding={false}
                 />

@@ -172,7 +172,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Controls the submit button's visibility */
         isSubmitButtonVisible?: boolean;
 
-        onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        onSubmit: (values: FormOnyxValues<TFormID>) => void | Promise<void>;
 
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;

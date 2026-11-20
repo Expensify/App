@@ -367,10 +367,6 @@ function IOURequestEditReportCommon({
         selectReport(item);
     };
 
-    const moveExpenseToReport = (item: TransactionGroupListItem) => {
-        moveExpenseToSelectedReport(item);
-    };
-
     const handleCreateReport = () => {
         if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
             onNavigateAway?.();
@@ -471,7 +467,7 @@ function IOURequestEditReportCommon({
     const list = (
         <SelectionList
             data={reportOptions}
-            onSelectRow={moveExpenseToReport}
+            onSelectRow={moveExpenseToSelectedReport}
             titleNumberOfLines={2}
             shouldShowTextInput={isSearchable}
             textInputOptions={{
