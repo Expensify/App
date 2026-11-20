@@ -102,7 +102,7 @@ function getAddExpenseDropdownOptions({
     currentUserAccountID,
     blockDistanceRequestIfNeeded,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport({reportID: iouReportID})?.policyID ?? policy?.id);
+    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport({reportID: iouReportID, reportDraft: {}})?.policyID ?? policy?.id);
 
     return [
         // Teachers Unite only supports expenses via split expense

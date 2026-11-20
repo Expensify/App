@@ -2233,7 +2233,9 @@ function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): O
  * but it is layered over the Search snapshot report so fields only Search returns (e.g. approved, submitted) are kept.
  */
 function getSearchRowReport(data: OnyxTypes.SearchResults['data'], reportID: string | undefined): OnyxTypes.Report | undefined {
-    const liveReport = getReportOrDraftReport({reportID});
+    // Every reportID here comes out of a search snapshot, so the server already knows the report and it cannot still
+    // be a REPORT_DRAFT entry. If one ever were, the snapshot below is still returned, so the row keeps its report.
+    const liveReport = getReportOrDraftReport({reportID, reportDraft: {}});
     const snapshotReport = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (liveReport && snapshotReport) {
         return {...snapshotReport, ...liveReport};
@@ -2757,7 +2759,8 @@ function createAndOpenSearchTransactionThread({
 
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
-        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID});
+        // The child of an IOU action is that expense's transaction thread, which is never a draft.
+        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID, reportDraft: {}});
     }
 
     // Only create a new thread when there's no existing childReportID.
@@ -2769,7 +2772,8 @@ function createAndOpenSearchTransactionThread({
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        const iouReport = getReportOrDraftReport({reportID: item.reportID}) ?? item.report;
+        // A transaction list item's reportID is the expense report holding it, so there is no draft to resolve.
+        const iouReport = getReportOrDraftReport({reportID: item.reportID, reportDraft: {}}) ?? item.report;
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,

@@ -93,7 +93,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
         // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions.
         // A peer whose report isn't loaded still references this transaction, so it is kept for the cleanup.
         const filtered = validTransactions.filter((transaction) => {
-            const report = getReportOrDraftReport({reportID: transaction.reportID});
+            const report = getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}});
             return !report || isReportMergeableForDuplicates(report, transaction.reportID);
         });
 
@@ -216,7 +216,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: str
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
     return transactions.filter(
-        (transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}), transaction.reportID),
+        (transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}}), transaction.reportID),
     ) as Transaction[];
 }
 
