@@ -15,11 +15,12 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {canCreateExpensesOnPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyAccessible, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canDuplicateExpenseIntoSourceReport,
     canEditFieldOfMoneyRequest,
+    canReassignAsApprover,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     isDM,
@@ -74,11 +75,13 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
+import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -108,7 +111,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
 
@@ -283,6 +288,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -393,6 +399,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
@@ -471,6 +478,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -541,6 +549,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             onSelected: () => {
                 if (!moneyRequestReport) {
                     Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
+                    return;
+                }
+                const canMemberReassignApprover =
+                    !isPolicyAdmin(policy) &&
+                    canReassignAsApprover({
+                        report: moneyRequestReport,
+                        currentUserAccountID: accountID,
+                        isLoadingSecurityGroup,
+                        areStrictPolicyRulesEnabled,
+                    });
+                if (canMemberReassignApprover) {
+                    Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(moneyRequestReport.reportID));
                     return;
                 }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path));

@@ -55,10 +55,11 @@ function splitSearchQueryParams(queryParams: string | undefined) {
 
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
+    const {accountID, email} = useCurrentUserPersonalDetails();
     // Extract only the primitive values we need from the resolved Search root route to avoid
     // re-renders from new object references returned by getSearchRootParamsFromRootState.
     const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
-    const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
+    const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams, accountID));
     const definedQueryParam = queryParam ?? buildSearchQueryString();
     const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
     // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
@@ -69,7 +70,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
     const [defaultExpensifyCardID] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (card) => defaultExpensifyCardSelector(card)?.id});
-    const {accountID, email} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
     const {shouldShowExpensifyCard} = getSuggestedSearchesVisibility(email, {}, policies, undefined);

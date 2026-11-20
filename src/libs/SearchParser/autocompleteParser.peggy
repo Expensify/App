@@ -99,6 +99,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -119,6 +120,7 @@ autocompleteKey "key"
       / date
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo

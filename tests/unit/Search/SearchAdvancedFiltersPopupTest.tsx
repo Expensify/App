@@ -35,7 +35,7 @@ let mockValuesByFilter: Record<string, Partial<SearchAdvancedFiltersForm> | unde
 let mockOnHoverIn: ((filterKey: string) => void) | undefined;
 let mockOnFocus: ((filterKey: string) => void) | undefined;
 let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
-let mockOnPointerLeave: ((event: {clientX: number}) => void) | undefined;
+let mockOnPointerLeave: ((event: {nativeEvent: {clientX: number}}) => void) | undefined;
 let mockSelectedFilter: string | undefined;
 let mockOnSearchValueChange: ((searchValue: string) => void) | undefined;
 
@@ -52,7 +52,7 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onHoverIn: (filterKey: string) => void;
         onFocus: (filterKey: string) => void;
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
-        onPointerLeave: (event: {clientX: number}) => void;
+        onPointerLeave: (event: {nativeEvent: {clientX: number}}) => void;
         selectedFilter: string;
         onSearchValueChange: (searchValue: string) => void;
         headerContent: ReactNode;
@@ -153,7 +153,7 @@ function movePointer(clientX: number, clientY: number) {
 /** Takes the cursor off the filter list at a point, which is to the right of the rows unless a test says otherwise. */
 function leaveList(clientX = Number.MAX_SAFE_INTEGER) {
     act(() => {
-        mockOnPointerLeave?.({clientX});
+        mockOnPointerLeave?.({nativeEvent: {clientX}});
     });
 }
 
