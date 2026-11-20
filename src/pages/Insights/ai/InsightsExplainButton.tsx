@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import CONST from '@src/CONST';
 import type {InsightsScope} from '@src/types/onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
@@ -17,10 +19,13 @@ type InsightsExplainButtonProps = {
 
     /** Dashboard and filters sent with the prompt so Concierge explains the data the user sees */
     insightsScope: InsightsScope;
+
+    /** Label shown next to the icon. Without one, the button shows a tooltip instead. */
+    children?: React.ReactNode;
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -32,21 +37,28 @@ function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainBu
     }
 
     return (
-        <Button
-            size={CONST.BUTTON_SIZE.SMALL}
-            onPress={() => askConcierge(explainPrompt, {insightsScope})}
-            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
-            style={styles.alignSelfStart}
-            innerStyles={styles.bgTransparent}
-            hoverStyles={styles.hoveredComponentBG}
+        <Tooltip
+            shouldRender={!children}
+            text={translate('insightsPage.explain')}
         >
-            <Button.Icon
-                src={icons.Sparkles}
-                fill={theme.icon}
-                hoverFill={theme.icon}
-            />
-            <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
-        </Button>
+            <View style={styles.alignSelfStart}>
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    onPress={() => askConcierge(explainPrompt, {insightsScope})}
+                    sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
+                    accessibilityLabel={translate('insightsPage.explain')}
+                    innerStyles={styles.bgTransparent}
+                    hoverStyles={styles.hoveredComponentBG}
+                >
+                    <Button.Icon
+                        src={icons.Sparkles}
+                        fill={theme.icon}
+                        hoverFill={theme.icon}
+                    />
+                    {children}
+                </Button>
+            </View>
+        </Tooltip>
     );
 }
 

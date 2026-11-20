@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
-index 64bfa65..0862b6c 100644
+index 64bfa65..8b99e59 100644
 --- a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
 +++ b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
 @@ -1,6 +1,6 @@
@@ -10,12 +10,15 @@ index 64bfa65..0862b6c 100644
  
  import { useKeyboardContext } from "../../context";
  import { useKeyboardHandler } from "../../hooks";
-@@ -14,16 +14,28 @@ export const useKeyboardAnimation = () => {
+@@ -14,16 +14,35 @@ export const useKeyboardAnimation = () => {
    const height = useSharedValue(0);
    const progress = useSharedValue(0);
    const isClosed = useSharedValue(true);
-+  const hasReceivedEvent = useSharedValue(false);
++  const eventCount = useSharedValue(0);
  
++  // runs on mount and every time the handlers below are attached again (i. e. when
++  // a frozen screen becomes visible), so it has to sync with the keyboard state that
++  // may have changed while they were detached
    useLayoutEffect(() => {
 -    const initialHeight = -reanimated.height.value;
 -    const initialProgress = reanimated.progress.value;
@@ -25,13 +28,17 @@ index 64bfa65..0862b6c 100644
 -    height.value = initialHeight;
 -    progress.value = initialProgress;
 -    isClosed.value = initialProgress === 0;
++    // reading from JS is synchronous, so it counts every event handled so far
++    const eventCountBeforeAttach = eventCount.value;
++
 +    // writes from JS are applied on the UI thread asynchronously, so they may
 +    // overwrite values set by keyboard events that arrived in between (i. e. when
-+    // input has `autoFocus`) - set initial values only if no event arrived yet
++    // input has `autoFocus`) - sync only if no event arrived since the handlers
++    // were attached
 +    runOnUI(() => {
 +      "worklet";
 +
-+      if (hasReceivedEvent.value) {
++      if (eventCount.value !== eventCountBeforeAttach) {
 +        return;
 +      }
 +
@@ -47,34 +54,34 @@ index 64bfa65..0862b6c 100644
    }, []);
  
    useKeyboardHandler(
-@@ -31,6 +43,8 @@ export const useKeyboardAnimation = () => {
+@@ -31,6 +50,8 @@ export const useKeyboardAnimation = () => {
        onStart: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
 +
          if (e.height > 0) {
            isClosed.value = false;
            heightWhenOpened.value = e.height;
-@@ -39,20 +53,28 @@ export const useKeyboardAnimation = () => {
+@@ -39,20 +60,28 @@ export const useKeyboardAnimation = () => {
        onMove: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
          progress.value = e.progress;
          height.value = e.height;
        },
        onInteractive: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
          progress.value = e.progress;
          height.value = e.height;
        },
        onEnd: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
          isClosed.value = e.height === 0;
  
 +        // `onStart` may have been dispatched before this handler was attached
@@ -85,58 +92,63 @@ index 64bfa65..0862b6c 100644
          height.value = e.height;
          progress.value = e.progress;
        },
-@@ -67,10 +89,18 @@ export const useTranslateAnimation = () => {
+@@ -67,10 +96,23 @@ export const useTranslateAnimation = () => {
  
    const padding = useSharedValue(0);
    const translate = useSharedValue(0);
-+  const hasReceivedEvent = useSharedValue(false);
++  const eventCount = useSharedValue(0);
  
++  // see `useKeyboardAnimation` for an explanation
    useLayoutEffect(() => {
 -    // eslint-disable-next-line react-compiler/react-compiler
 -    padding.value = reanimated.progress.value;
-+    // see `useKeyboardAnimation` for an explanation
++    const eventCountBeforeAttach = eventCount.value;
++
 +    runOnUI(() => {
 +      "worklet";
 +
-+      if (!hasReceivedEvent.value) {
-+        // eslint-disable-next-line react-compiler/react-compiler
-+        padding.value = reanimated.progress.value;
++      if (eventCount.value !== eventCountBeforeAttach) {
++        return;
 +      }
++
++      // eslint-disable-next-line react-compiler/react-compiler
++      padding.value = reanimated.progress.value;
++      translate.value = reanimated.progress.value;
 +    })();
    }, []);
  
    useKeyboardHandler(
-@@ -78,6 +108,8 @@ export const useTranslateAnimation = () => {
+@@ -78,6 +120,8 @@ export const useTranslateAnimation = () => {
        onStart: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
 +
          if (e.height === 0) {
            padding.value = 0;
          }
-@@ -88,6 +120,8 @@ export const useTranslateAnimation = () => {
+@@ -88,6 +132,8 @@ export const useTranslateAnimation = () => {
        onMove: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
 +
          if (OS !== "ios") {
            translate.value = e.progress;
          }
-@@ -95,6 +129,7 @@ export const useTranslateAnimation = () => {
+@@ -95,6 +141,7 @@ export const useTranslateAnimation = () => {
        onInteractive: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
          padding.value = 0;
  
          translate.value = e.progress;
-@@ -102,6 +137,7 @@ export const useTranslateAnimation = () => {
+@@ -102,6 +149,7 @@ export const useTranslateAnimation = () => {
        onEnd: (e) => {
          "worklet";
  
-+        hasReceivedEvent.value = true;
++        eventCount.value += 1;
          padding.value = e.progress;
  
          if (OS !== "ios") {

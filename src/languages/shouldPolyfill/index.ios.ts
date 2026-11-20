@@ -1,16 +1,7 @@
 import type {Locale} from '@src/CONST/LOCALES';
 
-import {shouldPolyfill as listFormatNeedsLocale} from '@formatjs/intl-listformat/should-polyfill';
-import {shouldPolyfill as pluralRulesNeedsLocale} from '@formatjs/intl-pluralrules/should-polyfill';
-
+import {shouldPolyfillListFormat, shouldPolyfillPluralRules} from './nativeLocaleGuards';
 import shouldPolyfillDateTimeFormatRange from './shouldPolyfillDateTimeFormatRange';
-
-/**
- * These guards run after the polyfills are installed and answer "does `locale`'s data still need to be
- * loaded?". `polyfill-force` guarantees the constructors exist, so a presence check like
- * `'PluralRules' in Intl` would always say no; formatjs instead checks whether the active
- * implementation supports the specific locale (resolving pt-BR to pt via CLDR).
- */
 
 /**
  * Intl.NumberFormat is only polyfilled on stale-ICU devices (see polyfillNumberFormat) and its data is
@@ -23,14 +14,6 @@ function shouldPolyfillNumberFormat(locale: Locale): boolean {
         return false;
     }
     return Intl.NumberFormat.supportedLocalesOf([locale]).length === 0;
-}
-
-function shouldPolyfillListFormat(locale: Locale): boolean {
-    return !!listFormatNeedsLocale(locale);
-}
-
-function shouldPolyfillPluralRules(locale: Locale): boolean {
-    return !!pluralRulesNeedsLocale(locale);
 }
 
 export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillDateTimeFormatRange};

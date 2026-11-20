@@ -1,3 +1,5 @@
+import type {SearchColumnAlignment} from '@styles/utils';
+
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -28,6 +30,9 @@ type TableData = {
 type TableColumnStyling = {
     /** Optional flex value to control the column's width relative to other columns. */
     flex?: number;
+
+    /** Where the heading's label sits. The column menu's caret takes the side away from it. Defaults to the start. */
+    alignment?: SearchColumnAlignment;
 
     /** Optional custom styles for the column container. */
     containerStyles?: StyleProp<ViewStyle>;
