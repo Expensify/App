@@ -46,4 +46,13 @@ describe('getInsightsAverageComparison', () => {
         // Then it is $10 or 10% under
         expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference: -1000, percentage: 10});
     });
+
+    it('keeps the percentage unsigned when the average is a net refund', () => {
+        // Given a period that refunded $80 against an average refund of $100
+        // When it is compared
+        const comparison = getInsightsAverageComparison({total: -8000, count: 3, shareOfTotal: 10, average: -10000, averagePeriodCount: 12});
+
+        // Then it is $20 or 20% over, since the direction comes from the difference's sign
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference: 2000, percentage: 20});
+    });
 });

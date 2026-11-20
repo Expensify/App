@@ -38,7 +38,7 @@ function getInsightsAverageComparison({total, average, averagePeriodCount}: Insi
     }
 
     const difference = total - average;
-    return {type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference, percentage: (Math.abs(difference) / average) * 100};
+    return {type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference, percentage: (Math.abs(difference) / Math.abs(average)) * 100};
 }
 
 export {INSIGHTS_AVERAGE_COMPARISON, MIN_AVERAGE_PERIOD_COUNT};
