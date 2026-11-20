@@ -79,7 +79,7 @@ describe('FlagOffPlatformTravelStep', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the remaining types are saved in the order they're listed and the flow moves on
-        expect(mockSetTravelProvisioningFlaggedTravelTypes).toHaveBeenCalledWith([CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL, CONST.SEARCH.TRAVEL_TYPE.RAIL]);
+        expect(mockSetTravelProvisioningFlaggedTravelTypes).toHaveBeenCalledWith([CONST.SEARCH.TRAVEL_TYPE.FLIGHT, CONST.SEARCH.TRAVEL_TYPE.CAR, CONST.SEARCH.TRAVEL_TYPE.TRAIN]);
         expect(mockOnNext).toHaveBeenCalledTimes(1);
     });
 

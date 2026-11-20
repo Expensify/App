@@ -49,7 +49,7 @@ describe('actions/Travel', () => {
         });
 
         it.each([
-            [[CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.HOTEL], JSON.stringify([CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.HOTEL])],
+            [[CONST.SEARCH.TRAVEL_TYPE.FLIGHT, CONST.SEARCH.TRAVEL_TYPE.HOTEL], JSON.stringify([CONST.SEARCH.TRAVEL_TYPE.FLIGHT, CONST.SEARCH.TRAVEL_TYPE.HOTEL])],
             [[], undefined],
             [undefined, undefined],
         ])('sends the travel types to flag as %p only when the admin picked some', (flaggedTravelTypes, expectedParam) => {
