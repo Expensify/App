@@ -483,20 +483,20 @@ describe('KeypadAmountPad', () => {
         focusSpy.mockRestore();
     });
 
-    it('prevents the default of a touch press on the number pad so it keeps focus in the input', async () => {
+    it('prevents the default of a touch pointerdown on the number pad', async () => {
         // Given an input rendered with BigNumberPad
         renderInputWithPad({value: '12'});
         await waitForBatchedUpdatesWithAct();
         const preventDefault = jest.fn();
 
-        // When a finger starts pressing backspace, which in mobile Chrome would move focus to the key on a long press
+        // When a finger presses backspace
         fireEvent(screen.getByTestId('button_<'), 'pointerDown', {nativeEvent: {pointerType: 'touch'}, preventDefault});
 
-        // Then the default is prevented, so the input does not blur and its form does not show validation errors mid edit
+        // Then the default is prevented, so a long press in mobile Chrome cannot move focus to the key
         expect(preventDefault).toHaveBeenCalledTimes(1);
     });
 
-    it('does not prevent the default of a mouse press on the number pad', async () => {
+    it('does not prevent the default of a mouse pointerdown on the number pad', async () => {
         // Given an input rendered with BigNumberPad
         renderInputWithPad({value: '12'});
         await waitForBatchedUpdatesWithAct();
@@ -505,7 +505,7 @@ describe('KeypadAmountPad', () => {
         // When a mouse presses backspace
         fireEvent(screen.getByTestId('button_<'), 'pointerDown', {nativeEvent: {pointerType: 'mouse'}, preventDefault});
 
-        // Then the default is kept, because preventing it would suppress the mousedown the press handling and the keys' own focus guard rely on
+        // Then the default is kept, so mouse presses still dispatch mousedown
         expect(preventDefault).not.toHaveBeenCalled();
     });
 

@@ -89,6 +89,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
             style={[styles.flexColumn, styles.w100]}
             id={id}
             // A long touch press in mobile Chrome blurs the amount input without dispatching mousedown to the keys.
+            // Other pointers are left alone, because cancelling their pointerdown would suppress the mousedown that press handling relies on.
             onPointerDown={(event) => {
                 if (event.nativeEvent.pointerType !== 'touch') {
                     return;
