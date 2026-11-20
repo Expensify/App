@@ -39,18 +39,19 @@ index d7dd1bc..e24c746 100644
 +
  } // namespace facebook::react
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-index 7841b5a..47dcb68 100644
+index 7841b5a..9df6c55 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-@@ -83,11 +83,20 @@
+@@ -83,11 +83,21 @@
     */
    void mergeWith(MountingTransaction &&transaction);
  
 +  /*
-+   * Returns true when this transaction is the result of merging two or more
-+   * differ-produced transactions. Android's mount-item reordering (writing
-+   * deletes last) is only sound within a single transaction, so a merged
-+   * transaction must be mounted in mutation order instead.
++   * Returns true when `mergeWith` has concatenated another transaction into
++   * this one. Android's mount-item reordering - writing deletes last, and
++   * bucketing updates ahead of them - is only sound within a single
++   * differ-produced transaction, so such a transaction must be mounted in
++   * mutation order instead.
 +   */
 +  bool wasMerged() const;
 +
