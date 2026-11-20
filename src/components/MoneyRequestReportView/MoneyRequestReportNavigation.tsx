@@ -2,6 +2,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
@@ -11,7 +12,6 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 
 import Navigation from '@navigation/Navigation';
 
-import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -21,7 +21,6 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -45,6 +44,20 @@ type SnapshotGuard = {
     includesReport: boolean;
 };
 
+type SnapshotPaging = {
+    isLoading: boolean;
+    hasMoreResults: boolean;
+    isPageRequestPending: boolean;
+    nextPageOffset: number;
+};
+
+const EMPTY_PAGING: SnapshotPaging = {
+    isLoading: false,
+    hasMoreResults: false,
+    isPageRequestPending: false,
+    nextPageOffset: CONST.SEARCH.RESULTS_PAGE_SIZE,
+};
+
 const EMPTY_GUARD: SnapshotGuard = {
     hasMultiple: false,
     includesReport: false,
@@ -54,7 +67,16 @@ const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams
 
 const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number | undefined => lastSearchQuery?.queryJSON?.hash;
 
-const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading;
+const selectSnapshotPaging = (snapshot: OnyxEntry<SearchResults>): SnapshotPaging => {
+    const offset = snapshot?.search?.offset ?? 0;
+    const didLastPageFail = offset > 0 && typeof snapshot?.search?.responseJsonCode === 'number';
+    return {
+        isLoading: !!snapshot?.search?.isLoading,
+        hasMoreResults: !!snapshot?.search?.hasMoreResults,
+        isPageRequestPending: offset > 0 && snapshot?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+        nextPageOffset: didLastPageFail ? offset : offset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+    };
+};
 
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
@@ -76,6 +98,20 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
         }
     }
     return true;
+};
+
+const keepReportInPlace = (liveReports: Array<string | undefined>, previousReports: Array<string | undefined>, reportID: string | undefined): Array<string | undefined> => {
+    const previousIndex = previousReports.indexOf(reportID);
+    if (!reportID || previousIndex === -1) {
+        return liveReports;
+    }
+    for (let i = previousIndex - 1; i >= 0; i--) {
+        const liveIndex = liveReports.indexOf(previousReports.at(i));
+        if (liveIndex !== -1) {
+            return [...liveReports.slice(0, liveIndex + 1), reportID, ...liveReports.slice(liveIndex + 1)];
+        }
+    }
+    return [reportID, ...liveReports];
 };
 
 const buildSnapshotGuardSelector =
@@ -124,13 +160,14 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
 
-    // Lightweight subscriptions only: the current search query and its loading flag. These never mount
+    // Lightweight subscriptions only: the current search query and its paging state. These never mount
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
-    const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
+    const [paging = EMPTY_PAGING] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: selectSnapshotPaging});
+    const isSearchLoading = paging.isLoading;
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
@@ -145,8 +182,9 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
     // Cache the last list where the current report was still present. When the search snapshot
     // is refreshed and the current report drops out (e.g. after approving from Spend > Needs
-    // Approval), keep using the cached list so the carousel stays populated and the user can
-    // navigate to the next report instead of the arrows disappearing. setState during render is
+    // Approval), keep the report in the live list right after the report that preceded it in the
+    // cached list, so the carousel stays populated and Next keeps paging through the live results
+    // instead of the arrows disappearing. setState during render is
     // the React-recommended pattern for storing information from previous renders. We compare
     // by content rather than reference because useSearchSections rebuilds allReports via
     // filter/map each render, so identity comparison would refire the setState every render and
@@ -155,46 +193,13 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     if (liveCurrentIndex !== -1 && !isSameReportList(allReports, lastValidReports)) {
         setLastValidReports(allReports);
     }
-    const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? lastValidReports : allReports;
+    const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? keepReportInPlace(allReports, lastValidReports, reportID) : allReports;
     const currentIndex = effectiveAllReports.indexOf(reportID);
 
-    const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === effectiveAllReports.length - 1;
+    const canRequestNextPage = paging.hasMoreResults && !paging.isPageRequestPending && !isOffline;
+    const hideNextButton = !canRequestNextPage && currentIndex === effectiveAllReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
-
-    useEffect(() => {
-        if (!isFocused || !lastSearchQuery?.queryJSON) {
-            return;
-        }
-
-        if (lastSearchQuery.allowPostSearchRecount) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                allowPostSearchRecount: false,
-                previousLengthOfResults: effectiveAllReports.length,
-            });
-            return;
-        }
-
-        // Update count when reports are added or removed (e.g., created offline)
-        if (effectiveAllReports.length !== allReportsCount) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                previousLengthOfResults: effectiveAllReports.length,
-            });
-            return;
-        }
-
-        if (currentIndex < allReportsCount - 1) {
-            return;
-        }
-
-        saveLastSearchParams({
-            ...lastSearchQuery,
-            previousLengthOfResults: effectiveAllReports.length,
-        });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -219,25 +224,24 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         }
         const threshold = Math.min(effectiveAllReports.length * 0.75, effectiveAllReports.length - 2);
 
-        if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
-            const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        if (currentIndex + 1 >= threshold && canRequestNextPage) {
             const queryJSON = lastSearchQuery.queryJSON;
+            const searchKey = lastSearchQuery.searchKey;
+            const offset = paging.nextPageOffset;
             requestAnimationFrame(() => {
                 search({
                     queryJSON,
-                    offset: newOffset,
-                    prevReportsLength: effectiveAllReports.length,
+                    offset,
                     shouldCalculateTotals: false,
-                    searchKey: lastSearchQuery.searchKey,
-                    isLoading: isSearchLoading,
-                    shouldUpdateLastSearchParams: true,
+                    searchKey,
+                    isLoading: false,
+                    skipWaitForWrites: true,
                     shouldReturnTripRooms,
                 });
             });
         }
 
-        const nextIndex = (currentIndex + 1) % effectiveAllReports.length;
-        goToReportId(effectiveAllReports.at(nextIndex));
+        goToReportId(effectiveAllReports.at(currentIndex + 1));
     };
 
     const goToPrevReport = () => {
@@ -259,7 +263,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     {!shouldDisplayNarrowVersion && (
                         <MoneyRequestReportNavigationCounter
                             current={currentIndex + 1}
-                            total={allReportsCount}
+                            total={effectiveAllReports.length}
                         />
                     )}
                     <PrevNextButtons
