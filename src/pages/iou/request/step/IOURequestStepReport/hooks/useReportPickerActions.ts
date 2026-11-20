@@ -224,18 +224,17 @@ function useReportPickerActions({
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForNewReport,
+            policy: policyForNewReport,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
-        );
+            managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined,
+        });
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 

@@ -150,7 +150,15 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
+            const optimisticReport = createNewReport({
+                ownerPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy: newPolicy,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                rules,
+            });
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
