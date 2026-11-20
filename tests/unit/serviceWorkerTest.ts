@@ -35,6 +35,7 @@ class MockFetchEvent {
 type NavigationHandler = (options: {url: URL; request?: Request; event?: MockFetchEvent}) => Promise<Response>;
 
 const mockUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
+const mockSharedUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockSharedNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockFetch = jest.fn<Promise<Response>, [Request]>();
 const mockNetworkOnly = jest.fn<{plugins: NavigationOptions['plugins']; handle: NavigationHandler}, [NavigationOptions]>();
@@ -71,7 +72,7 @@ const SHARED_PRODUCT_HOST = 'expensify.com.dev';
 const OTHER_HOST = 'new.expensify.com';
 
 // The worker builds one network strategy for each kind of page navigation, in this order
-const NETWORK_HANDLES = [mockUpgradeNavigation, mockSharedNavigation];
+const NETWORK_HANDLES = [mockUpgradeNavigation, mockSharedUpgradeNavigation, mockSharedNavigation];
 
 let realLocation: Location;
 let realFetch: typeof fetch;
@@ -99,8 +100,16 @@ function getNavigationRoute(index: number) {
     return {handler: call[0], options: call[1]};
 }
 
-function getSharedStrategyPlugin() {
+function getUpgradeStrategyPlugin() {
+    return mockNetworkOnly.mock.calls.at(0)?.[0].plugins.at(0);
+}
+
+function getSharedUpgradeStrategyPlugin() {
     return mockNetworkOnly.mock.calls.at(1)?.[0].plugins.at(0);
+}
+
+function getSharedStrategyPlugin() {
+    return mockNetworkOnly.mock.calls.at(2)?.[0].plugins.at(0);
 }
 
 function getUserMediaPlugin(): UserMediaPlugin {
@@ -508,7 +517,8 @@ describe('service worker navigation', () => {
         it('keeps an upgrade that starts on a shared path on the network after a redirect to an app-only path', async () => {
             // Given an upgrade of / that the server redirects to /transition, dropping the marker
             const response = createMock<Response>({type: 'basic'});
-            mockUpgradeNavigation.mockResolvedValueOnce(createMock<Response>({type: 'opaqueredirect'})).mockResolvedValueOnce(response);
+            mockSharedUpgradeNavigation.mockResolvedValueOnce(createMock<Response>({type: 'opaqueredirect'}));
+            mockUpgradeNavigation.mockResolvedValueOnce(response);
             const event = new MockFetchEvent('upgrading-page');
             await getNavigationRoute(2).handler({
                 url: new URL(`https://${SHARED_PRODUCT_HOST}/?${APP_UPDATE_QUERY_PARAM}=true`),
@@ -554,6 +564,60 @@ describe('service worker navigation', () => {
             expect(result).toBe(shouldOpenSavedApp ? shell : undefined);
             expect(mockMatchPrecache).toHaveBeenCalledTimes(shouldOpenSavedApp ? 1 : 0);
             logError.mockRestore();
+        });
+
+        it.each([
+            ['without the Cookie Store API', undefined, true],
+            ['for a New Expensify user', async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.NEW}), true],
+            ['for an Expensify Classic user', async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC}), false],
+            ['without the cookie', async () => null, false],
+        ])('opens the saved app for a shared path upgrade offline only %s when expected', async (_, getCookie, shouldOpenSavedApp) => {
+            // Given the network is unavailable for an upgrade of a shared path
+            const shell = createMock<Response>({});
+            mockMatchPrecache.mockResolvedValue(shell);
+            arrangeCookieStore(getCookie);
+            const options = {
+                url: new URL(`https://${SHARED_PRODUCT_HOST}/inbox?${APP_UPDATE_QUERY_PARAM}=true`),
+                event: new MockFetchEvent('page'),
+            };
+
+            // When the upgrade is handled and its strategy falls back
+            await getNavigationRoute(2).handler(options);
+            const result = await getSharedUpgradeStrategyPlugin()?.handlerDidError();
+
+            // Then the shared upgrade strategy handles it, and only a New Expensify user gets the saved app
+            expect(mockSharedUpgradeNavigation).toHaveBeenCalledWith(options);
+            expect(mockUpgradeNavigation).not.toHaveBeenCalled();
+            expect(result).toBe(shouldOpenSavedApp ? shell : undefined);
+            expect(mockMatchPrecache).toHaveBeenCalledTimes(shouldOpenSavedApp ? 1 : 0);
+        });
+
+        it('validates HTML for a shared path upgrade', async () => {
+            // Given a shared path upgrade strategy
+            const plugin = getSharedUpgradeStrategyPlugin();
+
+            // When the server answers with an error page
+            const result = plugin?.fetchDidSucceed({response: createMock<Response>({ok: false, status: 404})});
+
+            // Then the upgrade fails as it does for any other upgrade
+            await expect(result).rejects.toThrow('Navigation did not return a successful HTML response');
+        });
+
+        it.each([
+            ['an Expensify Classic user', async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC})],
+            ['no cookie', async () => null],
+            ['a New Expensify user', async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.NEW})],
+        ])('opens the saved app for an app-only path upgrade offline for %s', async (_, getCookie) => {
+            // Given the network is unavailable for an upgrade of an app-only path
+            const shell = createMock<Response>({});
+            mockMatchPrecache.mockResolvedValue(shell);
+            arrangeCookieStore(getCookie);
+
+            // When the upgrade strategy falls back
+            const result = await getUpgradeStrategyPlugin()?.handlerDidError();
+
+            // Then the saved app opens whatever the cookie
+            expect(result).toBe(shell);
         });
 
         it('reads the experience cookie by its name', async () => {

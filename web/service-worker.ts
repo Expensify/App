@@ -2,8 +2,9 @@
  * Open the saved app immediately on ordinary visits, and fetch fresh HTML for required upgrades.
  * Keep the installed shell and assets available offline without unregistering the worker.
  *
- * On the host that serves both New Expensify and Expensify Classic, only paths that New Expensify alone serves open the saved app.
- * Paths both products serve go to the network, and every other path is left to the browser, so Classic works as if the worker didn't exist.
+ * On the host that serves both New Expensify and Expensify Classic, paths that New Expensify alone serves open the saved app.
+ * Paths both products serve go to the network, and offline only a New Expensify user gets the saved app.
+ * Every other path is left to the browser, so Classic works as if the worker didn't exist.
  */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import EXPERIENCE_COOKIE from '@libs/ExperienceCookie/EXPERIENCE_COOKIE';
@@ -43,25 +44,6 @@ const isSharedProductHost = self.location.hostname === __SHARED_PRODUCT_HOST__;
 self.skipWaiting();
 clientsClaim();
 
-const upgradeNavigationStrategy = new NetworkOnly({
-    plugins: [
-        {
-            fetchDidSucceed: async ({response}) => {
-                // Navigation redirects are followed by the browser, not validated as HTML by the worker.
-                if (response.type === 'opaqueredirect') {
-                    return response;
-                }
-                if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
-                    throw new Error('Navigation did not return a successful HTML response');
-                }
-                return response;
-            },
-            // Use the installed shell, rather than caching new HTML whose assets may not yet be available offline.
-            handlerDidError: async () => matchPrecache(APP_SHELL_URL),
-        },
-    ],
-});
-
 /**
  * Only the experience cookie tells a New Expensify user from an Expensify Classic user. Browsers that can't read cookies in a worker
  * keep opening the saved app, and a failed read counts as Classic, because the worker can't tell which product the user chose.
@@ -80,8 +62,38 @@ async function isNewExpensifyUser(): Promise<boolean> {
     }
 }
 
-// Both products serve these paths, so every server response, including Expensify Classic's redirects and error pages, is shown as it is.
-// Offline, only a New Expensify user gets the saved app. Without a response, Workbox rethrows the network error and the browser shows its own offline page.
+/**
+ * Upgrades fetch fresh HTML from the network. Offline, the saved app opens only when the caller allows it;
+ * otherwise Workbox rethrows the network error and the browser shows its own error page.
+ */
+function createUpgradeNavigationStrategy(mayOpenSavedApp: () => Promise<boolean>) {
+    return new NetworkOnly({
+        plugins: [
+            {
+                fetchDidSucceed: async ({response}) => {
+                    // Navigation redirects are followed by the browser, not validated as HTML by the worker.
+                    if (response.type === 'opaqueredirect') {
+                        return response;
+                    }
+                    if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
+                        throw new Error('Navigation did not return a successful HTML response');
+                    }
+                    return response;
+                },
+                // Use the installed shell, rather than caching new HTML whose assets may not yet be available offline.
+                handlerDidError: async () => ((await mayOpenSavedApp()) ? matchPrecache(APP_SHELL_URL) : undefined),
+            },
+        ],
+    });
+}
+
+const upgradeNavigationStrategy = createUpgradeNavigationStrategy(async () => true);
+
+// Upgrades of paths both products serve open the saved app offline only for a New Expensify user.
+const sharedUpgradeNavigationStrategy = createUpgradeNavigationStrategy(isNewExpensifyUser);
+
+// Both products serve these paths, so an ordinary navigation shows every server response, including Expensify Classic's redirects and error pages, as it is.
+// Offline, only a New Expensify user gets the saved app, for upgrades too. Without a response, Workbox rethrows the network error and the browser shows its own offline page.
 const sharedNavigationStrategy = new NetworkOnly({
     plugins: [
         {
@@ -107,8 +119,8 @@ function isUpgradeNavigation(url: URL, clientID: string | undefined): boolean {
     return url.searchParams.has(APP_UPDATE_QUERY_PARAM) || redirectTimeout !== undefined;
 }
 
-async function openUpgradedApp(options: RouteHandlerCallbackOptions, clientID: string | undefined): Promise<Response> {
-    const response = await upgradeNavigationStrategy.handle(options);
+async function openUpgradedApp(options: RouteHandlerCallbackOptions, clientID: string | undefined, strategy: typeof upgradeNavigationStrategy): Promise<Response> {
+    const response = await strategy.handle(options);
     if (response.type === 'opaqueredirect' && clientID) {
         // Expire abandoned redirects, including those that leave this worker's scope entirely.
         upgradeRedirects.set(
@@ -122,20 +134,20 @@ async function openUpgradedApp(options: RouteHandlerCallbackOptions, clientID: s
 async function openSavedApp(options: RouteHandlerCallbackOptions): Promise<Response> {
     const clientID = getResultingClientID(options);
     if (isUpgradeNavigation(options.url, clientID)) {
-        return openUpgradedApp(options, clientID);
+        return openUpgradedApp(options, clientID, upgradeNavigationStrategy);
     }
 
     const cachedResponse = await matchPrecache(APP_SHELL_URL).catch((error: unknown) => {
         console.error('Failed to read the saved app; trying the network.', error);
         return undefined;
     });
-    return cachedResponse ?? openUpgradedApp(options, clientID);
+    return cachedResponse ?? openUpgradedApp(options, clientID, upgradeNavigationStrategy);
 }
 
 async function openSharedPage(options: RouteHandlerCallbackOptions): Promise<Response> {
     const clientID = getResultingClientID(options);
     if (isUpgradeNavigation(options.url, clientID)) {
-        return openUpgradedApp(options, clientID);
+        return openUpgradedApp(options, clientID, sharedUpgradeNavigationStrategy);
     }
     return sharedNavigationStrategy.handle(options);
 }
