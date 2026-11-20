@@ -1,6 +1,14 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType, isTripListItemType} from '@libs/SearchUIUtils';
+import {
+    getGroupTotalsByBreakdown,
+    isGroupedItemArray,
+    isGroupEntry,
+    isTransactionGroupListItemType,
+    isTransactionListItemType,
+    isTransactionReportGroupListItemType,
+    isTripListItemType,
+} from '@libs/SearchUIUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -267,6 +275,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
                 policyID: item.policyID,
             }),
             claimedGroupCount: getSearchGroupCount(item),
+            groupTotalsByBreakdown: getGroupTotalsByBreakdown(item),
         },
     ];
 }

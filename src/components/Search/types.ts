@@ -118,6 +118,10 @@ type SelectedTransactionInfo = {
     /** The group-by count at the header check, lowered if that count falls. A rise past it means a new expense joined. */
     claimedGroupCount?: number;
 
+    /** Set on a group selected under its own key: the totals the server returned for it, keyed by the breakdown each
+     * one belongs to. The client cannot derive them, since the group stands for rows it never loaded. */
+    groupTotalsByBreakdown?: Partial<Record<SearchFooterTotal, number>>;
+
     /** The group's count when the selection last covered all of it, so a rise past it means a new expense joined */
     coveredGroupCount?: number;
 
