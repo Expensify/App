@@ -32,11 +32,11 @@ class MockFetchEvent {
     }
 }
 
-type NavigationHandler = (options: {url: URL; event?: MockFetchEvent}) => Promise<Response>;
+type NavigationHandler = (options: {url: URL; request?: Request; event?: MockFetchEvent}) => Promise<Response>;
 
 const mockUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockSharedNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
-const mockSignOutNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
+const mockFetch = jest.fn<Promise<Response>, [Request]>();
 const mockNetworkOnly = jest.fn<{plugins: NavigationOptions['plugins']; handle: NavigationHandler}, [NavigationOptions]>();
 const mockNavigationRoute = jest.fn<void, [NavigationHandler, NavigationRouteOptions]>();
 const mockRegistrationOrder: string[] = [];
@@ -70,10 +70,11 @@ jest.mock('workbox-strategies', () => ({
 const SHARED_PRODUCT_HOST = 'expensify.com.dev';
 const OTHER_HOST = 'new.expensify.com';
 
-// The worker builds one network strategy for each kind of navigation, in this order
-const NETWORK_HANDLES = [mockUpgradeNavigation, mockSharedNavigation, mockSignOutNavigation];
+// The worker builds one network strategy for each kind of page navigation, in this order
+const NETWORK_HANDLES = [mockUpgradeNavigation, mockSharedNavigation];
 
 let realLocation: Location;
+let realFetch: typeof fetch;
 
 /** Starts a fresh worker on the given host, the way a browser starts it after it was stopped */
 function startWorker(hostname: string) {
@@ -103,7 +104,7 @@ function getSharedStrategyPlugin() {
 }
 
 function getUserMediaPlugin(): UserMediaPlugin {
-    const plugin = mockStaleWhileRevalidate.mock.calls.at(0)?.[0].plugins.at(0);
+    const plugin = mockStaleWhileRevalidate.mock.calls.at(0)?.[0].plugins.at(-1);
     if (!plugin) {
         throw new Error('No user media plugin');
     }
@@ -156,11 +157,14 @@ describe('service worker navigation', () => {
     beforeAll(() => {
         Object.defineProperty(globalThis, 'skipWaiting', {configurable: true, value: mockSkipWaiting});
         Object.defineProperty(globalThis, 'FetchEvent', {configurable: true, value: MockFetchEvent});
+        realFetch = globalThis.fetch;
+        Object.defineProperty(globalThis, 'fetch', {configurable: true, writable: true, value: mockFetch});
     });
 
     afterAll(() => {
         Reflect.deleteProperty(globalThis, 'skipWaiting');
         Reflect.deleteProperty(globalThis, 'FetchEvent');
+        Object.defineProperty(globalThis, 'fetch', {configurable: true, writable: true, value: realFetch});
     });
 
     beforeEach(() => {
@@ -174,6 +178,7 @@ describe('service worker navigation', () => {
             plugins: options.plugins ?? [],
             handle: NETWORK_HANDLES.at(mockNetworkOnly.mock.calls.length - 1) ?? mockUpgradeNavigation,
         }));
+        mockFetch.mockReset();
         mockMatchPrecache.mockResolvedValue(createMock<Response>({}));
         arrangeCacheStorage();
         arrangeCookieStore();
@@ -410,7 +415,7 @@ describe('service worker navigation', () => {
             expect(getNavigationRoute(2).options.allowlist).toEqual(SHARED_NAVIGATION_PATHS);
 
             // And precache does not answer /index with /index.html, so a Classic /index reaches the server
-            expect(mockPrecacheAndRoute).toHaveBeenCalledWith(undefined, {cleanURLs: false});
+            expect(mockPrecacheAndRoute).toHaveBeenCalledWith(undefined, {cleanURLs: false, directoryIndex: ''});
         });
 
         it.each([
@@ -562,34 +567,41 @@ describe('service worker navigation', () => {
             expect(getCookie).toHaveBeenCalledWith(CONST.EXPERIENCE_COOKIE.NAME);
         });
 
-        it.each(['/signout', '/signout.php?clean=true', '/authentication/saml/logoutCallback.php?x=1'])('blocks and deletes saved media before signing out through %s', async (path) => {
-            // Given receipts saved by the worker
-            const cacheStorage = arrangeCacheStorage(['user-media']);
-            const response = createMock<Response>({});
-            mockSignOutNavigation.mockResolvedValueOnce(response);
+        it.each(['/signout', '/signout.php?clean=true', '/authentication/saml/logoutCallback.php?x=1', '/authentication/saml/logoutCallback?domain=a.com'])(
+            'blocks and deletes saved media before signing out through %s',
+            async (path) => {
+                // Given receipts saved by the worker
+                const cacheStorage = arrangeCacheStorage(['user-media']);
+                const response = createMock<Response>({});
+                mockFetch.mockResolvedValueOnce(response);
 
-            // When the user signs out of Expensify Classic
-            const result = await getNavigationRoute(0).handler({
-                url: new URL(`https://${SHARED_PRODUCT_HOST}${path}`),
-            });
+                // When the user signs out of Expensify Classic
+                const request = createMock<Request>({});
+                const result = await getNavigationRoute(0).handler({
+                    url: new URL(`https://${SHARED_PRODUCT_HOST}${path}`),
+                    request,
+                });
 
-            // Then later saves are blocked, saved media is gone, and the sign-out reaches the server
-            expect([...cacheStorage.names]).toEqual(['user-media-blocked']);
-            expect(cacheStorage.open.mock.invocationCallOrder.at(0)).toBeLessThan(cacheStorage.delete.mock.invocationCallOrder.at(0) ?? 0);
-            expect(result).toBe(response);
-        });
+                // Then later saves are blocked, saved media is gone, and the sign-out reaches the server
+                expect([...cacheStorage.names]).toEqual(['user-media-blocked']);
+                expect(cacheStorage.open.mock.invocationCallOrder.at(0)).toBeLessThan(cacheStorage.delete.mock.invocationCallOrder.at(0) ?? 0);
+                expect(mockFetch).toHaveBeenCalledWith(request);
+                expect(result).toBe(response);
+            },
+        );
 
         it('signs out even when Cache Storage fails', async () => {
             // Given Cache Storage that rejects every call
             const cacheStorage = arrangeCacheStorage();
             cacheStorage.open.mockRejectedValue(new Error('Cache Storage unavailable'));
             const response = createMock<Response>({});
-            mockSignOutNavigation.mockResolvedValueOnce(response);
+            mockFetch.mockResolvedValueOnce(response);
             const logError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             // When the user signs out of Expensify Classic
             const result = await getNavigationRoute(0).handler({
                 url: new URL(`https://${SHARED_PRODUCT_HOST}/signout`),
+                request: createMock<Request>({}),
             });
 
             // Then the sign-out still reaches the server, so the session ends
@@ -636,6 +648,17 @@ describe('service worker navigation', () => {
     describe('user media', () => {
         beforeEach(() => {
             startWorker(SHARED_PRODUCT_HOST);
+        });
+
+        it('runs the cache deletion after the expiry update so the cache stays deleted', () => {
+            // Given the worker on the shared host
+            // When it builds the media strategy
+            const plugins = mockStaleWhileRevalidate.mock.calls.at(0)?.[0].plugins;
+
+            // Then the plugin that deletes the blocked cache runs last, because the expiry update reopens the cache
+            expect(plugins).toHaveLength(2);
+            expect(plugins?.at(0)?.cacheDidUpdate).toBeUndefined();
+            expect(plugins?.at(1)?.cacheDidUpdate).toBeDefined();
         });
 
         it('keeps Workbox defaults for saved media on New Expensify’s own host', () => {

@@ -159,9 +159,9 @@ describe('service worker registration', () => {
     });
 
     it('does not register the worker when another tab switches to Classic before the page loads', async () => {
-        // Given a New Expensify user on the shared host, whose cookie another tab changes to Classic while this page is loading
+        // Given a New Expensify user on the shared host, whose cookie another tab changed to Classic before the page finished loading
         jest.mocked(isSharedProductHost).mockReturnValue(true);
-        jest.mocked(readExperienceCookie).mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+        jest.mocked(readExperienceCookie).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
 
         // When the page finishes loading
         await startAppAndLoad();
@@ -174,10 +174,7 @@ describe('service worker registration', () => {
     it('restores the block when another tab switches to Classic while saved media is being unblocked', async () => {
         // Given a New Expensify user on the shared host, whose cookie another tab changes to Classic after this page starts unblocking media
         jest.mocked(isSharedProductHost).mockReturnValue(true);
-        jest.mocked(readExperienceCookie)
-            .mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW)
-            .mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW)
-            .mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+        jest.mocked(readExperienceCookie).mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
 
         // When the page finishes loading
         await startAppAndLoad();

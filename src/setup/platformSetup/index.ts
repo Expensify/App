@@ -120,7 +120,7 @@ export default function () {
     DateUtils.startCurrentDateUpdater();
 
     // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
-    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator && canUseServiceWorker()) {
+    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             registerServiceWorker().catch((error: unknown) => {
                 // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).

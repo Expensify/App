@@ -90,8 +90,6 @@ const sharedNavigationStrategy = new NetworkOnly({
     ],
 });
 
-const signOutStrategy = new NetworkOnly({});
-
 function getResultingClientID(options: RouteHandlerCallbackOptions): string | undefined {
     return options.event instanceof FetchEvent ? options.event.resultingClientId : undefined;
 }
@@ -152,7 +150,7 @@ async function signOutOfClassic(options: RouteHandlerCallbackOptions): Promise<R
     } catch (error) {
         console.error('Failed to clear saved media on sign-out.', error);
     }
-    return signOutStrategy.handle(options);
+    return fetch(options.request);
 }
 
 if (isSharedProductHost) {
@@ -165,10 +163,11 @@ if (isSharedProductHost) {
 }
 
 // Navigation routes are registered first, so upgrades to / and /index.html bypass the precached HTML.
-// On the shared host clean URLs are off, so a navigation to /index stays with the server instead of receiving /index.html.
+// On the shared host clean URLs and the directory index are off, so Expensify Classic's /index and non-navigation requests for / stay with the server
+// instead of receiving /index.html. An empty directory index disables it, while undefined keeps Workbox's default.
 // Workbox replaces this exact property with the build's precache manifest.
 // eslint-disable-next-line no-underscore-dangle
-precacheAndRoute(self.__WB_MANIFEST, isSharedProductHost ? {cleanURLs: false} : undefined);
+precacheAndRoute(self.__WB_MANIFEST, isSharedProductHost ? {cleanURLs: false, directoryIndex: ''} : undefined);
 
 const userMediaPlugin: WorkboxPlugin = {
     // A custom cacheWillUpdate replaces Workbox's default filter, so it saves only successful and opaque responses as that filter does.
@@ -179,6 +178,7 @@ const userMediaPlugin: WorkboxPlugin = {
         return response.status === 200 || response.status === 0 ? response : null;
     },
     // A save that started before the block was set can finish after the cache was deleted, so it is deleted again.
+    // This plugin comes after ExpirationPlugin, whose own update would otherwise reopen the deleted cache.
     cacheDidUpdate: async () => {
         if (!(await isUserMediaBlocked())) {
             return;
@@ -193,6 +193,6 @@ registerRoute(
     new StaleWhileRevalidate({
         cacheName: USER_MEDIA_CACHE_NAME,
         // Only the shared host blocks saving media, so other hosts keep Workbox's default filter
-        plugins: [...(isSharedProductHost ? [userMediaPlugin] : []), new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS})],
+        plugins: [new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS}), ...(isSharedProductHost ? [userMediaPlugin] : [])],
     }),
 );

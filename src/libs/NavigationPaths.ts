@@ -116,6 +116,6 @@ const SHARED_NAVIGATION_PATHS: RegExp[] = [
 ];
 
 /** Expensify Classic sign-out pages, including the identity provider's SAML sign-out callback. */
-const SIGN_OUT_NAVIGATION_PATHS: RegExp[] = [/^\/signout(?:\.php)?\/?(?:\?|$)/, /^\/authentication\/saml\/logoutCallback\.php(?:\?|$)/];
+const SIGN_OUT_NAVIGATION_PATHS: RegExp[] = [/^\/signout(?:\.php)?\/?(?:\?|$)/, /^\/authentication\/saml\/logoutCallback(?:\.php)?(?:\?|$)/];
 
 export {APP_ONLY_NAVIGATION_PATHS, SHARED_NAVIGATION_PATHS, SIGN_OUT_NAVIGATION_PATHS};

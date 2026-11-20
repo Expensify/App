@@ -189,17 +189,22 @@ describe('NavigationPaths', () => {
         },
     );
 
-    it('recognizes the SAML sign-out callback', () => {
-        // Given the callback a SAML provider opens after signing the user out
+    it.each([
+        '/authentication/saml/logoutCallback',
+        '/authentication/saml/logoutCallback?domain=a.com',
+        '/authentication/saml/logoutCallback.php',
+        '/authentication/saml/logoutCallback.php?x=1',
+    ])("recognizes the SAML sign-out callback '%s'", (path) => {
+        // Given the callback a SAML provider opens after signing the user out, with or without the file extension
         // When the service worker checks it
-        const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test('/authentication/saml/logoutCallback.php?x=1'));
+        const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
 
         // Then it counts as signing out, like Classic's own sign-out page
         expect(isSignOut).toBe(true);
     });
 
     // cspell:disable-next-line
-    it.each(['/signouts', '/signout-x', '/signout.phpx', '/signin'])("does not treat '%s' as signing out", (path) => {
+    it.each(['/signouts', '/signout-x', '/signout.phpx', '/signin', '/authentication/saml/logoutCallbackx'])("does not treat '%s' as signing out", (path) => {
         // Given a path that only resembles a sign-out page
         // When the service worker checks it
         const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
