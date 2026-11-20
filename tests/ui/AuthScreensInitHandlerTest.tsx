@@ -284,6 +284,7 @@ describe('AuthScreensInitHandler', () => {
             true,
             undefined,
             CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+            false,
         );
     });
 

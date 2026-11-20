@@ -24,6 +24,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
+import {openClassicSignOutAfter, preventClassicSignIn} from '@libs/ClassicSignIn';
 import {hasAuthToken} from '@libs/CurrentUserStore';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
@@ -404,6 +405,7 @@ function signOutAndRedirectToSignIn(
     shouldSignOutFromOldDot = true,
     shouldForceUseStashedSession?: boolean,
     signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
+    shouldSignOutFromClassicWeb = true,
 ) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -494,6 +496,7 @@ function signOutAndRedirectToSignIn(
             }
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
+                preventClassicSignIn();
                 asyncOpenURL(
                     redirectToSignIn(signOutReason).then(() => {
                         Onyx.multiSet(onyxSetParams);
@@ -519,6 +522,7 @@ function signOutAndRedirectToSignIn(
             } else if (isPerformingSupportalLogout && !hasStashedSession(stashedSession, stashedCredentials)) {
                 // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
                 // and then redirect to supportal and restore the stashed session
+                preventClassicSignIn();
                 redirectToSignIn(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
                         buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
@@ -550,13 +554,18 @@ function signOutAndRedirectToSignIn(
                     });
                 });
             } else {
-                redirectToSignIn(signOutReason, undefined, undefined, shouldStashSession).then(() => {
+                const signInRedirect = redirectToSignIn(signOutReason, undefined, undefined, shouldStashSession).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {
                         openApp();
                     }
                 });
+
+                // A stashed session is restored later, so the Expensify Classic session it came from has to stay
+                if (shouldSignOutFromClassicWeb && !shouldStashSession) {
+                    openClassicSignOutAfter(signInRedirect);
+                }
             }
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));

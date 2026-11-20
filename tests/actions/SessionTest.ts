@@ -11,6 +11,7 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
+import {openClassicSignOutAfter, preventClassicSignIn} from '@libs/ClassicSignIn';
 import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
@@ -77,6 +78,11 @@ jest.mock('@libs/getPlatform', () => jest.fn());
 jest.mock('@libs/ExperienceCookie', () => ({
     writeExperienceCookie: jest.fn(),
     clearExperienceCookie: jest.fn(),
+}));
+
+jest.mock('@libs/ClassicSignIn', () => ({
+    openClassicSignOutAfter: jest.fn(),
+    preventClassicSignIn: jest.fn(),
 }));
 
 const mockedGetPlatform = jest.mocked(getPlatform);
@@ -676,6 +682,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+            expect(preventClassicSignIn).toHaveBeenCalled();
             expect(redirectToSignInSpy).toHaveBeenCalled();
             jest.clearAllMocks();
         });
@@ -701,6 +708,60 @@ describe('Session', () => {
 
             expect(asyncOpenURL).not.toHaveBeenCalled();
             expect(redirectToSignInSpy).toHaveBeenCalled();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should sign out of Classic after the sign in redirect', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the user signs out
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic sign out waits for the sign in redirect, which clears the local session
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).toHaveBeenCalledWith(expect.any(Promise));
+            jest.restoreAllMocks();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should not sign out of Classic when stashing the session', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the session is stashed to come back to it later
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, true);
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic session stays, since the stashed session still needs it
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should not sign out of Classic when another user is signing in from Classic', async () => {
+            // Given a signed-in user
+            await TestHelper.signInWithTestUser();
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When the session is cleared for a user that Classic is signing in
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
+
+            await waitForBatchedUpdates();
+
+            // Then the Classic session stays, since it belongs to the new user
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            expect(openClassicSignOutAfter).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
             jest.clearAllMocks();
         });
 

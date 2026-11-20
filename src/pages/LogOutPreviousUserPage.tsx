@@ -48,7 +48,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 isSupportalLogin,
             });
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(session, false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            // The new user comes from Expensify Classic, so its web session there has to stay
+            signOutAndRedirectToSignIn(session, false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
             return;
         }
 
