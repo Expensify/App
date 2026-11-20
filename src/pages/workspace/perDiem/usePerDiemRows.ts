@@ -46,7 +46,7 @@ function getSubRatesData(rates: Record<string, Rate>) {
         if (subRates) {
             for (const [index, subRate] of subRates.entries()) {
                 subRatesData.push({
-                    pendingAction: rate.pendingAction,
+                    pendingAction: subRate.pendingAction ?? rate.pendingAction,
                     // Rate-level errors appear once; subrate errors appear on the row that was edited.
                     errors: rate.errorFields?.[subRate.id] ?? (index === 0 ? rate.errors : undefined),
                     destination: rate.name ?? '',

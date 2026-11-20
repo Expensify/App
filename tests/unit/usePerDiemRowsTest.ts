@@ -91,6 +91,26 @@ describe('usePerDiemRows', () => {
         expect(deletedRow?.canEditAmount).toBe(false);
     });
 
+    it('keeps a pending subrate disabled offline without marking its sibling, then hides it on reconnection', () => {
+        // Given one deleted subrate and one unchanged subrate in the same destination.
+        const rates = createRates();
+        const breakfast = rates.rate1.subRates?.[0];
+        if (breakfast) {
+            breakfast.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        }
+        const customUnit = createCustomUnit(rates);
+
+        // When the table renders offline, only the selected row has pending deletion feedback.
+        const {result, rerender} = renderPerDiemRows({customUnit, isOffline: true});
+        expect(result.current.perDiemRows[0]).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, disabled: true, canEditAmount: false});
+        expect(result.current.perDiemRows[1]).toMatchObject({disabled: false, canEditAmount: true});
+        expect(Object.keys(result.current.selectableSubRatesByKey)).toEqual(['rate1:sub2']);
+
+        // Then reconnection hides the pending row, but the unselected sibling remains.
+        rerender({customUnit, isOffline: false});
+        expect(result.current.perDiemRows.map((row) => row.subRateName)).toEqual(['Lunch']);
+    });
+
     it('only lets members who can write edit a row', () => {
         // Given a member who can only read the Per Diem rates
         const customUnit = createCustomUnit(createRates());
