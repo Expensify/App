@@ -73,6 +73,15 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
+    const copyGenerationRef = useRef(0);
+
+    useEffect(() => {
+        // Ignore a write completed after leaving this step or replacing its recovery codes.
+        copyGenerationRef.current += 1;
+        return () => {
+            copyGenerationRef.current += 1;
+        };
+    }, [isFocused, recoveryCodes]);
 
     const hasLeftFlowRef = useRef(false);
 
@@ -205,11 +214,20 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                                             textChecked={translate('common.copied')}
                                             icon={icons.Copy}
                                             inline={false}
-                                            onPress={() => {
-                                                Clipboard.setString(account?.recoveryCodes ?? '');
+                                            onPress={async () => {
+                                                const generation = copyGenerationRef.current;
                                                 setError('');
+                                                const didCopy = await Clipboard.setString(recoveryCodes);
+                                                if (generation !== copyGenerationRef.current) {
+                                                    return false;
+                                                }
+                                                if (!didCopy) {
+                                                    setError(translate('twoFactorAuth.errorStepCodes'));
+                                                    return false;
+                                                }
                                                 setCodesAreCopied();
                                                 announceStatus(translate('common.copied'));
+                                                return true;
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}

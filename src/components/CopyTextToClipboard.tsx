@@ -39,7 +39,7 @@ function CopyTextToClipboard({
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     const copyToClipboard = () => {
-        Clipboard.setString(urlToCopy || text || '');
+        return Clipboard.setString(urlToCopy || text || '');
     };
 
     return (
