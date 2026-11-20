@@ -3,11 +3,11 @@ import {NitroModules} from 'react-native-nitro-modules';
 import type AppStartTimeModule from './specs/AppStartTimeModule.nitro';
 import type * as ContactsModuleSpec from './specs/ContactsModule.nitro';
 import type {ShareActionHandler} from './specs/ShareActionHandler.nitro';
-import type {VerticalBarModule} from './specs/VerticalBarModule.nitro';
+import type {WindowBarsModule} from './specs/WindowBarsModule.nitro';
 
 const ContactsNitroModule = NitroModules.createHybridObject<ContactsModuleSpec.ContactsModule>('ContactsModule');
 const AppStartTimeNitroModule = NitroModules.createHybridObject<AppStartTimeModule>('AppStartTimeModule');
-const VerticalBarNitroModule = NitroModules.createHybridObject<VerticalBarModule>('VerticalBarModule');
+const WindowBarsNitroModule = NitroModules.createHybridObject<WindowBarsModule>('WindowBarsModule');
 
 let shareActionHandlerNitroModule: ShareActionHandler | undefined;
 
@@ -17,9 +17,9 @@ function getShareActionHandlerNitroModule(): ShareActionHandler {
     return shareActionHandlerNitroModule;
 }
 
-export {ContactsNitroModule, AppStartTimeNitroModule, VerticalBarNitroModule, getShareActionHandlerNitroModule};
+export {ContactsNitroModule, AppStartTimeNitroModule, WindowBarsNitroModule, getShareActionHandlerNitroModule};
 export * from './specs/ContactsModule.nitro';
 export type {SharedFile, ShareActionHandler} from './specs/ShareActionHandler.nitro';
 export type {default as AppStartTimeModule} from './specs/AppStartTimeModule.nitro';
-export {VERTICAL_BAR_EDGE} from './specs/VerticalBarModule.nitro';
-export type {VerticalBarEdge} from './specs/VerticalBarModule.nitro';
+export {VERTICAL_BAR_EDGE} from './specs/WindowBarsModule.nitro';
+export type {TopBarRegion, VerticalBarEdge} from './specs/WindowBarsModule.nitro';

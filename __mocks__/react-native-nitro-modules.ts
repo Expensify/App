@@ -1,8 +1,8 @@
 const NitroModules = {
     createHybridObject: jest.fn(() => ({
         getAll: jest.fn(() => Promise.resolve([])),
-        edge: 'unspecified',
-        addEdgeListener: jest.fn(() => () => {}),
+        verticalBarEdge: 'unspecified',
+        addChangeListener: jest.fn(() => () => {}),
         processFiles: jest.fn(() => Promise.resolve([])),
     })),
 };

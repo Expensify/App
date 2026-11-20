@@ -6,22 +6,23 @@ import type {VerticalBarEdge} from '@expensify/nitro-utils';
 
 const mockNativeVerticalBar = {
     edge: 'unspecified' as VerticalBarEdge,
-    listeners: new Set<(edge: VerticalBarEdge) => void>(),
+    listeners: new Set<() => void>(),
     setEdge(edge: VerticalBarEdge) {
         this.edge = edge;
         for (const listener of this.listeners) {
-            listener(edge);
+            listener();
         }
     },
 };
 
 jest.mock('@expensify/nitro-utils', () => ({
     VERTICAL_BAR_EDGE: {UNSPECIFIED: 'unspecified', LEADING: 'leading', TRAILING: 'trailing'},
-    VerticalBarNitroModule: {
-        get edge() {
+    WindowBarsNitroModule: {
+        get verticalBarEdge() {
             return mockNativeVerticalBar.edge;
         },
-        addEdgeListener: (onChange: (edge: VerticalBarEdge) => void) => {
+        topBarRegion: undefined,
+        addChangeListener: (onChange: () => void) => {
             mockNativeVerticalBar.listeners.add(onChange);
             return () => mockNativeVerticalBar.listeners.delete(onChange);
         },
