@@ -32,7 +32,8 @@ jest.mock('react-native-onyx', () => ({
         if (key === keys.COLLECTION.REPORT) {
             callback(mockReports);
         } else if (key === keys.COLLECTION.AGENT) {
-            callback({});
+            // The three real agents, as after CreateAgent's response; their temporary records were already removed.
+            callback(Object.fromEntries([12001, 12002, 12003].map((accountID) => [`agent_${accountID}`, {}])));
         } else if (key === keys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING) {
             mockMappingCallback = callback;
         }
@@ -47,7 +48,6 @@ jest.mock('@libs/PersonalDetailsStore', () => ({
     getPersonalDetail: (accountID: number) => (accountID >= 12001 && accountID <= 12003 ? {accountID, login: `agent+${accountID}@expensify.com`} : undefined),
     personalDetailsHydrationPromise: Promise.resolve(),
 }));
-jest.mock('@libs/PersonalDetailsUtils', () => ({buildPersonalDetailsUpdate: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {isNavigationReady: () => Promise.resolve(), setParams: jest.fn()},

@@ -2,7 +2,6 @@ import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentA
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPersonalDetail, personalDetailsHydrationPromise, subscribeToPersonalDetails} from '@libs/PersonalDetailsStore';
-import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -21,10 +20,11 @@ import Onyx from 'react-native-onyx';
  * one on OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING.
  *
  * Like replaceOptimisticReportWithActualReport, this module listens to that mapping. For each entry it redirects
- * any open agent settings screen to the real accountID, remaps the agent DM participants, clears the optimistic
- * data. The mapping stays in Onyx so other tabs and screens opened later can still resolve the optimistic ID.
- * Every tab redirects its own screens, but a tab only clears the optimistic data once it is safe (see canClearOptimisticAgent).
- * The cleanup lives here instead of createAgent()'s successData so it runs after this tab's redirect.
+ * any open agent settings screen to the real accountID, remaps the agent DM participants and removes the temporary
+ * agent record. The mapping stays in Onyx so other tabs and screens opened later can still resolve the optimistic ID.
+ * CreateAgent's success data already removes the temporary personal detail, normally in the response's own write, so
+ * this module never writes the personal details list. Each tab does its part only once it holds the real agent, and
+ * only redirects its screens once nothing temporary is left (see clearOptimisticAgentsWhenSafe).
  *
  * Nothing is migrated onto the real keys: the mapping is only flushed to Onyx after the queue has drained, so any
  * pending state still on the optimistic keys is stale by then. The ReplaceOptimisticAgentAccountID middleware
@@ -43,9 +43,10 @@ const processedAccountIDs = new Map<number, number>();
 const pendingAccountIDs = new Map<number, number>();
 let isReplacementScheduled = false;
 
-// Mappings whose cleanup this tab skipped because its cache did not hold the real agent yet. The mapping is not delivered
-// again when that agent arrives, so they are retried on every personal details change until they are cleared or nothing
-// optimistic is left. A mapping with nothing to clear is never kept, so retained mappings cost nothing on app start.
+// Mappings whose redirect and cleanup this tab could not do yet. The mapping is not delivered again when the real agent
+// arrives, so they are retried when personal details or agents change, until this tab holds the real agent or the
+// temporary agent record is gone. A mapping without a temporary agent record is never kept, so retained mappings cost
+// nothing on app start.
 const skippedAccountIDs = new Map<number, number>();
 let unsubscribeFromPersonalDetails: (() => void) | undefined;
 
@@ -75,6 +76,8 @@ const agentsHydrationPromise = new Promise<void>((resolve) => {
         callback: (value) => {
             agents = value;
             resolve();
+            // The real agent's record can reach this tab after its personal details.
+            retrySkippedAccountIDs();
         },
     });
 });
@@ -122,19 +125,12 @@ function remapReportParticipants(accountIDs: Map<number, number>) {
 }
 
 function clearOptimisticAgentData(accountIDs: Map<number, number>) {
-    const detailsToRemove: Record<number, null> = {};
     const updates: AnyOnyxUpdate[] = [];
     for (const optimisticAccountID of accountIDs.keys()) {
-        if (getPersonalDetail(optimisticAccountID)) {
-            detailsToRemove[optimisticAccountID] = null;
-        }
         const agentKey = `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const;
         if (agents?.[agentKey]) {
             updates.push({onyxMethod: Onyx.METHOD.SET, key: agentKey, value: null});
         }
-    }
-    if (Object.keys(detailsToRemove).length > 0) {
-        updates.push(buildPersonalDetailsUpdate(detailsToRemove));
     }
     if (updates.length > 0) {
         Onyx.update(updates);
@@ -142,44 +138,61 @@ function clearOptimisticAgentData(accountIDs: Map<number, number>) {
     // Keep the optimistic-to-real mappings: another tab or an old temporary URL may still need them.
 }
 
-// On web, Onyx saves the whole value of a key from the writing tab's own cache. Any tab can receive the mapping before the
-// real agent's personal details from the same response, because each tab applies another tab's writes key by key. A
-// cleanup there would save a personal details list without the real agent and erase it in every tab. So a tab only
-// clears the optimistic agent once its cache holds the real one; until then the result of another tab's cleanup reaches
-// it through Onyx's cross-tab sync, or the tab retries once the real details arrive. Only the server's details count,
-// because deleteAgent writes placeholder entries without a login. A deleted agent is cleared by DeleteAgent's success.
-function canClearOptimisticAgent(realAccountID: number): boolean {
-    return !!getPersonalDetail(realAccountID)?.login;
+// Another tab's writes reach this tab key by key, so the mapping can arrive before the real agent's record and details.
+// The real agent's screens need both, so a tab redirects its screens and removes the temporary agent record only once it
+// holds both, or once nothing temporary is left to show; until then its screens keep showing the temporary agent. Only
+// the server's details count, because deleteAgent writes placeholder details without a login.
+function holdsRealAgent(realAccountID: number): boolean {
+    return !!getPersonalDetail(realAccountID)?.login && !!agents?.[`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`];
 }
 
-function hasOptimisticAgentData(optimisticAccountID: number): boolean {
-    return !!getPersonalDetail(optimisticAccountID) || !!agents?.[`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`];
+function hasTemporaryAgentRecord(optimisticAccountID: number): boolean {
+    return !!agents?.[`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`];
 }
 
 function clearOptimisticAgentsWhenSafe(accountIDs: Map<number, number>) {
+    const accountIDsToRedirect = new Map<number, number>();
     const accountIDsToClear = new Map<number, number>();
     for (const [optimisticAccountID, realAccountID] of accountIDs) {
         skippedAccountIDs.delete(optimisticAccountID);
-        if (canClearOptimisticAgent(realAccountID)) {
+        const hasTemporaryAgent = hasTemporaryAgentRecord(optimisticAccountID);
+        if (holdsRealAgent(realAccountID)) {
+            accountIDsToRedirect.set(optimisticAccountID, realAccountID);
             accountIDsToClear.set(optimisticAccountID, realAccountID);
-        } else if (hasOptimisticAgentData(optimisticAccountID)) {
+        } else if (hasTemporaryAgent) {
             skippedAccountIDs.set(optimisticAccountID, realAccountID);
+        } else if (!getPersonalDetail(optimisticAccountID)) {
+            // Nothing temporary is left to show, so the real ID is the only one a screen can use.
+            accountIDsToRedirect.set(optimisticAccountID, realAccountID);
         }
+    }
+
+    // Repair buried routes too; the hook only repairs a screen once it mounts.
+    if (accountIDsToRedirect.size > 0 && navigationRef.isReady()) {
+        redirectAgentSettingsScreens(accountIDsToRedirect);
     }
 
     if (skippedAccountIDs.size === 0) {
         unsubscribeFromPersonalDetails?.();
         unsubscribeFromPersonalDetails = undefined;
     } else if (!unsubscribeFromPersonalDetails) {
-        unsubscribeFromPersonalDetails = subscribeToPersonalDetails(() => clearOptimisticAgentsWhenSafe(new Map(skippedAccountIDs)));
+        unsubscribeFromPersonalDetails = subscribeToPersonalDetails(retrySkippedAccountIDs);
     }
 
-    // The retry runs on every personal details change, so it must not scan the reports when there is nothing to clear.
+    // The retry runs on every personal details or agent change, so it must not scan the reports when there is nothing to
+    // clear.
     if (accountIDsToClear.size === 0) {
         return;
     }
     remapReportParticipants(accountIDsToClear);
     clearOptimisticAgentData(accountIDsToClear);
+}
+
+function retrySkippedAccountIDs() {
+    if (skippedAccountIDs.size === 0) {
+        return;
+    }
+    clearOptimisticAgentsWhenSafe(new Map(skippedAccountIDs));
 }
 
 function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, realAccountID: number) {
@@ -213,11 +226,6 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                 const accountIDs = new Map(pendingAccountIDs);
                 pendingAccountIDs.clear();
                 isReplacementScheduled = false;
-
-                // Repair buried routes too; the hook only repairs a screen once it mounts.
-                if (navigationRef.isReady()) {
-                    redirectAgentSettingsScreens(accountIDs);
-                }
 
                 clearOptimisticAgentsWhenSafe(accountIDs);
             },

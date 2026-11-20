@@ -375,6 +375,112 @@ describe('DynamicEditAgentPage', () => {
             expect(JSON.stringify(toJSON())).toContain('notFound.notHere');
         });
 
+        it('keeps showing the temporary agent until the real agent and its details reach this tab', async () => {
+            // Given an Edit screen showing the temporary agent in a tab that does not apply CreateAgent's response. Another
+            // tab's writes reach it key by key: the mapping first, then the real agent's record, then the personal
+            // details list that holds the real agent and no longer holds the temporary one.
+            const optimisticAccountID = 7392018465730291;
+            const realAccountID = 12348;
+            const route = createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Pending instructions'});
+            const {toJSON} = render(
+                <DynamicEditAgentPage
+                    route={route}
+                    navigation={mockNavigation}
+                />,
+            );
+            await act(async () => waitForBatchedUpdates());
+
+            // When only the mapping has arrived
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the screen keeps the temporary agent, because this tab cannot show the real one yet
+            expect(mockSetParams).not.toHaveBeenCalled();
+            expect(JSON.stringify(toJSON())).toContain('Pending agent');
+            expect(JSON.stringify(toJSON())).toContain('Pending instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+
+            // When the real agent's record arrives, but not its personal details
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, {prompt: 'Created instructions'});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the screen still shows the temporary agent, which still has its name to show
+            expect(mockSetParams).not.toHaveBeenCalled();
+            expect(JSON.stringify(toJSON())).toContain('Pending agent');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+
+            // When the personal details list arrives with the real agent's server details and without the temporary entry
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Created agent', login: 'agent+12348@expensify.com'},
+                    [optimisticAccountID]: null,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            // Then the screen moves to the real agent and shows its data, and not-found was not shown at any of these steps
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
+            expect(JSON.stringify(toJSON())).toContain('Created agent');
+            expect(JSON.stringify(toJSON())).toContain('Created instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+        });
+
+        it('keeps the temporary agent when the personal details list reaches this tab before the real agent record', async () => {
+            // Given an Edit screen showing the temporary agent in a tab that does not apply CreateAgent's response. Keys can
+            // also arrive in the other order: the mapping, then the personal details list without the temporary entry, and
+            // only then the real agent's record.
+            const optimisticAccountID = 8203917465028173;
+            const realAccountID = 12349;
+            const route = createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Pending instructions'});
+            const {toJSON} = render(
+                <DynamicEditAgentPage
+                    route={route}
+                    navigation={mockNavigation}
+                />,
+            );
+            await act(async () => waitForBatchedUpdates());
+
+            // When the mapping and the personal details list have arrived, but not the real agent's record
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Created agent', login: 'agent+12349@expensify.com'},
+                    [optimisticAccountID]: null,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            // Then the screen stays on the temporary agent and shows its record's instructions, waiting for the real agent's
+            // record before it moves
+            expect(mockSetParams).not.toHaveBeenCalled();
+            expect(JSON.stringify(toJSON())).toContain('Pending instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+
+            // When the real agent's record arrives
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, {prompt: 'Created instructions'});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the screen moves to the real agent and shows its data, and not-found was not shown at any of these steps
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
+            expect(JSON.stringify(toJSON())).toContain('Created agent');
+            expect(JSON.stringify(toJSON())).toContain('Created instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+        });
+
         it('opens an optimistic route after creation has already completed', async () => {
             // Given creation has finished, leaving only the real agent data and its retained ID mapping
             const optimisticAccountID = 6849302751684930;
