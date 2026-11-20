@@ -2,7 +2,10 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -26,6 +29,7 @@ type InsightsTabButtonProps = {
 
 function InsightsTabButton({selectedTab, isWideLayout, isCompact = false}: InsightsTabButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
@@ -41,7 +45,11 @@ function InsightsTabButton({selectedTab, isWideLayout, isCompact = false}: Insig
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [
+                    styles.leftNavigationTabBarItem,
+                    isCompact && StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight),
+                    hovered && styles.navigationTabBarItemHovered,
+                ]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
             >
                 {({hovered}) => (

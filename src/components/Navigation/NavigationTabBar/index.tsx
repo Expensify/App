@@ -17,6 +17,8 @@ import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar'
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,6 +37,9 @@ import useAccountTabNavigation from './useAccountTabNavigation';
 import useHomeTabNavigation from './useHomeTabNavigation';
 import useIsNavigationTabBarCompact from './useIsNavigationTabBarCompact';
 import WorkspacesTabButton from './WorkspacesTabButton';
+
+/** Rows in the wide-layout tab bar at full height: the logo and the six tabs. Keep it in sync with the rows below. */
+const WIDE_LAYOUT_ROW_COUNT = 7;
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -55,8 +60,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 
-    const {isCompact, scrollViewProps} = useIsNavigationTabBarCompact();
-    const compactItemStyle = isCompact ? styles.leftNavigationTabBarItemCompact : undefined;
+    const {isCompact, onTabListLayout} = useIsNavigationTabBarCompact(WIDE_LAYOUT_ROW_COUNT);
+    const compactItemStyle = isCompact ? StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight) : undefined;
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
     // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
@@ -68,10 +73,11 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         // below don't cover the last tabs. It scrolls if even that doesn't fit.
         const sidebarTabs = (
             <ScrollView
-                {...scrollViewProps}
+                onLayout={onTabListLayout}
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
             >
                 {/* The logo only duplicates the Home tab, so it can go when the rows don't fit */}
                 {!isCompact && (

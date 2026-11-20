@@ -1,28 +1,22 @@
+import variables from '@styles/variables';
+
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useState} from 'react';
 
 /**
  * Tells whether the wide-layout tab bar should switch to its shorter rows, because the full-height rows don't fit above
- * the floating buttons, e.g. on an unfolded foldable phone in landscape. Spread `scrollViewProps` on the tab list's ScrollView.
+ * the floating buttons, e.g. on an unfolded foldable phone in landscape. Pass `onTabListLayout` to the tab list's ScrollView.
  */
-function useIsNavigationTabBarCompact() {
+function useIsNavigationTabBarCompact(rowCount: number) {
     const [viewportHeight, setViewportHeight] = useState(0);
-    // The shorter rows change the content height, so it's only recorded while the rows are at full height
-    const [fullContentHeight, setFullContentHeight] = useState(0);
-    // The 1px margin absorbs fractional layout sizes, as the content fills the viewport when it fits
-    const isCompact = viewportHeight > 0 && fullContentHeight > viewportHeight + 1;
+    // Every row has the same fixed height, so the full height is known up front. The content can't be measured instead,
+    // because it stretches to fill the tab list whenever the rows fit, which hides their real height.
+    const isCompact = viewportHeight > 0 && viewportHeight < rowCount * variables.navigationTabBarSize;
 
-    const onLayout = (event: LayoutChangeEvent) => setViewportHeight(event.nativeEvent.layout.height);
+    const onTabListLayout = (event: LayoutChangeEvent) => setViewportHeight(event.nativeEvent.layout.height);
 
-    const onContentSizeChange = (_contentWidth: number, contentHeight: number) => {
-        if (isCompact) {
-            return;
-        }
-        setFullContentHeight(contentHeight);
-    };
-
-    return {isCompact, scrollViewProps: {onLayout, onContentSizeChange}};
+    return {isCompact, onTabListLayout};
 }
 
 export default useIsNavigationTabBarCompact;

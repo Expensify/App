@@ -2,9 +2,12 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -28,6 +31,7 @@ type SearchTabButtonProps = {
 
 function SearchTabButton({selectedTab, isWideLayout, isCompact = false}: SearchTabButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
@@ -46,7 +50,11 @@ function SearchTabButton({selectedTab, isWideLayout, isCompact = false}: SearchT
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [
+                    styles.leftNavigationTabBarItem,
+                    isCompact && StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight),
+                    hovered && styles.navigationTabBarItemHovered,
+                ]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                 onHoverIn={() => setIsSearchTabHovered(true)}
                 onHoverOut={() => setIsSearchTabHovered(false)}
