@@ -1,5 +1,5 @@
 import {appendTimeToFileName, getFileName, showGeneralErrorAlert} from '@libs/fileDownload/FileUtils';
-import {setShareSheetOpen} from '@libs/fileDownload/shareSheetState';
+import {endShareSheet, startShareSheet} from '@libs/fileDownload/shareSheetState';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import RNFetchBlob from 'react-native-blob-util';
@@ -8,13 +8,13 @@ import Share from 'react-native-share';
 import type DownloadAttachmentFile from './types';
 
 // UIKit can't present the share sheet while a modal (e.g. the context menu) is mid-presentation, so wait until no modal transition is running.
-// The promise returned by Share.open settles once the share sheet is dismissed, so the flag covers exactly the time it is on screen.
+// Context menus are ignored from right before the sheet is opened until it is closed (see shareSheetState), because UIKit can't present them over the sheet.
 function openShareSheet(url: string) {
     return new Promise<void>((resolve) => {
         TransitionTracker.runAfterTransitions({callback: resolve});
     }).then(() => {
-        setShareSheetOpen(true);
-        return Share.open({url, failOnCancel: false}).finally(() => setShareSheetOpen(false));
+        startShareSheet();
+        return Share.open({url, failOnCancel: false}).finally(endShareSheet);
     });
 }
 

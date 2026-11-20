@@ -1,38 +1,27 @@
-import Share from 'react-native-share';
-
 /**
- * Tracks whether the native iOS share sheet is currently presented over the app.
+ * Tracks whether the native iOS share sheet is open, from the moment it is requested until it is closed.
  *
- * An RN `Modal` (e.g. the report action context menu) can't be presented while the share sheet is up, because UIKit refuses
- * a second presentation on the same presenter. The modal would then count as open without ever being shown, and the touch
+ * An RN `Modal` (e.g. the report action context menu) can't be presented while the share sheet is up or about to be, because UIKit
+ * refuses a second presentation on the same presenter. The modal would then count as open without ever being shown, and the touch
  * that started under the sheet would never end, leaving its target dimmed. So anything that wants to show a modal has to
- * close the share sheet first.
+ * check this first and skip showing it.
+ *
+ * The flag is set right before the sheet is opened, not for the whole download, so a context menu stays available while a large file
+ * is downloading. This leaves a very narrow window: a menu requested in the same JS tick as the sheet, before React has rendered it,
+ * is not caught.
  */
-let isShareSheetOpen = false;
+let activeShareSheets = 0;
 
-function setShareSheetOpen(isOpen: boolean) {
-    isShareSheetOpen = isOpen;
+function startShareSheet() {
+    activeShareSheets += 1;
+}
+
+function endShareSheet() {
+    activeShareSheets = Math.max(0, activeShareSheets - 1);
 }
 
 function getIsShareSheetOpen() {
-    return isShareSheetOpen;
+    return activeShareSheets > 0;
 }
 
-/**
- * Closes the share sheet, if there is one, and resolves once it is fully gone so a modal can be presented right after.
- * The native side always settles the promise, including when the sheet is still animating in or is already being closed.
- */
-function dismissShareSheet(): Promise<void> {
-    if (!isShareSheetOpen) {
-        return Promise.resolve();
-    }
-    return Share.dismiss()
-        .catch(() => {})
-        .finally(() => {
-            // Normally Share.open has settled by now and already cleared the flag, but if the sheet was gone by itself it may not have yet,
-            // and the caller must not be left waiting on a sheet that no longer exists
-            isShareSheetOpen = false;
-        });
-}
-
-export {setShareSheetOpen, getIsShareSheetOpen, dismissShareSheet};
+export {startShareSheet, endShareSheet, getIsShareSheetOpen};

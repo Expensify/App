@@ -1,16 +1,9 @@
-import {setShareSheetOpen} from '@libs/fileDownload/shareSheetState';
+import {endShareSheet, getIsShareSheetOpen, startShareSheet} from '@libs/fileDownload/shareSheetState';
 
 import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {ReportActionContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 import CONST from '@src/CONST';
-
-const mockShareDismiss = jest.fn<Promise<void>, []>();
-
-jest.mock('react-native-share', () => ({
-    __esModule: true,
-    default: {dismiss: () => mockShareDismiss()},
-}));
 
 const mockShowContextMenu = jest.fn();
 
@@ -46,8 +39,9 @@ const params: ShowContextMenuParams = {
 
 describe('showContextMenu while the share sheet is open', () => {
     beforeEach(() => {
-        setShareSheetOpen(false);
-        mockShareDismiss.mockReset();
+        while (getIsShareSheetOpen()) {
+            endShareSheet();
+        }
         mockShowContextMenu.mockReset();
         setMountedContextMenu();
     });
@@ -57,50 +51,42 @@ describe('showContextMenu while the share sheet is open', () => {
         // When the menu is requested
         showContextMenu(params);
 
-        // Then it opens synchronously and the share module is not involved
+        // Then it opens synchronously
         expect(mockShowContextMenu).toHaveBeenCalledTimes(1);
-        expect(mockShareDismiss).not.toHaveBeenCalled();
     });
 
-    it('closes the share sheet first and only then opens the menu', async () => {
-        // Given the share sheet is on screen and takes a moment to close
-        setShareSheetOpen(true);
-        let finishDismiss: () => void = () => {};
-        mockShareDismiss.mockReturnValue(
-            new Promise<void>((resolve) => {
-                finishDismiss = resolve;
-            }),
-        );
+    it('does not show the menu while the share sheet is open, so it never counts as open without being shown', () => {
+        // Given the share sheet is on screen
+        startShareSheet();
 
         // When the menu is requested
         showContextMenu(params);
 
-        // Then the menu waits, because UIKit can't present it on top of the sheet
-        expect(mockShareDismiss).toHaveBeenCalledTimes(1);
+        // Then the menu is not shown, because UIKit would refuse to present it over the sheet
         expect(mockShowContextMenu).not.toHaveBeenCalled();
-
-        // When the sheet is gone
-        finishDismiss();
-        await new Promise<void>((resolve) => {
-            setTimeout(resolve, 0);
-        });
-
-        // Then the menu opens exactly once
-        expect(mockShowContextMenu).toHaveBeenCalledTimes(1);
     });
 
-    it('still opens the menu when closing the share sheet fails', async () => {
-        // Given the share sheet is on screen but the native dismiss rejects
-        setShareSheetOpen(true);
-        mockShareDismiss.mockRejectedValue(new Error('dismiss failed'));
+    it('reports the ignored menu as hidden, so the pressed row does not stay highlighted', () => {
+        // Given the share sheet is on screen and the caller marked its row as active before asking for the menu
+        startShareSheet();
+        const onHide = jest.fn();
+
+        // When the menu is requested
+        showContextMenu({...params, callbacks: {onHide}});
+
+        // Then the caller is told the menu is hidden, because that is the only place it clears the active row
+        expect(onHide).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the menu again once the share sheet is closed', () => {
+        // Given the share sheet was open and has been closed since
+        startShareSheet();
+        endShareSheet();
 
         // When the menu is requested
         showContextMenu(params);
-        await new Promise<void>((resolve) => {
-            setTimeout(resolve, 0);
-        });
 
-        // Then the user is not left without a menu
+        // Then it opens, so a closed sheet never leaves the menu blocked
         expect(mockShowContextMenu).toHaveBeenCalledTimes(1);
     });
 });
