@@ -218,6 +218,8 @@ If the values are correct but authentication still fails, update your credential
 4. Select **Enter your credentials**.
 5. Enter your updated credentials, then select **Confirm**.
 
+Learn more about [Business Central authentication errors](/new-expensify/hubs/connections/business-central/Troubleshooting/Authentication-and-Login-errors), such as BC04 and BC13.
+
 ## Why does the subsidiary picker show "No companies found"?
 
 This message means Expensify couldn't find a company in your Business Central environment.
