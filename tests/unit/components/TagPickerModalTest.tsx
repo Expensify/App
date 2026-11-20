@@ -2,7 +2,7 @@ import {fireEvent, render, renderHook, screen} from '@testing-library/react-nati
 
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
-import type {TagPickerProps} from '@components/TagPicker';
+import type * as TagPicker from '@components/TagPicker';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,14 +44,20 @@ jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: moc
 const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
 
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useLocalize', () => () => ({
+    translate: (key: string) => key,
+    localeCompare: (first: string, second: string) => first.localeCompare(second),
+}));
 
 // The list itself is covered elsewhere; here only what the modal hands it matters.
-let mockTagPickerProps: TagPickerProps | undefined;
-jest.mock('@components/TagPicker', () => (props: TagPickerProps) => {
-    mockTagPickerProps = props;
-    return null;
-});
+let mockTagPickerProps: TagPicker.TagPickerListProps | undefined;
+jest.mock('@components/TagPicker', () => ({
+    ...jest.requireActual<typeof TagPicker>('@components/TagPicker'),
+    TagPickerList: (props: TagPicker.TagPickerListProps) => {
+        mockTagPickerProps = props;
+        return null;
+    },
+}));
 
 let mockPopoverProps: PopoverWithMeasuredContentProps | undefined;
 jest.mock('@components/PopoverWithMeasuredContent', () => (props: PopoverWithMeasuredContentProps) => {
@@ -118,12 +124,13 @@ describe('TagPickerModal', () => {
                 policyID={POLICY_ID}
                 tagListIndex={1}
                 anchorPosition={{horizontal: 0, vertical: 0}}
+                shouldShowHeader
             />,
         );
 
         // Then the list shows the second list's tags under its own name
-        expect(mockTagPickerProps?.tagListIndex).toBe(1);
-        expect(mockTagPickerProps?.tagListName).toBe('Project');
+        expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Alpha');
+        expect(screen.getByText('Project')).toBeOnTheScreen();
     });
 
     it('hands the list the search threshold it is given', () => {
@@ -135,12 +142,12 @@ describe('TagPickerModal', () => {
                 onClose={jest.fn()}
                 policyID={POLICY_ID}
                 anchorPosition={{horizontal: 0, vertical: 0}}
-                searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
+                searchInputThreshold={1}
             />,
         );
 
         // Then the list shows its search input at that threshold rather than the standard one
-        expect(mockTagPickerProps?.searchInputThreshold).toBe(CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD);
+        expect(mockTagPickerProps?.options.shouldShowTextInput).toBe(true);
     });
 
     it('fills the screen on a phone in landscape, however short the list', () => {
@@ -180,7 +187,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then it still shows the first list in the standard-size pop-over that may flip when it overflows
-        expect(mockTagPickerProps?.tagListIndex).toBe(0);
+        expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Engineering');
         expect(mockPopoverProps?.popoverDimensions).toEqual({width: CONST.POPOVER_DROPDOWN_WIDTH, height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT});
         expect(mockPopoverProps?.shouldSwitchPositionIfOverflow).toBe(true);
     });

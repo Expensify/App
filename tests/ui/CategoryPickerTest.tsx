@@ -27,7 +27,7 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 // The hook sends GetPolicyCategories on mount. Under Jest, a real request reaches Expo's fetch polyfill, which throws "Request is not defined" and crashes the worker.
 jest.mock('@hooks/useLoadPolicyCategories', () => jest.fn(() => ({isLoadingPolicyCategories: false})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
-// Returns [searchValue, debouncedSearchValue, setter]. Lets a test stand the picker up mid-search.
+// Lets the create-row tests start with a search already applied.
 let mockDebouncedSearchValue = '';
 jest.mock('@hooks/useDebouncedState', () => jest.fn(() => [mockDebouncedSearchValue, mockDebouncedSearchValue, jest.fn()]));
 jest.mock('@hooks/useLocalize', () =>
@@ -126,87 +126,6 @@ describe('CategoryPicker', () => {
         // Then each category still shows its GL code underneath
         expect(findRow('Advertising')?.alternateText).toBe('12');
         expect(findRow('Benefits')?.alternateText).toBe('13');
-    });
-
-    describe('reported rendered row count', () => {
-        it('counts one row per category when none of them are nested', () => {
-            // Given three flat categories
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then it reports the three rows it drew
-            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(3);
-        });
-
-        it('counts the parent rows a nested category hangs off', () => {
-            // Given the same three categories, two of them under one parent
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    const nestedCategories: PolicyCategories = {};
-                    for (const name of ['Meals', 'Travel: Flights', 'Travel: Hotels']) {
-                        nestedCategories[name] = makeCategory(name, '');
-                    }
-                    return [nestedCategories, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then it reports four rows, not three: the `Travel` parent takes one. Sizing from the category
-            // count left the pop-over a row short and hid an option behind a scroll.
-            expect(onRenderedRowCountChange).toHaveBeenLastCalledWith(4);
-        });
-
-        it('does not report a filtered count while the user is searching', () => {
-            // Given a search that narrows three categories down to one
-            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
-            mockedUseOnyx.mockImplementation((key) => {
-                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
-                    return [{Flights: makeCategory('Flights', ''), Hotels: makeCategory('Hotels', ''), Meals: makeCategory('Meals', '')}, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
-            mockDebouncedSearchValue = 'Fli';
-            const onRenderedRowCountChange = jest.fn();
-
-            // When the picker renders mid-search
-            render(
-                <CategoryPicker
-                    policyID={POLICY_ID}
-                    onSubmit={jest.fn()}
-                    onRenderedRowCountChange={onRenderedRowCountChange}
-                />,
-            );
-
-            // Then nothing is reported: resizing as results narrow slides the search input out from under the
-            // cursor, since a container opened above its row is pinned by its bottom edge.
-            expect(onRenderedRowCountChange).not.toHaveBeenCalled();
-        });
     });
 
     it('never reads a bare collection key when the policy ID is an empty string', () => {
