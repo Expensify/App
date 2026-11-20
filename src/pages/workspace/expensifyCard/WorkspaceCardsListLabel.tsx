@@ -40,6 +40,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceCardsListLabelProps = {
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
@@ -55,7 +56,7 @@ type RequestLimitIncreaseButtonProps = {
     buttonStyle?: StyleProp<ViewStyle>;
 
     /** Invoked with a callback to close the popover when the button is pressed */
-    onRequest: (closePopover: () => void) => void;
+    onRequest: (closePopover: () => void) => void | Promise<void>;
 };
 
 function RequestLimitIncreaseButton({text, buttonStyle, onRequest}: RequestLimitIncreaseButtonProps) {
@@ -85,12 +86,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const {showConfirmModal} = useConfirmModal();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -118,7 +117,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
     const isConnectedWithPlaid = !!settings?.isPaymentBankAccountConnectedWithPlaid || !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
-    const requestLimitIncrease = (closePopover: () => void) => {
+    const requestLimitIncrease = async (closePopover: () => void) => {
         closePopover();
 
         // The Concierge onboarding welcome message + tasks are created by OpenReport's guidedSetupData, and the request
@@ -147,16 +146,19 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         // the ordering. We mirror ReportFetchHandler's isLoadingApp guard because guided-setup tasks need loaded policies to
         // resolve their deep links (https://github.com/Expensify/App/issues/71742). When isLoadingApp is true we skip and let
         // ReportFetchHandler's deferred OpenReport run instead. Keep this guard as-is.
-        if (isGuidedSetupPending && !isLoadingApp) {
-            openReport({
-                reportID: conciergeReportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions,
-                currentUserAccountID,
-                isSelfTourViewed,
-                hasCompletedGuidedSetupFlow,
-            });
+        if (isGuidedSetupPending) {
+            const [isLoadingApp, conciergeChat] = await Onyx.multiGet([ONYXKEYS.IS_LOADING_APP, `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]);
+            if (!isLoadingApp) {
+                openReport({
+                    reportID: conciergeReportID,
+                    introSelected,
+                    conciergeChat,
+                    hasReportActions,
+                    currentUserAccountID,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                });
+            }
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
         navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});

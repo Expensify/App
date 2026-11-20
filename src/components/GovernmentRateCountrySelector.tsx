@@ -32,7 +32,7 @@ type GovernmentRateCountrySelectorProps = {
     onBackButtonPress: () => void;
 
     /** Called with the picked country when the user saves */
-    onSave: (selectedCountry: string) => void;
+    onSave: (selectedCountry: string) => void | Promise<void>;
 
     /** Optional intro paragraph shown above the list */
     introText?: string;
