@@ -12,13 +12,19 @@ type UseReportDeepLinkOnOpenParams = {
     reportID: string | undefined;
     isReportLoaded: boolean;
     shouldFetchReport: boolean;
+
+    /** Whether opening the report should mark it as read. False when the page only needs the report's data */
+    shouldMarkAsRead?: boolean;
+
+    /** Keeps a manual unread marker untouched. True when the page reads the report's data without showing the chat */
+    shouldKeepManualUnreadMarker?: boolean;
 };
 
 /**
  * When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
  * So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
  */
-function useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport}: UseReportDeepLinkOnOpenParams) {
+function useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport, shouldMarkAsRead, shouldKeepManualUnreadMarker}: UseReportDeepLinkOnOpenParams) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -40,6 +46,8 @@ function useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport}: 
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            shouldMarkAsRead,
+            shouldKeepManualUnreadMarker,
         });
         // OpenReport should only fire when the fetch decision or report identity changes; the other args are read at call time.
         // eslint-disable-next-line react-hooks/exhaustive-deps
