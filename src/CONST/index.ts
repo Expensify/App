@@ -3164,6 +3164,8 @@ const CONST = {
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
         ATTRIBUTE_REQUEST_ID: 'request_id',
+        ATTRIBUTE_SEARCH_SNAPSHOT_COUNT: 'search_snapshot_count',
+        ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES: 'search_snapshot_entries',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -9120,6 +9122,11 @@ const CONST = {
             CENTER: 'center',
             END: 'end',
         },
+        /** The edge of the Spend table a pinned column is moved to. */
+        PINNED_COLUMN_SIDE: {
+            LEFT: 'left',
+            RIGHT: 'right',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -9227,6 +9234,8 @@ const CONST = {
             VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+            RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
             LIMIT: 'limit',
             COMPARE: 'compare',
             TAG_LEVEL: 'tagLevel',
@@ -9429,6 +9438,8 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             APPROVER: 'approver',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'left-pinned-columns',
+            RIGHT_PINNED_COLUMNS: 'right-pinned-columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
             FOOTER_TOTAL: 'footer-total',

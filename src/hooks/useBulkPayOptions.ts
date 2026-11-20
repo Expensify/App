@@ -22,7 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 
 import {areInvoicesEnabledSelector, policyDefaultBankAccountIDSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
@@ -35,8 +34,6 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
@@ -240,7 +237,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
