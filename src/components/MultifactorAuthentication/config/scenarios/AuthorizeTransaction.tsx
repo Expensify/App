@@ -104,7 +104,7 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
     'AlreadyReviewedFailureScreen',
 );
 
-export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
+export {AlreadyReviewedFailureScreen, DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
     // Allowed methods are hardcoded here. useNavigateToForcedTransactionReview also gates the 3DS review on them.

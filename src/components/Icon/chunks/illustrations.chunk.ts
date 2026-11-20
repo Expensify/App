@@ -46,6 +46,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import CardPosRefresh from '@assets/images/multifactorAuthentication/card-pos-refresh.svg';
 import CardReader from '@assets/images/multifactorAuthentication/card-reader.svg';
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
@@ -493,6 +494,7 @@ const Illustrations = {
     OpenPadlockGreen,
     ApprovedTransactionHand,
     DeniedTransactionHand,
+    CardPosRefresh,
     RunOutOfTime,
     HumptyDumpty,
     EncryptionMan,

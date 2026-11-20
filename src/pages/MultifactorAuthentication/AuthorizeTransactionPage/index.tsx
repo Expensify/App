@@ -139,12 +139,28 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
             />
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                    <MultifactorAuthenticationAuthorizeTransactionContent transaction={transaction} />
+                    <MultifactorAuthenticationAuthorizeTransactionContent
+                        transaction={transaction}
+                        title={translate('multifactorAuthentication.reviewTransaction.pleaseReview')}
+                        description={translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}
+                    />
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isDenyingTransaction}
-                        onAuthorize={onApproveTransaction}
-                        onDeny={onDenyTransaction}
-                    />
+                        style={[styles.flexRow, styles.gap2]}
+                    >
+                        <MultifactorAuthenticationAuthorizeTransactionActions.DenyButton
+                            text={translate('multifactorAuthentication.reviewTransaction.deny')}
+                            onPress={onDenyTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_DENY}
+                            style={styles.flex1}
+                        />
+                        <MultifactorAuthenticationAuthorizeTransactionActions.AuthorizeButton
+                            text={translate('multifactorAuthentication.reviewTransaction.approve')}
+                            onPress={onApproveTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE}
+                            style={styles.flex1}
+                        />
+                    </MultifactorAuthenticationAuthorizeTransactionActions>
                     <AuthorizeTransactionCancelConfirmModal
                         isVisible={isConfirmModalVisible}
                         onConfirm={confirmBackOut}
