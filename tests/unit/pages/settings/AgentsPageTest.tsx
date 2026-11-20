@@ -163,6 +163,53 @@ describe('AgentsPage', () => {
         expect(mockOpenAgentsPage).toHaveBeenCalledTimes(1);
     });
 
+    it('fetches agents again only after app loading finishes while the page stays mounted', () => {
+        // Given a mounted Agents page that has already fetched agents for the current account.
+        let isLoadingApp = false;
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [isLoadingApp, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        const {rerender} = render(<AgentsPage />);
+        expect(mockOpenAgentsPage).toHaveBeenCalledTimes(1);
+
+        // When a Copilot switch starts, avoid fetching with the previous account's token.
+        isLoadingApp = true;
+        rerender(<AgentsPage />);
+
+        // Then no additional request is sent during the transition.
+        expect(mockOpenAgentsPage).toHaveBeenCalledTimes(1);
+
+        // When OpenApp finishes, the same mounted page receives the completed loading state.
+        isLoadingApp = false;
+        rerender(<AgentsPage />);
+
+        // Then agents are fetched again for the active account.
+        expect(mockOpenAgentsPage).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for app loading to finish before fetching agents on initial mount', () => {
+        // Given an account transition that is still loading when the Agents page opens.
+        let isLoadingApp = true;
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [isLoadingApp, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        // When the page mounts before the active account is ready.
+        const {rerender} = render(<AgentsPage />);
+
+        // Then fetching is deferred until OpenApp completes the transition.
+        expect(mockOpenAgentsPage).not.toHaveBeenCalled();
+        isLoadingApp = false;
+        rerender(<AgentsPage />);
+        expect(mockOpenAgentsPage).toHaveBeenCalledTimes(1);
+    });
+
     it('shows empty state when no agents exist', () => {
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
 
