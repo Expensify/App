@@ -2325,7 +2325,18 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, isGroupsOnly}: ExportSearchItemsToCSVParams,
+    {
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        excludedTransactionIDList,
+        isBasicExport,
+        exportColumnLabels,
+        exportName,
+        isGroupExport,
+        isGroupsOnly,
+        searchViolationNameList,
+    }: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2364,6 +2375,7 @@ function exportSearchItemsToCSV(
         exportColumnLabels,
         isGroupExport,
         isGroupsOnly,
+        ...(searchViolationNameList?.length ? {searchViolationNameList} : {}),
     }) as Params;
 
     const formData = new FormData();

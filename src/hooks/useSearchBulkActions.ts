@@ -276,6 +276,18 @@ function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTra
 }
 
 /**
+ * The violation names the search's own `violation:` filter allows.
+ *
+ * A violation group export replaces them with the selected groups' names, so they are sent on their own. The server
+ * then exports an expense ticked alongside a selected group only under the violations the search shows.
+ */
+function getSearchViolationNames(queryJSON: SearchQueryJSON): string[] {
+    return queryJSON.flatFilters
+        .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)
+        .flatMap((filter) => filter.filters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => String(item.value)));
+}
+
+/**
  * The group rows a selection covers in full.
  *
  * A group is fully selected when its rows carry `isEntireGroupSelected` at a covered count that reaches the group's count,
@@ -1383,6 +1395,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const exportParameters = getCSVExportParameters(isBasicExport, queryJSONToExport);
+            const searchViolationNameList = isGroupExport && transactionIDList.length > 0 && queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION ? getSearchViolationNames(queryJSON) : [];
             await exportSearchItemsToCSV(
                 {
                     jsonQuery: exportParameters.jsonQuery,
@@ -1393,6 +1406,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportName,
                     isGroupExport,
                     isGroupsOnly,
+                    searchViolationNameList,
                 },
                 () => {
                     didFail = true;

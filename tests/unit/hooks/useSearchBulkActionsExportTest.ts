@@ -1939,6 +1939,72 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
+    describe('Current view on a violation grouping', () => {
+        const MISSING_CATEGORY_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
+
+        beforeEach(() => {
+            jest.mocked(getSelectedGroupFilterEntry).mockImplementation(jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').getSelectedGroupFilterEntry);
+        });
+
+        afterEach(() => {
+            jest.mocked(getSelectedGroupFilterEntry).mockReset();
+        });
+
+        async function runCurrentViewExport(inputQuery: string) {
+            const queryJSON = buildSearchQueryJSON(inputQuery);
+            if (!queryJSON) {
+                throw new Error('Failed to parse violation grouped search query');
+            }
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {
+                [MISSING_CATEGORY_GROUP_KEY]: {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 1, currency: 'USD', total: 100},
+            });
+            mockCurrentSearchResults = searchResults;
+            mockSelectedTransactions = {[MISSING_CATEGORY_GROUP_KEY]: makeSelectedTransaction(), tx2: makeSelectedTransaction()};
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+            });
+
+            getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+            await waitFor(() => {
+                expect(exportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            return getLastCSVExportParameters();
+        }
+
+        it("sends the search's violation names alongside the selected group's filter", async () => {
+            // Given the Missing category group and an expense from another group ticked on a search limited to two violations
+
+            // When the user exports the current view
+            const {searchViolationNameList, transactionIDList, query} = await runCurrentViewExport(
+                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} violation:${CONST.VIOLATIONS.OVER_LIMIT},${CONST.VIOLATIONS.MISSING_CATEGORY}`,
+            );
+
+            // Then the query only names the selected group, so the search's two violations are sent on their own and the
+            // expense ticked on its own is exported only under the violations the search shows
+            expect(transactionIDList).toEqual(['tx2']);
+            expect(query).toMatchObject({
+                flatFilters: expect.arrayContaining([
+                    {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.MISSING_CATEGORY}]},
+                ]),
+            });
+            expect(searchViolationNameList).toEqual([CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.MISSING_CATEGORY]);
+        });
+
+        it('sends no violation names when the search has no violation filter', async () => {
+            // Given the Missing category group and an expense from another group ticked on a search with every violation
+
+            // When the user exports the current view
+            const {searchViolationNameList} = await runCurrentViewExport(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+
+            // Then no names are sent, so the expense ticked on its own is exported under every violation it has, as Search shows it
+            expect(searchViolationNameList).toEqual([]);
+        });
+    });
+
     describe('Reconciliation - All Expenses on a card group selection', () => {
         const CARD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1234`;
 
