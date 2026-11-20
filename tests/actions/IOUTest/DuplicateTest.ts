@@ -1847,10 +1847,12 @@ describe('actions/Duplicate', () => {
             }
         });
 
-        it('threads the conciergeChat report through to requestMoney', () => {
-            const requestMoneySpy = jest.spyOn(require('@libs/actions/IOU/TrackExpense'), 'requestMoney');
+        it('threads the conciergeChat report through to planRequestMoney', () => {
+            // Given a cash expense to duplicate and the user's Concierge chat
+            const planRequestMoneySpy = jest.spyOn(require('@libs/actions/IOU/TrackExpense'), 'planRequestMoney');
             const conciergeChat = {reportID: 'concierge-duplicate-1'};
 
+            // When it is duplicated
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
                 personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
@@ -1882,8 +1884,9 @@ describe('actions/Duplicate', () => {
                 rules: undefined,
             });
 
-            expect(requestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
-            requestMoneySpy.mockRestore();
+            // Then the planner gets that chat, which it needs to build the onboarding data for a test-drive expense
+            expect(planRequestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+            planRequestMoneySpy.mockRestore();
         });
 
         it('should create a duplicate expense successfully', async () => {

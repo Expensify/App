@@ -2,7 +2,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
-import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import {commitRequestMoney, planRequestMoney, requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import deleteReport from '@libs/actions/Report/DeleteReport';
 import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isMovedTransactionAction} from '@libs/ReportActionsUtils';
+import {getParsedComment} from '@libs/ReportUtils';
 import {mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 
 import type {IOUAction} from '@src/CONST';
@@ -151,6 +152,20 @@ function spyOnApiWrite(method: 'write' | 'writeWhenReady', sink: jest.Mock) {
         sink(...args);
         return Promise.resolve();
     });
+}
+
+/** Watches API.writeWhenReady without replacing it, so a committed write still applies its optimistic data to Onyx. */
+function watchWriteWhenReady() {
+    return jest.spyOn(API, 'writeWhenReady');
+}
+
+/** Plans and writes an expense the way the confirmation page does, and returns the IOU report the plan built so a test can look it up. */
+function planAndCommitRequestMoney(requestMoneyInformation: Parameters<typeof planRequestMoney>[0]) {
+    const plan = planRequestMoney(requestMoneyInformation);
+    if (plan) {
+        commitRequestMoney(plan);
+    }
+    return {iouReport: plan?.iouReport};
 }
 
 describe('actions/IOU', () => {
@@ -1477,7 +1492,7 @@ describe('actions/IOU', () => {
         });
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
-            const {iouReport} = requestMoney({
+            const {iouReport} = planAndCommitRequestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1798,7 +1813,7 @@ describe('actions/IOU', () => {
             const comment = 'Test expense with personal details';
             const merchant = 'Test Store';
 
-            const {iouReport} = requestMoney({
+            const {iouReport} = planAndCommitRequestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1877,7 +1892,7 @@ describe('actions/IOU', () => {
             };
 
             const amount = 10000;
-            const {iouReport} = requestMoney({
+            const {iouReport} = planAndCommitRequestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -1927,7 +1942,7 @@ describe('actions/IOU', () => {
         it('should handle empty personalDetails gracefully', async () => {
             const amount = 2500;
 
-            const {iouReport} = requestMoney({
+            const {iouReport} = planAndCommitRequestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2090,7 +2105,7 @@ describe('actions/IOU', () => {
             expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUTransactionID).toBe(transaction?.transactionID);
 
             // When: submitting the tracked expense to another user
-            const {iouReport} = requestMoney({
+            const {iouReport} = planAndCommitRequestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
@@ -2693,6 +2708,159 @@ describe('actions/IOU', () => {
                 await mockFetch?.resume?.();
                 prepareOnboardingOnyxDataSpy.mockRestore();
             });
+        });
+    });
+
+    describe('planRequestMoney and commitRequestMoney', () => {
+        function buildRequestMoneyInformation(transactionOverrides: Partial<Parameters<typeof planRequestMoney>[0]['transactionParams']> = {}): Parameters<typeof planRequestMoney>[0] {
+            return {
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                conciergeChat: undefined,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 2500,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'Plan test',
+                    comment: '',
+                    ...transactionOverrides,
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: true,
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                personalDetails: {},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            };
+        }
+
+        it('writes nothing while planning, and writes the expense at the planned transaction ID once the plan is committed', async () => {
+            // Given an expense for another person
+            const requestMoneyInformation = buildRequestMoneyInformation();
+            const writeWhenReadySpy = watchWriteWhenReady();
+            const onyxWriteSpies = [jest.spyOn(Onyx, 'merge'), jest.spyOn(Onyx, 'set'), jest.spyOn(Onyx, 'update'), jest.spyOn(Onyx, 'multiSet'), jest.spyOn(Onyx, 'mergeCollection')];
+
+            try {
+                // When it is only planned
+                const plan = planRequestMoney(requestMoneyInformation);
+                await waitForBatchedUpdates();
+                if (!plan) {
+                    throw new Error('Expected the expense to be planned');
+                }
+
+                // Then no request is queued and nothing is in Onyx yet, so planning has no effect a caller could depend on
+                expect(writeWhenReadySpy).not.toHaveBeenCalled();
+                for (const onyxWriteSpy of onyxWriteSpies) {
+                    expect(onyxWriteSpy).not.toHaveBeenCalled();
+                }
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`)).toBeUndefined();
+
+                // When the plan is committed
+                commitRequestMoney(plan);
+                await waitForBatchedUpdates();
+
+                // Then exactly one request goes out with the planned parameters, and the optimistic transaction lands at the planned ID
+                expect(writeWhenReadySpy).toHaveBeenCalledTimes(1);
+                expect(writeWhenReadySpy.mock.calls.at(0)?.at(0)).toBe(WRITE_COMMANDS.REQUEST_MONEY);
+                expect(writeWhenReadySpy.mock.calls.at(0)?.at(1)).toBe(plan.write.parameters);
+                expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`))?.transactionID).toBe(plan.transactionID);
+            } finally {
+                writeWhenReadySpy.mockRestore();
+                for (const onyxWriteSpy of onyxWriteSpies) {
+                    onyxWriteSpy.mockRestore();
+                }
+            }
+        });
+
+        it('parses the comment into the plan without changing the information it was given', () => {
+            // Given expense information whose comment has markdown in it
+            const requestMoneyInformation = buildRequestMoneyInformation({comment: '**Client lunch**'});
+
+            // When it is planned, which parses the comment for the request
+            const plan = planRequestMoney(requestMoneyInformation);
+
+            // Then the request carries the parsed comment while the caller keeps what the user typed, so the same information can be planned again
+            expect(plan?.write.parameters.comment).toBe(getParsedComment('**Client lunch**'));
+            expect(requestMoneyInformation.transactionParams.comment).toBe('**Client lunch**');
+        });
+
+        it('plans and writes nothing for a SUBMIT that has no tracked expense to move', async () => {
+            // Given a SUBMIT with no linked tracked expense, which has nothing to move into the report
+            const requestMoneyInformation = {...buildRequestMoneyInformation(), action: CONST.IOU.ACTION.SUBMIT};
+            const writeWhenReadySpy = watchWriteWhenReady();
+
+            try {
+                // When it is planned, and then sent through the one-shot action that the other callers use
+                const plan = planRequestMoney(requestMoneyInformation);
+                requestMoney(requestMoneyInformation);
+                await waitForBatchedUpdates();
+
+                // Then there is no plan to commit and no request goes out, so the caller can tell the expense was not created
+                expect(plan).toBeUndefined();
+                expect(writeWhenReadySpy).not.toHaveBeenCalled();
+            } finally {
+                writeWhenReadySpy.mockRestore();
+            }
+        });
+
+        it('waits for the commit to highlight the new expense and flag the "Expense added" message', async () => {
+            // Given a global-create expense for an expense report that already has one expense, which takes both the highlight and the message branches
+            const chatReport: Report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: 'plan-effects-chat', policyID: 'plan-effects-policy'};
+            const expenseReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'plan-effects-expense-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                policyID: chatReport.policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, {...chatReport, iouReportID: expenseReport.reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}plan-effects-existing`, {
+                transactionID: 'plan-effects-existing',
+                reportID: expenseReport.reportID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            await waitForBatchedUpdates();
+            const requestMoneyInformation = {...buildRequestMoneyInformation({isFromGlobalCreate: true}), report: expenseReport, existingIOUReport: expenseReport};
+
+            // When it is only planned
+            const plan = planRequestMoney(requestMoneyInformation);
+            await waitForBatchedUpdates();
+            if (!plan) {
+                throw new Error('Expected the expense to be planned');
+            }
+
+            // Then neither is written yet, so a caller that plans without committing leaves no trace
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`))?.pendingNewTransactionIDs?.[plan.transactionID]).toBeUndefined();
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBeUndefined();
+
+            // When the plan is committed
+            commitRequestMoney(plan);
+            await waitForBatchedUpdates();
+
+            // Then the new expense is highlighted and flagged for the message
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`))?.pendingNewTransactionIDs?.[plan.transactionID]).toBe(true);
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
         });
     });
 
