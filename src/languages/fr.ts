@@ -2687,6 +2687,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: "<muted-text><centered-text>N'hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions&nbsp;!</centered-text></muted-text>",
             goToExpensifyClassic: 'Aller à Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail restreint au domaine',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été averti pour approuver la demande de fusion des comptes.</centered-text></muted-text>',
+            gotIt: 'Compris',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Vous ne pouvez pas fusionner <strong>${email}</strong> car il est géré par <strong>${email.split('@').at(1) ?? ''}</strong>. Veuillez <concierge-link>contacter Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

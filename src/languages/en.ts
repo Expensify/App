@@ -2833,6 +2833,11 @@ const translations = {
             reachOutForHelp: '<muted-text><centered-text>Feel free to <concierge-link>reach out to Concierge</concierge-link> if you have any questions!</centered-text></muted-text>',
             goToExpensifyClassic: 'Go to Expensify Classic',
         },
+        mergePendingDomainAdmin: {
+            heading: 'Domain restricted email',
+            description: '<muted-text><centered-text>A domain admin has been notified to approve the request to merge accounts.</centered-text></muted-text>',
+            gotIt: 'Got it',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>You can’t merge <strong>${email}</strong> because it’s controlled by <strong>${email.split('@').at(1) ?? ''}</strong>. Please <concierge-link>reach out to Concierge</concierge-link> for assistance.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

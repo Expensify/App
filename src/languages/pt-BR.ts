@@ -2673,6 +2673,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 '<muted-text><centered-text>Fique à vontade para <concierge-link>entrar em contato com o Concierge</concierge-link> se tiver alguma dúvida!</centered-text></muted-text>',
             goToExpensifyClassic: 'Ir para o Expensify Clássico',
         },
+        mergePendingDomainAdmin: {
+            heading: 'E-mail restrito por domínio',
+            description: '<muted-text><centered-text>Um administrador de domínio foi notificado para aprovar a solicitação de mesclagem de contas.</centered-text></muted-text>',
+            gotIt: 'Entendi',
+        },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>Você não pode mesclar <strong>${email}</strong> porque ele é controlado por <strong>${email.split('@').at(1) ?? ''}</strong>. Por favor, <concierge-link>entre em contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

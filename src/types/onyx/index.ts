@@ -309,6 +309,7 @@ export type {
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
+    DomainAccountMergeRequest,
     Download,
     ExportDownload,
     BulkAction,
