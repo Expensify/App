@@ -1164,6 +1164,15 @@ type PolicyRulesModifiedFields = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
+
+    /** The vendor the rule set */
+    vendor?: {
+        /** The ID of the vendor in the accounting integration */
+        externalID: string;
+
+        /** The display name of the vendor, empty when it is no longer in the integration's vendor list */
+        name?: string;
+    };
 };
 
 /** Personal rules modified fields. Each member holds the new value the rule wrote, not the current one */
@@ -1187,6 +1196,15 @@ type PersonalRulesModifiedFields = {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
+    };
+
+    /** The vendor the rule set */
+    vendor?: {
+        /** The ID of the vendor in the accounting integration */
+        externalID: string;
+
+        /** The display name of the vendor, empty when it is no longer in the integration's vendor list */
+        name?: string;
     };
 
     reportName?: string;

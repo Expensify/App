@@ -59,6 +59,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     nonDefaultReimbursable: () => 'reimbursable',
     nonDefaultTag: () => 'tag',
     nonDefaultTax: () => 'tax',
+    nonDefaultVendor: () => 'vendor',
     modifiedAmount: () => 'amount',
     modifiedDate: () => 'date',
     increasedDistance: () => 'waypoints',

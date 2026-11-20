@@ -68,6 +68,10 @@ type PolicyRulesModifiedFields = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
+    vendor?: {
+        externalID: string;
+        name?: string;
+    };
 };
 
 type PersonalRulesModifiedFields = PolicyRulesModifiedFields & {
