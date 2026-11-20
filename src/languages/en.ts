@@ -11636,10 +11636,10 @@ const translations = {
             },
             travelType: {
                 label: 'Travel type',
-                [CONST.SEARCH.TRAVEL_TYPE.AIR]: 'Flight',
+                [CONST.SEARCH.TRAVEL_TYPE.FLIGHT]: 'Flight',
                 [CONST.SEARCH.TRAVEL_TYPE.HOTEL]: 'Hotel',
-                [CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL]: 'Car rental',
-                [CONST.SEARCH.TRAVEL_TYPE.RAIL]: 'Rail',
+                [CONST.SEARCH.TRAVEL_TYPE.CAR]: 'Car rental',
+                [CONST.SEARCH.TRAVEL_TYPE.TRAIN]: 'Rail',
                 [CONST.SEARCH.TRAVEL_TYPE.HOTEL_BLOCK]: 'Hotel block',
             },
             travelPlatform: {

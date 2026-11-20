@@ -8552,11 +8552,12 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        // The bookingType stored on travel expenses, in the order the filter lists them
         TRAVEL_TYPE: {
-            AIR: 'air',
-            HOTEL: 'hotel',
-            CAR_RENTAL: 'carRental',
-            RAIL: 'rail',
+            FLIGHT: RESERVATION_TYPE.FLIGHT,
+            HOTEL: RESERVATION_TYPE.HOTEL,
+            CAR: RESERVATION_TYPE.CAR,
+            TRAIN: RESERVATION_TYPE.TRAIN,
             HOTEL_BLOCK: 'hotelBlock',
         },
         TRAVEL_PLATFORM: {
