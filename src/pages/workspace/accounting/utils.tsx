@@ -558,6 +558,7 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
+                    CONST.RILLET_CONFIG.AUTO_CREATE_VENDOR,
                     CONST.RILLET_CONFIG.AUTO_SYNC,
                     CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,

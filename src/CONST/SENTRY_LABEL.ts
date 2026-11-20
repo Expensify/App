@@ -2611,6 +2611,7 @@ const SENTRY_LABEL = {
                 IMPORT_CUSTOM_FIELD_HELP_LINK: 'WorkspaceAccountingNetSuite-ImportCustomFieldHelpLink',
             },
             RILLET: {
+                AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingRillet-AutoCreateVendorSwitch',
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingRillet-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingRillet-AccountingMethod',
                 ACH_PAYMENT_ACCOUNT: 'WorkspaceAccountingRillet-ACHPaymentAccount',
