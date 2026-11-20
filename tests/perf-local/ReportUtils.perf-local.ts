@@ -196,7 +196,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: undefined,
+                hasDraftComment: undefined,
                 isReportArchived: false,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,

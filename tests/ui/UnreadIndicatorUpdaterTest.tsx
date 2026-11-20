@@ -5,7 +5,9 @@ import UnreadIndicatorUpdater from '@components/UnreadIndicatorUpdater';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 
 import AppStateMonitor from '@libs/AppStateMonitor';
-import updateUnread from '@libs/UnreadIndicatorUpdater/updateUnread';
+import {Scheduler} from '@libs/Scheduler';
+import UnreadIndicatorUtils from '@libs/UnreadIndicatorUpdater';
+import updateUnread, {setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +35,7 @@ jest.mock('@libs/AppStateMonitor', () => ({
 const mockUpdateUnread = jest.mocked(updateUnread);
 const mockUseCurrentReportIDState = jest.mocked(useCurrentReportIDState);
 const mockAddBecameActiveListener = jest.mocked(AppStateMonitor.addBecameActiveListener);
+const mockSetUnreadUpdateCallback = jest.mocked(setUnreadUpdateCallback);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 
@@ -119,5 +122,111 @@ describe('UnreadIndicatorUpdater', () => {
         // Then the badge is set again from the latest data, not the count from the first render
         expect(mockUpdateUnread).toHaveBeenCalledTimes(1);
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
+    });
+
+    describe('when the scan waits for React to be idle', () => {
+        let idleTasks: Array<() => void> = [];
+
+        beforeEach(() => {
+            idleTasks = [];
+            jest.spyOn(Scheduler, 'scheduleWhenIdle').mockImplementation((callback) => {
+                idleTasks.push(callback);
+                return {
+                    cancel: () => {
+                        idleTasks = idleTasks.filter((task) => task !== callback);
+                    },
+                };
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('does not scan or publish while rendering, only when the idle task runs', async () => {
+            // Given an unread chat and a scheduler that holds the idle tasks
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
+            const scanSpy = jest.spyOn(UnreadIndicatorUtils, 'getUnreadReportIDsForUnreadIndicator');
+
+            // When the updater is mounted
+            render(<UnreadIndicatorUpdater />);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then one task is waiting, and neither the scan nor the badge ran yet
+            expect(idleTasks).toHaveLength(1);
+            expect(scanSpy).not.toHaveBeenCalled();
+            expect(mockUpdateUnread).not.toHaveBeenCalled();
+
+            // When React becomes idle and the task runs
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+
+            // Then the scan ran once and the count is published
+            expect(scanSpy).toHaveBeenCalledTimes(1);
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
+        });
+
+        it('shares one scan over the latest data between changes that arrive before the idle task runs', async () => {
+            // Given the updater has published one unread report
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
+            const scanSpy = jest.spyOn(UnreadIndicatorUtils, 'getUnreadReportIDsForUnreadIndicator');
+            render(<UnreadIndicatorUpdater />);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+            scanSpy.mockClear();
+
+            // When the report is changed twice and then read before the next idle task runs
+            await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageText: 'first change'}));
+            await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageText: 'second change'}));
+            await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadTime: '2023-09-08 07:15:44.030'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the latest task is still waiting, and nothing was scanned yet
+            expect(idleTasks).toHaveLength(1);
+            expect(scanSpy).not.toHaveBeenCalled();
+
+            // When that task runs
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+
+            // Then a single scan used the latest data, where the report is read
+            expect(scanSpy).toHaveBeenCalledTimes(1);
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
+        });
+
+        it.each([
+            ['the app comes back to the foreground', () => mockAddBecameActiveListener.mock.calls.at(-1)?.[0]],
+            ['the Concierge indicator asks for a new publish', () => mockSetUnreadUpdateCallback.mock.calls.at(-1)?.[0]],
+        ])('ends with the latest count when %s while a scan is still waiting', async (_name, getPublishTrigger) => {
+            // Given the updater has published one unread report and the report was then read, so a new scan is waiting
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
+            render(<UnreadIndicatorUpdater />);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
+            await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadTime: '2023-09-08 07:15:44.030'}));
+            await waitForBatchedUpdatesWithAct();
+            expect(idleTasks).toHaveLength(1);
+
+            // When the trigger fires before the waiting scan ran, so it can only publish the last completed count
+            mockUpdateUnread.mockClear();
+            getPublishTrigger()?.();
+            expect(mockUpdateUnread).toHaveBeenCalledTimes(1);
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
+
+            // And then the waiting scan runs
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+
+            // Then the badge ends with the count from the latest data
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
+        });
     });
 });

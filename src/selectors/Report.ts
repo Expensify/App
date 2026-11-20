@@ -412,6 +412,10 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+function hasDraftCommentSelector(draftComment: OnyxEntry<string>): boolean {
+    return !!draftComment;
+}
+
 /**
  * Creates a selector returning the parent links of the given report and each of its ancestors, so a consumer only
  * looks up the reports on that chain instead of iterating the whole collection.
@@ -474,6 +478,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    hasDraftCommentSelector,
     reportParentChainSelector,
     policyExpenseChatSelector,
     reportsByIDsSelector,

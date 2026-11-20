@@ -1999,7 +1999,7 @@ function isValidReport(
         login: option.login,
         includeDomainEmail,
         isReportArchived: option.private_isArchived,
-        draftComment,
+        hasDraftComment: !!draftComment,
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
