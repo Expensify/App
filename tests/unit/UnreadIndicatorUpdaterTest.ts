@@ -1,10 +1,19 @@
-import type {ReportAction, ReportActions} from '../../src/types/onyx';
+import type * as NetworkStateModule from '../../src/libs/NetworkState';
+import type {Report, ReportAction, ReportActions} from '../../src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../src/CONST';
+import {getIsOffline} from '../../src/libs/NetworkState';
 import UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
+
+jest.mock('../../src/libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkStateModule>('../../src/libs/NetworkState'),
+    getIsOffline: jest.fn(() => false),
+}));
+
+const mockGetIsOffline = jest.mocked(getIsOffline);
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -84,7 +93,7 @@ describe('UnreadIndicatorUpdaterTest', () => {
         const NEWER_MESSAGE_TIME = '2023-08-12 07:15:44.030';
         const OTHER_USER_ACCOUNT_ID = 2;
 
-        const getReports = (thread: {lastReadTime: string; lastVisibleActionCreated: string}) => ({
+        const getReports = (thread: {lastReadTime: string; lastVisibleActionCreated: string}, expenseReport: Partial<Report> = {}, extraReports: Record<string, Partial<Report>> = {}) => ({
             [`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]: {
                 reportID: EXPENSE_REPORT_ID,
                 reportName: 'test',
@@ -94,7 +103,9 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 lastActorAccountID: OTHER_USER_ACCOUNT_ID,
                 lastMessageText: 'test',
                 participants: {[TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                ...expenseReport,
             },
+            ...extraReports,
             [`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`]: {
                 reportID: THREAD_REPORT_ID,
                 reportName: 'thread',
@@ -176,6 +187,87 @@ describe('UnreadIndicatorUpdaterTest', () => {
 
             // Then the report is not counted
             expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
+        });
+
+        describe('when the same report actions are scanned again', () => {
+            const THREAD_UNREAD = {lastReadTime: OLDER_MESSAGE_TIME, lastVisibleActionCreated: NEWER_MESSAGE_TIME};
+
+            afterEach(() => {
+                mockGetIsOffline.mockReturnValue(false);
+            });
+
+            it('gives the same answer when nothing changed', () => {
+                // Given report actions that were already scanned once
+                const reports = getReports(THREAD_UNREAD);
+                const reportActions = getReportActions();
+                const firstScan = scan(reports, reportActions);
+
+                // When the same data is scanned again
+                const secondScan = scan(reports, reportActions);
+
+                // Then the unread reports are the same
+                expect(firstScan).toContain(EXPENSE_REPORT_ID);
+                expect(secondScan).toEqual(firstScan);
+            });
+
+            it('follows the report type, so a report that can no longer have a transaction thread is not counted for it', () => {
+                // Given report actions whose transaction thread made an expense report unread
+                const reportActions = getReportActions();
+                expect(scan(getReports(THREAD_UNREAD), reportActions)).toContain(EXPENSE_REPORT_ID);
+
+                // When the same actions are scanned for a report that is now a plain chat
+                const unreadReportIDs = scan(getReports(THREAD_UNREAD, {type: CONST.REPORT.TYPE.CHAT}), reportActions);
+
+                // Then the thread no longer counts, and it counts again when the report is an expense report again
+                expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
+                expect(scan(getReports(THREAD_UNREAD), reportActions)).toContain(EXPENSE_REPORT_ID);
+            });
+
+            it('follows the chat report, which decides whether a lone pay action is the send money flow', () => {
+                // Given a report with a single pay action, which only has a transaction thread in a direct message chat
+                const CHAT_REPORT_ID = '300';
+                const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`;
+                const reportActions = getReportActions({
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry a pay originalMessage so the action is read as a pay action
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: 'transaction1', amount: 100, currency: CONST.CURRENCY.USD},
+                });
+                const directMessageChat = {reportID: CHAT_REPORT_ID, reportName: 'chat', type: CONST.REPORT.TYPE.CHAT};
+                const workspaceChat = {...directMessageChat, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT};
+                expect(scan(getReports(THREAD_UNREAD, {chatReportID: CHAT_REPORT_ID}, {[chatReportKey]: directMessageChat}), reportActions)).toContain(EXPENSE_REPORT_ID);
+
+                // When the same actions are scanned and the chat report is now a workspace chat
+                const unreadReportIDs = scan(getReports(THREAD_UNREAD, {chatReportID: CHAT_REPORT_ID}, {[chatReportKey]: workspaceChat}), reportActions);
+
+                // Then the thread no longer counts
+                expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
+            });
+
+            it('follows the offline state, which keeps a pending deleted expense as a second expense of the report', () => {
+                // Given a report with one expense and a second one that is being deleted, so only offline it is still counted
+                const reports = getReports(THREAD_UNREAD);
+                const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`;
+                const pendingDeleteAction = {
+                    reportActionID: '11',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2023-08-02 07:15:44.030',
+                    childReportID: '201',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry an IOU originalMessage so the action is read as an expense
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'transaction2', amount: 100, currency: CONST.CURRENCY.USD},
+                    message: [{type: 'COMMENT', html: '', text: '', isDeletedParentAction: true, deleted: '2023-08-13 07:15:44.030'}],
+                };
+                const reportActions = {[actionsKey]: {...getReportActions()[actionsKey], 11: pendingDeleteAction} as ReportActions};
+                expect(scan(reports, reportActions)).toContain(EXPENSE_REPORT_ID);
+
+                // When the same actions are scanned offline
+                mockGetIsOffline.mockReturnValue(true);
+                const offlineScan = scan(reports, reportActions);
+
+                // Then the report has two expenses and no single transaction thread, and the thread counts again when the app is back online
+                expect(offlineScan).not.toContain(EXPENSE_REPORT_ID);
+                mockGetIsOffline.mockReturnValue(false);
+                expect(scan(reports, reportActions)).toContain(EXPENSE_REPORT_ID);
+            });
         });
     });
 });

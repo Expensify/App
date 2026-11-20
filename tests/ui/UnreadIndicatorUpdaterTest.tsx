@@ -7,7 +7,7 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import {Scheduler} from '@libs/Scheduler';
 import UnreadIndicatorUtils from '@libs/UnreadIndicatorUpdater';
-import updateUnread from '@libs/UnreadIndicatorUpdater/updateUnread';
+import updateUnread, {setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ jest.mock('@libs/AppStateMonitor', () => ({
 const mockUpdateUnread = jest.mocked(updateUnread);
 const mockUseCurrentReportIDState = jest.mocked(useCurrentReportIDState);
 const mockAddBecameActiveListener = jest.mocked(AppStateMonitor.addBecameActiveListener);
+const mockSetUnreadUpdateCallback = jest.mocked(setUnreadUpdateCallback);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 
@@ -194,6 +195,35 @@ describe('UnreadIndicatorUpdater', () => {
 
             // Then a single scan used the latest data, where the report is read
             expect(scanSpy).toHaveBeenCalledTimes(1);
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
+        });
+
+        it.each([
+            ['the app comes back to the foreground', () => mockAddBecameActiveListener.mock.calls.at(-1)?.[0]],
+            ['the Concierge indicator asks for a new publish', () => mockSetUnreadUpdateCallback.mock.calls.at(-1)?.[0]],
+        ])('ends with the latest count when %s while a scan is still waiting', async (_name, getPublishTrigger) => {
+            // Given the updater has published one unread report and the report was then read, so a new scan is waiting
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
+            render(<UnreadIndicatorUpdater />);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
+            await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadTime: '2023-09-08 07:15:44.030'}));
+            await waitForBatchedUpdatesWithAct();
+            expect(idleTasks).toHaveLength(1);
+
+            // When the trigger fires before the waiting scan ran, so it can only publish the last completed count
+            getPublishTrigger()?.();
+            expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
+
+            // And then the waiting scan runs
+            act(() => {
+                idleTasks.at(0)?.();
+            });
+
+            // Then the badge ends with the count from the latest data
             expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
         });
     });
