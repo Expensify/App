@@ -9,16 +9,20 @@
     },
     "autolinking": {
         "ContactsModule": {
-            "swift": "HybridContactsModule",
-            "kotlin": "HybridContactsModule"
+            "ios": {"language": "swift", "implementationClassName": "HybridContactsModule"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridContactsModule"}
         },
         "AppStartTimeModule": {
-            "swift": "HybridAppStartTimeModule",
-            "kotlin": "HybridAppStartTimeModule"
+            "ios": {"language": "swift", "implementationClassName": "HybridAppStartTimeModule"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridAppStartTimeModule"}
         },
         "VerticalBarModule": {
-            "swift": "HybridVerticalBarModule",
-            "kotlin": "HybridVerticalBarModule"
+            "ios": {"language": "swift", "implementationClassName": "HybridVerticalBarModule"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridVerticalBarModule"}
+        },
+        "ShareActionHandler": {
+            "ios": {"language": "swift", "implementationClassName": "HybridShareActionHandler"},
+            "android": {"language": "kotlin", "implementationClassName": "HybridShareActionHandler"}
         }
     },
     "ignorePaths": ["node_modules"]

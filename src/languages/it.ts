@@ -582,6 +582,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} giorno`,
             other: (count: number) => `${formattedCount ?? count} giorni`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ora`,
+            other: (count: number) => `${formattedCount ?? count} ore`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minuti`,
+        }),
         amount: 'Importo',
     },
     socials: {
@@ -1296,6 +1304,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Tempo massimo per pagare',
         share: 'Quota%',
         averageDays: 'Giorni medi',
+        generatingAIInsights: 'Generazione di approfondimenti IA in corso...',
+        generatingAIInsightsSubtitle: 'Non dovrebbe volerci più di un minuto',
+        readingChart: (chartTitle: string) => `Lettura di ${chartTitle}`,
+        comparingWithYourAverage: 'Confronto con la tua media',
+        lookingForAnythingUnusual: 'Ricerca di eventuali anomalie',
+        writingYourInsights: 'Scrivere le tue idee',
         violationStage: {
             label: 'Violazioni di',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Mittenti',
@@ -3299,6 +3313,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Inizia',
             headerTitle: 'Rimborsi globali',
             payingReportSubtitle: 'I conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
+            payingMultipleReportsSubtitle: 'Nessuno di questi resoconti è stato pagato perché i conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Paga con x${lastFour}` : 'Paga con conto bancario'),
+            description: 'Questi resoconti non sono stati pagati con il conto bancario perché richiedono i rimborsi globali. Avvia la procedura qui sotto.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
         wiseMoreInfoNeeded: 'Servono più informazioni per abilitare i rimborsi globali',
@@ -7215,9 +7234,17 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Impossibile eliminare o disattivare tutte le categorie',
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
+            visibleTo: 'Visibile a',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membri`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Scegli quali membri possono usare la categoria ${categoryName} quando inviano le spese.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossibile rimuovere l’accesso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossibile rimuovere l’accesso a queste categorie',
                 description: ({count}: {count: number}) => ({
                     one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la visibilità delle sue categorie, quindi riprova:',
                     other: `A ${count} membri non rimarrebbe alcuna categoria tra cui scegliere. Aggiorna la visibilità delle loro categorie, poi riprova:`,
@@ -8598,6 +8625,10 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             timezoneInputLabel: 'Fuso orario',
             timezoneInputHelpText: 'Il tuo fuso orario viene utilizzato per l’invio automatico dei report',
             timezoneErrorMessage: 'Impossibile modificare il fuso orario. Riprova o contatta l’assistenza.',
+            directReimbursementCurrencyTitle: 'Valuta non disponibile con il rimborso diretto',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Questo spazio di lavoro rimborsa i membri direttamente tramite Expensify, cosa non disponibile in ${currency}. Per usare ${currency}, vai su Flussi di lavoro e disattiva e riattiva Pagamenti, così i pagamenti vengono effettuati al di fuori di Expensify.`,
+            goToWorkflows: 'Vai ai flussi di lavoro',
         },
         officeLocations: {
             title: 'Sedi degli uffici',
@@ -10347,11 +10378,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `ha aggiunto la tariffa ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `ha modificato il valore di ${customUnitName} ${updatedField} "${customUnitRateName}" in "${newValue}" (in precedenza "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `ha modificato l’aliquota fiscale sulla tariffa distanza "${customUnitRateName}" in "${newValue} (${newTaxPercentage})" (precedentemente "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `ha modificato l’aliquota fiscale sulla tariffa chilometrica "${customUnitRateName}" a "${newTaxRate}" (in precedenza "${oldTaxRate}")`;
             }
-            return `ha aggiunto l’aliquota fiscale "${newValue} (${newTaxPercentage})" alla tariffa distanza "${customUnitRateName}"`;
+            return `ha aggiunto l’aliquota fiscale «${newTaxRate}» alla tariffa chilometrica «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11003,6 +11034,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
+            tooManyKeywords: `La ricerca contiene troppe parole chiave. Usa al massimo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} parole chiave e riprova.`,
+            unsupportedGrouping: 'Questa ricerca non supporta il raggruppamento o le viste a grafico. Rimuovi il raggruppamento e usa la vista tabella.',
+            invalidReportID: 'Inserisci un ID report valido. Per trovare le spese non rendicontate, usa status:unreported.',
+            unsupportedFilter: 'Il filtro "is:" non è supportato per questa ricerca. Per trovare le spese non rendicontate, usa status:unreported.',
             emptyResults: {
                 title: 'Niente da mostrare',
                 subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante +.`,
@@ -11062,6 +11097,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             openMenu: ({columnName}: {columnName: string}) => `Opzioni della colonna ${columnName}`,
             sortAscending: 'Ordina in modo crescente',
             sortDescending: 'Ordina in modo decrescente',
+            pinLeft: 'Fissa a sinistra',
+            pinRight: 'Fissa a destra',
+            unpin: 'Rimuovi fissaggio',
             hideColumn: 'Nascondi colonna',
             resetColumnSizes: 'Reimposta larghezza colonne',
         },
