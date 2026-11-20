@@ -4,7 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -59,7 +59,7 @@ import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import variables from '@styles/variables';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +75,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -109,6 +110,67 @@ type SectionType = {
     titleTranslationKey: 'workspace.rules.merchantRules.expensesWith' | 'workspace.rules.merchantRules.applyUpdates';
     items: Array<SectionItemType | undefined>;
 };
+
+type ExpenseDefaultRuleFieldProps = {
+    item: SectionItemType;
+    canWriteRules: boolean;
+    shouldShowError: boolean;
+};
+
+function ExpenseDefaultRuleField({item, canWriteRules, shouldShowError}: ExpenseDefaultRuleFieldProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const canEditItem = canWriteRules && !item.isLocked;
+    const errorText = canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : '';
+    return (
+        <MenuItem.Root
+            onPress={canEditItem ? callIfAuthenticated(item.onPress, session) : undefined}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+        >
+            <MenuItem.Row style={styles.gap0}>
+                {!!item.icon && (
+                    <MenuItem.Leading>
+                        <View style={styles.mr3}>
+                            <MenuItem.IconNarrow src={item.icon} />
+                        </View>
+                    </MenuItem.Leading>
+                )}
+                <MenuItem.Content>
+                    {item.title ? (
+                        <>
+                            <MenuItem.FieldName>{item.description}</MenuItem.FieldName>
+                            {item.shouldRenderAsHTML ? (
+                                <MenuItem.FieldValueHTML>{item.title}</MenuItem.FieldValueHTML>
+                            ) : (
+                                <MenuItem.FieldValue
+                                    numberOfLines={2}
+                                    style={styles.flex1}
+                                >
+                                    {item.title}
+                                </MenuItem.FieldValue>
+                            )}
+                        </>
+                    ) : (
+                        <MenuItem.FieldNamePlaceholder>{item.description}</MenuItem.FieldNamePlaceholder>
+                    )}
+                </MenuItem.Content>
+                {canEditItem && (
+                    <MenuItem.Trailing>
+                        {!!item.required && !item.title && !errorText && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
+    );
+}
 
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
@@ -653,28 +715,12 @@ function ExpenseDefaultRulePageBase({
     ) : null;
 
     const renderSectionItem = (item: SectionItemType) => {
-        const canEditItem = canWriteRules && !item.isLocked;
         return (
-            <MenuItemWithTopDescription
+            <ExpenseDefaultRuleField
                 key={item.key}
-                description={item.description}
-                errorText={canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                onPress={canEditItem ? item.onPress : undefined}
-                rightLabel={canEditItem && item.required ? translate('common.required') : undefined}
-                shouldShowRightIcon={canEditItem}
-                interactive={canEditItem}
-                title={item.title}
-                numberOfLinesTitle={2}
-                titleStyle={styles.flex1}
-                shouldRenderAsHTML={item.shouldRenderAsHTML}
-                shouldApplyIconPaddingToHTMLTitle={!!item.icon && !!item.shouldRenderAsHTML}
-                icon={item.icon}
-                {...(item.icon && {
-                    iconWidth: variables.iconSizeNormal,
-                    iconHeight: variables.iconSizeNormal,
-                    shouldIconUseAutoWidthStyle: true,
-                })}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                item={item}
+                canWriteRules={canWriteRules}
+                shouldShowError={shouldShowError}
             />
         );
     };
