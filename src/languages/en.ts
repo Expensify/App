@@ -7915,9 +7915,17 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            visibleTo: 'Visible to',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Can’t remove access to ${categoryName}`,
+                bulkRemoveAccessTitle: 'Can’t remove access to these categories',
                 description: ({count}: {count: number}) => ({
                     one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
                     other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
@@ -9467,6 +9475,10 @@ const translations = {
             timezoneInputLabel: 'Timezone',
             timezoneInputHelpText: 'Your timezone is used for automatic report submission',
             timezoneErrorMessage: "Timezone couldn't be changed. Please try again or contact support.",
+            directReimbursementCurrencyTitle: 'Currency not available with direct reimbursement',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `This workspace reimburses members directly through Expensify, which isn't available in ${currency}. To use ${currency}, go to Workflows and turn Payments off and back on, so payments are made outside Expensify.`,
+            goToWorkflows: 'Go to workflows',
             currencyInputDisabledText: (currency: string) => `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
@@ -10731,11 +10743,11 @@ const translations = {
             `added ${fieldType} report field "${fieldName}"${defaultValue ? ` with default value "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `changed the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newValue} (${newTaxPercentage})" (previously "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newTaxRate}" (previously "${oldTaxRate}")`;
             }
-            return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
+            return `added the tax rate "${newTaxRate}" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11409,6 +11421,10 @@ const translations = {
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
+            tooManyKeywords: `Your search has too many keywords. Use ${CONST.SEARCH.MAX_KEYWORD_TOKENS} or fewer keywords and try again.`,
+            unsupportedGrouping: "This search doesn't support grouping or chart views. Remove the grouping and use table view.",
+            invalidReportID: 'Enter a valid report ID. To find unreported expenses, use status:unreported.',
+            unsupportedFilter: `The "is:" filter isn't supported for this search. To find unreported expenses, use status:unreported.`,
             emptyResults: {
                 title: 'Nothing to show',
                 subtitle: `Try adjusting your search criteria or creating something with the + button.`,
@@ -11476,6 +11492,9 @@ const translations = {
             openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
+            pinLeft: 'Pin left',
+            pinRight: 'Pin right',
+            unpin: 'Unpin',
             hideColumn: 'Hide column',
             resetColumnSizes: 'Reset column sizes',
         },

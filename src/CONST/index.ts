@@ -1916,6 +1916,7 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
         EUR: 'EUR',
+        SGD: 'SGD',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
     // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
@@ -1923,6 +1924,11 @@ const CONST = {
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
+    },
+    // The server only lets a workspace with Direct reimbursement switch to these currencies. The list copies the server's own
+    // direct reimbursement list, which also includes SGD, so it is kept apart from DIRECT_REIMBURSEMENT_CURRENCIES above.
+    get CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE() {
+        return [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD];
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
@@ -3035,6 +3041,7 @@ const CONST = {
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
+        SPAN_OPEN_CATEGORY_VISIBLE_TO: 'ManualOpenCategoryVisibleTo',
         SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -3157,6 +3164,8 @@ const CONST = {
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
         ATTRIBUTE_REQUEST_ID: 'request_id',
+        ATTRIBUTE_SEARCH_SNAPSHOT_COUNT: 'search_snapshot_count',
+        ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES: 'search_snapshot_entries',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -5654,7 +5663,6 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
-            GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
@@ -8471,6 +8479,13 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        // Keep in sync with FilterUtils::MAX_KEYWORD_TOKENS in Auth.
+        MAX_KEYWORD_TOKENS: 50,
+        QUERY_ERROR_UUID: {
+            TOO_MANY_KEYWORDS: '0e6765b2-f874-4750-b437-0a9b02ecf1d7',
+            INVALID_REPORT_ID: '4a98efa5-a7f8-4413-9b52-8dbee6aaa651',
+            UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
+        },
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
@@ -9107,6 +9122,11 @@ const CONST = {
             CENTER: 'center',
             END: 'end',
         },
+        /** The edge of the Spend table a pinned column is moved to. */
+        PINNED_COLUMN_SIDE: {
+            LEFT: 'left',
+            RIGHT: 'right',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -9214,6 +9234,8 @@ const CONST = {
             VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+            RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
             LIMIT: 'limit',
             COMPARE: 'compare',
             TAG_LEVEL: 'tagLevel',
@@ -9416,6 +9438,8 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             APPROVER: 'approver',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'left-pinned-columns',
+            RIGHT_PINNED_COLUMNS: 'right-pinned-columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
             FOOTER_TOTAL: 'footer-total',
