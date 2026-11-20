@@ -305,6 +305,7 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+    const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isVendorFeatureEnabled = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
@@ -593,13 +594,15 @@ function ExpenseDefaultRulePageBase({
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Cash,
                 },
-                {
-                    key: 'cardsToMatch',
-                    description: translate('common.card'),
-                    title: cardsToMatchDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CARD_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.CreditCard,
-                },
+                areCardsEnabled || cardsToMatch.length > 0
+                    ? {
+                          key: 'cardsToMatch',
+                          description: translate('common.card'),
+                          title: cardsToMatchDisplayName,
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CARD_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.CreditCard,
+                      }
+                    : undefined,
                 hasUsableTaxRates(policy) || taxRatesToMatch.length > 0
                     ? {
                           key: 'taxRatesToMatch',
