@@ -2649,9 +2649,6 @@ const isIOUActionMatchingTransactionList = (
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
-/**
- * Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
- */
 function canHaveOneTransactionThread(type: Report['type']): boolean {
     return type === CONST.REPORT.TYPE.IOU || type === CONST.REPORT.TYPE.EXPENSE || type === CONST.REPORT.UNSUPPORTED_TYPE.BILL || type === CONST.REPORT.TYPE.INVOICE;
 }

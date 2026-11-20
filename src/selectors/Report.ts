@@ -412,7 +412,6 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
-/** The draft comment of a report as a boolean, for subscribers that only care whether a draft exists, so typing within one draft does not rerender them */
 function hasDraftCommentSelector(draftComment: OnyxEntry<string>): boolean {
     return !!draftComment;
 }
