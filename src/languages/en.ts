@@ -9072,7 +9072,6 @@ const translations = {
                         case 'businessCentralSyncImportData':
                             return 'Loading data';
                         default: {
-                            console.log('statege', stage);
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
