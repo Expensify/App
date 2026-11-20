@@ -7593,16 +7593,16 @@ describe('PolicyUtils', () => {
                     },
                 });
 
-            it('requires a configured FFA connection and the matching beta', () => {
+            it('requires a configured FFA connection and works without the matching beta', () => {
                 // Given a workspace configured with Certinia FFA
                 const policy = buildCertiniaPolicy(vendors);
 
                 // When checking vendor matching availability
 
-                // Then matching is active, but the feature requires the vendor matching beta
+                // Then matching is active and available regardless of the vendor matching beta
                 expect(isCertiniaVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
-                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(policy, false)).toBe(true);
                 expect(isCertiniaVendorMatchingActive(undefined)).toBe(false);
             });
 
