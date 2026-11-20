@@ -908,9 +908,9 @@ function resetDraftTransactionsCustomUnit(transaction: OnyxEntry<Transaction>) {
 /**
  * Set custom unit ID for the transaction draft
  */
-function setCustomUnitID(transactionID: string, customUnitID: string) {
+function setCustomUnitID(transactionID: string, customUnitID: string, customUnitPolicyID?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        comment: {customUnit: {customUnitID}},
+        comment: {customUnit: {customUnitID, ...(customUnitPolicyID !== undefined ? {customUnitPolicyID} : {})}},
     });
 }
 

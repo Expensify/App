@@ -169,6 +169,9 @@ type TransactionCustomUnit = {
     customUnitID?: string;
     customUnitRateID?: string;
 
+    /** Selected per diem workspace, retained locally before its custom units have loaded */
+    customUnitPolicyID?: string;
+
     /** Custom unit amount */
     quantity?: number | null;
 
