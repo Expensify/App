@@ -56,8 +56,6 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
     const hasEveryQuote = confirmedQuoteIDs.length === quotedReportIDs.length;
     const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
 
-    const hasExpiredQuote = quoteStates.some(([, {expiresAt}]) => isWiseQuoteExpired(expiresAt));
-
     return (
         <ConfirmModalWrapper
             closeModal={(payload) => {
@@ -65,7 +63,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
                 if (payload?.action !== ModalActions.CONFIRM || !hasEveryQuote) {
                     return;
                 }
-                if (hasExpiredQuote) {
+                if (quoteStates.some(([, {expiresAt}]) => isWiseQuoteExpired(expiresAt))) {
                     onQuoteExpired();
                     return;
                 }
