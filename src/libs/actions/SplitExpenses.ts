@@ -19,11 +19,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {
+    getEvenDistanceSplit,
     getSplitReimbursable,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     resolveSplitItemReportID,
     resolveSplitMileageRate,
+    shouldSplitByDistance,
     updateSplitExpenseDistanceFromAmount,
 } from './IOU/SplitExpenseItems';
 
@@ -172,7 +174,23 @@ function initSplitExpense(
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport, personalPolicyOutputCurrency});
         const {rate, unit, currency} = mileageRate;
 
-        if (rate && rate > 0 && transaction?.comment?.customUnit) {
+        if (shouldSplitByDistance(rate, transactionDetailsAmount) && transaction?.comment?.customUnit) {
+            for (let i = 0; i < splitAmounts.length; i++) {
+                const {customUnit: updatedCustomUnit, merchant} = getEvenDistanceSplit({
+                    transaction,
+                    splitCount: splitAmounts.length,
+                    index: i,
+                    rate,
+                    unit,
+                    customUnit: transaction.comment.customUnit,
+                    currency: transactionDetails?.currency ?? currency ?? CONST.CURRENCY.USD,
+                    getCurrencySymbol,
+                });
+
+                splitCustomUnits[i] = updatedCustomUnit;
+                splitMerchants[i] = merchant;
+            }
+        } else if (rate && rate > 0 && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
                 if (splitAmounts.at(i)) {
                     const splitAmount = splitAmounts.at(i) ?? 0;

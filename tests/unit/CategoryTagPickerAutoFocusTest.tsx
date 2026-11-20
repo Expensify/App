@@ -38,6 +38,17 @@ jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
 jest.mock('@libs/canFocusInputOnScreenFocus');
 const mockedCanFocusInputOnScreenFocus = jest.mocked(canFocusInputOnScreenFocus);
 
+// The pickers fetch their categories/tags on mount, which would hit the network. Stub the loaders so these tests stay
+// focused on the `disableAutoFocus` threading.
+jest.mock('@hooks/useLoadPolicyCategories', () => ({
+    __esModule: true,
+    default: () => ({isLoadingPolicyCategories: false}),
+}));
+jest.mock('@hooks/useLoadPolicyTags', () => ({
+    __esModule: true,
+    default: () => ({isLoadingPolicyTags: false, hasLoadedPolicyTags: true}),
+}));
+
 // `useAutoFocusInput` (still wired into both pickers) pulls in navigation. Stub it like the closest existing
 // precedent, tests/unit/BaseSelectionListSectionsTest.tsx, so the effect never runs in jsdom.
 jest.mock('@react-navigation/native', () => {

@@ -57,6 +57,7 @@ import {
     isPerDiemRequest,
     isTimeRequest,
     getAmount,
+    getBilledDistance,
     getTaxCode,
     getDescription,
     getMerchant,
@@ -177,7 +178,7 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
-    if (!unit || !rate) {
+    if (!unit || rate === undefined) {
         return transaction;
     }
 
@@ -1687,6 +1688,7 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
+    getBilledDistance,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,

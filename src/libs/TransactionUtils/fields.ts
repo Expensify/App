@@ -122,6 +122,23 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 }
 
 /**
+ * The distance a distance expense is billed for, which leaves out any commuter exclusion.
+ */
+function getBilledDistance(transaction: OnyxEntry<Transaction>): number | undefined {
+    const customUnit = transaction?.comment?.customUnit;
+    if (typeof customUnit?.reimbursableDistance === 'number') {
+        return customUnit.reimbursableDistance;
+    }
+    const quantity = customUnit?.quantity ?? undefined;
+    const commuterExclusion = customUnit?.commuterExclusion;
+    // The reimbursable distance isn't always stored, so derive it the same way the expense displays it
+    if (quantity !== undefined && typeof commuterExclusion === 'number' && commuterExclusion > 0) {
+        return Math.max(0, quantity - commuterExclusion);
+    }
+    return quantity;
+}
+
+/**
  * Return the tax code from the transaction.
  */
 function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -257,6 +274,7 @@ export {
     isPerDiemRequest,
     isTimeRequest,
     getAmount,
+    getBilledDistance,
     getTaxCode,
     getDescription,
     getMerchant,
