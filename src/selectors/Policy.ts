@@ -386,6 +386,11 @@ const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
             }
             const customFieldsByLogin: Record<string, MemberCustomFields> = {};
             for (const [login, employee] of Object.entries(employeeList)) {
+                // Despite the non-null employee type, entries can be null or undefined at runtime.
+                // Skip them so valid members' custom fields are still selected without crashing Search.
+                if (!employee) {
+                    continue;
+                }
                 customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
             }
             customFieldsByPolicyID[policyID] = customFieldsByLogin;

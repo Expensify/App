@@ -11,7 +11,7 @@ import React, {useLayoutEffect, useRef} from 'react';
 
 import GenericPressable from './BaseGenericPressable';
 
-function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
+function WebGenericPressable({focusable = true, ref, sentryLabel, 'aria-busy': explicitAriaBusy, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
     // Not every accessibilityRole is a valid `role`. React Native Web reads accessibilityRole itself, so only "link" is copied to
     // `role`, because BaseGenericPressable checks `role` for its Enter key handler.
@@ -57,7 +57,9 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             role={shouldRenderAsNonNativeButton ? undefined : role}
             id={props.id}
             aria-label={props.accessibilityLabel}
-            aria-labelledby={props.accessibilityLabelledBy}
+            aria-busy={explicitAriaBusy ?? props.accessibilityState?.busy}
+            // React Native types aria-labelledby as a single ID string. react-native-web joins an ID list with spaces, so this renders the same attribute.
+            aria-labelledby={Array.isArray(props.accessibilityLabelledBy) ? props.accessibilityLabelledBy.join(' ') : props.accessibilityLabelledBy}
             aria-valuenow={props.accessibilityValue?.now}
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}

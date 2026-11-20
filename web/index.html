@@ -87,9 +87,22 @@
             pointer-events: none;
             z-index: 1000;
         }
+        /* Reserve the width of a tab's bold label without putting the label in the link text that browsers drag and copy */
+        [data-tab-bar-label-bold-placeholder]::after {
+            content: attr(data-tab-bar-label-bold-placeholder);
+        }
         :focus[data-focusvisible-polyfill]:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
+        }
+        /* Leaves no ring at all, unlike the rules above, which only swap the browser's outline for the app's. */
+        :focus-visible[data-suppressed-focus-ring="true"],
+        :focus[data-focusvisible-polyfill][data-suppressed-focus-ring="true"] {
+            outline: 0;
+            box-shadow: none;
+        }
+        :focus-visible[data-suppressed-focus-ring="true"][data-inner-box-shadow-element="true"]::before {
+            box-shadow: none;
         }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
