@@ -164,6 +164,29 @@ describe('FileDownloadModalWrapper', () => {
         expect(screen.getByText('common.cancel')).toBeOnTheScreen();
     });
 
+    it("can't be closed while generating a file that closing wouldn't stop, until the file is ready", () => {
+        // Given a file that keeps generating whether or not the modal is open
+        const closeModal = jest.fn();
+        const {rerender} = render(getWrapperElement({closeModal, shouldPreventDismissWhileGenerating: true}));
+
+        // Then there's no way to close the modal while it generates, since the user would only lose track of the file
+        expect(screen.queryByText('common.cancel')).not.toBeOnTheScreen();
+        expect(screen.queryByLabelText('common.close')).not.toBeOnTheScreen();
+        act(() => {
+            getLatestModalProps()?.onClose?.();
+        });
+        act(() => {
+            getLatestModalProps()?.onModalHide?.();
+        });
+        expect(closeModal).not.toHaveBeenCalled();
+
+        // When the file is ready
+        rerender(getWrapperElement({closeModal, shouldPreventDismissWhileGenerating: true, status: CONST.FILE_DOWNLOAD_STATUS.READY}));
+
+        // Then the user can close the modal again
+        expect(screen.getByLabelText('common.close')).toBeOnTheScreen();
+    });
+
     it('stops the spinner and offers a close button when the file generation fails', () => {
         // Given a file whose generation failed
         render(getWrapperElement({status: CONST.FILE_DOWNLOAD_STATUS.FAILED, message: 'reportDetailsPage.errorPDF'}));

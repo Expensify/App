@@ -1,12 +1,10 @@
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import {ModalActions, useModal} from '@components/Modal/Global/ModalContext';
+import {useModal} from '@components/Modal/Global/ModalContext';
 import PayViaABADownloadModal from '@components/PayViaABADownloadModal';
 
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import type HttpsError from '@libs/Errors/HttpsError';
-import Log from '@libs/Log';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
-import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
@@ -36,7 +34,7 @@ type PayReportsViaABAOptions = {
 /**
  * Returns a function that pays reports by downloading their ABA file, showing its progress in a download modal.
  * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
- * Also returns whether a payment is still in progress, so the Pay button keeps loading until it's done, even if the modal was closed.
+ * Also returns whether a payment is still in progress, so the Pay button can show a loader.
  */
 function usePayViaABA() {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -83,19 +81,7 @@ function usePayViaABA() {
             onPaid,
         });
         deferModalPresentationAfterPopoverDismiss(() => {
-            modal
-                .showModal({component: PayViaABADownloadModal, props: {abaFileRequest, getDownloadFailedMessage: (error) => getDownloadFailedPrompt(reports, error)}})
-                .then(async ({action}) => {
-                    // Closing the modal early still results in reports being paid, so we still save the file once it arrives
-                    if (action !== ModalActions.CLOSE) {
-                        return;
-                    }
-                    const file = await abaFileRequest;
-                    if (file) {
-                        await saveTextFile(file);
-                    }
-                })
-                .catch(() => Log.warn('[usePayViaABA] Failed to pay via ABA or save the file after the download modal was closed'));
+            modal.showModal({component: PayViaABADownloadModal, props: {abaFileRequest, getDownloadFailedMessage: (error) => getDownloadFailedPrompt(reports, error)}});
         });
         abaFileRequest.catch(noop).finally(() => setIsDownloadingABAFile(false));
     };

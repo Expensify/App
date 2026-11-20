@@ -76,6 +76,7 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
             status={status}
             message={message}
             shouldTreatModalAsCovering
+            shouldPreventDismissWhileGenerating
             onDownload={() => {
                 if (!abaFile) {
                     return;

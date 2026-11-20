@@ -37,8 +37,9 @@ describe('PayViaABADownloadModal', () => {
         const {promise, resolve} = Promise.withResolvers<ABAFile | undefined>();
         renderModal(promise);
 
-        // Then the user is asked to wait
+        // Then the user is asked to wait and can't close the modal
         expect(screen.getByText('iou.waitForABAFile')).toBeOnTheScreen();
+        expect(screen.queryByText('common.cancel')).not.toBeOnTheScreen();
 
         // When the file arrives
         await act(async () => resolve(abaFile));
