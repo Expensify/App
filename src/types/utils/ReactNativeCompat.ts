@@ -27,4 +27,4 @@ type ViewKeyDownEvent = Parameters<NonNullable<ViewProps['onKeyDown']>>[0];
 
 type ViewClickEvent = Parameters<NonNullable<ViewProps['onClick']>>[0];
 
-export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewClickEvent, ViewKeyDownEvent, ViewToken};
+export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewClickEvent, ViewKeyDownEvent, ViewToken};
