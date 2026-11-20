@@ -1413,6 +1413,85 @@ describe('WorkflowUtils', () => {
             expect(convertedEmployees['2@example.com']).toBeUndefined();
         });
 
+        it("Should leave a nested over-limit approver's settings alone when a save only changes the members", () => {
+            // Given 1@example.com sends reports over 500.00 to 2@example.com, who sends the ones over 500.00 to 3@example.com, and
+            // 2@example.com also approves first for 6@example.com, whose reports within 500.00 go straight on to 4@example.com
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '4@example.com', forwardsTo: '4@example.com', approvalLimit: 50000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '4@example.com', forwardsTo: '4@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '4@example.com', forwardsTo: '4@example.com'},
+                '4@example.com': {email: '4@example.com', submitsTo: '4@example.com'},
+                '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+                '7@example.com': {email: '7@example.com', submitsTo: '4@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(5), buildMember(7)],
+                approvers: [buildApprover(1), buildApprover(2, {overLimitAmount: 50000}), buildApprover(3, {overLimitAmount: 50000}), buildApprover(4)],
+                isDefault: false,
+            };
+
+            // When 1@example.com's workflow is saved with 7@example.com added to its members
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update', defaultApprover: '4@example.com'});
+
+            // Then only 7@example.com changes, since the approvers already route the workflow's reports, and 2@example.com keeps the
+            // approval limit that 6@example.com's reports need
+            expect(Object.keys(convertedEmployees)).toEqual(['7@example.com']);
+            expect(convertedEmployees['7@example.com']?.submitsTo).toBe('1@example.com');
+        });
+
+        it('Should keep the approval limit of an approver who already sends the reports a new workflow brings them where it does', () => {
+            // Given 1@example.com, the first approver of 5@example.com, sends reports over 500.00 to 2@example.com and the rest to
+            // 3@example.com
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '3@example.com', forwardsTo: '3@example.com', approvalLimit: 50000, overLimitForwardsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '3@example.com', forwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '3@example.com'},
+                '4@example.com': {email: '4@example.com', submitsTo: '3@example.com'},
+                '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                '6@example.com': {email: '6@example.com', submitsTo: '3@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(6)],
+                approvers: [buildApprover(4), buildApprover(1, {overLimitAmount: 50000}), buildApprover(2, {overLimitAmount: 50000}), buildApprover(3)],
+                isDefault: false,
+            };
+
+            // When a workflow is created for 6@example.com, where 1@example.com and 2@example.com only approve reports over 500.00
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'create', defaultApprover: '3@example.com'});
+
+            // Then 4@example.com sends the reports over 500.00 to 1@example.com, while 1@example.com keeps sending 5@example.com's
+            // reports within 500.00 straight to 3@example.com
+            expect(convertedEmployees['4@example.com']).toMatchObject({forwardsTo: '3@example.com', approvalLimit: 50000, overLimitForwardsTo: '1@example.com'});
+            expect(convertedEmployees['1@example.com']).toBeUndefined();
+            expect(convertedEmployees['2@example.com']).toBeUndefined();
+        });
+
+        it('Should keep where an approver sends the reports a workflow never brings them when it changes where they send the rest', () => {
+            // Given 2@example.com, the first approver of 6@example.com, forwards every report to 3@example.com
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {email: '1@example.com', submitsTo: '3@example.com', forwardsTo: '3@example.com'},
+                '2@example.com': {email: '2@example.com', submitsTo: '3@example.com', forwardsTo: '3@example.com'},
+                '3@example.com': {email: '3@example.com', submitsTo: '3@example.com'},
+                '4@example.com': {email: '4@example.com', submitsTo: '3@example.com'},
+                '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(5)],
+                approvers: [buildApprover(1), buildApprover(2, {overLimitAmount: 50000}), buildApprover(4), buildApprover(3)],
+                isDefault: false,
+            };
+
+            // When 5@example.com's workflow has 2@example.com approve the reports over 500.00 and send them on to 4@example.com
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update', defaultApprover: '3@example.com'});
+
+            // Then 2@example.com sends only the reports over 500.00 to 4@example.com, since this workflow never brings them the
+            // others, so 6@example.com's reports within 500.00 still go straight to 3@example.com
+            expect(convertedEmployees['2@example.com']).toMatchObject({forwardsTo: '3@example.com', approvalLimit: 50000, overLimitForwardsTo: '4@example.com'});
+            expect(convertedEmployees['1@example.com']).toMatchObject({forwardsTo: '4@example.com', approvalLimit: 50000, overLimitForwardsTo: '2@example.com'});
+        });
+
         it('Should include pendingFields for approvalLimit and overLimitForwardsTo when they change', () => {
             const previousEmployeeList: PolicyEmployeeList = {
                 '1@example.com': {

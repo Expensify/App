@@ -751,33 +751,28 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const isRemoving = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE;
     const nextHopsByApprover = isRemoving ? [] : getApproversNextHops(approvalWorkflow.approvers);
+    const approvalLimits = isRemoving ? [] : getApprovalWorkflowRoutes(approvalWorkflow.approvers).approvalLimits;
 
-    // An approver's employee settings route the reports of every workflow they're in, so removing this workflow leaves alone
-    // the settings of approvers that other members' reports still reach
-    const approverEmailsReachedByOthers = isRemoving
-        ? getApproverEmailsReachedByOtherMembers(previousEmployeeList, new Set(approvalWorkflow.members.map(({email}) => email)), defaultApprover)
-        : new Set<string>();
+    // An approver's employee settings route the reports of every workflow they're in. Removing this workflow leaves alone the
+    // settings of approvers that other members' reports still reach, and saving it keeps the routes those reports take.
+    const approverEmailsReachedByOthers = getApproverEmailsReachedByOtherMembers(previousEmployeeList, new Set(approvalWorkflow.members.map(({email}) => email)), defaultApprover);
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
+        const isReachedByOthers = approverEmailsReachedByOthers.has(approver.email);
+
         // A non-member approver has no employee entry to update, and sending one would add a fake employee
-        if (approver.isNotWorkspaceMember || approverEmailsReachedByOthers.has(approver.email)) {
+        if (approver.isNotWorkspaceMember || (isRemoving && isReachedByOthers)) {
             continue;
         }
 
-        // An employee sends the reports they approve to `forwardsTo`, or to `overLimitForwardsTo` once they're over their
-        // approval limit, so that's how they can send them on to the approvers after them
-        const [withinLimitHop, overLimitHop, ...otherHops] = nextHopsByApprover.at(index) ?? [];
-        const withinLimitRange = withinLimitHop?.amountRanges.length === 1 ? withinLimitHop.amountRanges.at(0) : undefined;
-        const overLimitRange = overLimitHop?.amountRanges.length === 1 ? overLimitHop.amountRanges.at(0) : undefined;
-        const splitLimit = withinLimitRange?.over === undefined ? withinLimitRange?.upTo : undefined;
-        // The employee fields can only say where the reports up to one limit go, and where the ones over it go
-        const isSplitOnLimit = otherHops.length === 0 && !!overLimitHop?.nextEmail && splitLimit !== undefined && overLimitRange?.over === splitLimit && overLimitRange.upTo === undefined;
-        const forwardsTo = isRemoving ? '' : (withinLimitHop?.nextEmail ?? approvalWorkflow.approvers.at(index + 1)?.email ?? '');
-        const routedApprovalLimit = isSplitOnLimit ? splitLimit : undefined;
-        const approvalLimit = isRemoving ? null : routedApprovalLimit;
-        const overLimitForwardsTo = isSplitOnLimit && !isRemoving ? (overLimitHop?.nextEmail ?? '') : '';
+        // When a single approval limit can't route this workflow's reports and also keep the routes other members' reports take
+        // through the approver, the approver's settings follow this workflow alone, so those other reports take its routes too
+        const previousEmployee = previousEmployeeList[approver.email];
+        const keptRouting = isReachedByOthers ? getEmployeeRoutingKeepingOtherWorkflows(approvalWorkflow.approvers, approvalLimits, approver.email, previousEmployee) : undefined;
+        const {forwardsTo, approvalLimit, overLimitForwardsTo} = isRemoving
+            ? {forwardsTo: '', approvalLimit: null, overLimitForwardsTo: ''}
+            : (keptRouting ?? getEmployeeRoutingFromNextHops(nextHopsByApprover.at(index), approvalWorkflow.approvers.at(index + 1)?.email));
 
         // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
-        const previousEmployee = previousEmployeeList[approver.email];
         const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
         const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
         const overLimitForwardsToChanged = previousEmployee?.overLimitForwardsTo !== overLimitForwardsTo;
@@ -1041,27 +1036,45 @@ function getEligibleExistingBusinessBankAccounts(
     });
 }
 
+/** The indexes of the approvers a report for `amount` goes through */
+function getApprovalWorkflowRoute(approvers: Approver[], amount: number): number[] {
+    const route: number[] = [];
+    const approvedEmails = new Set<string>();
+    for (const [index, approver] of approvers.entries()) {
+        const getsReport = approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
+
+        // A report skips an approver who already approved it
+        if (getsReport && !approvedEmails.has(approver.email)) {
+            route.push(index);
+            approvedEmails.add(approver.email);
+        }
+    }
+    return route;
+}
+
+/** Where a report on `route` goes once the approver at `position` approves it: the next approver's email, or an empty string when nobody approves after them */
+function getRouteNextApproverEmail(approvers: Approver[], route: number[], position: number): string {
+    const nextApproverIndex = route.at(position + 1);
+    return nextApproverIndex === undefined ? '' : (approvers.at(nextApproverIndex)?.email ?? '');
+}
+
+/**
+ * The approval limits, lowest first, and a report total up to each of them and one over the highest. Only the limits change
+ * where a report goes, so those totals cover every route.
+ */
+function getApprovalLimitAmounts(limits: Array<number | undefined>): {approvalLimits: number[]; amounts: number[]} {
+    const approvalLimits = [...new Set(limits.filter((limit): limit is number => limit !== undefined))].sort((a, b) => a - b);
+    return {approvalLimits, amounts: [...approvalLimits, (approvalLimits.at(-1) ?? 0) + 1]};
+}
+
 /**
  * The routes reports take through a workflow's approvers, as the indexes of the approvers they go through. Only the amounts
  * optional over-limit approvers get the reports over change where a report goes, so a report up to the lowest one, one between
  * each pair, and one over the highest cover every route.
  */
 function getApprovalWorkflowRoutes(approvers: Approver[]): {approvalLimits: number[]; routes: number[][]} {
-    const approvalLimits = [...new Set(approvers.flatMap(({overLimitAmount}) => (overLimitAmount === undefined ? [] : [overLimitAmount])))].sort((a, b) => a - b);
-    const routes = [...approvalLimits, (approvalLimits.at(-1) ?? 0) + 1].map((amount) => {
-        const route: number[] = [];
-        const approvedEmails = new Set<string>();
-        for (const [index, approver] of approvers.entries()) {
-            const getsReport = approver.overLimitAmount === undefined || amount > approver.overLimitAmount;
-
-            // A report skips an approver who already approved it
-            if (getsReport && !approvedEmails.has(approver.email)) {
-                route.push(index);
-                approvedEmails.add(approver.email);
-            }
-        }
-        return route;
-    });
+    const {approvalLimits, amounts} = getApprovalLimitAmounts(approvers.map(({overLimitAmount}) => overLimitAmount));
+    const routes = amounts.map((amount) => getApprovalWorkflowRoute(approvers, amount));
     return {approvalLimits, routes};
 }
 
@@ -1082,8 +1095,7 @@ function getApproversNextHops(approvers: Approver[]): Array<ApproverNextHop[] | 
     const routeIndexesByNextEmailByApprover = approvers.map(() => new Map<string, number[]>());
     for (const [routeIndex, route] of routes.entries()) {
         for (const [position, approverIndex] of route.entries()) {
-            const nextApproverIndex = route.at(position + 1);
-            const nextEmail = nextApproverIndex === undefined ? '' : (approvers.at(nextApproverIndex)?.email ?? '');
+            const nextEmail = getRouteNextApproverEmail(approvers, route, position);
             const routeIndexesByNextEmail = routeIndexesByNextEmailByApprover.at(approverIndex);
             routeIndexesByNextEmail?.set(nextEmail, [...(routeIndexesByNextEmail.get(nextEmail) ?? []), routeIndex]);
         }
@@ -1102,6 +1114,69 @@ function getApproversNextHops(approvers: Approver[]): Array<ApproverNextHop[] | 
             amountRanges: getAmountRanges(routeIndexes, approvalLimits, (routeIndex) => isReachedOnce && !reachedRouteIndexes.has(routeIndex)),
         }));
     });
+}
+
+/** The employee fields that decide where an employee sends the reports they approve */
+type EmployeeRouting = Pick<PolicyEmployee, 'forwardsTo' | 'approvalLimit' | 'overLimitForwardsTo'>;
+
+/**
+ * The settings that send the reports an approver approves on to the approvers after them, from the next hops
+ * `getApproversNextHops` finds. An employee sends the reports they approve to `forwardsTo`, or to `overLimitForwardsTo` once
+ * they're over their approval limit.
+ */
+function getEmployeeRoutingFromNextHops(nextHops: ApproverNextHop[] | undefined, nextApproverEmail: string | undefined): EmployeeRouting {
+    const [withinLimitHop, overLimitHop, ...otherHops] = nextHops ?? [];
+    const withinLimitRange = withinLimitHop?.amountRanges.length === 1 ? withinLimitHop.amountRanges.at(0) : undefined;
+    const overLimitRange = overLimitHop?.amountRanges.length === 1 ? overLimitHop.amountRanges.at(0) : undefined;
+    const splitLimit = withinLimitRange?.over === undefined ? withinLimitRange?.upTo : undefined;
+
+    // The employee fields can only say where the reports up to one limit go, and where the ones over it go
+    const isSplitOnLimit = otherHops.length === 0 && !!overLimitHop?.nextEmail && splitLimit !== undefined && overLimitRange?.over === splitLimit && overLimitRange.upTo === undefined;
+    return {
+        forwardsTo: withinLimitHop?.nextEmail ?? nextApproverEmail ?? '',
+        approvalLimit: isSplitOnLimit ? splitLimit : undefined,
+        overLimitForwardsTo: isSplitOnLimit ? (overLimitHop?.nextEmail ?? '') : '',
+    };
+}
+
+/**
+ * Where a report for `amount` goes once `email` approves it in a workflow: the next approver's email, an empty string when
+ * nobody approves after them, or undefined when the report never reaches them there
+ */
+function getWorkflowNextApproverEmail(approvers: Approver[], email: string, amount: number): string | undefined {
+    const route = getApprovalWorkflowRoute(approvers, amount);
+    const position = route.findIndex((approverIndex) => approvers.at(approverIndex)?.email === email);
+    return position === -1 ? undefined : getRouteNextApproverEmail(approvers, route, position);
+}
+
+/**
+ * The settings that send a workflow's reports on from an approver the way the workflow does, while every report total that never
+ * reaches the approver in the workflow keeps going where their current settings send it. An employee's settings route the
+ * reports of every workflow they're in, so a save only changes them where this workflow needs it. Returns the current settings
+ * when they already route the workflow's reports, and undefined when a single approval limit can't do both.
+ */
+function getEmployeeRoutingKeepingOtherWorkflows(approvers: Approver[], approvalLimits: number[], email: string, employee: PolicyEmployee | undefined): EmployeeRouting | undefined {
+    // The employee's own approval limit also changes where their reports go, so it splits the totals along with the workflow's
+    const {approvalLimits: limits, amounts} = getApprovalLimitAmounts([...approvalLimits, getEmployeeApprovalLimit(employee)]);
+    const currentNextEmails = amounts.map((amount) => getEmployeeNextApproverEmail(employee, amount) ?? '');
+    const nextEmails = amounts.map((amount, index) => getWorkflowNextApproverEmail(approvers, email, amount) ?? currentNextEmails.at(index) ?? '');
+    if (nextEmails.every((nextEmail, index) => nextEmail === currentNextEmails.at(index))) {
+        return {forwardsTo: employee?.forwardsTo, approvalLimit: employee?.approvalLimit, overLimitForwardsTo: employee?.overLimitForwardsTo};
+    }
+
+    // This fits the routes into the employee fields total by total instead of reusing `getEmployeeRoutingFromNextHops`, whose
+    // ranges only cover this workflow's routes, and it gives up rather than fall back so the caller can use that function instead
+    const [splitIndex, ...otherSplitIndexes] = nextEmails.flatMap((nextEmail, index) => (index > 0 && nextEmail !== nextEmails.at(index - 1) ? [index] : []));
+    if (splitIndex === undefined) {
+        return {forwardsTo: nextEmails.at(0) ?? '', approvalLimit: undefined, overLimitForwardsTo: ''};
+    }
+
+    // The employee fields can only send the reports over one approval limit on to someone other than where the rest go
+    const overLimitForwardsTo = nextEmails.at(splitIndex);
+    if (otherSplitIndexes.length > 0 || !overLimitForwardsTo) {
+        return undefined;
+    }
+    return {forwardsTo: nextEmails.at(0) ?? '', approvalLimit: limits.at(splitIndex - 1), overLimitForwardsTo};
 }
 
 type GetApproverTitlesParams = {
