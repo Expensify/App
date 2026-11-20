@@ -1356,7 +1356,6 @@ const translations: TranslationDeepObject<typeof en> = {
             versusAverageWeek: (amount: string) => `${amount} σε σύγκριση με μέση εβδομάδα`,
             versusAverageMonth: (amount: string) => `${amount} έναντι μέσου μήνα`,
             versusAverageQuarter: (amount: string) => `${amount} έναντι μέσου τριμήνου`,
-            noSpendBefore: 'καμία δαπάνη πριν από',
             moreHistoryNeeded: 'Απαιτείται περισσότερα ιστορικό:',
             daysOfHistoryNeeded: (count: number) => `Η μέση σύγκριση θα εμφανιστεί μετά από ${count} πλήρεις ημέρες ιστορικού`,
             weeksOfHistoryNeeded: (count: number) => `Η σύγκριση μέσου όρου θα εμφανιστεί μετά από ${count} πλήρεις εβδομάδες ιστορικού`,

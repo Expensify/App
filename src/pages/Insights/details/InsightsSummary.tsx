@@ -153,13 +153,9 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
         );
     }
 
-    if (comparison.type === INSIGHTS_AVERAGE_COMPARISON.NEW) {
-        return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap, styles.gap2]}>
-                <Text>{translate('common.new')}</Text>
-                <Text variant="label">{translate('insightsPage.summary.noSpendBefore')}</Text>
-            </View>
-        );
+    // A $0 average means either no spend before or spend and refunds cancelling out
+    if (comparison.type === INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE) {
+        return <Text style={StyleUtils.getColorStyle(theme.icon)}>{CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER}</Text>;
     }
 
     const isIncrease = comparison.difference > 0;

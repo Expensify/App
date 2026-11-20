@@ -1310,7 +1310,6 @@ const translations: TranslationDeepObject<typeof en> = {
             versusAverageWeek: (amount: string) => `${amount} vs durchschnittliche Woche`,
             versusAverageMonth: (amount: string) => `${amount} im Vergleich zum durchschnittlichen Monat`,
             versusAverageQuarter: (amount: string) => `${amount} vs durchschnittliches Quartal`,
-            noSpendBefore: 'keine Ausgaben vor',
             moreHistoryNeeded: 'Mehr Verlauf erforderlich:',
             daysOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird nach ${count} vollständigen Tagen Verlauf angezeigt`,
             weeksOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird nach ${count} vollständigen Wochen Verlauf angezeigt`,

@@ -19,13 +19,13 @@ describe('getInsightsAverageComparison', () => {
         expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY});
     });
 
-    it('returns new when the item had no spend in the history', () => {
-        // Given enough history in which the item never had spend
+    it('returns a zero average when the history sums to zero', () => {
+        // Given enough history in which the item had no spend, or spend and refunds that cancel out
         // When it is compared to the period
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: 0, averagePeriodCount: 12});
 
-        // Then it reads as new instead of a percentage of zero
-        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NEW});
+        // Then no percentage is computed, since it would divide by zero
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE});
     });
 
     it('compares spend above the average as a positive difference', () => {

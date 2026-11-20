@@ -1408,7 +1408,6 @@ const translations = {
             versusAverageWeek: (amount: string) => `${amount} vs average week`,
             versusAverageMonth: (amount: string) => `${amount} vs average month`,
             versusAverageQuarter: (amount: string) => `${amount} vs average quarter`,
-            noSpendBefore: 'no spend before',
             moreHistoryNeeded: 'More history needed:',
             daysOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete days of history`,
             weeksOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete weeks of history`,

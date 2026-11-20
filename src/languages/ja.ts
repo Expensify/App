@@ -1298,7 +1298,6 @@ const translations: TranslationDeepObject<typeof en> = {
             versusAverageWeek: (amount: string) => `${amount}（平均的な週との比較）`,
             versusAverageMonth: (amount: string) => `${amount} 対 平均月額`,
             versusAverageQuarter: (amount: string) => `平均四半期との比較：${amount}`,
-            noSpendBefore: '前回利用なし',
             moreHistoryNeeded: 'さらに履歴が必要です:',
             daysOfHistoryNeeded: (count: number) => `平均比較は、履歴が${count}日分そろってから表示されます`,
             weeksOfHistoryNeeded: (count: number) => `平均比較は、${count}週間分の履歴がそろうと表示されます`,

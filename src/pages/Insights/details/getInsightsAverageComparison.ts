@@ -6,7 +6,7 @@ const MIN_AVERAGE_PERIOD_COUNT = 3;
 
 const INSIGHTS_AVERAGE_COMPARISON = {
     NOT_ENOUGH_HISTORY: 'notEnoughHistory',
-    NEW: 'new',
+    ZERO_AVERAGE: 'zeroAverage',
     CHANGE: 'change',
 } as const;
 
@@ -15,8 +15,8 @@ type InsightsAverageComparison =
           type: typeof INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY;
       }
     | {
-          /** The item had no spend before, so any percentage would divide by zero */
-          type: typeof INSIGHTS_AVERAGE_COMPARISON.NEW;
+          /** The history sums to $0, so any percentage would divide by zero */
+          type: typeof INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE;
       }
     | {
           type: typeof INSIGHTS_AVERAGE_COMPARISON.CHANGE;
@@ -34,7 +34,7 @@ function getInsightsAverageComparison({total, average, averagePeriodCount}: Insi
         return {type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY};
     }
     if (average === 0) {
-        return {type: INSIGHTS_AVERAGE_COMPARISON.NEW};
+        return {type: INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE};
     }
 
     const difference = total - average;
