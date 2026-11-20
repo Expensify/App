@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import convertToNativeOnfidoResult from '@libs/convertToNativeOnfidoResult';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import Log from '@libs/Log';
@@ -11,38 +12,20 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {CaptureResult} from '@entrust.corporation/idvsdk-reactnative/callbacks/complete';
 import type {ThemeColors} from '@entrust.corporation/idvsdk-reactnative/theming/Theme';
 
 import {EntrustIdv} from '@entrust.corporation/idvsdk-reactnative';
 import {Document, DocumentType} from '@entrust.corporation/idvsdk-reactnative/steps/Document';
 import {FaceVideo} from '@entrust.corporation/idvsdk-reactnative/steps/Face';
-import {StepNames} from '@entrust.corporation/idvsdk-reactnative/steps/Step';
 import {Welcome} from '@entrust.corporation/idvsdk-reactnative/steps/Welcome';
 import {ThemeMode} from '@entrust.corporation/idvsdk-reactnative/theming/Theme';
 import React, {useEffect} from 'react';
 import {Alert, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 
-import type {NativeOnfidoResult, OnfidoProps} from './types';
+import type {OnfidoProps} from './types';
 
 const {AppStateTracker} = NativeModules;
-
-/** Converts the Entrust IDV result, keyed by step, into the payload shape the backend expects from native clients */
-function convertToNativeOnfidoResult(result: Record<string, CaptureResult>): NativeOnfidoResult {
-    const nativeResult: NativeOnfidoResult = {};
-    for (const captureResult of Object.values(result)) {
-        if (captureResult.type === StepNames.Document && captureResult.sides.front) {
-            nativeResult.document = {
-                front: {id: captureResult.sides.front.id},
-                back: captureResult.sides.back ? {id: captureResult.sides.back.id} : undefined,
-            };
-        } else if (captureResult.type === StepNames.FaceVideo) {
-            nativeResult.face = {id: captureResult.id, variant: CONST.ONFIDO.NATIVE_FACE_VARIANT.VIDEO};
-        }
-    }
-    return nativeResult;
-}
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const {translate} = useLocalize();
@@ -62,17 +45,27 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
             contentColorBrandOnBrand: theme.buttonSuccessText,
         };
 
-        // Back is exposed while the SDK is still running, so a late callback could navigate or mutate
-        // wallet/bank-account state after the user has already left. Ignore the callbacks once this component unmounts.
-        let isActive = true;
+        // The SDK subscribes to its native events in the EntrustIdv constructor and never unsubscribes, so the listeners of earlier
+        // mounts stay registered, and Android can fire the same callback twice. Only the first callback of a live mount is handled.
+        let hasSettled = false;
+        // Back is exposed while the SDK is still running, so a late callback could navigate or mutate wallet/bank-account state
+        // after the user has already left. The Android relaunch check and the iOS permission check resolve asynchronously too.
+        let isMounted = true;
+        const settle = () => {
+            if (hasSettled) {
+                return false;
+            }
+            hasSettled = true;
+            return true;
+        };
         const handleUserExit: OnfidoProps['onUserExit'] = (isUserInitiated) => {
-            if (!isActive) {
+            if (!isMounted) {
                 return;
             }
             onUserExit(isUserInitiated);
         };
         const handleError: OnfidoProps['onError'] = (error) => {
-            if (!isActive) {
+            if (!isMounted) {
                 return;
             }
             onError(error);
@@ -80,12 +73,15 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
 
         const entrustIdv = new EntrustIdv({
             onComplete: (result) => {
-                if (!isActive) {
+                if (!settle()) {
                     return;
                 }
                 onSuccess(convertToNativeOnfidoResult(result));
             },
             onUserExit: (userAction) => {
+                if (!settle()) {
+                    return;
+                }
                 Log.info('Onfido flow exited by user on native', false, {userAction});
 
                 // Android can kill the app while the SDK is in the foreground. If the user relaunched the app from its icon,
@@ -100,19 +96,24 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 handleUserExit(true);
             },
             onError: (error) => {
+                if (!settle()) {
+                    return;
+                }
                 const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
                 Log.hmmm('Onfido error on native', {errorType: error.type, errorCategory: error.category, errorMessage});
 
-                if (!errorMessage || getPlatform() !== CONST.PLATFORM.IOS) {
+                // Only a permission error should lead to the permissions alert. Other errors, like an expired token, are reported as they are.
+                // The SDK types the category as an enum it doesn't export, so it is compared as a string.
+                const errorCategory: string = error.category;
+                if (getPlatform() !== CONST.PLATFORM.IOS || errorCategory !== CONST.ONFIDO.NATIVE_ERROR_CATEGORY.PERMISSIONS) {
                     handleError(errorMessage);
                     return;
                 }
 
                 checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
                     .then((statuses) => {
-                        // The permission check resolves asynchronously, so the user may have already backed out (unmounting this
-                        // component) by the time it settles. Skip the alert to avoid showing a stale permission prompt on the screen they returned to.
-                        if (!isActive) {
+                        // The user may have already backed out by the time the check settles. Skip the alert to avoid showing a stale permission prompt on the screen they returned to.
+                        if (!isMounted) {
                             return;
                         }
                         const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
@@ -185,7 +186,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         });
 
         return () => {
-            isActive = false;
+            hasSettled = true;
+            isMounted = false;
         };
         // The SDK should be started only once on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps

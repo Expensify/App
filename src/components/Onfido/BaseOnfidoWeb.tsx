@@ -98,7 +98,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                     documentTypes: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         driving_licence: {
-                            country: 'USA',
+                            country: CONST.ONFIDO.DOCUMENT_COUNTRY_CODE,
                         },
                         passport: true,
                     },

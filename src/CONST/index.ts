@@ -5109,6 +5109,14 @@ const CONST = {
         NATIVE_FACE_VARIANT: {
             VIDEO: 'VIDEO',
         },
+        NATIVE_DOCUMENT_SIDE: {
+            FRONT: 'front',
+            BACK: 'back',
+        },
+        // The native SDK doesn't export its error categories, so this mirrors the one it uses for camera and microphone errors
+        NATIVE_ERROR_CATEGORY: {
+            PERMISSIONS: 'Permissions',
+        },
         DOCUMENT_COUNTRY_CODE: 'USA',
     },
 

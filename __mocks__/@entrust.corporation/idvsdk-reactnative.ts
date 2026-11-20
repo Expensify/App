@@ -24,8 +24,25 @@ const ThemeMode = {
     Dark: 'Dark',
 };
 
+type Callbacks = {
+    onComplete?: (result: Record<string, unknown>) => void;
+    onUserExit?: (userAction: string) => void;
+    onError?: (error: {type: string; category: string; message: string}) => void;
+};
+
+// Keeps every instance and the callbacks it was constructed with, so a test can drive success, exit and error.
+// Tests import this file directly to get these types, and clear `instances` between cases.
 class EntrustIdv {
+    static instances: EntrustIdv[] = [];
+
+    callbacks: Callbacks;
+
     start = jest.fn();
+
+    constructor(callbacks: Callbacks) {
+        this.callbacks = callbacks;
+        EntrustIdv.instances.push(this);
+    }
 }
 
 const resolveLocalFont = jest.fn();
