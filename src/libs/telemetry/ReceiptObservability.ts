@@ -97,11 +97,26 @@ const EXPENSE_EDIT_COMMANDS: readonly string[] = [
     WRITE_COMMANDS.UPDATE_MONEY_REQUEST_VENDOR,
 ];
 
+/** Split, per diem, convert, delete, undelete and duplicate-resolve commands. They join the trail but not the expense failure tracker. */
+const EXPENSE_TRAIL_ONLY_COMMANDS: readonly string[] = [
+    WRITE_COMMANDS.DELETE_MONEY_REQUEST,
+    WRITE_COMMANDS.SPLIT_BILL,
+    WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
+    WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST,
+    WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST,
+    WRITE_COMMANDS.SPLIT_TRANSACTION,
+    WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION,
+    WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION,
+    WRITE_COMMANDS.DELETE_APP_REPORT,
+    WRITE_COMMANDS.UNDELETE_TRANSACTIONS,
+    WRITE_COMMANDS.RESOLVE_DUPLICATES,
+];
+
 /**
  * Commands that create, edit, move, merge or delete an expense or its receipt. A failure on any of them can leave the
  * user with a missing receipt or a stale expense, so each one reports its server result on the receipt trail.
  */
-const RECEIPT_TRAIL_COMMANDS = new Set<string>([...RECEIPT_BEARING_COMMANDS, ...EXPENSE_EDIT_COMMANDS, WRITE_COMMANDS.DELETE_MONEY_REQUEST]);
+const RECEIPT_TRAIL_COMMANDS = new Set<string>([...RECEIPT_BEARING_COMMANDS, ...EXPENSE_EDIT_COMMANDS, ...EXPENSE_TRAIL_ONLY_COMMANDS]);
 
 /**
  * How a request on the receipt trail ended. alreadyCreated counts as a success, because it means an earlier attempt
@@ -109,7 +124,6 @@ const RECEIPT_TRAIL_COMMANDS = new Set<string>([...RECEIPT_BEARING_COMMANDS, ...
  */
 type ReceiptServerResultClass = 'success' | 'alreadyCreated' | 'transient' | 'permanent' | 'cancelled';
 
-/** The trail fields read from a request's params. The receipt fields are absent for commands that carry no receipt. */
 /** The trail fields read from a request's params. ChangeTransactionsReport sends `transactionList`, a comma-separated list, instead of `transactionID`. */
 type ReceiptTrailRequestData = {
     transactionID?: unknown;
@@ -231,8 +245,9 @@ function logReceiptServerResult({
         platform: getPlatform(),
     };
 
-    // A permanent failure is what loses a receipt or an edit, so it is raised to alert level to stand out in Sentry.
-    if (resultClass === 'permanent') {
+    // Only a rejected receipt is raised to alert level. Edit rejections are routine (e.g. report already approved),
+    // and web turns every client alert into a server alert, so they stay at info and are filtered by resultClass.
+    if (resultClass === 'permanent' && fields.hasReceipt) {
         Log.alert(message, parameters, false);
         return;
     }

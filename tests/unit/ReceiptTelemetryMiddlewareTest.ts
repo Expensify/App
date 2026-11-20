@@ -109,6 +109,29 @@ describe('ReceiptTelemetry middleware', () => {
         expect(result).toMatchObject({level: 'info', params: {resultClass: 'transient', jsonCode: 407}});
     });
 
+    it('keeps a rejected edit with no receipt at info level so routine rejections do not raise server alerts', async () => {
+        // Given an edit sent after the report was approved, which the server rejects with a 666
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, data: {transactionID: TRANSACTION_ID}};
+
+        // When the request goes through the middleware
+        await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.EXP_ERROR}), request, true);
+
+        // Then the failure is still classed as permanent for dashboards, but logged at info instead of alert
+        const [result] = getLines(lines, 'serverResult');
+        expect(result).toMatchObject({level: 'info', params: {resultClass: 'permanent', hasReceipt: 'false'}});
+    });
+
+    it('records the server result for a split, which joins the trail without being an edit', async () => {
+        // Given a split of an existing expense that the server accepts
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.SPLIT_TRANSACTION, data: {transactionID: TRANSACTION_ID}};
+
+        // When the request goes through the middleware
+        await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}), request, true);
+
+        // Then the split shows up on the trail, so a dashboard can see split failures too
+        expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({command: WRITE_COMMANDS.SPLIT_TRANSACTION, transactionID: TRANSACTION_ID, resultClass: 'success'});
+    });
+
     it('logs only the server result for an expense edit that carries no receipt', async () => {
         // Given an edit of an expense's merchant, which has a transaction id but no receipt
         const request: Request<OnyxKey> = {command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, data: {transactionID: TRANSACTION_ID}};
@@ -130,7 +153,7 @@ describe('ReceiptTelemetry middleware', () => {
 
         // Then the result still carries the transaction id, so it joins the receipt trail like any other command
         const result = getLines(lines, 'serverResult').at(0);
-        expect(result?.params).toMatchObject({transactionID: TRANSACTION_ID, transactionCount: 1, resultClass: 'permanent'});
+        expect(result).toMatchObject({level: 'info', params: {transactionID: TRANSACTION_ID, transactionCount: 1, resultClass: 'permanent'}});
         expect(result?.params.transactionIDs).toBeUndefined();
     });
 
