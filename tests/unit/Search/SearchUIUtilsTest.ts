@@ -12394,6 +12394,40 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test.each([
+        [false, true],
+        [true, false],
+    ])('Change approver on a dynamic external workflow for a report the admin submitted: preventSelfApproval=%s', (preventSelfApproval, expected) => {
+        // Given an admin's own submitted report on a dynamic external workflow, where bypassing the approvers is the admin's only approver change
+        const dewPolicyID = 'dewPolicy';
+        const dewReportID = 'dewReport';
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            policy_dewPolicy: {
+                id: dewPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                preventSelfApproval,
+            },
+            report_dewReport: {
+                reportID: dewReportID,
+                policyID: dewPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID + 1,
+                total: -1000,
+            },
+        });
+
+        // When the Search actions are computed for the report
+        const actions = SearchUIUtils.getActions(data, {}, `report_${dewReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+        // Then Change approver is offered only when the admin may approve their own report, so it never opens an empty page
+        expect(actions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);

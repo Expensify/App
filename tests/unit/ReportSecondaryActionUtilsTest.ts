@@ -194,10 +194,11 @@ describe('getSecondaryAction', () => {
     });
 
     it.each([
-        [true, true],
-        [false, false],
-    ])('change approver visibility on a dynamic external workflow: admin=%s', (isAdmin, expected) => {
-        // Given an outstanding report on a dynamic external workflow, where the caller is the current approver
+        [true, false, true],
+        [false, false, false],
+        [true, true, false],
+    ])('change approver visibility on a dynamic external workflow: admin=%s, own report with self-approval prevented=%s', (isAdmin, isOwnReportWithSelfApprovalPrevented, expected) => {
+        // Given an outstanding report on a dynamic external workflow, where the caller is the current approver and may also be the submitter
         jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(isAdmin);
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -205,9 +206,11 @@ describe('getSecondaryAction', () => {
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: MANAGER_ACCOUNT_ID,
+            ownerAccountID: isOwnReportWithSelfApprovalPrevented ? MANAGER_ACCOUNT_ID : EMPLOYEE_ACCOUNT_ID,
         });
         const policy = createMock<Policy>({
             approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            preventSelfApproval: isOwnReportWithSelfApprovalPrevented,
         });
 
         // When the caller opens the report menu
@@ -228,7 +231,7 @@ describe('getSecondaryAction', () => {
             isLoadingSecurityGroup: false,
         });
 
-        // Then only admins keep the action, because a member's only change would reassign an approver the workflow picks
+        // Then only admins who may approve the report keep the action, because the workflow picks the approver and bypassing is the only change left
         expect(actions.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER)).toBe(expected);
         jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(true);
     });
