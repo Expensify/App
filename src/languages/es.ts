@@ -13527,6 +13527,7 @@ ${reportName}`,
         }),
         offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
         receivedPayment: 'pago recibido',
+        markedAsManuallyExported: (label: string) => `marcó este informe como exportado manualmente a ${label}`,
     },
 };
 export default translations;

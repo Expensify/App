@@ -12932,6 +12932,7 @@ ${reportName}`,
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
         toMarkAsDone: '完了としてマークする',
         receivedPayment: '支払いを受け取りました',
+        markedAsManuallyExported: (label: string) => `このレポートを ${label} へ手動でエクスポート済みとしてマークしました`,
     },
 };
 export default translations;

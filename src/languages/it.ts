@@ -13140,6 +13140,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
         toMarkAsDone: 'segnare come completato',
         receivedPayment: 'pagamento ricevuto',
+        markedAsManuallyExported: (label: string) => `ha contrassegnato questo resoconto come esportato manualmente su ${label}`,
     },
 };
 export default translations;

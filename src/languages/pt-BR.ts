@@ -13106,6 +13106,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
         toMarkAsDone: 'marcar como concluída',
         receivedPayment: 'pagamento recebido',
+        markedAsManuallyExported: (label: string) => `marcou este relatório como exportado manualmente para ${label}`,
     },
 };
 export default translations;

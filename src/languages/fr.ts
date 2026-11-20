@@ -13227,6 +13227,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
         toMarkAsDone: 'marquer comme terminé',
         receivedPayment: 'paiement reçu',
+        markedAsManuallyExported: (label: string) => `a marqué cette note de frais comme exportée manuellement vers ${label}`,
     },
 };
 export default translations;
