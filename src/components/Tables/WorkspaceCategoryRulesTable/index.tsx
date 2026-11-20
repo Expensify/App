@@ -124,7 +124,6 @@ function WorkspaceCategoryRulesTableImpl({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="condition"
-            narrowLayoutSortColumn="condition"
             title={tableTitle}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
