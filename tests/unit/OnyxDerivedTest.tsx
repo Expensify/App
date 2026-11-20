@@ -372,14 +372,12 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
-                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -508,30 +506,8 @@ describe('OnyxDerived', () => {
                 triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
             } as unknown as Parameters<typeof reportAttributes.compute>[1];
 
-            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
-            reportAttributes.compute(
-                [
-                    reports,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    personalDetails,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                ],
-                {},
-            );
+            // Clear the module-level diff baseline, as Onyx.clear does, so the first personal-details compute below has none.
+            reportAttributes.onReset?.();
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
                 [
@@ -543,7 +519,6 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     personalDetails,
-                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -567,7 +542,6 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     changedPersonalDetails,
-                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -946,6 +920,28 @@ describe('OnyxDerived', () => {
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('201');
             expect(derived?.sortedActions?.[expenseReportID]?.at(0)?.reportActionID).toBe('201');
+        });
+
+        it('does not recompute any derived value when only the network time skew changes', async () => {
+            // Given computed sorted report actions for a report
+            const reportID = '10';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+            const derivedBefore = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            const startSpanSpy = jest.spyOn(ActiveSpans, 'startSpan');
+
+            // When a response updates the clock skew, as every OpenReport, OpenApp and ReconnectApp response does
+            await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 1234});
+            await waitForBatchedUpdates();
+
+            // Then no derived value starts a compute, so the sorted actions of every report are not rebuilt
+            const derivedComputeSpans = startSpanSpy.mock.calls.filter(([spanID]) => spanID.startsWith(CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE));
+            expect(derivedComputeSpans).toHaveLength(0);
+            expect(await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS)).toBe(derivedBefore);
+            startSpanSpy.mockRestore();
         });
     });
 

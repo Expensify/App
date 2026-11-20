@@ -5,7 +5,7 @@ import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {CardList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportMetadata, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -305,7 +305,6 @@ describe('reportAttributes compute — policy change code flow', () => {
             undefined, // currencyList
             undefined, // rules
             undefined, // cardList
-            undefined, // network
         ];
         return args;
     };
@@ -922,6 +921,91 @@ describe('reportAttributes compute — policy change code flow', () => {
         SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad.mockImplementation(() => undefined);
         isOpenReport.mockImplementation(() => false);
         hasViolations.mockImplementation(() => false);
+    });
+
+    describe('display name baseline', () => {
+        const ALICE_ACCOUNT_ID = 2;
+        const BOB_ACCOUNT_ID = 3;
+        const aliceReport = createMock<Report>({reportID: 'alice', policyID: 'policy1', chatReportID: undefined, ownerAccountID: ALICE_ACCOUNT_ID, participants: {}});
+        const bobReport = createMock<Report>({reportID: 'bob', policyID: 'policy1', chatReportID: undefined, ownerAccountID: BOB_ACCOUNT_ID, participants: {}});
+        const namedReports: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}alice`]: aliceReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}bob`]: bobReport,
+        };
+        const personalDetails: PersonalDetailsList = {
+            [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, displayName: 'Alice', login: 'alice@example.com'},
+            [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, displayName: 'Bob', login: 'bob@example.com'},
+        };
+        const restoredValue: ReportAttributesDerivedValue = {
+            reports: {
+                alice: {reportName: 'Alice', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                bob: {reportName: 'Bob', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+        const buildPersonalDetailsArgs = (details: PersonalDetailsList) => {
+            const args = buildArgs(policies, namedReports);
+            args[7] = details;
+            return args;
+        };
+
+        it.each([ONYXKEYS.CARD_LIST, ONYXKEYS.PERSONAL_DETAILS_LIST])(
+            'recomputes only the reports of the renamed account on the first personal details change after a startup flush triggered by %s',
+            (startupTrigger) => {
+                const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
+
+                // Given report names restored from disk, and a startup flush (no sourceValues) whose last connected dependency can be any key
+                const startupValue = config.compute(buildPersonalDetailsArgs(personalDetails), {
+                    currentValue: restoredValue,
+                    sourceValues: undefined,
+                    triggeredKeys: new Set<OnyxKey>([startupTrigger]),
+                });
+                expect(startupValue).toBe(restoredValue);
+                computeReportName.mockClear();
+
+                // When the first personal details write after startup renames only Alice
+                const renamedPersonalDetails: PersonalDetailsList = {
+                    ...personalDetails,
+                    [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, displayName: 'Alice Smith', login: 'alice@example.com'},
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
+                const sourceValues = {[ONYXKEYS.PERSONAL_DETAILS_LIST]: renamedPersonalDetails} as unknown as Parameters<ReportAttributesConfig['compute']>[1]['sourceValues'];
+                const result = config.compute(buildPersonalDetailsArgs(renamedPersonalDetails), {
+                    currentValue: startupValue,
+                    sourceValues,
+                    triggeredKeys: new Set<OnyxKey>([ONYXKEYS.PERSONAL_DETAILS_LIST]),
+                });
+
+                // Then the startup flush saved the names to compare against, so only Alice's report is renamed
+                expect(computeReportName).toHaveBeenCalledTimes(1);
+                expect(computeReportName).toHaveBeenCalledWith(expect.objectContaining({report: aliceReport}));
+                expect(result.reports.bob).toBe(restoredValue.reports.bob);
+            },
+        );
+
+        it('recomputes every report when personal details first arrive after a startup flush without them', () => {
+            const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
+
+            // Given a startup flush that ran before any personal details were stored, so no names could be saved
+            config.compute(buildArgs(policies, namedReports), {
+                currentValue: restoredValue,
+                sourceValues: undefined,
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST]),
+            });
+            computeReportName.mockClear();
+
+            // When the personal details arrive
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
+            const sourceValues = {[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails} as unknown as Parameters<ReportAttributesConfig['compute']>[1]['sourceValues'];
+            config.compute(buildPersonalDetailsArgs(personalDetails), {
+                currentValue: restoredValue,
+                sourceValues,
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.PERSONAL_DETAILS_LIST]),
+            });
+
+            // Then there is nothing to compare against, so every report name is recomputed with the new names
+            expect(computeReportName).toHaveBeenCalledTimes(2);
+        });
     });
 
     describe('reportMetadata', () => {

@@ -290,7 +290,6 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.COLLECTION.RULE,
         ONYXKEYS.CARD_LIST,
-        ONYXKEYS.NETWORK,
     ],
     compute: (
         [
@@ -314,8 +313,8 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly. NETWORK is a dependency, but a NETWORK-only change finds no report updates and hits the
-        // "No updates to process" early return below, so existing attributes (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
+        // Offline state lives in memory and going offline doesn't recompute this value, so existing attributes
+        // (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
@@ -356,7 +355,7 @@ export default createOnyxDerivedValueConfig({
         };
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
+        if (sourceValues && hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
             displayNameChanges = getDisplayNameChanges(personalDetails);
 
             // Only short-circuit when personal details were the sole trigger; coalescing can batch them
@@ -365,11 +364,11 @@ export default createOnyxDerivedValueConfig({
             if (!displayNameChanges && personalDetailsIsOnlyTrigger) {
                 return currentValue ?? {reports: {}, locale: null};
             }
-        } else if (!sourceValues) {
-            previousDisplayNames = {};
-            previousPersonalDetails = undefined;
         } else {
             // Save the current names now, so the first real name change can be narrowed to the reports it affects.
+            // The startup flush (no sourceValues) seeds too: the restored report names were computed from the
+            // persisted personal details, and a from-scratch compute uses these same personal details. Without
+            // personal details nothing is saved, so their first arrival recomputes every report.
             seedDisplayNamesBaseline(personalDetails);
         }
 
