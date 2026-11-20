@@ -1334,7 +1334,7 @@ describe('SidebarUtils', () => {
                 currentReportId: undefined,
                 isInFocusMode: false,
                 transactionViolations: {},
-                draftComment: undefined,
+                hasDraftComment: false,
                 transactions: {},
                 isOffline: false,
                 currentUserLogin: CURRENT_USER_LOGIN,

@@ -215,7 +215,9 @@ describe('UnreadIndicatorUpdater', () => {
             expect(idleTasks).toHaveLength(1);
 
             // When the trigger fires before the waiting scan ran, so it can only publish the last completed count
+            mockUpdateUnread.mockClear();
             getPublishTrigger()?.();
+            expect(mockUpdateUnread).toHaveBeenCalledTimes(1);
             expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
 
             // And then the waiting scan runs
