@@ -9,12 +9,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemGroup from '@components/MenuItemGroup';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,10 +26,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
@@ -40,12 +41,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator, hasIntegrationServerLoginError} from '@libs/UserUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -80,6 +82,7 @@ function ProfilePage() {
     const scrollEnabled = useScrollEnabled();
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -98,7 +101,9 @@ function ProfilePage() {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
+    const contactMethodBrickRoadIndicator = hasIntegrationServerError
+        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+        : getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
@@ -119,6 +124,8 @@ function ProfilePage() {
     const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
     const publicOptions: Array<{
         description: string;
         title: string;
@@ -212,7 +219,7 @@ function ProfilePage() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
+        singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus))))();
     };
 
     const privateOptions: Array<{
@@ -286,126 +293,139 @@ function ProfilePage() {
                 scrollEnabled={scrollEnabled}
                 keyboardShouldPersistTaps="handled"
             >
-                <MenuItemGroup>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section
-                            title={translate('profilePage.publicSection.title')}
-                            subtitle={translate('profilePage.publicSection.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            childrenStyles={styles.pt5}
-                            titleStyles={styles.accountSettingsSectionTitle}
-                        >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
-                                {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
-                                ) : (
-                                    <OfflineWithFeedback
-                                        errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
-                                        errorRowStyles={[styles.mh5, styles.mt5]}
-                                        onClose={() => clearAgentAvatarUpdateError(accountID)}
-                                    >
-                                        <MenuItemGroup shouldUseSingleExecution={false}>
-                                            <AvatarButtonWithIcon
-                                                text={translate('avatarWithImagePicker.editImage')}
-                                                avatar={
-                                                    <UserAvatar
-                                                        source={avatarURL}
-                                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                                        accountID={accountID}
-                                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                                    />
-                                                }
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
-                                                avatarStyle={styles.alignSelfStart}
-                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                                editIconStyle={styles.profilePageAvatar}
-                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
-                                            />
-                                        </MenuItemGroup>
-                                    </OfflineWithFeedback>
-                                )}
-                            </View>
-                            {publicOptions.map((detail) => {
-                                const {pageRoute} = detail;
-                                return (
-                                    <OfflineWithFeedback
-                                        key={detail.testID}
-                                        pendingAction={detail.pendingAction}
-                                        shouldHideOnDelete={false}
-                                    >
-                                        <MenuItemSectionRoot
-                                            onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
-                                            testID={detail?.testID}
-                                            sentryLabel={detail.sentryLabel}
-                                            accessibilityLabel={detail.accessibilityLabel}
-                                        >
-                                            {detail.content ?? (
-                                                <MenuItemField.Row
-                                                    name={detail.description}
-                                                    value={detail.title}
-                                                >
-                                                    {(!!detail.brickRoadIndicator || !!pageRoute) && (
-                                                        <>
-                                                            {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
-                                                            {!!pageRoute && <MenuItem.Chevron />}
-                                                        </>
-                                                    )}
-                                                </MenuItemField.Row>
-                                            )}
-                                        </MenuItemSectionRoot>
-                                    </OfflineWithFeedback>
-                                );
-                            })}
-                            <Button
-                                accessibilityLabel={translate('common.shareCode')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                style={[styles.alignSelfStart, styles.mt6]}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
-                            >
-                                <Button.Icon src={icons.QrCode} />
-                                <Button.Text>{translate('common.share')}</Button.Text>
-                            </Button>
-                        </Section>
-                        <Section
-                            title={translate('profilePage.privateSection.title')}
-                            subtitle={translate('profilePage.privateSection.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            childrenStyles={styles.pt3}
-                            titleStyles={styles.accountSettingsSectionTitle}
-                        >
-                            {isAppLoadPending ? (
-                                <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                                </View>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('profilePage.publicSection.title')}
+                        subtitle={translate('profilePage.publicSection.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={styles.pt5}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
+                            {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
+                                <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
                             ) : (
-                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
-                                    {privateOptions.map((detail) => (
-                                        <MenuItemWithTopDescription
-                                            key={detail.testID}
-                                            shouldShowRightIcon
-                                            title={detail.title}
-                                            description={detail.description}
-                                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={detail.action}
-                                            brickRoadIndicator={detail.brickRoadIndicator}
-                                            furtherDetails={detail.furtherDetails}
-                                            pressableTestID={detail?.testID}
-                                            sentryLabel={detail.sentryLabel}
-                                        />
-                                    ))}
-                                </MenuItemGroup>
+                                <OfflineWithFeedback
+                                    errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
+                                    errorRowStyles={[styles.mh5, styles.mt5]}
+                                    onClose={() => clearAgentAvatarUpdateError(accountID)}
+                                >
+                                    <AvatarButtonWithIcon
+                                        text={translate('avatarWithImagePicker.editImage')}
+                                        avatar={
+                                            <UserAvatar
+                                                source={avatarURL}
+                                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                accountID={accountID}
+                                                fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                            />
+                                        }
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                        avatarStyle={styles.alignSelfStart}
+                                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                        editIconStyle={styles.profilePageAvatar}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
+                                    />
+                                </OfflineWithFeedback>
                             )}
-                        </Section>
-                        {isAgentAccount === true && (
-                            <AgentAIPromptSection
-                                accountID={accountID}
-                                parentScrollViewRef={scrollViewRef}
-                            />
+                        </View>
+                        {publicOptions.map((detail) => {
+                            const {pageRoute} = detail;
+                            return (
+                                <OfflineWithFeedback
+                                    key={detail.testID}
+                                    pendingAction={detail.pendingAction}
+                                    shouldHideOnDelete={false}
+                                >
+                                    <MenuItemSectionRoot
+                                        onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                        testID={detail?.testID}
+                                        sentryLabel={detail.sentryLabel}
+                                        accessibilityLabel={detail.accessibilityLabel}
+                                    >
+                                        {detail.content ?? (
+                                            <MenuItemField.Row
+                                                name={detail.description}
+                                                value={detail.title}
+                                            >
+                                                {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                    <>
+                                                        {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                        {!!pageRoute && <MenuItem.Chevron />}
+                                                    </>
+                                                )}
+                                            </MenuItemField.Row>
+                                        )}
+                                    </MenuItemSectionRoot>
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                        <Button
+                            accessibilityLabel={translate('common.shareCode')}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
+                            style={[styles.alignSelfStart, styles.mt6]}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
+                        >
+                            <Button.Icon src={icons.QrCode} />
+                            <Button.Text>{translate('common.share')}</Button.Text>
+                        </Button>
+                    </Section>
+                    <Section
+                        title={translate('profilePage.privateSection.title')}
+                        subtitle={translate('profilePage.privateSection.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        childrenStyles={styles.pt3}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        {isAppLoadPending ? (
+                            <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                            </View>
+                        ) : (
+                            privateOptions.map((detail) => (
+                                <MenuItemSectionRoot
+                                    key={detail.testID}
+                                    onPress={() => callIfAuthenticated(detail.action, session)()}
+                                    testID={detail.testID}
+                                    sentryLabel={detail.sentryLabel}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            {detail.title ? (
+                                                <>
+                                                    <MenuItem.FieldName>{detail.description}</MenuItem.FieldName>
+                                                    <MenuItem.FieldValue>{detail.title}</MenuItem.FieldValue>
+                                                </>
+                                            ) : (
+                                                <MenuItem.FieldNamePlaceholder>{detail.description}</MenuItem.FieldNamePlaceholder>
+                                            )}
+                                            {!!detail.furtherDetails && (
+                                                <Text
+                                                    style={styles.textLabelSupporting}
+                                                    numberOfLines={2}
+                                                >
+                                                    {detail.furtherDetails}
+                                                </Text>
+                                            )}
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
+                            ))
                         )}
-                    </View>
-                </MenuItemGroup>
+                    </Section>
+                    {isAgentAccount === true && (
+                        <AgentAIPromptSection
+                            accountID={accountID}
+                            parentScrollViewRef={scrollViewRef}
+                        />
+                    )}
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );

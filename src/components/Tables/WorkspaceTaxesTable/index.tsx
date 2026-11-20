@@ -1,10 +1,10 @@
+import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -33,6 +33,9 @@ type WorkspaceTaxesTableProps = {
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rates support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>>;
 };
 
 /**
@@ -49,8 +52,15 @@ function getNumericTaxRateValue(value: string): string | undefined {
     return Number.isNaN(Number.parseFloat(value)) ? undefined : value;
 }
 
-export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, shouldShowTaxCodeColumn, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
-    const styles = useThemeStyles();
+export default function WorkspaceTaxesTable({
+    taxes,
+    selectionEnabled,
+    selectedKeys,
+    shouldShowTaxCodeColumn,
+    onRowSelectionChange,
+    headerComponent,
+    bulkActionOptions,
+}: WorkspaceTaxesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -100,7 +110,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {
@@ -176,6 +186,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

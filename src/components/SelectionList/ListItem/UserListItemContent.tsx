@@ -19,14 +19,14 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
 
 type UserListItemContentProps<TItem extends ListItem> = {
     item: TItem;
     forwardedFSClass?: ForwardedFSClassProps['forwardedFSClass'];
-};
+} & Pick<ListItemProps<TItem>, 'titleNumberOfLines'>;
 
 /**
  * Shared inner content for UserListItem and BareUserListItem.
@@ -34,7 +34,7 @@ type UserListItemContentProps<TItem extends ListItem> = {
  * The outer pressable wrapper (SelectableListItem or ListItemComposed) is the caller's responsibility
  * and provides the focus/hover/tooltip state through ListItemContext.
  */
-function UserListItemContent<TItem extends ListItem>({item, forwardedFSClass}: UserListItemContentProps<TItem>) {
+function UserListItemContent<TItem extends ListItem>({item, forwardedFSClass, titleNumberOfLines = 1}: UserListItemContentProps<TItem>) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {shouldShowTooltip, shouldDisableAccessibleGrouping} = useListItemContext();
@@ -98,7 +98,14 @@ function UserListItemContent<TItem extends ListItem>({item, forwardedFSClass}: U
                 <TextWithTooltip
                     shouldShowTooltip={shouldShowTooltip}
                     text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
-                    style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
+                    numberOfLines={titleNumberOfLines}
+                    style={[
+                        styles.optionDisplayName,
+                        styles.sidebarLinkText,
+                        item.isBold !== false && styles.sidebarLinkTextBold,
+                        titleNumberOfLines > 1 ? styles.preWrap : styles.pre,
+                        item.alternateText ? styles.mb1 : null,
+                    ]}
                 />
                 {!!item.alternateText && (
                     <ListItemComposed.Subtitle

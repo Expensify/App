@@ -9,11 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 
+import InsightsChangeBadge from '@pages/Insights/InsightsChangeBadge';
+
 import CONST from '@src/CONST';
 import type {AIInsightChip} from '@src/types/onyx';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type InsightsAIChipProps = {
     chip: AIInsightChip;
@@ -25,7 +26,7 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, numberFormat} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Coins', 'Clock', 'Flag']);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Clock', 'Flag']);
 
     let value: string;
     let neutralIcon = icons.Coins;
@@ -57,22 +58,12 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
         );
     }
 
-    const isIncrease = chip.direction === CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE;
-
     return (
-        <View
+        <InsightsChangeBadge
+            text={value}
+            isIncrease={chip.direction === CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE}
             style={styles.alignSelfStart}
-            accessible
-            accessibilityLabel={translate(isIncrease ? 'insightsPage.compare.increase' : 'insightsPage.compare.decrease', value)}
-        >
-            <Badge
-                text={value}
-                icon={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                error={isIncrease}
-                success={!isIncrease}
-                badgeStyles={styles.ml0}
-            />
-        </View>
+        />
     );
 }
 
