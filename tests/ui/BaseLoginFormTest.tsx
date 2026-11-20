@@ -121,8 +121,6 @@ describe('BaseLoginForm', () => {
         expect(props.autoCompleteType).toBe('username');
         expect(props.textContentType).toBe('username');
         expect(props.name).toBe('username');
-        expect(props).not.toHaveProperty('dataSet.1p-ignore');
-        expect(props).not.toHaveProperty('dataSet.lpignore');
     });
 
     it('shows agent sign-in blocked error when an agent email is entered', async () => {

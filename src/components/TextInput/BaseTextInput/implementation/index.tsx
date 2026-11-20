@@ -107,14 +107,16 @@ function BaseTextInput({
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
-    // Email fields outside login are not credentials. Keep the original input semantics and let login explicitly opt out.
+    // Explicit autofill hints identify fields that should still offer saved user details, even with an email keyboard.
+    const isAutofillRequested =
+        inputProps.autoComplete === 'email' ||
+        inputProps.autoComplete === 'username' ||
+        inputProps.autoCompleteType === 'email' ||
+        inputProps.autoCompleteType === 'username' ||
+        inputProps.textContentType === 'emailAddress' ||
+        inputProps.textContentType === 'username';
     const shouldSuppressPasswordManager =
-        shouldIgnorePasswordManager ??
-        (inputProps.inputMode === CONST.INPUT_MODE.EMAIL ||
-            inputProps.keyboardType === 'email-address' ||
-            inputProps.autoComplete === 'email' ||
-            inputProps.autoCompleteType === 'email' ||
-            inputProps.textContentType === 'emailAddress');
+        shouldIgnorePasswordManager ?? (!isAutofillRequested && (inputProps.inputMode === CONST.INPUT_MODE.EMAIL || inputProps.keyboardType === 'email-address'));
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
     const helpMessageId = useId();

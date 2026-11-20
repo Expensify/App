@@ -58,14 +58,7 @@ describe('web TextInput password-manager hints', () => {
         container.remove();
     });
 
-    it.each<BaseTextInputProps>([
-        {inputMode: 'email'},
-        {keyboardType: 'email-address'},
-        {autoComplete: 'email'},
-        {autoCompleteType: 'email'},
-        {textContentType: 'emailAddress'},
-        {shouldIgnorePasswordManager: true},
-    ])('puts ignore attributes on the HTML input for %j', (props) => {
+    it.each<BaseTextInputProps>([{inputMode: 'email'}, {keyboardType: 'email-address'}, {shouldIgnorePasswordManager: true}])('puts ignore attributes on the HTML input for %j', (props) => {
         // Given an email input or an explicitly opted-in recipient search
         // When the shared web input reaches React Native Web
         const input = renderInput({...props, dataSet: {customHint: 'preserved'}});
@@ -76,6 +69,39 @@ describe('web TextInput password-manager hints', () => {
         expect(input.getAttribute('data-lpignore')).toBe('true');
         expect(input.getAttribute('data-custom-hint')).toBe('preserved');
         expect(input.hasAttribute('shouldIgnorePasswordManager')).toBe(false);
+    });
+
+    it.each<BaseTextInputProps>([
+        {autoComplete: 'email'},
+        {autoCompleteType: 'email'},
+        {textContentType: 'emailAddress'},
+        {autoComplete: 'username'},
+        {autoCompleteType: 'username'},
+        {textContentType: 'username'},
+    ])('preserves requested autofill despite email input semantics for %j', (props) => {
+        // Given an email input that would otherwise suppress password managers
+        const input = renderInput({inputMode: 'email', keyboardType: 'email-address'});
+        expect(input.getAttribute('data-1p-ignore')).toBe('true');
+        expect(input.getAttribute('data-lpignore')).toBe('true');
+
+        // When a caller requests saved email or username details without an explicit suppression override
+        renderInput({inputMode: 'email', keyboardType: 'email-address', ...props, dataSet: {customHint: 'preserved'}});
+
+        // Then generated hints are removed so managers can fill the field, without losing unrelated metadata
+        expect(input.hasAttribute('data-1p-ignore')).toBe(false);
+        expect(input.hasAttribute('data-lpignore')).toBe(false);
+        expect(input.getAttribute('data-custom-hint')).toBe('preserved');
+        expect(input.type).toBe('email');
+    });
+
+    it.each<BaseTextInputProps>([{autoComplete: 'email'}, {autoCompleteType: 'username'}])('allows explicit suppression to override autofill hints for %j', (props) => {
+        // Given a caller that deliberately suppresses suggestions despite its autofill hints
+        // When the shared input renders with that explicit override
+        const input = renderInput({...props, shouldIgnorePasswordManager: true});
+
+        // Then the caller's explicit choice takes precedence over the automatic exemption
+        expect(input.getAttribute('data-1p-ignore')).toBe('true');
+        expect(input.getAttribute('data-lpignore')).toBe('true');
     });
 
     it('preserves login autofill when explicitly exempted', () => {
@@ -105,11 +131,12 @@ describe('web TextInput password-manager hints', () => {
     });
 
     it('removes generated hints when suppression is explicitly disabled', () => {
-        // Given a mixed recipient search with suppression enabled
-        const input = renderInput({shouldIgnorePasswordManager: true});
+        // Given an email field that would suppress managers by default
+        const input = renderInput({inputMode: 'email'});
+        expect(input.getAttribute('data-1p-ignore')).toBe('true');
 
         // When a caller disables suppression without remounting
-        renderInput({shouldIgnorePasswordManager: false});
+        renderInput({inputMode: 'email', shouldIgnorePasswordManager: false});
 
         // Then React removes the attributes instead of leaving imperative mutations behind
         expect(input.hasAttribute('data-1p-ignore')).toBe(false);
@@ -131,8 +158,8 @@ describe('web TextInput password-manager hints', () => {
         expect(onChangeText).toHaveBeenLastCalledWith('person@example.com');
     });
 
-    it('keeps ignore attributes through real form registration and input wrappers', () => {
-        // Given an email input registered in a form, as in onboarding and reimbursement flows
+    it('preserves requested email autofill through real form registration and input wrappers', () => {
+        // Given an email input requesting saved details, as in onboarding and reimbursement flows
         // When FormProvider and InputWrapper forward its options
         act(() =>
             root.render(
@@ -146,6 +173,7 @@ describe('web TextInput password-manager hints', () => {
                             InputComponent={TextInput}
                             inputID="email"
                             accessibilityLabel="Email"
+                            inputMode="email"
                             autoComplete="email"
                             dataSet={{customHint: 'preserved'}}
                         />
@@ -154,10 +182,11 @@ describe('web TextInput password-manager hints', () => {
             ),
         );
 
-        // Then both manager attributes reach the HTML input alongside existing metadata
+        // Then form forwarding preserves the autofill exemption and unrelated metadata
         const input = screen.getByRole('textbox', {name: 'Email'});
-        expect(input.getAttribute('data-1p-ignore')).toBe('true');
-        expect(input.getAttribute('data-lpignore')).toBe('true');
+        expect(input.hasAttribute('data-1p-ignore')).toBe(false);
+        expect(input.hasAttribute('data-lpignore')).toBe(false);
+        expect(input.getAttribute('autocomplete')).toBe('email');
         expect(input.getAttribute('data-custom-hint')).toBe('preserved');
     });
 
