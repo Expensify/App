@@ -16,7 +16,7 @@ type UseReportDeepLinkOnOpenParams = {
     /** Whether opening the report should mark it as read. False when the page only needs the report's data */
     shouldMarkAsRead?: boolean;
 
-    /** Whether to keep a manual unread marker on the report */
+    /** Keeps a manual unread marker untouched. True when the page reads the report's data without showing the chat */
     shouldKeepManualUnreadMarker?: boolean;
 };
 
