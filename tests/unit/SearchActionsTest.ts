@@ -790,15 +790,14 @@ describe('getPayOption', () => {
         expect(getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true)])).toBe(true);
     });
 
-    it('keeps bulk pay enabled when only some of the selected reports are payable', () => {
-        // Given a selection mixing two payable reports with one the viewer cannot settle (it only offers View)
+    it('disables bulk pay when only some of the selected reports are payable', () => {
+        // Given a selection mixing two payable reports with one the viewer cannot pay (it only offers View)
 
         // When the bulk pay eligibility is computed
         const shouldEnableBulkPayOption = getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true), makeSelectedReport('3', false)]);
 
-        // Then bulk pay stays available because it degrades to the payable subset instead of dropping the whole Pay
-        // group — the ineligible report is skipped at payment time rather than hiding Pay and Mark as paid for all three
-        expect(shouldEnableBulkPayOption).toBe(true);
+        // Then bulk pay is disabled, the same way Approve needs every selected report to be approvable
+        expect(shouldEnableBulkPayOption).toBe(false);
     });
 
     it('disables bulk pay when no selected report is payable', () => {
@@ -806,8 +805,7 @@ describe('getPayOption', () => {
     });
 
     it('keeps transaction selections all-or-nothing', () => {
-        // Given a transaction-level selection where one transaction cannot be paid. Individual transactions are not
-        // paid one by one, so unlike whole reports there is no payable subset to degrade to.
+        // Given a transaction-level selection where one transaction cannot be paid
         function makeSelectedTransaction(reportID: string, action: SelectedTransactions[string]['action']): SelectedTransactions[string] {
             return {
                 isSelected: true,
@@ -834,7 +832,7 @@ describe('getPayOption', () => {
 
         // When the bulk pay eligibility is computed
 
-        // Then bulk pay is unavailable, as it was before whole-report selections learned to degrade
+        // Then bulk pay is unavailable
         expect(getPayOption([], selectedTransactions, undefined, [], undefined).shouldEnableBulkPayOption).toBe(false);
     });
 
@@ -861,7 +859,7 @@ describe('getPayOption', () => {
     });
 
     it('disables bulk pay when the payable reports are of different types', async () => {
-        // Given a payable subset mixing an expense report with an IOU report. Bulk pay resolves one payment method
+        // Given payable reports mixing an expense report with an IOU report. Bulk pay resolves one payment method
         // for the whole group, so mixed types genuinely cannot be paid together.
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
