@@ -1,12 +1,9 @@
-import {getEnvironmentURL} from '@libs/Environment/Environment';
+import {getCachedEnvironmentURL} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
-
-let environmentURL: string;
-getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 // Static part of the search report path (everything before the first route param), used to detect sibling search-report routes.
 const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SEARCH_REPORT.route.indexOf(':'));
@@ -17,6 +14,8 @@ const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SE
  * Otherwise, returns a simple report URL.
  */
 function getReportURLForCurrentContext(reportID: string | undefined): string {
+    // Read synchronously, native evaluates this module lazily on its first call so an async copy would still be unset
+    const environmentURL = getCachedEnvironmentURL();
     if (!reportID) {
         return `${environmentURL}/r/`;
     }
