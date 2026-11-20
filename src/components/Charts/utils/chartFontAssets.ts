@@ -14,7 +14,7 @@ import expensifyNewKansasMediumItalicAsset from '@assets/fonts/web/ExpensifyNewK
 
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
-import type {DataModule} from '@shopify/react-native-skia';
+import type {DataModule} from 'react-native-skia';
 
 import chartWebFont from './chartWebFont';
 

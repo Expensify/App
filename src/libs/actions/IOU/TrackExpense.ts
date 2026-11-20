@@ -53,7 +53,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -135,7 +134,6 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
@@ -2002,7 +2000,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 category,
                 tag,
                 taxCode,
-                taxAmount,
+                // the existing taxAmount field was inadequate as it does not accept signed values,
+                // the new field was added to preserve existing behavior of the existing field
+                signedTaxAmount: taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
@@ -2035,10 +2035,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 );
             };
         }
-    }
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
     deferredAPIWrite?.();

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -14,7 +16,7 @@ import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {toIndexMap} from '@libs/RuleUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -70,6 +72,10 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+// Mirrors the PERSONAL_DETAILS_LIST seeded in Onyx, keyed by login the way PersonalDetailsByLoginProvider builds it
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 
 type WriteMockCall = [string, Record<PropertyKey, unknown>, unknown?];
 
@@ -1847,6 +1853,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
@@ -1893,6 +1900,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1961,17 +1969,27 @@ describe('actions/Duplicate', () => {
                 pendingFields: undefined,
             };
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
-            const sourceTransaction: Transaction = {...mockTransaction, reportID: sourceExpenseReport.reportID, amount: mockTransaction.amount * -1, comment: restOfComment};
+            // Expense reports store a refund and its edited tax with the opposite sign to their displayed values
+            const sourceTransaction: Transaction = {
+                ...mockTransaction,
+                reportID: sourceExpenseReport.reportID,
+                amount: 1000,
+                taxAmount: 48,
+                taxCode: 'tax-rate-5',
+                comment: restOfComment,
+            };
 
             await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
             await waitForBatchedUpdates();
 
             // When the expense is duplicated with that expense report as the target
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: sourceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2002,7 +2020,16 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then the duplicate is requested on the source expense report, not on the report the workspace chat points at
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({iouReportID: sourceExpenseReport.reportID}), expect.objectContaining({}));
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REQUEST_MONEY,
+                expect.objectContaining({iouReportID: sourceExpenseReport.reportID, amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}),
+                expect.objectContaining({}),
+            );
+            const [, params] = getRequiredWriteCall(writeSpy.mock.calls);
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
         });
 
         it('should create a duplicate time expense successfully', async () => {
@@ -2030,6 +2057,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2093,6 +2121,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2149,6 +2178,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2220,6 +2250,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2300,6 +2331,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2367,6 +2399,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2427,6 +2460,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2496,6 +2530,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2549,6 +2584,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2597,6 +2633,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2646,6 +2683,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2699,6 +2737,7 @@ describe('actions/Duplicate', () => {
             // When it is duplicated on its own, outside a bulk action
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2756,6 +2795,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2834,6 +2874,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2895,6 +2936,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2968,6 +3010,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3024,6 +3067,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3091,6 +3135,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3271,6 +3316,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3343,6 +3389,29 @@ describe('actions/Duplicate', () => {
             expect(createReportCall?.[1]).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('preserves the signed tax when duplicating a report with a negative expense', async () => {
+            // Given a refund whose nonzero tax was edited and saved with the expense report storage sign
+            const sourceReport: Report = {reportID: 'source-report', type: CONST.REPORT.TYPE.EXPENSE, policyID: mockPolicy.id};
+            const sourceTransaction = createCashTransaction('refund', {reportID: sourceReport.reportID, amount: 1000, taxAmount: 48, taxCode: 'tax-rate-5'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+            await waitForBatchedUpdates();
+
+            // When the whole report is duplicated, its expense uses the same signed API contract
+            duplicateReport(getDefaultParams([sourceTransaction], {sourceReport}));
+            await waitForBatchedUpdates();
+
+            // Then the duplicate keeps the original tax and the source remains unchanged
+            const requestCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestCalls).toHaveLength(1);
+            const [, params] = getRequiredWriteCall(requestCalls);
+            expect(params).toEqual(expect.objectContaining({amount: -1000, signedTaxAmount: -48, taxCode: sourceTransaction.taxCode}));
+            expect(params).not.toHaveProperty('taxAmount');
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(params.transactionID)}`);
+            expect(duplicate).toEqual(expect.objectContaining({amount: 1000, taxAmount: 48, taxCode: sourceTransaction.taxCode}));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toEqual(sourceTransaction);
         });
 
         it('should filter out credit card import transactions', async () => {
@@ -4015,6 +4084,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
@@ -4047,12 +4117,16 @@ describe('actions/Duplicate', () => {
             const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
+            const iouReportIDs = new Set(requestMoneyCalls.map((call) => String(call[1].iouReportID)));
             expect(iouReportIDs.size).toBe(1);
 
             // Then the expense-added growl is signaled
             expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
             expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+            // And no copy is flagged as new, since every copy lands on a report this action created, though the later ones look like an insertion by count
+            const [copyReportID] = [...iouReportIDs];
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${copyReportID}`))?.pendingNewTransactionIDs).toBeUndefined();
         });
 
         it('should read each written transaction ID from the distance plan when bulk-duplicating distance expenses', async () => {
@@ -4081,6 +4155,7 @@ describe('actions/Duplicate', () => {
             // When they are duplicated in one bulk action
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: distanceTransactionIDs,
                 allTransactions,
@@ -4144,6 +4219,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
                 allTransactions,
@@ -4219,6 +4295,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_source_1', 'bulk_source_2'],
                 allTransactions,
@@ -4318,6 +4395,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: ['instant_source_1', 'instant_source_2'],
                 allTransactions,
@@ -4421,6 +4499,11 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated onto that report, so the first copy raises its total from 800 to 1300
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {
+                    ...RORY_PERSONAL_DETAILS_BY_LOGINS,
+                    [firstApproverEmail]: {accountID: firstApproverAccountID, login: firstApproverEmail},
+                    [overLimitApproverEmail]: {accountID: overLimitApproverAccountID, login: overLimitApproverEmail},
+                },
                 conciergeChat: undefined,
                 transactionIDs: ['limit_source_1', 'limit_source_2'],
                 allTransactions,
@@ -4529,6 +4612,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

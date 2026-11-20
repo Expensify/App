@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -47,7 +48,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
@@ -716,6 +717,7 @@ function createExpenseByType({
     participantsPolicyTags,
     policyTags,
     rules,
+    personalDetailsByLogins,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -733,6 +735,7 @@ function createExpenseByType({
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -741,9 +744,6 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
-                // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
-                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
@@ -796,6 +796,7 @@ function createExpenseByType({
                 formatPhoneNumber,
                 policyTags,
                 rules,
+                personalDetailsByLogins,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -838,6 +839,7 @@ type DuplicateExpenseTransactionParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function duplicateExpenseTransaction({
@@ -872,6 +874,7 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -999,6 +1002,7 @@ function duplicateExpenseTransaction({
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
         rules,
+        personalDetailsByLogins,
     });
 }
 
@@ -1030,6 +1034,7 @@ type DuplicateReportParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 /**
@@ -1116,6 +1121,7 @@ function duplicateReport({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1270,6 +1276,7 @@ function duplicateReport({
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
             rules,
+            personalDetailsByLogins,
         });
 
         if (result?.iouReport) {
@@ -1309,6 +1316,7 @@ type BulkDuplicateExpensesParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function bulkDuplicateExpenses({
@@ -1338,6 +1346,7 @@ function bulkDuplicateExpenses({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1425,6 +1434,7 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1503,6 +1513,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 async function bulkDuplicateReports({
@@ -1533,6 +1544,7 @@ async function bulkDuplicateReports({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateReportsParams) {
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
@@ -1608,6 +1620,7 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',

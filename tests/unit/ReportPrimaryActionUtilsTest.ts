@@ -1038,6 +1038,51 @@ describe('getPrimaryAction', () => {
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
+    it('should not return PAY for an invoice that the receiver pays through its linked bill', async () => {
+        // Given a submitted invoice to the current user, which Auth hides from the receiver because it has a linked bill
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: INVOICE_SENDER_ACCOUNT_ID,
+            parentReportID: CHAT_REPORT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            isHiddenForBillReceiver: true,
+            total: 7,
+        });
+        const parentReport = createMock<Report>({
+            reportID: CHAT_REPORT_ID,
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                accountID: CURRENT_USER_ACCOUNT_ID,
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentReport);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the report header picks its primary action
+        const action = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            invoiceReceiverPolicy: createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN}),
+            isChatReportArchived: false,
+        });
+
+        // Then the header offers no Pay, because the receiver pays the bill as in Classic
+        expect(action).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
     it('should not return PAY for zero value invoice report if paid as personal', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

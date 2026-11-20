@@ -84,6 +84,7 @@ export default {
     ...avatarSizes,
     avatarPreview: 360,
     avatarPreviewLarge: 720,
+    floatingActionButtonRightOffset: 16,
     fabBottom: 25,
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
@@ -177,6 +178,7 @@ export default {
     rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
+    growlNotificationMaxWidth: 400,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
@@ -187,6 +189,8 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     insightsAICardWidth: 250,
+    insightsAILoadingAnimationSize: 40,
+    insightsAIReservedTextLines: 2,
     insightsRankingTableBarHeight: 8,
     insightsRankingTableBarMinWidth: 4,
     insightsRankingTableShareLabelSpace: 56,
@@ -207,8 +211,6 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
-    // Collapsed, a row shows only its icon: the row's inset (8) and padding (12) on each side around the 20px icon.
-    flatNavigationBarCollapsedWidth: 60,
     // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
     flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
@@ -217,7 +219,16 @@ export default {
     flatNavigationBarRowInset: 8,
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
+    // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
+    flatNavigationBarItemGap: 12,
     flatNavigationBarHeaderHeight: 72,
+    // Subnav rows are shorter than the destination rows above them, so a group of searches reads as one block.
+    flatNavigationBarSubnavItemHeight: 36,
+    // The header row includes the gap above its label, so a new group reads as a new block.
+    flatNavigationBarSubnavHeaderHeight: 32,
+    // The marker beside the active subnav row is shorter than the row, so it reads as a pill and not as a border.
+    flatNavigationBarSubnavMarkerHeight: 16,
+    flatNavigationBarSubnavMarkerWidth: 3,
     flatNavigationBarCreateButtonHeight: 32,
     // Centers the design's 204px wide Create button in the bar.
     flatNavigationBarCreateButtonInset: 14,

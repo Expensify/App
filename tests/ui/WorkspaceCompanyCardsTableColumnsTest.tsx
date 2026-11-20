@@ -107,6 +107,7 @@ jest.mock('@components/Table', () => {
     MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
     MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
     MockTable.LoadingState = () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
+    MockTable.BulkActionBar = () => <View testID="WorkspaceCompanyCardsTableBulkActionBar" />;
     return {
         __esModule: true,
         default: MockTable,
