@@ -1,0 +1,209 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index 2be6a93..3acce90 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -89,6 +89,9 @@ @implementation RNSTabBarController {
+   // Set when the selection is shown again together with a tab switch from JS, so it appears on the new tab.
+   BOOL _isSelectionRevealDeferred;
+ 
++  // Views over the items of the tabs native must not select, which take their taps before the tab bar sees them.
++  NSMutableArray<UIControl *> *_Nonnull _preventedSelectionTouchViews;
++
+   RNSTabsNavigationStateObserverRegistry *_observerRegistry;
+ 
+   RNSParentContainerItemRegistry *_Nonnull _parentContainerRegistry;
+@@ -97,6 +100,7 @@ @implementation RNSTabBarController {
+ - (instancetype)init
+ {
+   if (self = [super init]) {
++    _preventedSelectionTouchViews = [NSMutableArray new];
+     _tabScreenControllers = nil;
+     _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
+     _tabsHostComponentView = nil;
+@@ -186,6 +190,127 @@ - (void)viewDidLayoutSubviews
+   if (_tabBarItemSelectionHidden) {
+     [self updateTabBarItemSelectionIn:self.view];
+   }
++  [self updatePreventedSelectionTouchViews];
++}
++
++// The iOS 26 tab bar starts moving its selection lens to an item on touch down, before it asks whether the tab can be
++// selected, so a tap on a tab with `preventNativeSelection` pulls the lens to it and lets it spring back. A view over
++// each such item, outside the tab bar, takes the tap instead and reports it the way the prevented selection does.
++- (void)updatePreventedSelectionTouchViews
++{
++  NSArray<UIView *> *tabButtons = @[];
++  NSArray<UIViewController *> *viewControllers = self.viewControllers;
++  // Nothing is looked up or added for a tab bar with no such tab, which is every tab bar that does not ask for it.
++  BOOL hasInterceptedTab = NO;
++  for (UIViewController *viewController in viewControllers) {
++    if ([self shouldInterceptPreventedSelectionTapOf:viewController]) {
++      hasInterceptedTab = YES;
++      break;
++    }
++  }
++  if (!hasInterceptedTab && _preventedSelectionTouchViews.count == 0) {
++    return;
++  }
++  BOOL isTabBarShown = hasInterceptedTab && self.isViewLoaded && !self.tabBar.hidden && self.tabBar.alpha > 0 && self.tabBar.window != nil;
++#if !TARGET_OS_TV
++  if (@available(iOS 18.0, *)) {
++    // The bar hidden through the controller keeps `hidden` off on the bar itself.
++    isTabBarShown = isTabBarShown && !self.isTabBarHidden;
++  }
++#endif // !TARGET_OS_TV
++  if (isTabBarShown) {
++    // The controller lays out before the tab bar does, so the bar is laid out first to read the frames it ends on.
++    [self.tabBar layoutIfNeeded];
++    tabButtons = [self tabButtonsIn:self.tabBar];
++  }
++  if (tabButtons.count != viewControllers.count) {
++    tabButtons = @[];
++  }
++
++  // The views are kept between updates and only moved, since an update can run between the touch down and the touch up
++  // of a tap, and a view replaced in between would drop that tap.
++  NSMutableArray<UIControl *> *unusedTouchViews = [_preventedSelectionTouchViews mutableCopy];
++  [_preventedSelectionTouchViews removeAllObjects];
++  for (NSUInteger index = 0; index < tabButtons.count; index++) {
++    UIViewController *viewController = viewControllers[index];
++    // The selected tab keeps its taps: a repeated selection is not prevented.
++    if (viewController == self.selectedViewController || ![self shouldInterceptPreventedSelectionTapOf:viewController]) {
++      continue;
++    }
++    UIControl *touchView = nil;
++    for (UIControl *unusedTouchView in unusedTouchViews) {
++      if (unusedTouchView.tag == static_cast<NSInteger>(index)) {
++        touchView = unusedTouchView;
++        break;
++      }
++    }
++    if (touchView != nil) {
++      [unusedTouchViews removeObject:touchView];
++    } else {
++      touchView = [UIControl new];
++      touchView.tag = index;
++      // VoiceOver keeps reading the item under the view and activates it through the tab bar.
++      touchView.isAccessibilityElement = NO;
++      [touchView addTarget:self
++                    action:@selector(didTapPreventedSelectionTouchView:)
++          forControlEvents:UIControlEventTouchUpInside];
++      [self.view addSubview:touchView];
++    }
++    UIView *tabButton = tabButtons[index];
++    CGRect frame = [tabButton convertRect:tabButton.bounds toView:self.view];
++    if (!CGRectEqualToRect(touchView.frame, frame)) {
++      touchView.frame = frame;
++    }
++    [_preventedSelectionTouchViews addObject:touchView];
++  }
++  for (UIControl *unusedTouchView in unusedTouchViews) {
++    [unusedTouchView removeFromSuperview];
++  }
++}
++
++- (BOOL)shouldInterceptPreventedSelectionTapOf:(nonnull UIViewController *)viewController
++{
++  if (![viewController isKindOfClass:RNSTabsScreenViewController.class]) {
++    return NO;
++  }
++  auto *screenViewController = static_cast<RNSTabsScreenViewController *>(viewController);
++  return screenViewController.isPreventNativeSelectionEnabled &&
++      screenViewController.tabScreenComponentView.interceptsPreventedSelectionTaps;
++}
++
++- (void)didTapPreventedSelectionTouchView:(UIControl *)touchView
++{
++  NSArray<UIViewController *> *viewControllers = self.viewControllers;
++  if (touchView.tag < 0 || static_cast<NSUInteger>(touchView.tag) >= viewControllers.count) {
++    return;
++  }
++  [self onDidPreventUserFromSelectingViewControllerWithKey:[self screenKeyForViewController:viewControllers[touchView.tag]]];
++}
++
++// The private item views of the iOS 26 tab bar, left to right. The bar draws them twice, once under the selection lens,
++// so they are read from the first view that has any. Empty on a tab bar built another way, which keeps its taps.
++- (NSArray<UIView *> *)tabButtonsIn:(UIView *)view
++{
++  NSMutableArray<UIView *> *tabButtons = [NSMutableArray new];
++  for (UIView *subview in view.subviews) {
++    if ([NSStringFromClass(subview.class) isEqualToString:@"_UITabButton"]) {
++      [tabButtons addObject:subview];
++    }
++  }
++  if (tabButtons.count > 0) {
++    BOOL isRightToLeft = self.tabBar.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
++    return [tabButtons sortedArrayUsingComparator:^NSComparisonResult(UIView *first, UIView *second) {
++      NSComparisonResult leftToRight = [@(CGRectGetMinX(first.frame)) compare:@(CGRectGetMinX(second.frame))];
++      return isRightToLeft ? static_cast<NSComparisonResult>(-leftToRight) : leftToRight;
++    }];
++  }
++  for (UIView *subview in view.subviews) {
++    NSArray<UIView *> *nestedTabButtons = [self tabButtonsIn:subview];
++    if (nestedTabButtons.count > 0) {
++      return nestedTabButtons;
++    }
++  }
++  return @[];
+ }
+ 
+ - (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
+@@ -334,6 +459,7 @@ - (void)performContainerUpdate
+   [self updateTabBarAppearanceIfNeeded];
+   [self updateTabBarA11yIfNeeded];
+   [self updateOrientationIfNeeded];
++  [self updatePreventedSelectionTouchViews];
+ }
+ 
+ /**
+@@ -517,6 +643,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
+ 
+   [self userDidSelectViewController:viewController];
+   _isHandlingExplicitSelectionUpdate = NO;
++  [self updatePreventedSelectionTouchViews];
+ }
+ 
+ #pragma mark - UINavigationControllerDelegate
+diff --git a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
+index ebd8f2f..f0d3df0 100644
+--- a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
++++ b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
+@@ -69,6 +69,11 @@ NS_ASSUME_NONNULL_BEGIN
+ 
+ @property (nonatomic, readonly) BOOL preventNativeSelection;
+ 
++/**
++ * Whether a tap on the item of this screen is taken before the tab bar sees it while `preventNativeSelection` is on.
++ */
++@property (nonatomic, readonly) BOOL interceptsPreventedSelectionTaps;
++
+ @property (nonatomic, readonly) BOOL overrideScrollViewContentInsetAdjustmentBehavior;
+ 
+ @property (nonatomic, readonly, nullable) NSString *tabItemTestID;
+diff --git a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
+index b165717..ac2ba07 100644
+--- a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
+@@ -358,6 +358,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+     _preventNativeSelection = newComponentProps.preventNativeSelection;
+   }
+ 
++  if (newComponentProps.interceptsPreventedSelectionTaps != oldComponentProps.interceptsPreventedSelectionTaps) {
++    _interceptsPreventedSelectionTaps = newComponentProps.interceptsPreventedSelectionTaps;
++  }
++
+   if (newComponentProps.overrideScrollViewContentInsetAdjustmentBehavior !=
+       oldComponentProps.overrideScrollViewContentInsetAdjustmentBehavior) {
+     _overrideScrollViewContentInsetAdjustmentBehavior =
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+index 80a2fec..11afd19 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+@@ -120,6 +120,7 @@ export interface NativeProps extends ViewProps {
+   // Control
+   screenKey: string;
+   preventNativeSelection?: CT.WithDefault<boolean, false>;
++  interceptsPreventedSelectionTaps?: CT.WithDefault<boolean, false>;
+ 
+   // General
+   title?: string | undefined | null;

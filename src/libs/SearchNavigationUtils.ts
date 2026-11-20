@@ -1,8 +1,11 @@
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {SearchFilters} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {TabActions} from '@react-navigation/native';
 
 import type {FlatNavItem, FlatNavSection} from './Navigation/FlatNav/types';
 import type {SearchKey} from './SearchKeyUtils';
@@ -11,6 +14,7 @@ import {setSearchContext} from './actions/Search';
 import FLAT_NAV from './Navigation/FlatNav/FLAT_NAV';
 import {getFlatNavSectionDefaultItem} from './Navigation/FlatNav/FlatNavUtils';
 import Navigation from './Navigation/Navigation';
+import navigationRef from './Navigation/navigationRef';
 import {buildCannedSearchQuery, getValidLastQuery, normalizeDatePresetsInQuery} from './SearchQueryUtils';
 import {getLastSearchQuery} from './SearchUIUtils';
 
@@ -24,10 +28,39 @@ function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, 
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
 }
 
+function getSpendTabSearchQuery(searchKey: SpendTabSearchKey) {
+    return buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
+}
+
 /** Opens the Expenses or Reports tab on the query the user last left it with. */
 function navigateToSpendTab(searchKey: SpendTabSearchKey, lastSearchQuery: string | undefined, clearSelectedTransactions: () => void) {
-    const searchQuery = buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
-    navigateToCannedSpendSearch(searchKey, searchQuery, lastSearchQuery, clearSelectedTransactions);
+    navigateToCannedSpendSearch(searchKey, getSpendTabSearchQuery(searchKey), lastSearchQuery, clearSelectedTransactions);
+}
+
+/**
+ * Shows the Expenses or Reports search on the Search page that is already mounted, the way its type tabs do: the page
+ * takes the new query as params, so it stays mounted and only its list is replaced. Opening the route instead would
+ * push a second Search page and mount it from scratch. From another tab, the Search tab is then focused as it is.
+ */
+function showSpendTabSearchOnMountedSearchPage(
+    searchKey: SpendTabSearchKey,
+    lastSearchQuery: string | undefined,
+    clearSelectedTransactions: () => void,
+    searchNavigatorStateKey: string,
+    tabNavigatorStateKeyToFocusSearchIn: string | undefined,
+) {
+    clearSelectedTransactions();
+    setSearchContext(false);
+    navigationRef.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
+        payload: {
+            params: {q: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey), searchKey)), name: undefined, rawQuery: undefined, searchKey},
+        },
+        target: searchNavigatorStateKey,
+    });
+    if (tabNavigatorStateKeyToFocusSearchIn) {
+        navigationRef.dispatch({...TabActions.jumpTo(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR), target: tabNavigatorStateKeyToFocusSearchIn});
+    }
 }
 
 /** Opens a search as it was last seen, such as a saved search. */
@@ -59,5 +92,5 @@ function navigateToFlatNavSection(section: FlatNavSection, searchFilters: OnyxEn
 }
 
 export default navigateToCannedSpendSearch;
-export {navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab};
+export {navigateToFlatNavItem, navigateToFlatNavSection, navigateToSearch, navigateToSpendTab, showSpendTabSearchOnMountedSearchPage};
 export type {SpendTabSearchKey};
