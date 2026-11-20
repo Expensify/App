@@ -164,6 +164,7 @@ const translations = {
         saveChanges: 'Save changes',
         submit: 'Submit',
         submitAnyway: 'Submit anyway',
+        approveAnyway: 'Approve anyway',
         markAsDone: 'Mark as done',
         markAsDoneAnyway: 'Mark as done anyway',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
@@ -526,6 +527,14 @@ const translations = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} day`,
             other: (count: number) => `${formattedCount ?? count} days`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hour`,
+            other: (count: number) => `${formattedCount ?? count} hours`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minute`,
+            other: (count: number) => `${formattedCount ?? count} minutes`,
         }),
         rename: 'Rename',
         address: 'Address',
@@ -1373,6 +1382,12 @@ const translations = {
         },
     },
     insightsPage: {
+        generatingAIInsights: 'Generating AI Insights...',
+        generatingAIInsightsSubtitle: "This shouldn't take more than a minute",
+        readingChart: (chartTitle: string) => `Reading ${chartTitle}`,
+        comparingWithYourAverage: 'Comparing with your average',
+        lookingForAnythingUnusual: 'Looking for anything unusual',
+        writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
         parent: 'Parent',
@@ -1713,6 +1728,10 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
+        confirmApproveReportViolations: {
+            title: 'Approve anyway?',
+            description: 'This report has policy violations. Are you sure you want to approve it without making changes?',
+        },
         confirmSubmitReportViolations: {
             title: 'Submit report?',
             description: 'This report has policy violations. Are you sure you want to submit it without making changes?',
@@ -1856,6 +1875,7 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `started payment, but is waiting for ${vendorDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -3373,7 +3393,12 @@ const translations = {
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
             payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
+            payingMultipleReportsSubtitle: 'None of these reports could be paid because the company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pay with x${lastFour}` : 'Pay with bank account'),
+            description: 'These reports weren’t paid with the bank account because they require global reimbursements. Get started with the process below.',
         },
         wiseGlobalReimbursementsBanner: {
             title: 'Pay people worldwide',
@@ -7890,9 +7915,17 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            visibleTo: 'Visible to',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Can’t remove access to ${categoryName}`,
+                bulkRemoveAccessTitle: 'Can’t remove access to these categories',
                 description: ({count}: {count: number}) => ({
                     one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
                     other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
@@ -9381,11 +9414,52 @@ const translations = {
             governmentRateCountrySelectionPrompt: 'To continue using the auto-update government distance rates feature, please confirm which country you want to use going forward.',
             currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
                 `Heads up! Changing the workspace currency to ${currency} will start using the government mileage rates ${countryPhrase} publishes instead. Are you sure you want to proceed?`,
+            addRatePage: {
+                basedOnDefaultCurrency: '<muted-text-label>Based on default currency set in <a href="#">Workspace &gt; Overview</a></muted-text-label>',
+                setInDistanceRateSettings: '<muted-text-label>Set in <a href="#">Distance rates &gt; Settings</a></muted-text-label>',
+                whichCountry: 'Which country is this rate for?',
+                otherCountry: 'Other country',
+                whatKindOfRate: 'What kind of rate?',
+                government: 'Government',
+                custom: 'Custom',
+                matchesAuthority: (authority: string) => `Matches ${authority} and updates automatically when it changes.`,
+                alreadyHasGovernmentRate: 'This workspace already has a government rate.',
+                governmentRateAuthorities: {
+                    US: 'the IRS',
+                    CA: 'the CRA',
+                    GB: 'HMRC',
+                    AU: 'the ATO',
+                    NO: 'the state rate',
+                    SE: 'Skatteverket',
+                    ZA: 'SARS',
+                    AT: 'the BMF',
+                    BE: 'FPS BOSA',
+                    FI: 'Vero',
+                    DE: 'the BMF',
+                    NL: 'the Belastingdienst',
+                    PT: 'the AT',
+                    ES: 'the AEAT',
+                },
+                noGovernmentRateNotes: {
+                    FR: 'France’s barème varies by fiscal horsepower and annual distance, with a formula above 5,000 km.',
+                    IT: 'Italy’s ACI rates are looked up per make, model and fuel type.',
+                    GR: 'Greece has no government rate for private employers.',
+                    BG: 'Bulgaria reimburses fuel at the car’s consumption norm, not a per-km rate.',
+                    SK: 'Slovakia pays a flat amount plus fuel, which doesn’t fit one per-km rate.',
+                    CZ: 'Czechia pays a flat amount plus fuel, which doesn’t fit one per-km rate.',
+                    HU: 'Hungary pays a flat amount plus fuel at monthly official prices, which doesn’t fit one per-km rate.',
+                    RO: 'Romania reimburses fuel at a consumption norm, not a per-km rate.',
+                    SG: 'Singapore has no government rate. Employers set their own.',
+                    HK: 'Hong Kong has no government rate. Employers set their own.',
+                },
+                noGovernmentRateForOtherCountry: 'There’s no government rate for this country yet.',
+                noGovernmentRateForCountry: (country: string) => `There’s no government rate for ${country} yet.`,
+            },
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
-                nameRequired: 'Name is required',
-                amountRequired: 'Amount is required',
+                nameRequired: 'Name is required.',
+                amountRequired: 'Amount is required.',
                 startDateMustBeBeforeEndDate: 'Start date must be before end date',
             },
         },
@@ -9401,6 +9475,10 @@ const translations = {
             timezoneInputLabel: 'Timezone',
             timezoneInputHelpText: 'Your timezone is used for automatic report submission',
             timezoneErrorMessage: "Timezone couldn't be changed. Please try again or contact support.",
+            directReimbursementCurrencyTitle: 'Currency not available with direct reimbursement',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `This workspace reimburses members directly through Expensify, which isn't available in ${currency}. To use ${currency}, go to Workflows and turn Payments off and back on, so payments are made outside Expensify.`,
+            goToWorkflows: 'Go to workflows',
             currencyInputDisabledText: (currency: string) => `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
@@ -10665,11 +10743,11 @@ const translations = {
             `added ${fieldType} report field "${fieldName}"${defaultValue ? ` with default value "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `changed the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newValue} (${newTaxPercentage})" (previously "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newTaxRate}" (previously "${oldTaxRate}")`;
             }
-            return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
+            return `added the tax rate "${newTaxRate}" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11343,6 +11421,10 @@ const translations = {
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
+            tooManyKeywords: `Your search has too many keywords. Use ${CONST.SEARCH.MAX_KEYWORD_TOKENS} or fewer keywords and try again.`,
+            unsupportedGrouping: "This search doesn't support grouping or chart views. Remove the grouping and use table view.",
+            invalidReportID: 'Enter a valid report ID. To find unreported expenses, use status:unreported.',
+            unsupportedFilter: `The "is:" filter isn't supported for this search. To find unreported expenses, use status:unreported.`,
             emptyResults: {
                 title: 'Nothing to show',
                 subtitle: `Try adjusting your search criteria or creating something with the + button.`,

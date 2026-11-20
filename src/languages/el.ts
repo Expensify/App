@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
         submitAnyway: 'Υποβολή ούτως ή άλλως',
+        approveAnyway: 'Έγκριση ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
         markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
@@ -577,6 +578,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} ημέρα`,
             other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ώρα`,
+            other: (count: number) => `${formattedCount ?? count} ώρες`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} λεπτό`,
+            other: (count: number) => `${formattedCount ?? count} λεπτά`,
         }),
         amount: 'Ποσό',
     },
@@ -1338,6 +1347,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        generatingAIInsights: 'Δημιουργία AI Insights...',
+        generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
+        readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
+        comparingWithYourAverage: 'Σύγκριση με τον μέσο όρο σας',
+        lookingForAnythingUnusual: 'Αναζητούμε οτιδήποτε ασυνήθιστο',
+        writingYourInsights: 'Καταγράφετε τις ιδέες σας',
         violationStage: {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
@@ -1617,6 +1632,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
+        confirmApproveReportViolations: {
+            title: 'Έγκριση ούτως ή άλλως;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε βέβαιοι ότι θέλετε να την εγκρίνετε χωρίς να κάνετε αλλαγές;',
+        },
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
@@ -1752,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${vendorDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,
@@ -3366,6 +3386,12 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+            payingMultipleReportsSubtitle:
+                'Καμία από αυτές τις αναφορές δεν ήταν δυνατό να πληρωθεί, επειδή οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Πληρωμή με x${lastFour}` : 'Πληρωμή με τραπεζικό λογαριασμό'),
+            description: 'Αυτές οι αναφορές δεν πληρώθηκαν με τον τραπεζικό λογαριασμό, επειδή απαιτούν παγκόσμιες αποζημιώσεις. Ξεκινήστε τη διαδικασία παρακάτω.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
         wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
@@ -7367,9 +7393,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            visibleTo: 'Ορατό σε',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η κατάργηση πρόσβασης στην κατηγορία ${categoryName}`,
+                bulkRemoveAccessTitle: 'Δεν είναι δυνατή η κατάργηση πρόσβασης σε αυτές τις κατηγορίες',
                 description: ({count}: {count: number}) => ({
                     one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
                     other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
@@ -8837,8 +8871,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errors: {
                 rateNameRequired: 'Απαιτείται όνομα τιμής',
                 existingRateName: 'Υπάρχει ήδη ένα τιμολόγιο απόστασης με αυτό το όνομα',
-                nameRequired: 'Το όνομα είναι υποχρεωτικό',
-                amountRequired: 'Το ποσό είναι υποχρεωτικό',
+                nameRequired: 'Απαιτείται όνομα.',
+                amountRequired: 'Το ποσό είναι υποχρεωτικό.',
                 startDateMustBeBeforeEndDate: 'Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης',
             },
             autoGeneratedRateTooltip: 'Αυτός ο συντελεστής δημιουργείται αυτόματα.',
@@ -8868,6 +8902,47 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 'Για να συνεχίσετε να χρησιμοποιείτε τη λειτουργία αυτόματης ενημέρωσης κρατικών τιμών απόστασης, επιβεβαιώστε ποια χώρα θέλετε να χρησιμοποιείτε στο εξής.',
             currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
                 `Προσοχή! Η αλλαγή του νομίσματος του χώρου εργασίας σε ${currency} θα χρησιμοποιεί πλέον τις κρατικές χιλιομετρικές τιμές που δημοσιεύει ${countryPhrase}. Είστε βέβαιοι ότι θέλετε να συνεχίσετε;`,
+            addRatePage: {
+                basedOnDefaultCurrency: '<muted-text-label>Βάσει του προεπιλεγμένου νομίσματος που έχει οριστεί στο <a href="#">χώρο εργασίας &gt; επισκόπηση</a></muted-text-label>',
+                setInDistanceRateSettings: '<muted-text-label>Ορίζεται στις <a href="#">Χρεώσεις χιλιομετρικής απόστασης &gt; Ρυθμίσεις</a></muted-text-label>',
+                whichCountry: 'Για ποια χώρα ισχύει αυτός ο συντελεστής;',
+                otherCountry: 'Άλλη χώρα',
+                whatKindOfRate: 'Τι είδους επιτόκιο;',
+                government: 'Κυβέρνηση',
+                custom: 'Προσαρμοσμένο',
+                matchesAuthority: (authority: string) => `Ταιριάζει με τον/την ${authority} και ενημερώνεται αυτόματα όταν αυτός/αυτή αλλάζει.`,
+                alreadyHasGovernmentRate: 'Αυτός ο χώρος εργασίας έχει ήδη κυβερνητικό τιμολόγιο.',
+                governmentRateAuthorities: {
+                    US: 'η IRS',
+                    CA: 'η CRA',
+                    GB: 'HMRC',
+                    AU: 'η ATO',
+                    NO: 'ο κρατικός συντελεστής',
+                    SE: 'Skatteverket',
+                    ZA: 'SARS',
+                    AT: 'η BMF',
+                    BE: 'FPS BOSA',
+                    FI: 'Βέρο',
+                    DE: 'η BMF',
+                    NL: 'η Belastingdienst',
+                    PT: 'το AT',
+                    ES: 'η AEAT',
+                },
+                noGovernmentRateNotes: {
+                    FR: 'Η κλίμακα (barème) της Γαλλίας διαφέρει ανάλογα με τη φορολογική ιπποδύναμη και την ετήσια απόσταση, με ειδικό τύπο για πάνω από 5.000 χλμ.',
+                    IT: 'Οι τιμές ACI της Ιταλίας αναζητούνται ανά μάρκα, μοντέλο και τύπο καυσίμου.',
+                    GR: 'Η Ελλάδα δεν διαθέτει κρατικό συντελεστή για ιδιωτικούς εργοδότες.',
+                    BG: 'Η Βουλγαρία αποζημιώνει τα καύσιμα με βάση την κατανάλωση του αυτοκινήτου, όχι με χρέωση ανά χιλιόμετρο.',
+                    SK: 'Η Σλοβακία καταβάλλει ένα σταθερό ποσό συν καύσιμα, που δεν αντιστοιχεί σε μία ενιαία χρέωση ανά χιλιόμετρο.',
+                    CZ: 'Η Τσεχία πληρώνει ένα σταθερό ποσό συν καύσιμα, κάτι που δεν αντιστοιχεί σε μία χρέωση ανά χλμ.',
+                    HU: 'Η Ουγγαρία καταβάλλει ένα σταθερό ποσό συν καύσιμα στις μηνιαίες επίσημες τιμές, κάτι που δεν αντιστοιχεί σε μία χρέωση ανά χιλιόμετρο.',
+                    RO: 'Η Ρουμανία αποζημιώνει τα καύσιμα με βάση πρότυπη κατανάλωση και όχι με χρέωση ανά χιλιόμετρο.',
+                    SG: 'Η Σιγκαπούρη δεν έχει κρατικό συντελεστή. Οι εργοδότες ορίζουν τον δικό τους.',
+                    HK: 'Το Χονγκ Κονγκ δεν έχει κρατικό συντελεστή. Οι εργοδότες ορίζουν τον δικό τους.',
+                },
+                noGovernmentRateForOtherCountry: 'Δεν υπάρχει ακόμη κρατική τιμή για αυτήν τη χώρα.',
+                noGovernmentRateForCountry: (country: string) => `Δεν υπάρχει ακόμη κρατική τιμή για την ${country}.`,
+            },
         },
         editor: {
             descriptionInputLabel: 'Περιγραφή',
@@ -8889,6 +8964,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             timezoneInputLabel: 'Ζώνη ώρας',
             timezoneInputHelpText: 'Η ζώνη ώρας σας χρησιμοποιείται για την αυτόματη υποβολή αναφορών',
             timezoneErrorMessage: 'Δεν ήταν δυνατή η αλλαγή της ζώνης ώρας. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
+            directReimbursementCurrencyTitle: 'Το νόμισμα δεν είναι διαθέσιμο με την άμεση αποζημίωση',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Αυτός ο χώρος εργασίας αποζημιώνει τα μέλη απευθείας μέσω του Expensify, κάτι που δεν είναι διαθέσιμο σε ${currency}. Για να χρησιμοποιήσετε ${currency}, μεταβείτε στις Ροές εργασιών και απενεργοποιήστε και ενεργοποιήστε ξανά τις Πληρωμές, ώστε οι πληρωμές να γίνονται εκτός Expensify.`,
+            goToWorkflows: 'Μετάβαση στις ροές εργασιών',
         },
         officeLocations: {
             title: 'Τοποθεσίες γραφείων',
@@ -10541,11 +10620,11 @@ ${reportName}`,
             `προστέθηκε πεδίο αναφοράς ${fieldType} «${fieldName}»${defaultValue ? `με προεπιλεγμένη τιμή «${defaultValue}»` : ''}`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `άλλαξε την τιμή του ${customUnitName} ${updatedField} «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newValue} (${newTaxPercentage})» (προηγουμένως «${oldValue} (${oldTaxPercentage})»)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newTaxRate}» (προηγουμένως «${oldTaxRate}»)`;
             }
-            return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
+            return `προστέθηκε ο φορολογικός συντελεστής «${newTaxRate}» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11218,6 +11297,10 @@ ${reportName}`,
         appliedFilters: 'Εφαρμοσμένα φίλτρα',
         resetFilters: 'Επαναφορά φίλτρων',
         searchResults: {
+            tooManyKeywords: `Η αναζήτησή σου έχει πάρα πολλές λέξεις-κλειδιά. Χρησιμοποίησε έως ${CONST.SEARCH.MAX_KEYWORD_TOKENS} λέξεις-κλειδιά και δοκίμασε ξανά.`,
+            unsupportedGrouping: 'Αυτή η αναζήτηση δεν υποστηρίζει ομαδοποίηση ή προβολή γραφήματος. Αφαίρεσε την ομαδοποίηση και χρησιμοποίησε την προβολή πίνακα.',
+            invalidReportID: 'Εισήγαγε ένα έγκυρο αναγνωριστικό αναφοράς. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
+            unsupportedFilter: 'Το φίλτρο "is:" δεν υποστηρίζεται για αυτήν την αναζήτηση. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
             emptyResults: {
                 title: 'Τίποτα προς εμφάνιση',
                 subtitle: `Δοκιμάστε να προσαρμόσετε τα κριτήρια αναζήτησής σας ή να δημιουργήσετε κάτι με το κουμπί +.`,

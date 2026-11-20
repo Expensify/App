@@ -57,6 +57,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const UBER_REVOKE_URL = 'https://business.uber.com/revoke';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
@@ -809,6 +810,7 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    UBER_REVOKE_URL,
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
@@ -851,6 +853,8 @@ const CONST = {
         // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
         // for, so English output is unchanged, while other languages stop being forced into the US component order.
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
+        SECONDS_PER_MINUTE: 60,
+        SECONDS_PER_HOUR: 60 * 60,
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -1644,6 +1648,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
@@ -1911,6 +1916,7 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
         EUR: 'EUR',
+        SGD: 'SGD',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
     // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
@@ -1918,6 +1924,11 @@ const CONST = {
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
+    },
+    // The server only lets a workspace with Direct reimbursement switch to these currencies. The list copies the server's own
+    // direct reimbursement list, which also includes SGD, so it is kept apart from DIRECT_REIMBURSEMENT_CURRENCIES above.
+    get CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE() {
+        return [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD];
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
@@ -2912,6 +2923,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        CONTEXT_NEWDOT_SCREEN: 'NewDot Screen',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
         BREADCRUMB_CATEGORY_MFA: 'mfa',
@@ -3029,6 +3041,7 @@ const CONST = {
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
+        SPAN_OPEN_CATEGORY_VISIBLE_TO: 'ManualOpenCategoryVisibleTo',
         SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -3151,6 +3164,8 @@ const CONST = {
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
         ATTRIBUTE_REQUEST_ID: 'request_id',
+        ATTRIBUTE_SEARCH_SNAPSHOT_COUNT: 'search_snapshot_count',
+        ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES: 'search_snapshot_entries',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -5649,7 +5664,6 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
-            GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
@@ -6040,6 +6054,15 @@ const CONST = {
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
+        // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for
+        DISTANCE_RATE_EURO_COUNTRIES: ['AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES'] as const,
+        DISTANCE_RATE_DEFAULT_EURO_COUNTRY: 'AT',
+        // Countries without a government rate whose reason is explained on the Add rate page
+        DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE: ['FR', 'IT', 'GR', 'BG', 'SK', 'CZ', 'HU', 'RO', 'SG', 'HK'] as const,
+        DISTANCE_RATE_KIND: {
+            GOVERNMENT: 'government',
+            CUSTOM: 'custom',
+        },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
             US: 'mi',
@@ -7587,6 +7610,7 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    TAB_BAR_LABEL_BOLD_PLACEHOLDER: 'tab-bar-label-bold-placeholder',
     COPYABLE_TEXT_ELEMENT: 'copyable-text',
     COPYABLE_ROW_ELEMENT: 'copyable-row',
     COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
@@ -7916,6 +7940,7 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            JUMP_TO: 'JUMP_TO',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
             POP: 'POP',
@@ -8455,6 +8480,13 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        // Keep in sync with FilterUtils::MAX_KEYWORD_TOKENS in Auth.
+        MAX_KEYWORD_TOKENS: 50,
+        QUERY_ERROR_UUID: {
+            TOO_MANY_KEYWORDS: '0e6765b2-f874-4750-b437-0a9b02ecf1d7',
+            INVALID_REPORT_ID: '4a98efa5-a7f8-4413-9b52-8dbee6aaa651',
+            UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
+        },
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
@@ -8592,7 +8624,6 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
-            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
             WORKFLOW_STAGE: 'workflow-stage',
@@ -8955,8 +8986,8 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
-                // Search never lists violation groups, so they get only the columns every group has
                 VIOLATION: {
+                    VIOLATION: this.TABLE_COLUMNS.GROUP_VIOLATION,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
@@ -9030,7 +9061,7 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION: [this.TABLE_COLUMNS.GROUP_VIOLATION, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
@@ -9173,6 +9204,7 @@ const CONST = {
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
             GROUP_APPROVER: 'groupApprover',
+            GROUP_VIOLATION: 'groupViolation',
             START_DATE: 'startDate',
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
@@ -9478,6 +9510,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
                 [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
+                [this.TABLE_COLUMNS.GROUP_VIOLATION]: 'group-violation',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };

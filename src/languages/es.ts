@@ -97,6 +97,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
         submitAnyway: 'Enviar de todos modos',
+        approveAnyway: 'Aprobar de todos modos',
         markAsDone: 'Marcar como listo',
         markAsDoneAnyway: 'Marcar como listo de todos modos',
         submitted: 'Enviado',
@@ -564,6 +565,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} día`,
             other: (count: number) => `${formattedCount ?? count} días`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hora`,
+            other: (count: number) => `${formattedCount ?? count} horas`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minutos`,
         }),
         amount: 'Importe',
     },
@@ -1286,6 +1295,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Más tiempo para pagar',
         share: 'Porcentaje de participación',
         averageDays: 'Días promedio',
+        generatingAIInsights: 'Generando información con IA...',
+        generatingAIInsightsSubtitle: 'Esto no debería llevar más de un minuto',
+        readingChart: (chartTitle: string) => `Leyendo ${chartTitle}`,
+        comparingWithYourAverage: 'Comparando con tu promedio',
+        lookingForAnythingUnusual: 'Buscando algo inusual',
+        writingYourInsights: 'Redactar tus ideas',
         violationStage: {
             label: 'Infracciones de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',
@@ -1545,6 +1560,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
+        confirmApproveReportViolations: {
+            title: '¿Aprobar de todas formas?',
+            description: 'Este informe tiene infracciones de la política. ¿Seguro que quieres aprobarlo sin hacer cambios?',
+        },
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',
             description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',
@@ -1692,6 +1711,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `inició el pago, pero está esperando a que ${vendorDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -3283,6 +3303,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Empieza',
             headerTitle: 'Reembolsos globales',
             payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
+            payingMultipleReportsSubtitle: 'No se pudo pagar ninguno de estos informes porque las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pagar con x${lastFour}` : 'Pagar con cuenta bancaria'),
+            description: 'Estos informes no se pagaron con la cuenta bancaria porque requieren reembolsos globales. Comienza el proceso a continuación.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
         wiseMoreInfoNeeded: 'Se necesita más información para habilitar los reembolsos globales',
@@ -7190,9 +7215,17 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'No se pueden eliminar ni deshabilitar todas las categorías',
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
+            visibleTo: 'Visible para',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 miembro',
+                other: `${count} miembros`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Elige qué miembros pueden usar la categoría ${categoryName} al enviar gastos.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `No se puede eliminar el acceso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'No se puede eliminar el acceso a estas categorías',
                 description: ({count}: {count: number}) => ({
                     one: '1 miembro se quedaría sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:',
                     other: `${count} miembros se quedarían sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:`,
@@ -8639,9 +8672,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             errors: {
                 rateNameRequired: 'El nombre de la tasa es obligatorio',
                 existingRateName: 'Ya existe una tasa de distancia con este nombre',
-                nameRequired: 'El nombre es obligatorio',
+                nameRequired: 'El nombre es obligatorio.',
                 startDateMustBeBeforeEndDate: 'La fecha de inicio debe ser anterior a la fecha de fin',
-                amountRequired: 'El importe es obligatorio',
+                amountRequired: 'El importe es obligatorio.',
             },
             amountPerUnit: (unit: string) => `Importe por ${unit}`,
             startDate: 'Fecha de inicio',
@@ -8673,6 +8706,47 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 'Para seguir usando la función de actualización automática de tasas de distancia gubernamentales, confirma qué país quieres usar en adelante.',
             currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
                 `¡Atención! Cambiar la moneda del espacio de trabajo a ${currency} hará que se usen las tasas de kilometraje gubernamentales que publica ${countryPhrase}. ¿Seguro que quieres continuar?`,
+            addRatePage: {
+                basedOnDefaultCurrency: '<muted-text-label>Según la divisa predeterminada establecida en <a href="#">Espacio de trabajo &gt; Resumen</a></muted-text-label>',
+                setInDistanceRateSettings: '<muted-text-label>Configurar en <a href="#">Tarifas de distancia &gt; Ajustes</a></muted-text-label>',
+                whichCountry: '¿Para qué país es esta tasa?',
+                otherCountry: 'Otro país',
+                whatKindOfRate: '¿Qué tipo de tasa?',
+                government: 'Gobierno',
+                custom: 'Personalizado',
+                matchesAuthority: (authority: string) => `Coincide con ${authority} y se actualiza automáticamente cuando cambie.`,
+                alreadyHasGovernmentRate: 'Este espacio de trabajo ya tiene una tarifa gubernamental.',
+                governmentRateAuthorities: {
+                    US: 'el IRS',
+                    CA: 'la ARC',
+                    GB: 'HMRC',
+                    AU: 'la ATO',
+                    NO: 'la tasa estatal',
+                    SE: 'Skatteverket',
+                    ZA: 'SARS',
+                    AT: 'la BMF',
+                    BE: 'FPS BOSA',
+                    FI: 'Vero',
+                    DE: 'la BMF',
+                    NL: 'la Belastingdienst',
+                    PT: 'el IVA',
+                    ES: 'la AEAT',
+                },
+                noGovernmentRateNotes: {
+                    FR: 'El baremo de Francia varía según la potencia fiscal y la distancia anual, con una fórmula específica a partir de los 5.000 km.',
+                    IT: 'Las tasas ACI de Italia se consultan según la marca, el modelo y el tipo de combustible.',
+                    GR: 'Grecia no tiene una tasa gubernamental para empleadores privados.',
+                    BG: 'Bulgaria reembolsa el combustible según el consumo normativo del coche, no según una tarifa por kilómetro.',
+                    SK: 'Eslovaquia paga una cantidad fija más el combustible, lo que no encaja en una única tasa por kilómetro.',
+                    CZ: 'Chequia paga una cantidad fija más combustible, lo que no encaja en una única tasa por km.',
+                    HU: 'Hungría paga una cantidad fija más el combustible a los precios oficiales mensuales, lo que no encaja en una única tasa por kilómetro.',
+                    RO: 'Rumanía reembolsa el combustible según una norma de consumo, no una tasa por kilómetro.',
+                    SG: 'Singapur no tiene una tasa gubernamental. Los empleadores establecen la suya propia.',
+                    HK: 'Hong Kong no tiene una tasa oficial del gobierno. Los empleadores establecen la suya propia.',
+                },
+                noGovernmentRateForOtherCountry: 'Todavía no hay una tasa gubernamental para este país.',
+                noGovernmentRateForCountry: (country: string) => `Todavía no hay una tasa gubernamental para ${country}.`,
+            },
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -8692,6 +8766,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             timezoneInputLabel: 'Zona horaria',
             timezoneInputHelpText: 'Tu zona horaria se usa para el envío automático de informes',
             timezoneErrorMessage: 'No se pudo cambiar la zona horaria. Por favor, inténtalo de nuevo o contacta con soporte.',
+            directReimbursementCurrencyTitle: 'Moneda no disponible con el reembolso directo',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espacio de trabajo reembolsa a los miembros directamente a través de Expensify, lo cual no está disponible en ${currency}. Para usar ${currency}, ve a Flujos de trabajo y desactiva y vuelve a activar Realizar o seguir pagos, para que los pagos se hagan fuera de Expensify.`,
+            goToWorkflows: 'Ir a flujos de trabajo',
         },
         officeLocations: {
             title: 'Ubicaciones de oficinas',
@@ -10263,11 +10341,11 @@ ${reportName}`,
             `añadió el campo de informe ${fieldType} "${fieldName}"${defaultValue ? ` con el valor predeterminado "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue) => {
-            if (oldTaxPercentage && oldValue) {
-                return `cambió la tasa de impuesto en la tasa por distancia "${customUnitRateName}" a "${newValue} (${newTaxPercentage})" (previamente "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `cambió la tasa de impuestos en la tasa de distancia «${customUnitRateName}» a «${newTaxRate}» (previamente «${oldTaxRate}»)`;
             }
-            return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
+            return `añadió la tasa de impuesto "${newTaxRate}" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName, newValue, oldValue) => {
             if (oldValue !== undefined) {
@@ -10932,6 +11010,10 @@ ${reportName}`,
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
+            tooManyKeywords: `Tu búsqueda tiene demasiadas palabras clave. Usa ${CONST.SEARCH.MAX_KEYWORD_TOKENS} o menos e inténtalo de nuevo.`,
+            unsupportedGrouping: 'Esta búsqueda no admite agrupaciones ni vistas de gráficos. Quita la agrupación y usa la vista de tabla.',
+            invalidReportID: 'Introduce un ID de informe válido. Para buscar gastos sin reportar, usa status:unreported.',
+            unsupportedFilter: 'El filtro "is:" no es compatible con esta búsqueda. Para buscar gastos sin reportar, usa status:unreported.',
             emptyResults: {
                 title: 'No hay nada que ver aquí',
                 subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón +.`,
