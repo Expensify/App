@@ -49,6 +49,9 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Pending domain adminship requests, keyed by requester accountID. Requesters see only their own entry. */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     domain_adminRequesters?: Record<string, 'read' | null>;
+
+    /** Backend-owned limit increase request marker; cleared when underwriting finishes. */
+    private_limitRequestInProgress?: boolean | number | string | null;
 }> &
     PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
     PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> &
