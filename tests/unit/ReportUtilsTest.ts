@@ -29477,6 +29477,25 @@ describe('ReportUtils', () => {
             // Then it shows as negative, matching how the Amount column shows a tracked refund
             expect(displayAmount).toBe(-500);
         });
+
+        it('falls back to the displayed amount when the server has not sent a workspace amount yet', () => {
+            // Given an expense created offline on an expense report, which has no workspace amount until the next search
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                amount: -1000,
+                modifiedAmount: -1000,
+                currency: 'EUR',
+                policyConvertedAmount: undefined,
+                policyCurrency: undefined,
+            };
+
+            // When its workspace amount is read for display
+            const displayAmount = getTransactionPolicyConvertedDisplayAmount(transaction, expenseReport, undefined);
+
+            // Then it shows its own amount, signed like the Amount column
+            expect(displayAmount).toBe(1000);
+        });
     });
 
     describe('getTransactionDetails', () => {

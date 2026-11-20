@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, getTransactionDisplayAmount, getTransactionPolicyConvertedDisplayAmount, isCurrentUserSubmitter, isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {getReimbursableTotal, getTransactionPolicyConvertedDisplayAmount, isCurrentUserSubmitter, isExpenseReport, isSettled} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -589,12 +589,9 @@ function TransactionItemRowWide({
             case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT: {
                 const effectiveReport = report ?? transactionItem.report;
                 const effectivePolicy = policy ?? transactionItem.policy;
-                const hasPolicyConvertedAmount = transactionItem.policyConvertedAmount != null;
-                // Expenses created offline have no workspace amount from the server yet, so they show their own amount and currency until the next search.
-                const convertedAmount = hasPolicyConvertedAmount
-                    ? getTransactionPolicyConvertedDisplayAmount(transactionItem, effectiveReport, effectivePolicy)
-                    : getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
-                const convertedCurrency = (hasPolicyConvertedAmount ? transactionItem.policyCurrency : undefined) ?? getCurrency(transactionItem);
+                const convertedAmount = getTransactionPolicyConvertedDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
+                // Expenses created offline have no workspace amount from the server yet, so they show their own currency until the next search.
+                const convertedCurrency = (transactionItem.policyConvertedAmount != null ? transactionItem.policyCurrency : undefined) ?? getCurrency(transactionItem);
                 // A failed scan leaves a placeholder amount that the Amount column hides, so this column hides it too.
                 const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem, isSettled(effectiveReport));
                 return (

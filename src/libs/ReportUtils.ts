@@ -5999,10 +5999,14 @@ function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>,
 
 /**
  * Returns the transaction amount in its workspace's output currency, signed the same way as getTransactionDisplayAmount.
+ * Expenses created offline have no workspace amount from the server yet, so they return their own amount until the next search.
  */
 function getTransactionPolicyConvertedDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    if (transaction?.policyConvertedAmount == null) {
+        return getTransactionDisplayAmount(transaction, report, policy);
+    }
     const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
-    return getAmountWithDisplaySign(transaction?.policyConvertedAmount ?? 0, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+    return getAmountWithDisplaySign(transaction.policyConvertedAmount, isFromExpenseReport, isFromTrackedExpense, allowNegative);
 }
 
 /**
