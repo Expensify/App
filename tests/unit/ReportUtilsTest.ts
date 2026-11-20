@@ -12929,7 +12929,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false, undefined, false);
+            const result = findLastAccessedReport(false, undefined, false, false, undefined, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -12968,7 +12968,7 @@ describe('ReportUtils', () => {
 
         it('should resolve a report from the passed collection while the stored reports are still empty', () => {
             // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
-            expect(findLastAccessedReport(false, undefined, false)).toBeUndefined();
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)).toBeUndefined();
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
@@ -12981,7 +12981,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)?.reportID).toBe(storedReport.reportID);
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
@@ -12994,7 +12994,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)?.reportID).toBe(storedReport.reportID);
         });
     });
 

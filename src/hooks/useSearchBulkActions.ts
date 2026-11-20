@@ -1668,6 +1668,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         } else {
@@ -1723,6 +1724,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         }
@@ -1751,6 +1753,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateTransactions,
         duplicateTransactionViolations,
         delegateAccountID,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(

@@ -25,7 +25,14 @@ import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/action
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
+import {
+    canMergeReports,
+    doReportsHaveMatchingReportFieldValues,
+    getMoneyRequestSpendBreakdown,
+    getPersonalDetailsForAccountID,
+    isArchivedReport,
+    isReportExportedOrPending,
+} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -190,6 +197,9 @@ function SearchMergeReports() {
         }
 
         const policyID = destinationReport.policyID;
+        const sourceParentReportID = sourceReportIDs
+            .map((sourceReportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`]?.parentReportID)
+            .find((parentReportID): parentReportID is string => !!parentReportID);
         mergeReports({
             isVendorMatchingBetaEnabled,
             destinationReportID,
@@ -215,6 +225,8 @@ function SearchMergeReports() {
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            // Match the first source report parent chat ID that clearChatIOUReportID resolves.
+            isChatReportArchived: isArchivedReport(sourceParentReportID ? reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${sourceParentReportID}`] : undefined),
             personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
 

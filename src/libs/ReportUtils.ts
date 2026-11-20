@@ -2658,20 +2658,19 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
 
 /**
  * Finds the last accessed report for navigation fallbacks using the module-scoped
- * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
- * `reports` let a caller pass its own subscribed collections and fall back to the
- * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reports` lets a caller pass
+ * its own subscribed collection and fall back to the module-scoped copy when omitted.
+ * Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
     isAnonymousUser: boolean,
-    openOnAdminRoom = false,
-    excludeReportID?: string,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    openOnAdminRoom: boolean | undefined,
+    excludeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
-    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
 
     if (openOnAdminRoom) {
@@ -2695,7 +2694,7 @@ function findLastAccessedReport(
 
         // Filter out the system chat (Expensify chat) because the composer is disabled in it,
         // and it prompts the user to use the Concierge chat instead.
-        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     };
     const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUser);
 
@@ -3846,6 +3845,7 @@ function hasOutstandingChildRequest(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchivedParam?: boolean,
 ) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -3854,7 +3854,7 @@ function hasOutstandingChildRequest(
     // Tech debt: reading from the module-level allReportNameValuePair cache is deprecated — the chat report's archived
     // state should be threaded down from this function's callers (useReportIsArchived in components) instead.
     // TODO: https://github.com/Expensify/App/issues/66422
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
+    const isChatReportArchived = isChatReportArchivedParam ?? isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
 
     const excludedReportIDSet = new Set<string>();
     if (typeof iouReportOrIDorArray === 'string') {
