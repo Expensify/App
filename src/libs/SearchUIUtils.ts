@@ -121,6 +121,7 @@ import type {CardFeedForDisplay} from './CardFeedUtils';
 import type {ReportKey, SearchKey} from './SearchKeyUtils';
 import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
+import {getExportedToDisplayName} from './AccountingUtils';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {createTransactionThreadReport} from './actions/Report';
 import {getReportActionsFromSearchSnapshot, setOptimisticDataForTransactionThreadPreview} from './actions/Search';
@@ -7165,6 +7166,10 @@ function getDisplayValue(
     if (key === FILTER_KEYS.TRANSACTION_STATUS) {
         const transactionStatus = form[key];
         return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
+    }
+
+    if (key === FILTER_KEYS.EXPORTED_TO || key === FILTER_KEYS.EXPORTED_TO_NOT) {
+        return form[key]?.map(getExportedToDisplayName).join(', ');
     }
 
     const formValue = form[key];

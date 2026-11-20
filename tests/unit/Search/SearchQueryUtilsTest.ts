@@ -4227,6 +4227,26 @@ describe('SearchQueryUtils', () => {
         const mockReports = {};
         const currentUserAccountID = 12345;
 
+        it('preserves literal prefixes in editable Search syntax', () => {
+            // Given an existing template whose name starts with template:
+            // When displaying its exported-to value
+            // Then leave the literal name intact
+            expect(
+                getFilterDisplayValue({
+                    filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                    filterValue: 'template:NetSuite',
+                    personalDetails: {},
+                    reports: {},
+                    cardList: {},
+                    cardFeeds: {},
+                    policies: {},
+                    currentUserAccountID,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                }),
+            ).toBe('template:NetSuite');
+        });
+
         it('should return clean phone number without @expensify.sms for SMS login users', () => {
             const personalDetails = {
                 '99999': {
@@ -7554,5 +7574,53 @@ describe('SearchQueryUtils', () => {
 
             expect(resolvePolicyIDFromName('Acme, Inc.', duplicates)).toBe('Acme, Inc.');
         });
+    });
+});
+
+describe('template destination queries', () => {
+    it.each(['template:Budget', 'template:NetSuite'])('preserves an existing literal template name %s when applying filters', (name) => {
+        // Given a saved search for a template whose name already contains the old marker
+        const query = buildSearchQueryJSON(`exported-to:${name}`);
+        if (!query) {
+            throw new Error('Expected valid query');
+        }
+        // When opening and applying Advanced filters
+        const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {}, [`template:${name}`]);
+        const updatedQuery = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(form));
+        // Then preserve the complete template name in the backend filter
+        expect(form.exportedTo).toEqual([`template:${name}`]);
+        expect(updatedQuery?.filters).toEqual({operator: 'eq', left: 'exportedToTemplate', right: name});
+    });
+
+    it.each([false, true])('round-trips mixed destinations with negation=%s', (isNegated) => {
+        // Given both destinations selected in the same picker
+        const key = isNegated ? FILTER_KEYS.EXPORTED_TO_NOT : FILTER_KEYS.EXPORTED_TO;
+        // When applying and reopening the filters
+        const values: Partial<SearchAdvancedFiltersForm> = isNegated ? {exportedToNot: ['NetSuite', 'template:NetSuite']} : {exportedTo: ['NetSuite', 'template:NetSuite']};
+        const query = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(values));
+        if (!query) {
+            throw new Error('Expected valid query');
+        }
+        const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {}, ['NetSuite', 'template:NetSuite']);
+        // Then positive selections match either destination and negative selections exclude both
+        expect(query.filters).toEqual({
+            operator: isNegated ? 'and' : 'or',
+            left: {operator: isNegated ? 'neq' : 'eq', left: 'exportedTo', right: 'NetSuite'},
+            right: {operator: isNegated ? 'neq' : 'eq', left: 'exportedToTemplate', right: 'NetSuite'},
+        });
+        expect(form[key]).toEqual(['NetSuite', 'template:NetSuite']);
+    });
+
+    it.each(['NetSuite', 'Budget', 'template:Budget'])('keeps explicit template %s while cached templates load', (name) => {
+        // Given an explicit template filter and no cached picker options
+        const query = buildSearchQueryJSON(`exported-to-template:${name}`);
+        if (!query) {
+            throw new Error('Expected valid query');
+        }
+        // When opening Advanced filters
+        const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {}, []);
+        // Then applying the form cannot silently remove the template constraint
+        expect(form.exportedTo).toEqual([`template:${name}`]);
+        expect(buildSearchQueryJSON(buildQueryStringFromFilterFormValues(form))?.filters).toEqual(query.filters);
     });
 });

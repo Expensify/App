@@ -8,11 +8,14 @@ import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, R
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {EXPORT_TEMPLATE_SEARCH_PREFIX, getExportedToDisplayName} from './AccountingUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch, resolvePolicyIDFromName} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isGroupBySupportedBySearch, resolvePolicyIDFromName, sanitizeSearchValue} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
@@ -369,8 +372,10 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE:
+            return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
-            return knownValues.exportedTo.has(range.value);
+            return knownValues.exportedTo.has(range.value) || knownValues.exportedTo.has(`${EXPORT_TEMPLATE_SEARCH_PREFIX}${range.value}`);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
@@ -434,6 +439,14 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
+    if (fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO || fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE) {
+        const parsedQuery = parseForAutocomplete(textInputValue);
+        const activeRange = parsedQuery?.autocomplete ?? parsedQuery?.ranges.at(-1);
+
+        // Parser ranges distinguish commas inside quoted template names from value separators.
+        return activeRange?.key === fieldKey ? textInputValue.slice(0, activeRange.start) : getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
     const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
     if (nameFieldKey) {
@@ -464,7 +477,29 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
     return keyIndex !== -1 ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
 }
 
+/** Builds the query after choosing an autocomplete destination, preserving literal template names. */
+function getQueryWithAutocompleteSelection(textInputValue: string, fieldKey: string | undefined, selectedValue: string): string {
+    let queryPrefix = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
+    let value = selectedValue;
+    if (fieldKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO && selectedValue.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX)) {
+        value = getExportedToDisplayName(selectedValue);
+        const templateKey = CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE;
+        const header = /(?:exported-to|exportedTo)\s*[:=]\s*$/i;
+        // Template values use a separate key so an existing name beginning with "template:" stays literal.
+        if (header.test(queryPrefix)) {
+            queryPrefix = queryPrefix.replace(header, `${templateKey}:`);
+        } else {
+            const parsedQuery = parseForAutocomplete(textInputValue);
+            const activeRange = parsedQuery?.autocomplete ?? parsedQuery?.ranges.at(-1);
+            const negation = activeRange?.negated ? CONST.SEARCH.NOT_PREFIX : '';
+            queryPrefix = `${queryPrefix.replace(/,\s*$/, '')} ${negation}${templateKey}:`;
+        }
+    }
+    return `${queryPrefix}${sanitizeSearchValue(value)}\u00A0`;
+}
+
 export {
+    getQueryWithAutocompleteSelection,
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
     getAutocompletePolicyData,

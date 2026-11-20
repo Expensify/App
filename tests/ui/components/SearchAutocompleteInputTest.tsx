@@ -123,7 +123,9 @@ describe('SearchAutocompleteInput', () => {
         jest.mocked(useExportedToFilterOptions).mockImplementation((override) => {
             const scopedPolicies = getAllPolicyValues(override ?? {value: ['usd'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policies);
             return {
-                exportedToFilterOptions: scopedPolicies.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD) ? [standardTemplate, canadianTemplate] : [standardTemplate],
+                exportedToFilterOptions: scopedPolicies.some((policy) => policy.outputCurrency === CONST.CURRENCY.CAD)
+                    ? [`template:${standardTemplate}`, `template:${canadianTemplate}`]
+                    : [`template:${standardTemplate}`],
                 connectedIntegrationNames: new Set<string>(),
             };
         });

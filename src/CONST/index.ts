@@ -718,6 +718,9 @@ const CONST = {
 
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
+        NETSUITE_QUICKSTART: 'NetSuite QuickStart',
+        SAGE_ACCOUNTING: 'Sage Accounting',
+        ODOO: 'Odoo',
         INTUIT_ENTERPRISE_SUITE: 'Intuit Enterprise Suite',
         QBO: 'QuickBooks Online',
         QBD: 'QuickBooks Desktop',
@@ -9328,6 +9331,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            EXPORTED_TO_TEMPLATE: 'exportedToTemplate',
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
@@ -9426,6 +9430,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'report-field',
             EXPORTED_TO: 'exported-to',
+            EXPORTED_TO_TEMPLATE: 'exported-to-template',
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',

@@ -1,7 +1,13 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
 import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
-import {getAutocompletePolicyData, getTrimmedUserSearchQueryPreservingComma, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {
+    getAutocompletePolicyData,
+    getTrimmedUserSearchQueryPreservingComma,
+    getQueryWithAutocompleteSelection,
+    parseForAutocomplete,
+    parseForLiveMarkdown,
+} from '@libs/SearchAutocompleteUtils';
 import type {KnownFilterValues} from '@libs/SearchAutocompleteUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
@@ -72,8 +78,8 @@ describe('SearchAutocompleteUtils', () => {
             tags: new Set(['Project A', 'Project B', 'Urgent']),
             exportedTo: new Set<string>([
                 ...CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES,
-                CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-                CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
+                `template:${CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT}`,
+                `template:${CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT}`,
             ]),
         };
 
@@ -818,5 +824,28 @@ describe('ordinary autocomplete parser boundaries', () => {
         const result = parseForLiveMarkdown(query, '', {}, noKnownValues);
         // Then column equality, dynamic keys and unsupported key spelling retain their outcomes.
         expect(result).toEqual(expected);
+    });
+});
+
+describe('export destination autocomplete selection', () => {
+    it.each([
+        ['exported-to:Net', 'template:NetSuite', 'exported-to-template:NetSuite'],
+        ['-exported-to:Net', 'template:NetSuite', '-exported-to-template:NetSuite'],
+        ['exportedTo:Net', 'template:NetSuite', 'exported-to-template:NetSuite'],
+        ['exported-to:NetSuite,Net', 'template:NetSuite', 'exported-to:NetSuite exported-to-template:NetSuite'],
+        ['-exported-to:NetSuite,Net', 'template:NetSuite', '-exported-to:NetSuite -exported-to-template:NetSuite'],
+        ['exported-to:template:Bud', 'template:template:Budget', 'exported-to-template:template:Budget'],
+        ['exported-to:Net', 'NetSuite', 'exported-to:NetSuite'],
+        ['-exported-to:NetSuite,All Data', 'template:All Data - Expense Level Export', '-exported-to:NetSuite -exported-to-template:"All Data - Expense Level Export"'],
+        ['exported-to:"Budget, F"', 'template:Budget, FY2026', 'exported-to-template:"Budget, FY2026"'],
+        ['exported-to:NetSuite,"Budget, F"', 'template:Budget, FY2026', 'exported-to:NetSuite exported-to-template:"Budget, FY2026"'],
+        ['exported-to : Net', 'template:NetSuite', 'exported-to-template:NetSuite'],
+        ['-exported-to = Net', 'template:NetSuite', '-exported-to-template:NetSuite'],
+    ])('selects %s as %s', (input, selectedValue, expected) => {
+        // Given a partial exported-to query and a destination selected from the picker
+        // When inserting the suggestion through the router helper
+        const result = getQueryWithAutocompleteSelection(input, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, selectedValue);
+        // Then use a distinct query key and preserve literal template names
+        expect(result.trim()).toBe(expected);
     });
 });
