@@ -48,6 +48,7 @@ import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
+import ScreenWrapperTopInsetHeaderContext from './ScreenWrapperTopInsetHeaderContext';
 
 const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
@@ -143,6 +144,15 @@ function ScreenWrapper({
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
+    // A header that places itself in the top inset (see useTopInsetHeaderStyle) takes the top inset over from the screen.
+    const [topInsetHeaderCount, setTopInsetHeaderCount] = useState(0);
+    // Kept in state so it never changes identity, otherwise a header's layout effect would register again on every render.
+    const [registerTopInsetHeader] = useState(() => () => {
+        setTopInsetHeaderCount((count) => count + 1);
+        return () => setTopInsetHeaderCount((count) => count - 1);
+    });
+    const isHeaderInTopInset = includePaddingTop && topInsetHeaderCount > 0;
+    const topInsetHeaderContextValue = {isHeaderInTopInset, registerTopInsetHeader};
     const isMaxHeightEnabled = restContainerProps.shouldEnableMaxHeight ?? false;
     const statusContextValue = {
         didScreenTransitionEnd,
@@ -290,7 +300,7 @@ function ScreenWrapper({
                 didScreenTransitionEnd={didScreenTransitionEnd}
                 shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
                 enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPaddingProp}
-                includePaddingTop={includePaddingTop}
+                includePaddingTop={includePaddingTop && !isHeaderInTopInset}
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
                 shouldHideFromAccessibility={shouldHideFromAccessibility}
@@ -299,7 +309,7 @@ function ScreenWrapper({
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {ChildrenContent}
+                        <ScreenWrapperTopInsetHeaderContext.Provider value={topInsetHeaderContextValue}>{ChildrenContent}</ScreenWrapperTopInsetHeaderContext.Provider>
 
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}

@@ -18,12 +18,14 @@ namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
-// Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
+// Forward declaration of `HybridWindowBarsModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridWindowBarsModuleSpec; }
 // Forward declaration of `SharedFile` to properly resolve imports.
 namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
+// Forward declaration of `TopBarRegion` to properly resolve imports.
+namespace margelo::nitro::utils { struct TopBarRegion; }
 // Forward declaration of `VerticalBarEdge` to properly resolve imports.
 namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 
@@ -33,9 +35,10 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
-#include "HybridVerticalBarModuleSpec.hpp"
+#include "HybridWindowBarsModuleSpec.hpp"
 #include "SharedFile.hpp"
 #include "StringHolder.hpp"
+#include "TopBarRegion.hpp"
 #include "VerticalBarEdge.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
@@ -63,8 +66,8 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
-// Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
-namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
+// Forward declaration of `HybridWindowBarsModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridWindowBarsModuleSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")

@@ -12,7 +12,7 @@
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
 #include "HybridShareActionHandlerSpecSwift.hpp"
-#include "HybridVerticalBarModuleSpecSwift.hpp"
+#include "HybridWindowBarsModuleSpecSwift.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -97,27 +97,19 @@ namespace margelo::nitro::utils::bridge::swift {
     };
   }
   
-  // pragma MARK: std::function<void(VerticalBarEdge /* edge */)>
-  Func_void_VerticalBarEdge create_Func_void_VerticalBarEdge(void* NON_NULL swiftClosureWrapper) noexcept {
-    auto swiftClosure = ExpensifyNitroUtils::Func_void_VerticalBarEdge::fromUnsafe(swiftClosureWrapper);
-    return [swiftClosure = std::move(swiftClosure)](VerticalBarEdge edge) mutable -> void {
-      swiftClosure.call(static_cast<int>(edge));
-    };
+  // pragma MARK: std::shared_ptr<HybridWindowBarsModuleSpec>
+  std::shared_ptr<HybridWindowBarsModuleSpec> create_std__shared_ptr_HybridWindowBarsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift>(swiftPart);
   }
-  
-  // pragma MARK: std::shared_ptr<HybridVerticalBarModuleSpec>
-  std::shared_ptr<HybridVerticalBarModuleSpec> create_std__shared_ptr_HybridVerticalBarModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
-    ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
-    return std::make_shared<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift>(swiftPart);
-  }
-  void* NON_NULL get_std__shared_ptr_HybridVerticalBarModuleSpec_(std__shared_ptr_HybridVerticalBarModuleSpec_ cppType) {
-    std::shared_ptr<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridVerticalBarModuleSpecSwift>(cppType);
+  void* NON_NULL get_std__shared_ptr_HybridWindowBarsModuleSpec_(std__shared_ptr_HybridWindowBarsModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridWindowBarsModuleSpecSwift>(cppType);
     #ifdef NITRO_DEBUG
     if (swiftWrapper == nullptr) [[unlikely]] {
-      throw std::runtime_error("Class \"HybridVerticalBarModuleSpec\" is not implemented in Swift!");
+      throw std::runtime_error("Class \"HybridWindowBarsModuleSpec\" is not implemented in Swift!");
     }
     #endif
-    ExpensifyNitroUtils::HybridVerticalBarModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    ExpensifyNitroUtils::HybridWindowBarsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 
