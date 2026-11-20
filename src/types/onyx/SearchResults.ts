@@ -9,6 +9,7 @@ import type {
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -85,6 +86,9 @@ type SearchResultsInfo = {
      * failure. That verdict otherwise lives in component state, which a reload resets while the errored
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
+
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
 
     /** The number of results */
     count?: number;
@@ -276,41 +280,58 @@ type SearchTagGroup = SearchGroupBase & {
     parentTagPath?: string;
 };
 
-/** Model of day grouped search result */
-type SearchDayGroup = SearchGroupBase & {
-    /** Date in YYYY-MM-DD format */
-    day: string;
+/** Average time a time bucket's reports spent in each workflow stage, in seconds. Only Insights returns them, and each is null when no report completed that stage. */
+type SearchWorkflowStageDurations = {
+    /** From creation to submission */
+    submitAverageTime?: number | null;
+
+    /** From submission to approval */
+    approveAverageTime?: number | null;
+
+    /** From approval to payment */
+    reimburseAverageTime?: number | null;
 };
+
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Date in YYYY-MM-DD format */
+        day: string;
+    };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchMonthGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Month (1-12) */
-    month: number;
-};
+        /** Month (1-12) */
+        month: number;
+    };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = SearchGroupBase & {
-    /** Week start date in YYYY-MM-DD format */
-    week: string;
-};
+type SearchWeekGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Week start date in YYYY-MM-DD format */
+        week: string;
+    };
 
 /** Model of year grouped search result */
-type SearchYearGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
-};
+type SearchYearGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
+    };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchQuarterGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Quarter (1-4) */
-    quarter: number;
-};
+        /** Quarter (1-4) */
+        quarter: number;
+    };
 
 /** Model of approver grouped search result */
 type SearchApproverGroup = SearchGroupBase & {
@@ -410,6 +431,7 @@ export type {
     SearchTagGroup,
     SearchDayGroup,
     SearchMonthGroup,
+    SearchWorkflowStageDurations,
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
