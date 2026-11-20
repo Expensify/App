@@ -8,7 +8,8 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {checkMultiple} from 'react-native-permissions';
+import {Alert} from 'react-native';
+import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 
 import {EntrustIdv} from '../../__mocks__/@entrust.corporation/idvsdk-reactnative';
 
@@ -133,17 +134,25 @@ describe('Onfido (native)', () => {
         expect(onError).toHaveBeenCalledWith('Token expired');
     });
 
-    it('checks permissions when iOS reports a denied camera', () => {
-        // Given a running flow on iOS
+    it('shows the camera alert when iOS reports a denied camera', async () => {
+        // Given a running flow on iOS where the camera is blocked and the microphone is allowed
+        const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+        // The shared react-native-permissions mock returns a plain object, but the component chains `.then`, so this test resolves a promise.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the two permissions the component asks for are needed
+        jest.mocked(checkMultiple).mockResolvedValueOnce({
+            [PERMISSIONS.IOS.CAMERA]: RESULTS.BLOCKED,
+            [PERMISSIONS.IOS.MICROPHONE]: RESULTS.GRANTED,
+        } as Awaited<ReturnType<typeof checkMultiple>>);
         const {callbacks, onError} = renderOnfido();
 
         // When the SDK reports a denied camera the way iOS sends it: the type is an encoded Swift enum case, and there is no category
-        act(() => {
+        await act(async () => {
             callbacks.onError?.({type: {cameraPermissionDenied: {}}, message: 'Flow error due to camera permission being declined at app-level'});
         });
 
-        // Then the camera and microphone permissions are checked so the user can be sent to Settings, instead of a generic error being shown
+        // Then the camera alert is shown so the user can open Settings, instead of a generic error
         expect(checkMultiple).toHaveBeenCalledTimes(1);
+        expect(alertSpy).toHaveBeenCalledTimes(1);
         expect(onError).not.toHaveBeenCalled();
     });
 });
