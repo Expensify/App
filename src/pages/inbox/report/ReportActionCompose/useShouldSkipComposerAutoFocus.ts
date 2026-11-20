@@ -3,6 +3,8 @@ import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
 
+import {useActionListReady} from '@pages/inbox/ActionListContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -24,12 +26,18 @@ const hasExpenseCarouselSelector = (transactionIDs: string[] | undefined) => (tr
  * A report with a single expense is shown as that expense's view.
  */
 function useShouldSkipComposerAutoFocus(report: OnyxEntry<Report>): boolean {
+    const {isReady} = useActionListReady();
     // Read off the context because `useRoute` throws outside a screen.
     const routeName = useContext(NavigationRouteContext)?.name;
     const [hasExpenseCarousel = false] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {selector: hasExpenseCarouselSelector});
 
     const isExpenseView = isReportTransactionThread(report) || isOneTransactionReport(report);
-    return isWeb && routeName !== SCREENS.REPORT && hasExpenseCarousel && isExpenseView;
+    if (!isReady) {
+        return true;
+    }
+
+    const shouldPreserveExpenseNavigation = isWeb && routeName !== SCREENS.REPORT && hasExpenseCarousel && isExpenseView;
+    return shouldPreserveExpenseNavigation;
 }
 
 export default useShouldSkipComposerAutoFocus;

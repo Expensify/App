@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
+index d4c4bb9..1d75f58 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
+@@ -98,6 +98,7 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+       if (deltaX != 0) {
+         val scrollX = scrollView.scrollX
+         scrollView.scrollToPreservingMomentum(scrollX + deltaX, scrollView.scrollY)
++        scrollView.invalidate()
+         this.prevFirstVisibleFrame = newFrame
+         if (config.autoScrollToTopThreshold != null && scrollX <= config.autoScrollToTopThreshold) {
+           scrollView.reactSmoothScrollTo(0, scrollView.scrollY)
+@@ -108,6 +109,7 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+       if (deltaY != 0) {
+         val scrollY = scrollView.scrollY
+         scrollView.scrollToPreservingMomentum(scrollView.scrollX, scrollY + deltaY)
++        scrollView.invalidate()
+         this.prevFirstVisibleFrame = newFrame
+         if (config.autoScrollToTopThreshold != null && scrollY <= config.autoScrollToTopThreshold) {
+           scrollView.reactSmoothScrollTo(scrollView.scrollX, 0)

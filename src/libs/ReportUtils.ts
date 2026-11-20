@@ -12391,7 +12391,6 @@ function navigateToLinkedReportAction(
     ancestor: Ancestor,
     isInNarrowPaneModal: boolean,
     canUserPerformWrite: boolean | undefined,
-    isOffline: boolean,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ) {
     if (isInNarrowPaneModal) {
@@ -12424,7 +12423,7 @@ function navigateToLinkedReportAction(
     const reportID = ancestor.report.reportID;
     const isVisibleAction = !!reportID && isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
 
-    if (isVisibleAction && !isOffline) {
+    if (isVisibleAction) {
         // Pop the chat report screen before navigating to the linked report action.
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
     }

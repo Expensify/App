@@ -415,3 +415,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/104743
 - PR introducing patch: https://github.com/Expensify/App/pull/106278
 - 0.86.0 migration note: drop this patch once the adopted React Native release clears the deferred delete when the tag is created again.
+
+### [react-native+0.86.0+051+fix-mvcp-one-frame-jump-android.patch](react-native+0.86.0+051+fix-mvcp-one-frame-jump-android.patch)
+
+- Reason: Returning from a thread can briefly move the linked message when rows above it finish measuring. Android moves the rows and corrects the scroll offset in the same mount, but `View.scrollTo` schedules the scroll view redraw for the next frame. This backports the upstream fix by invalidating the scroll view after either horizontal or vertical anchoring, so the current frame uses the corrected offset.
+- Upstream PR/issue: https://github.com/react/react-native/pull/58187, fixes https://github.com/react/react-native/issues/58186.
+- E/App issue: Tracked in https://github.com/Expensify/App/pull/100733.
+- PR introducing patch: https://github.com/Expensify/App/pull/100733.
+- 0.86.0 migration note: Remove once the adopted React Native release includes the upstream fix.

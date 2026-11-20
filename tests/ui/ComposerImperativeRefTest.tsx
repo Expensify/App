@@ -53,6 +53,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockShouldMountComposer = true;
 let mockShouldUseNativeComposer = false;
+let mockComposerText = '';
 let mockMarkdownInput: ComponentRef<typeof TextInput> | (HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'clear' | 'isFocused'>) | null = null;
 let mockLastEditableAction: ReportAction | undefined;
 let mockPersonalDetailsList: PersonalDetailsList | undefined;
@@ -151,7 +152,7 @@ jest.mock('@pages/inbox/report/useDebouncedSaveReportActionDraft', () => () => (
 jest.mock('@pages/inbox/report/useDraftMessageVideoAttributeCache', () => () => {});
 jest.mock('@pages/inbox/report/useShouldEditInComposer', () => () => false);
 jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => ({
-    useComposerText: () => '',
+    useComposerText: () => mockComposerText,
     useComposerActions: () => ({
         setText: jest.fn<
             ReturnType<ReturnType<typeof ComposerContextModule.useComposerActions>['setText']>,
@@ -258,6 +259,7 @@ describe('Composer imperative refs', () => {
         jest.clearAllMocks();
         mockShouldMountComposer = true;
         mockShouldUseNativeComposer = false;
+        mockComposerText = '';
         mockLastEditableAction = undefined;
         mockPersonalDetailsList = undefined;
         jest.mocked(useIsInLandscapeMode).mockReturnValue(false);
@@ -439,6 +441,34 @@ describe('Composer imperative refs', () => {
         expect(inputClear).toHaveBeenCalledTimes(1);
         expect(markdownProps().autoFocus).toBe(false);
         expect(objectRef.current).toBeNull();
+    });
+
+    it('focuses the existing composer when its initial loading gate opens', async () => {
+        // Given the input mounted under the report's loading skeleton, so its mount-time autofocus was skipped.
+        mockShouldUseNativeComposer = true;
+        mockComposerText = 'Restored draft';
+        const inputFocus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
+        mockMarkdownInput = createMock<TextInput>({focus: inputFocus, isFocused: () => false});
+        const props = forwardingProps(React.createRef<ComposerWithSuggestionsRef>());
+        const view = render(
+            <ComposerWithSuggestions
+                {...props}
+                shouldSkipAutoFocus
+            />,
+            {createNodeMock: () => mockMarkdownInput},
+        );
+        expect(inputFocus).not.toHaveBeenCalled();
+
+        // When the positioned messages appear, the existing input must focus without remounting or another navigation.
+        view.rerender(
+            <ComposerWithSuggestions
+                {...props}
+                shouldSkipAutoFocus={false}
+            />,
+        );
+
+        // Then a restored draft can be edited as soon as the report is visible.
+        await waitFor(() => expect(inputFocus).toHaveBeenCalledTimes(1));
     });
 
     it('keeps the outer commands tied to the current input and safely handles an absent input', () => {

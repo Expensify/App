@@ -1,5 +1,3 @@
-import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
-
 import CONST from '@src/CONST';
 
 import type {ViewToken} from '@shopify/flash-list';
@@ -8,6 +6,11 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
+
+/** FlashList and LegendList both report viewability here, and only FlashList's tokens carry a timestamp */
+type ListViewToken = Omit<ViewToken<unknown>, 'timestamp'> & {timestamp?: number};
+
+type ViewableItemsInfo = {viewableItems: ListViewToken[]; changed: ListViewToken[]};
 
 type Args = {
     reportID: string;
@@ -60,7 +63,7 @@ export default function useReportUnreadMessageScrollTracking({
     const [isActionBadgeBelowViewport, setIsActionBadgeBelowViewport] = useState(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
-        previousViewableItems: Array<ViewToken<unknown>>;
+        previousViewableItems: ListViewToken[];
         reportID: string;
         unreadMarkerReportActionIndex: number;
         isFocused: boolean;
@@ -150,12 +153,17 @@ export default function useReportUnreadMessageScrollTracking({
         }
     };
 
-    const onViewableItemsChanged = ({viewableItems}: Parameters<ViewableItemsChangedHandler>[0]) => {
+    const onViewableItemsChanged = ({viewableItems}: ViewableItemsInfo) => {
         if (!ref.current.isFocused) {
             return;
         }
 
         ref.current.previousViewableItems = viewableItems;
+        // Initial positioning reports provisional rows behind the cover. Replay the latest viewport when tracking resumes.
+        if (shouldDisablePillTracking) {
+            return;
+        }
+
         const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
 
         if (viewableIndexes.length === 0) {
@@ -185,8 +193,7 @@ export default function useReportUnreadMessageScrollTracking({
         // Track whether the action badge target is out of view above or below the viewport
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
         if (badgeTargetIndex !== -1) {
-            // In an inverted list, higher indexes are "above" (older messages) and lower indexes are "below" (newer messages)
-            // FlashList reports a snapshot taken up to 250ms earlier, which can predate the new row's measured layout, so prefer the live range
+            // Viewability snapshots can predate the new row's measured layout, so prefer the live range.
             const visibleRange = ref.current.getVisibleIndexRange?.();
             const startIndex = visibleRange?.startIndex ?? minIndex;
             const endIndex = visibleRange?.endIndex ?? maxIndex;
@@ -228,3 +235,5 @@ export default function useReportUnreadMessageScrollTracking({
         updatePillVisibility,
     };
 }
+
+export type {ViewableItemsInfo};

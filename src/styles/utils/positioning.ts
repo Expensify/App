@@ -71,4 +71,7 @@ export default {
     bFull: {
         bottom: '100%',
     },
+    tFull: {
+        top: '100%',
+    },
 } satisfies Record<string, ViewStyle>;
