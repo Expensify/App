@@ -57,9 +57,9 @@ function isHomeTodoReportAction(searchKey: HomeTodoSearchKey, reportAction: Repo
 }
 
 /**
- * The newest report action that records the row's action on the report. Comparing it before and after lets the review
- * tell the user's own action apart from a change someone else made, such as another approver acting or an admin
- * changing the approver.
+ * The newest report action that records the row's action on the report. Checking who took it and whether it is newer
+ * than the moment the report was first seen needing the action lets the review tell the user's own action apart from a
+ * change someone else made, such as another approver acting or an admin changing the approver.
  */
 function getLatestHomeTodoReportAction(searchKey: HomeTodoSearchKey, reportActions: OnyxEntry<ReportActions>): ReportAction | undefined {
     let latestReportAction: ReportAction | undefined;

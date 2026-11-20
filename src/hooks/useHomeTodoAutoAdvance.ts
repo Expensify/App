@@ -1,7 +1,9 @@
+import DateUtils from '@libs/DateUtils';
 import Growl from '@libs/Growl';
 import {getHomeTodoReportRoute, getLatestHomeTodoReportAction, getNextHomeTodoReportID, isHomeTodoActionComplete} from '@libs/HomeTodoReviewUtils';
 import openReportInPlace from '@libs/Navigation/helpers/openReportInPlace';
 import Navigation from '@libs/Navigation/Navigation';
+import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {filterReportIDsNeedingTodoAction} from '@libs/TodosUtils';
 
 import {clearHomeTodoReview} from '@userActions/HomeTodoReview';
@@ -41,10 +43,10 @@ type UseHomeTodoAutoAdvanceParams = {
     reportIDs: string[];
 };
 
-/** The report the user is reviewing, and the newest row action it had when it opened */
+/** The report the user is reviewing, and when this screen first saw it still needing the row action */
 type PendingReport = {
     reportID: string;
-    latestTodoReportActionID: string | undefined;
+    firstSeenPendingAt: string;
 };
 
 const TOAST_TRANSLATION_KEYS = {
@@ -74,19 +76,22 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
     const latestTodoReportAction = getLatestHomeTodoReportAction(searchKey, reportActions);
 
     // Only a change seen on this screen counts. A report paged onto after another approver already acted on it opens
-    // in its current state instead of being skipped straight away. The baseline is recorded before the report's actions
-    // load, so an action taken first still advances, and it follows the actions while the report still needs the row
-    // action, so an older row action by the user that loads later is not mistaken for a new one.
-    const latestTodoReportActionID = latestTodoReportAction?.reportActionID;
+    // in its current state instead of being skipped straight away. The user's row action must be newer than the moment
+    // the report was first seen needing it, so an older row action that loads later is not mistaken for a new one. The
+    // check doesn't depend on whether the new action and the report's new state arrive in the same render. Some row
+    // actions are stamped by the client clock and others by the server's, so the earlier of the two is the baseline,
+    // which keeps a clock that runs ahead from hiding the user's action.
     const [pendingReport, setPendingReport] = useState<PendingReport | undefined>();
-    if (!isActionComplete && !!report?.reportID && (pendingReport?.reportID !== reportID || pendingReport.latestTodoReportActionID !== latestTodoReportActionID)) {
-        setPendingReport({reportID, latestTodoReportActionID});
+    if (!isActionComplete && !!report?.reportID && pendingReport?.reportID !== reportID) {
+        const clientDBTime = DateUtils.getDBTime();
+        const serverDBTime = getServerAnchoredDBTime();
+        setPendingReport({reportID, firstSeenPendingAt: clientDBTime < serverDBTime ? clientDBTime : serverDBTime});
     }
 
     // The report's state alone also changes when an admin changes the approver or another approver acts on it, so
     // the user must also have added a new row action while it was open.
     const hasCurrentUserTakenAction =
-        !!latestTodoReportAction && latestTodoReportActionID !== pendingReport?.latestTodoReportActionID && latestTodoReportAction.actorAccountID === currentUserAccountID;
+        !!latestTodoReportAction && !!pendingReport && latestTodoReportAction.actorAccountID === currentUserAccountID && latestTodoReportAction.created > pendingReport.firstSeenPendingAt;
     const shouldAdvance = isActionComplete && pendingReport?.reportID === reportID && hasCurrentUserTakenAction;
 
     // Reads the latest data at the moment the action lands, without re-running the effect below whenever it changes.

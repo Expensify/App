@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useHomeTodoAutoAdvance from '@hooks/useHomeTodoAutoAdvance';
 
+import DateUtils from '@libs/DateUtils';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -46,6 +47,10 @@ const createApprovedAction = (reportActionID: string, created: string): ReportAc
     created,
 });
 
+// A moment after the report opened, so the action stays newer than the review's baseline even within one millisecond
+const ACTION_DELAY_MS = 1000;
+const getActionCreatedAfterOpen = () => DateUtils.getDBTime(Date.now() + ACTION_DELAY_MS);
+
 const renderAutoAdvance = () =>
     renderHook(() =>
         useHomeTodoAutoAdvance({
@@ -86,13 +91,45 @@ describe('useHomeTodoAutoAdvance', () => {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                    value: {approved: createApprovedAction('approved', '2026-11-17 10:00:00.000')},
+                    value: {approved: createApprovedAction('approved', getActionCreatedAfterOpen())},
                 },
             ]);
             await waitForBatchedUpdates();
         });
 
         // Then the review confirms the approval and returns Home, since no other report needs it
+        expect(Growl.success).toHaveBeenCalledTimes(1);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('advances when the new approval lands in a render before the approved state', async () => {
+        // Given a report awaiting the user's approval with an approval from an earlier cycle already loaded
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                older: createApprovedAction('older', '2026-11-01 10:00:00.000'),
+            });
+            await waitForBatchedUpdates();
+        });
+        renderAutoAdvance();
+        await act(waitForBatchedUpdates);
+
+        // When the user's new approval reaches the screen before the report's approved state, as the optimistic data
+        // of a real action can
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                approved: createApprovedAction('approved', getActionCreatedAfterOpen()),
+            });
+            await waitForBatchedUpdates();
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        // Then the review still confirms the approval and returns Home, since no other report needs it
         expect(Growl.success).toHaveBeenCalledTimes(1);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
     });
