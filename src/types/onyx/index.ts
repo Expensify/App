@@ -45,6 +45,7 @@ import type {
     FundID,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type CardWalletStatus from './CardWalletStatus';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
 import type CompanyCardNumberSearch from './CompanyCardNumberSearch';
@@ -322,6 +323,7 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    CardWalletStatus,
     ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     FullPolicySnapshot,
