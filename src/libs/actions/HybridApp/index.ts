@@ -174,13 +174,4 @@ function signOutFromOldDotAndRestartSignIn() {
     return resetPromise;
 }
 
-export {
-    getHybridAppSettings,
-    setReadyToShowAuthScreens,
-    resetSignInFlow,
-    getResetSignInFlowUpdate,
-    setUseNewDotSignInPage,
-    closeReactNativeApp,
-    signOutFromOldDot,
-    signOutFromOldDotAndRestartSignIn,
-};
+export {getHybridAppSettings, setReadyToShowAuthScreens, getResetSignInFlowUpdate, setUseNewDotSignInPage, closeReactNativeApp, signOutFromOldDot, signOutFromOldDotAndRestartSignIn};
