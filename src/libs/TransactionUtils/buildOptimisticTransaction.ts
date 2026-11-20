@@ -18,10 +18,7 @@ import type {ValueOf} from 'type-fest';
 
 import lodashSet from 'lodash/set';
 
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
-import {isManualDistanceRequest, isOdometerDistanceRequest} from './index';
+import {isManualDistanceRequest, isOdometerDistanceRequest} from './fields';
 
 type TransactionParams = {
     /** Amount of the transaction, in cents */

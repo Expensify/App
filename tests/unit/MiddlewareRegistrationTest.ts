@@ -1,4 +1,5 @@
 import {
+    DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
@@ -47,6 +48,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
     HandleMovedScanFailedExpenses,
+    DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
     SaveResponseInOnyx,
     FraudMonitoring,
@@ -76,6 +78,7 @@ describe('Middleware registration', () => {
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });

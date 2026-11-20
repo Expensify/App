@@ -1,3 +1,4 @@
+import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
@@ -43,6 +44,9 @@ type DomainMembersTableProps = {
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DomainMemberBulkActionType>>;
 };
 
 /**
@@ -82,6 +86,7 @@ export default function DomainMembersTable({
     filterConfig,
     isItemInFilter,
     headerComponent,
+    bulkActionOptions,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -171,6 +176,7 @@ export default function DomainMembersTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

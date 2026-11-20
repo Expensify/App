@@ -39,6 +39,7 @@ function MenuItemCopy({value}: MenuItemCopyProps) {
                       selection: value,
                       contextMenuAnchor: anchor,
                   }),
+        CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS,
     );
 
     // The button is a hover affordance, and it would compete with the press target of an interactive row

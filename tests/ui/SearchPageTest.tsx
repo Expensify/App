@@ -408,7 +408,7 @@ describe('SearchPageNarrow', () => {
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
     // so the persisted code is the only thing left that can tell the two failure kinds apart.
-    const setFailedSnapshot = (responseJsonCode: number | undefined) =>
+    const setFailedSnapshot = (responseJsonCode: number | undefined, errorTranslationKey?: SearchResults['search']['errorTranslationKey']) =>
         act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -420,12 +420,16 @@ describe('SearchPageNarrow', () => {
                     hasMoreResults: false,
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                     responseJsonCode,
+                    errorTranslationKey,
                 },
             });
         });
 
-    it('hides the retry button on a fresh mount when the persisted response marks the query invalid', async () => {
-        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    it.each([
+        [undefined, "That search isn't valid. Try adjusting your search criteria."],
+        ['search.searchResults.tooManyKeywords', 'Your search has too many keywords. Use 50 or fewer keywords and try again.'],
+    ] as const)('hides the retry button on a fresh mount when the persisted response marks the query invalid (%s)', async (errorTranslationKey, expectedMessage) => {
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey);
 
         renderPage();
 
@@ -433,7 +437,7 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText("That search isn't valid. Try adjusting your search criteria.")).toBeTruthy();
+        expect(screen.getByText(expectedMessage)).toBeTruthy();
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
@@ -560,6 +564,33 @@ describe('SearchPageNarrow', () => {
         expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
     });
 
+    it('does not send the search again when only the column pins change', async () => {
+        // Given a cached expense search on screen, after its mount requests went out
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        const {rerender} = renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        mockSearch.mockClear();
+
+        // When a column is pinned, which swaps the route's query for one that differs by its pins alone
+        const pinnedQuery = `${EXPENSE_QUERY} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`;
+        mockSearchQueryParam.mockReturnValue(pinnedQuery);
+        await act(async () => {
+            navigationRef.dispatch({...CommonActions.setParams({q: pinnedQuery}), source: navigationRef.getCurrentRoute()?.key});
+        });
+        rerender(getSearchPage(pinnedQuery));
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then no search goes out, because pins only reorder the columns already loaded
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
     it('does not request a query again when the persisted response marks it invalid', async () => {
         // Given a snapshot the server rejected as a malformed query, which no retry can fix
         await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
@@ -677,6 +708,33 @@ describe('SearchPageNarrow', () => {
         // Then the mount does not ask for the same first page again
         expect(firstPageCallCount()).toBe(1);
     });
+
+    it('waits for app loading to finish before requesting an uncached search', async () => {
+        // Given cleared account data while the app is still loading
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        });
+
+        // When a retained search page renders with no snapshot
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then it cannot issue a request using the retained query during the account switch
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // When only the app-loading flag changes
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        // Then setup resumes without requiring a query or snapshot change
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: expenseQueryJSON, offset: 0}));
+    });
+
     it('refreshes the first page on every return to a cached query', async () => {
         // Given a query whose results are already cached, so Search mounts right away with no skeleton
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
@@ -1127,6 +1185,64 @@ describe('SearchPageNarrow', () => {
 
             expect(mockSearch).toHaveBeenCalledTimes(1);
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('holds the mounted live search request until app loading finishes', async () => {
+            // Given live rows that let Search mount even while the app is loading
+            await seedTodoReports(3);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+
+            // When the Drafts page opens during the account transition
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the independent Search effect must also wait
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When loading finishes without changing the query
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            });
+
+            // Then its first request was not consumed by the blocked effect
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('preserves a pending totals retry while the app loads', async () => {
+            // Given a live request in flight when the user selects every matching report
+            await seedTodoReports(3);
+            await seedTodoSnapshot(false, {isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(lastWriteActionsRender()).toBeDefined();
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            mockSearch.mockClear();
+
+            // When that request settles during app loading, making the totals retry eligible
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+            await answerTodoPage(0);
+
+            // Then neither automatic request path may issue the retry or consume it
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the loading guard is released
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            });
+
+            // Then the deferred request still obtains the missing report total
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldCalculateTotals: true, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
         });
 
         it('asks for its first page exactly once when its preloaded tab is opened', async () => {
