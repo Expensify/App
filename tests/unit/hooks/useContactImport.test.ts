@@ -1,6 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useContactImport from '@hooks/useContactImport';
+import useContactImportNew from '@hooks/useContactImportNew';
 
 import contactImport from '@libs/ContactImport';
 import type {DeviceContact} from '@libs/ContactImport/types';
@@ -134,6 +135,26 @@ describe('useContactImport', () => {
 
         // Then the contacts are cleared and the new status is set
         await waitFor(() => expect(result.current.contactPermissionState).toBe(RESULTS.BLOCKED));
+        expect(result.current.contacts).toHaveLength(0);
+    });
+
+    it.each([
+        ['useContactImport', () => useContactImport({shouldImportContacts: false})],
+        ['useContactImportNew', () => useContactImportNew({shouldImportContacts: false})],
+    ])('%s does not check access or read the contacts on a screen that does not list them', async (_hookName, useHook) => {
+        // Given the user has given access to their contacts, on a screen that doesn't list device contacts
+        givenContactAccess(RESULTS.GRANTED);
+
+        // When the screen gains focus and the app later returns to the foreground
+        const {result} = renderHook(() => useHook());
+        await waitForBatchedUpdates();
+        mockOnAppStateChange?.('active');
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        // Then the access isn't checked, the contacts aren't read and no contact is listed
+        expect(mockGetContactPermission).not.toHaveBeenCalled();
+        expect(mockContactImport).not.toHaveBeenCalled();
         expect(result.current.contacts).toHaveLength(0);
     });
 });

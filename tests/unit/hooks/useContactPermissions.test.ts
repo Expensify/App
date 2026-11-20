@@ -29,7 +29,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockGetContactPermission = jest.mocked(getContactPermission);
 
 function renderContactPermissions() {
-    const params = {importAndSaveContacts: jest.fn(), setContacts: jest.fn(), setContactPermissionState: jest.fn()};
+    const params = {importAndSaveContacts: jest.fn(), setContacts: jest.fn(), setContactPermissionState: jest.fn(), shouldImportContacts: true};
     renderHook(() => useContactPermissions(params));
     return params;
 }

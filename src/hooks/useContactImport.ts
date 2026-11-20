@@ -29,12 +29,17 @@ type UseContactImportResult = {
     setContactPermissionState: React.Dispatch<React.SetStateAction<PermissionStatus>>;
 };
 
+type UseContactImportOptions = {
+    /** Whether the screen lists device contacts. Screens that don't skip the permission check and the import. */
+    shouldImportContacts?: boolean;
+};
+
 /**
  * Custom hook that handles importing device contacts,
  * managing permissions, and transforming contact data
  * into a format suitable for use in the app.
  */
-function useContactImport(): UseContactImportResult {
+function useContactImport({shouldImportContacts = true}: UseContactImportOptions = {}): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const {localeCompare, formatPhoneNumber} = useLocalize();
@@ -65,6 +70,7 @@ function useContactImport(): UseContactImportResult {
         importAndSaveContacts,
         setContacts,
         setContactPermissionState,
+        shouldImportContacts,
     });
 
     return {

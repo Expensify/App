@@ -13,11 +13,18 @@ type UseContactPermissionsProps = {
     importAndSaveContacts: () => void;
     setContacts: (contacts: never[]) => void;
     setContactPermissionState: (status: PermissionStatus) => void;
+
+    /** Whether the screen lists device contacts. When false, nothing is checked or imported on focus or on return to the foreground. */
+    shouldImportContacts: boolean;
 };
 
-function useContactPermissions({importAndSaveContacts, setContacts, setContactPermissionState}: UseContactPermissionsProps): void {
+function useContactPermissions({importAndSaveContacts, setContacts, setContactPermissionState, shouldImportContacts}: UseContactPermissionsProps): void {
     const checkPermissionAndUpdateContacts = () => {
-        return getContactPermission()
+        if (!shouldImportContacts) {
+            return;
+        }
+
+        getContactPermission()
             .then((newStatus) => {
                 const isNewStatusGranted = newStatus === RESULTS.GRANTED || newStatus === RESULTS.LIMITED; // Permission is enabled, or just became enabled
 
