@@ -2717,6 +2717,62 @@ describe('actions/IOU', () => {
         });
 
         test.each([
+            {amount: -1000, taxAmount: -48, expectedTaxAmount: -48},
+            {amount: 1000, taxAmount: 48, expectedTaxAmount: 48},
+            {amount: -1000, taxAmount: 0, expectedTaxAmount: 0},
+            {amount: 1000, taxAmount: undefined, expectedTaxAmount: 0},
+        ])('sends signedTaxAmount=$expectedTaxAmount for amount=$amount and taxAmount=$taxAmount', async ({amount, taxAmount, expectedTaxAmount}) => {
+            // Given a tax value in display units, including refunds and expenses without tax
+            const taxCode = 'tax-rate-5';
+
+            // When the expense is created, the API must preserve that value without changing its sign
+            requestMoney({
+                isVendorMatchingBetaEnabled: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                conciergeChat: undefined,
+                report: {reportID: ''},
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    taxAmount,
+                    taxCode,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: 'KFC',
+                    comment: '',
+                },
+                shouldGenerateTransactionThreadReport: true,
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                existingTransactionDraft: undefined,
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+                quickAction: undefined,
+                personalDetails: {},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the signed parameter is sent, so the backend does not discard negative tax
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, params] = getRequiredWriteCall(writeSpy.mock.calls);
+            expect(command).toBe(WRITE_COMMANDS.REQUEST_MONEY);
+            expect(params).toEqual(expect.objectContaining({amount, signedTaxAmount: expectedTaxAmount, taxCode}));
+            expect(params).not.toHaveProperty('taxAmount');
+        });
+
+        test.each([
             [WRITE_COMMANDS.REQUEST_MONEY, CONST.IOU.ACTION.CREATE],
             [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, CONST.IOU.ACTION.SUBMIT],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {

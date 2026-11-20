@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
         submitAnyway: 'Soumettre quand même',
+        approveAnyway: 'Approuver quand même',
         markAsDone: 'Marquer comme terminé',
         markAsDoneAnyway: 'Marquer comme terminé quand même',
         submitted: 'Soumis',
@@ -580,6 +581,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} jour`,
             other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} heure`,
+            other: (count: number) => `${formattedCount ?? count} heures`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minute`,
+            other: (count: number) => `${formattedCount ?? count} minutes`,
         }),
         amount: 'Montant',
     },
@@ -1299,6 +1308,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Délai de paiement le plus long',
         share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
+        generatingAIInsights: 'Génération d’analyses IA...',
+        generatingAIInsightsSubtitle: 'Cela ne devrait pas prendre plus d’une minute',
+        readingChart: (chartTitle: string) => `Lecture de ${chartTitle}`,
+        comparingWithYourAverage: 'Comparaison avec votre moyenne',
+        lookingForAnythingUnusual: 'Recherche de toute anomalie',
+        writingYourInsights: 'Rédiger vos analyses',
         violationStage: {
             label: 'Infractions de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
@@ -1579,6 +1594,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
+        confirmApproveReportViolations: {
+            title: 'Approuver quand même ?',
+            description: 'Cette note de frais comporte des violations de politique. Voulez-vous vraiment l’approuver sans y apporter de modifications ?',
+        },
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',
@@ -1706,6 +1725,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -3311,6 +3331,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+            payingMultipleReportsSubtitle: 'Aucune de ces notes de frais n’a pu être payée, car les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+            description: 'Ces notes de frais n’ont pas été payées avec le compte bancaire, car elles nécessitent des remboursements globaux. Commencez la procédure ci-dessous.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
         wiseMoreInfoNeeded: 'Informations supplémentaires requises pour activer les remboursements globaux',
@@ -7272,9 +7297,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            visibleTo: 'Visible pour',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossible de retirer l’accès à ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossible de supprimer l’accès à ces catégories',
                 description: ({count}: {count: number}) => ({
                     one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
                     other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
@@ -8573,9 +8606,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             errors: {
                 rateNameRequired: 'Le nom du taux est obligatoire',
                 existingRateName: 'Un taux kilométrique portant ce nom existe déjà',
-                nameRequired: 'Le nom est obligatoire',
+                nameRequired: 'Le nom est obligatoire.',
                 startDateMustBeBeforeEndDate: 'La date de début doit être antérieure à la date de fin',
-                amountRequired: 'Le montant est obligatoire',
+                amountRequired: 'Le montant est obligatoire.',
             },
             amountPerUnit: (unit: string) => `Montant par ${unit}`,
             startDate: 'Date de début',
@@ -8607,6 +8640,47 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 "Pour continuer à utiliser la fonction de mise à jour automatique des taux de distance gouvernementaux, veuillez confirmer le pays que vous souhaitez utiliser à l'avenir.",
             currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
                 `Attention ! Si vous changez la devise de l'espace de travail pour ${currency}, les taux kilométriques gouvernementaux que ${countryPhrase} publie seront utilisés à la place. Voulez-vous vraiment continuer ?`,
+            addRatePage: {
+                basedOnDefaultCurrency: '<muted-text-label>Basé sur la devise par défaut définie dans <a href="#">Espace de travail &gt; Présentation</a></muted-text-label>',
+                setInDistanceRateSettings: '<muted-text-label>Défini dans <a href="#">Taux de distance &gt; Paramètres</a></muted-text-label>',
+                whichCountry: 'Pour quel pays ce taux s’applique-t-il ?',
+                otherCountry: 'Autre pays',
+                whatKindOfRate: 'Quel type de taux ?',
+                government: 'Gouvernement',
+                custom: 'Personnalisé',
+                matchesAuthority: (authority: string) => `Correspond à ${authority} et se met automatiquement à jour lorsqu’il change.`,
+                alreadyHasGovernmentRate: 'Cet espace de travail a déjà un tarif gouvernemental.',
+                governmentRateAuthorities: {
+                    US: 'l’IRS',
+                    CA: 'l’ARC',
+                    GB: 'HMRC',
+                    AU: 'l’ATO',
+                    NO: "le taux de l'État",
+                    SE: 'Skatteverket',
+                    ZA: 'SARS',
+                    AT: 'le BMF',
+                    BE: 'FPS BOSA',
+                    FI: 'Vrai',
+                    DE: 'le BMF',
+                    NL: 'le Belastingdienst',
+                    PT: 'le AT',
+                    ES: 'l’AEAT',
+                },
+                noGovernmentRateNotes: {
+                    FR: 'Le barème français varie selon la puissance fiscale et la distance annuelle, avec une formule spécifique au‑delà de 5 000 km.',
+                    IT: 'Les taux ACI de l’Italie sont recherchés en fonction de la marque, du modèle et du type de carburant.',
+                    GR: 'La Grèce n’a pas de taux gouvernemental pour les employeurs privés.',
+                    BG: 'La Bulgarie rembourse le carburant selon la norme de consommation du véhicule, et non selon un taux au kilomètre.',
+                    SK: 'La Slovaquie paie un montant forfaitaire plus le carburant, ce qui ne correspond pas à un seul taux au kilomètre.',
+                    CZ: 'La Tchéquie paie un montant forfaitaire plus le carburant, ce qui ne correspond pas à un seul taux par kilomètre.',
+                    HU: 'La Hongrie verse un montant forfaitaire plus le carburant au tarif officiel mensuel, ce qui ne correspond pas à un seul taux par kilomètre.',
+                    RO: 'La Roumanie rembourse le carburant selon une norme de consommation, et non à un taux par kilomètre.',
+                    SG: 'Singapour n’a pas de taux fixé par le gouvernement. Les employeurs définissent le leur.',
+                    HK: 'Hong Kong n’a pas de taux gouvernemental. Les employeurs définissent le leur.',
+                },
+                noGovernmentRateForOtherCountry: 'Il n’existe pas encore de taux gouvernemental pour ce pays.',
+                noGovernmentRateForCountry: (country: string) => `Il n’existe pas encore de taux gouvernemental pour ${country}.`,
+            },
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -8626,6 +8700,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             timezoneInputLabel: 'Fuseau horaire',
             timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
             timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
+            directReimbursementCurrencyTitle: 'Devise non disponible avec le remboursement direct',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Cet espace de travail rembourse les membres directement via Expensify, ce qui n’est pas disponible en ${currency}. Pour utiliser ${currency}, allez dans Workflows et désactivez puis réactivez Paiements, afin que les paiements soient effectués en dehors d’Expensify.`,
+            goToWorkflows: 'Aller aux workflows',
         },
         officeLocations: {
             title: 'Sites de bureau',
@@ -10388,11 +10466,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newValue} (${newTaxPercentage}) » (auparavant « ${oldValue} (${oldTaxPercentage}) »)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newTaxRate} » (précédemment « ${oldTaxRate} »)`;
             }
-            return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
+            return `a ajouté le taux de taxe « ${newTaxRate} » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11038,6 +11116,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
+            tooManyKeywords: `Votre recherche contient trop de mots-clés. Utilisez ${CONST.SEARCH.MAX_KEYWORD_TOKENS} mots-clés ou moins et réessayez.`,
+            unsupportedGrouping: 'Cette recherche ne prend en charge ni le regroupement ni les vues graphiques. Supprimez le regroupement et utilisez la vue tableau.',
+            invalidReportID: 'Saisissez un identifiant de rapport valide. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
+            unsupportedFilter: 'Le filtre "is:" ne peut pas être utilisé pour cette recherche. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
             emptyResults: {
                 title: 'Rien à afficher',
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,

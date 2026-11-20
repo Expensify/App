@@ -104,6 +104,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
         submitAnyway: 'Trotzdem senden',
+        approveAnyway: 'Trotzdem genehmigen',
         markAsDone: 'Als erledigt markieren',
         markAsDoneAnyway: 'Trotzdem als erledigt markieren',
         submitted: 'Übermittelt',
@@ -581,6 +582,14 @@ const translations: TranslationDeepObject<typeof en> = {
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} Tag`,
             other: (count: number) => `${formattedCount ?? count} Tage`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Stunde`,
+            other: (count: number) => `${formattedCount ?? count} Stunden`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Minute`,
+            other: (count: number) => `${formattedCount ?? count} Minuten`,
         }),
         amount: 'Betrag',
     },
@@ -1292,6 +1301,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
+        generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
+        readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
+        comparingWithYourAverage: 'Verglichen mit Ihrem Durchschnitt',
+        lookingForAnythingUnusual: 'Suche nach ungewöhnlichen Vorgängen',
+        writingYourInsights: 'Ihre Erkenntnisse schreiben',
         violationStage: {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
@@ -1571,6 +1586,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
+        confirmApproveReportViolations: {
+            title: 'Trotzdem genehmigen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Sind Sie sicher, dass Sie ihn ohne Änderungen genehmigen möchten?',
+        },
         confirmSubmitReportViolations: {
             title: 'Bericht einreichen?',
             description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
@@ -1697,6 +1716,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${vendorDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -3305,6 +3325,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
+            payingMultipleReportsSubtitle: 'Keiner dieser Berichte konnte bezahlt werden, weil die Bankkonten des Unternehmens und der Mitarbeitenden unterschiedliche Währungen verwenden.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Mit x${lastFour} bezahlen` : 'Mit Bankkonto bezahlen'),
+            description: 'Diese Berichte wurden nicht mit dem Bankkonto bezahlt, weil sie globale Rückerstattungen erfordern. Starten Sie den Vorgang unten.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
         wiseMoreInfoNeeded: 'Weitere Informationen erforderlich, um globale Rückerstattungen zu aktivieren',
@@ -7261,9 +7286,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            visibleTo: 'Sichtbar für',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 Mitglied',
+                other: `${count} Mitglieder`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) =>
+                `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Zugriff auf ${categoryName} kann nicht entfernt werden`,
+                bulkRemoveAccessTitle: 'Zugriff auf diese Kategorien kann nicht entfernt werden',
                 description: ({count}: {count: number}) => ({
                     one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisieren Sie die Kategorien-Sichtbarkeit dieser Person und versuchen Sie es dann erneut:',
                     other: `${count} Mitgliedern blieben keine Kategorien zur Auswahl. Aktualisieren Sie deren Kategoriesichtbarkeit und versuchen Sie es dann erneut:`,
@@ -8548,9 +8582,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errors: {
                 rateNameRequired: 'Ratenname ist erforderlich',
                 existingRateName: 'Ein Distanzsatz mit diesem Namen existiert bereits',
-                nameRequired: 'Name ist erforderlich',
+                nameRequired: 'Name ist erforderlich.',
                 startDateMustBeBeforeEndDate: 'Das Startdatum muss vor dem Enddatum liegen',
-                amountRequired: 'Betrag ist erforderlich',
+                amountRequired: 'Betrag ist erforderlich.',
             },
             amountPerUnit: (unit: string) => `Betrag pro ${unit}`,
             startDate: 'Startdatum',
@@ -8582,6 +8616,47 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 'Um die Funktion zur automatischen Aktualisierung staatlicher Entfernungssätze weiterhin zu nutzen, bestätigen Sie bitte, welches Land Sie künftig verwenden möchten.',
             currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
                 `Achtung! Wenn Sie die Währung des Arbeitsbereichs auf ${currency} ändern, werden stattdessen die staatlichen Kilometersätze verwendet, die ${countryPhrase} veröffentlicht. Möchten Sie wirklich fortfahren?`,
+            addRatePage: {
+                basedOnDefaultCurrency: '<muted-text-label>Basierend auf der Standardwährung, die unter <a href="#">Arbeitsbereich &gt; Übersicht</a> festgelegt ist</muted-text-label>',
+                setInDistanceRateSettings: '<muted-text-label>Eingestellt unter <a href="#">Kilometergelder &gt; Einstellungen</a></muted-text-label>',
+                whichCountry: 'Für welches Land gilt dieser Satz?',
+                otherCountry: 'Anderes Land',
+                whatKindOfRate: 'Was für ein Satz?',
+                government: 'Regierung',
+                custom: 'Benutzerdefiniert',
+                matchesAuthority: (authority: string) => `Entspricht ${authority} und wird automatisch aktualisiert, wenn sich dies ändert.`,
+                alreadyHasGovernmentRate: 'Dieser Workspace hat bereits einen staatlichen Tarif.',
+                governmentRateAuthorities: {
+                    US: 'die US-Steuerbehörde',
+                    CA: 'die CRA',
+                    GB: 'HMRC',
+                    AU: 'die ATO',
+                    NO: 'der bundesstaatliche Steuersatz',
+                    SE: 'Skatteverket',
+                    ZA: 'SARS',
+                    AT: 'das BMF',
+                    BE: 'FPS BOSA',
+                    FI: 'Vero',
+                    DE: 'das BMF',
+                    NL: 'die Belastingdienst',
+                    PT: 'das AT',
+                    ES: 'die AEAT',
+                },
+                noGovernmentRateNotes: {
+                    FR: 'Die französische Kilometerpauschale variiert je nach steuerlicher Pferdestärke und jährlicher Fahrstrecke, mit einer eigenen Formel für Fahrten über 5.000 km.',
+                    IT: 'Die ACI-Sätze in Italien werden nach Marke, Modell und Kraftstoffart nachgeschlagen.',
+                    GR: 'Griechenland hat keinen staatlichen Satz für private Arbeitgeber.',
+                    BG: 'Bulgarien erstattet Kraftstoff nach der Verbrauchsnorm des Fahrzeugs, nicht nach einem Kilometersatz.',
+                    SK: 'Die Slowakei zahlt einen Pauschalbetrag plus Kraftstoff, was nicht zu einem einheitlichen Pro-Kilometer-Satz passt.',
+                    CZ: 'Tschechien zahlt einen Pauschalbetrag plus Kraftstoff, was nicht zu einem einzigen Pro‑km-Satz passt.',
+                    HU: 'Ungarn zahlt einen Pauschalbetrag plus Kraftstoff zu den monatlichen amtlichen Preisen, was nicht in einen einzigen Pro‑km‑Satz passt.',
+                    RO: 'Rumänien erstattet Kraftstoff nach einer Verbrauchsnorm, nicht mit einem Satz pro Kilometer.',
+                    SG: 'Für Singapur gibt es keinen staatlichen Satz. Arbeitgeber legen ihre eigenen fest.',
+                    HK: 'In Hongkong gibt es keinen staatlichen Satz. Arbeitgeber legen ihre eigenen fest.',
+                },
+                noGovernmentRateForOtherCountry: 'Für dieses Land gibt es noch keinen staatlichen Satz.',
+                noGovernmentRateForCountry: (country: string) => `Es gibt noch keinen amtlichen Tarif für ${country}.`,
+            },
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',
@@ -8601,6 +8676,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             timezoneInputLabel: 'Zeitzone',
             timezoneInputHelpText: 'Ihre Zeitzone wird für das automatische Einreichen von Berichten verwendet',
             timezoneErrorMessage: 'Zeitzone konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+            directReimbursementCurrencyTitle: 'Währung bei direkter Erstattung nicht verfügbar',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Dieser Workspace erstattet Mitgliedern direkt über Expensify, was in ${currency} nicht verfügbar ist. Um ${currency} zu verwenden, gehe zu Workflows und schalte Zahlungen aus und wieder ein, damit Zahlungen außerhalb von Expensify erfolgen.`,
+            goToWorkflows: 'Zu Workflows',
         },
         officeLocations: {
             title: 'Bürostandorte',
@@ -10361,11 +10440,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addCustomUnitRate: (customUnitName: string, rateName: string) => `${customUnitName}-Satz „${rateName}“ hinzugefügt`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `hat den Satz des/der ${customUnitName} ${updatedField} „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `hat den Steuersatz für den Kilometersatz „${customUnitRateName}“ auf „${newValue} (${newTaxPercentage})“ geändert (zuvor „${oldValue} (${oldTaxPercentage})“)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `hat den Steuersatz für den Distanzsatz „${customUnitRateName}“ auf „${newTaxRate}“ geändert (zuvor „${oldTaxRate}“)`;
             }
-            return `die Steuerquote „${newValue} (${newTaxPercentage})“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
+            return `hat den Steuersatz „${newTaxRate}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11006,6 +11085,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         appliedFilters: 'Angewandte filter',
         resetFilters: 'Filter zurücksetzen',
         searchResults: {
+            tooManyKeywords: `Deine Suche enthält zu viele Suchbegriffe. Verwende höchstens ${CONST.SEARCH.MAX_KEYWORD_TOKENS} Suchbegriffe und versuche es erneut.`,
+            unsupportedGrouping: 'Diese Suche unterstützt keine Gruppierung oder Diagrammansicht. Entferne die Gruppierung und verwende die Tabellenansicht.',
+            invalidReportID: 'Gib eine gültige Berichts-ID ein. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
+            unsupportedFilter: 'Der Filter "is:" wird für diese Suche nicht unterstützt. Um nicht gemeldete Ausgaben zu finden, verwende status:unreported.',
             emptyResults: {
                 title: 'Nichts anzuzeigen',
                 subtitle: `Versuche, deine Suchkriterien anzupassen oder etwas mit der +‑Schaltfläche zu erstellen.`,

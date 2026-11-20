@@ -1,14 +1,10 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopFxExpenseAccount} from '@libs/actions/connections/QuickbooksDesktop';
@@ -16,11 +12,10 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import FxExpenseAccountSelectPage from '@pages/workspace/accounting/common/FxExpenseAccountSelectPage';
 import {isQBDExportingOnPayment} from '@pages/workspace/accounting/qbd/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 
@@ -34,7 +29,6 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
@@ -58,7 +52,6 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(accountOptions, saveSelectedAccount);
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -66,42 +59,27 @@ function DynamicQuickbooksDesktopFxExpenseAccountSelectPage({policy}: WithPolicy
         </View>
     );
 
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.qbd.noAccountsFound')}
-            subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
     return (
-        <SelectionScreen
+        <FxExpenseAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!canConfigureCurrencyConversionFees || !isQBDExportingOnPayment(qbdConfig)}
             displayName="DynamicQuickbooksDesktopFxExpenseAccountSelectPage"
-            data={listData}
-            textInputOptions={textInputOptions}
-            headerContent={listHeaderComponent}
+            data={searchableList}
             onSelectRow={selectAccount}
-            shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.qbd.advancedConfig.fxExpenseAccount"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT], qbdConfig?.pendingFields)}
             errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT)}
-            listEmptyContent={listEmptyContent}
-            shouldShowListEmptyContent={!textInputOptions.value}
+            emptyStateTitle={translate('workspace.qbd.noAccountsFound')}
+            emptyStateSubtitle={translate('workspace.qbd.noAccountsFoundDescription')}
             confirmButtonOptions={confirmButtonOptions}
-        />
+        >
+            {listHeaderComponent}
+        </FxExpenseAccountSelectPage>
     );
 }
 

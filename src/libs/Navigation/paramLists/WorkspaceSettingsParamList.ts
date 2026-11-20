@@ -121,6 +121,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
         policyID: string;
         categoryName: string;
@@ -207,6 +211,9 @@ type WorkspaceSettingsParamList = {
         categoryId?: string;
         reportID?: string;
         upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
+        /** Euro country picked in Add rate, which the government rate is turned on for once the upgrade completes */
+        governmentRateCountry?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_DOWNGRADE]: {
         policyID?: string;
