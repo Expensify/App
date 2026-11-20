@@ -1193,7 +1193,7 @@ describe('TagsOptionsListUtils', () => {
             const sectionsBefore = getTagListSections({tags, searchValue, localeCompare, translate: translateLocal});
 
             // When a tag is added and another is disabled
-            const updatedTags: PolicyTags = {...tags, 'Item 5': {name: 'Item 5', enabled: true}, 'Item 9': {name: 'Item 9', enabled: false}};
+            const updatedTags: PolicyTags = {...tags, ...Object.fromEntries([toTagEntry('Item 5'), toTagEntry('Item 9', false)])};
             const sectionsAfter = getTagListSections({tags: updatedTags, searchValue, localeCompare, translate: translateLocal});
             const allSectionsAfter = getTagListSections({tags: updatedTags, localeCompare, translate: translateLocal});
 
