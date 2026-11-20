@@ -57,7 +57,7 @@ function getEnvironment(): Promise<Environment> {
  * Returns the environment synchronously, for code that builds links while rendering
  */
 function getCachedEnvironment(): Environment {
-    // Falls back to production until the beta check settles. On a TestFlight cold start a report restored from Onyx renders before any API call, and EnvironmentProvider only starts the check in useEffect, so that first render can still get the production URL
+    // A report restored from Onyx can render before the beta check settles, so production is the fallback until then
     return environment ?? getConfigEnvironment() ?? CONST.ENVIRONMENT.PRODUCTION;
 }
 
