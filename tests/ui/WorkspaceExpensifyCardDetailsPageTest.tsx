@@ -152,6 +152,27 @@ describe('Workspace Expensify Card details cardholder email', () => {
         }
     });
 
+    it.each([false, true])('formats phone-based cardholder logins with isVirtual=%s', async (isVirtual) => {
+        // Given phone-based accounts store an SMS login that should not be displayed as an email.
+        const phoneLogin = '+15857527441@expensify.sms';
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.COUNTRY_CODE, 1);
+            await Onyx.set(workspaceCardsKey, {[cardID]: buildCard(isVirtual)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [cardholderAccountID]: {accountID: cardholderAccountID, login: phoneLogin, displayName: 'Card Holder'},
+            });
+        });
+
+        // When an admin opens either card type, the login needs the same formatting as card issuance.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the identity field shows the readable phone number without the internal SMS domain.
+        const emailLabel = TestHelper.translateLocal('workspace.card.issueNewCard.cardholderEmail');
+        expect(screen.getByLabelText(`${emailLabel}, (585) 752-7441`)).toBeOnTheScreen();
+        expect(screen.queryByText(phoneLogin)).toBeNull();
+    });
+
     it.each([SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS])(
         'updates missing personal details without using the admin identity on direct route %s',
         async (routeName) => {

@@ -399,7 +399,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     {!!cardholder?.login && (
                         <MenuItemField
                             name={translate('workspace.card.issueNewCard.cardholderEmail')}
-                            value={cardholder.login}
+                            value={formatPhoneNumber(cardholder.login)}
                             numberOfLinesValue={0}
                             isValueSelectable
                         />
