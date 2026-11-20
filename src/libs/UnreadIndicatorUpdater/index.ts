@@ -54,6 +54,8 @@ function getUnreadReportIDsForUnreadIndicator(
 ): string[] {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
+    const reportKey = ONYXKEYS.COLLECTION.REPORT;
+    const reportActionsKey = ONYXKEYS.COLLECTION.REPORT_ACTIONS;
     const unreadReports = Object.values(reports ?? {}).filter((report) => {
         const lastReadTime = report?.lastReadTime;
         if (lastReadTime && lastReadTime >= (report?.lastVisibleActionCreated ?? '') && lastReadTime >= (report?.lastMentionedTime ?? '')) {
@@ -62,11 +64,11 @@ function getUnreadReportIDsForUnreadIndicator(
             }
             const threadReportID = getCachedOneTransactionThreadReportID(
                 report,
-                reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`],
-                reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
+                reports?.[`${reportKey}${report?.chatReportID}`],
+                reportActions?.[`${reportActionsKey}${report?.reportID}`],
                 isOffline,
             );
-            const threadReport = threadReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] : undefined;
+            const threadReport = threadReportID ? reports?.[`${reportKey}${threadReportID}`] : undefined;
             if (lastReadTime >= (threadReport?.lastVisibleActionCreated ?? '')) {
                 return false;
             }
@@ -90,14 +92,9 @@ function getUnreadReportIDsForUnreadIndicator(
 
         const nameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const isReportArchived = isArchivedReport(nameValuePairs);
-        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        const oneTransactionThreadReportID = getCachedOneTransactionThreadReportID(
-            report,
-            chatReport,
-            reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`],
-            isOffline,
-        );
-        const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        const chatReport = reports?.[`${reportKey}${report?.chatReportID}`];
+        const oneTransactionThreadReportID = getCachedOneTransactionThreadReportID(report, chatReport, reportActions?.[`${reportActionsKey}${report?.reportID}`], isOffline);
+        const oneTransactionThreadReport = reports?.[`${reportKey}${oneTransactionThreadReportID}`];
 
         const derivedIsEmptyReport = report?.reportID ? reportAttributes?.[report.reportID]?.isEmpty : undefined;
         const requiresAttention = report?.reportID ? reportAttributes?.[report.reportID]?.requiresAttention : undefined;
