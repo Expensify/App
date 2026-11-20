@@ -782,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
         addToWallet: {
             failedHeader: '无法添加银行卡',
-            failedTitle: '我们无法将您的银行卡添加到钱包',
+            failedTitle: '我们无法将您的银行卡添加到您的钱包',
             failedSubtitle: '添加银行卡时出了问题。如果银行卡已在您的钱包中，您可以直接在那里使用。',
         },
         revealCardDetail: {couldNotReveal: '我们无法显示您的卡片详情。请重试。'},

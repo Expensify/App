@@ -801,7 +801,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {didNotChange: 'Non abbiamo modificato il tuo PIN. Riprova.'},
         addToWallet: {
             failedHeader: 'Impossibile aggiungere la carta',
-            failedTitle: 'Non siamo riusciti ad aggiungere la tua carta al portafoglio',
+            failedTitle: 'Non siamo riusciti ad aggiungere la tua carta al tuo portafoglio',
             failedSubtitle: "Qualcosa è andato storto durante l'aggiunta della carta. Se è già nel tuo portafoglio, puoi usarla da lì.",
         },
         revealCardDetail: {couldNotReveal: 'Non siamo riusciti a mostrare i dettagli della tua carta. Riprova.'},
