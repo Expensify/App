@@ -14,6 +14,8 @@ describe('removeServiceWorkerForClassic', () => {
     });
 
     it('clears saved media and unregisters the worker', async () => {
+        // Given both cleanup steps succeed
+
         // When Classic is about to open
         await removeServiceWorkerForClassic();
 
