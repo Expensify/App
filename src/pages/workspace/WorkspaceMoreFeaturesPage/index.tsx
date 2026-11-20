@@ -158,7 +158,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, and Zoho Books are GA. Business Central and Certinia require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, Zoho Books, and Certinia are GA. Business Central and QBD require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     // QBD is also not in the discovery list. It reaches the row only through
@@ -182,7 +182,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE ||
-        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
