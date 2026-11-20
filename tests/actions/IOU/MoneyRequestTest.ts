@@ -143,7 +143,7 @@ describe('MoneyRequest', () => {
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
-            currentUserAccountID: currentUserAccountID,
+            currentUserAccountID,
             currentUserEmail: CURRENT_USER_EMAIL,
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
