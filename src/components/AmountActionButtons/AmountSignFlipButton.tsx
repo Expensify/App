@@ -10,10 +10,13 @@ import CONST from '@src/CONST';
 type AmountSignFlipButtonProps = Pick<ButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'> & {
     /** Whether to display the text label alongside the icon. Defaults to true. */
     shouldShowLabel?: boolean;
+
+    /** Whether the button drops its fill, so it reads as part of the field it sits in rather than as a control on top of it. */
+    shouldUseBorderlessStyle?: boolean;
 };
 
 /** Presentational sign toggle button shared by KeypadAmountEditor and AmountFormField. */
-function AmountSignFlipButton({isDisabled = false, onPress, style, testID, shouldShowLabel = true}: AmountSignFlipButtonProps) {
+function AmountSignFlipButton({isDisabled = false, onPress, style, testID, shouldShowLabel = true, shouldUseBorderlessStyle = false}: AmountSignFlipButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['PlusMinus']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -30,10 +33,14 @@ function AmountSignFlipButton({isDisabled = false, onPress, style, testID, shoul
             onMouseDown={(event) => event.preventDefault()}
             size={CONST.BUTTON_SIZE.SMALL}
             style={style}
+            innerStyles={shouldUseBorderlessStyle ? styles.bgTransparent : undefined}
+            // `innerStyles` never reaches the hover style `Button` layers on top, so the fill would come back under the cursor without this.
+            hoverStyles={shouldUseBorderlessStyle ? styles.bgTransparent : undefined}
             testID={testID}
         >
             <Button.Icon src={icons.PlusMinus} />
-            {shouldShowLabel && <Button.Text>{label}</Button.Text>}
+            {/* Without its fill the label takes the supporting text color, matching the icon beside it. */}
+            {shouldShowLabel && <Button.Text style={shouldUseBorderlessStyle ? styles.textSupporting : undefined}>{label}</Button.Text>}
         </Button>
     );
 }

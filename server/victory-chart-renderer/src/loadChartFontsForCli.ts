@@ -4,10 +4,10 @@ import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@c
 import hasAnyLoadedChartTypeface from '@components/Charts/utils/hasAnyLoadedChartTypeface';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
 
-import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+import type {DataModule, SkTypeface} from 'react-native-skia';
 
-import {Skia} from '@shopify/react-native-skia';
 import {dirname, isAbsolute, join} from 'node:path';
+import {Skia} from 'react-native-skia';
 
 import log from './log';
 
