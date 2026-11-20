@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
@@ -44,7 +46,6 @@ import {View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 
 import pkg from '../../../../package.json';
-import useAboutSectionIllustration from './useAboutSectionIllustration';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -70,11 +71,11 @@ function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const aboutIllustration = useSectionIllustrationWithMotion(LottieAnimations.Coin, 'TiltedCoinExpensify', styles.aboutStaticIllustration);
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.about'));
-    const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);

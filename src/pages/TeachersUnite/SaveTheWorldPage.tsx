@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
@@ -13,6 +14,7 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -36,10 +38,10 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import shouldDisablePersonalKarmaToggle from './shouldDisablePersonalKarmaToggle';
-import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
     const styles = useThemeStyles();
+    const saveTheWorldIllustration = useSectionIllustrationWithMotion(LottieAnimations.SaveTheWorld, 'SaveTheWorldScale', styles.saveTheWorldStaticIllustration);
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -53,7 +55,6 @@ function SaveTheWorldPage() {
     const [isPendingUpdatePersonalKarma = false] = useOnyx(ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA);
     const {showConfirmModal} = useConfirmModal();
     const pendingPersonalKarmaEnableRef = useRef(false);
-    const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
     const personalKarmaDescription = translate('teachersUnitePage.personalKarma.description');
     const personalKarmaStopDonationsPrompt = translate('teachersUnitePage.personalKarma.stopDonationsPrompt');

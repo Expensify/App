@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -19,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -44,8 +46,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
-
 type BaseMenuItemType = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
@@ -58,8 +58,8 @@ type BaseMenuItemType = WithRequiredSentryLabel & {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'Fingerprint', 'Monitor', 'Shield', 'UserLock']);
-    const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
+    const securitySettingsIllustration = useSectionIllustrationWithMotion(LottieAnimations.Safe, 'Safe', styles.securitySettingsStaticIllustration);
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
