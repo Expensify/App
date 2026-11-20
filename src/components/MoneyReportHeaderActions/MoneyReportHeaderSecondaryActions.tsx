@@ -35,6 +35,7 @@ import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
+import useReportBankPaySkippedModal from '@hooks/useReportBankPaySkippedModal';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -48,6 +49,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -318,6 +320,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         !canIOUBePaid &&
         canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const {isBankPayBlocked, showReportBankPaySkippedModal} = useReportBankPaySkippedModal({bankAccountList, report: moneyRequestReport, policy, onlyShowPayElsewhere});
     const hasOnlyPendingTransactions = moneyReportTransactions.length > 0 && moneyReportTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
         (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, moneyReportTransactions) && !hasOnlyPendingTransactions) ||
@@ -336,7 +339,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         shouldHidePaymentOptions: !shouldShowPayButton,
         shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,
-        onlyShowPayElsewhere,
+        onlyShowPayElsewhere: onlyShowPayElsewhere && !isBankPayBlocked,
     });
 
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -498,6 +501,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     };
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (isBankPayBlocked && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            // The More menu is still closing here, and iOS can't present a modal until it's gone
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showReportBankPaySkippedModal();
+            });
+            return;
+        }
         const runPaymentSelection = () =>
             selectPaymentType({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),

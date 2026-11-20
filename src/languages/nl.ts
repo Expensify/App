@@ -1677,6 +1677,13 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+        bankPaySkippedReportsDescription:
+            'Deze rapporten zijn niet via de bankrekening betaald omdat ze niet-declarabel zijn of een totaalbedrag van nul of minder hebben. Je kunt ze handmatig als betaald markeren als je dat liever hebt.',
+        bankPayAllReportsSkippedDescription:
+            'De geselecteerde rapporten komen niet in aanmerking voor terugbetaling of hebben een totaalbedrag van nul of minder. Je kunt deze rapporten handmatig als betaald markeren als je dat wilt.',
+        bankPayReportSkippedDescription:
+            'Dit rapport komt niet in aanmerking voor terugbetaling of heeft een totaalbedrag van nul of minder. Je kunt het desgewenst handmatig als betaald markeren.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met bankrekening ${last4Digits}` : `betaald met bankrekening ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `betaald ${amount ? `${amount} ` : ''} met bankrekening ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
@@ -13226,6 +13233,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         approvingTitle: 'Rapporten goedkeuren...',
         submittingTitle: 'Rapporten worden ingediend...',
         payingTitle: 'Rapporten markeren als betaald...',
+        payingWithBankTitle: 'Rapporten worden betaald...',
         holdingTitle: 'Uitgaven vasthouden...',
         unholdingTitle: 'Blokkering van uitgaven opheffen...',
         rejectingTitle: 'Uitgaven afwijzen...',
@@ -13248,6 +13256,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} van ${count} rapport als betaald gemarkeerd`,
             other: `${doneCount} van ${count} rapporten als betaald gemarkeerd`,
+        }),
+        paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `${doneCount} van de ${count} rapporten betaald`,
+            other: `${doneCount} van ${count} rapporten betaald`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Uitgaven vastgehouden in ${doneCount} van ${count} rapport`,
@@ -13290,6 +13302,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             one: '1 rapport kon niet worden betaald.',
             other: `${count} rapporten konden niet worden betaald.`,
         }),
+        skippedBankPayBody: ({count}: {count: number}) => ({
+            one: '1 rapport is niet via de bankrekening betaald omdat het niet-vergoedbaar is of een totaalbedrag van nul of minder heeft. Je kunt het handmatig als betaald markeren als je dat liever hebt.',
+            other: `${count} rapporten zijn niet via de bankrekening betaald, omdat ze niet-vergoedbaar zijn of een totaalbedrag van nul of minder hebben. Je kunt ze handmatig als betaald markeren als je dat liever hebt.`,
+        }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Uitgaven in 1 rapport konden niet worden vastgehouden.',
             other: `Uitgaven in ${count} rapporten konden niet worden vastgehouden.`,
@@ -13313,6 +13329,18 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1 rapport kon niet worden verplaatst.',
             other: `${count} rapporten konden niet worden verplaatst.`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 rapport is niet betaald omdat de bankrekening eerst wereldwijde terugbetalingen moet instellen.',
+            other: `${count} rapporten zijn niet betaald omdat de bankrekening eerst wereldwijde terugbetalingen moet instellen.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 rapport is niet betaald omdat de bankrekening van het lid nog niet is ingesteld voor globale terugbetalingen.',
+            other: `${count} rapporten zijn niet betaald omdat de bankrekeningen van de leden nog niet zijn ingesteld voor wereldwijde terugbetalingen.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 rapport is niet betaald omdat het in een andere valuta wordt uitbetaald. Betaal het vanuit het rapport om de wisselkoers te bevestigen.',
+            other: `${count} rapporten zijn niet betaald omdat ze worden uitbetaald in een andere valuta. Betaal elk rapport afzonderlijk om de wisselkoers te bevestigen.`,
         }),
     },
     earlyRenewal: {

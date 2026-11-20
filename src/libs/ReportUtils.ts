@@ -5691,6 +5691,20 @@ function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Tra
 }
 
 /**
+ * Whether a bank account can't pay an expense report because nothing on it is owed: it's non-reimbursable or totals $0 or less,
+ * on a workspace that otherwise pays through a bank account. Such a report keeps the bank account option, and picking it explains why it can't be used.
+ * Fails closed while the report total isn't known, so a report that may be owed is never left out of a bank payment.
+ */
+function isBankPayBlockedBySpend(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+    return (
+        isExpenseReport(report) &&
+        isReportTotalLoadedAndSettled(report) &&
+        getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO &&
+        getMoneyRequestSpendBreakdown(report).reimbursableSpend <= 0
+    );
+}
+
+/**
  * Builds the total columns used when an IOU report is converted to an expense report.
  *
  * IOU reports store their totals positive while expense reports store them negative, so every total column has to
@@ -16323,6 +16337,7 @@ export {
     isCardOnlyReport,
     hasSettledZeroReimbursableSpend,
     isPayOptional,
+    isBankPayBlockedBySpend,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
     getMostRecentlyVisitedReport,
