@@ -3191,10 +3191,6 @@ describe('PolicyUtils', () => {
         });
 
         describe('getManagerAccountID', () => {
-            beforeEach(() => {
-                wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            });
-
             it('should return default approver for personal workspaces', () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
