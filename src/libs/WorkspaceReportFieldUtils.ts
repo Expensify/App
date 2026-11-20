@@ -123,13 +123,6 @@ function getExistingReportFieldByName(
 }
 
 /**
- * Checks if a report field name already exists in the policy's field list (case-insensitive).
- */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
-    return !!getExistingReportFieldByName(fieldList, fieldName, expectedTarget);
-}
-
-/**
  * Determines whether a report field matches the expected target.
  */
 function isReportFieldTargetValid(reportField: PolicyReportField | null, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
@@ -274,7 +267,6 @@ export {
     getReportFieldInitialValue,
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
-    isReportFieldNameExisting,
     getExistingReportFieldByName,
     isReportFieldTargetValid,
     getReportFieldsForTarget,

@@ -78,8 +78,9 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
 
     return (
         <Text
-            style={[style as TextStyle, linkStyle]}
+            style={[style, linkStyle]}
             onPress={navigateToConciergeChat}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.CONCIERGE_LINK}
             onKeyDown={handleKeyDown}
             suppressHighlighting
             accessible

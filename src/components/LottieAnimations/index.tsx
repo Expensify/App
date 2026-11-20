@@ -96,6 +96,11 @@ const DotLottieAnimations = {
         w: 204,
         h: 204,
     },
+    SparkleRotate: {
+        file: require<LottieViewProps['source']>('@assets/animations/SparkleRotate.lottie'),
+        w: 120,
+        h: 120,
+    },
     ConciergeThinkingScanGradient: {
         file: require<LottieViewProps['source']>('@assets/animations/ConciergeThinkingScanGradient.lottie'),
         w: 550,

@@ -1,4 +1,6 @@
 /** A pane size that a drag paints straight onto the DOM, ahead of React, as a CSS variable that styles fall back from. Web only. */
+import {toDimensionValue} from '@libs/WebOnlyStyleUtils';
+
 import type {DimensionValue} from 'react-native';
 
 type LiveSizeVariable = {
@@ -14,13 +16,6 @@ type LiveSizeVariable = {
     getStyleValue: (size: number, offset?: number) => DimensionValue;
 };
 
-/** Hands a CSS expression to a style. */
-function toDimensionValue(cssValue: string): DimensionValue {
-    // DimensionValue has no member for CSS functions, which react-native-web still renders as written.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return cssValue as DimensionValue;
-}
-
 function createLiveSizeVariable(name: `--${string}`): LiveSizeVariable {
     const getReference = (size: number) => `var(${name}, ${size}px)`;
 
@@ -33,5 +28,4 @@ function createLiveSizeVariable(name: `--${string}`): LiveSizeVariable {
 }
 
 export default createLiveSizeVariable;
-export {toDimensionValue};
 export type {LiveSizeVariable};

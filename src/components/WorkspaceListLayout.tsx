@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -60,6 +61,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Building,
             route: ROUTES.WORKSPACES_LIST.getRoute(),
             screenName: SCREENS.WORKSPACES_LIST,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.TAB.WORKSPACES,
         },
         {
             key: 'domains',
@@ -70,6 +72,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             badgeText: domainsBadgeText,
             isBadgeCondensed: true,
             isBadgeError: hasDomainErrors,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.TAB.DOMAINS,
         },
     ];
 

@@ -14,6 +14,7 @@ import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
@@ -101,6 +102,7 @@ function SearchTransactionsChangeReport() {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -201,6 +203,7 @@ function SearchTransactionsChangeReport() {
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 ...allMatchingQueryParams,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             clearSelectedTransactions();
         });
@@ -311,6 +314,7 @@ function SearchTransactionsChangeReport() {
             getCurrencyDecimals,
             getCurrencySymbol,
             ...allMatchingQueryParams,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -353,6 +357,7 @@ function SearchTransactionsChangeReport() {
             getCurrencyDecimals,
             getCurrencySymbol,
             ...allMatchingQueryParams,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         clearSelectedTransactions();
         Navigation.goBack();

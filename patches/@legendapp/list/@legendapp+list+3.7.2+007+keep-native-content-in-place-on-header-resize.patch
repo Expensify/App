@@ -1,0 +1,316 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 3ccffa79110..56382a16e9d 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -549,6 +549,7 @@ function cancelImperativeScroll(state) {
+ }
+ 
+ // src/core/clampScrollOffset.ts
++var ANDROID_SHRINK_CLAMP_EPSILON = 0.1;
+ function getContentInsetTop(ctx) {
+   var _a3, _b, _c, _d;
+   const state = ctx.state;
+@@ -561,6 +562,20 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  const state = ctx.state;
++  if (Platform.OS !== "android") {
++    return positionDiff;
++  }
++  const maxScroll = getScrollRangeEnd(ctx);
++  if (state.scroll <= maxScroll + ANDROID_SHRINK_CLAMP_EPSILON) {
++    return positionDiff;
++  }
++  const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
++  state.scroll = maxScroll;
++  state.scrollPending = maxScroll;
++  return targetScroll - maxScroll;
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1999,14 +2014,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
+-      if (Platform.OS === "android" && !dataChanged && scrollTarget === void 0) {
+-        const maxScroll = getScrollRangeEnd(ctx);
+-        if (state.scroll > maxScroll + MVCP_POSITION_EPSILON) {
+-          const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
+-          state.scroll = maxScroll;
+-          state.scrollPending = maxScroll;
+-          positionDiff = targetScroll - maxScroll;
+-        }
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
+       }
+       if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
+         state.pendingNativeMVCPAdjust = {
+@@ -6715,7 +6724,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   const sizeDiff = nextHeaderSize - previousHeaderSize;
+   const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
+   const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
+-  return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
++  return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
+   const { state } = ctx;
+@@ -6726,7 +6735,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 676c117a45a..2c8dc675d44 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -528,6 +528,7 @@ function cancelImperativeScroll(state) {
+ }
+ 
+ // src/core/clampScrollOffset.ts
++var ANDROID_SHRINK_CLAMP_EPSILON = 0.1;
+ function getContentInsetTop(ctx) {
+   var _a3, _b, _c, _d;
+   const state = ctx.state;
+@@ -540,6 +541,20 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  const state = ctx.state;
++  if (Platform.OS !== "android") {
++    return positionDiff;
++  }
++  const maxScroll = getScrollRangeEnd(ctx);
++  if (state.scroll <= maxScroll + ANDROID_SHRINK_CLAMP_EPSILON) {
++    return positionDiff;
++  }
++  const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
++  state.scroll = maxScroll;
++  state.scrollPending = maxScroll;
++  return targetScroll - maxScroll;
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1978,14 +1993,8 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
+-      if (Platform.OS === "android" && !dataChanged && scrollTarget === void 0) {
+-        const maxScroll = getScrollRangeEnd(ctx);
+-        if (state.scroll > maxScroll + MVCP_POSITION_EPSILON) {
+-          const targetScroll = Math.max(0, Math.min(state.scroll + positionDiff, maxScroll));
+-          state.scroll = maxScroll;
+-          state.scrollPending = maxScroll;
+-          positionDiff = targetScroll - maxScroll;
+-        }
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
+       }
+       if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
+         state.pendingNativeMVCPAdjust = {
+@@ -6694,7 +6703,7 @@ function shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, nextHeaderSize
+   const sizeDiff = nextHeaderSize - previousHeaderSize;
+   const leadingPadding = props.horizontal ? props.stylePaddingLeft : props.stylePaddingTop;
+   const previousHeaderEnd = (leadingPadding || 0) + previousHeaderSize;
+-  return Platform.OS === "web" && props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
++  return props.maintainVisibleContentPosition.size && didContainersLayout && didFinishInitialScroll && !scrollingTo && scroll >= previousHeaderEnd - SCROLL_ADJUST_EPSILON && Math.abs(sizeDiff) > SCROLL_ADJUST_EPSILON;
+ }
+ function setHeaderSize(ctx, size) {
+   const { state } = ctx;
+@@ -6705,7 +6714,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index b6f2da18e38..684b3017523 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -488,8 +488,6 @@ function cancelImperativeScroll(state) {
+   state.scrollTargetPinnedRange = void 0;
+   settlePendingImperativeScroll(state);
+ }
+-
+-// src/core/clampScrollOffset.ts
+ function getContentInsetTop(ctx) {
+   ctx.state;
+   {
+@@ -499,6 +497,12 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  ctx.state;
++  {
++    return positionDiff;
++  }
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1887,6 +1891,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust()) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,
+@@ -7587,7 +7594,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 7413734a88e..5c99c97c4d9 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -467,8 +467,6 @@ function cancelImperativeScroll(state) {
+   state.scrollTargetPinnedRange = void 0;
+   settlePendingImperativeScroll(state);
+ }
+-
+-// src/core/clampScrollOffset.ts
+ function getContentInsetTop(ctx) {
+   ctx.state;
+   {
+@@ -478,6 +476,12 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  ctx.state;
++  {
++    return positionDiff;
++  }
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1866,6 +1870,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust()) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,
+@@ -7566,7 +7573,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index b6f2da18e38..684b3017523 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -488,8 +488,6 @@ function cancelImperativeScroll(state) {
+   state.scrollTargetPinnedRange = void 0;
+   settlePendingImperativeScroll(state);
+ }
+-
+-// src/core/clampScrollOffset.ts
+ function getContentInsetTop(ctx) {
+   ctx.state;
+   {
+@@ -499,6 +497,12 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  ctx.state;
++  {
++    return positionDiff;
++  }
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1887,6 +1891,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust()) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,
+@@ -7587,7 +7594,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 7413734a88e..5c99c97c4d9 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -467,8 +467,6 @@ function cancelImperativeScroll(state) {
+   state.scrollTargetPinnedRange = void 0;
+   settlePendingImperativeScroll(state);
+ }
+-
+-// src/core/clampScrollOffset.ts
+ function getContentInsetTop(ctx) {
+   ctx.state;
+   {
+@@ -478,6 +476,12 @@ function getContentInsetTop(ctx) {
+ function getScrollRangeEnd(ctx, contentSize = getContentSize(ctx)) {
+   return Math.max(0 - getContentInsetTop(ctx), contentSize - ctx.state.scrollLength);
+ }
++function getAdjustAfterAndroidShrinkClamp(ctx, positionDiff) {
++  ctx.state;
++  {
++    return positionDiff;
++  }
++}
+ function clampScrollOffset(ctx, offset, scrollTarget) {
+   var _a3;
+   const state = ctx.state;
+@@ -1866,6 +1870,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (!dataChanged && scrollTarget === void 0) {
++        positionDiff = getAdjustAfterAndroidShrinkClamp(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust()) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,
+@@ -7566,7 +7573,7 @@ function setHeaderSize(ctx, size) {
+     set$(ctx, "headerSize", size);
+     updateContentMetricsState(ctx);
+     if (hasMeasuredOrEstimatedHeaderBaseline && shouldAdjustForHeaderSizeChange(ctx, previousHeaderSize, size)) {
+-      requestAdjust(ctx, size - previousHeaderSize);
++      requestAdjust(ctx, getAdjustAfterAndroidShrinkClamp(ctx, size - previousHeaderSize));
+     }
+   }
+   state.didMeasureHeader = true;

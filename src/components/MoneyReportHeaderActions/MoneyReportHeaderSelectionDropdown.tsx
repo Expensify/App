@@ -22,6 +22,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModePayment from '@hooks/useSelectionModePayment';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 
@@ -56,6 +57,7 @@ type MoneyReportHeaderSelectionDropdownProps = {
 };
 
 function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const route = useRoute();
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
@@ -153,6 +155,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const computedSecondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
+              areStrictPolicyRulesEnabled,
+              isLoadingSecurityGroup,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,
@@ -209,10 +213,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType, paymentType, methodID}) => {
+        onHoldMenuOpen: ({requestType, paymentType, paymentMethod, methodID}) => {
             openHoldMenu({
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID,
                 onConfirm: () => clearSelectedTransactions(true),
             });
@@ -269,6 +274,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: submitButtonText,
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
                   },
               ]
@@ -279,6 +285,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.APPROVE,
                       rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
                       backButtonText: shouldShowApproveSubMenu ? approveButtonText : undefined,
                       subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
@@ -294,6 +301,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: translate('iou.settlePayment', totalAmount),
                       icon: expensifyIcons.Cash,
                       value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.PAY,
                       rightIcon: expensifyIcons.ArrowRight,
                       backButtonText: translate('iou.settlePayment', totalAmount),
                       subMenuItems: paymentSubMenuItems,
