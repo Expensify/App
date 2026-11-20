@@ -132,5 +132,6 @@ describe('CreateReportMenuItem', () => {
         // Then the report is created on exactly that workspace, not on one the item looked up itself
         expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
         expect(mockCreateNewReport).toHaveBeenCalledWith(expect.objectContaining({policy}));
+        expect(mockCreateNewReport.mock.calls.at(0)?.at(0)).toHaveProperty('personalDetailsByLogins', expect.any(Object));
     });
 });
