@@ -86,6 +86,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
         <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>
             {translate('workflowsCurrencyConversionFeesPage.subtitle')}{' '}
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES_LEARN_MORE_LINK}
                 style={[styles.textLabel, styles.link]}
                 href={CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}
             >

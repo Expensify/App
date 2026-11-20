@@ -20,5 +20,5 @@ type Currency = {
 /** Record of currencies, index by currency code */
 type CurrencyList = Record<string, Currency | null>;
 
-export default Currency;
+// eslint-disable-next-line import/prefer-default-export -- The file exposes one named type that importers use by name; a default export would touch every importer.
 export type {CurrencyList};

@@ -360,6 +360,7 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={StateSelector}
                             inputID={INPUT_IDS.ADDRESS_STATE}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 )}

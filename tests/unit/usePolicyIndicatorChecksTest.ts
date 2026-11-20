@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import usePolicyIndicatorChecks from '@hooks/usePolicyIndicatorChecks';
 
+import * as WorkflowUtils from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +16,7 @@ import type {OnyxInputValue, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'admin@expensify.com';
@@ -39,6 +42,22 @@ function createPolicyCollectionDataSet(policy: Policy) {
     return toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
 }
 
+function createNonMemberApproverPolicy(policyID: string) {
+    return createMock<Policy>({
+        id: policyID,
+        name: WORKSPACE.policyName,
+        type: CONST.POLICY.TYPE.CORPORATE,
+        owner: userID,
+        role: 'admin',
+        approver: userID,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+        employeeList: {
+            [userID]: {email: userID, role: CONST.POLICY.ROLE.ADMIN, submitsTo: userID},
+            [otherUserID]: {email: otherUserID, role: CONST.POLICY.ROLE.USER, submitsTo: 'removed@example.com'},
+        },
+    });
+}
+
 describe('usePolicyIndicatorChecks', () => {
     beforeAll(() => {
         Onyx.init({
@@ -48,6 +67,30 @@ describe('usePolicyIndicatorChecks', () => {
     });
 
     describe('policy error statuses', () => {
+        it.each([false, true])('returns the fuel VAT warning status unless dismissed: %s', async (isDismissed) => {
+            // Given an admin workspace with an invalid fuel-band tax mapping
+            const policy = createUKFuelRateTaxPolicy();
+            const attributes = policy.customUnits?.distance.attributes;
+            if (!attributes) {
+                throw new Error('Expected distance attributes');
+            }
+            attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...createPolicyCollectionDataSet(policy),
+                    [ONYXKEYS.CARD_LIST]: {},
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            // When the Workspaces tab checks policy indicators
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+            // Then the warning leads to this workspace, until it is dismissed
+            expect(result.current.policyErrorStatus).toBe(isDismissed ? undefined : CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR);
+            expect(result.current.indicatorPolicyID).toBe(isDismissed ? undefined : policy.id);
+        });
         it('returns HAS_POLICY_ERRORS when policy has errors', async () => {
             await act(async () => {
                 const policyCollectionDataSet = createPolicyCollectionDataSet(
@@ -291,6 +334,74 @@ describe('usePolicyIndicatorChecks', () => {
             // Then the Workspaces tab gets the red dot for that workspace, matching the flagged card on its Workflows page
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER);
             expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
+        });
+
+        it('links the non-member approver red dot to the first flagged workspace in collection order', async () => {
+            // Given two workspaces that both have a member submitting to a removed approver
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [createNonMemberApproverPolicy('1'), createNonMemberApproverPolicy('2')], (item) => item.id),
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the policy indicator checks run
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the dot links to the first one, the same workspace the check picked before it moved into a selector
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER);
+            expect(result.current.indicatorPolicyID).toBe('1');
+        });
+
+        it('drops the non-member approver red dot when the signed-in user can no longer edit approvals', async () => {
+            // Given an admin who sees the red dot for a workspace with a removed approver
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...createPolicyCollectionDataSet(createNonMemberApproverPolicy(WORKSPACE.policyID)),
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER);
+
+            // When the session switches to a regular member, with no change to the workspace itself
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {email: otherUserID});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then the dot goes away, because the check reruns when the login it depends on changes
+            expect(result.current.policyErrorStatus).toBeUndefined();
+        });
+
+        it('does not rebuild approval workflows when the hook re-renders without any data change', async () => {
+            // Given a workspace with a removed approver, so the check builds its approval workflows
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    ...createPolicyCollectionDataSet(createNonMemberApproverPolicy(WORKSPACE.policyID)),
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+            const checkSpy = jest.spyOn(WorkflowUtils, 'hasApprovalWorkflowWithNonMemberApprover');
+            const {rerender} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+            checkSpy.mockClear();
+
+            // When the hook re-renders, like the Workspaces tab button does on every tab switch
+            rerender({});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the heavy check doesn't run again, since none of its inputs changed
+            expect(checkSpy).not.toHaveBeenCalled();
+            checkSpy.mockRestore();
         });
     });
 

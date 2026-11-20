@@ -22,6 +22,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
@@ -559,6 +560,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConsentExpiringMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

@@ -3,10 +3,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
+import {getLastFourDigits} from '@libs/BankAccountUtils';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
+import formatReportNamesAsBulletList from '@libs/formatReportNamesAsBulletList';
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearEnableGlobalReimbursementsModal} from '@userActions/App';
+import {clearEnableGlobalReimbursementsModal, showEnableGlobalReimbursementsModal as showEnableGlobalReimbursementsModalAction} from '@userActions/App';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +33,29 @@ function EnableGlobalReimbursementsPayModal() {
         if (isModalOpenRef.current) {
             return;
         }
+
+        // Search bulk pay paid some reports and left these unpaid. It lists them here rather than in Search, because the responses can arrive after the admin left the Search page
+        const {unpaidReportNames, accountNumber, ...bankAccount} = modalData;
+        if (unpaidReportNames?.length) {
+            clearEnableGlobalReimbursementsModal();
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showConfirmModal({
+                    title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(accountNumber ?? '')),
+                    subtitle: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.description'),
+                    prompt: formatReportNamesAsBulletList(unpaidReportNames),
+                    confirmText: translate('walletPage.wiseGlobalReimbursementsIntro.getStarted'),
+                    cancelText: translate('common.notNow'),
+                    shouldEnablePromptScroll: true,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    showEnableGlobalReimbursementsModalAction(bankAccount);
+                });
+            });
+            return;
+        }
+
         const navigationPathAtSignal = Navigation.getActiveRoute();
 
         // The signal arrives after a pay attempt, so betas are loaded. An unknown beta state should take the Corpay path.
@@ -37,7 +63,9 @@ function EnableGlobalReimbursementsPayModal() {
             if (isAccountLocked) {
                 showLockedAccountModal();
             } else {
-                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
+                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal, modalData.isPayingMultipleReports), {
+                    skipMatchingFullScreenRoute: true,
+                });
             }
             clearEnableGlobalReimbursementsModal();
             return;

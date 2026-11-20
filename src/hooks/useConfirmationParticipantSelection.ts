@@ -4,7 +4,7 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {moveMoneyRequestDraftToSelfDM, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -17,7 +17,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type useBlockDistanceRequest from './useBlockDistanceRequest';
 
-import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
@@ -59,7 +58,6 @@ function useConfirmationParticipantSelection({
     blockDistanceRequestIfNeeded,
     onIOUTypeChange,
 }: UseConfirmationParticipantSelectionParams) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
@@ -92,14 +90,29 @@ function useConfirmationParticipantSelection({
         // of them, like useParticipantSubmission does.
         if (shouldKeepOnSelfDM) {
             for (const transactionToUpdate of transactions) {
-                moveMoneyRequestDraftToSelfDM({
-                    transaction: transactionToUpdate,
-                    selfDMReport,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    policyForMovingExpenses,
-                    lastSelectedDistanceRates,
-                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                });
+                setMoneyRequestParticipantsFromReport(transactionToUpdate.transactionID, selfDMReport, currentUserPersonalDetails.accountID);
+                setTransactionReport(transactionToUpdate.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+
+                // A workspace rate doesn't exist on the self DM and would leave the Rate field "Pending...", so use the
+                // self DM's own rate.
+                if (isDistanceRequest) {
+                    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: selfDMReport?.reportID,
+                        isPolicyExpenseChat: false,
+                        isTrackDistanceExpense: true,
+                        policy: policyForMovingExpenses,
+                        lastSelectedDistanceRates,
+                        expenseDate: transactionToUpdate.created,
+                    });
+                    setCustomUnitRateID(
+                        transactionToUpdate.transactionID,
+                        selfDMRateID,
+                        transactionToUpdate,
+                        policyForMovingExpenses,
+                        false,
+                        policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
+                    );
+                }
             }
 
             if (iouType !== CONST.IOU.TYPE.TRACK) {
@@ -136,7 +149,7 @@ function useConfirmationParticipantSelection({
                         });
                         setCustomUnitRateID(transactionIDToUpdate, p2pRateID, transactionToUpdate, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined, getCurrencyDecimals);
+                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined);
                     setMoneyRequestTag(transactionIDToUpdate, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
@@ -159,7 +172,7 @@ function useConfirmationParticipantSelection({
                     // passed, so the category's tax is cleared too.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
+                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined);
                         setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }
