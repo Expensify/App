@@ -3,6 +3,7 @@ import type {ChartView, SearchView} from '@components/Search/types';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
@@ -36,6 +37,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined, isConfigResolved
     const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    useShowSearchSnapshots(queryJSON?.hash === undefined ? undefined : [queryJSON.hash]);
 
     const {isOffline} = useNetwork();
     const [policyIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDsSelector});

@@ -14,6 +14,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {trackSearchSnapshotAccess} from './SearchSnapshotCache';
+
 function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
 
@@ -55,10 +57,14 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     }));
 
+    trackSearchSnapshotAccess(snapshotHashes);
+
     waitForWrites(READ_COMMANDS.GET_INSIGHTS).then(() =>
         // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
         makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData})
             .then((result) => {
+                // The response rewrites the snapshots, so they need an access record even if they were evicted mid-flight
+                trackSearchSnapshotAccess(snapshotHashes);
                 if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     return;
                 }

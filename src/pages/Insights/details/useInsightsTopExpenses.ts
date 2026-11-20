@@ -6,6 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowSearchSnapshots from '@hooks/useShowSearchSnapshots';
 
 import {search} from '@libs/actions/Search';
 import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
@@ -46,6 +47,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const session = useSession();
     const queryJSON = query ? buildTopExpensesQueryJSON(query) : undefined;
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    useShowSearchSnapshots(queryJSON?.hash === undefined ? undefined : [queryJSON.hash]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);

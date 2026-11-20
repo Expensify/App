@@ -20,6 +20,7 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
+import useShowSearchSnapshots from './useShowSearchSnapshots';
 
 // Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
@@ -43,7 +44,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentDefaultSearchQueryJSON} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const isInPreloadedTab = useIsInPreloadedTab();
     // Set while the tab is preloaded and kept until its first-open request goes out, which can take more than one render.
@@ -97,6 +98,12 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
         isFirstOpenOfPreloadedTabRef.current = true;
     }, [isInPreloadedTab]);
+
+    // An unmodified saved or suggested search keeps its snapshot outside the cache cap
+    const isSavedOrSuggestedQuery = hash !== undefined && currentDefaultSearchQueryJSON?.hash === hash;
+
+    // A cached query is shown without a new request, so showing it has to mark its snapshot as used here
+    useShowSearchSnapshots(hash === undefined || isInPreloadedTab ? undefined : [hash], isSavedOrSuggestedQuery);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
