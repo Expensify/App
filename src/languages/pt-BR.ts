@@ -581,6 +581,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} dia`,
             other: (count: number) => `${formattedCount ?? count} dias`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hora`,
+            other: (count: number) => `${formattedCount ?? count} horas`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minutos`,
+        }),
         amount: 'Valor',
     },
     socials: {
@@ -3309,6 +3317,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Começar',
             headerTitle: 'Reembolsos globais',
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
+            payingMultipleReportsSubtitle: 'Nenhum desses relatórios pôde ser pago porque as contas bancárias da empresa e do funcionário usam moedas diferentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
+            description: 'Esses relatórios não foram pagos com a conta bancária porque exigem reembolsos globais. Comece o processo abaixo.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
         wiseMoreInfoNeeded: 'Mais informações necessárias para ativar reembolsos globais',
@@ -7224,9 +7237,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            visibleTo: 'Visível para',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membros`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Não é possível remover o acesso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'Não é possível remover o acesso a essas categorias',
                 description: ({count}: {count: number}) => ({
                     one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
                     other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
@@ -8601,6 +8622,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             timezoneInputLabel: 'Fuso horário',
             timezoneInputHelpText: 'Seu fuso horário é usado para o envio automático de relatórios',
             timezoneErrorMessage: 'Não foi possível alterar o fuso horário. Tente novamente ou entre em contato com o suporte.',
+            directReimbursementCurrencyTitle: 'Moeda indisponível com reembolso direto',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espaço de trabalho reembolsa os membros diretamente pelo Expensify, o que não está disponível em ${currency}. Para usar ${currency}, acesse Fluxos de trabalho e desative e reative Pagamentos, para que os pagamentos sejam feitos fora do Expensify.`,
+            goToWorkflows: 'Ir para fluxos de trabalho',
         },
         officeLocations: {
             title: 'Locais do escritório',
@@ -10345,11 +10370,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou a taxa de ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `alterou a alíquota de imposto na tarifa de distância "${customUnitRateName}" para "${newValue} (${newTaxPercentage})" (anteriormente "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `alterou a taxa de imposto na taxa de distância "${customUnitRateName}" para "${newTaxRate}" (antes "${oldTaxRate}")`;
             }
-            return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
+            return `adicionou a alíquota de imposto "${newTaxRate}" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10987,6 +11012,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
+            tooManyKeywords: `Sua pesquisa tem palavras-chave demais. Use no máximo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} palavras-chave e tente novamente.`,
+            unsupportedGrouping: 'Esta pesquisa não permite agrupamentos nem visualizações em gráfico. Remova o agrupamento e use a visualização em tabela.',
+            invalidReportID: 'Insira um ID de relatório válido. Para encontrar despesas não relatadas, use status:unreported.',
+            unsupportedFilter: 'O filtro "is:" não é compatível com esta pesquisa. Para encontrar despesas não relatadas, use status:unreported.',
             emptyResults: {
                 title: 'Nada para mostrar',
                 subtitle: `Tente ajustar seus critérios de pesquisa ou criar algo com o botão +.`,

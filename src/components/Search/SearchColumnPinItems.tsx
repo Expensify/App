@@ -1,5 +1,5 @@
 /** The column menu's pin items: pin the column to the left or right edge, or unpin it from the edge it's pinned to. */
-import * as PopoverMenu from '@components/PopoverMenu/v2';
+import ColumnHeaderMenu from '@components/Table/ColumnHeaderMenu';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +23,7 @@ type SearchColumnPinItemsProps = {
     pinColumn: (column: SearchColumnType, side: PinnedColumnSide | undefined) => void;
 };
 
-/** A `SearchColumnMenu` child. A column pinned to an edge offers Unpin in place of pinning it there again. */
+/** A `SortableColumnMenu` child. A column pinned to an edge offers Unpin in place of pinning it there again. */
 function SearchColumnPinItems({pinnedColumns, pinColumn}: SearchColumnPinItemsProps) {
     const {columnName} = useSortableColumn();
     const {translate} = useLocalize();
@@ -35,19 +35,19 @@ function SearchColumnPinItems({pinnedColumns, pinColumn}: SearchColumnPinItemsPr
 
     return (
         <>
-            <PopoverMenu.Item
+            <ColumnHeaderMenu.Item
                 text={translate(isPinnedLeft ? 'search.columnMenu.unpin' : 'search.columnMenu.pinLeft')}
                 icon={icons.Pin}
                 onSelect={() => pinColumn(columnName, isPinnedLeft ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT)}
                 sentryLabel={isPinnedLeft ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.LEFT}
             />
-            <PopoverMenu.Item
+            <ColumnHeaderMenu.Item
                 text={translate(isPinnedRight ? 'search.columnMenu.unpin' : 'search.columnMenu.pinRight')}
                 icon={icons.Pin}
                 onSelect={() => pinColumn(columnName, isPinnedRight ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT)}
                 sentryLabel={isPinnedRight ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.RIGHT}
             />
-            <PopoverMenu.Separator />
+            <ColumnHeaderMenu.Separator />
         </>
     );
 }

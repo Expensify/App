@@ -4987,6 +4987,49 @@ function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: bool
     return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
 }
 
+/** Columns users can't remove from a report's expense table. The total has to stay so at least one column flexes. */
+function getRequiredReportDetailsColumns(): Set<SearchCustomColumnIds> {
+    return new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+}
+
+/** Which shown columns of a table users can hide from their menu, and the columns to save when they hide one. */
+type ColumnHiding = {
+    hidableColumns: Set<SearchColumnType>;
+    getColumnsWithout: (column: SearchColumnType) => SearchCustomColumnIds[];
+};
+
+type ColumnHidingParams = {
+    /** The columns the table shows, in order. */
+    shownColumns: SearchCustomColumnIds[];
+
+    /** The saved columns, which can also hold columns of another table saved in the same list, e.g. the expense columns a grouped search expands to. */
+    savedColumns: SearchCustomColumnIds[];
+
+    requiredColumns: ReadonlySet<SearchColumnType>;
+
+    /** The columns to save in place of this table's columns while none of them are saved. */
+    unsavedColumns?: SearchCustomColumnIds[];
+
+    /** Whether a saved column belongs to this table rather than to another one saved in the same list. */
+    isTableColumn?: (column: SearchCustomColumnIds) => boolean;
+};
+
+/**
+ * Hiding starts from the saved columns, because a table drops some of them, e.g. a column no row has a value in, and
+ * saving only the shown ones would lose those. The last column of the table can't be hidden.
+ */
+function getColumnHiding({shownColumns, savedColumns, requiredColumns, unsavedColumns = shownColumns, isTableColumn = () => true}: ColumnHidingParams): ColumnHiding {
+    const savedTableColumns = savedColumns.filter(isTableColumn);
+    const hasSavedTableColumns = savedTableColumns.length > 0;
+    const columnsToSave = hasSavedTableColumns ? savedColumns : [...unsavedColumns, ...savedColumns];
+    const canHideAnyColumn = (hasSavedTableColumns ? savedTableColumns : shownColumns).length > 1;
+
+    return {
+        hidableColumns: new Set(canHideAnyColumn ? shownColumns.filter((column) => !requiredColumns.has(column)) : []),
+        getColumnsWithout: (column) => columnsToSave.filter((columnToSave) => columnToSave !== column),
+    };
+}
+
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -8707,6 +8750,8 @@ export {
     getGroupTableScrollLayout,
     getCustomColumnDefault,
     canEditSearchColumns,
+    getRequiredReportDetailsColumns,
+    getColumnHiding,
     filterValidHasValues,
     navigateToSearchRHP,
     navigateToSearchWithColumns,

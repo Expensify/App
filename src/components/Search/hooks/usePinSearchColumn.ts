@@ -41,4 +41,3 @@ function usePinSearchColumn(queryJSON: SearchQueryJSON, searchKey: SearchKey | u
 }
 
 export default usePinSearchColumn;
-export type {PinSearchColumn};

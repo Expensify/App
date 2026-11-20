@@ -122,20 +122,20 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
-import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
 import usePinSearchColumn from './hooks/usePinSearchColumn';
+import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import SearchColumnMenu from './SearchColumnMenu';
 import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
+import SortableColumnMenu from './SortableColumnMenu';
 import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
@@ -220,7 +220,8 @@ function Search({
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
     const {isBetaEnabled} = usePermissions();
-    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && canEditSearchColumns(type, shouldReturnTripRooms);
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
+    const canEditColumns = canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -1019,10 +1020,10 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const hideSearchColumn = useHideSearchColumn(queryJSON, columnsToShow);
+    const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
     const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
-    const shouldPinColumns = shouldShowColumnMenu && pinSearchColumn.canPinColumns;
+    const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
     const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
 
@@ -1511,7 +1512,7 @@ function Search({
             },
             [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
                 title: errorTitle,
-                subtitle: translate('errorPage.wrongTypeSubtitle'),
+                subtitle: translate(searchResults.search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle'),
             },
             [CONST.SEARCH.FAILURE_KIND.FAILED]: {
                 title: errorTitle,
@@ -1649,14 +1650,18 @@ function Search({
                 isActionColumnWide={isActionColumnWide}
             >
                 {shouldShowColumnMenu && (
-                    <SearchColumnMenu hiding={hideSearchColumn}>
+                    <SortableColumnMenu
+                        columnEditing={canEditColumns ? columnEditing : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
+                        itemSentryLabels={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM}
+                    >
                         {shouldPinColumns && (
                             <SearchColumnPinItems
                                 pinnedColumns={pinSearchColumn.pinnedColumns}
                                 pinColumn={pinSearchColumn.pinColumn}
                             />
                         )}
-                    </SearchColumnMenu>
+                    </SortableColumnMenu>
                 )}
             </SearchTableHeader>
         </View>

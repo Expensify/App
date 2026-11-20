@@ -1559,15 +1559,15 @@ function peg$parse(input, options) {
   function peg$parsereportID() {
     var s0, s1;
 
-    s0 = input.substr(peg$currPos, 8);
-    if (s0.toLowerCase() === peg$c8) {
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 8);
+    if (s1.toLowerCase() === peg$c8) {
       peg$currPos += 8;
     } else {
-      s0 = peg$FAILED;
+      s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e11); }
     }
-    if (s0 === peg$FAILED) {
-      s0 = peg$currPos;
+    if (s1 === peg$FAILED) {
       s1 = input.substr(peg$currPos, 9);
       if (s1.toLowerCase() === peg$c9) {
         peg$currPos += 9;
@@ -1575,12 +1575,12 @@ function peg$parse(input, options) {
         s1 = peg$FAILED;
         if (peg$silentFails === 0) { peg$fail(peg$e12); }
       }
-      if (s1 !== peg$FAILED) {
-        peg$savedPos = s0;
-        s1 = peg$f12();
-      }
-      s0 = s1;
     }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f12();
+    }
+    s0 = s1;
 
     return s0;
   }
