@@ -48,6 +48,8 @@ Before investigating or changing server-update ordering, gap recovery, or client
 
 Prefer pure functions taking data as params over direct Onyx reads: callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages. Justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. `Onyx.get` and `Onyx.multiGet` are one-shot reads for event handlers in components, pages and hooks. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxconnectwithoutview-onyxget-and-onyxmultiget).
 
+Use `useOnyx` for single-key reads. Use **`useOnyxState`** (`@hooks/useOnyxState`) for small results derived from multiple keys. See [Choosing between `useOnyx` and `useOnyxState`](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#choosing-between-useonyx-and-useonyxstate).
+
 ## Related Repositories
 
 ### Mobile-Expensify (Submodule)

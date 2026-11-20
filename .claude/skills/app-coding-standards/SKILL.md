@@ -90,3 +90,4 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 
 ### Onyx
 - [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
+- [ONYX-2](rules/onyx-2-use-onyx-vs-use-onyx-state.md) — useOnyx for single-key reads, useOnyxState for small results derived from multiple keys

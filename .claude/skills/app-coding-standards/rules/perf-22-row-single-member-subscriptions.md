@@ -38,7 +38,7 @@ function ReportRow({reportID}: ReportRowProps) {
 **Flag when ALL of these are true:**
 
 - The code is a list row component, or code that `renderItem` calls.
-- The row subscribes to a whole collection (`ONYXKEYS.COLLECTION.*` without a member ID), or to a derived map with an entry per record, such as `REPORT_ATTRIBUTES`.
+- The row subscribes to a whole collection (`ONYXKEYS.COLLECTION.*` without a member ID), or to a derived map with an entry per record, such as `REPORT_ATTRIBUTES`. This includes a `useOnyxState` selector that reads the collection root, such as `state[ONYXKEYS.COLLECTION.REPORT]`.
 - The row uses only a few members of it, and their IDs come from the row's props or its own data.
 
 **DO NOT flag if:**
@@ -47,8 +47,9 @@ function ReportRow({reportID}: ReportRowProps) {
 - The row needs the whole collection, for example to search across all members.
 - The code is not part of a list row.
 
-**Related:** [PERF-3](perf-3-onyx-list-item-provider.md) for shared data such as personal details, [PERF-21](perf-21-rows-read-own-data.md) when the list reads the data for its rows, [PERF-11](perf-11-optimize-data-selection.md) for selector cost.
+**Related:** [PERF-3](perf-3-onyx-list-item-provider.md) for shared data such as personal details, [PERF-21](perf-21-rows-read-own-data.md) when the list reads the data for its rows, [PERF-11](perf-11-optimize-data-selection.md) for selector cost, [ONYX-2](onyx-2-use-onyx-vs-use-onyx-state.md) for `useOnyxState`.
 
 **Search Patterns** (hints for reviewers):
 - `renderItem`
 - `useOnyx\(ONYXKEYS\.COLLECTION\.[A-Z_]+\)`
+- `state\[ONYXKEYS\.COLLECTION\.[A-Z_]+\]`
