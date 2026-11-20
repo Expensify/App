@@ -17,11 +17,12 @@ import {
     canAddTransaction,
     generateReportID,
     getDefaultMoneyRequestReport,
-    getNewestOutstandingReportForUser,
+    getMoneyRequestReportCandidate,
     getOutstandingReportsForUser,
     isMoneyRequestReport,
     isOpenExpenseReport,
     isReportOutstanding,
+    isSavedThroughMoneyRequestBuilder,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
 
@@ -98,11 +99,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     );
 
     // Match the save path's automatic destination before checking eligibility, rather than falling back to a report it would not use.
-    const defaultReport =
-        iouReport ??
-        (isCreatingExpense || isMovingTrackedExpense
-            ? getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {})
-            : availableOutstandingReports.at(0));
+    const candidateReport = getMoneyRequestReportCandidate(iouReport, action, policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy);
+    const defaultReport = candidateReport ?? (isSavedThroughMoneyRequestBuilder(action) ? undefined : availableOutstandingReports.at(0));
     const defaultReportID = getDefaultMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action)?.reportID;
 
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;

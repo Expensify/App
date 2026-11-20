@@ -107,6 +107,7 @@ import {
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultGroupAvatar,
+    getDefaultMoneyRequestReport,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
     getDisplayedReportID,
@@ -122,6 +123,7 @@ import {
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMissingPaymentMethodForQueuedPayment,
+    getMoneyRequestReportCandidate,
     getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
@@ -21471,6 +21473,70 @@ describe('ReportUtils', () => {
 
             // Then the existing report is reused
             expect(result).toBe(false);
+        });
+    });
+
+    describe('money request report defaults', () => {
+        const olderReport: Report = {
+            reportID: 'candidate-older',
+            policyID: 'candidate-policy',
+            ownerAccountID: currentUserAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            created: '2026-11-18 10:00:00',
+        };
+        const newerReport: Report = {...olderReport, reportID: 'candidate-newer', created: '2026-11-19 10:00:00'};
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${olderReport.reportID}`]: olderReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${newerReport.reportID}`]: newerReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}other-owner`]: {...newerReport, reportID: 'other-owner', ownerAccountID: currentUserAccountID + 1, created: '2026-11-20 10:00:00'},
+            [`${ONYXKEYS.COLLECTION.REPORT}submitted`]: {...newerReport, reportID: 'submitted', stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        };
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])(
+            'uses the newest open report for %s when the chat link is cleared',
+            (action) => {
+                // Given a cleared chat link and reports from different owners and workflow states
+                // When the action uses the builder's automatic fallback
+                const candidate = getMoneyRequestReportCandidate(undefined, action, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+                // Then only the current member's newest open report is selected
+                expect(candidate).toBe(newerReport);
+            },
+        );
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])('rejects a pending-delete default for %s', (action) => {
+            // Given a linked report that the builder cannot reuse
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving a default for an action saved through the builder
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, action);
+
+            // Then confirmation and picker both fall back to creating a new report
+            expect(defaultReport).toBeUndefined();
+        });
+
+        it('preserves a linked candidate rather than replacing it with the newest report', () => {
+            // Given a chat linked to an older report despite a newer report being available
+            // When resolving the automatic candidate
+            const candidate = getMoneyRequestReportCandidate(olderReport, CONST.IOU.ACTION.CREATE, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+            // Then the linked report takes precedence, matching the builder
+            expect(candidate).toBe(olderReport);
+        });
+
+        it('does not apply builder defaults or checks when editing an expense', () => {
+            // Given an editing action and an explicitly chosen report pending deletion
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving an absent chat candidate and the explicitly chosen default
+            const absentCandidate = getMoneyRequestReportCandidate(undefined, CONST.IOU.ACTION.EDIT, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, CONST.IOU.ACTION.EDIT);
+
+            // Then editing neither automatically selects a fallback nor runs the builder's checks
+            expect(absentCandidate).toBeUndefined();
+            expect(defaultReport).toBe(candidate);
         });
     });
 
