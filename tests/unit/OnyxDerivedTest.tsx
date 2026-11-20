@@ -487,7 +487,7 @@ describe('OnyxDerived', () => {
         });
 
         it('should only recompute reports that reference the changed accountID when a display name changes', () => {
-            // Two reports: one owned by account 2, the other owned by account 3.
+            // Given two reports owned by different accounts, and a baseline cleared as Onyx.clear does so the first personal details compute has nothing to compare against
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
                 [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
@@ -531,7 +531,7 @@ describe('OnyxDerived', () => {
                 ],
                 personalDetailsSource,
             );
-            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            // When only account 2's display name changes
             const afterChange = reportAttributes.compute(
                 [
                     reports,
@@ -555,7 +555,7 @@ describe('OnyxDerived', () => {
                 {...personalDetailsSource, currentValue: initial},
             );
 
-            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            // Then only account 2's report gets a new object, because the other report's name can't have changed and is carried over by reference
             expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
             expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
