@@ -5610,6 +5610,10 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Your hotel reservation at ${hotelName} (check-in ${startDate}) has been booked.`,
+            carBooked: (vendor: string, startDate: string) => `Your ${vendor} car rental (pick-up ${startDate}) has been booked.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been booked.`,
+            defaultBooked: (type: string) => `Your ${type} reservation has been booked.`,
         },
         nudge: {
             airfareManual:

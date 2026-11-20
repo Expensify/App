@@ -24,6 +24,7 @@ import type {OriginalMessageExportIntegration} from '../../src/types/onyx/Origin
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
+import type {Reservation} from '../../src/types/onyx/Transaction';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -10210,6 +10211,61 @@ describe('ReportActionsUtils', () => {
                 // Then it is hidden as before, so the new rule only brings back previews that have something to say
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('getTravelUpdateMessage', () => {
+        const formatDate = (datetime: string) => datetime;
+
+        function buildTravelUpdateAction(reservation: Partial<Reservation>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+            return {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+                created: '2026-11-20 10:00:00.000',
+                originalMessage: {
+                    operation: CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED,
+                    type: CONST.RESERVATION_TYPE.HOTEL,
+                    start: {date: '2026-12-01'},
+                    end: {date: '2026-12-03'},
+                    pnrID: '1234567890',
+                    tripID: '9876543210',
+                    ...reservation,
+                },
+            };
+        }
+
+        it('describes a new hotel booking with the hotel name and check-in date', () => {
+            const action = buildTravelUpdateAction({start: {date: '2026-12-01', longName: 'HILTON GARDEN INN'}, end: {date: '2026-12-03', longName: 'HILTON GARDEN INN'}});
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation at Hilton Garden Inn (check-in 2026-12-01) has been booked.');
+        });
+
+        it('describes a new car booking with the vendor and pick-up date', () => {
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.CAR, vendor: 'Hertz'});
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your Hertz car rental (pick-up 2026-12-01) has been booked.');
+        });
+
+        it('describes a new rail booking with the route and date', () => {
+            const action = buildTravelUpdateAction({
+                type: CONST.RESERVATION_TYPE.TRAIN,
+                start: {date: '2026-12-01', cityName: 'London', shortName: 'STP'},
+                end: {date: '2026-12-01', cityName: 'Paris', shortName: 'PNO'},
+            });
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your rail ticket for London → Paris on 2026-12-01 has been booked.');
+        });
+
+        it('falls back to a generic booked message when the hotel has no name', () => {
+            const action = buildTravelUpdateAction({});
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message when the rail stations are missing', () => {
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.TRAIN});
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your train reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message for other reservation types', () => {
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.FLIGHT});
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your flight reservation has been booked.');
         });
     });
 });
