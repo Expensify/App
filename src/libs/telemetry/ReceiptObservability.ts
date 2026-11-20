@@ -444,4 +444,4 @@ export {
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,
 };
-export type {ReceiptCaptureSource, ReceiptDerivingStep, ReceiptImageEditStep, QueuedReceipt};
+export type {ReceiptCaptureSource, ReceiptDerivingStep, QueuedReceipt};

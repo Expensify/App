@@ -71,4 +71,3 @@ function getReceiptSourceKind(source: unknown): ReceiptSourceKind | undefined {
 }
 
 export {toDurableName, isInDurableFolder, getReceiptSourceKind};
-export type {ReceiptSourceKind};
