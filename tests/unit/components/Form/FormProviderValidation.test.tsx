@@ -113,6 +113,20 @@ async function touchAndChange(handlers: {current: CapturedHandlers | undefined},
     });
 }
 
+const INPUT_REPORTED_ERROR = 'That is not a date this field can use';
+
+/**
+ * Stands in for an input that refuses to commit what the user entered, such as the date field while its segments do
+ * not add up to a date. It reports the error to the form rather than through a value the form could validate.
+ */
+function ReportValidationError({error}: {error: string}) {
+    const {setInputValidationError} = useContext(FormContext);
+    useEffect(() => {
+        setInputValidationError(STREET, error);
+    }, [error, setInputValidationError]);
+    return null;
+}
+
 describe('FormProvider validation', () => {
     afterEach(async () => {
         await act(async () => {
@@ -195,5 +209,78 @@ describe('FormProvider validation', () => {
         await touchAndChange(handlers, HTML_TAG_VALUE);
 
         expect(screen.getByTestId(`${STREET}-error`)).toHaveTextContent('Invalid character');
+    });
+
+    describe('errors reported by an input rather than by the form', () => {
+        function renderFormWithReportedError(handlers: {current: CapturedHandlers | undefined}, error: string) {
+            return render(
+                <OnyxListItemProvider>
+                    <LocaleContextProvider>
+                        <FormProvider
+                            formID={FORM_ID}
+                            submitButtonText="Save"
+                            onSubmit={jest.fn()}
+                            validate={(values) => {
+                                const errors: FormInputErrors<typeof FORM_ID> = {};
+                                const street = values[STREET];
+                                if (typeof street === 'string' && street.toLowerCase().includes('po box')) {
+                                    errors[STREET] = PO_BOX_ERROR;
+                                }
+                                return errors;
+                            }}
+                        >
+                            <View>
+                                <ReportValidationError error={error} />
+                                <CaptureInput
+                                    onCapture={(captured) => {
+                                        // eslint-disable-next-line no-param-reassign
+                                        handlers.current = captured;
+                                    }}
+                                />
+                            </View>
+                        </FormProvider>
+                    </LocaleContextProvider>
+                </OnyxListItemProvider>,
+            );
+        }
+
+        it('surfaces an error the input reported about a value it never handed over', async () => {
+            // Given an input refusing to commit what the user entered, so the form has a valid old value to validate
+            const handlers: {current: CapturedHandlers | undefined} = {current: undefined};
+            renderFormWithReportedError(handlers, INPUT_REPORTED_ERROR);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the form validates that value, which it finds nothing wrong with
+            await touchAndChange(handlers, VALID_STREET);
+
+            // Then the input's own error still reaches the field, which is what stops the form being submitted
+            expect(screen.getByTestId(`${STREET}-error`)).toHaveTextContent(INPUT_REPORTED_ERROR);
+        });
+
+        it('keeps the page rule for a field both of them object to', async () => {
+            // Given an input reporting an error on a field the form also has a rule about
+            const handlers: {current: CapturedHandlers | undefined} = {current: undefined};
+            renderFormWithReportedError(handlers, INPUT_REPORTED_ERROR);
+            await waitForBatchedUpdatesWithAct();
+
+            // When a value arrives that breaks that rule
+            await touchAndChange(handlers, PO_BOX_VALUE);
+
+            // Then the page's rule wins, being the more specific thing to say about this particular value
+            expect(screen.getByTestId(`${STREET}-error`)).toHaveTextContent(PO_BOX_ERROR);
+        });
+
+        it('leaves the field alone once the input stops reporting', async () => {
+            // Given an input that has nothing to report, which is how it says its entry is usable again
+            const handlers: {current: CapturedHandlers | undefined} = {current: undefined};
+            renderFormWithReportedError(handlers, '');
+            await waitForBatchedUpdatesWithAct();
+
+            // When the form validates a value it finds nothing wrong with
+            await touchAndChange(handlers, VALID_STREET);
+
+            // Then no error is shown, so an empty report does not read as an error of its own
+            expect(screen.getByTestId(`${STREET}-error`)).toHaveTextContent('');
+        });
     });
 });

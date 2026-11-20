@@ -8,10 +8,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionStartDateValidation from '@hooks/useTransactionStartDateValidation';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -39,12 +39,12 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const cardToAssign = assignCard?.cardToAssign;
 
     const [localDateOption, setLocalDateOption] = useState<string>();
-    const [errorText, setErrorText] = useState('');
     const [localStartDate, setLocalStartDate] = useState<string>();
     const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
     const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const {requiredError, onValidationErrorChange, forgetSubmitAttempt, validateOnSubmit} = useTransactionStartDateValidation({dateOption: dateOptionSelected, startDate});
 
-    const handleBackButtonPress = () => {
+    const goBackToPreviousStep = () => {
         if (isEditing) {
             setAssignCardStepAndData({
                 isEditing: false,
@@ -53,8 +53,8 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
         Navigation.goBack();
     };
 
-    const handleSelectDateOption = (dateOption: string) => {
-        setErrorText('');
+    const selectDateOption = (dateOption: string) => {
+        forgetSubmitAttempt();
         setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
@@ -63,8 +63,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     };
 
     const submit = () => {
-        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
-            setErrorText(translate('common.error.fieldRequired'));
+        if (!validateOnSubmit()) {
             return;
         }
 
@@ -103,7 +102,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
         >
             <InteractiveStepWrapper
                 wrapperID="TransactionStartDateStep"
-                handleBackButtonPress={handleBackButtonPress}
+                handleBackButtonPress={goBackToPreviousStep}
                 headerTitle={translate('workspace.companyCards.assignCard')}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -111,7 +110,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                 <View style={styles.flex1}>
                     <SelectionList
                         ListItem={SingleSelectListItem}
-                        onSelectRow={({value}) => handleSelectDateOption(value)}
+                        onSelectRow={({value}) => selectDateOption(value)}
                         data={dateOptions}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={dateOptionSelected}
@@ -135,16 +134,10 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                         inputID=""
                                         value={startDate}
                                         label={translate('iou.startDate')}
-                                        onInputChange={(value) => {
-                                            if (!isRequiredFulfilled(value)) {
-                                                setErrorText(translate('common.error.fieldRequired'));
-                                            } else {
-                                                setErrorText('');
-                                            }
-                                            setLocalStartDate(value);
-                                        }}
+                                        onInputChange={setLocalStartDate}
                                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                        errorText={errorText}
+                                        errorText={requiredError}
+                                        onValidationErrorChange={onValidationErrorChange}
                                     />
                                 </View>
                             ) : null

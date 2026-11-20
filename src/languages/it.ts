@@ -43,6 +43,11 @@ const translations: TranslationDeepObject<typeof en> = {
         invoiceSubmitted: ({receiver}) => `ha inviato questa fattura a ${receiver}`,
     },
     common: {
+        dateSegments: {
+            year: 'Anno',
+            month: 'Mese',
+            day: 'Giorno',
+        },
         durationDays: ({count}: {count: number}) => ({
             one: `1 giorno`,
             other: `${count} giorni`,
