@@ -235,9 +235,7 @@ function getRulesModifiedMessage(
         }
 
         if (key === 'vendor') {
-            const vendorEntry = modifiedFields[key];
-            const vendorName = vendorEntry ? vendorEntry.name || vendorEntry.externalID : '';
-            return translate('iou.rulesModifiedFields.common', key, vendorName, isFirst);
+            return translate('iou.rulesModifiedFields.common', key, modifiedFields[key]?.name ?? '', isFirst);
         }
         if (key === 'category') {
             return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(modifiedFields[key] ?? ''), isFirst);
