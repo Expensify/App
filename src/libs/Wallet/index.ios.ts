@@ -68,7 +68,7 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, cardDes
 
 type LookupMethod = 'identifier' | 'suffix' | 'suffix fallback' | 'none';
 
-const yesNo = (value: boolean) => (value ? 'yes' : 'no');
+const toYesNo = (value: boolean) => (value ? 'yes' : 'no');
 
 /** Matches a local Apple Wallet pass by the card's last digits. Returns only counts and flags, never identifiers. */
 async function findPassByLastDigits(lastDigits: string | undefined, panReferenceID: string) {
@@ -109,7 +109,7 @@ async function isCardInWallet(card: Card): Promise<boolean> {
             method = 'none';
             try {
                 const fallback = await findPassByLastDigits(card.lastFourPAN, panReferenceID);
-                summary = `, passes: ${fallback.localCount} local ${fallback.remoteCount} remote, last4 pass: ${yesNo(fallback.hasMatchingPass)}, id matches: ${yesNo(fallback.idMatches)}`;
+                summary = `, passes: ${fallback.localCount} local ${fallback.remoteCount} remote, last4 pass: ${toYesNo(fallback.hasMatchingPass)}, id matches: ${toYesNo(fallback.idMatches)}`;
                 if (fallback.status) {
                     status = fallback.status;
                     method = 'suffix fallback';
