@@ -209,6 +209,7 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    navigationTabBarCompactItemHeight: 64,
     flatNavigationBarWidth: 232,
     // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
     flatNavigationBarHeaderPaddingRight: 20,

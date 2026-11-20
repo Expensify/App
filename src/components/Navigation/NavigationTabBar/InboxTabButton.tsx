@@ -21,18 +21,22 @@ import useWideInboxNavigation from './useWideInboxNavigation';
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
 type WideInboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     statusIndicatorColor: string | undefined;
     accessibilityLabel: string;
+    isCompact: boolean;
 };
 
 // The last-viewed report deep link only exists in the wide layout, so the report and report-action
 // Onyx subscriptions live in useWideInboxNavigation and are only created when the wide layout is rendered. In the
 // narrow layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
-function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel}: WideInboxTabButtonProps) {
+function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel, isCompact}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
@@ -45,7 +49,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+            style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >
             {({hovered}) => (
@@ -61,7 +65,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     );
 }
 
-function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
+function InboxTabButton({selectedTab, isWideLayout, isCompact = false}: InboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
@@ -75,6 +79,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
                 selectedTab={selectedTab}
                 statusIndicatorColor={statusIndicatorColor}
                 accessibilityLabel={accessibilityLabel}
+                isCompact={isCompact}
             />
         );
     }

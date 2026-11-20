@@ -7,3 +7,4 @@ function isTablet(): boolean {
 }
 
 export default isTablet;
+export {TABLET_MIN_SCREEN_DIMENSION};

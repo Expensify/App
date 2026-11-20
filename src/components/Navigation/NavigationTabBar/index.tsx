@@ -4,6 +4,7 @@ import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +33,7 @@ import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
 import useAccountTabNavigation from './useAccountTabNavigation';
 import useHomeTabNavigation from './useHomeTabNavigation';
+import useIsNavigationTabBarCompact from './useIsNavigationTabBarCompact';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
@@ -53,6 +55,9 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 
+    const {isCompact, scrollViewProps} = useIsNavigationTabBarCompact();
+    const compactItemStyle = isCompact ? styles.leftNavigationTabBarItemCompact : undefined;
+
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
     // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
@@ -67,29 +72,38 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             style={styles.leftNavigationTabBarContainer}
                             testID="NavigationTabBar"
                         >
-                            <View style={styles.flex1}>
-                                <PressableWithFeedback
-                                    role={CONST.ROLE.LINK}
-                                    accessibilityLabel={translate('common.home')}
-                                    accessible
-                                    testID="ExpensifyLogoButton"
-                                    onPress={navigateToNewDotHome}
-                                    linkRoute={ROUTES.HOME}
-                                    wrapperStyle={styles.leftNavigationTabBarItem}
-                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
-                                >
-                                    <ImageSVG
-                                        style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                        src={expensifyIcons.ExpensifyAppIcon}
-                                        aria-hidden
-                                    />
-                                </PressableWithFeedback>
+                            {/* Rows shrink and the logo hides on short windows (e.g. an unfolded foldable phone in landscape), so the floating buttons below don't cover the last tabs. It scrolls if even that doesn't fit. */}
+                            <ScrollView
+                                {...scrollViewProps}
+                                style={styles.flex1}
+                                contentContainerStyle={styles.flexGrow1}
+                                showsVerticalScrollIndicator={false}
+                            >
+                                {/* The logo only duplicates the Home tab, so it can go when the rows don't fit */}
+                                {!isCompact && (
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.LINK}
+                                        accessibilityLabel={translate('common.home')}
+                                        accessible
+                                        testID="ExpensifyLogoButton"
+                                        onPress={navigateToNewDotHome}
+                                        linkRoute={ROUTES.HOME}
+                                        wrapperStyle={styles.leftNavigationTabBarItem}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+                                    >
+                                        <ImageSVG
+                                            style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                                            src={expensifyIcons.ExpensifyAppIcon}
+                                            aria-hidden
+                                        />
+                                    </PressableWithFeedback>
+                                )}
                                 <PressableWithFeedback
                                     onPress={navigateToNewDotHome}
                                     linkRoute={ROUTES.HOME}
                                     role={CONST.ROLE.TAB}
                                     accessibilityLabel={translate('common.home')}
-                                    style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                                    style={({hovered}) => [styles.leftNavigationTabBarItem, compactItemStyle, hovered && styles.navigationTabBarItemHovered]}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                 >
                                     {({hovered}) => (
@@ -104,25 +118,29 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                 <InboxTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
+                                    isCompact={isCompact}
                                 />
                                 <SearchTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
+                                    isCompact={isCompact}
                                 />
                                 <InsightsTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
+                                    isCompact={isCompact}
                                 />
                                 <WorkspacesTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
+                                    isCompact={isCompact}
                                 />
                                 <NavigationTabBarAvatar
-                                    style={styles.leftNavigationTabBarItem}
+                                    style={[styles.leftNavigationTabBarItem, compactItemStyle]}
                                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                                     onPress={navigateToSettings}
                                 />
-                            </View>
+                            </ScrollView>
                             <View style={styles.leftNavigationTabBarFAB}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
                                 <NavigationTabBarFloatingActionButton />

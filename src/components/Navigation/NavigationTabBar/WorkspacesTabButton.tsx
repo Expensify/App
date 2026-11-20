@@ -21,9 +21,12 @@ import useSignedInLinkRoute from './useSignedInLinkRoute';
 type WorkspacesTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
-function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonProps) {
+function WorkspacesTabButton({selectedTab, isWideLayout, isCompact = false}: WorkspacesTabButtonProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
@@ -44,7 +47,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
                 accessibilityState={workspacesAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, isCompact && styles.leftNavigationTabBarItemCompact, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
             >
                 {({hovered}) => (

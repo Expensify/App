@@ -1,15 +1,26 @@
 import {isMobile} from '@libs/Browser';
-import isTablet from '@libs/isTablet';
+import isTablet, {TABLET_MIN_SCREEN_DIMENSION} from '@libs/isTablet';
 
 import {Dimensions} from 'react-native';
 
+/** Fixed at load, so components gated on it are never remounted. Use isInLandscapeMode() for the current screen. */
 const isMobilePhoneWeb = isMobile() && !isTablet();
-
-const screenShortSide = Math.min(window.screen.width, window.screen.height);
-const screenLongSide = Math.max(window.screen.width, window.screen.height);
 
 function getViewportWidth(): number {
     return Dimensions.get('window').width;
+}
+
+/**
+ * Returns the short and long side of the browser window, including the browser UI. Unlike the viewport, it doesn't shrink
+ * when the soft keyboard opens. Unlike `window.screen`, it follows the active panel of a foldable phone: Safari on a
+ * foldable iPhone keeps reporting the cover panel in `window.screen` after the phone is unfolded. In split screen it is the
+ * app's own window, so a split window that is wider than it is tall counts as landscape.
+ */
+function getWindowSides(): {shortSide: number; longSide: number} {
+    const width = window.outerWidth || window.screen.width;
+    const height = window.outerHeight || window.screen.height;
+
+    return {shortSide: Math.min(width, height), longSide: Math.max(width, height)};
 }
 
 /**
@@ -23,8 +34,14 @@ function isInLandscapeMode(windowWidth: number = getViewportWidth(), windowHeigh
         return false;
     }
 
-    const distanceToLongSide = Math.abs(windowWidth - screenLongSide);
-    const distanceToShortSide = Math.abs(windowWidth - screenShortSide);
+    // Read on every call, because the window changes when a foldable phone is folded or unfolded. An unfolded phone is a tablet.
+    const {shortSide, longSide} = getWindowSides();
+    if (shortSide >= TABLET_MIN_SCREEN_DIMENSION) {
+        return false;
+    }
+
+    const distanceToLongSide = Math.abs(windowWidth - longSide);
+    const distanceToShortSide = Math.abs(windowWidth - shortSide);
 
     return distanceToLongSide < distanceToShortSide;
 }
