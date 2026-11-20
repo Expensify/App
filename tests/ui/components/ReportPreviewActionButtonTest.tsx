@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 
@@ -8,12 +8,13 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import {View} from 'react-native';
+import {View as MockView} from 'react-native';
 
 const mockActionState: {reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>; connectedIntegration: ConnectionName | undefined} = {
     reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
     connectedIntegration: undefined,
 };
+const mockAnimationState = {isApprovedAnimationRunning: false};
 
 const mockSubmit = jest.fn();
 const mockApprove = jest.fn();
@@ -26,6 +27,7 @@ const mockOpenReport = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewActionState: () => mockActionState,
+    useReportPreviewAnimationState: () => mockAnimationState,
     useReportPreviewUIState: () => ({buttonMaxWidth: {}}),
     useReportPreviewActions: () => ({openReportFromPreview: mockOpenReport}),
 }));
@@ -41,14 +43,14 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ApproveActionB
     __esModule: true,
     default: () => {
         mockApprove();
-        return null;
+        return <MockView testID="approve-button" />;
     },
 }));
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton', () => ({
     __esModule: true,
     default: () => {
         mockPay();
-        return null;
+        return <MockView testID="pay-button" />;
     },
 }));
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ExportActionButton', () => ({
@@ -68,7 +70,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActi
 jest.mock('@components/Button', () => {
     function MockButton(props: unknown) {
         mockView(props);
-        return null;
+        return <MockView testID="view-button" />;
     }
 
     MockButton.Text = () => null;
@@ -85,9 +87,13 @@ jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => mock
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 
 function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
-    const container = rendered.UNSAFE_getAllByType(View).at(0);
+    const container = rendered.UNSAFE_getAllByType(MockView).at(0);
     const style: unknown = container?.props.style;
     return Array.isArray(style) ? style : [style];
+}
+
+function getButtonOrder() {
+    return screen.getAllByTestId(/^(approve|pay|view)-button$/).map((button) => String(button.props.testID));
 }
 
 describe('ReportPreviewActionButton', () => {
@@ -107,6 +113,60 @@ describe('ReportPreviewActionButton', () => {
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         mockActionState.connectedIntegration = undefined;
+        mockAnimationState.isApprovedAnimationRunning = false;
+    });
+
+    it.each([CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE, CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS])(
+        'keeps approval feedback in its original position until the animation finishes for %s',
+        (action) => {
+            // Given an approvable report, whose violations determine which side Approve occupies
+            mockActionState.reportPreviewAction = action;
+            const rendered = render(<ReportPreviewActionButton />);
+            const isViewFirst = action === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+            expect(getButtonOrder()).toEqual(isViewFirst ? ['view-button', 'approve-button'] : ['approve-button', 'view-button']);
+
+            // When approval uses the Pay component for loading and completion feedback
+            mockAnimationState.isApprovedAnimationRunning = true;
+            mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+            rendered.rerender(<ReportPreviewActionButton />);
+
+            // Then the feedback stays where Approve was, and View keeps its styling and navigation
+            expect(getButtonOrder()).toEqual(isViewFirst ? ['view-button', 'pay-button'] : ['pay-button', 'view-button']);
+            expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: isViewFirst ? CONST.BUTTON_VARIANT.SUCCESS : undefined, onPress: mockOpenReport}));
+
+            // When the animation finishes and payment is available
+            mockAnimationState.isApprovedAnimationRunning = false;
+            rendered.rerender(<ReportPreviewActionButton />);
+
+            // Then Pay takes the primary position and View returns to its normal styling
+            expect(getButtonOrder()).toEqual(['pay-button', 'view-button']);
+            expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
+        },
+    );
+
+    it('preserves the secondary approval position after a failed approval and on retry', () => {
+        // Given a report with violations whose approval is awaiting backend validation
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+        const rendered = render(<ReportPreviewActionButton />);
+        mockAnimationState.isApprovedAnimationRunning = true;
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // When validation fails and the report can be approved again
+        mockAnimationState.isApprovedAnimationRunning = false;
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // Then Approve returns to its original secondary position
+        expect(getButtonOrder()).toEqual(['view-button', 'approve-button']);
+
+        // When the user retries approval
+        mockAnimationState.isApprovedAnimationRunning = true;
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // Then loading still occupies the secondary position
+        expect(getButtonOrder()).toEqual(['view-button', 'pay-button']);
     });
 
     it.each([
@@ -157,7 +217,7 @@ describe('ReportPreviewActionButton', () => {
         const rendered = render(<ReportPreviewActionButton />);
 
         // Then both children of the row flex equally, so neither button hugs its label while the other fills the rest
-        const primaryWrapperStyle: unknown = rendered.UNSAFE_getAllByType(View).at(1)?.props.style;
+        const primaryWrapperStyle: unknown = rendered.UNSAFE_getAllByType(MockView).at(1)?.props.style;
         expect(primaryWrapperStyle).toEqual(expect.arrayContaining([mockStyles.flex1]));
         expect(mockView).toHaveBeenCalledWith(expect.objectContaining({style: mockStyles.flex1}));
     });
