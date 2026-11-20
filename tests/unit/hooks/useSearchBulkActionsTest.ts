@@ -474,6 +474,48 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(false);
     });
 
+    it.each([
+        {isFirstPolicyDEW: true, secondHasAdminCapability: false, expected: false},
+        {isFirstPolicyDEW: false, secondHasAdminCapability: false, expected: true},
+        {isFirstPolicyDEW: true, secondHasAdminCapability: true, expected: true},
+    ])('requires a shared action with DEW=$isFirstPolicyDEW and second admin capability=$secondHasAdminCapability', ({isFirstPolicyDEW, secondHasAdminCapability, expected}) => {
+        // Given an admin's report and a report whose only action may be member reassignment
+        mockSelectedTransactions = {transaction1: makeSelectedTransaction(), transaction2: makeSelectedTransaction({reportID: 'report2', policyID: 'policy2'})};
+        mockSelectedReports = [makeSelectedReport({canChangeApprover: true}), makeSelectedReport({reportID: 'report2', policyID: 'policy2', canChangeApprover: secondHasAdminCapability})];
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    policyID: 'policy1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}report2`]: {
+                    reportID: 'report2',
+                    policyID: 'policy2',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+                    id: 'policy1',
+                    approvalMode: isFirstPolicyDEW ? CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL : CONST.POLICY.APPROVAL_MODE.BASIC,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: {id: 'policy2', approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC},
+            },
+        };
+
+        // When the bulk menu computes the actions available to the selection
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then bypass-only and reassign-only reports cannot open an empty picker, while shared actions remain available
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
+
     it('uses the unreported-expenses warning for a single expense report', async () => {
         // Given a single selected expense report
         mockSelectedTransactions = {report1: makeSelectedTransaction()};

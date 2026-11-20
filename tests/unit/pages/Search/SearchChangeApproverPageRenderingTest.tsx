@@ -1,5 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type * as SearchContext from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 
@@ -36,7 +38,8 @@ jest.mock(
 );
 jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock('@components/RenderHTML', () => () => null);
-jest.mock('@components/FullscreenLoadingIndicator', () => () => null);
+jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
+jest.mock('@components/BlockingViews/FullPageNotFoundView', () => jest.fn(({shouldShow, children}: {shouldShow: boolean; children: React.ReactNode}) => (shouldShow ? null : children)));
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<typeof SearchContext>('@components/Search/SearchContext'),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
@@ -132,6 +135,30 @@ describe('SearchChangeApproverPage permissions', () => {
         // Then only confirmed unrestricted members can enter reassignment
         expect(Navigation.navigate).toHaveBeenCalledTimes(strictRules ? 0 : 1);
         expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(strictRules ? 1 : 0);
+    });
+
+    it.each(['report', 'policy'] as const)('shows unavailable when a completed fetch omits a selected %s', async (missingEntry) => {
+        // Given a pending bulk fetch with one selected record missing
+        await loadReports([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.ADMIN]);
+        await Onyx.set(missingEntry === 'report' ? `${ONYXKEYS.COLLECTION.REPORT}reportB` : `${ONYXKEYS.COLLECTION.POLICY}policyB`, null);
+        await Onyx.set(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE, true);
+        await waitForBatchedUpdates();
+        render(<SearchChangeApproverPage />);
+        expect(FullScreenLoadingIndicator).toHaveBeenCalled();
+        jest.mocked(FullScreenLoadingIndicator).mockClear();
+
+        // When the fetch finishes without supplying that record
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE, false);
+            await waitForBatchedUpdates();
+        });
+
+        // Then the user sees an unavailable view instead of an endless spinner or an incomplete picker
+        expect(FullScreenLoadingIndicator).not.toHaveBeenCalled();
+        expect(FullPageNotFoundView).toHaveBeenLastCalledWith(expect.objectContaining({shouldShow: true}), undefined);
+        expect(SelectionList).not.toHaveBeenCalled();
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('waits for permissions before closing or automatically navigating', async () => {

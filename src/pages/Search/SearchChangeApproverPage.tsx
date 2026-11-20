@@ -1,3 +1,4 @@
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -392,8 +393,8 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if (!isOffline && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded)) {
-        return <FullScreenLoadingIndicator />;
+    if (!isOffline && isLoadingBulkChangeApproverPage) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
@@ -413,21 +414,27 @@ function SearchChangeApproverPage() {
                     <View />
                 </FullPageOfflineBlockingView>
             ) : (
-                <SelectionList
-                    data={approverTypes}
-                    ListItem={SingleSelectListItem}
-                    alternateNumberOfSupportedLines={2}
-                    onSelectRow={(option) => {
-                        if (!option.keyForList) {
-                            return;
-                        }
-                        setSelectedApproverType(option.keyForList);
-                    }}
-                    confirmButtonOptions={confirmButtonOptions}
-                    shouldUpdateFocusedIndex
-                    customListHeader={listHeader}
-                    initiallyFocusedItemKey={activeApproverType}
-                />
+                <FullPageNotFoundView
+                    shouldShow={!areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded}
+                    shouldShowBackButton={false}
+                    shouldShowLink={false}
+                >
+                    <SelectionList
+                        data={approverTypes}
+                        ListItem={SingleSelectListItem}
+                        alternateNumberOfSupportedLines={2}
+                        onSelectRow={(option) => {
+                            if (!option.keyForList) {
+                                return;
+                            }
+                            setSelectedApproverType(option.keyForList);
+                        }}
+                        confirmButtonOptions={confirmButtonOptions}
+                        shouldUpdateFocusedIndex
+                        customListHeader={listHeader}
+                        initiallyFocusedItemKey={activeApproverType}
+                    />
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
