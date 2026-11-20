@@ -53,4 +53,12 @@ function shouldUseOldApp(tryNewDot: TryNewDot): boolean | undefined {
     return tryNewDot.classicRedirect.dismissed;
 }
 
-export {hasBeenInNewDot30Days, isLockedToNewApp, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp};
+/**
+ * Whether the account uses Expensify Classic on the web. This matches the backend's choice of product, so the app and Classic never
+ * disagree about where the account belongs. Unlike `shouldUseOldApp`, the mobile app lock doesn't count, because it only applies to the mobile app.
+ */
+function shouldUseClassicOnWeb(tryNewDot: OnyxEntry<TryNewDot>): boolean {
+    return tryNewDot?.classicRedirect?.dismissed !== false;
+}
+
+export {hasBeenInNewDot30Days, isLockedToNewApp, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseClassicOnWeb, shouldUseOldApp};

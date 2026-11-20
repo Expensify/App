@@ -140,6 +140,19 @@ describe('useRepairExperienceCookie', () => {
         expect(mockOpenClassic).not.toHaveBeenCalled();
     });
 
+    it('opens Classic for a mobile-locked account that chose Classic on the web', async () => {
+        // Given an account whose mobile app is locked to New Expensify, which doesn't apply on the web
+        await arrangeAccount({prefersClassic: false});
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {isLockedToNewApp: true});
+        await renderRepair();
+
+        // When the server responds that the account switched to Classic on the web
+        await receiveFreshAppData(true);
+
+        // Then Classic opens, because Classic serves this account on the web and sets the cookie to match
+        expect(mockOpenClassic).toHaveBeenCalledTimes(1);
+    });
+
     it('clears the cookie and opens Classic for an account removed from the beta', async () => {
         // Given an account that left the beta, whose cookie still sends it to New Expensify
         await arrangeAccount({betas: OUTSIDE_BETA});

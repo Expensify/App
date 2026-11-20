@@ -5,7 +5,7 @@
  */
 import {clearExperienceCookie, isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
-import {shouldUseOldApp} from '@libs/TryNewDotUtils';
+import {shouldUseClassicOnWeb} from '@libs/TryNewDotUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,11 +85,11 @@ function useRepairExperienceCookie() {
         // The beta is known only once the betas and the beta configuration load, so the account must not be treated as outside the beta before that
         const isInBeta = hasBetaConfiguration ? isBetaEnabledOrUnknown(CONST.BETAS.HYBRID_WEB) : undefined;
         const cookie = readExperienceCookie();
-        const shouldUseClassic = shouldUseOldApp(tryNewDot ?? {});
+        const shouldUseClassic = shouldUseClassicOnWeb(tryNewDot);
 
         // Only a `new` cookie keeps the user away from Classic. Without it, the user opened a New Expensify link on purpose, and Classic handles the cookie on the next visit.
         const isOutsideBeta = isInBeta === false;
-        const prefersClassic = isInBeta === true && shouldUseClassic === true;
+        const prefersClassic = isInBeta === true && shouldUseClassic;
         const shouldRepair = !isCookieFromOtherUser && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
 
         // Opening Classic leaves this page, so it waits while requests, such as changes made offline, are still queued
