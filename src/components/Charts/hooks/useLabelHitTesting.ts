@@ -4,8 +4,8 @@ import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/
 
 import variables from '@styles/variables';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {SharedValue} from 'react-native-reanimated';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 import type {Scale} from 'victory-native';
 
 import {useSharedValue} from 'react-native-reanimated';
