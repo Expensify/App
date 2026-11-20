@@ -154,6 +154,7 @@ export default function WorkspaceExpensifyCardsTable({
                     {text: item.name, fontSize: fontScale.label},
                 ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         {

@@ -266,6 +266,8 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
+    // A member cell stacks a name over an email, so it keeps enough of both readable however far it is squeezed or dragged.
+    tableMemberColumnMinWidth: 180,
     // An approver or owner cell's avatar and the gap2 the cell lays it out with, which the name starts after.
     tableInlineAvatarCellWidth: avatarSizes.avatarSizeXxxSmall + spacing2,
     workspaceTagsTableCountColumnWidth: 100,

@@ -125,6 +125,7 @@ export default function AgentsTable({
                     {text: item.login, fontSize: fontScale.label},
                 ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         ...(shouldShowRoleColumn

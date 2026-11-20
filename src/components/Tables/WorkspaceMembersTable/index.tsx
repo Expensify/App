@@ -127,6 +127,7 @@ export default function WorkspaceMembersTable({
                     {text: item.email, fontSize: fontScale.label},
                 ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
                 dragMinWidth: getBadgeColumnDragMinWidth(hasOwnerBadge ? [ownerBadgeWidth] : [], variables.tableMemberCellAvatarWidth),
             },
         },

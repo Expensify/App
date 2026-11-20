@@ -238,6 +238,7 @@ function WorkspaceCompanyCardsTable({
                     ];
                 },
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         {

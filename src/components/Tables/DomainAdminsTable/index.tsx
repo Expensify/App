@@ -84,6 +84,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
                               {text: item.email, fontSize: fontScale.label},
                           ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         {

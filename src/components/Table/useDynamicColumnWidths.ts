@@ -37,7 +37,7 @@ type ColumnMeasurement = {
     /** Whether the column's values come from a fixed set, so it must always show them in full. */
     shouldFitContent: boolean;
 
-    /** Bound the column set for itself, which wins over the derived one. */
+    /** Floor the column set for itself, which raises the derived one up to the column's content width. */
     minWidth?: number;
 
     /** Bound the column set for itself, which wins over the derived one. */
@@ -179,11 +179,25 @@ function floorFor({contentWidth, headerLabelWidth, extraWidth}: ColumnMeasuremen
 }
 
 /**
- * The minimum width a column resolves to: its own explicit `minWidth` if it set one, its full content when it must
- * never truncate, or the free-text floor otherwise.
+ * The minimum width a column resolves to: its full content when it must never truncate, or the free-text floor
+ * otherwise, raised to the column's own `minWidth` when it set one, but never past its content.
  */
 function minWidthFor(measurement: ColumnMeasurement, freeTextWidth: number): number {
-    return measurement.minWidth ?? (measurement.shouldFitContent ? measurement.contentWidth : floorFor(measurement, freeTextWidth));
+    const derivedMinWidth = measurement.shouldFitContent ? measurement.contentWidth : floorFor(measurement, freeTextWidth);
+
+    return Math.max(derivedMinWidth, Math.min(measurement.minWidth ?? 0, measurement.contentWidth));
+}
+
+/**
+ * Narrowest width a drag may give a column: its own `dragMinWidth`, raised to its `minWidth` capped at its content, so
+ * a drag stops where a squeeze does. `undefined` when it set neither, so the usual drag bound applies.
+ */
+function getDragMinWidth(dynamicSizing: Pick<NonNullable<TableColumn['dynamicSizing']>, 'dragMinWidth' | 'minWidth'> | undefined, contentWidth: number): number | undefined {
+    if (dynamicSizing?.dragMinWidth === undefined && dynamicSizing?.minWidth === undefined) {
+        return undefined;
+    }
+
+    return Math.max(dynamicSizing.dragMinWidth ?? 0, Math.min(dynamicSizing.minWidth ?? 0, contentWidth));
 }
 
 /**
@@ -314,7 +328,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         declaredWidth: typeof column.width === 'number' ? column.width : undefined,
         contentWidth: measuredWidths[column.key]?.contentWidth ?? 0,
         minWidth: measuredWidths[column.key]?.minWidth ?? 0,
-        dragMinWidth: column.dynamicSizing?.dragMinWidth,
+        dragMinWidth: getDragMinWidth(column.dynamicSizing, measuredWidths[column.key]?.contentWidth ?? 0),
         maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
     }));
 

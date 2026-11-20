@@ -75,7 +75,10 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
     shouldFitContent?: boolean;
 
-    /** Smallest width this column may be squeezed to, capped at its content width. Defaults to a readable width. */
+    /**
+     * Narrowest width this column may be squeezed or dragged to, capped at its content width. Raises the usual readable
+     * floor, never lowers it. Omitted to use that floor alone.
+     */
     minWidth?: number;
 
     /**

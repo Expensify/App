@@ -113,6 +113,7 @@ export default function DomainMembersTable({
                     {text: item.email, fontSize: fontScale.label},
                 ],
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         ...(shouldShowGroupColumn
