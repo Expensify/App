@@ -311,9 +311,9 @@ describe('AmountField currency change', () => {
         // When the user changes the currency without entering an amount
         fireEvent.press(screen.getByText('Pick EUR'));
 
-        // Then only the currency is written, so isAmountSet stays unset and the scan isn't turned into a partially
+        // Then the explicit currency choice is recorded without setting isAmountSet, so the scan isn't turned into a partially
         // entered manual expense that blocks creation until amount, merchant and date are all filled in
-        expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR');
+        expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR', false, true);
         expect(setMoneyRequestAmount).not.toHaveBeenCalled();
     });
 
