@@ -2,6 +2,8 @@
  * Distance and per diem custom units, rate display, and the units copied when a workspace is duplicated.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
+import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
+
 import CONST from '@src/CONST';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
@@ -87,51 +89,17 @@ function getPolicyForDistanceRateID(customUnitRateID: string | undefined, polici
     });
 }
 
-/**
- * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
- * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
- * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
- * with the rate the expense flow later picks.
- */
-function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
-    if (!rates) {
-        return undefined;
-    }
-    return Object.values(rates)
-        .filter((rate) => rate.enabled !== false)
-        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-        .at(0);
-}
-
-function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
-    if (newDefaultRateID) {
-        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
-        // under their source IDs (the server preserves them). Preserve source iteration order so
-        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
-        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
-        const defaultRate = getDefaultDistanceRate(unit.rates);
-        const rates: Record<string, Rate> = {};
-        for (const rate of Object.values(unit.rates)) {
-            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
-                rates[newDefaultRateID] = {
-                    ...rate,
-                    customUnitRateID: newDefaultRateID,
-                };
-            } else {
-                rates[rate.customUnitRateID] = rate;
-            }
+/** Only mapped rates can be shown before Auth returns their new IDs. */
+function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newRateIDsBySourceRateID: Record<string, string>): CustomUnit {
+    const rates: Record<string, Rate> = {};
+    for (const rate of Object.values(unit.rates)) {
+        const newRateID = newRateIDsBySourceRateID[rate.customUnitRateID];
+        if (!newRateID) {
+            continue;
         }
-        return {
-            ...unit,
-            customUnitID: newCustomUnitID,
-            rates,
-        };
+        rates[newRateID] = {...buildDuplicateSettingSnapshot(rate), customUnitRateID: newRateID};
     }
-
-    return {
-        ...unit,
-        customUnitID: newCustomUnitID,
-    };
+    return {...buildDuplicateSettingSnapshot(unit), customUnitID: newCustomUnitID, rates};
 }
 
 function getCustomUnitsForDuplication(
@@ -141,11 +109,11 @@ function getCustomUnitsForDuplication(
     customUnitIDs: {
         distanceCustomUnitID: string;
         perDiemCustomUnitID: string;
-        customUnitRateID?: string;
+        rateIDsBySourceRateID: Record<string, string>;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    const {distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID} = customUnitIDs ?? {};
+    const {distanceCustomUnitID, perDiemCustomUnitID, rateIDsBySourceRateID} = customUnitIDs ?? {};
 
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
@@ -158,7 +126,7 @@ function getCustomUnitsForDuplication(
         return {
             ...customUnit,
             customUnitID,
-            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => !!rate && rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         };
     };
 
@@ -177,8 +145,8 @@ function getCustomUnitsForDuplication(
         }
 
         return {
-            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
-            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, rateIDsBySourceRateID),
+            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID, rateIDsBySourceRateID),
         };
     }
 
@@ -187,7 +155,7 @@ function getCustomUnitsForDuplication(
             return undefined;
         }
         return {
-            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, rateIDsBySourceRateID),
         };
     }
 
@@ -195,7 +163,7 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
     return {
-        [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+        [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID, rateIDsBySourceRateID),
     };
 }
 
