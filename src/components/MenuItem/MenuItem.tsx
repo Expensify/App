@@ -11,7 +11,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Hoverable from '@components/Hoverable';
 import type HoverableProps from '@components/Hoverable/types';
 import Icon from '@components/Icon';
-import {useMenuItemGroupActions, useMenuItemGroupState} from '@components/MenuItemGroup';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -527,8 +526,6 @@ function MenuItem({
     const combinedStyle = [styles.popoverMenuItem, style];
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {isExecuting} = useMenuItemGroupState() ?? {};
-    const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {
@@ -681,15 +678,7 @@ function MenuItem({
         }
 
         if (onPress && event) {
-            if (!singleExecution || !waitForNavigate) {
-                onPress(event);
-                return;
-            }
-            singleExecution(
-                waitForNavigate(() => {
-                    onPress(event);
-                }),
-            )();
+            onPress(event);
         }
     };
 
@@ -792,7 +781,7 @@ function MenuItem({
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
-                                disabled={disabled || isExecuting}
+                                disabled={disabled}
                                 ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
