@@ -1,8 +1,8 @@
-import type getEnvironmentModule from '@libs/Environment/getEnvironment/index.native';
 /**
  * Native bundles evaluate this helper lazily on its first call, which happens while a report action renders.
  * The URL it builds has to carry the real environment origin on that very first call.
  */
+import type getEnvironmentModule from '@libs/Environment/getEnvironment/index.native';
 import type getReportURLForCurrentContextModule from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 
 import CONFIG from '@src/CONFIG';
@@ -67,5 +67,31 @@ describe('getReportURLForCurrentContext first call (native)', () => {
 
         // Then it reads the cached staging environment synchronously rather than waiting on its own promise
         expect(url).toBe(`${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.REPORT_WITH_ID.getRoute('123')}`);
+    });
+
+    it('falls back to the production URL until the beta check settles', async () => {
+        // Given a release build whose beta check is still pending, like a TestFlight cold start onto a report restored from Onyx
+        mockConfig.ENVIRONMENT = CONST.ENVIRONMENT.PRODUCTION;
+        let resolveBetaCheck: (isBeta: boolean) => void = () => {};
+        mockIsBetaBuild.mockReturnValue(
+            new Promise<boolean>((resolve) => {
+                resolveBetaCheck = resolve;
+            }),
+        );
+        const {getReportURLForCurrentContext, getEnvironment} = loadFreshModules();
+        const environmentPromise = getEnvironment();
+
+        // When the helper is called before the check settles
+        const urlBeforeCheck = getReportURLForCurrentContext('123');
+
+        // Then it still builds a parsable production link instead of "undefined/r/123"
+        expect(urlBeforeCheck).toBe(`${CONST.NEW_EXPENSIFY_URL}/${ROUTES.REPORT_WITH_ID.getRoute('123')}`);
+
+        // When the beta check reports a beta build
+        resolveBetaCheck(true);
+        await environmentPromise;
+
+        // Then the next call uses the staging URL
+        expect(getReportURLForCurrentContext('123')).toBe(`${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.REPORT_WITH_ID.getRoute('123')}`);
     });
 });
