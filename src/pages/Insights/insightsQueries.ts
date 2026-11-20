@@ -12,11 +12,12 @@ import {addDays, format, parseISO} from 'date-fns';
 
 import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsTimeGroupBy} from './insightsGroupByUtils';
 
 import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import getInsightsDateRange from './getInsightsDateRange';
 import getInsightsLastDay from './getInsightsLastDay';
-import {getQueryGroupBy} from './insightsGroupByUtils';
+import {getInsightsGroupByOptions, getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
@@ -200,7 +201,7 @@ type InsightsQuery = {
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
 
-    /** Hashes of the other stage combinations holding each graph's same average */
+    /** Hashes of the other stage combinations and date groupings holding each graph's same average */
     averageFallbackHashes: Partial<Record<InsightsGraphKey, number[]>>;
 
     headlineChart: InsightsChartQuery;
@@ -225,7 +226,9 @@ function buildInsightsJsonQuery(
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(dashboardFilters);
-    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+    const buildGroupedQueryJSON = (groupBy: InsightsTimeGroupBy) => buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy, compare: undefined}), dashboard);
+    const queryGroupBy = getQueryGroupBy(filters);
+    const queryJSON = buildGroupedQueryJSON(queryGroupBy);
     if (!queryJSON) {
         return undefined;
     }
@@ -251,14 +254,25 @@ function buildInsightsJsonQuery(
     );
     const stageGraphKeys = [spec.headlineChart, ...spec.supportingCharts].filter((chart) => chart.hasViolationStageControl).map((chart) => chart.graphKey);
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
-    // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry
-    const buildDashboardHash = (stages: InsightsViolationStages) => (hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, stages]), INSIGHTS_HASH_RANGE) : queryJSON.hash);
-    const hash = buildDashboardHash(requestedViolationStages);
-    const otherStageCombinations = buildViolationStageCombinations(stageGraphKeys).filter((stages) => buildDashboardHash(stages) !== hash);
+    // Each date grouping and stage combination is stored under its own dashboard entry
+    const buildDashboardHash = (groupedHash: number, stages: InsightsViolationStages) =>
+        hasViolationStages ? hashText(JSON.stringify([groupedHash, stages]), INSIGHTS_HASH_RANGE) : groupedHash;
+    const hash = buildDashboardHash(queryJSON.hash, requestedViolationStages);
+    const groupByCandidates = [queryGroupBy, ...getInsightsGroupByOptions(filters.date).filter((groupBy) => groupBy !== queryGroupBy)];
+    const stageCombinations = buildViolationStageCombinations(stageGraphKeys);
+    const otherEntries = groupByCandidates.flatMap((groupBy) => {
+        const groupedHash = groupBy === queryGroupBy ? queryJSON.hash : buildGroupedQueryJSON(groupBy)?.hash;
+        if (groupedHash === undefined) {
+            return [];
+        }
+        return stageCombinations.map((stages) => ({groupBy, stages, hash: buildDashboardHash(groupedHash, stages)})).filter((entry) => entry.hash !== hash);
+    });
     const averageFallbackHashes: InsightsQuery['averageFallbackHashes'] = Object.fromEntries(
         [headlineChart, ...supportingCharts].map(({chart}) => [
             chart.graphKey,
-            otherStageCombinations.filter((stages) => stages[chart.graphKey] === requestedViolationStages[chart.graphKey]).map(buildDashboardHash),
+            otherEntries
+                .filter((entry) => entry.stages[chart.graphKey] === requestedViolationStages[chart.graphKey] && (!!chart.groupBy || entry.groupBy === queryGroupBy))
+                .map((entry) => entry.hash),
         ]),
     );
     const graphEntries = [headlineChart, ...supportingCharts]

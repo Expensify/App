@@ -437,9 +437,12 @@ describe('insightsQueries', () => {
         const {SUBMITTED, APPROVED} = CONST.INSIGHTS.VIOLATION_STAGE;
         const {VIOLATIONS_OVER_TIME, TOP_VIOLATIONS, VIOLATIONS_BY_SUBMITTER} = CONST.INSIGHTS.GRAPH;
 
-        /** Returns the dashboard entry hash Compliance stores its response under for the given stage picks. */
-        function getComplianceHash(violationStages: InsightsViolationStages) {
-            return buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, COMPLIANCE_SPEC.supportingCharts, violationStages)?.hash;
+        const {WEEK} = CONST.SEARCH.GROUP_BY;
+        const WEEKLY_FILTERS: InsightsFilters = {...FILTERS, groupBy: WEEK};
+
+        /** Returns the dashboard entry hash Compliance stores its response under for the given stage picks, grouped the way the filters say. */
+        function getComplianceHash(violationStages: InsightsViolationStages, filters: InsightsFilters = FILTERS) {
+            return buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters, COMPLIANCE_SPEC.supportingCharts, violationStages)?.hash;
         }
 
         it('points each chart with a stage control at the other entries where its own stage is the same', () => {
@@ -449,9 +452,13 @@ describe('insightsQueries', () => {
             // When its request is built
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, COMPLIANCE_SPEC.supportingCharts, violationStages);
 
-            // Then each chart can borrow its average only from the entry that differs in the other chart's stage, since its average depends on its own stage alone
+            // Then each chart can borrow its average only from the entries that keep its own stage, since its average depends on its own stage alone, and Top violations also from the weekly entries, since the date grouping doesn't change it
             expect(request?.averageFallbackHashes[VIOLATIONS_OVER_TIME]).toEqual([getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: SUBMITTED})]);
-            expect(request?.averageFallbackHashes[TOP_VIOLATIONS]).toEqual([getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: APPROVED})]);
+            expect(request?.averageFallbackHashes[TOP_VIOLATIONS]).toEqual([
+                getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: APPROVED}),
+                getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: APPROVED}, WEEKLY_FILTERS),
+                getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: APPROVED}, WEEKLY_FILTERS),
+            ]);
         });
 
         it('points a chart without a stage control at every other stage combination', () => {
@@ -461,13 +468,17 @@ describe('insightsQueries', () => {
             // When the fallbacks of a chart the stage controls don't change are read
             const fallbackHashes = request?.averageFallbackHashes[VIOLATIONS_BY_SUBMITTER];
 
-            // Then it can borrow its average from any of the other three combinations, and never from the entry being loaded
-            expect(fallbackHashes).toHaveLength(3);
+            // Then it can borrow its average from the other three combinations and from all four weekly ones, and never from the entry being loaded
+            expect(fallbackHashes).toHaveLength(7);
             expect(fallbackHashes).toEqual(
                 expect.arrayContaining([
                     getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: APPROVED}),
                     getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: SUBMITTED}),
                     getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: APPROVED}),
+                    getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: SUBMITTED}, WEEKLY_FILTERS),
+                    getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: APPROVED}, WEEKLY_FILTERS),
+                    getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: SUBMITTED}, WEEKLY_FILTERS),
+                    getComplianceHash({[VIOLATIONS_OVER_TIME]: APPROVED, [TOP_VIOLATIONS]: APPROVED}, WEEKLY_FILTERS),
                 ]),
             );
             expect(fallbackHashes).not.toContain(request?.hash);
@@ -500,14 +511,40 @@ describe('insightsQueries', () => {
             ).toEqual([untouched]);
         });
 
-        it('has no fallbacks on a dashboard without stage controls', () => {
-            // Given Spend, whose charts have no violation stage control
+        it('points only the charts with their own grouping at the other date groupings on a dashboard without stage controls', () => {
+            // Given Spend grouped by month over a range that also offers weeks
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
 
-            // When its fallbacks are read
-            const fallbackHashes = Object.values(request?.averageFallbackHashes ?? {});
+            // When the same dashboard grouped by week is built
+            const weeklyHash = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, WEEKLY_FILTERS, SPEND_SPEC.supportingCharts)?.hash;
 
-            // Then every chart has none, since Spend keeps one entry per set of filters and there is nothing else to borrow from
+            // Then the headline, whose average is per date bucket, has no fallback, while every supporting chart can borrow its average from the weekly entry
+            expect(request?.averageFallbackHashes[SPEND_SPEC.headlineChart.graphKey]).toEqual([]);
+            for (const chart of SPEND_SPEC.supportingCharts) {
+                expect(request?.averageFallbackHashes[chart.graphKey]).toEqual([weeklyHash]);
+            }
+        });
+
+        it('never points the headline at an entry grouped by another date bucket', () => {
+            // Given Compliance grouped by week with both stage controls left on their default
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, WEEKLY_FILTERS, COMPLIANCE_SPEC.supportingCharts);
+
+            // When the headline's fallbacks are read
+            const fallbackHashes = request?.averageFallbackHashes[VIOLATIONS_OVER_TIME];
+
+            // Then it can borrow only from the weekly entry that differs in the Top violations stage, since the monthly entries average over other buckets
+            expect(fallbackHashes).toEqual([getComplianceHash({[VIOLATIONS_OVER_TIME]: SUBMITTED, [TOP_VIOLATIONS]: APPROVED}, WEEKLY_FILTERS)]);
+        });
+
+        it('has no fallbacks when the date range offers a single grouping and there are no stage controls', () => {
+            // Given Spend over this month, which is only offered by day
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}};
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
+
+            // Then every chart has none, since Spend keeps one entry per set of filters and there is no other grouping to borrow from
+            const fallbackHashes = Object.values(request?.averageFallbackHashes ?? {});
             expect(fallbackHashes).toHaveLength(SPEND_SPEC.supportingCharts.length + 1);
             expect(fallbackHashes.flat()).toEqual([]);
         });
