@@ -44,6 +44,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     shouldShowSuccessStyle?: boolean;
     dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 
+    /** Callback fired when the dropdown menu shows */
+    onOptionsMenuShow?: () => void;
+
     /** Callback fired when the dropdown menu hides */
     onOptionsMenuHide?: () => void;
 
@@ -62,6 +65,7 @@ function MoneyReportHeaderKYCDropdown({
     customText,
     shouldShowSuccessStyle,
     dropdownMenuRef,
+    onOptionsMenuShow,
     onOptionsMenuHide,
     isDisabled,
     ref,
@@ -120,6 +124,7 @@ function MoneyReportHeaderKYCDropdown({
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.w100, !!customText && styles.w100]}
                     style={shouldDisplayNarrowVersion && !primaryAction && !customText && !isInLandscapeMode ? styles.w100 : undefined}
                     shouldUseModalPaddingStyle
+                    onOptionsMenuShow={onOptionsMenuShow}
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                     menuHeaderText={headerText}

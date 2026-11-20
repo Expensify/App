@@ -54,7 +54,10 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgentsTable(policy);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
     const canWriteAgents = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS);
 
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -101,6 +104,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                   buttonText: translate('agentsPage.newAgent'),
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.AGENTS.EMPTY_STATE_NEW_AGENT,
               },
           ]
         : undefined;
@@ -112,6 +116,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
             icon: icons.Trashcan,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.AGENTS.BULK_ACTIONS_DELETE,
         },
     ];
 
@@ -177,6 +182,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     onRowSelectionChange={setSelectedAgents}
                     shouldShowRoleColumn
                     emptyStateButtons={emptyStateButtons}
+                    bulkActionOptions={canWriteAgents ? bulkActionsButtonOptions : undefined}
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

@@ -130,6 +130,7 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                             textStyles={styles.badgeOfferText}
                             onPress={offer.onPress}
                             pressable={!!offer.onPress}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.OFFER_BADGE}
                         />
                     ) : undefined
                 }

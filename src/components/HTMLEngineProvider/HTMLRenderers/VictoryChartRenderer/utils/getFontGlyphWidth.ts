@@ -1,4 +1,4 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import type {SkFont} from 'react-native-skia';
 
 /**
  * Sums glyph advance widths for `text`. Mirrors victory-native's internal label-width

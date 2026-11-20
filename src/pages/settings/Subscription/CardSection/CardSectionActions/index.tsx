@@ -26,11 +26,13 @@ function CardSectionActions() {
         {
             icon: icons.CreditCard,
             text: translate('subscription.cardSection.changeCard'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_CARD_MENU_ITEM.CHANGE_CARD,
             onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)),
         },
         {
             icon: icons.MoneyCircle,
             text: translate('subscription.cardSection.changeCurrency'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_CARD_MENU_ITEM.CHANGE_CURRENCY,
             onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
         },
     ];

@@ -66,8 +66,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
                 source={MobileBackgroundImage}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                // getWidthStyle returns a View and Image style that expo-image's style type does not accept, so pass the width directly.
-                style={[styles.signInBackground, {width}]}
+                style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>

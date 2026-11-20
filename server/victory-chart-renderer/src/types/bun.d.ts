@@ -87,6 +87,7 @@ declare module 'bun:test' {
         (label: string, options: {timeout?: number; retry?: number}, fn: () => void | Promise<void>): void;
         concurrent: BunTestFn;
         serial: BunTestFn;
+        each: <T>(table: readonly T[]) => (label: string, fn: (row: T) => void | Promise<void>) => void;
     };
 
     const test: BunTestFn;
