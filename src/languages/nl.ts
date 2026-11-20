@@ -13368,5 +13368,21 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         toMarkAsDone: 'markeren als voltooid',
         receivedPayment: 'betaling ontvangen',
     },
+    reimbursementIntentStep: {
+        title: 'Hoe betaal je meestal?',
+        subtitle: 'Maak je geen zorgen, je kunt het later allebei instellen.',
+        payViaExpensify: 'Betalen via Expensify',
+        payViaExpensifyDescription: 'Snel, veilig en eenvoudig',
+        payViaABAFile: 'Elders betalen via ABA-bestand',
+        payViaABAFileDescription: 'Voor handmatige betalingen',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Wat zijn je rekeninggegevens?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Identificatienummer bankgebruiker',
+        companyName: 'Bedrijfsnaam',
+        includeSelfBalancingTransaction: 'Zelf-balancerende transactie opnemen in het ABA-bestand',
+        error: {bsbNumber: 'Voer een geldige BSB in, zoals 123-456', bankUserIdentificationNumber: 'Voer een geldig bankgebruikersidentificatienummer in van maximaal 6 cijfers'},
+    },
 };
 export default translations;

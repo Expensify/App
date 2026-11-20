@@ -13191,5 +13191,21 @@ ${reportName}`,
         toMarkAsDone: '完了としてマークする',
         receivedPayment: '支払いを受け取りました',
     },
+    reimbursementIntentStep: {
+        title: '普段はどのようにお支払いしますか？',
+        subtitle: 'ご心配なく、どちらの方法もあとから設定できます。',
+        payViaExpensify: 'Expensify で支払う',
+        payViaExpensifyDescription: '高速・安全・かんたん',
+        payViaABAFile: 'ABA ファイルで他行振込',
+        payViaABAFileDescription: '手動支払い用',
+    },
+    abaWithdrawalDetailsStep: {
+        title: '口座の詳細を教えてください。',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: '銀行ユーザー識別番号',
+        companyName: '会社名',
+        includeSelfBalancingTransaction: '自己均衡取引を ABA ファイルに含める',
+        error: {bsbNumber: '123-456 のような有効な BSB を入力してください', bankUserIdentificationNumber: '有効な銀行ユーザー識別番号（6桁以内）を入力してください'},
+    },
 };
 export default translations;

@@ -13456,5 +13456,24 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         toMarkAsDone: 'als erledigt markieren',
         receivedPayment: 'Zahlung erhalten',
     },
+    reimbursementIntentStep: {
+        title: 'Wie möchten Sie normalerweise bezahlen?',
+        subtitle: 'Keine Sorge, Sie können beides später einrichten.',
+        payViaExpensify: 'Zahlen mit Expensify',
+        payViaExpensifyDescription: 'Schnell, sicher und einfach',
+        payViaABAFile: 'Andernorts per ABA-Datei bezahlen',
+        payViaABAFileDescription: 'Für manuelle Zahlungen',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Wie lauten Ihre Kontodaten?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Bank-Benutzeridentifikationsnummer',
+        companyName: 'Firmenname',
+        includeSelfBalancingTransaction: 'Selbstausgleichende Transaktion in die ABA-Datei aufnehmen',
+        error: {
+            bsbNumber: 'Bitte geben Sie eine gültige BSB ein, z. B. 123-456',
+            bankUserIdentificationNumber: 'Bitte geben Sie eine gültige Bank-Benutzerkennnummer mit bis zu 6 Ziffern ein',
+        },
+    },
 };
 export default translations;
