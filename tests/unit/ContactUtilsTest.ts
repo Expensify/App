@@ -21,7 +21,8 @@ describe('ContactUtils', () => {
             {firstName: 'No', lastName: 'Number', phoneNumbers: [{value: '123'}]},
             {firstName: 'Current', lastName: 'User', phoneNumbers: [{value: '201-555-0125'}]},
         ];
-        const loginList = {'+12015550125@expensify.sms': {partnerUserID: '+12015550125@expensify.sms'}};
+        const currentUserLogin = '+12015550125@expensify.sms';
+        const loginList = {[currentUserLogin]: {partnerUserID: currentUserLogin}};
 
         it('builds one row per contact with a valid phone number or email, in device order', () => {
             // Given device contacts in several phone formats, one without a valid number and one with the current user's number
