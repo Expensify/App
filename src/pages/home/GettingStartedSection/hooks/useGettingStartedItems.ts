@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,8 +24,6 @@ import {
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from '@libs/PolicyUtils';
-import {generateReportID, isMoneyRequestReport, isReportOwner, isSelfDM} from '@libs/ReportUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 
@@ -38,7 +35,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 import {createHasExpenseDefaultRulesSelector} from '@selectors/Rule';
 import {accountIDSelector} from '@selectors/Session';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+
+import useAddFirstReceiptItem from './useAddFirstReceiptItem';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
@@ -55,7 +53,9 @@ type GettingStartedItemKey =
     | 'inviteAccountant'
     | 'connectAccounting'
     | 'configureApprovals'
-    | 'setupRules';
+    | 'setupRules'
+    | 'addName'
+    | 'downloadApp';
 
 type GettingStartedItem = {
     key: GettingStartedItemKey;
@@ -107,42 +107,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [hasIssuedExpensifyCard = false] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: hasIssuedExpensifyCardSelector,
     });
-    const [liveExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
-            const reportIDs = new Set<string>();
-            for (const transaction of Object.values(transactions ?? {})) {
-                if (transaction?.reportID && !isDeletedTransaction(transaction) && !isTransactionPendingDelete(transaction)) {
-                    reportIDs.add(transaction.reportID);
-                }
-            }
-            return [...reportIDs];
-        },
-    });
-    // Approvers and payers also hold other people's expenses locally, so only expenses on the user's own reports count.
-    const [hasCreatedExpense = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) =>
-            !!liveExpenseReportIDs?.some((reportID) => {
-                if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    return true;
-                }
-                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                return isReportOwner(report, currentUserAccountID) && (isMoneyRequestReport(report) || isSelfDM(report));
-            }),
-    });
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const {addFirstReceiptItem} = useAddFirstReceiptItem();
     const personalCards = useBankLinkedPersonalCards();
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
-
-    // Completes on any expense the user has, so expenses created before this step existed also count.
-    const addFirstReceiptItem: GettingStartedItem = {
-        key: 'addFirstReceipt',
-        label: translate('homePage.gettingStartedSection.addFirstReceipt'),
-        subText: translate('homePage.gettingStartedSection.addFirstReceiptSubText'),
-        isComplete: hasCreatedExpense,
-        onPress: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN),
-    };
 
     // Hide the whole section as soon as every onboarding to-do is complete, instead of keeping it
     // around for the full Getting Started window.

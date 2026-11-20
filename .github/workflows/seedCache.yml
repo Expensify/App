@@ -11,10 +11,13 @@ concurrency:
 
 jobs:
   seedStandalone:
-    name: Seed standalone node_modules (${{ matrix.workspaces }})
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    name: Seed standalone node_modules (${{ matrix.workspaces }}) on ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
+        runner:
+          - blacksmith-2vcpu-ubuntu-2404
+          - blacksmith-2vcpu-ubuntu-2404-arm
         workspaces:
           - '[]'
           - '["web/cloudflare-worker"]'
@@ -31,8 +34,13 @@ jobs:
           WORKSPACES: ${{ matrix.workspaces }}
 
   seedHybrid:
-    name: Seed hybrid node_modules
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    name: Seed hybrid node_modules (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner:
+          - blacksmith-2vcpu-ubuntu-2404
+          - blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
