@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToNativeOnfidoResult from '@libs/convertToNativeOnfidoResult';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
+import isNativeOnfidoPermissionError, {getNativeOnfidoErrorType} from '@libs/isNativeOnfidoPermissionError';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -100,12 +101,10 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                     return;
                 }
                 const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
-                Log.hmmm('Onfido error on native', {errorType: error.type, errorCategory: error.category, errorMessage});
+                Log.hmmm('Onfido error on native', {errorType: getNativeOnfidoErrorType(error.type), errorCategory: error.category, errorMessage});
 
                 // Only a permission error should lead to the permissions alert. Other errors, like an expired token, are reported as they are.
-                // The SDK types the category as an enum it doesn't export, so it is compared as a string.
-                const errorCategory: string = error.category;
-                if (getPlatform() !== CONST.PLATFORM.IOS || errorCategory !== CONST.ONFIDO.NATIVE_ERROR_CATEGORY.PERMISSIONS) {
+                if (getPlatform() !== CONST.PLATFORM.IOS || !isNativeOnfidoPermissionError(error)) {
                     handleError(errorMessage);
                     return;
                 }

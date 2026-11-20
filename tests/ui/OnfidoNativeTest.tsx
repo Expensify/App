@@ -114,16 +114,17 @@ describe('Onfido (native)', () => {
         expect(onError).toHaveBeenCalledWith('Token expired');
     });
 
-    it('checks permissions for a permission error on iOS', () => {
+    it('checks permissions when iOS reports a denied camera', () => {
         // Given a running flow on iOS
-        const {callbacks} = renderOnfido();
+        const {callbacks, onError} = renderOnfido();
 
-        // When the SDK reports a permission error
+        // When the SDK reports a denied camera the way iOS sends it: the type is an encoded Swift enum case, and there is no category
         act(() => {
-            callbacks.onError?.({type: 'PermissionsUnavailable', category: CONST.ONFIDO.NATIVE_ERROR_CATEGORY.PERMISSIONS, message: 'Permissions unavailable'});
+            callbacks.onError?.({type: {cameraPermissionDenied: {}}, message: 'Flow error due to camera permission being declined at app-level'});
         });
 
-        // Then the camera and microphone permissions are checked, so the user can be sent to Settings to grant them
+        // Then the camera and microphone permissions are checked so the user can be sent to Settings, instead of a generic error being shown
         expect(checkMultiple).toHaveBeenCalledTimes(1);
+        expect(onError).not.toHaveBeenCalled();
     });
 });

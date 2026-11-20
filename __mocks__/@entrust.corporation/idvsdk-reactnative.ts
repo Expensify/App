@@ -27,7 +27,8 @@ const ThemeMode = {
 type Callbacks = {
     onComplete?: (result: Record<string, unknown>) => void;
     onUserExit?: (userAction: string) => void;
-    onError?: (error: {type: string; category: string; message: string}) => void;
+    // Native sends `type` as a string on Android and as an encoded Swift enum case on iOS, and never sends `category`
+    onError?: (error: {type: unknown; category?: string; message?: string}) => void;
 };
 
 // Keeps every instance and the callbacks it was constructed with, so a test can drive success, exit and error.

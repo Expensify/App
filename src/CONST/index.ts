@@ -5117,6 +5117,8 @@ const CONST = {
         NATIVE_ERROR_CATEGORY: {
             PERMISSIONS: 'Permissions',
         },
+        // Lowercase, because iOS sends Swift case names (`cameraPermissionDenied`) while the SDK's types use `PermissionsUnavailable`
+        NATIVE_PERMISSION_ERROR_TYPES: ['camerapermissiondenied', 'microphonepermissiondenied', 'permissionsunavailable'],
         DOCUMENT_COUNTRY_CODE: 'USA',
     },
 
