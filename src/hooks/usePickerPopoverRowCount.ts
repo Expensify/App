@@ -5,20 +5,34 @@ import {useState} from 'react';
 
 type PickerSection = {data: readonly unknown[]; title?: string};
 
-function usePickerPopoverRowCount(sections: readonly PickerSection[], searchKey: number) {
-    const [frozen, setFrozen] = useState<{searchKey: number; rowCount: number}>();
-    const frozenRowCount = frozen?.searchKey === searchKey ? frozen.rowCount : undefined;
-    const rowCount = frozenRowCount ?? sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+function countListRows(sections: readonly PickerSection[] | undefined) {
+    if (!sections) {
+        return 0;
+    }
+    let rowCount = 0;
+    for (const section of sections) {
+        rowCount += section.data.length;
+        if (section.title) {
+            rowCount += 1;
+        }
+    }
+    return rowCount;
+}
 
-    const updateSearchActive = (isSearchActive: boolean) => {
-        if (isSearchActive && frozenRowCount === undefined) {
-            setFrozen({searchKey, rowCount});
-        } else if (!isSearchActive && frozenRowCount !== undefined) {
-            setFrozen(undefined);
+function usePickerPopoverRowCount(sections: readonly PickerSection[] | undefined, searchKey: number) {
+    const [searchRowCountSnapshot, setSearchRowCountSnapshot] = useState<{searchKey: number; rowCount: number}>();
+    const frozenRowCount = searchRowCountSnapshot?.searchKey === searchKey ? searchRowCountSnapshot.rowCount : undefined;
+    const rowCount = frozenRowCount ?? countListRows(sections);
+
+    const setRowCountFrozen = (shouldFreezeRowCount: boolean) => {
+        if (shouldFreezeRowCount && frozenRowCount === undefined) {
+            setSearchRowCountSnapshot({searchKey, rowCount});
+        } else if (!shouldFreezeRowCount && frozenRowCount !== undefined) {
+            setSearchRowCountSnapshot(undefined);
         }
     };
 
-    return {rowCount, updateSearchActive};
+    return {rowCount, setRowCountFrozen};
 }
 
 export default usePickerPopoverRowCount;

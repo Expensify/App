@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 
-import {TagPickerList, useTagPickerOptions} from '.';
+import {getTagPickerOptions, TagPickerList, useTagPickerData} from '.';
 
 type TagPickerModalProps = {
     /** The policy whose tags should be shown */
@@ -52,12 +52,13 @@ function TagPickerModal({
     ...popoverProps
 }: TagPickerModalProps) {
     const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
-    const options = useTagPickerOptions({policyID, selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}, shouldPrepareOptions);
-    const {rowCount, updateSearchActive} = usePickerPopoverRowCount(options.unfilteredSections, searchKey);
+    const data = useTagPickerData({policyID, tagListIndex});
+    const options = shouldPrepareOptions ? getTagPickerOptions(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
+    const {rowCount, setRowCountFrozen} = usePickerPopoverRowCount(options?.unfilteredSections, searchKey);
     const [search, setSearch] = useState({searchKey, value: ''});
     const setSearchValue = (value: string) => {
         setSearch({searchKey, value});
-        updateSearchActive(!!value);
+        setRowCountFrozen(!!value);
     };
 
     const handleTagSelected = (item: Partial<OptionData>) => {
@@ -77,19 +78,21 @@ function TagPickerModal({
             onClose={onClose}
             onModalHide={finishClosing}
             optionCount={rowCount}
-            isSearchable={options.hasSearchablePolicyTags}
-            title={options.tagListName}
+            isSearchable={options?.hasSearchablePolicyTags ?? false}
+            title={data.policyTagList.name}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            <TagPickerList
-                options={options}
-                searchValue={search.searchKey === searchKey ? search.value : ''}
-                setSearchValue={setSearchValue}
-                policyID={policyID}
-                selectedTag={selectedTag}
-                onSubmit={handleTagSelected}
-                shouldAutoFocusSearchInput
-            />
+            {options && (
+                <TagPickerList
+                    options={options}
+                    searchValue={search.searchKey === searchKey ? search.value : ''}
+                    setSearchValue={setSearchValue}
+                    policyID={policyID}
+                    selectedTag={selectedTag}
+                    onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
+                />
+            )}
         </AnchoredSelectionListPopover>
     );
 }

@@ -7,7 +7,6 @@ import Tooltip from '@components/Tooltip';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
 import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +20,7 @@ import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import React, {useLayoutEffect} from 'react';
 
-import {CategoryPickerList, useCategoryPickerOptions} from '.';
+import {CategoryPickerList, getCategoryPickerOptions, useCategoryPickerData} from '.';
 
 type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'addCategorySentryLabel'> & {
     /** The policy whose categories should be shown */
@@ -64,19 +63,20 @@ function CategoryPickerModal({
     ...popoverProps
 }: CategoryPickerModalProps) {
     const theme = useTheme();
-    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
-    const options = useCategoryPickerOptions({policyID, selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID}, shouldPrepareOptions);
-    const {rowCount, updateSearchActive} = usePickerPopoverRowCount(options.unfilteredSections, searchKey);
+    const data = useCategoryPickerData(policyID);
+    const {translate} = data;
+    const options = shouldPrepareOptions ? getCategoryPickerOptions(data, {selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID}) : undefined;
+    const {rowCount, setRowCountFrozen} = usePickerPopoverRowCount(options?.unfilteredSections, searchKey);
     const [search, debouncedSearch, setSearch] = useDebouncedState({searchKey, value: ''}, undefined, {
         onDebouncedValueChange: (nextSearch) => {
             // A pending debounce may finish after the list has opened again or switched between sheet and popover.
             if (nextSearch.searchKey !== searchKey) {
                 return;
             }
-            updateSearchActive(!!nextSearch.value);
+            setRowCountFrozen(!!nextSearch.value);
         },
     });
 
@@ -111,7 +111,7 @@ function CategoryPickerModal({
             onClose={onClose}
             onModalHide={finishClosing}
             optionCount={rowCount}
-            isSearchable={options.hasSearchablePolicyCategories}
+            isSearchable={options?.hasSearchablePolicyCategories ?? false}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
             shouldShowHeader={!!onAddCategory}
@@ -136,18 +136,20 @@ function CategoryPickerModal({
                 )
             }
         >
-            <CategoryPickerList
-                options={options}
-                searchValue={search.searchKey === searchKey ? search.value : ''}
-                debouncedSearchValue={debouncedSearch.searchKey === searchKey ? debouncedSearch.value : ''}
-                setSearchValue={(value) => setSearch({searchKey, value})}
-                selectedCategory={selectedCategory}
-                policyID={policyID}
-                onSubmit={handleCategorySelect}
-                onCreateCategory={onCreateCategory ? createCategory : undefined}
-                shouldAutoFocusSearchInput
-                ownerAccountID={ownerAccountID}
-            />
+            {options && (
+                <CategoryPickerList
+                    options={options}
+                    searchValue={search.searchKey === searchKey ? search.value : ''}
+                    debouncedSearchValue={debouncedSearch.searchKey === searchKey ? debouncedSearch.value : ''}
+                    setSearchValue={(value) => setSearch({searchKey, value})}
+                    selectedCategory={selectedCategory}
+                    policyID={policyID}
+                    onSubmit={handleCategorySelect}
+                    onCreateCategory={onCreateCategory ? createCategory : undefined}
+                    shouldAutoFocusSearchInput
+                    ownerAccountID={ownerAccountID}
+                />
+            )}
         </AnchoredSelectionListPopover>
     );
 }

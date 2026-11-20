@@ -90,36 +90,29 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
 
 type CategoryPickerOptionsProps = Pick<CategoryPickerProps, 'selectedCategory' | 'policyID' | 'shouldShowNoneOption' | 'shouldAlwaysShowGLCode' | 'searchInputThreshold' | 'ownerAccountID'>;
 
-function useCategoryPickerOptions(
-    {
-        selectedCategory,
-        policyID,
-        shouldShowNoneOption = false,
-        shouldAlwaysShowGLCode = false,
-        searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
-        ownerAccountID,
-    }: CategoryPickerOptionsProps,
-    shouldPrepareOptions = true,
-) {
+function useCategoryPickerData(policyID: string | undefined) {
     const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
-    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {translate, localeCompare} = useLocalize();
+    return {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare};
+}
+
+function getCategoryPickerOptions(
+    {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare}: ReturnType<typeof useCategoryPickerData>,
+    {
+        selectedCategory,
+        shouldShowNoneOption = false,
+        shouldAlwaysShowGLCode = false,
+        searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+        ownerAccountID,
+    }: Omit<CategoryPickerOptionsProps, 'policyID'>,
+) {
+    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
-    if (!shouldPrepareOptions) {
-        return {
-            allCategories,
-            hasDraftCategories: policyCategoriesDraft !== undefined,
-            shouldShowTextInput: false,
-            hasSearchablePolicyCategories: false,
-            unfilteredSections: getEmptyArray<never>(),
-            getSections: () => getEmptyArray<never>(),
-        };
-    }
 
     const selectedOptions = getSelectedOptions(selectedCategory);
     const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
@@ -166,11 +159,16 @@ function useCategoryPickerOptions(
     };
 }
 
+function useCategoryPickerOptions({policyID, ...options}: CategoryPickerOptionsProps) {
+    const data = useCategoryPickerData(policyID);
+    return getCategoryPickerOptions(data, options);
+}
+
 type CategoryPickerListProps = Pick<
     CategoryPickerProps,
     'policyID' | 'selectedCategory' | 'onSubmit' | 'onCreateCategory' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput' | 'ownerAccountID'
 > & {
-    options: ReturnType<typeof useCategoryPickerOptions>;
+    options: ReturnType<typeof getCategoryPickerOptions>;
     searchValue: string;
     debouncedSearchValue: string;
     setSearchValue: (value: string) => void;
@@ -324,5 +322,5 @@ function CategoryPicker({policyID, selectedCategory, ownerAccountID, shouldShowN
 }
 
 export default CategoryPicker;
-export {CategoryPickerList, useCategoryPickerOptions};
+export {CategoryPickerList, getCategoryPickerOptions, useCategoryPickerData};
 export type {CategoryPickerProps};

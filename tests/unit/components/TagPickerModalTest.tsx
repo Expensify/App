@@ -124,12 +124,13 @@ describe('TagPickerModal', () => {
                 policyID={POLICY_ID}
                 tagListIndex={1}
                 anchorPosition={{horizontal: 0, vertical: 0}}
+                shouldShowHeader
             />,
         );
 
         // Then the list shows the second list's tags under its own name
         expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Alpha');
-        expect(mockTagPickerProps?.options.tagListName).toBe('Project');
+        expect(screen.getByText('Project')).toBeOnTheScreen();
     });
 
     it('hands the list the search threshold it is given', () => {
@@ -186,7 +187,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then it still shows the first list in the standard-size pop-over that may flip when it overflows
-        expect(mockTagPickerProps?.options.tagListName).toBe('Department');
+        expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Engineering');
         expect(mockPopoverProps?.popoverDimensions).toEqual({width: CONST.POPOVER_DROPDOWN_WIDTH, height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT});
         expect(mockPopoverProps?.shouldSwitchPositionIfOverflow).toBe(true);
     });

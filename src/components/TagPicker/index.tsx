@@ -98,40 +98,32 @@ type TagPickerOptionsProps = Pick<
     tagListName?: string;
 };
 
-function useTagPickerOptions(
+function useTagPickerData({policyID, tagListIndex, tagListName}: Pick<TagPickerOptionsProps, 'policyID' | 'tagListIndex' | 'tagListName'>) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
+    });
+    const {translate, localeCompare} = useLocalize();
+    const policyTagList = getTagList(policyTags, tagListIndex);
+    const recentTagListName = tagListName ?? policyTagList.name;
+    const [policyRecentlyUsedTagsList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {selector: (recentTags) => recentTags?.[recentTagListName]});
+    return {policyTagList, policyRecentlyUsedTagsList, shouldShowGLCodeFromPolicy, translate, localeCompare};
+}
+
+function getTagPickerOptions(
+    {policyTagList, policyRecentlyUsedTagsList, shouldShowGLCodeFromPolicy, translate, localeCompare}: ReturnType<typeof useTagPickerData>,
     {
         selectedTag,
         transactionTag,
         hasDependentTags,
-        tagListName,
-        policyID,
         tagListIndex,
         shouldShowDisabledAndSelectedOption = false,
         additionalTagsToInclude,
         shouldShowGLCode: shouldShowGLCodeProp,
         searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
-    }: TagPickerOptionsProps,
-    shouldPrepareOptions = true,
+    }: Omit<TagPickerOptionsProps, 'policyID' | 'tagListName'>,
 ) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
-    });
     const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
-    const {translate, localeCompare} = useLocalize();
-
-    const policyTagList = getTagList(policyTags, tagListIndex);
-    const recentTagListName = tagListName ?? policyTagList.name;
-    const [policyRecentlyUsedTagsList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {selector: (recentTags) => recentTags?.[recentTagListName]});
-    if (!shouldPrepareOptions) {
-        return {
-            tagListName: policyTagList.name,
-            hasSearchablePolicyTags: false,
-            shouldShowTextInput: false,
-            unfilteredSections: getEmptyArray<never>(),
-            getSections: () => getEmptyArray<never>(),
-        };
-    }
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
@@ -195,7 +187,6 @@ function useTagPickerOptions(
     // The popover reserves search space from the full policy list, even if dependencies narrow the tags shown.
     const policyTagCount = enabledTags === baseTags ? availableTagsCount : getCountOfEnabledTagsOfList(policyTagList.tags);
     return {
-        tagListName: policyTagList.name,
         hasSearchablePolicyTags: policyTagCount >= searchInputThreshold,
         shouldShowTextInput: availableTagsCount >= searchInputThreshold,
         unfilteredSections: getSections(''),
@@ -203,11 +194,16 @@ function useTagPickerOptions(
     };
 }
 
+function useTagPickerOptions({policyID, tagListName, tagListIndex, ...options}: TagPickerOptionsProps) {
+    const data = useTagPickerData({policyID, tagListName, tagListIndex});
+    return getTagPickerOptions(data, {...options, tagListIndex});
+}
+
 type TagPickerListProps = Pick<
     TagPickerProps,
     'policyID' | 'selectedTag' | 'shouldOrderListByTagName' | 'onSubmit' | 'additionalTagsToInclude' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput'
 > & {
-    options: ReturnType<typeof useTagPickerOptions>;
+    options: ReturnType<typeof getTagPickerOptions>;
     searchValue: string;
     setSearchValue: (value: string) => void;
 };
@@ -310,5 +306,5 @@ function TagPicker({
 }
 
 export default TagPicker;
-export {TagPickerList, useTagPickerOptions};
+export {getTagPickerOptions, TagPickerList, useTagPickerData};
 export type {TagPickerProps, TagPickerListProps};
