@@ -219,7 +219,9 @@ describe('ReportFieldDropdown', () => {
         // When the report row's dropdown opens and the user picks `report1`
         renderDropdown(onClose);
         await waitForBatchedUpdates();
-        act(() => mockModalProps?.selectReport({value: CURRENT_REPORT_ID, keyForList: CURRENT_REPORT_ID, policyID: POLICY_ID}));
+        await act(async () => {
+            mockModalProps?.selectReport({value: CURRENT_REPORT_ID, keyForList: CURRENT_REPORT_ID, policyID: POLICY_ID});
+        });
 
         // Then the list doesn't mark `report1`, matching the field, and picking it moves the draft there, so saving adds the scan to it
         // instead of starting a new report
