@@ -8569,6 +8569,8 @@ const CONST = {
             FLIGHT_CENTRE: 'flightCentre',
             SERKO: 'serko',
             CTM: 'ctm',
+            BCD_TRAVEL: 'bcdTravel',
+            PERK: 'perk',
             OTHER: 'other',
         },
         TRANSACTION_STATUS: {
