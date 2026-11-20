@@ -7,6 +7,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RHPResizeHandle from '@components/RHPResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -99,7 +100,10 @@ function MultifactorAuthenticationModalNavigator() {
     const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const isModalHidden = !!scenario?.shouldHideModalOnSuccess && isAuthorizationComplete;
+    const {isOffline} = useNetwork();
+
+    // Offline, the flow can't finish and close itself, so keep the modal visible to leave a way out
+    const isModalHidden = !!scenario?.shouldHideModalOnSuccess && isAuthorizationComplete && !isOffline;
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
