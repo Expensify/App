@@ -25,26 +25,20 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const [isWalletAvailable, setIsWalletAvailable] = useState(false);
 
     // The stored status may be from an earlier visit (e.g. the card was added in the wallet app), so wait for a fresh read
-    const [freshStatusCardID, setFreshStatusCardID] = useState<number>();
+    const [freshStatusCardIDs, setFreshStatusCardIDs] = useState<ReadonlySet<number>>(() => new Set());
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const refreshWalletStatus = () => refreshCardWalletStatus(card);
+    const refreshWalletStatus = () => {
+        const {cardID} = card;
+        return refreshCardWalletStatus(card).then(() => {
+            setFreshStatusCardIDs((cardIDs) => (cardIDs.has(cardID) ? cardIDs : new Set(cardIDs).add(cardID)));
+        });
+    };
 
     useEffect(() => {
         if (!isCardAvailable) {
             return;
         }
-
-        const {cardID} = card;
-        let isCurrentRead = true;
-        refreshWalletStatus().then(() => {
-            if (!isCurrentRead) {
-                return;
-            }
-            setFreshStatusCardID(cardID);
-        });
-        return () => {
-            isCurrentRead = false;
-        };
+        refreshWalletStatus();
     }, [refreshWalletStatus, isCardAvailable, card]);
 
     useEffect(() => {
@@ -70,7 +64,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     });
 
     return {
-        isInWallet: freshStatusCardID === card.cardID ? (walletStatus?.isInWallet ?? null) : null,
+        isInWallet: freshStatusCardIDs.has(card.cardID) ? (walletStatus?.isInWallet ?? null) : null,
         isCardAvailable,
         isWalletAvailable,
         refreshWalletStatus,

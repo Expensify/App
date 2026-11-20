@@ -209,6 +209,23 @@ describe('useIsCardInWallet', () => {
         });
         expect(result.current.isInWallet).toBe(true);
     });
+    it('shows the status from an app focus read that finishes before the initial read', async () => {
+        // Given the initial read is still in flight
+        const {result} = renderHook(() => useIsCardInWallet(card));
+
+        // When the app regains focus and that newer read finishes first
+        act(() => {
+            mockAppFocusCallback?.();
+        });
+        await act(async () => {
+            mockPendingReads.at(-1)?.resolve(true);
+            await waitForBatchedUpdates();
+        });
+
+        // Then its fresh status shows without waiting for the obsolete initial read
+        expect(result.current.isInWallet).toBe(true);
+    });
+
     it('ignores a read of the previous card that finishes after the switch', async () => {
         // Given the hook switched from the first card to the second one before the first card's read finished
         const {result, rerender} = renderHook(({hookCard}) => useIsCardInWallet(hookCard), {initialProps: {hookCard: card}});
