@@ -179,7 +179,7 @@ function prepareRejectMoneyRequestData({
     // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
     const staleRejectErrorCleanup = {
         errors: null,
-        errorFields: {reject: null},
+        errorFields: {reject: null, rejectCorporateCard: null, rejectOther: null},
         rejectFailedFromReportID: null,
     };
     const transactionCommentCleanup = (() => {
@@ -285,7 +285,7 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
-                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                     rejectFailedFromReportID: reportID,
                 },
             });
@@ -364,7 +364,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID,
-                        errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                        errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                         rejectFailedFromReportID: reportID,
                     },
                 },
@@ -726,7 +726,7 @@ function prepareRejectMoneyRequestData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
-                errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                 rejectFailedFromReportID: reportID,
             },
         });
@@ -776,7 +776,7 @@ function prepareRejectMoneyRequestData({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    errorFields: {rejectOther: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpenseContactConcierge')},
                     rejectFailedFromReportID: reportID,
                 },
             },

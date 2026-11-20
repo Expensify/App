@@ -56,6 +56,45 @@ describe('getAllNonDeletedTransactions', () => {
         const rejectedTransaction = {...transactionR14932, errorFields: {reject: {[errorTimestamp]: 'The expense has already been moved or rejected.'}}};
         const deletedAction = {...actionR14932, originalMessage: {...originalMessageR14932, deleted: '2026-08-25 16:46:25.669'}};
 
+        // When: Fetching non-deleted transactions
+
+        // Then: The expense stays on the report so its error can be dismissed
+        const result = getAllNonDeletedTransactions({[rejectedTransaction.transactionID]: rejectedTransaction}, [deletedAction]);
+        expect(result.map((t) => t.transactionID)).toEqual([rejectedTransaction.transactionID]);
+
+        // And: The same expense without the error is dropped along with its deleted action
+        const withoutError = getAllNonDeletedTransactions({[transactionR14932.transactionID]: transactionR14932}, [deletedAction]);
+        expect(withoutError).toHaveLength(0);
+    });
+
+    test('should keep an expense carrying a rejectCorporateCard error once the server has deleted its action', () => {
+        // Given: A corporate card expense the server refused to reject individually
+        const errorTimestamp = '1787676437627439';
+        const rejectedTransaction = {
+            ...transactionR14932,
+            errorFields: {rejectCorporateCard: {[errorTimestamp]: 'Corporate card expenses on a statement report cannot be rejected individually.'}},
+        };
+        const deletedAction = {...actionR14932, originalMessage: {...originalMessageR14932, deleted: '2026-08-25 16:46:25.669'}};
+
+        // When: Fetching non-deleted transactions
+
+        // Then: The expense stays on the report so its error can be dismissed
+        const result = getAllNonDeletedTransactions({[rejectedTransaction.transactionID]: rejectedTransaction}, [deletedAction]);
+        expect(result.map((t) => t.transactionID)).toEqual([rejectedTransaction.transactionID]);
+
+        // And: The same expense without the error is dropped along with its deleted action
+        const withoutError = getAllNonDeletedTransactions({[transactionR14932.transactionID]: transactionR14932}, [deletedAction]);
+        expect(withoutError).toHaveLength(0);
+    });
+
+    test('should keep an expense carrying a rejectOther error once the server has deleted its action', () => {
+        // Given: An expense the client could not reject due to an unexpected failure
+        const errorTimestamp = '1787676437627439';
+        const rejectedTransaction = {...transactionR14932, errorFields: {rejectOther: {[errorTimestamp]: 'This expense could not be rejected. Please contact Concierge for help.'}}};
+        const deletedAction = {...actionR14932, originalMessage: {...originalMessageR14932, deleted: '2026-08-25 16:46:25.669'}};
+
+        // When: Fetching non-deleted transactions
+
         // Then: The expense stays on the report so its error can be dismissed
         const result = getAllNonDeletedTransactions({[rejectedTransaction.transactionID]: rejectedTransaction}, [deletedAction]);
         expect(result.map((t) => t.transactionID)).toEqual([rejectedTransaction.transactionID]);

@@ -24,7 +24,7 @@ import {
     EMPTY_CARDS,
     getReportRowCards,
     getReportRowPolicyCategories,
-    getTransactionRejectErrorKey,
+    getTransactionRejectError,
     getVisibleReportRowViolations,
     isSelectableReportTransaction,
 } from '@libs/MoneyRequestReportUtils';
@@ -184,13 +184,13 @@ function MoneyRequestReportTransactionItemBody({
         Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, string | null] => typeof entry[1] === 'string' || entry[1] === null),
     );
 
-    const rejectErrorKey = getTransactionRejectErrorKey(transaction);
-    const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
+    const rejectError = getTransactionRejectError(transaction);
+    const rejectErrors: TranslationKeyErrors = rejectError ? {[rejectError.key]: {translationKey: rejectError.translationKey}} : {};
     // Same check Select All and shift+click ranges use, so this checkbox is disabled exactly for the rows they skip.
     const isSelectable = isSelectableReportTransaction(transaction);
 
     // A reject error is terminal for this row, so it replaces any other message rather than stacking with it.
-    const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
+    const transactionErrors: Errors | TranslationKeyErrors = rejectError ? rejectErrors : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
     // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
