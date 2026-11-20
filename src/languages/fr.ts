@@ -582,6 +582,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} jour`,
             other: (count: number) => `${formattedCount ?? count} jours`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} heure`,
+            other: (count: number) => `${formattedCount ?? count} heures`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minute`,
+            other: (count: number) => `${formattedCount ?? count} minutes`,
+        }),
         amount: 'Montant',
     },
     socials: {
@@ -1300,6 +1308,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Délai de paiement le plus long',
         share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
+        generatingAIInsights: 'Génération d’analyses IA...',
+        generatingAIInsightsSubtitle: 'Cela ne devrait pas prendre plus d’une minute',
+        readingChart: (chartTitle: string) => `Lecture de ${chartTitle}`,
+        comparingWithYourAverage: 'Comparaison avec votre moyenne',
+        lookingForAnythingUnusual: 'Recherche de toute anomalie',
+        writingYourInsights: 'Rédiger vos analyses',
         violationStage: {
             label: 'Infractions de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
@@ -3319,6 +3333,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+            payingMultipleReportsSubtitle: 'Aucune de ces notes de frais n’a pu être payée, car les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+            description: 'Ces notes de frais n’ont pas été payées avec le compte bancaire, car elles nécessitent des remboursements globaux. Commencez la procédure ci-dessous.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
         wiseMoreInfoNeeded: 'Informations supplémentaires requises pour activer les remboursements globaux',
@@ -7280,9 +7299,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            visibleTo: 'Visible pour',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Impossible de retirer l’accès à ${categoryName}`,
+                bulkRemoveAccessTitle: 'Impossible de supprimer l’accès à ces catégories',
                 description: ({count}: {count: number}) => ({
                     one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
                     other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
@@ -8675,6 +8702,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             timezoneInputLabel: 'Fuseau horaire',
             timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
             timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
+            directReimbursementCurrencyTitle: 'Devise non disponible avec le remboursement direct',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Cet espace de travail rembourse les membres directement via Expensify, ce qui n’est pas disponible en ${currency}. Pour utiliser ${currency}, allez dans Workflows et désactivez puis réactivez Paiements, afin que les paiements soient effectués en dehors d’Expensify.`,
+            goToWorkflows: 'Aller aux workflows',
         },
         officeLocations: {
             title: 'Sites de bureau',
@@ -10437,11 +10468,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté le taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newValue} (${newTaxPercentage}) » (auparavant « ${oldValue} (${oldTaxPercentage}) »)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newTaxRate} » (précédemment « ${oldTaxRate} »)`;
             }
-            return `a ajouté le taux de taxe « ${newValue} (${newTaxPercentage}) » au taux de distance « ${customUnitRateName} »`;
+            return `a ajouté le taux de taxe « ${newTaxRate} » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11087,6 +11118,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
+            tooManyKeywords: `Votre recherche contient trop de mots-clés. Utilisez ${CONST.SEARCH.MAX_KEYWORD_TOKENS} mots-clés ou moins et réessayez.`,
+            unsupportedGrouping: 'Cette recherche ne prend en charge ni le regroupement ni les vues graphiques. Supprimez le regroupement et utilisez la vue tableau.',
+            invalidReportID: 'Saisissez un identifiant de rapport valide. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
+            unsupportedFilter: 'Le filtre "is:" ne peut pas être utilisé pour cette recherche. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
             emptyResults: {
                 title: 'Rien à afficher',
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,

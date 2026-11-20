@@ -16,7 +16,6 @@ import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
-import type {State} from './StateSelector';
 
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
@@ -190,7 +189,7 @@ function AddressFormFields() {
                     <InputWrapper
                         InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
-                        value={state as State}
+                        value={state}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
                     />

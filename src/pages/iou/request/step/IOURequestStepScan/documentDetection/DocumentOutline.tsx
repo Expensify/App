@@ -3,10 +3,10 @@ import useTheme from '@hooks/useTheme';
 
 import type {SharedValue} from 'react-native-reanimated';
 
-import {Canvas, Group, LinearGradient, Path, Skia, vec} from '@shopify/react-native-skia';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import {useDerivedValue, useFrameCallback, useSharedValue} from 'react-native-reanimated';
+import {Canvas, Group, LinearGradient, Path, Skia, vec} from 'react-native-skia';
 
 import type {DocumentEdge} from './types';
 
@@ -87,12 +87,12 @@ function DocumentOutline({edge, isHidden}: DocumentOutlineProps) {
     });
 
     const path = useDerivedValue(() => {
-        const outline = Skia.Path.Make();
         const points = shownEdge.get() ?? [];
         const first = points.at(0);
         if (!first) {
-            return outline;
+            return Skia.Path.Make();
         }
+        const outline = Skia.PathBuilder.Make();
         outline.moveTo(first.x, first.y);
         if (points.length % POINTS_PER_SIDE !== 0) {
             for (let index = 1; index < points.length; index++) {
@@ -102,7 +102,7 @@ function DocumentOutline({edge, isHidden}: DocumentOutlineProps) {
                 }
             }
             outline.close();
-            return outline;
+            return outline.build();
         }
         for (let side = 0; side < points.length; side += POINTS_PER_SIDE) {
             const corner = points.at(side);
@@ -125,7 +125,7 @@ function DocumentOutline({edge, isHidden}: DocumentOutlineProps) {
             outline.lineTo(nextCorner.x, nextCorner.y);
         }
         outline.close();
-        return outline;
+        return outline.build();
     });
 
     // Skia only takes stops between 0 and 1, so the CSS stops outside that range move the ends of the gradient line instead.

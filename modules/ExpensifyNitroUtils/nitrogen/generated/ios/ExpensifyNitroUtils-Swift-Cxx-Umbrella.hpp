@@ -22,8 +22,12 @@ namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
+// Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
 // Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
+// Forward declaration of `SharedFile` to properly resolve imports.
+namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declaration of `VerticalBarEdge` to properly resolve imports.
@@ -39,7 +43,9 @@ namespace margelo::nitro::utils { struct YuvFrame; }
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridDocumentDetectorModuleSpec.hpp"
+#include "HybridShareActionHandlerSpec.hpp"
 #include "HybridVerticalBarModuleSpec.hpp"
+#include "SharedFile.hpp"
 #include "StringHolder.hpp"
 #include "VerticalBarEdge.hpp"
 #include "YuvFrame.hpp"
@@ -70,6 +76,8 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
+// Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 // Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 

@@ -7,6 +7,7 @@ const NitroModules = {
         release: jest.fn(),
         edge: 'unspecified',
         addEdgeListener: jest.fn(() => () => {}),
+        processFiles: jest.fn(() => Promise.resolve([])),
     })),
 };
 

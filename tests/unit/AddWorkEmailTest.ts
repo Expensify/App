@@ -1,6 +1,6 @@
 import {act} from '@testing-library/react-native';
 
-import {AddWorkEmail} from '@libs/actions/Session';
+import {addWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
 
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ const workEmail = 'testuser@privateemail.com';
 function mockAddWorkEmailResponse(mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING>) {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => Promise.resolve(mockedResponse));
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => {
         HttpUtils.xhr = originalXhr;
     });
@@ -80,7 +80,7 @@ describe('AddWorkEmail', () => {
             const originalXhr = HttpUtils.xhr;
             HttpUtils.xhr = jest.fn().mockResolvedValue({jsonCode: 200});
 
-            AddWorkEmail(workEmail, taskReport);
+            addWorkEmail(workEmail, taskReport);
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`)).toEqual(

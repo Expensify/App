@@ -14,6 +14,7 @@
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridDocumentDetectorModuleSpecSwift.hpp"
 #include "HybridVerticalBarModuleSpecSwift.hpp"
+#include "HybridShareActionHandlerSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -49,6 +50,13 @@
     "VerticalBarModule",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridVerticalBarModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createVerticalBarModule();
+      return hybridObject;
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "ShareActionHandler",
+    []() -> std::shared_ptr<HybridObject> {
+      std::shared_ptr<HybridShareActionHandlerSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createShareActionHandler();
       return hybridObject;
     }
   );
