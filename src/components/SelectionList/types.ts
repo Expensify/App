@@ -212,7 +212,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     showButton?: boolean;
 
     /** Confirms the current selection */
-    onConfirm?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onConfirm?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** Confirms one row instead of the selection, for lists where confirming acts on a single item. Falls back to `onConfirm` */
     onConfirmFocusedOption?: (option: TItem) => void;

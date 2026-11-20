@@ -39,6 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useNavigationState} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
 
@@ -52,7 +53,7 @@ type ReconciliationAccountSettingsLayoutProps = {
     html: string;
     onLinkPress?: () => void;
     selectedBankAccountID?: string;
-    onSelectBankAccount: (newBankAccountID?: string) => void;
+    onSelectBankAccount: (newBankAccountID?: string) => void | Promise<void>;
 };
 
 type DynamicReconciliationProps = {
@@ -194,16 +195,18 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
     const travelBillingFundID = useTravelBillingFundID(policyID);
     const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${travelBillingFundID}`);
     const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
-    const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
-    const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const travelBillingSettings = getCardSettings(travelBillingCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const travelBillingSettlementAccount = getTravelSettlementAccount(travelBillingSettings, bankAccountList);
     const settlementAccountEnding = travelBillingSettlementAccount?.last4 ?? '';
 
-    const selectBankAccount = (newBankAccountID?: string) => {
+    const selectBankAccount = async (newBankAccountID?: string) => {
         if (!newBankAccountID) {
             return;
         }
+        const [travelBillingContinuousReconciliation, travelBillingContinuousReconciliationConnection] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+        ]);
         setTravelBillingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelBillingReconciliationBankAccountID);
         if (!travelBillingContinuousReconciliation) {
             toggleTravelBillingContinuousReconciliation(workspaceAccountID, true, connectionName, travelBillingContinuousReconciliationConnection);
