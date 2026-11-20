@@ -8,13 +8,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
+import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, parseISO, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
 
 import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
+import {isDelayedSubmissionEnabled} from './PolicyUtils/workflows';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getAutoReportingOffsetsForFrequency, sortSemiMonthlyOffsets} from './SubmissionScheduleUtils';
@@ -864,8 +865,27 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
+    if (!policy) {
+        return {startDate: undefined, endDate: undefined};
+    }
+
+    // Trip reports use the actual first and last expense dates. Workspaces with no reporting period use them too, matching
+    // the backend, so the title never shows a date unrelated to the report. Scheduled submit can still file expenses
+    // into such a workspace from a member's personal workspace.
+    const hasAutoReportingPeriod = isDelayedSubmissionEnabled(policy) && frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
+        const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
+        const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
+        // Expense dates are stored without a time, like "2025-01-20". new Date() reads that as midnight UTC, which is
+        // the previous day west of UTC, so parseISO reads it as local midnight to keep the day the backend uses.
+        return {
+            startDate: oldestTransactionDateString ? parseISO(oldestTransactionDateString) : currentDate,
+            endDate: newestTransactionDateString ? parseISO(newestTransactionDateString) : currentDate,
+        };
+    }
+
     // Return undefined if no frequency is set
-    if (!frequency || !policy) {
+    if (!frequency) {
         return {startDate: undefined, endDate: undefined};
     }
 
@@ -905,14 +925,6 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
                 startDate = startOfMonth(currentDate);
                 endDate = endOfMonth(currentDate);
             }
-            break;
-        }
-
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
-            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
-            startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
         }
 
