@@ -18,6 +18,8 @@ import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 import React from 'react';
 
+import useTravelBillingSelection from './useTravelBillingSelection';
+
 type TravelBillingVendorSelectPageProps = {
     policyID: string;
     displayName: string;
@@ -52,6 +54,7 @@ function TravelBillingVendorSelectPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const {data: draftData, selectOption, confirmButtonOptions} = useTravelBillingSelection(data, onSelect);
 
     const listEmptyContent = (
         <BlockingView
@@ -71,8 +74,8 @@ function TravelBillingVendorSelectPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title="workspace.common.travelBillingVendor"
-            data={data}
-            onSelectRow={onSelect}
+            data={draftData}
+            onSelectRow={selectOption}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((option) => option.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
@@ -82,6 +85,7 @@ function TravelBillingVendorSelectPage({
             errors={errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={onClose}
+            confirmButtonOptions={confirmButtonOptions}
         />
     );
 }
