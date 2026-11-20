@@ -11,12 +11,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
@@ -36,13 +39,16 @@ function WorkspaceOwnerRestrictedAction() {
             // this screen again for a frame, so wait until it is gone.
             afterTransition: () =>
                 runAfterClosingScreenUnmount(() => {
-                    if (Navigation.isActiveRoute(ROUTES.SETTINGS_SUBSCRIPTION.route)) {
+                    // Opening the form from another tab switches to Subscription underneath it on its own. Opening
+                    // Subscription first from there would push a second tab navigator and make the form stutter.
+                    // Only another Settings page, such as Profile, would stay under the form, so open Subscription first there.
+                    const isOnSettingsTab = getActiveTabName(getTopmostFullScreenRoute()) === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+                    const shouldOpenSubscriptionFirst = isOnSettingsTab && !Navigation.isActiveRoute(ROUTES.SETTINGS_SUBSCRIPTION.route);
+                    if (!shouldOpenSubscriptionFirst) {
                         openPaymentCardForm();
                         return;
                     }
 
-                    // Opening the form only swaps the page underneath when it is in another tab. From another Settings
-                    // page, such as Profile, that page would stay under the form, so open Subscription first.
                     Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route, {afterTransition: openPaymentCardForm});
                 }),
         });

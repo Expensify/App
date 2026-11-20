@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation from '@libs/Navigation/Navigation';
 
+import type NAVIGATORS from '@src/NAVIGATORS';
 import WorkspaceOwnerRestrictedActionNative from '@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.native';
 import ROUTES from '@src/ROUTES';
 
@@ -27,6 +28,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => mockGetActiveRoute());
+jest.mock('@libs/Navigation/helpers/getTopmostFullScreenRoute', () => {
+    const {default: navigators} = jest.requireActual<{default: typeof NAVIGATORS}>('@src/NAVIGATORS');
+    return () => ({
+        key: 'tab',
+        name: mockGetActiveRoute().replace(/^\/+/, '').startsWith('settings') ? navigators.SETTINGS_SPLIT_NAVIGATOR : navigators.REPORTS_SPLIT_NAVIGATOR,
+    });
+});
 jest.mock('@libs/Navigation/helpers/runAfterClosingScreenUnmount', () => jest.fn());
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
@@ -125,44 +133,47 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         mockGetActiveRoute.mockReturnValue('r/123');
     });
 
-    it.each(['r/123', 'search?q=type:expense', 'settings/profile'])('opens subscription before add payment card after dismissing the web modal from %s', (activeRoute) => {
-        // Given the restricted screen can open over other tabs or Settings pages, none should remain under the card form
+    it.each(['settings/profile', '/settings/profile', 'settings/wallet?foo=bar', 'settings'])(
+        'opens subscription before add payment card after dismissing the web modal from %s',
+        (activeRoute) => {
+            // Given another Settings page would otherwise remain underneath the card form
+            mockGetActiveRoute.mockReturnValue(activeRoute);
+            render(<WorkspaceOwnerRestrictedActionWeb />);
+
+            // When the owner taps "Add payment card"
+            fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
+
+            // Then both dismissal and the closing screen deferral finish before the card form opens over Subscription
+            expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(runAfterClosingScreenUnmount).not.toHaveBeenCalled();
+
+            const afterTransition = getDismissModalAfterTransition();
+            expect(afterTransition).toBeInstanceOf(Function);
+
+            afterTransition?.();
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            expect(runAfterClosingScreenUnmount).toHaveBeenCalledTimes(1);
+            const openPaymentCard = jest.mocked(runAfterClosingScreenUnmount).mock.calls.at(0)?.at(0);
+            expect(openPaymentCard).toBeInstanceOf(Function);
+            openPaymentCard?.();
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            const subscriptionOptions = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(1);
+            const afterSubscriptionTransition = typeof subscriptionOptions === 'object' ? subscriptionOptions.afterTransition : undefined;
+            expect(afterSubscriptionTransition).toBeInstanceOf(Function);
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'settings/subscription', {afterTransition: afterSubscriptionTransition});
+            afterSubscriptionTransition?.();
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(2);
+            expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'settings/subscription/add-payment-card');
+        },
+    );
+
+    it.each(['r/123', '/r/123', 'search?q=type:expense', 'home', 'settings/subscription'])('opens the web card form directly from %s', (activeRoute) => {
+        // Given another tab switches the background automatically, or Subscription is already active
         mockGetActiveRoute.mockReturnValue(activeRoute);
-        render(<WorkspaceOwnerRestrictedActionWeb />);
-
-        // When the owner taps "Add payment card"
-        fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
-
-        // Then both dismissal and the closing screen deferral finish before the card form opens over Subscription
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(runAfterClosingScreenUnmount).not.toHaveBeenCalled();
-
-        const afterTransition = getDismissModalAfterTransition();
-        expect(afterTransition).toBeInstanceOf(Function);
-
-        afterTransition?.();
-
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(runAfterClosingScreenUnmount).toHaveBeenCalledTimes(1);
-        const openPaymentCard = jest.mocked(runAfterClosingScreenUnmount).mock.calls.at(0)?.at(0);
-        expect(openPaymentCard).toBeInstanceOf(Function);
-        openPaymentCard?.();
-
-        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        const subscriptionOptions = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(1);
-        const afterSubscriptionTransition = typeof subscriptionOptions === 'object' ? subscriptionOptions.afterTransition : undefined;
-        expect(afterSubscriptionTransition).toBeInstanceOf(Function);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'settings/subscription', {afterTransition: afterSubscriptionTransition});
-        afterSubscriptionTransition?.();
-
-        expect(Navigation.navigate).toHaveBeenCalledTimes(2);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'settings/subscription/add-payment-card');
-    });
-
-    it('opens the web card form directly when subscription is already active', () => {
-        // Given Subscription is already revealed underneath the restricted modal
-        mockGetActiveRoute.mockReturnValue('settings/subscription');
         render(<WorkspaceOwnerRestrictedActionWeb />);
 
         // When dismissal and the closing screen deferral finish after the owner taps Add payment card
@@ -174,7 +185,7 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         expect(openPaymentCard).toBeInstanceOf(Function);
         openPaymentCard?.();
 
-        // Then the form opens without waiting for a redundant Subscription transition that would never start
+        // Then the form opens without pushing another tab navigator or waiting for a redundant Subscription transition
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/subscription/add-payment-card');
     });
