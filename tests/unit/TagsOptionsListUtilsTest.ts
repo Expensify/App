@@ -6,7 +6,7 @@ import {getDependentTagVisibility, getEnabledTags, getTagListSections, getTagVis
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -1116,6 +1116,132 @@ describe('TagsOptionsListUtils', () => {
         // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
         expect(defaultSections.map((section) => section.title)).toEqual(['']);
         expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
+    });
+
+    describe('getTagListSections list order and updates', () => {
+        // Inserted out of order, with mixed case, digits and accents, and one disabled tag
+        const tagNames = ['zeta', 'Item 100', 'Éclair', '10th Floor', 'apple', 'Zeta', 'Item 9', 'angle', 'Echo', 'Apple', 'Office Supplies', 'eclair', 'Ångström', '2nd Floor', 'Item 10'];
+        const toTagEntry = (name: string, enabled = true): [string, PolicyTag] => [name, {name, enabled}];
+        const tags: PolicyTags = Object.fromEntries([...tagNames.map((name) => toTagEntry(name)), toTagEntry('Disabled Item', false)]);
+        const tagsInListOrder = [
+            '2nd Floor',
+            '10th Floor',
+            'angle',
+            'Ångström',
+            'Apple',
+            'apple',
+            'Echo',
+            'eclair',
+            'Éclair',
+            'Item 9',
+            'Item 10',
+            'Item 100',
+            'Office Supplies',
+            'Zeta',
+            'zeta',
+        ];
+        const selectedOptions: SelectedTagOption[] = [{name: 'Item 10', enabled: true, accountID: undefined}];
+
+        const getListedNames = (sections: ReturnType<typeof getTagListSections>) =>
+            sections.map((section) => ({title: section.title, names: section.data.map((option) => option.keyForList)}));
+
+        it('lists the enabled tags in name order with mixed case, digits and accents, and leaves out disabled tags', () => {
+            // When the list is built without a search
+            const sections = getTagListSections({tags, localeCompare, translate: translateLocal});
+
+            // Then every enabled tag is listed once, in collator order
+            expect(getListedNames(sections)).toEqual([{title: translateLocal('common.all'), names: tagsInListOrder}]);
+        });
+
+        it('lists the selected tag first and leaves it out of the rest of the list', () => {
+            // When a tag is selected and two tags were used recently, one of them now disabled
+            const sections = getTagListSections({tags, selectedOptions, recentlyUsedTags: ['Echo', 'Disabled Item'], localeCompare, translate: translateLocal});
+
+            // Then the selected tag comes first, the disabled recent tag is left out, and the rest keep their order
+            expect(getListedNames(sections)).toEqual([
+                {title: '', names: ['Item 10']},
+                {title: translateLocal('common.recent'), names: ['Echo']},
+                {title: translateLocal('common.all'), names: tagsInListOrder.filter((name) => name !== 'Item 10')},
+            ]);
+            expect(sections.at(0)?.data.at(0)?.isSelected).toBe(true);
+        });
+
+        it('filters by the search text and keeps the list order', () => {
+            // When searching for a word that several tags share
+            const itemSections = getTagListSections({tags, selectedOptions, searchValue: 'item', localeCompare, translate: translateLocal});
+            const floorSections = getTagListSections({tags, selectedOptions, searchValue: 'floor', localeCompare, translate: translateLocal});
+
+            // Then only the matching enabled tags are listed, the selected one first and the others in name order
+            expect(getListedNames(itemSections)).toEqual([{title: '', names: ['Item 10', 'Item 9', 'Item 100']}]);
+            expect(getListedNames(floorSections)).toEqual([{title: '', names: ['2nd Floor', '10th Floor']}]);
+        });
+
+        it('gives the same list for every search text as a fresh copy of the same tags', () => {
+            // When typing into the search one letter at a time, then clearing it, with the same tags each time
+            for (const searchValue of ['', 'i', 'it', 'ite', 'item', 'item 1', '']) {
+                const sections = getTagListSections({tags, selectedOptions, recentlyUsedTags: ['Echo'], searchValue, localeCompare, translate: translateLocal});
+                const sectionsFromCopy = getTagListSections({tags: {...tags}, selectedOptions, recentlyUsedTags: ['Echo'], searchValue, localeCompare, translate: translateLocal});
+
+                // Then each list is the one built from scratch for that search text
+                expect(sections).toStrictEqual(sectionsFromCopy);
+            }
+        });
+
+        it('shows the changed list after the tags change', () => {
+            // Given the list built for the current tags
+            const searchValue = 'item';
+            const sectionsBefore = getTagListSections({tags, searchValue, localeCompare, translate: translateLocal});
+
+            // When a tag is added and another is disabled
+            const updatedTags: PolicyTags = {...tags, 'Item 5': {name: 'Item 5', enabled: true}, 'Item 9': {name: 'Item 9', enabled: false}};
+            const sectionsAfter = getTagListSections({tags: updatedTags, searchValue, localeCompare, translate: translateLocal});
+            const allSectionsAfter = getTagListSections({tags: updatedTags, localeCompare, translate: translateLocal});
+
+            // Then the new list has the added tag in order and not the disabled one, and the old tags still give the old list
+            expect(getListedNames(sectionsAfter)).toEqual([{title: '', names: ['Item 5', 'Item 10', 'Item 100']}]);
+            expect(allSectionsAfter.at(0)?.data.map((option) => option.keyForList)).toEqual([
+                '2nd Floor',
+                '10th Floor',
+                'angle',
+                'Ångström',
+                'Apple',
+                'apple',
+                'Echo',
+                'eclair',
+                'Éclair',
+                'Item 5',
+                'Item 10',
+                'Item 100',
+                'Office Supplies',
+                'Zeta',
+                'zeta',
+            ]);
+            expect(getTagListSections({tags, searchValue, localeCompare, translate: translateLocal})).toStrictEqual(sectionsBefore);
+        });
+
+        it('sorts with the comparator it is given', () => {
+            // When the same tags are listed with a comparator that orders names the other way round
+            const reverseLocaleCompare = (a: string, b: string) => localeCompare(b, a);
+            const sections = getTagListSections({tags, localeCompare: reverseLocaleCompare, translate: translateLocal});
+
+            // Then the list follows that comparator
+            expect(sections.at(0)?.data.map((option) => option.keyForList)).toEqual([...tagsInListOrder].reverse());
+        });
+
+        it('shows GL codes only while the GL code setting is on, for the same tags', () => {
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- PolicyTag GL Code field uses backend naming
+            const tagsWithGLCode: PolicyTags = {...tags, Apple: {name: 'Apple', enabled: true, 'GL Code': 'GL-100'}};
+            const getAppleGLCode = (shouldShowGLCode: boolean) =>
+                getTagListSections({tags: tagsWithGLCode, localeCompare, translate: translateLocal, shouldShowGLCode})
+                    .at(0)
+                    ?.data.find((option) => option.keyForList === 'Apple')?.alternateText;
+
+            // When the setting is switched on, off and on again
+            // Then the GL code shows each time it is on, and only then
+            expect(getAppleGLCode(true)).toBe('GL-100');
+            expect(getAppleGLCode(false)).toBeUndefined();
+            expect(getAppleGLCode(true)).toBe('GL-100');
+        });
     });
 
     describe('getUpdatedTransactionTag', () => {
