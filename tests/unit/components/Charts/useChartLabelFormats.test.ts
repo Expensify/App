@@ -5,7 +5,7 @@ import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/C
 import type * as ChartUtils from '@components/Charts/utils';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
-import type {SkTypeface, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypeface, SkTypefaceFontProvider} from 'react-native-skia';
 
 import createMock from '../../../utils/createMock';
 

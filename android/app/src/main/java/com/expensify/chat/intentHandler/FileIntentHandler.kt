@@ -23,7 +23,7 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
             val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
 
             if (resultingPath != null) {
-                val shareFileObject = ShareFileObject(resultingPath, intent.type)
+                val shareFileObject = ShareFileObject.Attachment(resultingPath, intent.type)
 
                 val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
                 val editor = sharedPreferences.edit()

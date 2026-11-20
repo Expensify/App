@@ -29,6 +29,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
+import useRelatedReportActions from '@hooks/useRelatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -178,6 +179,7 @@ function MoneyRequestReceiptView({
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
+    const relatedReportActions = useRelatedReportActions(reportsParentHierarchy, originalReportID, parentReportAction?.childReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
@@ -564,7 +566,14 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: relatedReportActions,
+            });
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -572,7 +581,14 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: relatedReportActions,
+            });
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {

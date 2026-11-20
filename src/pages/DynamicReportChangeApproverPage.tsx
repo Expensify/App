@@ -11,6 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
@@ -18,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +65,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -73,12 +75,18 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    // Members only have the reassignment action, so its destination must still be available.
+    const canMemberReassignApprover =
+        !isLoadingSecurityGroup && !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID && isProcessingReport(report) && isApprovalEnabled;
+    const hasAdminPermission = isPolicyAdmin(policy);
+
     const goBack = () => {
         Navigation.goBack(backPath);
     };
 
     const data: Array<ListItem<ApproverType>> = [];
-    if (!isDEWEnabled) {
+    if (hasAdminPermission && !isDEWEnabled) {
         data.push({
             text: translate('iou.changeApprover.actions.addApprover'),
             keyForList: APPROVER_TYPE.ADD_APPROVER,
@@ -86,7 +94,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             isSelected: false,
         });
     }
-    if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+    if (hasAdminPermission && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.bypassApprovers'),
             keyForList: APPROVER_TYPE.BYPASS_APPROVER,
@@ -94,7 +102,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             isSelected: false,
         });
     }
-    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy) && !isDEWEnabled) {
+    if ((hasAdminPermission || canMemberReassignApprover) && !isPendingDeletePolicy(policy) && !isDEWEnabled) {
         data.push({
             text: translate('iou.changeApprover.actions.reassignApprover'),
             keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
@@ -131,7 +139,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
-        !isPolicyAdmin(policy) ||
+        (!hasAdminPermission && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report) ||

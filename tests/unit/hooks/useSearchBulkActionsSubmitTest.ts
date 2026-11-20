@@ -30,6 +30,11 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Report', () => ({
     deleteAppReport: jest.fn(),
     moveIOUReportToPolicy: jest.fn(),

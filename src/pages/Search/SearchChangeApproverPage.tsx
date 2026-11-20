@@ -15,13 +15,21 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
+import {
+    canReassignAsApprover,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
+} from '@libs/ReportUtils';
 
 import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
@@ -84,10 +92,16 @@ function canReassignAllReports({
     selectedReports,
     onyxReports,
     allPolicies,
+    currentUserAccountID,
+    areStrictPolicyRulesEnabled,
+    isLoadingSecurityGroup,
 }: {
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     allPolicies: OnyxCollection<Policy>;
+    currentUserAccountID: number;
+    areStrictPolicyRulesEnabled: boolean;
+    isLoadingSecurityGroup: boolean;
 }): boolean {
     return (
         selectedReports.length > 0 &&
@@ -95,12 +109,18 @@ function canReassignAllReports({
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
             const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            const canReassignReportAsApprover = canReassignAsApprover({
+                report,
+                currentUserAccountID,
+                isLoadingSecurityGroup,
+                areStrictPolicyRulesEnabled,
+            });
 
             return (
                 !!policy &&
                 !!report &&
                 !hasDynamicExternalWorkflow(policy) &&
-                isPolicyAdmin(policy) &&
+                (isPolicyAdmin(policy) || canReassignReportAsApprover) &&
                 !isPendingDeletePolicy(policy) &&
                 isMoneyRequestReport(report) &&
                 !isMoneyRequestReportPendingDeletion(report) &&
@@ -120,6 +140,7 @@ function SearchChangeApproverPage() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -179,6 +200,10 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
+    const hasAdminPermission = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+    });
     const areSelectedPoliciesLoadedForSelection = areAllSelectedPoliciesLoaded(selectedReports, allPolicies);
     const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
@@ -189,7 +214,7 @@ function SearchChangeApproverPage() {
             return data;
         }
 
-        if (!hasSelectedDEWEnabledPolicy) {
+        if (hasAdminPermission && !hasSelectedDEWEnabledPolicy) {
             data.push({
                 text: translate('iou.changeApprover.actions.addApprover'),
                 keyForList: APPROVER_TYPE.ADD_APPROVER,
@@ -198,11 +223,14 @@ function SearchChangeApproverPage() {
             });
         }
 
-        const hasAdminPermission = selectedReports.every((selectedReport) => {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+        const canReassign = canReassignAllReports({
+            selectedReports,
+            onyxReports,
+            allPolicies,
+            currentUserAccountID: currentUserDetails.accountID,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
         });
-        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
 
         const isAllowedToBypassApprovers =
             hasAdminPermission &&
@@ -299,11 +327,8 @@ function SearchChangeApproverPage() {
     // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
-        if (selectedReports.length && !areSelectedPoliciesLoadedForSelection) {
-            return;
-        }
-
-        if (selectedReports.length && approverTypes.at(0)) {
+        // An empty menu can mean permissions are still loading, so wait before closing the flow.
+        if (selectedReports.length && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection || (!hasAdminPermission && isLoadingSecurityGroup) || approverTypes.at(0))) {
             return;
         }
 
@@ -316,7 +341,7 @@ function SearchChangeApproverPage() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [approverTypes, areSelectedPoliciesLoadedForSelection, selectedReports.length]);
+    }, [approverTypes, areSelectedPoliciesLoadedForSelection, selectedReports.length, isLoadingBulkChangeApproverPage, hasAdminPermission, isLoadingSecurityGroup]);
 
     const shouldAutoApply = shouldAutoApplyApprover({
         isLoadingBulkChangeApproverPage,
