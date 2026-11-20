@@ -25,7 +25,8 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, cardDes
     } as IOSCardData;
 
     if (!authentication) {
-        return addCardToAppleWallet(data, (nonce, nonceSignature, certificates) => issuerEncryptPayloadCallback(nonce, nonceSignature, certificates, card.cardID));
+        const result = await addCardToAppleWallet(data, (nonce, nonceSignature, certificates) => issuerEncryptPayloadCallback(nonce, nonceSignature, certificates, card.cardID));
+        return result.status;
     }
 
     if (signal?.aborted) {
@@ -35,7 +36,7 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, cardDes
     let didRequestProvisioning = false;
     let provisioningFailure: unknown;
     try {
-        const status = await addCardToAppleWallet(data, async (nonce, nonceSignature, certificates) => {
+        const {status} = await addCardToAppleWallet(data, async (nonce, nonceSignature, certificates) => {
             try {
                 // Apple's Try Again callback must not replay a consumed signed challenge.
                 // Wallet 0.1.22 has no public abort API. Rejection cannot dismiss its sheet.

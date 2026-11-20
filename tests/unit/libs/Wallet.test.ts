@@ -1,5 +1,6 @@
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import type * as WalletModule from '@libs/Wallet';
 import {handleAddCardToWallet as addAndroid} from '@libs/Wallet/index.android';
 import {handleAddCardToWallet as addIOS} from '@libs/Wallet/index.ios';
@@ -25,7 +26,9 @@ jest.mock('@expensify/react-native-wallet', () => ({
 }));
 
 type APIResponse = NonNullable<Awaited<ReturnType<typeof API.makeRequestWithSideEffects>>>;
-const card = createMock<Card>({cardID: 123, lastFourPAN: '1234'});
+// UK/EU cards keep the MFA provisioning flow without Google's Unified Push Provisioning
+const card = createMock<Card>({cardID: 123, lastFourPAN: '1234', bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}});
+const usCard = createMock<Card>({cardID: 123, lastFourPAN: '1234', bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.US}});
 const authentication: WalletAuthentication = {
     signedChallenge: {rawId: 'key', type: 'public-key', response: {authenticatorData: 'auth', clientDataJSON: 'client', signature: 'signature'}},
     authenticationMethod: 'BIOMETRIC_FACE',
@@ -58,8 +61,8 @@ describe('Wallet platform provisioning', () => {
         jest.mocked(getSecureWalletInfo).mockResolvedValue({deviceID: 'device', walletAccountID: 'wallet'});
         mockGoogle.mockResolvedValue('success');
         mockApple.mockImplementation(async (_data, issuer) => {
-            await issuer('nonce', 'nonce-signature', ['certificate']);
-            return 'success';
+            await issuer('nonce', 'nonce-signature', ['certificate'], 'phone');
+            return {status: 'success'};
         });
     });
 
@@ -67,7 +70,7 @@ describe('Wallet platform provisioning', () => {
         // Given a native sheet that has not yet supplied its nonce and certificates.
         mockRequest.mockResolvedValue(createMock<APIResponse>({jsonCode: 200, ...iosPayload}));
         let issuerCallback: Parameters<typeof addCardToAppleWallet>[1] | undefined;
-        let finish: ((status: 'success') => void) | undefined;
+        let finish: ((result: {status: 'success'}) => void) | undefined;
         mockApple.mockImplementation((_data, issuer) => {
             issuerCallback = issuer;
             return new Promise((resolve) => {
@@ -78,8 +81,8 @@ describe('Wallet platform provisioning', () => {
         expect(mockRequest).not.toHaveBeenCalled();
 
         // When Apple supplies the actual issuer inputs after presentation.
-        const payload = await issuerCallback?.('actual-nonce', 'actual-signature', ['actual-certificate']);
-        finish?.('success');
+        const payload = await issuerCallback?.('actual-nonce', 'actual-signature', ['actual-certificate'], 'phone');
+        finish?.({status: 'success'});
         await expect(pending).resolves.toBe('success');
 
         // Then serialization happens once at the API boundary, without UI metadata.
@@ -114,22 +117,25 @@ describe('Wallet platform provisioning', () => {
             signedChallenge: JSON.stringify(authentication.signedChallenge),
             authenticationMethod: authentication.authenticationMethod,
         });
-        expect(mockGoogle).toHaveBeenCalledWith({
-            network: 'VISA',
-            opaquePaymentCard: 'opaque',
-            cardHolderName: 'Jane',
-            lastDigits: '1234',
-            userAddress: {
-                name: 'Jane',
-                addressOne: 'Street',
-                addressTwo: '',
-                administrativeArea: 'London',
-                locality: 'London',
-                countryCode: 'GB',
-                postalCode: 'SW1A',
-                phoneNumber: '+441234',
+        expect(mockGoogle).toHaveBeenCalledWith(
+            {
+                network: 'VISA',
+                opaquePaymentCard: 'opaque',
+                cardHolderName: 'Jane',
+                lastDigits: '1234',
+                userAddress: {
+                    name: 'Jane',
+                    addressOne: 'Street',
+                    addressTwo: '',
+                    administrativeArea: 'London',
+                    locality: 'London',
+                    countryCode: 'GB',
+                    postalCode: 'SW1A',
+                    phoneNumber: '+441234',
+                },
             },
-        });
+            expect.any(Function),
+        );
     });
 
     it.each(['ios', 'android'] as const)('keeps %s legacy provisioning unsigned', async (platform) => {
@@ -153,14 +159,14 @@ describe('Wallet platform provisioning', () => {
         // When signed provisioning maps that address.
         await expect(addAndroid(card, 'Jane', 'Card', {authentication})).resolves.toBe('success');
         // Then optional address content is preserved without rejecting valid UK data.
-        expect(mockGoogle).toHaveBeenCalledWith(expect.objectContaining({userAddress: expect.objectContaining({administrativeArea: '', addressTwo: undefined})}));
+        expect(mockGoogle).toHaveBeenCalledWith(expect.objectContaining({userAddress: expect.objectContaining({administrativeArea: '', addressTwo: undefined})}), expect.any(Function));
     });
 
     it.each([400, 500])('preserves API %s when the iOS bridge subsequently rejects', async (jsonCode) => {
         // Given an issuer rejection followed by a separate native rejection.
         mockRequest.mockResolvedValue(createMock<APIResponse>({jsonCode, message: 'Rejected'}));
         mockApple.mockImplementation(async (_data, issuer) => {
-            await issuer('nonce', 'signature', []).catch(() => undefined);
+            await issuer('nonce', 'signature', [], 'phone').catch(() => undefined);
             throw new Error('native rejection');
         });
 
@@ -222,9 +228,9 @@ describe('Wallet platform provisioning', () => {
         // Given Apple's Try Again reenters the issuer callback after successful provisioning.
         mockRequest.mockResolvedValue(createMock<APIResponse>({jsonCode: 200, ...iosPayload}));
         mockApple.mockImplementation(async (_data, issuer) => {
-            await issuer('first', 'signature', []);
-            await issuer('second', 'signature', []);
-            return 'success';
+            await issuer('first', 'signature', [], 'phone');
+            await issuer('second', 'signature', [], 'phone');
+            return {status: 'success'};
         });
 
         // When the native wrapper attempts to reuse that authentication.
@@ -248,7 +254,7 @@ describe('Wallet platform provisioning', () => {
 
     it('does not accept an iOS success status without an issuer request', async () => {
         // Given native code unexpectedly reports success without issuer provisioning.
-        mockApple.mockResolvedValue('success');
+        mockApple.mockResolvedValue({status: 'success'});
         // When the secure helper receives that status.
         const pending = addIOS(card, 'Jane', 'Card', {authentication});
         // Then no successful MFA result can be synthesized without provisioning.
@@ -282,7 +288,7 @@ describe('Wallet platform provisioning', () => {
 
     it.each(['canceled', 'error'] as const)('preserves native iOS %s without inventing provisioning success', async (status) => {
         // Given native presentation ends before any issuer callback.
-        mockApple.mockResolvedValue(status);
+        mockApple.mockResolvedValue({status});
 
         // When the signed helper runs.
         const result = await addIOS(card, 'Jane', 'Card', {authentication});
@@ -317,5 +323,162 @@ describe('Wallet platform provisioning', () => {
         expect(mockRequest).not.toHaveBeenCalled();
         expect(mockApple).not.toHaveBeenCalled();
         expect(mockGoogle).not.toHaveBeenCalled();
+    });
+});
+
+describe('Android Unified Push Provisioning', () => {
+    const credentialsRequest = {
+        requestId: 'request',
+        serverSessionId: '11111111-2222-3333-4444-555555555555',
+        walletId: 'google-wallet',
+        tokenRequestorId: '1234567890',
+        opaquePaymentCard: 'opaque',
+    };
+    const credentials = {opaquePaymentCard: 'opaque-from-second-call', googleOpaquePaymentCard: 'google-opaque'};
+
+    /** Runs the first CreateDigitalWallet call and returns the handler that Google's credentials request is routed to, while tokenization is still pending. */
+    function startProvisioning(provisionedCard: Card, options?: Parameters<typeof addAndroid>[3]) {
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...androidPayload}));
+        const handlerPromise = new Promise<NonNullable<Parameters<typeof addCardToGoogleWallet>[1]>>((resolve) => {
+            mockGoogle.mockImplementationOnce((_cardData, handler) => {
+                resolve(handler);
+                return new Promise(() => {});
+            });
+        });
+        addAndroid(provisionedCard, 'Jane', 'Card', options);
+        return handlerPromise;
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.mocked(getSecureWalletInfo).mockResolvedValue({deviceID: 'device', walletAccountID: 'wallet'});
+        mockGoogle.mockResolvedValue('success');
+    });
+
+    it('sends the first CreateDigitalWallet call without a server session for a US card', async () => {
+        // Given a US card and a first response that carries only the TSP OPC.
+        // When provisioning starts.
+        await startProvisioning(usCard);
+
+        // Then the first call has no UPP fields and Google receives the TSP card data with a credentials handler.
+        expect(mockRequest).toHaveBeenCalledTimes(1);
+        const params = mockRequest.mock.calls.at(0)?.[1];
+        expect(params).toEqual({platform: 'android', appVersion: pkg.version, cardID: 123, deviceID: 'device', walletAccountID: 'wallet'});
+        expect(params).not.toHaveProperty('serverSessionID');
+        expect(mockGoogle).toHaveBeenCalledWith(expect.objectContaining({opaquePaymentCard: 'opaque'}), expect.any(Function));
+    });
+
+    it('answers Google with both OPCs from a second CreateDigitalWallet call tied to the server session', async () => {
+        // Given Google asked for the Google OPC after the first call.
+        const handler = await startProvisioning(usCard);
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...credentials}));
+
+        // When the credentials handler runs with Google's callback data.
+        const result = await handler(credentialsRequest);
+
+        // Then the same card and device go with Google's wallet ID, session and requestor, and both OPCs go back to Google.
+        expect(mockRequest).toHaveBeenCalledTimes(2);
+        expect(mockRequest).toHaveBeenLastCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+            platform: 'android',
+            appVersion: pkg.version,
+            cardID: 123,
+            deviceID: 'device',
+            walletAccountID: credentialsRequest.walletId,
+            serverSessionID: credentialsRequest.serverSessionId,
+            tokenRequestorID: '1234567890',
+        });
+        expect(result).toEqual(credentials);
+    });
+
+    it.each([
+        [null, false],
+        ['', false],
+        ['abc', true],
+        ['1234567890123456', true],
+    ])('leaves a token requestor ID of %p out of the second call', async (tokenRequestorId, shouldLogDrop) => {
+        // Given a token requestor ID the backend would reject, or none at all.
+        const logSpy = jest.spyOn(Log, 'info');
+        const handler = await startProvisioning(usCard);
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>({jsonCode: 200, ...credentials}));
+
+        // When the credentials handler runs.
+        await handler({...credentialsRequest, tokenRequestorId});
+
+        // Then the second call carries the server session only, and a dropped ID is logged so the backend can track it.
+        expect(mockRequest.mock.calls.at(1)?.[1]).not.toHaveProperty('tokenRequestorID');
+        expect(mockRequest.mock.calls.at(1)?.[1]).toHaveProperty('serverSessionID', credentialsRequest.serverSessionId);
+        expect(logSpy.mock.calls.some(([message]) => message === '[GoogleUPP] Dropped an unsupported tokenRequestorID')).toBe(shouldLogDrop);
+        logSpy.mockRestore();
+    });
+
+    it.each([
+        ['has no Google OPC', {jsonCode: 200, opaquePaymentCard: 'opaque'}],
+        ['has no TSP OPC', {jsonCode: 200, googleOpaquePaymentCard: 'google-opaque'}],
+        ['is a backend failure', {jsonCode: 500, ...credentials}],
+    ])('rejects the credentials request when the second response %s', async (_name, response) => {
+        // Given a second response that cannot complete Unified Push Provisioning.
+        const handler = await startProvisioning(usCard);
+        mockRequest.mockResolvedValueOnce(createMock<APIResponse>(response));
+
+        // When the credentials handler runs.
+        const pending = handler(credentialsRequest);
+
+        // Then it rejects instead of sending the TSP OPC alone.
+        await expect(pending).rejects.toThrow('createGoogleOpaquePaymentCard failed');
+    });
+
+    it('rejects the credentials request when the second request does not reach the backend', async () => {
+        // Given a transport failure on the second call.
+        const handler = await startProvisioning(usCard);
+        mockRequest.mockRejectedValueOnce(new Error('transport failed'));
+
+        // When the credentials handler runs.
+        const pending = handler(credentialsRequest);
+
+        // Then Google gets a rejection rather than an empty answer.
+        await expect(pending).rejects.toThrow('transport failed');
+    });
+
+    it('does not call the backend for Google credentials after the attempt is aborted', async () => {
+        // Given an attempt that was canceled before Google asked for the Google OPC.
+        const controller = new AbortController();
+        const handler = await startProvisioning(usCard, {signal: controller.signal});
+        controller.abort();
+
+        // When the credentials handler runs.
+        const pending = handler(credentialsRequest);
+
+        // Then it rejects without a second request.
+        await expect(pending).rejects.toThrow('canceled');
+        expect(mockRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not return the OPCs when the attempt is aborted while the second request is pending', async () => {
+        // Given an attempt that is canceled while the second call is in flight
+        const controller = new AbortController();
+        const handler = await startProvisioning(usCard, {signal: controller.signal});
+        mockRequest.mockImplementationOnce(async () => {
+            controller.abort();
+            return createMock<APIResponse>({jsonCode: 200, ...credentials});
+        });
+
+        // When the credentials handler runs
+        const pending = handler(credentialsRequest);
+
+        // Then the late response is not handed to Google
+        await expect(pending).rejects.toThrow('canceled');
+    });
+
+    it('rejects Google credentials requests for a UK/EU card without a second call', async () => {
+        // Given a UK/EU card that stays on the existing flow.
+        const handler = await startProvisioning(card, {authentication});
+
+        // When Google asks for a Google OPC.
+        const pending = handler(credentialsRequest);
+
+        // Then the request is rejected and no UPP call reaches the backend.
+        await expect(pending).rejects.toThrow('not supported');
+        expect(mockRequest).toHaveBeenCalledTimes(1);
+        expect(mockRequest.mock.calls.at(0)?.[1]).toHaveProperty('signedChallenge');
     });
 });

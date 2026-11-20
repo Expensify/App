@@ -1,17 +1,59 @@
-import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
+import {createDigitalGoogleWallet, createGoogleOpaquePaymentCard} from '@libs/actions/Wallet';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import type {CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {AndroidPaymentCredentialsResponse, AndroidWalletData, CardStatus, onPaymentCredentialsRequestPayload, TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo, listTokens, resumeAddCardToGoogleWallet} from '@expensify/react-native-wallet';
 
 import type {AddCardToWalletOptions} from './types';
 
 import isCardStatusInWallet from './isCardStatusInWallet';
+
+// The backend accepts a token requestor ID of up to 15 digits
+const TOKEN_REQUESTOR_ID_REGEX = /^\d{1,15}$/;
+
+/** UK/EU cards have no Google OPC on the backend yet, so a Google request for one fails the provisioning */
+function rejectPaymentCredentials(): Promise<AndroidPaymentCredentialsResponse> {
+    return Promise.reject(new Error('Google OPC is not supported for this card'));
+}
+
+/** Answers Google's request for the Google OPC with a second CreateDigitalWallet call tied to Google's server session */
+function createPaymentCredentialsHandler(card: Card, walletData: AndroidWalletData, signal?: AbortSignal) {
+    return async ({serverSessionId, walletId, tokenRequestorId}: onPaymentCredentialsRequestPayload): Promise<AndroidPaymentCredentialsResponse> => {
+        try {
+            if (signal?.aborted) {
+                throw new Error('Wallet attempt canceled');
+            }
+            const isTokenRequestorIDSupported = !!tokenRequestorId && TOKEN_REQUESTOR_ID_REGEX.test(tokenRequestorId);
+
+            // The backend tracks token requestor IDs it can't accept through this log, the ID itself is left out
+            if (tokenRequestorId && !isTokenRequestorIDSupported) {
+                Log.info('[GoogleUPP] Dropped an unsupported tokenRequestorID', false, {length: tokenRequestorId.length});
+            }
+            const credentials = await createGoogleOpaquePaymentCard({
+                cardID: card.cardID,
+                serverSessionID: serverSessionId,
+                ...(isTokenRequestorIDSupported ? {tokenRequestorID: tokenRequestorId} : {}),
+                ...walletData,
+
+                // Google's wallet ID identifies the device the card is added to, on phones it matches the first call
+                walletAccountID: walletId,
+            });
+            if (signal?.aborted) {
+                throw new Error('Wallet attempt canceled');
+            }
+            return credentials;
+        } catch (error) {
+            Log.warn(`createPaymentCredentialsHandler error: ${getErrorMessage(error)}`);
+            throw error;
+        }
+    };
+}
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
@@ -66,7 +108,7 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, _cardDe
     if (signal?.aborted) {
         return 'canceled';
     }
-    return addCardToGoogleWallet(cardData);
+    return addCardToGoogleWallet(cardData, isUkEuExpensifyCard(card) ? rejectPaymentCredentials : createPaymentCredentialsHandler(card, walletData, signal));
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {

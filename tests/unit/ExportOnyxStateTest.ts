@@ -893,6 +893,28 @@ describe('Onyx key export coverage', () => {
         }
     });
 
+    it('masks the Google OPC and server session of a queued CreateDigitalWallet request and its response', () => {
+        // Given a persisted wallet request and an ongoing one that carries the provisioning response data
+        const input = {
+            [ONYXKEYS.PERSISTED_REQUESTS]: [
+                {command: 'CreateDigitalWallet', data: {cardID: 1, serverSessionID: 'session-id'}, successData: [{value: {googleOpaquePaymentCard: 'google-opaque'}}]},
+            ],
+            [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: {
+                command: 'CreateDigitalWallet',
+                data: {serverSessionID: 'session-id'},
+                response: {googleOpaquePaymentCard: 'google-opaque', opaquePaymentCard: 'opaque'},
+            },
+        };
+
+        // When the state is exported with masking enabled
+        const result = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of the secrets reach the export
+        expect(result).not.toContain('google-opaque');
+        expect(result).not.toContain('session-id');
+        expect(result).not.toContain('"opaque"');
+    });
+
     it('no key should appear in multiple buckets', () => {
         const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
         const removeKeys = new Set<string>([...Array.from(onyxKeysToRemove).filter((key): key is Extract<typeof key, string> => typeof key === 'string'), ...collectionKeysToRemove]);
