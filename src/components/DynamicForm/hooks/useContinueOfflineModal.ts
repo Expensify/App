@@ -86,4 +86,3 @@ function useContinueOfflineModal() {
 }
 
 export default useContinueOfflineModal;
-export type {ContinueOfflineModalOptions};

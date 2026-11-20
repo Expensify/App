@@ -314,7 +314,7 @@ function FormProvider({
     const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
     const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
-    // A named function, so the offline branch can hand itself over as the undebounced retry
+    // A named function, so the offline branch can hand itself over as the retry that skips the debounce
     // eslint-disable-next-line prefer-arrow-callback
     const submitNow = useCallback(
         function submitWithoutDebounce() {
@@ -326,7 +326,7 @@ function FormProvider({
             onBeforeSubmit?.();
 
             // Checked before validation, so an unfinished page offline explains the connection instead of marking its fields. The render's isOffline can
-            // lag behind a connection that just came back, so the current state is read. The handler gets the undebounced submit, so a retry right
+            // lag behind a connection that just came back, so the current state is read. The handler gets the submit without the debounce, so a retry right
             // after the press is not dropped by the debounce below.
             if (onSubmitWhenOffline && getIsOffline()) {
                 onSubmitWhenOffline(submitWithoutDebounce);
