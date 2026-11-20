@@ -206,6 +206,7 @@ import {
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
@@ -4658,6 +4659,14 @@ function getSortedTransactionData(
         return data.sort((a, b) => {
             const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
             const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT) {
+        return data.sort((a, b) => {
+            const aValue = getTransactionPolicyConvertedDisplayAmount(a, a.report, a.policy);
+            const bValue = getTransactionPolicyConvertedDisplayAmount(b, b.report, b.policy);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
     }

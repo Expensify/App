@@ -9358,6 +9358,62 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should sort expense data by the converted amount shown in the column', () => {
+            // Given expenses whose workspace amounts rank in the opposite order to their own amounts, and an expense created
+            // offline that has no workspace amount yet, so its column shows its own amount
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const smallConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'small-converted',
+                keyForList: 'small-converted',
+                amount: -900,
+                modifiedAmount: -900,
+                policyConvertedAmount: -100,
+            };
+            const largeConverted: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'large-converted',
+                keyForList: 'large-converted',
+                amount: -100,
+                modifiedAmount: -100,
+                policyConvertedAmount: -900,
+            };
+            const createdOffline: TransactionListItemType = {
+                ...baseTransaction,
+                transactionID: 'created-offline',
+                keyForList: 'created-offline',
+                amount: -500,
+                modifiedAmount: -500,
+                policyConvertedAmount: undefined,
+            };
+            const unorderedTransactions = [largeConverted, createdOffline, smallConverted];
+
+            // When the expenses are sorted by converted amount in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they are ordered by the workspace amount, falling back to the expense's own amount when it has none
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['small-converted', 'created-offline', 'large-converted']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['large-converted', 'created-offline', 'small-converted']);
+        });
+
         it('should keep the row order unchanged when sorting a column that is empty for every row (asc and desc are no-ops)', () => {
             // Regression test for https://github.com/Expensify/App/issues/94893: sorting an all-empty column must be a no-op —
             // the order stays the same and is identical for both directions. `created` is intentionally unsorted so that the
