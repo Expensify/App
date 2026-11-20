@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -29,9 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -51,11 +49,10 @@ type WorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route
     (
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT>
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT>
-    ) & {
-        personalDetails: OnyxEntry<PersonalDetailsList>;
-    };
+    );
 
-function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPageProps) {
+function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
+    const [personalDetails] = useAllPersonalDetails();
     const isInviteFlow = route.name === SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT;
     const inviteBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, isInviteFlow);
     const policyID = route.params.policyID;

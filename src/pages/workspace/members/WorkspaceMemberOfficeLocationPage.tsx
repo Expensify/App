@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
@@ -26,19 +27,15 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMemberOfficeLocationPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION> & {
-        personalDetails: OnyxEntry<PersonalDetailsList>;
-    };
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION>;
 
-function WorkspaceMemberOfficeLocationPage({policy, personalDetails, route}: WorkspaceMemberOfficeLocationPageProps) {
+function WorkspaceMemberOfficeLocationPage({policy, route}: WorkspaceMemberOfficeLocationPageProps) {
+    const [personalDetails] = useAllPersonalDetails();
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const styles = useThemeStyles();

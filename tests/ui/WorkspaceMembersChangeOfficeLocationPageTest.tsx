@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
@@ -36,6 +37,7 @@ jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: jest.fn()}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), isNavigationReady: jest.fn(() => Promise.resolve())}));
@@ -67,7 +69,6 @@ type MockButtonProps = {
 
 type WorkspaceMembersChangeOfficeLocationPageTestProps = React.ComponentProps<typeof WorkspaceMembersChangeOfficeLocationPage> & {
     policy: Policy;
-    personalDetails: PersonalDetailsList;
 };
 
 describe('WorkspaceMembersChangeOfficeLocationPage', () => {
@@ -86,6 +87,7 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(useAllPersonalDetails).mockReturnValue([createMock<PersonalDetailsList>(personalDetails), {status: 'loaded'}]);
         jest.mocked(useOnyx).mockReturnValue([{policyID, accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
     });
 
@@ -100,7 +102,6 @@ describe('WorkspaceMembersChangeOfficeLocationPage', () => {
         };
         const props = createMock<WorkspaceMembersChangeOfficeLocationPageTestProps>({
             policy: createMock<Policy>(policy),
-            personalDetails,
             route: {params: {policyID}},
         });
         // The HOC mock exposes the wrapped screen directly, which accepts the policy prop that the production HOC normally injects.

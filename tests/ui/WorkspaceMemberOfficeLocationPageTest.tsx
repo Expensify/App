@@ -3,6 +3,8 @@ import {act, render} from '@testing-library/react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+
 import {updateEmployeeOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMemberWrite} from '@libs/PolicyUtils';
@@ -32,6 +34,7 @@ jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.
 jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)})));
+jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: jest.fn()}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
@@ -61,7 +64,7 @@ type MockButtonProps = {
     isDisabled?: boolean;
 };
 
-type WorkspaceMemberOfficeLocationPageTestProps = React.ComponentProps<typeof WorkspaceMemberOfficeLocationPage> & {policy: Policy; personalDetails: PersonalDetailsList};
+type WorkspaceMemberOfficeLocationPageTestProps = React.ComponentProps<typeof WorkspaceMemberOfficeLocationPage> & {policy: Policy};
 
 describe('WorkspaceMemberOfficeLocationPage', () => {
     const policyID = 'policy123';
@@ -78,6 +81,7 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(useAllPersonalDetails).mockReturnValue([createMock<PersonalDetailsList>(personalDetails), {status: 'loaded'}]);
         jest.mocked(canMemberWrite).mockReturnValue(true);
     });
 
@@ -90,7 +94,6 @@ describe('WorkspaceMemberOfficeLocationPage', () => {
         };
         const props = createMock<WorkspaceMemberOfficeLocationPageTestProps>({
             policy: createMock<Policy>(policy),
-            personalDetails,
             route: {params: {policyID, accountID: String(accountID)}},
         });
         // The HOC mock exposes the wrapped screen directly, which accepts the policy prop that the production HOC normally injects.
