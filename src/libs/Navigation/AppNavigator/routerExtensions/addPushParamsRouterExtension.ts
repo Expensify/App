@@ -16,7 +16,7 @@ import {enhanceStateWithHistory} from './utils';
 
 function preserveHistoryForRoutes(oldHistory: unknown[], routes: Array<{key?: string}>): unknown[] {
     const remainingKeys = new Set(routes.map((r) => r.key));
-    // Keep history sentinels and anything that is not a route snapshot; drop only route snapshots whose route is gone.
+    // Keep string history markers and anything else that is not a route snapshot; drop only route snapshots whose route is gone.
     return oldHistory.filter((entry) => !isRecord(entry) || typeof entry.key !== 'string' || remainingKeys.has(entry.key));
 }
 
