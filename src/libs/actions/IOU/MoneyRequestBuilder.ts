@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -221,6 +222,7 @@ type RequestMoneyInformation = {
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -272,6 +274,7 @@ type MoneyRequestInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
     /** Report actions of `parentChatReport` */
     parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
     /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
@@ -334,6 +337,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -504,6 +508,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1203,6 +1208,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
         onyxData.optimisticData?.push(violationsOnyxData);
         onyxData.optimisticData?.push({
@@ -1343,6 +1349,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        personalDetailsByLogins,
         parentChatReportActions,
         participantChatReportActions,
     } = moneyRequestInformation;
@@ -1773,6 +1780,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     });
 
     // STEP 5: Build Onyx Data
@@ -1784,6 +1792,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isOneOnOneSplit: isSplitExpense,
         isReverseSplitOperation,
         rules,
+        personalDetailsByLogins,
         policyParams: {
             policy,
             policyCategories,

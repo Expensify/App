@@ -1,4 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
@@ -97,6 +98,9 @@ const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 
 OnyxUpdateManager();
 /** Reads the expenses currently in Onyx for a report, i.e. what a component would pass as the report's transactions. */
@@ -117,9 +121,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
             },
         });
         initOnyxDerivedValues();
@@ -151,6 +152,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let payIOUAction: OnyxEntry<ReportAction>;
             let transaction: OnyxEntry<Transaction>;
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -433,6 +435,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -617,6 +620,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -2188,6 +2192,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     if (chatReport) {
                         // When an IOU expense is submitted to that policy expense chat
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -2333,6 +2338,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -2709,6 +2715,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport) {
                 // When an IOU expense is submitted to that policy expense chat
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,

@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -172,6 +173,9 @@ const JULES_ACCOUNT_ID = 2;
 const JULES_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
@@ -266,9 +270,6 @@ beforeEach(async () => {
         keys: ONYXKEYS,
         initialKeyStates: {
             [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-            },
         },
     });
 });
@@ -2778,6 +2779,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -3017,6 +3019,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3202,6 +3205,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3368,6 +3372,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3533,6 +3538,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5154,6 +5160,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5770,6 +5777,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5957,6 +5965,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6149,6 +6158,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6351,6 +6361,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6649,6 +6660,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6793,6 +6805,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6939,6 +6952,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -7095,6 +7109,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,

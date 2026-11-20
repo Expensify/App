@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -72,6 +74,9 @@ const TEST_INTRO_SELECTED: IntroSelected = {
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const CARLOS_ACCOUNT_ID = 1;
 
 OnyxUpdateManager();
@@ -149,6 +154,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When a submit IOU expense is made
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -411,6 +417,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -508,6 +515,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a second expense on the IOU report, so the report is not deleted and the error
             // clearing runs synchronously instead of inside the navigation transition callback
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -1193,6 +1201,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1283,6 +1292,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -1464,6 +1474,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
