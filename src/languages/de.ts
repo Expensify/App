@@ -12329,6 +12329,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             nonDefaultReimbursable: 'Nicht standardmäßige erstattungsfähige Einstellung',
             nonDefaultTag: 'Nicht-Standard-Tag',
             nonDefaultTax: 'Nicht-Standardsteuer',
+            nonDefaultVendor: 'Nicht-Standardlieferant',
         },
         ruleViolation: {
             fallback: 'Verstößt gegen Spesenrichtlinie',
@@ -12372,6 +12373,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         nonDefaultReimbursable: 'Erstattungsfähig weicht von der Standardarbeitsbereichseinstellung ab',
         nonDefaultTag: 'Tag weicht von der Arbeitsbereichs-Standardeinstellung ab',
         nonDefaultTax: 'Steuer unterscheidet sich von der Arbeitsbereichs-Standardeinstellung',
+        nonDefaultVendor: 'Anbieter unterscheidet sich von der Arbeitsbereichs-Vorgabe',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
