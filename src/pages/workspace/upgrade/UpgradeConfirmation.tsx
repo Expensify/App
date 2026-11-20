@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -54,9 +55,11 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, co
     } else if (isDistanceRateUpgrade) {
         description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
     } else {
+        // The workspace name is set by an admin and is interpolated into HTML, so markup in it must not be parsed as HTML.
+        const encodedPolicyName = Str.htmlEncode(policyName);
         description = (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
-                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
+                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', encodedPolicyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
     }
