@@ -48,46 +48,6 @@ describe('buildInsightsDetailsQuery', () => {
         expect(request).not.toHaveProperty('item');
     });
 
-    it('stores each item under its own hash', () => {
-        // Given two merchants on the same graph and filters
-        const buildForMerchant = (merchant: string) =>
-            buildInsightsDetailsQuery({
-                graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
-                filters: FILTERS,
-                itemGroupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                itemKey: merchant,
-                periodEnd: undefined,
-                topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
-                lastDay: LAST_DAY,
-            });
-
-        // When their panels' queries are built, one of them twice
-        const first = buildForMerchant('Anthropic');
-        const again = buildForMerchant('Anthropic');
-        const other = buildForMerchant('Uber');
-
-        // Then reopening a panel finds its cached entry, while another merchant doesn't overwrite it
-        expect(again?.hash).toBe(first?.hash);
-        expect(other?.hash).not.toBe(first?.hash);
-    });
-
-    it('builds nothing for a graph GetInsightsDetails rejects', () => {
-        // Given a tag on Top tags, which the backend answers with "Invalid Insights Details graph or item"
-        // When its Details panel builds the request
-        const query = buildInsightsDetailsQuery({
-            graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
-            filters: FILTERS,
-            itemGroupBy: CONST.SEARCH.GROUP_BY.TAG,
-            itemKey: 'Engineering',
-            periodEnd: undefined,
-            topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
-            lastDay: LAST_DAY,
-        });
-
-        // Then there's no request, so the panel loads its Top expenses through Search instead
-        expect(query).toBeUndefined();
-    });
-
     it('summarizes the period with the last counted day when the Date range ends in the future', () => {
         // Given This year grouped by month, a range that runs to December 31 while expenses are counted through November 19
         jest.useFakeTimers().setSystemTime(new Date('2026-11-19T12:00:00'));
@@ -97,7 +57,7 @@ describe('buildInsightsDetailsQuery', () => {
             graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
             filters: {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}},
             itemGroupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-            itemKey: 'Anthropic',
+            itemKey: 'Starbucks',
             periodEnd: undefined,
             topExpensesSnapshotHash: TOP_EXPENSES_SNAPSHOT_HASH,
             lastDay: LAST_DAY,

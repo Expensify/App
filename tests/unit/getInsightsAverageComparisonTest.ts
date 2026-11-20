@@ -1,7 +1,7 @@
 import getInsightsAverageComparison, {INSIGHTS_AVERAGE_COMPARISON} from '@pages/Insights/details/getInsightsAverageComparison';
 
 describe('getInsightsAverageComparison', () => {
-    it('asks for more history when fewer than three complete periods are behind the average', () => {
+    it('returns not enough history when fewer than three complete periods are behind the average', () => {
         // Given an average built from only two complete periods
         // When it is compared to the period
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: 4000, averagePeriodCount: 2});
@@ -10,7 +10,7 @@ describe('getInsightsAverageComparison', () => {
         expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY});
     });
 
-    it('asks for more history when the backend has no history to average', () => {
+    it('returns not enough history when the backend has no history to average', () => {
         // Given a summary without an average
         // When it is compared to the period
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: null, averagePeriodCount: 0});
@@ -19,7 +19,7 @@ describe('getInsightsAverageComparison', () => {
         expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY});
     });
 
-    it('calls the item new when it had no spend in the history', () => {
+    it('returns new when the item had no spend in the history', () => {
         // Given enough history in which the item never had spend
         // When it is compared to the period
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: 0, averagePeriodCount: 12});

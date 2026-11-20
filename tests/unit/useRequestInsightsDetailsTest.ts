@@ -129,7 +129,7 @@ describe('useRequestInsightsDetails', () => {
         await Onyx.set(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE, {expenses: 1, cardExpenses: 0});
         await waitForBatchedUpdatesWithAct();
 
-        // Then it waits, since nobody sees the panel
+        // Then it doesn't request yet, since the panel isn't visible
         expect(getInsightsDetails).toHaveBeenCalledTimes(1);
 
         // When the user goes back
@@ -147,13 +147,13 @@ describe('useRequestInsightsDetails', () => {
         renderRequest(undefined, TOP_EXPENSES_QUERY_JSON);
         await waitForBatchedUpdatesWithAct();
 
-        // Then it searches for the Top expenses alone, so the section still fills
+        // Then it loads the Top expenses through Search, so the section still shows them
         expect(getInsightsDetails).not.toHaveBeenCalled();
         expect(search).toHaveBeenCalledTimes(1);
         expect(jest.mocked(search).mock.calls.at(0)?.[0].queryJSON.hash).toBe(TOP_EXPENSES_QUERY_JSON?.hash);
     });
 
-    it('leaves Search alone when the Details request loads Top expenses', async () => {
+    it('does not call Search when GetInsightsDetails loads the Top expenses', async () => {
         // Given a supported graph
         // When the panel mounts
         renderRequest(QUERY, TOP_EXPENSES_QUERY_JSON);
@@ -171,7 +171,7 @@ describe('useRequestInsightsDetails', () => {
         // When the user retries
         result.current();
 
-        // Then nothing is sent, since there is nothing to ask for
+        // Then nothing is sent, since there's no query to send
         expect(getInsightsDetails).not.toHaveBeenCalled();
         expect(search).not.toHaveBeenCalled();
     });
