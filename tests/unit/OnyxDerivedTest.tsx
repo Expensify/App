@@ -372,14 +372,12 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
-                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -489,7 +487,7 @@ describe('OnyxDerived', () => {
         });
 
         it('should only recompute reports that reference the changed accountID when a display name changes', () => {
-            // Two reports: one owned by account 2, the other owned by account 3.
+            // Given two reports owned by different accounts, and a baseline cleared as Onyx.clear does so the first personal details compute has nothing to compare against
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
                 [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
@@ -508,30 +506,8 @@ describe('OnyxDerived', () => {
                 triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
             } as unknown as Parameters<typeof reportAttributes.compute>[1];
 
-            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
-            reportAttributes.compute(
-                [
-                    reports,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    personalDetails,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                ],
-                {},
-            );
+            // Clear the module-level diff baseline, as Onyx.clear does, so the first personal-details compute below has none.
+            reportAttributes.onReset?.();
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
                 [
@@ -552,11 +528,10 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 personalDetailsSource,
             );
-            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            // When only account 2's display name changes
             const afterChange = reportAttributes.compute(
                 [
                     reports,
@@ -576,12 +551,11 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
-                    undefined,
                 ],
                 {...personalDetailsSource, currentValue: initial},
             );
 
-            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            // Then only account 2's report gets a new object, because the other report's name can't have changed and is carried over by reference
             expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
             expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
@@ -946,6 +920,28 @@ describe('OnyxDerived', () => {
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('201');
             expect(derived?.sortedActions?.[expenseReportID]?.at(0)?.reportActionID).toBe('201');
+        });
+
+        it('does not recompute any derived value when only the network time skew changes', async () => {
+            // Given computed sorted report actions for a report
+            const reportID = '10';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+            const derivedBefore = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            const startSpanSpy = jest.spyOn(ActiveSpans, 'startSpan');
+
+            // When a response updates the clock skew, as every OpenReport, OpenApp and ReconnectApp response does
+            await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 1234});
+            await waitForBatchedUpdates();
+
+            // Then no derived value starts a compute, so the sorted actions of every report are not rebuilt
+            const derivedComputeSpans = startSpanSpy.mock.calls.filter(([spanID]) => spanID.startsWith(CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE));
+            expect(derivedComputeSpans).toHaveLength(0);
+            expect(await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS)).toBe(derivedBefore);
+            startSpanSpy.mockRestore();
         });
     });
 

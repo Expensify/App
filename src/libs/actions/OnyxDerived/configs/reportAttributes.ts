@@ -290,7 +290,6 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.COLLECTION.RULE,
         ONYXKEYS.CARD_LIST,
-        ONYXKEYS.NETWORK,
     ],
     compute: (
         [
@@ -314,8 +313,8 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly. NETWORK is a dependency, but a NETWORK-only change finds no report updates and hits the
-        // "No updates to process" early return below, so existing attributes (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
+        // Offline state lives in memory and going offline doesn't recompute this value, so existing attributes
+        // (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
@@ -356,20 +355,24 @@ export default createOnyxDerivedValueConfig({
         };
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
-        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
+        // A flush without sourceValues is the startup flush, or a retry of it after a compute threw. Only the retry has
+        // saved names, so only the retry compares personal details against them.
+        const hasDisplayNamesBaseline = Object.keys(previousDisplayNames).length > 0;
+        if ((sourceValues || hasDisplayNamesBaseline) && hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
             displayNameChanges = getDisplayNameChanges(personalDetails);
 
             // Only short-circuit when personal details were the sole trigger; coalescing can batch them
-            // with report/transaction changes, and returning early would drop those.
+            // with report/transaction changes, and returning early would drop those. Without a current value the
+            // reports still need their first compute.
             const personalDetailsIsOnlyTrigger = triggeredKeys?.size === 1;
-            if (!displayNameChanges && personalDetailsIsOnlyTrigger) {
-                return currentValue ?? {reports: {}, locale: null};
+            if (!displayNameChanges && personalDetailsIsOnlyTrigger && currentValue) {
+                return currentValue;
             }
-        } else if (!sourceValues) {
-            previousDisplayNames = {};
-            previousPersonalDetails = undefined;
         } else {
             // Save the current names now, so the first real name change can be narrowed to the reports it affects.
+            // The startup flush (no sourceValues) seeds too: the restored report names were computed from the
+            // persisted personal details, and a from-scratch compute uses these same personal details. Without
+            // personal details nothing is saved, so their first arrival recomputes every report.
             seedDisplayNamesBaseline(personalDetails);
         }
 
@@ -507,7 +510,7 @@ export default createOnyxDerivedValueConfig({
         const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((useIncrementalUpdates && !sourceValues && cardChangedReportKeys.length === 0) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues && cardChangedReportKeys.length === 0 && !(displayNameChanges instanceof Set)) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 

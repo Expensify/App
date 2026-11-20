@@ -78,20 +78,20 @@ function getReportIDsToRecompute(
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.NETWORK],
-    compute: ([allReportActions, allReports], {sourceValues, currentValue, triggeredKeys}): SortedReportActionsDerivedValue => {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT],
+    compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
             return EMPTY_VALUE;
         }
 
-        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        // Offline state lives in memory and going offline doesn't recompute this value, so a report keeps the
+        // one transaction thread it got on its last recompute until its actions or the report change again.
         const isOffline = getIsOffline();
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
 
-        // Going offline changes which deleted expenses count toward the one transaction thread, so it needs a full recompute.
-        if ((reportActionsUpdates ?? reportUpdates) && currentValue && !triggeredKeys?.has(ONYXKEYS.NETWORK)) {
+        if ((reportActionsUpdates ?? reportUpdates) && currentValue) {
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
@@ -123,7 +123,7 @@ export default createOnyxDerivedValueConfig({
             return {sortedActions, lastActions, transactionThreadIDs};
         }
 
-        // Full recompute on first load or when the network changes
+        // Full recompute when there is no previous value (first load, after Onyx.clear) or no changed members to apply
         const sortedActions: SortedReportActionsDerivedValue['sortedActions'] = {};
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};
