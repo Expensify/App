@@ -117,6 +117,12 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportA
     return Object.values(actions ?? {}).filter(isMoneyRequestAction);
 };
 
+// Isolate this calculation so the compiler can cache it before the picker subscribes to the selected report.
+function useIsASAPSubmitBetaEnabled(): boolean {
+    const {isBetaEnabled} = usePermissions();
+    return isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+}
+
 /**
  * Everything the report list needs to know about the expense it picks a report for, and what a pick does to the
  * expense. Both the full-page selector and the anchored dropdown go through here, so a pick in either lands in the
@@ -140,8 +146,7 @@ function useReportPickerActions({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, rules, reportNameValuePair)) || isUnreported;
     const [chatIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(participantReport?.iouReportID)}`);
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isASAPSubmitBetaEnabled = useIsASAPSubmitBetaEnabled();
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(participantReport?.policyID)});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     // Start from the same report the Report field does, so the picker marks the report it shows.

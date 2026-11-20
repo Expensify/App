@@ -33,7 +33,7 @@ jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: jest.fn()}))
 const mockIsBetaEnabled = jest.fn<boolean, [string]>(() => false);
 jest.mock('@hooks/usePermissions', () => {
     const actualUsePermissions = jest.requireActual<{default: () => Record<string, unknown>}>('@hooks/usePermissions').default;
-    return () => ({...actualUsePermissions(), isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)});
+    return () => ({...actualUsePermissions(), isBetaEnabled: mockIsBetaEnabled});
 });
 
 // Where a new report may go, and whether the workspace is behind on billing. Each test sets the case it needs rather than
@@ -224,6 +224,24 @@ describe('ReportFieldDropdown', () => {
         expect(mockModalProps?.selectedReportID).not.toBe(CURRENT_REPORT_ID);
         expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, expect.objectContaining({reportID: CURRENT_REPORT_ID}), true);
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reevaluate unchanged beta permissions when only the draft amount changes', async () => {
+        // Given a mounted picker with a stable permissions function, as provided by usePermissions
+        await setDraftExpense();
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.ASAP_SUBMIT);
+        mockIsBetaEnabled.mockClear();
+
+        // When unrelated draft data makes the picker hook render again
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 100});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the compiler reuses the unchanged beta result instead of evaluating permissions again
+        expect(mockIsBetaEnabled).not.toHaveBeenCalled();
     });
 
     it('mounts the list only while the container is open or still closing', async () => {
