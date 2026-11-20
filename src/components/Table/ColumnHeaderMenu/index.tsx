@@ -14,23 +14,18 @@ import React from 'react';
 import SortItems from './ColumnHeaderMenuSortItems';
 import Trigger from './ColumnHeaderMenuTrigger';
 
-const MENU_ANCHOR_ALIGNMENTS: Record<SearchColumnAlignment, AnchorAlignment> = {
-    [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START]: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
-    [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER]: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
-    [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END]: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
+const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
+const END_ALIGNED_MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 type ContentProps = {
-    /** Where the column's heading places its label. The menu lines up the same way, so it stays next to the label in a wide column. */
+    /** Where the column's heading places its label. The menu lines up with the same edge, so it stays next to the label in a wide column. */
     alignment: SearchColumnAlignment;
 
     children: React.ReactNode;
@@ -38,7 +33,8 @@ type ContentProps = {
 
 /** The popover holding the menu's items, opening below the heading. */
 function Content({alignment, children}: ContentProps) {
-    return <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENTS[alignment]}>{children}</PopoverMenu.Content>;
+    const anchorAlignment = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END ? END_ALIGNED_MENU_ANCHOR_ALIGNMENT : MENU_ANCHOR_ALIGNMENT;
+    return <PopoverMenu.Content anchorAlignment={anchorAlignment}>{children}</PopoverMenu.Content>;
 }
 
 const ColumnHeaderMenu = {
