@@ -442,6 +442,23 @@ describe('getReportHistorySteps', () => {
         expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.automatic', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
     });
 
+    it.each([
+        ['a built-in template', CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT, 'COMMENT'],
+        ['a custom template', 'All Transaction Data Report', CONST.EXPORT_TEMPLATE],
+    ])('leaves out an export to %s', (_, label, type) => {
+        // Given a report exported to a CSV template, which the backend logs as an integration export named after the template
+        const templateAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type, html: 'exported', text: 'exported', label, lastModified: '2026-01-01 10:00:00.000'},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([templateAction]);
+
+        // Then history skips it, since CSV exports only belong in the report conversation
+        expect(steps).toEqual([]);
+    });
+
     it('shows a report marked as exported as a manual export', () => {
         // Given an approved report an admin marked as exported to QuickBooks Online
         const exportedAction: ReportAction = {
