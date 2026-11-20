@@ -39,13 +39,13 @@ function SearchColumnPinItems({pinnedColumns, pinColumn}: SearchColumnPinItemsPr
                 text={translate(isPinnedLeft ? 'search.columnMenu.unpin' : 'search.columnMenu.pinLeft')}
                 icon={icons.Pin}
                 onSelect={() => pinColumn(columnName, isPinnedLeft ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT)}
-                sentryLabel={isPinnedLeft ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.LEFT}
+                sentryLabel={isPinnedLeft ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM.PIN_LEFT}
             />
             <ColumnHeaderMenu.Item
                 text={translate(isPinnedRight ? 'search.columnMenu.unpin' : 'search.columnMenu.pinRight')}
                 icon={icons.Pin}
                 onSelect={() => pinColumn(columnName, isPinnedRight ? undefined : CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT)}
-                sentryLabel={isPinnedRight ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.RIGHT}
+                sentryLabel={isPinnedRight ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM.UNPIN : CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM.PIN_RIGHT}
             />
             <ColumnHeaderMenu.Separator />
         </>
