@@ -50,6 +50,7 @@ on:
       - '!.github/**'
       - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
+      - '.github/reassureFullRunPaths.yml'
       - '.github/actions/javascript/validateReassureOutput/**'
       - '.github/actions/composite/setupNode/**'
       - '!**.md'
@@ -111,6 +112,16 @@ jobs:
             echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the PR targets a branch other than main (seedJestPerfCache.yml only seeds main), or when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
           fi
 
+      # This job runs main's side of the comparison, at the same time as branch-perf-tests runs the PR's.
+      # When main's results aren't cached (usually: the seed run for main's newest commit is still going),
+      # it runs only the perf tests branch-perf-tests runs, so both sides measure the same tests.
+      - name: Check for changes that need a full run
+        id: fullRun
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: .github/reassureFullRunPaths.yml
+
       - name: Check out the baseline commit
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
@@ -122,6 +133,8 @@ jobs:
           # different trees is the noise this comparison exists to detect. Only its source tree is
           # needed, and a reachable SHA can be fetched bare.
           git fetch origin "$BASELINE_SHA" --no-tags --depth=1
+          # The files the PR changes, used below to pick the same perf tests as branch-perf-tests.
+          git diff --name-only FETCH_HEAD HEAD > "$RUNNER_TEMP/changedFiles.txt"
           git checkout --force --detach FETCH_HEAD --no-recurse-submodules
 
       - name: Setup NodeJS
@@ -149,10 +162,22 @@ jobs:
         if: steps.restoreBaseline.outputs.cache-hit != 'true' && steps.restoreJestCache.outputs.cache-hit != 'true'
         run: echo "::warning::Jest perf transform cache miss - this job re-transforms the whole source tree. Expected only when the toolchain key rotated (lockfile, patches, Babel or Jest config, Node version); otherwise seedJestPerfCache.yml has stopped writing the entry."
 
+      # Runs only the perf tests that use a file the PR changed, the same ones branch-perf-tests runs.
+      # Runs all of them instead when the list is empty, or when a path has characters a shell could
+      # misread: Reassure passes these paths to Jest through a shell without escaping them.
       - name: Run baseline performance tests
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+        env:
+          FULL_RUN: ${{ steps.fullRun.outputs.any }}
+        run: |
+          CHANGED_FILES_PATH="$RUNNER_TEMP/changedFiles.txt"
+          if [[ "$FULL_RUN" == "true" || ! -s "$CHANGED_FILES_PATH" ]] || grep -qv '^[A-Za-z0-9_./@+-]*$' "$CHANGED_FILES_PATH"; then
+            NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          else
+            mapfile -t CHANGED_FILES < "$CHANGED_FILES_PATH"
+            NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline -- --passWithNoTests --findRelatedTests "${CHANGED_FILES[@]}"
+          fi
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -179,6 +204,15 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into, which --changedSince diffs against.
+          fetch-depth: 2
+
+      - name: Check for changes that need a full run
+        id: fullRun
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: .github/reassureFullRunPaths.yml
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -203,12 +237,13 @@ jobs:
         if: steps.restoreJestCache.outputs.cache-hit != 'true'
         run: echo "::warning::Jest perf transform cache miss - this job re-transforms the whole source tree. Expected only when the toolchain key rotated (lockfile, patches, Babel or Jest config, Node version); otherwise seedJestPerfCache.yml has stopped writing the entry."
 
+      # Only the perf tests that import a changed file. Skipped ones show up as "Removed scenarios" in the comparison.
       - name: Run branch performance tests
         shell: bash
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare -- ${{ steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.

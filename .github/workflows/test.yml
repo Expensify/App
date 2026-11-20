@@ -25,6 +25,50 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into, which --changedSince diffs against.
+          fetch-depth: 2
+
+      # Files tests depend on without importing them. Jest's --changedSince can't see these, so a change
+      # to any of them runs every test. See .github/workflows/README.md#selective-test-runs.
+      - name: Check for changes that need a full run
+        id: fullRun
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: |
+            any:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'patches/**'
+              - 'modules/**'
+              - 'jest.config.js'
+              - 'jest/**'
+              - '**/__mocks__/**'
+              - 'tests/utils/**'
+              - 'tests/perf-test/setupAfterEnv.ts'
+              - 'babel.config.js'
+              - 'config/babel/**'
+              - 'tsconfig.json'
+              - '.nvmrc'
+              - '.github/workflows/test.yml'
+              - '.github/workflows/reassurePerformanceTests.yml'
+              - '.github/actions/composite/setupNode/**'
+              - 'src/polyfills/**'
+              # Read from disk or run by a test instead of imported.
+              - 'codecov.yml'
+              - 'config/oxlint/oxlint.seatbelt.tsv'
+              - 'config/reactCompiler/**'
+              - 'scripts/check-react-compiler-with-oxc-runner.mjs'
+              - 'scripts/generateCertificatePins.sh'
+              - 'config/certificatePinning/**'
+              - '.github/scripts/parseAndCollectJSONs.rb'
+              - 'ios/NewExpensify/Info.plist'
+              - 'assets/images/companyCards/large/**'
+              - 'assets/images/expensify-card.svg'
+              - 'assets/images/receipt.svg'
+              - 'assets/images/document.svg'
+              - 'assets/images/caret-up-down.svg'
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -41,8 +85,14 @@ jobs:
           key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
           restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
+      # On PRs, only the tests that import a changed file. Pushes to main and deploys run everything.
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
+
+      # These scan whole source folders instead of importing them, so --changedSince never selects them.
+      - name: Jest tests that scan source folders
+        if: ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && matrix.chunk == 1 }}
+        run: npm test -- --silent tests/unit/actionLayerNavigationGuardTest.ts tests/unit/Search/searchSaveRecentSearchFlagTest.ts
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
