@@ -1,5 +1,6 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
@@ -14,6 +15,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import notifySearchOfTransactionWrites from './notifySearchOfTransactionWrites';
 import {getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -133,6 +135,8 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
+            // Changes made elsewhere (another device, SmartScan, a posted card transaction) reach Search through here or through Airship pushes on native.
+            notifySearchOfTransactionWrites(updates.flatMap((update) => (update.eventType === Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE ? update.data : [])));
         });
 
     pusherEventsPromise = applyPromise.catch(() => {});
@@ -149,6 +153,7 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
+            notifySearchOfTransactionWrites(updates.flatMap((update) => update.data));
         });
 
     airshipEventsPromise = applyPromise.catch(() => {});
@@ -286,7 +291,13 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         // them in server order instead of rewinding keys the catch-up already moved forward.
         const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
         const shouldQueueUpdates = request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites;
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates);
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates).then((appliedResponse) => {
+            // Catch-up requests deliver the Pusher updates this client missed, so they tell Search about them like Pusher would.
+            if (isCatchUpRequest) {
+                notifySearchOfTransactionWrites(response.onyxData);
+            }
+            return appliedResponse;
+        });
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:

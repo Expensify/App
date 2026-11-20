@@ -2,6 +2,7 @@ import {
     DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
+    FlagSearchTransactionWrites,
     FraudMonitoring,
     GlobalReimbursementPayError,
     handleDeletedAccount,
@@ -48,6 +49,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     HandleMovedScanFailedExpenses,
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
+    FlagSearchTransactionWrites,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -64,9 +66,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 19 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(19);
-        expect(new Set(registered).size).toBe(19);
+    it('registers all 20 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(20);
+        expect(new Set(registered).size).toBe(20);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -78,6 +80,7 @@ describe('Middleware registration', () => {
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(FlagSearchTransactionWrites)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });
