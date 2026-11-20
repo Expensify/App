@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -52,7 +54,7 @@ type SearchTableHeaderProps = {
     isDateColumnCreated?: boolean;
 
     /**
-     * Replaces each labelled column's heading, reading the column from `useSortableColumn`.
+     * Replaces each heading that shows a label or an icon, reading the column from `useSortableColumn`.
      * Without it the headings sort when pressed.
      */
     children?: React.ReactNode;
@@ -108,6 +110,8 @@ function SortableTableHeader({
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const label = translationKey ? translate(translationKey) : '';
+                    // An icon-only heading takes the name the Columns page shows, so its menu and resize handle are still named.
+                    const columnLabel = label || translate(getSearchColumnTranslationKey(columnName));
                     const textStyle = isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null;
 
                     const containerStyle = [
@@ -133,11 +137,12 @@ function SortableTableHeader({
                     const resizeHandle = (
                         <ColumnResizeHandle
                             columnKey={columnName}
-                            columnLabel={label}
+                            columnLabel={columnLabel}
                         />
                     );
 
-                    if (children && !!label) {
+                    // A heading with neither a label nor an icon, like the report table's Comments, shows nothing to open a menu from.
+                    if (children && (!!label || !!icon)) {
                         return (
                             <View
                                 key={columnName}
@@ -145,7 +150,7 @@ function SortableTableHeader({
                             >
                                 <SortableColumnProvider
                                     columnName={columnName}
-                                    label={label}
+                                    label={columnLabel}
                                     alignment={StyleUtils.getReportTableColumnAlignment(columnName)}
                                     hasResizeHandle={!!columnResize?.hasHandle(columnName)}
                                     sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}

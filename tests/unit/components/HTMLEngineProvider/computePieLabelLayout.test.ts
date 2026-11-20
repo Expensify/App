@@ -10,7 +10,7 @@ import type {PieSliceAngle, PieSliceValue, PlotBounds} from '@components/HTMLEng
 // Deterministic stand-in for a Skia font: every glyph line reports a 10px line height.
 const MOCK_LINE_HEIGHT = 10;
 
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     FontHinting: {None: 0},
     Skia: {
         Font: jest.fn(() => ({

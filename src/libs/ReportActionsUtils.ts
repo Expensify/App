@@ -75,6 +75,7 @@ import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
+import {formatTaxRateName} from './PolicyUtils/tax';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -4454,7 +4455,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
+        const oldTaxRate = oldTaxPercentage && typeof oldValue === 'string' && oldValue ? formatTaxRateName(oldValue, oldTaxPercentage) : undefined;
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, formatTaxRateName(newValue, newTaxPercentage), oldTaxRate);
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
@@ -4757,7 +4759,7 @@ function formatTax(taxName?: string, taxPercentage?: string): string {
     if (!taxName) {
         return '';
     }
-    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+    return formatTaxRateName(taxName, taxPercentage);
 }
 
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {

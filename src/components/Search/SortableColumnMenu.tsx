@@ -60,6 +60,7 @@ function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels}: Sort
                 alignment={alignment}
                 hasResizeHandle={hasResizeHandle}
                 labelRowStyle={innerContainerStyle}
+                isIconOnly={!labelContentProps.text && !!labelContentProps.icon}
                 sentryLabel={sentryLabel}
             >
                 <SortableHeaderLabel {...labelContentProps} />
