@@ -126,7 +126,7 @@ describe('ApprovalWorkflowSection', () => {
         expect(errorMessage).toBeDefined();
         expect(approverRow?.props.helperText).toBeUndefined();
         const approverStep = approverRow?.parent?.findAll(() => true) ?? [];
-        expect(approverStep.indexOf(errorMessage)).toBeGreaterThan(approverStep.indexOf(approverRow));
+        expect(approverStep.findIndex((child) => child === errorMessage)).toBeGreaterThan(approverStep.findIndex((child) => child === approverRow));
         expect(screen.getByText(errorKey)).toBeTruthy();
 
         // And its text starts under the approver title, with the dot in the icon column instead of beside the text
