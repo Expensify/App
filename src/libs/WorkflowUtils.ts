@@ -1428,7 +1428,7 @@ function buildApprovalWorkflowRulesForSave(
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
     const defaultWorkflowRules = hasRuleBasedDefault
-        ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
+        ? Object.values(getDefaultWorkflowRules(existingRules, defaultApprover))
         : buildApprovalWorkflowRules({
               members: approvalWorkflow.members,
               approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}}),
@@ -1795,6 +1795,68 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
 }
 
 /**
+ * The rules of the policy's default workflow.
+ *
+ * A policy has a single default workflow, but rules saved before the backend refused a second one can declare several.
+ * The first one starting at the default approver wins, as on the Workflows page, or else the first one. That workflow is
+ * its submit rule plus the approve rules its chain reaches, found by walking from the first approver.
+ *
+ * Steps that route the same way are saved as one rule listing every submitter they route, so a step can list more
+ * submitters than the workflow, or the submit rule more than each of the chains after it. At each approver, the walk keeps
+ * the rules listing the most of the workflow's submitters, and carries on with only the submitters those rules list.
+ */
+function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Record<string, ApprovalWorkflowRule> {
+    const defaultRuleEntries = Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow);
+    const defaultSubmitEntries = defaultRuleEntries.filter(([, rule]) => isSubmitRule(rule));
+    const chosenSubmitEntry = defaultSubmitEntries.find(([, rule]) => getForwardApprover(rule) === defaultApprover) ?? defaultSubmitEntries.at(0);
+    if (!chosenSubmitEntry) {
+        return {};
+    }
+
+    const [chosenSubmitRuleID, chosenSubmitRule] = chosenSubmitEntry;
+    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
+    let workflowSubmitters = new Set(extractSubmitterEmails(chosenSubmitRule));
+    const workflowRules: Record<string, ApprovalWorkflowRule> = {[chosenSubmitRuleID]: chosenSubmitRule};
+    const reachedApprovers = new Set<string>();
+    const approversToVisit = [getForwardApprover(chosenSubmitRule)];
+    while (approversToVisit.length > 0) {
+        const approver = approversToVisit.shift();
+        if (!approver || reachedApprovers.has(approver)) {
+            continue;
+        }
+        reachedApprovers.add(approver);
+
+        const submittersToFollow = workflowSubmitters;
+        const stepEntries = defaultRuleEntries
+            .filter(([, rule]) => !isSubmitRule(rule) && getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right === approver)
+            .map(([ruleID, rule]) => ({ruleID, rule, listedWorkflowSubmitters: extractSubmitterEmails(rule).filter((email) => submittersToFollow.has(email))}))
+            .filter(({listedWorkflowSubmitters}) => listedWorkflowSubmitters.length > 0);
+        let bestStepEntry = stepEntries.at(0);
+        for (const stepEntry of stepEntries) {
+            if (bestStepEntry && stepEntry.listedWorkflowSubmitters.length > bestStepEntry.listedWorkflowSubmitters.length) {
+                bestStepEntry = stepEntry;
+            }
+        }
+        if (!bestStepEntry) {
+            continue;
+        }
+
+        // Rules splitting this step on the report amount list the same submitters, so they all stay in the workflow.
+        const bestSubmittersKey = getSubmittersKey(bestStepEntry.rule);
+        for (const {ruleID, rule} of stepEntries) {
+            if (getSubmittersKey(rule) !== bestSubmittersKey) {
+                continue;
+            }
+            workflowRules[ruleID] = rule;
+            approversToVisit.push(getForwardApprover(rule));
+        }
+        workflowSubmitters = new Set(bestStepEntry.listedWorkflowSubmitters);
+    }
+
+    return workflowRules;
+}
+
+/**
  * Whether approval workflow rules route the reports of the given policy.
  */
 function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
@@ -1923,23 +1985,29 @@ function getApproverPendingActionByMemberEmail(
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
     const submitters = new Set<string>();
-    const defaultWorkflowSubmitters = new Set<string>();
     for (const rule of Object.values(rules)) {
         for (const email of extractSubmitterEmails(rule)) {
             submitters.add(email);
-            if (rule.isDefaultApprovalWorkflow) {
-                defaultWorkflowSubmitters.add(email);
-            }
         }
     }
 
     const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
     const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
+    // Rules can mark more than one workflow as the default, but only one is, so the members of the others still count as
+    // being in a workflow. A rule can be shared with another workflow, so the default workflow's members are the
+    // submitters every one of its rules lists.
+    let defaultWorkflowSubmitters: Set<string> | undefined;
+    for (const rule of canReadDefaultWorkflowFromRules ? Object.values(getDefaultWorkflowRules(rules, defaultApprover)) : []) {
+        const ruleSubmitters = extractSubmitterEmails(rule);
+        const previousSubmitters = defaultWorkflowSubmitters;
+        defaultWorkflowSubmitters = new Set(previousSubmitters ? ruleSubmitters.filter((email) => previousSubmitters.has(email)) : ruleSubmitters);
+    }
+
     const result: Record<string, string> = {};
     for (const submitter of submitters) {
         // Resolving the chain is the expensive part, so skip it for submitters the rules already exclude.
-        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters.has(submitter)) {
+        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters?.has(submitter)) {
             continue;
         }
 
@@ -2271,6 +2339,7 @@ export {
     extractSubmitterEmails,
     getApproverTitles,
     getApproversFromImportedApprovers,
+    getDefaultWorkflowRules,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
