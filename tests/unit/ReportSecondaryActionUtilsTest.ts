@@ -149,6 +149,50 @@ describe('getSecondaryAction', () => {
         Onyx.clear();
     });
 
+    it.each([
+        [false, false, MANAGER_ACCOUNT_ID, true],
+        [false, true, MANAGER_ACCOUNT_ID, false],
+        [false, false, APPROVER_ACCOUNT_ID, false],
+        [true, true, APPROVER_ACCOUNT_ID, true],
+        [false, false, MANAGER_ACCOUNT_ID, false, true],
+        [true, false, MANAGER_ACCOUNT_ID, true, true],
+    ])('change approver visibility: admin=%s, enforcement=%s, manager=%s', (isAdmin, areStrictPolicyRulesEnabled, managerID, expected, isLoadingSecurityGroup = false) => {
+        // Given an outstanding report and the caller's workspace enforcement setting.
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(isAdmin);
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID,
+        });
+        const policy = createMock<Policy>({
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        // When the caller opens the report menu.
+        const actions = getSecondaryReportActions({
+            currentUserLogin: MANAGER_EMAIL,
+            currentUserAccountID: MANAGER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
+        });
+
+        // Then only admins and eligible current approvers can change the approver.
+        expect(actions.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER)).toBe(expected);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(true);
+    });
+
     it('should always return default options', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});
@@ -176,118 +220,6 @@ describe('getSecondaryAction', () => {
                 cardList: undefined,
             }),
         ).toEqual(result);
-    });
-
-    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
-        // Given a report that holds exactly one expense
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then the option to switch views is offered, just before "View details"
-        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-        expect(toggleIndex).toBeGreaterThan(-1);
-        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
-        // Given a report with two expenses, which always uses the table view
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [firstTransaction, secondTransaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
-        // Given a report with no expenses
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
-        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const sentMoneyAction = createMock<ReportAction>({
-            reportActionID: '1',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
-        });
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            reportActions: [sentMoneyAction],
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views, because the report has no expense thread for a table row to open
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     });
 
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
@@ -1235,7 +1167,6 @@ describe('getSecondaryAction', () => {
         const OWNER_EMAIL = 'owner@mail.com';
         // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1279,7 +1210,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_ACCOUNT_ID = 5;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1324,7 +1254,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,

@@ -6,7 +6,6 @@ import {
     getOriginalMessage,
     getSortedReportActions,
     isActionOfType,
-    isSentMoneyReportAction,
 } from '@libs/ReportActionsUtils';
 import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
@@ -183,8 +182,46 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
-/** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
-const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
+/**
+ * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks: the actions of every
+ * report in `reportIDs` (the report whose error is dismissed, its ancestors and the original report holding the
+ * dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
+ * The walk returns early from an action without errors, so following only errored actions downward is exact.
+ * Only those keys are looked up and each report's actions are returned by reference, so a write to an unrelated
+ * report action costs a few lookups, and a report whose actions are unchanged compares by reference.
+ */
+function relatedReportActionsSelector(reportIDs: Array<string | undefined>, childRootReportID: string | undefined) {
+    return function selectRelatedReportActions(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
+        const result: OnyxCollection<ReportActions> = {};
+        const visitedReportIDs = new Set<string>();
+        const collect = (reportID: string | undefined, shouldFollowErroredThreads: boolean) => {
+            // The visited set also terminates the walk when thread links form a cycle
+            if (!reportID || visitedReportIDs.has(reportID)) {
+                return;
+            }
+            visitedReportIDs.add(reportID);
+            const actions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!actions) {
+                return;
+            }
+            result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
+            if (!shouldFollowErroredThreads) {
+                return;
+            }
+            for (const action of Object.values(actions)) {
+                if (action.childReportID && Object.keys(action.errors ?? {}).length > 0) {
+                    collect(action.childReportID, true);
+                }
+            }
+        };
+        // The child root is usually also one of `reportIDs`, so descend from it before the plain lookups mark it visited
+        collect(childRootReportID, true);
+        for (const reportID of reportIDs) {
+            collect(reportID, false);
+        }
+        return result;
+    };
+}
 
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
@@ -220,6 +257,12 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
     return parentReportActionWithoutThreadReplies;
 }
 
+// The accounts a thread's parent action can credit, which getIcons shows for chat threads and expense requests
+const parentActionAccountIDsSelector = (parentReportActionID: string | undefined) => (parentReportActions: OnyxEntry<ReportActions>) => {
+    const parentAction = parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
+    return parentAction ? [parentAction.actorAccountID, parentAction.adminAccountID, parentAction.childOwnerAccountID, parentAction.childManagerAccountID] : undefined;
+};
+
 /** Keeps only the given reports' actions, so a page reading a few reports isn't woken by every other report's actions. */
 const reportActionsByReportIDsSelector =
     (reportIDs: string[]) =>
@@ -233,7 +276,7 @@ const reportActionsByReportIDsSelector =
     };
 
 export {
-    isSentMoneyReportSelector,
+    parentActionAccountIDsSelector,
     reportActionsByReportIDsSelector,
     getBillPayHistoryParticipantSelector,
     getBillProcessorAccountIDSelector,
@@ -245,6 +288,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    relatedReportActionsSelector,
     forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,

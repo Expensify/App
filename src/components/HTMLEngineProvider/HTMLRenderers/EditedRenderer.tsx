@@ -10,7 +10,8 @@ import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
 import React from 'react';
 
-function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
+// The library only fills `onPress` for links, and "(edited)" is never one, so it stays out of the props passed on.
+function EditedRenderer({tnode, TDefaultRenderer, style, onPress, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
