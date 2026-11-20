@@ -102,7 +102,7 @@ function getCompletedStep(
         const {label, markedManually} = getOriginalMessage(reportAction) ?? {};
         // A manual mark is already done when it is made, so it skips the pending wording the chat shows until the server confirms it
         if (markedManually) {
-            return {...step, icon: 'Export', label: translate('report.actions.type.exportedToIntegration.manual', label ?? '')};
+            return {...step, icon: 'Export', label: translate('reportHistoryPage.markedAsManuallyExported', label ?? '')};
         }
         // A started export stays pending on this client until reload when the export fails, so only the server's outcome counts as a step
         if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {

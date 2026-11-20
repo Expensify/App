@@ -3958,6 +3958,7 @@ const translations = {
         approved: 'approved',
         paid: 'paid',
         receivedPayment: 'received payment',
+        markedAsManuallyExported: (label: string) => `marked this report as manually exported to ${label}`,
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

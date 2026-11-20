@@ -453,7 +453,7 @@ describe('getReportHistorySteps', () => {
         const steps = getCompletedSteps([exportedAction]);
 
         // Then the history says it was marked manually, like the report conversation does, rather than claiming the integration exported it
-        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.manual', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.markedAsManuallyExported', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
     });
 
     it('leaves out an export that has only started', () => {
@@ -483,7 +483,7 @@ describe('getReportHistorySteps', () => {
         const steps = getCompletedSteps([markedAction]);
 
         // Then history says it was marked manually, since nothing is left to run, rather than claiming an export is in progress
-        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.manual', CONST.EXPORT_LABELS.XERO), FIRST_APPROVER_ACCOUNT_ID]]);
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.markedAsManuallyExported', CONST.EXPORT_LABELS.XERO), FIRST_APPROVER_ACCOUNT_ID]]);
     });
 
     it.each([
