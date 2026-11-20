@@ -93,7 +93,11 @@ describe('UnreadIndicatorUpdaterTest', () => {
         const NEWER_MESSAGE_TIME = '2023-08-12 07:15:44.030';
         const OTHER_USER_ACCOUNT_ID = 2;
 
-        const getReports = (thread: {lastReadTime: string; lastVisibleActionCreated: string}, expenseReport: Partial<Report> = {}, extraReports: Record<string, Partial<Report>> = {}) => ({
+        const getReports = (
+            thread: {lastReadTime: string; lastVisibleActionCreated: string},
+            expenseReport: Omit<Partial<Report>, 'reportID'> = {},
+            extraReports: Record<string, Report> = {},
+        ) => ({
             [`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]: {
                 reportID: EXPENSE_REPORT_ID,
                 reportName: 'test',
