@@ -20,10 +20,8 @@ type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 /** How a receipt entered the app. */
 type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share' | 'odometer';
 
-/** Which validation step made a new file from the picked one. */
 type ReceiptDerivingStep = 'convert' | 'resize';
 
-/** Which edit in the receipt viewer failed. */
 type ReceiptImageEditStep = 'crop' | 'rotate';
 
 /**
@@ -185,9 +183,8 @@ function logReceiptEnqueued({receipt, transactionID, command, persistedQueueLeng
         sourceKind,
     });
 
-    // Every flow moves its file into the receipts folder before the request is queued (the share flow only at submit),
-    // so a queued receipt still outside it can be cleared by the OS before the upload runs. Flagging it here, rather
-    // than when a draft is set, names the code path that skipped the move without reporting drafts that are moved later.
+    // Checked at enqueue, not when a draft is set: the share flow keeps its temp file until submit, so a draft check
+    // would flag every share. A queued receipt outside the receipts folder can be cleared before it uploads.
     if (sourceKind === 'imageManipulatorCache' || sourceKind === 'otherTemp') {
         Log.alert(`${RECEIPT_LOG_PREFIX} nonDurableSource`, {
             event: 'nonDurableSource',
@@ -270,10 +267,7 @@ function logReceiptStatFailed(code: string | undefined) {
     });
 }
 
-/**
- * Records a receipt that could not be moved into the receipts folder. `step` is set when the file was made from the
- * picked one after capture (a HEIC or DNG conversion, a resize), so those failures can be told apart from the capture.
- */
+/** `step` is set for files made after capture (conversion, resize), to tell those failures apart. */
 function logReceiptAdoptFailed({error, captureSource, step}: {error: unknown; captureSource: ReceiptCaptureSource; step?: ReceiptDerivingStep}) {
     Log.alert(`${RECEIPT_LOG_PREFIX} adopt failed`, {
         event: 'adoptFailed',
@@ -283,10 +277,7 @@ function logReceiptAdoptFailed({error, captureSource, step}: {error: unknown; ca
     });
 }
 
-/**
- * A crop or rotate in the receipt viewer failed, so the user's edit was not saved. Only the error name is kept: the
- * native message can carry the file path.
- */
+/** Logs only the error name, because native crop errors can include the file path. */
 function logReceiptImageEditFailed({step, error}: {step: ReceiptImageEditStep; error?: unknown}) {
     Log.alert(`${RECEIPT_LOG_PREFIX} cropFailed`, {
         event: 'cropFailed',

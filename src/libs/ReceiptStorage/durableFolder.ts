@@ -33,14 +33,13 @@ function isInDurableFolder(storedPath: unknown): boolean {
     }
 }
 
-/** Where a receipt source points, coarse enough to send to Sentry in place of the path. */
+/** Where a receipt source lives, safe to send to Sentry instead of the path. */
 type ReceiptSourceKind = 'receiptsFolder' | 'imageManipulatorCache' | 'otherTemp' | 'remote';
 
-// expo-image-manipulator saves every result into this folder inside the app cache, on iOS and on Android. The OS can
-// clear it at any time, so a receipt left there can be gone by the time its upload runs.
+// expo-image-manipulator writes its results here, inside the app cache the OS can clear.
 const IMAGE_MANIPULATOR_CACHE_FOLDER = '/ImageManipulator/';
 
-/** Says where a receipt source points without exposing the path. Undefined for an empty source and on platforms with no receipts folder. */
+/** Undefined for an empty source and on platforms without a receipts folder. */
 function getReceiptSourceKind(source: unknown): ReceiptSourceKind | undefined {
     if (typeof source !== 'string' || !source) {
         return undefined;
@@ -54,7 +53,7 @@ function getReceiptSourceKind(source: unknown): ReceiptSourceKind | undefined {
         return undefined;
     }
 
-    // Web keeps receipts as object URLs, not files, so none of these kinds apply there.
+    // Web has no receipts folder.
     if (!receiptsFolderPath) {
         return undefined;
     }

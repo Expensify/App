@@ -338,8 +338,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     continue;
                 }
 
-                // The converter writes into the app cache, which the OS can clear before a queued upload reads the file.
-                // Adopted before the resize below, so the resize starts from a durable file and its own output is adopted in turn.
+                // Adopt before resizing, so the resize reads the kept file and adopting its output can delete that file.
                 // eslint-disable-next-line no-await-in-loop -- one file at a time, like the conversion above
                 const keptFile = await adoptDerivedFile(file, convertedFile, 'convert');
                 updateFileOrderMapping(file, keptFile);
