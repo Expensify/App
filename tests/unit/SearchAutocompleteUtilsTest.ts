@@ -809,8 +809,10 @@ describe('ordinary autocomplete parser boundaries', () => {
     test.each([
         ['columns:date', [{start: 8, type: 'mention-user', length: 4}]],
         ['columns:unknown-column', []],
+        ['left-pinned-columns:date', [{start: 20, type: 'mention-user', length: 4}]],
+        ['right-pinned-columns:unknown-column', []],
         ['report-field-Custom:value', [{start: 20, type: 'mention-user', length: 5}]],
-        ['createdBy:alice ReportID:123 TAXRATE:20', []],
+        ['createdBy:alice ReportID:123 TAXRATE:20', [{start: 25, type: 'mention-user', length: 3}]],
         ['merchant:""', []],
     ])('highlights the real parser result for %s', (query, expected) => {
         // Given actual generated ranges and empty lookup data, without substituting the parser.

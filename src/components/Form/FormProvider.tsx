@@ -412,8 +412,8 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
-    const scrollTo = useCallback((y: number) => {
-        formWrapperRef.current?.scrollTo(y);
+    const scrollTo = useCallback((y: number, shouldDelayScroll?: boolean) => {
+        formWrapperRef.current?.scrollTo(y, shouldDelayScroll);
     }, []);
 
     useImperativeHandle(ref, () => ({
