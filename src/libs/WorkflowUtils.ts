@@ -2018,17 +2018,10 @@ function convertApprovalWorkflowRulesToWorkflows({
         personalDetailsByEmail[value?.login ?? key] = value;
     }
 
+    const rulesBySubmitter = groupApprovalWorkflowRulesBySubmitter(rules);
+
     // Keyed by a source-tagged workflow key so a legacy chain and a rule-based chain with the same shape stay
     // in separate workflows.
-    const defaultWorkflowSubmitters = new Set<string>();
-    // The chain builders only read the rules that list the submitter, so each one gets just those instead of scanning every rule again at every step
-    const rulesBySubmitter = groupApprovalWorkflowRulesBySubmitter(rules);
-    for (const [submitter, submitterRules] of rulesBySubmitter) {
-        if (hasRuleBasedDefaultWorkflow(submitterRules)) {
-            defaultWorkflowSubmitters.add(submitter);
-        }
-    }
-
     const groupedByWorkflowKey = new Map<string, WorkflowGroup>();
     const usedApproverEmails = new Set<string>();
     const availableMembers: Member[] = [];
@@ -2099,7 +2092,7 @@ function convertApprovalWorkflowRulesToWorkflows({
         }
 
         const hasRuleBasedChain = rulesBySubmitter.has(email);
-        const isDefaultWorkflowChain = hasRuleBasedChain ? defaultWorkflowSubmitters.has(email) : firstApproverEmail === defaultApprover;
+        const isDefaultWorkflowChain = hasRuleBasedChain ? hasRuleBasedDefaultWorkflow(submitterRules) : firstApproverEmail === defaultApprover;
 
         const chainKey = getApproverChainKey(chain);
         const workflowKey = `${hasRuleBasedChain ? 'r' : 'l'}${isDefaultWorkflowChain ? 'd' : ''}|${chainKey}`;
