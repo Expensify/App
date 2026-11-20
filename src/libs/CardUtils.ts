@@ -18,6 +18,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     Domain,
+    ExpensifyCardManualBilling,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
@@ -1930,6 +1931,25 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
+type QueuedExpensifyCardSettlement = {
+    /** Whether any settlement is waiting for the next billing run */
+    isQueued: boolean;
+
+    /** Whether the queued settlement covers only part of the balance */
+    isPartial: boolean;
+
+    /** The amount a queued partial settlement will bill, in cents */
+    amount?: number;
+};
+
+/** Reads what is queued for the next billing run, which can be "true", a boolean or a partial settlement object. */
+function getQueuedExpensifyCardSettlement(manualBilling: OnyxEntry<ExpensifyCardManualBilling>): QueuedExpensifyCardSettlement {
+    if (manualBilling && typeof manualBilling === 'object') {
+        return {isQueued: true, isPartial: manualBilling.type === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: manualBilling.amount};
+    }
+    return {isQueued: manualBilling === true || manualBilling === 'true', isPartial: false};
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
@@ -2701,6 +2721,7 @@ export {
     getCardSettings,
     getSettlementAccountErrors,
     getCardProgramKey,
+    getQueuedExpensifyCardSettlement,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,

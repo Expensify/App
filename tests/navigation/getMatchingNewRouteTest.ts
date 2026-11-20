@@ -556,6 +556,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/choose-bank-account')).toBe('/workspaces/p123/expensify-card/choose-bank-account');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/select-feed')).toBe('/workspaces/p123/expensify-card/select-feed');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new')).toBe('/workspaces/p123/expensify-card/issue-new');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settle-balance')).toBe('/workspaces/p123/expensify-card/settle-balance');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/workspace-currency?shouldStartExpensifyCardEnrollment=true')).toBe(
             '/workspaces/p123/expensify-card/workspace-currency?shouldStartExpensifyCardEnrollment=true',
         );
@@ -565,6 +566,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/frequency')).toBe('/workspaces/p123/expensify-card/settings/frequency');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/account')).toBe('/workspaces/p123/expensify-card/settings/account');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new/rules/max-amount')).toBe('/workspaces/p123/expensify-card/issue-new/rules/max-amount');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settle-balance/confirm')).toBe('/workspaces/p123/expensify-card/settle-balance/confirm');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/workspace-currency/government-rate-country/EUR')).toBe(
             '/workspaces/p123/expensify-card/workspace-currency/government-rate-country/EUR',
         );

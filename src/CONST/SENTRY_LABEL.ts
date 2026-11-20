@@ -2879,6 +2879,7 @@ const SENTRY_LABEL = {
             SETTINGS_SETTLEMENT_ACCOUNT: 'WorkspaceExpensifyCard-SettingsSettlementAccount',
             SETTINGS_SETTLEMENT_FREQUENCY: 'WorkspaceExpensifyCard-SettingsSettlementFrequency',
             SETTLE_BALANCE: 'WorkspaceExpensifyCard-SettleBalance',
+            SETTLE_BALANCE_CONFIRM_SUBMIT: 'WorkspaceExpensifyCard-SettleBalanceConfirmSubmit',
             SPEND_RULE_SELECTION_SAVE: 'WorkspaceExpensifyCard-SpendRuleSelectionSave',
             ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
             MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',

@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -12,12 +13,18 @@ import WorkspaceSettlementFrequencyPage from '@pages/workspace/expensifyCard/Wor
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as ConfirmModalMock from '../utils/mockUseConfirmModal';
+
+import currencyList from '../unit/currencyList.json';
+import getOnyxValue from '../utils/getOnyxValue';
+import {getShowConfirmModalOption, MockModalActions, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -48,6 +55,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@src/hooks/useResponsiveLayout');
+
+jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
 
 // The default fund ID falls back to the workspace account ID when there is no last-selected feed.
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
@@ -85,6 +94,7 @@ jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => {
 });
 
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as const;
+const manualBillingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}` as const;
 
 // The page resolves its settings through the card program they are nested under, so the test data has to be nested the same way.
 const programKey = CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
@@ -103,7 +113,7 @@ const navigation = {} as PlatformStackScreenProps<SettingsNavigatorParamList, ty
 
 const renderWorkspaceSettlementFrequencyPage = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <WorkspaceSettlementFrequencyPage
                 route={route}
                 navigation={navigation}
@@ -125,6 +135,7 @@ describe('WorkspaceSettlementFrequencyPage', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
+        resetMockConfirmModal();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -170,6 +181,42 @@ describe('WorkspaceSettlementFrequencyPage', () => {
         // Then the page does not block itself over the user's own successful change. Blocking here is what dropped the
         // not-found page on top of the selection and sent the back button to the workspace overview.
         expect(screen.queryByText(NOT_FOUND_TEXT)).toBeNull();
+    });
+
+    it('warns before switching to daily while a partial settlement is queued, and keeps monthly when the admin cancels', async () => {
+        // Given a workspace on monthly settlement with a $4.00 partial settlement queued for the next run
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+            await Onyx.merge(cardSettingsKey, {
+                [programKey]: {isMonthlySettlementAllowed: true, monthlySettlementDate: existingSettlementDay},
+            });
+            await Onyx.set(manualBillingKey, {type: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: 400});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the admin selects Daily and presses Save
+        renderWorkspaceSettlementFrequencyPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Daily'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the warning names the queued amount, because daily settlement bills the full balance instead
+        expect(getShowConfirmModalOption('prompt')).toBe(
+            'You queued a partial settlement of $4.00. Switching to daily settlement will settle your full balance on the next daily run instead.',
+        );
+
+        // When the admin cancels the warning
+        await act(async () => {
+            resolveShowConfirmModal({action: MockModalActions.CLOSE});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then nothing is sent and the workspace still settles monthly
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, 0);
+        const cardSettings = await getOnyxValue(cardSettingsKey);
+        expect(cardSettings?.[programKey]?.monthlySettlementDate).toBe(existingSettlementDay);
     });
 
     it('blocks the page when the workspace already settles daily and monthly is not selectable', async () => {

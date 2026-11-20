@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     ApproveDigitalWalletCardAdditionParams,
+    CalculateExpensifyCardPartialSettlementParams,
     CardDeactivateParams,
     CreateExpensifyCardParams,
     DeletePersonalCardParams,
@@ -43,10 +44,11 @@ import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
-import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID, ExpensifyCardManualBilling, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
@@ -707,6 +709,7 @@ function updateSettlementFrequency(
     const parameters = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
+        feedCountry: programKey,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
@@ -756,6 +759,10 @@ function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgra
 
 function clearCashbackToBillError(workspaceAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errors: null});
+}
+
+function clearSettleBalanceError(workspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errorFields: {settleBalance: null}});
 }
 
 function updateSettlementAccount(
@@ -1777,13 +1784,97 @@ function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefi
     ]);
 }
 
-function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
-    const parameters = {
-        feedCountry,
-        domainAccountID,
-    };
+type PartialExpensifyCardSettlement = {
+    /** The amount the admin entered, in cents */
+    amount: number;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+    /** The rounded amount the admin confirmed, in cents */
+    roundedAmount: number;
+};
+
+/** Queues the full balance, or the previewed partial settlement when one is given, for the next billing run. */
+function queueExpensifyCardForBilling(domainAccountID: number, feedCountry?: CardProgramKey, partialSettlement?: PartialExpensifyCardSettlement) {
+    const manualBillingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${domainAccountID}` as const;
+    const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}` as const;
+
+    // The backend answers with the same shape, so the label can switch to the queued message before the request lands
+    const queuedValue: ExpensifyCardManualBilling = partialSettlement ? {type: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: partialSettlement.roundedAmount} : 'true';
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: manualBillingKey,
+            value: queuedValue,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {errorFields: {settleBalance: null}},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: manualBillingKey,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {errorFields: {settleBalance: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.expensifyCard.settleBalanceError')}},
+        },
+    ];
+
+    const command = partialSettlement ? WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT : WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING;
+    const parameters = partialSettlement ? {feedCountry, domainAccountID, amount: partialSettlement.amount, roundedAmount: partialSettlement.roundedAmount} : {feedCountry, domainAccountID};
+
+    API.write(command, parameters, {optimisticData, failureData});
+}
+
+/**
+ * Records that the admin chose to settle the full balance, so the confirmation page knows what it is confirming.
+ */
+function setExpensifyCardSettlementPreviewForFullBalance() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {settlementType: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.FULL});
+}
+
+function clearExpensifyCardSettlementPreview() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, null);
+}
+
+/**
+ * Asks the backend how much a partial settlement of the entered amount will really bill, rounded up to whole
+ * transactions. Resolves to whether the preview can be shown; the result lands in the preview Onyx key.
+ */
+function previewExpensifyCardPartialSettlement(domainAccountID: number, feedCountry: CardProgramKey | undefined, amount: number): Promise<boolean> {
+    Onyx.set(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {settlementType: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, requestedAmount: amount, isLoading: true});
+
+    const parameters: CalculateExpensifyCardPartialSettlementParams = {domainAccountID, feedCountry, amount};
+
+    // The rounded amount is shown to the admin before anything is written, so the response has to come back to the caller
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT, parameters).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            let errorKey: TranslationPaths = 'common.genericErrorMessage';
+            if (response?.jsonCode === CONST.JSON_CODE.PAYMENT_REQUIRED) {
+                errorKey = 'workspace.expensifyCard.settleBalanceFailedSettlementError';
+            } else if (response?.jsonCode === CONST.JSON_CODE.CONFLICT) {
+                errorKey = 'workspace.expensifyCard.settleBalanceAlreadyQueuedError';
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {isLoading: false, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorKey)});
+            return false;
+        }
+        Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW, {
+            isLoading: false,
+            errors: null,
+            roundedAmount: response.roundedAmount,
+            maximumAmount: response.maximumAmount,
+            isAboveMaximum: response.isAboveMaximum,
+            isEverythingEligible: response.isEverythingEligible,
+        });
+        return !response.isAboveMaximum;
+    });
 }
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
@@ -2104,6 +2195,7 @@ export {
     updateAssignedCardTransactionStartDate,
     toggleCashbackToBill,
     clearCashbackToBillError,
+    clearSettleBalanceError,
     toggleContinuousReconciliation,
     setCardReconciliationAccount,
     updateExpensifyCardLimitType,
@@ -2113,6 +2205,9 @@ export {
     deletePersonalCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,
+    setExpensifyCardSettlementPreviewForFullBalance,
+    clearExpensifyCardSettlementPreview,
+    previewExpensifyCardPartialSettlement,
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
