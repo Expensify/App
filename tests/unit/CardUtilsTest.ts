@@ -5831,6 +5831,6 @@ describe('getQueuedExpensifyCardSettlement', () => {
         // Given the object the backend sends for a queued partial settlement
         // When it is read
         // Then it is queued, partial, and carries the amount that will be billed
-        expect(getQueuedExpensifyCardSettlement({type: 'partial', amount: 400, requestedAmount: 350, feedCountry: CONST.COUNTRY.US})).toEqual({isQueued: true, isPartial: true, amount: 400});
+        expect(getQueuedExpensifyCardSettlement({type: 'partial', amount: 400})).toEqual({isQueued: true, isPartial: true, amount: 400});
     });
 });

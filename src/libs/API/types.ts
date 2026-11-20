@@ -709,6 +709,7 @@ const WRITE_COMMANDS = {
     CREATE_EXPENSIFY_CARD: 'CreateExpensifyCard',
     CREATE_ADMIN_ISSUED_VIRTUAL_CARD: 'CreateAdminIssuedVirtualCard',
     QUEUE_EXPENSIFY_CARD_FOR_BILLING: 'Domain_QueueExpensifyCardForBilling',
+    QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT: 'QueueExpensifyCardPartialSettlement',
     ADD_DELEGATE: 'AddDelegate',
     REMOVE_DELEGATE: 'RemoveDelegate',
     REMOVE_DELEGATOR: 'RemoveDelegator',
@@ -1605,6 +1606,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'validFrom' | 'validThru'>;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Parameters.CreateExpensifyCardParams;
     [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
+    [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT]: Parameters.QueueExpensifyCardPartialSettlementParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;

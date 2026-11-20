@@ -101,9 +101,6 @@ type Response<TKey extends OnyxKey> = {
     /** The most that can be settled early on the card program, in cents */
     maximumAmount?: number;
 
-    /** How many transactions a partial card settlement covers */
-    transactionCount?: number;
-
     /** Whether the requested partial card settlement is above what can be settled early */
     isAboveMaximum?: boolean;
 

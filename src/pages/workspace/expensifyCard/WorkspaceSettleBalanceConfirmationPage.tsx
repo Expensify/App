@@ -1,7 +1,3 @@
-/**
- * Second step of settling an Expensify Card balance early: shows what the previous page produced (the full balance, or the
- * partial amount the backend rounded up to whole transactions) and queues it for the next billing run on confirmation.
- */
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,23 +50,28 @@ function WorkspaceSettleBalanceConfirmationPage({route}: WorkspaceSettleBalanceC
     const requestedAmount = preview?.requestedAmount ?? 0;
     const hasPreview = !!preview?.settlementType && (!isPartial || roundedAmount > 0);
 
-    // The preview only lives in memory, so a refresh or a deep link lands here with nothing to confirm and goes back to the choice.
-    // On a fresh load this runs before the navigation container is ready, so the navigation waits for it.
-    // Confirming clears the preview too, while this page is still mounted for the closing animation, so only a focused page goes back.
+    // A reload or deep link has no preview to confirm, so it goes back to the first page, unlike confirming, which clears it while the page closes
     const amountPageRoute = ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE.getRoute(policyID);
-    const isPreviewMissing = !hasPreview;
     useEffect(() => {
-        if (!isPreviewMissing || !isFocused) {
+        if (hasPreview || !isFocused) {
             return;
         }
-        Navigation.isNavigationReady().then(() => Navigation.goBack(amountPageRoute));
-    }, [isPreviewMissing, isFocused, amountPageRoute]);
+        let ignore = false;
+        Navigation.isNavigationReady().then(() => {
+            if (ignore) {
+                return;
+            }
+            Navigation.goBack(amountPageRoute);
+        });
+        return () => {
+            ignore = true;
+        };
+    }, [hasPreview, isFocused, amountPageRoute]);
 
     const settleBalance = () => {
         queueExpensifyCardForBilling(defaultFundID, programKey, isPartial ? {amount: requestedAmount, roundedAmount} : undefined);
         Navigation.dismissModal();
         clearExpensifyCardSettlementPreview();
-        // The amount page saves what was typed as a draft so that going back keeps it. Once queued, the next visit starts clean.
         clearDraftValues(ONYXKEYS.FORMS.SETTLE_EXPENSIFY_CARD_BALANCE_FORM);
     };
 

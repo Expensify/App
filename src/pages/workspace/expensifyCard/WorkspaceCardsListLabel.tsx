@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import FormHelpMessage from '@components/FormHelpMessage';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/WorkspaceCardLabel';
@@ -23,6 +23,7 @@ import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
+import {clearSettleBalanceError} from '@userActions/Card';
 import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
 import {navigateToConciergeChat, openReport} from '@userActions/Report';
 
@@ -165,9 +166,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const queuedSettlement = getQueuedExpensifyCardSettlement(cardManualBilling);
     const isSettleBalanceButtonDisplayed = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && !queuedSettlement.isQueued && isCurrentBalanceType;
     const isSettleDateTextDisplayed = queuedSettlement.isQueued && isCurrentBalanceType;
-    const settleBalanceErrorMessage = isCurrentBalanceType ? Object.values(getLatestErrorField({errorFields: settings?.errorFields}, 'settleBalance')).at(0) : undefined;
 
-    // Billing runs once a day, so whatever is queued now is settled on the next run
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
     const settlementDateMessage =
         queuedSettlement.isPartial && queuedSettlement.amount !== undefined
@@ -224,11 +223,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         </TextLink>
                     )}
                     {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{settlementDateMessage}</Text>}
-                    {!!settleBalanceErrorMessage && (
-                        <FormHelpMessage
-                            isError
-                            message={settleBalanceErrorMessage}
-                            style={styles.mt1}
+                    {isCurrentBalanceType && (
+                        <ErrorMessageRow
+                            errors={getLatestErrorField(cardSettings, 'settleBalance')}
+                            errorRowStyles={styles.mt1}
+                            onDismiss={() => clearSettleBalanceError(defaultFundID)}
                         />
                     )}
                 </>

@@ -187,7 +187,6 @@ describe('WorkspaceSettleBalancePage', () => {
             requestedAmount: 1500,
             roundedAmount: 0,
             maximumAmount: 1200,
-            transactionCount: 0,
             isAboveMaximum: true,
             isEverythingEligible: false,
         }));
@@ -241,7 +240,7 @@ describe('WorkspaceSettleBalancePage', () => {
         // Given a workspace with a partial settlement already queued, which cannot be changed until it is processed
         await act(async () => {
             await Onyx.merge(cardSettingsKey, monthlyCardSettings);
-            await Onyx.set(manualBillingKey, {type: 'partial', amount: 400, requestedAmount: 350, feedCountry: programKey});
+            await Onyx.set(manualBillingKey, {type: 'partial', amount: 400});
             await waitForBatchedUpdatesWithAct();
         });
 

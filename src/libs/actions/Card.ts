@@ -10,7 +10,6 @@ import type {
     DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
-    QueueExpensifyCardForBillingParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
@@ -760,6 +759,10 @@ function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgra
 
 function clearCashbackToBillError(workspaceAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errors: null});
+}
+
+function clearSettleBalanceError(workspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errorFields: {settleBalance: null}});
 }
 
 function updateSettlementAccount(
@@ -1789,20 +1792,13 @@ type PartialExpensifyCardSettlement = {
     roundedAmount: number;
 };
 
-/**
- * Queues the domain's outstanding balance for the next billing run, or only the partial settlement the admin previewed
- * when one is given. Without a feedCountry the backend settles the program it finds provisioned on the domain, so it
- * is only sent when the card settings identify one.
- */
+/** Queues the full balance, or the previewed partial settlement when one is given, for the next billing run. */
 function queueExpensifyCardForBilling(domainAccountID: number, feedCountry?: CardProgramKey, partialSettlement?: PartialExpensifyCardSettlement) {
     const manualBillingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${domainAccountID}` as const;
     const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}` as const;
 
     // The backend answers with the same shape, so the label can switch to the queued message before the request lands
-    const queuedValue: ExpensifyCardManualBilling =
-        partialSettlement && feedCountry
-            ? {type: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: partialSettlement.roundedAmount, requestedAmount: partialSettlement.amount, feedCountry}
-            : 'true';
+    const queuedValue: ExpensifyCardManualBilling = partialSettlement ? {type: CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: partialSettlement.roundedAmount} : 'true';
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -1830,14 +1826,10 @@ function queueExpensifyCardForBilling(domainAccountID: number, feedCountry?: Car
         },
     ];
 
-    const parameters: QueueExpensifyCardForBillingParams = {
-        domainAccountID,
-        feedCountry,
-        amount: partialSettlement?.amount,
-        roundedAmount: partialSettlement?.roundedAmount,
-    };
+    const command = partialSettlement ? WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT : WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING;
+    const parameters = partialSettlement ? {feedCountry, domainAccountID, amount: partialSettlement.amount, roundedAmount: partialSettlement.roundedAmount} : {feedCountry, domainAccountID};
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters, {optimisticData, failureData});
+    API.write(command, parameters, {optimisticData, failureData});
 }
 
 /**
@@ -1878,7 +1870,6 @@ function previewExpensifyCardPartialSettlement(domainAccountID: number, feedCoun
             errors: null,
             roundedAmount: response.roundedAmount,
             maximumAmount: response.maximumAmount,
-            transactionCount: response.transactionCount,
             isAboveMaximum: response.isAboveMaximum,
             isEverythingEligible: response.isEverythingEligible,
         });
@@ -2204,6 +2195,7 @@ export {
     updateAssignedCardTransactionStartDate,
     toggleCashbackToBill,
     clearCashbackToBillError,
+    clearSettleBalanceError,
     toggleContinuousReconciliation,
     setCardReconciliationAccount,
     updateExpensifyCardLimitType,

@@ -13,6 +13,7 @@ import WorkspaceSettleBalanceConfirmationPage from '@pages/workspace/expensifyCa
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,7 +87,7 @@ jest.mock(
 
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as const;
 const manualBillingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}` as const;
-const programKey = CONST.COUNTRY.US;
+const programKey = CONST.COUNTRY.GB;
 
 const route: PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION>['route'] = {
     key: 'workspace-expensify-card-settle-balance-confirmation',
@@ -144,7 +145,6 @@ describe('WorkspaceSettleBalanceConfirmationPage', () => {
                 requestedAmount: 350,
                 roundedAmount: 400,
                 maximumAmount: 1700,
-                transactionCount: 2,
                 isAboveMaximum: false,
                 isEverythingEligible: false,
             });
@@ -163,8 +163,14 @@ describe('WorkspaceSettleBalanceConfirmationPage', () => {
         fireEvent.press(screen.getByRole('button', {name: 'Settle balance'}));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the rounded amount is queued, the preview and the draft are gone and the pane closes
-        await expect(getOnyxValue(manualBillingKey)).resolves.toEqual({type: 'partial', amount: 400, requestedAmount: 350, feedCountry: programKey});
+        // Then the rounded amount is queued for the workspace's program, the preview and the draft are gone and the pane closes
+        await expect(getOnyxValue(manualBillingKey)).resolves.toEqual({type: 'partial', amount: 400});
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT, 0, {
+            feedCountry: programKey,
+            domainAccountID: WORKSPACE_ACCOUNT_ID,
+            amount: 350,
+            roundedAmount: 400,
+        });
         await expect(getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW)).resolves.toBeFalsy();
         await expect(getOnyxValue(ONYXKEYS.FORMS.SETTLE_EXPENSIFY_CARD_BALANCE_DRAFT_FORM)).resolves.toBeFalsy();
         expect(Navigation.dismissModal).toHaveBeenCalled();
@@ -220,7 +226,6 @@ describe('WorkspaceSettleBalanceConfirmationPage', () => {
                 requestedAmount: 350,
                 roundedAmount: 400,
                 maximumAmount: 1700,
-                transactionCount: 2,
                 isAboveMaximum: false,
                 isEverythingEligible: false,
             });

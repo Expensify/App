@@ -15,19 +15,6 @@ const domainAccountID = 22588762;
 const manualBillingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${domainAccountID}` as const;
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}` as const;
 
-/**
- * Reads the parameters of the most recent settle balance request. The fetch mock accumulates calls for the whole
- * file, and parameters travel as FormData, so every value comes back as a string.
- */
-function getLastSettleBalanceRequestParams(): Record<string, FormDataEntryValue> {
-    if (!jest.isMockFunction(global.fetch)) {
-        throw new Error('Expected global.fetch to be a Jest mock function.');
-    }
-    const calls = jest.mocked(global.fetch).mock.calls.filter(([url]) => url === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING}?`);
-    const body = calls.at(-1)?.[1]?.body;
-    return body instanceof FormData ? Object.fromEntries(body) : {};
-}
-
 OnyxUpdateManager();
 describe('actions/Card', () => {
     beforeAll(() => {
@@ -39,30 +26,12 @@ describe('actions/Card', () => {
     const mockFetch = TestHelper.setupGlobalFetchMock();
 
     beforeEach(() => {
+        jest.clearAllMocks();
         mockFetch.succeed();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('queueExpensifyCardForBilling', () => {
-        it('tells the backend which card program to settle', async () => {
-            // Given a UK/EU workspace, whose card settings live under the GB program
-            const programKey = CONST.COUNTRY.GB;
-
-            // When the admin settles the balance
-            queueExpensifyCardForBilling(domainAccountID, programKey);
-            await waitForBatchedUpdates();
-            await mockFetch.resume?.();
-            await waitForBatchedUpdates();
-
-            // Then the request names that program, otherwise the backend looks for a US program and rejects the request
-            expect(getLastSettleBalanceRequestParams()).toEqual(
-                expect.objectContaining({
-                    domainAccountID: String(domainAccountID),
-                    feedCountry: programKey,
-                }),
-            );
-        });
-
         it('sends both amounts of a partial settlement and shows it as queued right away', async () => {
             // Given a workspace where the admin previewed 350 and was shown 400 as the rounded amount
             // When the partial settlement is confirmed
@@ -70,16 +39,32 @@ describe('actions/Card', () => {
             await waitForBatchedUpdates();
 
             // Then the label switches to the queued partial amount before the request lands, which hides the button
-            await expect(getOnyxValue(manualBillingKey)).resolves.toEqual({type: 'partial', amount: 400, requestedAmount: 350, feedCountry: CONST.COUNTRY.US});
+            await expect(getOnyxValue(manualBillingKey)).resolves.toEqual({type: 'partial', amount: 400});
 
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
 
-            // Then the backend gets the entered and the rounded amount, so it can refuse a stale preview
-            expect(getLastSettleBalanceRequestParams()).toEqual(expect.objectContaining({amount: '350', roundedAmount: '400', feedCountry: CONST.COUNTRY.US}));
+            // Then the partial command gets the entered and the rounded amount, so the backend can refuse a stale preview
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT, 0, {
+                feedCountry: CONST.COUNTRY.US,
+                domainAccountID,
+                amount: 350,
+                roundedAmount: 400,
+            });
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, 0);
         });
 
-        it('shows a full settlement as queued and leaves the amounts out of the request', async () => {
+        it('shows a partial settlement as partial even when no card program was detected', async () => {
+            // Given card settings with no recognizable program
+            // When a partial settlement is confirmed
+            queueExpensifyCardForBilling(domainAccountID, undefined, {amount: 350, roundedAmount: 400});
+            await waitForBatchedUpdates();
+
+            // Then the label shows the partial amount, because the request is still a partial one
+            await expect(getOnyxValue(manualBillingKey)).resolves.toEqual({type: 'partial', amount: 400});
+        });
+
+        it('shows a full settlement as queued and sends it without amounts', async () => {
             // Given an admin settling the full balance
             // When it is confirmed
             queueExpensifyCardForBilling(domainAccountID, CONST.COUNTRY.US);
@@ -90,8 +75,10 @@ describe('actions/Card', () => {
 
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
-            expect(getLastSettleBalanceRequestParams()).not.toHaveProperty('amount');
-            expect(getLastSettleBalanceRequestParams()).not.toHaveProperty('roundedAmount');
+
+            // Then it goes through the full settlement command, which settles everything outstanding
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, 0, {feedCountry: CONST.COUNTRY.US, domainAccountID});
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_PARTIAL_SETTLEMENT, 0);
         });
 
         it('brings the button back and shows an error when the backend refuses the settlement', async () => {
@@ -119,7 +106,6 @@ describe('actions/Card', () => {
                 requestedAmount: 350,
                 roundedAmount: 400,
                 maximumAmount: 1700,
-                transactionCount: 2,
                 isAboveMaximum: false,
                 isEverythingEligible: false,
             }));
@@ -136,7 +122,6 @@ describe('actions/Card', () => {
                     requestedAmount: 350,
                     roundedAmount: 400,
                     maximumAmount: 1700,
-                    transactionCount: 2,
                     isLoading: false,
                 }),
             );
@@ -149,7 +134,6 @@ describe('actions/Card', () => {
                 requestedAmount: 5000,
                 roundedAmount: 0,
                 maximumAmount: 1700,
-                transactionCount: 0,
                 isAboveMaximum: true,
                 isEverythingEligible: false,
             }));
@@ -177,21 +161,6 @@ describe('actions/Card', () => {
             expect(canContinue).toBe(false);
             const preview = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSIFY_CARD_SETTLEMENT_PREVIEW);
             expect(Object.values(preview?.errors ?? {}).at(0)).toBe('You can’t settle a partial balance while a previous settlement has failed.');
-        });
-    });
-
-    describe('queueExpensifyCardForBilling program', () => {
-        it('lets the backend pick the program when the card settings do not identify one', async () => {
-            // Given card settings with no recognizable program key
-            // When the admin settles the balance
-            queueExpensifyCardForBilling(domainAccountID, undefined);
-            await waitForBatchedUpdates();
-            await mockFetch.resume?.();
-            await waitForBatchedUpdates();
-
-            // Then no program is sent, so the backend settles whichever program is provisioned on the domain
-            expect(getLastSettleBalanceRequestParams()).toEqual(expect.objectContaining({domainAccountID: String(domainAccountID)}));
-            expect(getLastSettleBalanceRequestParams()).not.toHaveProperty('feedCountry');
         });
     });
 });

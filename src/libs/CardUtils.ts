@@ -1942,10 +1942,7 @@ type QueuedExpensifyCardSettlement = {
     amount?: number;
 };
 
-/**
- * Reads what is queued for the next billing run. The backend sends "true" for a full settlement and an object for a
- * partial one, and older values can be a boolean, so every reader goes through here instead of testing truthiness.
- */
+/** Reads what is queued for the next billing run, which can be "true", a boolean or a partial settlement object. */
 function getQueuedExpensifyCardSettlement(manualBilling: OnyxEntry<ExpensifyCardManualBilling>): QueuedExpensifyCardSettlement {
     if (manualBilling && typeof manualBilling === 'object') {
         return {isQueued: true, isPartial: manualBilling.type === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL, amount: manualBilling.amount};
@@ -2790,4 +2787,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, QueuedExpensifyCardSettlement};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};

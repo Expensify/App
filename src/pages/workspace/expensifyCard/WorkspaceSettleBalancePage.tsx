@@ -1,7 +1,3 @@
-/**
- * First step of settling an Expensify Card balance early: the admin picks between the full balance and a partial amount.
- * A partial amount is previewed by the backend, which rounds it up to whole transactions, before the confirmation page.
- */
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -44,10 +40,6 @@ import {View} from 'react-native';
 
 type SettlementType = ValueOf<typeof CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE>;
 
-function isSettlementType(value: unknown): value is SettlementType {
-    return Object.values(CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE).some((settlementType) => settlementType === value);
-}
-
 type WorkspaceSettleBalancePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE>;
 
 function WorkspaceSettleBalancePage({route}: WorkspaceSettleBalancePageProps) {
@@ -70,9 +62,9 @@ function WorkspaceSettleBalancePage({route}: WorkspaceSettleBalancePageProps) {
     const isOnMonthlySettlement = !!settings?.monthlySettlementDate;
     const isSettlementQueued = getQueuedExpensifyCardSettlement(cardManualBilling).isQueued;
 
-    const [settlementTypeDraft, setSettlementTypeDraft] = useState<SettlementType>();
-    const draftSettlementType = draftForm?.[INPUT_IDS.SETTLEMENT_TYPE];
-    const settlementType = settlementTypeDraft ?? (isSettlementType(draftSettlementType) ? draftSettlementType : CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.FULL);
+    // The saved draft can load after the first render, so it stays the fallback until the admin picks an option
+    const [selectedSettlementType, setSelectedSettlementType] = useState<SettlementType>();
+    const settlementType = selectedSettlementType ?? draftForm?.[INPUT_IDS.SETTLEMENT_TYPE] ?? CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.FULL;
     const isPartial = settlementType === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL;
 
     // A preview left over from an earlier visit must not be shown as if it were the answer to what the admin enters now
@@ -169,10 +161,9 @@ function WorkspaceSettleBalancePage({route}: WorkspaceSettleBalancePageProps) {
                         defaultValue={settlementType}
                         items={settlementTypeItems}
                         onValueChange={(value) => {
-                            if (!isSettlementType(value)) {
-                                return;
-                            }
-                            setSettlementTypeDraft(value);
+                            setSelectedSettlementType(
+                                value === CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL ? CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.PARTIAL : CONST.EXPENSIFY_CARD.SETTLEMENT_TYPE.FULL,
+                            );
                         }}
                         shouldShowModal={false}
                         shouldSaveDraft

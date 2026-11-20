@@ -18,9 +18,6 @@ type ExpensifyCardSettlementPreview = {
     /** The most that can be settled early, in cents */
     maximumAmount?: number;
 
-    /** How many transactions the rounded amount covers */
-    transactionCount?: number;
-
     /** Whether the entered amount is above the maximum */
     isAboveMaximum?: boolean;
 

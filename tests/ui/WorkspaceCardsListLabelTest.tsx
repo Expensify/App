@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const WORKSPACE_ACCOUNT_ID = 424242;
@@ -59,6 +60,40 @@ describe('WorkspaceCardsListLabel', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
+    });
+
+    it('shows a failed settlement error even when the card program has its own errors, and lets the admin dismiss it', async () => {
+        // Given a failed settlement, stored with the card settings, next to an error the program keeps for its settlement account
+        await act(async () => {
+            await Onyx.merge(cardSettingsKey, {
+                errorFields: {settleBalance: {failedSettlement: 'We couldn’t queue the settlement. Please try again.'}},
+                [CONST.COUNTRY.GB]: {monthlySettlementDate: 5, errorFields: {paymentBankAccountID: {settlementAccount: 'Settlement account error'}}},
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the admin opens the Expensify Card page
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                    value={100000}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the settlement error shows, since the program's errors must not replace it
+        expect(screen.getByText('We couldn’t queue the settlement. Please try again.')).toBeTruthy();
+
+        // When the admin dismisses it
+        fireEvent.press(screen.getByLabelText('Dismiss'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is gone, and it stays gone after a reload because the stored error is cleared too
+        expect(screen.queryByText('We couldn’t queue the settlement. Please try again.')).toBeNull();
+        const cardSettings = await getOnyxValue(cardSettingsKey);
+        expect(cardSettings?.errorFields?.settleBalance).toBeUndefined();
     });
 
     it('hides Request limit increase from an admin who is not shared on the Plaid settlement account', async () => {
