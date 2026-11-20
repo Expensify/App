@@ -19,7 +19,6 @@ function TextPicker({
     errorText = '',
     onInputChange,
     onValueCommitted,
-    furtherDetails,
     rightLabel,
     disabled = false,
     interactive = true,
@@ -67,7 +66,6 @@ function TextPicker({
                 title={value ?? placeholder ?? ''}
                 description={description}
                 onPress={showPickerModal}
-                furtherDetails={furtherDetails}
                 rightLabel={rightLabel}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
