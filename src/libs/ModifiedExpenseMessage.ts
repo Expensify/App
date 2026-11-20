@@ -234,24 +234,24 @@ function getRulesModifiedMessage(
             return translate('iou.rulesModifiedFields.tax', taxRateName, isFirst);
         }
 
-        const value = modifiedFields[key];
-        if (key === 'category') {
-            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(value ?? ''), isFirst);
-        }
-        if (key === 'tag') {
-            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value ?? ''), isFirst);
-        }
         if (key === 'vendor') {
             const vendorEntry = modifiedFields[key];
-            return translate('iou.rulesModifiedFields.common', key, vendorEntry?.name || vendorEntry?.externalID || '', isFirst);
+            const vendorName = vendorEntry ? vendorEntry.name || vendorEntry.externalID : '';
+            return translate('iou.rulesModifiedFields.common', key, vendorName, isFirst);
+        }
+        if (key === 'category') {
+            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(modifiedFields[key] ?? ''), isFirst);
+        }
+        if (key === 'tag') {
+            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(modifiedFields[key] ?? ''), isFirst);
         }
 
         // The backend saves description as comment, so display it with the description label.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', String(value), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', String(modifiedFields[key]), isFirst);
         }
 
-        return translate('iou.rulesModifiedFields.common', key, String(value), isFirst);
+        return translate('iou.rulesModifiedFields.common', key, String(modifiedFields[key]), isFirst);
     });
 
     const fragments = [...standaloneFragments, ...listFragment];
