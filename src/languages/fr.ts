@@ -11278,6 +11278,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         filtersHeader: 'Filtres',
         filters: {
+            requiredWithViolationFilter: 'Requis avec le filtre de violations',
+            notAvailableWithViolationFilter: 'Indisponible avec le filtre de violations',
             date: {
                 before: (date?: string) => `Avant ${date ?? ''}`,
                 after: (date?: string) => `Après ${date ?? ''}`,

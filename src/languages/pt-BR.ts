@@ -11174,6 +11174,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         filtersHeader: 'Filtros',
         filters: {
+            requiredWithViolationFilter: 'Obrigatório com o filtro de violações',
+            notAvailableWithViolationFilter: 'Indisponível com o filtro de violações',
             date: {
                 before: (date?: string) => `Antes de ${date ?? ''}`,
                 after: (date?: string) => `Depois de ${date ?? ''}`,

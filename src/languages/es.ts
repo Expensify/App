@@ -11183,6 +11183,8 @@ ${reportName}`,
         },
         filtersHeader: 'Filtros',
         filters: {
+            requiredWithViolationFilter: 'Obligatorio con el filtro de infracciones',
+            notAvailableWithViolationFilter: 'No disponible con el filtro de infracciones',
             date: {
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,

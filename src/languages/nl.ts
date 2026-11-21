@@ -11167,6 +11167,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         filtersHeader: 'Filters',
         filters: {
+            requiredWithViolationFilter: 'Vereist bij overtredingsfilter',
+            notAvailableWithViolationFilter: 'Niet beschikbaar bij overtredingsfilter',
             date: {
                 before: (date?: string) => `Voor ${date ?? ''}`,
                 after: (date?: string) => `Na ${date ?? ''}`,

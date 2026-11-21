@@ -11248,6 +11248,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         filtersHeader: 'Filter',
         filters: {
+            requiredWithViolationFilter: 'Bei Verstoßfilter erforderlich',
+            notAvailableWithViolationFilter: 'Mit Verstoßfilter nicht verfügbar',
             date: {
                 before: (date?: string) => `Vor ${date ?? ''}`,
                 after: (date?: string) => `Nach ${date ?? ''}`,

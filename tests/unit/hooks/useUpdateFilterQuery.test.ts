@@ -4,7 +4,7 @@ import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery'
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildFilterFormValuesFromQuery, buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringWithResetFilters, buildSearchQueryJSON, VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,6 +102,132 @@ describe('useUpdateFilterQuery', () => {
             result.current.setFilterQueryParams({merchant: 'Amazon'});
 
             expect(getSetParamsCall()).not.toHaveProperty('searchKey');
+        });
+    });
+
+    describe('required violation stages', () => {
+        it('does not add violation stages when an unrelated date filter changes', () => {
+            // Given a typed positive violation query with no explicit Has stages
+            const query = buildSearchQueryJSON('violation:overLimit');
+            if (!query) {
+                throw new Error('Invalid test query');
+            }
+            const form = buildFilterFormValuesFromQuery(query, {}, {}, {}, {}, {}, {});
+            onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = form;
+            const {result} = renderHook(() => useUpdateFilterQuery(query));
+
+            // When the user refines that query through the Date filter
+            const updated = result.current.getUpdatedFilterFormValues(form, {dateAfter: '2026-01-01'});
+            act(() => result.current.updateFilterQueryParams({dateAfter: '2026-01-01'}));
+
+            // Then the form and navigated query preserve the typed query's implicit stages
+            expect(updated.has ?? []).toEqual([]);
+            expect(updated.violationName).toEqual(['overLimit']);
+            expect(getNavigatedQuery()?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)).toEqual([]);
+            expect(getNavigatedQuery()?.flatFilters).toContainEqual({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, filters: [{operator: 'eq', value: 'overLimit'}]});
+        });
+
+        it('does not add expense stages when a violation filter is edited on Chat', () => {
+            // Given an unsupported search type, even if a stale violation filter remains in its draft
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When the update explicitly includes a positive violation filter
+            const updated = result.current.getUpdatedFilterFormValues({type: CONST.SEARCH.DATA_TYPES.CHAT}, {violationName: ['overLimit']});
+
+            // Then the helper still respects the search type restriction
+            expect(updated.has).toBeUndefined();
+        });
+
+        it.each([{has: []}, {has: [CONST.SEARCH.HAS_VALUES.ATTACHMENT]}])('does not restore expense violation stages when switching to Chat (%j)', ({has}) => {
+            // Given an expense search whose violation filter requires expense stages
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                violationName: ['overLimit'],
+                has: [...has, ...VIOLATION_HAS_VALUES],
+            };
+            onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = currentValues;
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When switching to Chat removes unsupported Has values
+            const updated = result.current.getUpdatedFilterFormValues(currentValues, {type: CONST.SEARCH.DATA_TYPES.CHAT});
+            act(() => {
+                result.current.updateFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.CHAT});
+            });
+
+            // Then normalization does not restore hidden expense stages or serialize them into the Chat query
+            expect(updated.has ?? []).toEqual(has);
+            const query = getNavigatedQuery();
+            expect(query?.type).toBe(CONST.SEARCH.DATA_TYPES.CHAT);
+            expect(query?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)).toEqual([]);
+            expect(query?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)).toEqual(
+                has.length ? [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.ATTACHMENT}]}] : [],
+            );
+        });
+
+        it.each([undefined, [], [CONST.SEARCH.HAS_VALUES.RECEIPT]])('adds both stages without dropping existing Has values (%j)', (has) => {
+            // Given a form with no positive violation stage
+            const currentValues = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, has};
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When a positive violation filter is selected in the UI
+            const updated = result.current.getUpdatedFilterFormValues(currentValues, {violationName: ['overLimit']});
+
+            // Then both stages are added and unrelated selections are kept without mutating the original form
+            expect(updated.has).toEqual([...(has ?? []), ...VIOLATION_HAS_VALUES]);
+            expect(currentValues.has).toEqual(has);
+        });
+
+        it.each(VIOLATION_HAS_VALUES)('preserves the explicitly chosen %s stage', (stage) => {
+            // Given a form already scoped to one positive violation stage
+            const currentValues = {has: [CONST.SEARCH.HAS_VALUES.RECEIPT, stage]};
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When the violation filter changes
+            const updated = result.current.getUpdatedFilterFormValues(currentValues, {violationName: ['overLimit']});
+
+            // Then the other stage is not added
+            expect(updated.has).toEqual(currentValues.has);
+        });
+
+        it('ignores a negated violation filter', () => {
+            // Given a form without positive violation filters
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When only a negated violation filter is selected
+            const updated = result.current.getUpdatedFilterFormValues({}, {violationNameNot: ['overLimit']});
+
+            // Then no Has stages are added
+            expect(updated.has).toBeUndefined();
+        });
+
+        it('does not count negated Has stages as positive selections', () => {
+            // Given only negated violation stages
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When a positive violation filter is selected
+            const updated = result.current.getUpdatedFilterFormValues({hasNot: [...VIOLATION_HAS_VALUES]}, {violationName: ['overLimit']});
+
+            // Then positive stages are added and negated stages are left alone
+            expect(updated.has).toEqual(VIOLATION_HAS_VALUES);
+            expect(updated.hasNot).toEqual(VIOLATION_HAS_VALUES);
+        });
+
+        it('does not restore Has when the Has pill clears its dependent positive violation filter', () => {
+            // Given positive and negated violation filters with positive Has stages
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {
+                violationName: ['overLimit'],
+                violationNameNot: ['missingCategory'],
+                has: [...VIOLATION_HAS_VALUES],
+            };
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When closing the Has pill clears both positive filters in one update
+            const updated = result.current.getUpdatedFilterFormValues(currentValues, {has: undefined, violationName: undefined});
+
+            // Then neither positive filter is restored and the negated violation filter survives
+            expect(updated.has).toBeUndefined();
+            expect(updated.violationName).toBeUndefined();
+            expect(updated.violationNameNot).toEqual(['missingCategory']);
         });
     });
 

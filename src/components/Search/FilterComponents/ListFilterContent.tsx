@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isFilterNegatable} from '@libs/SearchQueryUtils';
+import {isFilterNegatable, isLastRequiredViolationHasValue} from '@libs/SearchQueryUtils';
 import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, getViolationFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -44,6 +44,7 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     baseFilterKey: FilterKeys;
     isNegated: boolean;
     type?: SearchDataTypes;
+    violationNames?: SearchAdvancedFiltersForm['violationName'];
     policyID: Filter | undefined;
     style?: StyleProp<ViewStyle>;
     onNegationChange: (isNegated: boolean) => void;
@@ -72,6 +73,7 @@ type MultiSelectFilterKeys =
 type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     baseFilterKey: MultiSelectFilterKeys;
     type: SearchDataTypes | undefined;
+    violationNames?: SearchAdvancedFiltersForm['violationName'];
 };
 
 /** Matches `styles.mv3` applied to the hint below. */
@@ -79,6 +81,7 @@ const HINT_VERTICAL_MARGIN = 12;
 
 type HasMultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     type: SearchDataTypes | undefined;
+    violationNames?: SearchAdvancedFiltersForm['violationName'];
 };
 
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
@@ -112,7 +115,7 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
  * Availability is computed in render (not a POLICY selector that closes over categories) so a late
  * POLICY_CATEGORIES load still recomputes submitted-violation for migrated Control workspaces.
  */
-function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
+function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, violationNames, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
@@ -123,6 +126,9 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
         policies: policies ?? {},
         policyIDsWithCategoryRules,
         selectedValues,
+    }).map((item) => {
+        const isDisabled = isLastRequiredViolationHasValue(item.value, selectedValues, violationNames);
+        return {...item, isDisabled, tooltipText: isDisabled ? translate('search.filters.requiredWithViolationFilter') : undefined};
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
@@ -140,7 +146,15 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
     );
 }
 
-function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
+function MultiSelectListFilterContent({
+    baseFilterKey,
+    value = [],
+    type = CONST.SEARCH.DATA_TYPES.EXPENSE,
+    violationNames,
+    selectionListStyle,
+    footer,
+    onChange,
+}: MultiSelectListFilterContentProps) {
     const {translate, localeCompare} = useLocalize();
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
@@ -149,6 +163,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
             <HasMultiSelectListFilterContent
                 value={value}
                 type={type}
+                violationNames={violationNames}
                 selectionListStyle={selectionListStyle}
                 footer={footer}
                 onChange={onChange}
@@ -183,6 +198,7 @@ function ListFilterContent({
     value,
     isNegated,
     type,
+    violationNames,
     policyID,
     style,
     selectionListTextInputStyle: selectionListTextInputStyleProp,
@@ -194,7 +210,9 @@ function ListFilterContent({
     onNegationChange,
 }: ListFilterContentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
+    const isNegationDisabled = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length && !isNegated;
     const selectionListTextInputStyle = [selectionListTextInputStyleProp, isFilterKeyNegatable && styles.pt2];
 
     let content;
@@ -298,6 +316,7 @@ function ListFilterContent({
                     baseFilterKey={baseFilterKey}
                     value={typeof value === 'object' ? value : undefined}
                     type={type}
+                    violationNames={isNegated ? undefined : violationNames}
                     selectionListStyle={selectionListStyle}
                     footer={footer}
                     onChange={onChange}
@@ -350,6 +369,7 @@ function ListFilterContent({
             style={style}
             baseFilterKey={baseFilterKey}
             isNegated={isNegated}
+            negationDisabledTooltip={isNegationDisabled ? translate('search.filters.notAvailableWithViolationFilter') : undefined}
             onNegationChange={onNegationChange}
         >
             {content}

@@ -138,6 +138,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
             baseFilterKey={baseFilterKey}
             value={value}
             type={values?.type}
+            violationNames={values?.violationName}
             policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
             buttonText={buttonText}
