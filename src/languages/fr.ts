@@ -1363,13 +1363,17 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
         approverColumn: (position: number) => `Approbateur ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Type d’approbation de l’approbateur ${position}`,
         approverLimitColumn: (position: number) => `Limite de l'approbateur ${position}`,
-        approverOverLimitApproverColumn: (position: number) => `Approbateur ${position} au-delà de la limite d’approbation`,
         approversOutOfOrder: (rowNumber: number) =>
             `Oups ! Il manque un approbateur à la ligne ${rowNumber}. Veuillez lister les approbateurs dans l’ordre, en commençant par l’Approbateur 1, puis réessayez.`,
         approverRepeated: (rowNumber: number) => `Oups ! La ligne ${rowNumber} indique le même approbateur plus d’une fois. Veuillez examiner et réessayer.`,
-        approvalLimitIncomplete: (rowNumber: number) =>
-            `Oups ! La ligne ${rowNumber} a une limite d’approbation sans approbateur au-delà de cette limite, ou un approbateur au-delà de la limite sans limite d’approbation. Veuillez examiner et réessayer.`,
+        invalidApprovalType: (rowNumber: number) => `Oups ! La ligne ${rowNumber} a un type d’approbation qui n’est ni « Always » ni « Over limit ». Veuillez examiner et réessayer.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Oups ! La ligne ${rowNumber} définit l’Approbateur 1 sur « Over limit », mais chaque note de frais est envoyée à l’Approbateur 1. Veuillez examiner et réessayer.`,
+        approvalLimitMismatch: `Il y a une incohérence entre le type d’approbation et la limite d’approbation pour ces approbateurs. Veuillez la corriger et réessayer. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">En savoir plus</a>.`,
+        decreasingApprovalLimits: (rowNumber: number) =>
+            `Oups ! La ligne ${rowNumber} contient un approbateur « Over limit » avec une limite inférieure à celle de l’approbateur « Over limit » qui le précède. Veuillez examiner et réessayer.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',

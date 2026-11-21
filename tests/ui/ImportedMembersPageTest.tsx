@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Member from '@libs/actions/Policy/Member';
@@ -14,6 +15,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy} from '@src/types/onyx';
 
+import type ReactNative from 'react-native';
+
+import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -59,7 +63,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(() => undefined),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
+    isTopmostRouteModalScreen: jest.fn(() => false),
 }));
+
+// The HTML renderer doesn't run under Jest, so modal copy with links is rendered as its plain text
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+
+    return ({html}: {html: string}) => ReactMock.createElement(Text, null, html.replaceAll(/<[^>]*>/g, ''));
+});
 
 // A Submit (non-Control) workspace, so the import gate's "requires Control" check fires.
 function buildSubmitPolicy(): Policy {
@@ -120,10 +133,14 @@ const mockRoute = {
 function renderImportedMembersPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ImportedMembersPage
-                // @ts-expect-error - route type from navigator
-                route={mockRoute}
-            />
+            <PortalProvider>
+                <ModalProvider>
+                    <ImportedMembersPage
+                        // @ts-expect-error - route type from navigator
+                        route={mockRoute}
+                    />
+                </ModalProvider>
+            </PortalProvider>
         </ComposeProviders>,
     );
 }
@@ -235,22 +252,29 @@ describe('ImportedMembersPage', () => {
     });
 
     it('imports the approvers each row lists, adding the approvers who are not members yet', async () => {
-        // Given multiple approvers, and a row whose first approver has a limit with a new over limit approver, then a new second approver
+        // Given multiple approvers, and a row whose first approver is followed by two new over limit approvers, for the reports
+        // over $100 and over $200
         await seedOnyx(
             buildSpreadsheet(
                 [
                     CONST.CSV_IMPORT_COLUMNS.EMAIL,
                     getApproverColumnRole(1, 'approver'),
-                    getApproverColumnRole(1, 'approvalLimit'),
-                    getApproverColumnRole(1, 'overLimitApprover'),
                     getApproverColumnRole(2, 'approver'),
+                    getApproverColumnRole(2, 'approvalType'),
+                    getApproverColumnRole(2, 'limit'),
+                    getApproverColumnRole(3, 'approver'),
+                    getApproverColumnRole(3, 'approvalType'),
+                    getApproverColumnRole(3, 'limit'),
                 ],
                 [
                     ['Email', 'member@example.com'],
                     ['Approver 1', ADMIN_EMAIL],
-                    ['Approver 1 limit', '100'],
-                    ['Approver 1 over limit approver', 'director@example.com'],
-                    ['Approver 2', 'cfo@example.com'],
+                    ['Approver 2', 'director@example.com'],
+                    ['Approver 2 approval type', 'Over limit'],
+                    ['Approver 2 limit', '100'],
+                    ['Approver 3', 'cfo@example.com'],
+                    ['Approver 3 approval type', 'Over limit'],
+                    ['Approver 3 limit', '200'],
                 ],
             ),
             buildControlPolicy(),
@@ -268,10 +292,14 @@ describe('ImportedMembersPage', () => {
         fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the member gets the approvers in order, with the limit in cents, and the new approvers join the workspace too
+        // Then the member gets the approvers in order, with the limits in cents, and the new approvers join the workspace too
         expect(setImportedSpreadsheetMemberDataSpy).toHaveBeenCalledWith(
             [
-                {email: 'member@example.com', role: '', approvers: [{email: ADMIN_EMAIL, approvalLimit: 10000, overLimitForwardsTo: 'director@example.com'}, {email: 'cfo@example.com'}]},
+                {
+                    email: 'member@example.com',
+                    role: '',
+                    approvers: [{email: ADMIN_EMAIL}, {email: 'director@example.com', overLimitAmount: 10000}, {email: 'cfo@example.com', overLimitAmount: 20000}],
+                },
                 {email: 'director@example.com', role: ''},
                 {email: 'cfo@example.com', role: ''},
             ],
@@ -311,6 +339,50 @@ describe('ImportedMembersPage', () => {
 
         // Then nothing is imported and the admin is told which row to fix
         expect(screen.getByText('Oops! Row 2 is missing an approver. Please list approvers in order, starting with Approver 1, and try again.')).toBeTruthy();
+        expect(importPolicyMembersSpy).not.toHaveBeenCalled();
+        expect(setImportedSpreadsheetMemberDataSpy).not.toHaveBeenCalled();
+    });
+
+    it('lists every approver whose approval type and limit do not match in a modal, without importing anything', async () => {
+        // Given multiple approvers, and rows with a second approver who gets every report but has a limit, and one who is an over
+        // limit approver without one
+        await seedOnyx(
+            buildSpreadsheet(
+                [
+                    CONST.CSV_IMPORT_COLUMNS.EMAIL,
+                    getApproverColumnRole(1, 'approver'),
+                    getApproverColumnRole(2, 'approver'),
+                    getApproverColumnRole(2, 'approvalType'),
+                    getApproverColumnRole(2, 'limit'),
+                ],
+                [
+                    ['Email', 'member@example.com', 'other@example.com'],
+                    ['Approver 1', ADMIN_EMAIL, ADMIN_EMAIL],
+                    ['Approver 2', 'director@example.com', 'cfo@example.com'],
+                    ['Approver 2 approval type', 'Always', 'Over limit'],
+                    ['Approver 2 limit', '100', ''],
+                ],
+            ),
+            buildControlPolicy(),
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers');
+        const setImportedSpreadsheetMemberDataSpy = jest.spyOn(Member, 'setImportedSpreadsheetMemberData');
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the spreadsheet is imported
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a modal lists both approvers for the admin to fix, and nothing is imported
+        expect(screen.getByText('Import failed')).toBeTruthy();
+        expect(screen.getByText("There's a mismatch between the approval type and approval limit for these approvers. Please fix it and try again. Learn more.")).toBeTruthy();
+        expect(screen.getByText(`${CONST.DOT_SEPARATOR} director@example.com\n${CONST.DOT_SEPARATOR} cfo@example.com`)).toBeTruthy();
         expect(importPolicyMembersSpy).not.toHaveBeenCalled();
         expect(setImportedSpreadsheetMemberDataSpy).not.toHaveBeenCalled();
     });

@@ -2,11 +2,8 @@
 type ImportedSpreadsheetApprover = {
     email: string;
 
-    /** The approver's approval limit, in cents. Unset when they have no limit */
-    approvalLimit?: number;
-
-    /** Who receives the reports at or over `approvalLimit`. Set exactly when `approvalLimit` is */
-    overLimitForwardsTo?: string;
+    /** Report total, in cents, that the approver only gets the reports over, which makes them an over limit approver. Unset when they get every report */
+    overLimitAmount?: number;
 };
 
 /** Model of imported spreadsheet member data */

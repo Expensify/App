@@ -1,9 +1,11 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
@@ -11,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
@@ -48,11 +51,14 @@ import SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheetMemberData} from '@src/types/onyx';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -75,8 +81,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const isControlPolicy = isControlPolicyUtil(policy);
 
-    // With rules, each row lists every approver of the member's workflow, each with their own limit, instead of
-    // the member's own submitsTo, forwardsTo and limit
+    // With rules, each row lists every approver of the member's workflow, each with their own approval type and limit,
+    // instead of the member's own submitsTo, forwardsTo and limit
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
 
     // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
@@ -104,8 +110,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             for (let position = 1; position <= approverCount; position++) {
                 columnRoles.push(
                     {text: translate('spreadsheet.approverColumn', position), value: getApproverColumnRole(position, 'approver')},
-                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'approvalLimit')},
-                    {text: translate('spreadsheet.approverOverLimitApproverColumn', position), value: getApproverColumnRole(position, 'overLimitApprover')},
+                    {text: translate('spreadsheet.approverApprovalTypeColumn', position), value: getApproverColumnRole(position, 'approvalType')},
+                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'limit')},
                 );
             }
         }
@@ -150,7 +156,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const decimals = getCurrencyDecimals(currency);
         const hasInvalidApprovalLimit = columns.some(
             (column, columnIndex) =>
-                (column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD || parseApproverColumnRole(column)?.field === 'approvalLimit') &&
+                (column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD || parseApproverColumnRole(column)?.field === 'limit') &&
                 spreadsheet?.data?.at(columnIndex)?.some((value, index) => {
                     if (containsHeader && index === 0) {
                         return false;
@@ -187,6 +193,25 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const errors = validate();
         if (Object.keys(errors).length > 0) {
+            return;
+        }
+
+        // A mismatched approval type and limit can happen on any number of approvers, so they're listed together in a modal
+        // that scrolls once the list gets long, instead of as an error for the first row with one
+        const {approversByRow, limitMismatchApproverEmails} = canImportApprovers ? getApprovers() : {approversByRow: [], limitMismatchApproverEmails: []};
+        if (limitMismatchApproverEmails.length > 0) {
+            showConfirmModal({
+                title: translate('spreadsheet.importFailedTitle'),
+                subtitle: (
+                    <View style={[styles.renderHTML, styles.mb4]}>
+                        <RenderHTML html={translate('spreadsheet.approvalLimitMismatch')} />
+                    </View>
+                ),
+                prompt: limitMismatchApproverEmails.map((email) => `${CONST.DOT_SEPARATOR} ${formatPhoneNumber(email)}`).join('\n'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldEnablePromptScroll: true,
+            });
             return;
         }
 
@@ -232,7 +257,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         // Approvers are matched against members by email, so both are read the way the backend stores logins
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (shouldUseApprovalWorkflowRules ? email.trim().toLowerCase() : email));
-        const {approversByRow} = canImportApprovers ? getApprovers() : {approversByRow: []};
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
         const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
@@ -307,9 +331,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add approvers who are not in the workspace
-        const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).flatMap((approver) => [approver.email, approver.overLimitForwardsTo ?? '']));
+        const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).map((approver) => approver.email));
         for (const approverEmail of approverEmails) {
-            if (!approverEmail || allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
+            if (allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
                 continue;
             }
             isRoleMissing = true;
