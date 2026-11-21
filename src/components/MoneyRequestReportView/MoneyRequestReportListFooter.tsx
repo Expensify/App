@@ -19,6 +19,7 @@ import {canAddTransaction, getBillableAndTaxTotal, getMoneyRequestSpendBreakdown
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+import variables from '@styles/variables';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -124,6 +125,8 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
                         isLoadMore
                         containerStyle={styles.mhn5}
                         shouldUseNarrowLayout={false}
+                        // Keeps the width the skeleton assumed before the flat navigation bar, since this report is not on the Search page that lost the Spend column.
+                        sidebarWidth={variables.sideBarWithLHBWidth}
                     />
                 </View>
             )}
