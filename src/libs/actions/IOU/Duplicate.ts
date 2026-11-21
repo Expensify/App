@@ -744,9 +744,6 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
-                // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
-                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {

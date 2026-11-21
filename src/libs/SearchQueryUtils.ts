@@ -99,6 +99,7 @@ import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
 import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1525,6 +1526,8 @@ function buildQueryStringWithResetDisplay(currentQueryJSON: SearchQueryJSON, sea
         rawFilterList: undefined,
         limit: defaultQueryJSON.limit,
         columns: defaultQueryJSON.columns,
+        leftPinnedColumns: defaultQueryJSON.leftPinnedColumns,
+        rightPinnedColumns: defaultQueryJSON.rightPinnedColumns,
         flatFilters: [...keptFilters, ...defaultGroupCurrencyFilters],
     });
 }
@@ -1537,8 +1540,10 @@ function getGroupCurrencyValue(queryJSON: SearchQueryJSON) {
     return getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY).value?.at(0);
 }
 
+/** The table layout a query saves: its columns and the pins on them. */
 function getColumnsValue(queryJSON: SearchQueryJSON) {
-    return [queryJSON.columns ?? []].flat().join(',');
+    const {left, right} = getPinnedColumns(queryJSON);
+    return [[queryJSON.columns ?? []].flat().join(','), left.join(','), right.join(',')].join('|');
 }
 
 function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
@@ -1682,6 +1687,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         groupBy,
         view,
         columns,
+        leftPinnedColumns,
+        rightPinnedColumns,
         limit,
         tagLevel,
         tagParent,
@@ -1729,6 +1736,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        }
+    }
+
+    const pinnedColumns = getPinsOnSavedColumns(getPinnedColumns({leftPinnedColumns, rightPinnedColumns}), {
+        type,
+        columns,
+        hasViolationFilter: hasValuesIncludeViolationFilter(supportedFilterValues.has),
+    });
+    for (const [key, pinnedColumnsToSave] of [
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, pinnedColumns.left],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, pinnedColumns.right],
+    ] as const) {
+        if (pinnedColumnsToSave.length) {
+            filtersString.push(`${key}:${pinnedColumnsToSave.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }
     }
 
@@ -2558,6 +2579,14 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.COLUMNS] = columns;
     }
 
+    if (queryJSON.leftPinnedColumns) {
+        filtersForm[FILTER_KEYS.LEFT_PINNED_COLUMNS] = [queryJSON.leftPinnedColumns].flat();
+    }
+
+    if (queryJSON.rightPinnedColumns) {
+        filtersForm[FILTER_KEYS.RIGHT_PINNED_COLUMNS] = [queryJSON.rightPinnedColumns].flat();
+    }
+
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
     }
@@ -2920,7 +2949,7 @@ function buildUserReadableQueryString({
     reportAttributes,
     bankAccountList,
 }: BuildUserReadableQueryStringParams) {
-    const {type, groupBy, view, columns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, groupBy, view, columns, leftPinnedColumns, rightPinnedColumns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -2994,9 +3023,15 @@ function buildUserReadableQueryString({
         title += ` view:${getUserFriendlyValue(view)}`;
     }
 
-    if (columns && columns.length > 0) {
-        const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
-        title += ` columns:${columnValue}`;
+    for (const [key, columnsValue] of [
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS, columns],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, leftPinnedColumns],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, rightPinnedColumns],
+    ] as const) {
+        const columnList = [columnsValue ?? []].flat();
+        if (columnList.length > 0) {
+            title += ` ${getUserFriendlyKey(key)}:${columnList.map((column) => getUserFriendlyValue(column)).join(',')}`;
+        }
     }
 
     for (const filterObject of filters) {
@@ -3138,6 +3173,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  * The deprecated Year to date preset is mapped to This year
+ * An expense query grouped by violation with no violation has value gets both violation has values
  */
 function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
@@ -3156,6 +3192,26 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
     if (hasInFilter && !hasExplicitType) {
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
+    }
+
+    // A typed violation grouping gets both violation has values, the same as choosing it in the filters UI (see
+    // useUpdateFilterQuery), so the Has pill shows which stages the groups count. A typed violation has value, even a
+    // negated one, already picks the stages, so the query is left alone then.
+    if (
+        standardizedQuery.type === CONST.SEARCH.DATA_TYPES.EXPENSE &&
+        standardizedQuery.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        !queryHasHasFilter(standardizedQuery, VIOLATION_HAS_VALUES, true)
+    ) {
+        const violationHasFilters = VIOLATION_HAS_VALUES.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}));
+        // Values next to a negated one are written into its `-has:` list, so they only join a group with no negated values
+        const hasFilterGroup = standardizedQuery.flatFilters.find(
+            (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && filter.filters.every((hasFilter) => hasFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO),
+        );
+        if (hasFilterGroup) {
+            hasFilterGroup.filters.push(...violationHasFilters);
+        } else {
+            standardizedQuery.flatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: violationHasFilters});
+        }
     }
 
     return buildSearchQueryString(standardizedQuery);

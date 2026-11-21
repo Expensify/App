@@ -6,6 +6,7 @@ import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
+import {getPinnedColumns} from '@src/libs/SearchPinnedColumnsUtils';
 import {
     applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
@@ -917,6 +918,39 @@ describe('SearchQueryUtils', () => {
 
             // Then the valid grouping and From filter remain applied
             expect(result).toEqual('type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant from:12345');
+        });
+
+        test('adds both violation has values to a typed violation grouping', () => {
+            // Given typed violation groupings with no has filter, a receipt has value, and a negated receipt has value
+            const violationHasValues = `${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const withoutHas = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+            const withReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+            const withoutReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            // Then all get the violation has values, the same as choosing the grouping in the filters UI, so the Has pill shows.
+            // The negated receipt value stays on its own, so the violation values aren't negated along with it.
+            expect(withoutHas).toContain(`has:${violationHasValues}`);
+            expect(withReceipt).toContain(`has:${CONST.SEARCH.HAS_VALUES.RECEIPT},${violationHasValues}`);
+            expect(withoutReceipt).toContain(`-has:${CONST.SEARCH.HAS_VALUES.RECEIPT} `);
+            expect(withoutReceipt).toContain(` has:${violationHasValues}`);
+        });
+
+        test('keeps the violation has values typed with a violation grouping', () => {
+            // Given violation groupings typed with their own violation has value, positive and negated
+            const approvedOnly = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+            const excludingSubmitted = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const approvedOnlyResult = getQueryWithUpdatedValues(approvedOnly);
+            const excludingSubmittedResult = getQueryWithUpdatedValues(excludingSubmitted);
+
+            // Then the stages the user picked are kept as typed
+            expect(approvedOnlyResult).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+            expect(approvedOnlyResult).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(excludingSubmittedResult).toContain(`-has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            expect(excludingSubmittedResult).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
         });
 
         test('returns query with updated view', () => {
@@ -4049,6 +4083,19 @@ describe('SearchQueryUtils', () => {
             // Then the grouping alone is a view worth saving
             expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
+
+        it('returns true when only the column pins differ from the default query', () => {
+            // Given a saved search that pins Category to the left
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+
+            // When the pin moves to the right, or is removed, without any other change
+            const movedPinQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:category');
+            const unpinnedQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // Then the header offers Save, so the new layout can be kept
+            expect(isSearchQuerySavable(movedPinQueryJSON, defaultQueryJSON)).toBe(true);
+            expect(isSearchQuerySavable(unpinnedQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('getChangedDisplayOptionsCount', () => {
@@ -4100,6 +4147,16 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
         });
 
+        it('counts the columns and their pins as one display option', () => {
+            // Given a default query and one that picks its columns and pins one of them
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense columns:date,merchant,category leftPinnedColumns:category');
+
+            // When counting the changed display options
+            // Then the table layout counts once, since the pins belong to the columns
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(1);
+        });
+
         it('counts the group currency and the view of a grouped query', () => {
             // Given a grouped default and a query that changes its currency and shows it as a bar chart
             const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
@@ -4127,6 +4184,22 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY})]));
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD})]));
+        });
+
+        it("restores the default query's column pins", () => {
+            // Given a saved search that pins Category to the left, viewed with Merchant pinned to the right instead
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:merchant');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When resetting the display options
+            const resetQueryJSON = buildSearchQueryJSON(buildQueryStringWithResetDisplay(currentQueryJSON, defaultQueryJSON));
+
+            // Then the saved pins come back, so the Display count drops to zero
+            expect(getPinnedColumns(resetQueryJSON ?? {})).toEqual({left: ['category'], right: []});
+            expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
         });
     });
 
