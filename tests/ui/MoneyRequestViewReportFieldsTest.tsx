@@ -20,6 +20,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -468,6 +469,27 @@ describe('MoneyRequestViewReportFields', () => {
 
         // Then the text field is untouched and still shows its cursor.
         expect(screen.getByLabelText('Field1')).not.toHaveProp('caretHidden', true);
+    });
+
+    it('renders and selects a list option when disabledOptions is missing', async () => {
+        // Given a report field whose payload omits disabled flags
+        const {disabledOptions, ...listField} = buildListField();
+        await renderReportFields(1, [createMock<OnyxTypes.PolicyReportField>(listField)]);
+        expect(screen.getByLabelText('ListField')).toHaveProp('value', 'Option1');
+
+        // When the dropdown is opened and a different value is selected
+        fireEvent.press(screen.getByLabelText('ListField'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Option2'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the option is saved instead of crashing while building the dropdown
+        expect(updateReportField).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: expect.objectContaining({reportID}),
+                reportField: expect.objectContaining({fieldID: 'listField', value: 'Option2'}),
+            }),
+        );
     });
 
     it('opens the option list in place when a list field is pressed', async () => {

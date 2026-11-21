@@ -192,7 +192,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     }
 
     if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST && !isReadOnly) {
-        const enabledOptions = reportField.values.filter((_option: string, index: number) => !reportField.disabledOptions.at(index));
+        const enabledOptions = reportField.values.filter((_option: string, index: number) => !reportField.disabledOptions?.at(index));
 
         // A short list is quicker to scan than to search, so the search input is dropped and its height is not reserved.
         const shouldShowSearchInput = enabledOptions.length >= CONST.REPORT_FIELD_LIST_SEARCH_THRESHOLD;

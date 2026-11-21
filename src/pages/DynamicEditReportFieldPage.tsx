@@ -190,7 +190,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                 <EditReportFieldDropdown
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions.at(index))}
+                    fieldOptions={policyField.values.filter((_value: string, index: number) => !policyField.disabledOptions?.at(index))}
                     onSubmit={handleReportFieldChange}
                 />
             )}
