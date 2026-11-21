@@ -394,8 +394,9 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
         });
     }
 
-    it('should build an optimistic MODIFIED_EXPENSE when the route distance is already known locally', async () => {
-        // Given a distance expense whose waypoints are pending on the server but whose route distance is known locally
+    it('should build an optimistic MODIFIED_EXPENSE from the passed transaction when the route distance is known', async () => {
+        // Given a distance expense whose route distance is known on the transaction passed by the caller,
+        // while Onyx only holds a snapshot with no locally known distance
         const transaction = buildDistanceTransaction({
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
@@ -407,13 +408,13 @@ describe('getUpdateMoneyRequestParams — distance rate change with pending wayp
                 },
             },
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildDistanceTransaction({}));
         await waitForBatchedUpdates();
 
         // When changing the distance rate
         const {params} = getParamsForRateChange(transaction);
 
-        // Then the report action is created optimistically instead of being deferred to the server
+        // Then the passed transaction is what gets read, not the Onyx snapshot
         expect(params.reportActionID).toBeDefined();
     });
 

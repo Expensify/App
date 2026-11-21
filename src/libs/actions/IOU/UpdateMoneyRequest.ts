@@ -732,8 +732,7 @@ function updateMoneyRequestVendor({
 }: UpdateMoneyRequestVendorParams) {
     // The caller passes the transaction so failureData can restore the actual previous vendor on API
     // failure instead of clearing it.
-    const resolvedTransaction = transaction;
-    const previousVendor = resolvedTransaction?.comment?.vendor;
+    const previousVendor = transaction?.comment?.vendor;
     const isClearing = !vendorID;
 
     const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, name: vendorName, wasManuallySet: true};
@@ -743,15 +742,8 @@ function updateMoneyRequestVendor({
     // command writes the same {externalID, wasManuallySet} shape to the action's originalMessage; the
     // optimistic action mirrors that so the local render matches the eventual server payload.
     const optimisticModifiedExpense =
-        resolvedTransaction && transactionThreadReport?.reportID
-            ? buildOptimisticModifiedExpenseReportAction(
-                  transactionThreadReport,
-                  resolvedTransaction,
-                  {vendor: newVendorOptimisticValue},
-                  isExpenseReport(parentReport),
-                  policy,
-                  delegateAccountID,
-              )
+        transaction && transactionThreadReport?.reportID
+            ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, {vendor: newVendorOptimisticValue}, isExpenseReport(parentReport), policy, delegateAccountID)
             : null;
     const optimisticReportActionID = optimisticModifiedExpense?.reportActionID ?? rand64();
 
@@ -797,7 +789,7 @@ function updateMoneyRequestVendor({
                 pendingFields: {
                     vendor: null,
                 },
-                ...(resolvedTransaction && {
+                ...(transaction && {
                     comment: {
                         vendor: previousVendor ?? null,
                     },
@@ -1908,11 +1900,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         >
     > = [];
 
-    // Step 1: Get the transaction being updated
-    // The manual-distance submit path always sends waypoints to keep the BE in sync, even when the user
-    // only edited the distance number. Detect whether the addresses actually changed so we can skip the
-    // optimistic side effects (pending field, route clearing, render-path swap to interactive map) that
-    // would otherwise make the parent map briefly disappear on a pure distance edit.
+    // Step 1: Detect whether the waypoint addresses actually changed.
+    // The transaction being updated is passed in by the caller. The manual-distance submit path always sends
+    // waypoints to keep the BE in sync, even when the user only edited the distance number, so we compare the
+    // addresses to skip the optimistic side effects (pending field, route clearing, render-path swap to
+    // interactive map) that would otherwise make the parent map briefly disappear on a pure distance edit.
     const hasWaypointAddressesChanged = 'waypoints' in transactionChanges && haveWaypointAddressesChanged(transaction?.comment?.waypoints, transactionChanges.waypoints);
     const shouldSuppressWaypointsAsPending = 'waypoints' in transactionChanges && !hasWaypointAddressesChanged;
 
