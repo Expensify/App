@@ -388,6 +388,64 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('renders an editable expense without crashing when a policy tag list omits the tags key (regression for Sentry APP-PCJ)', async () => {
+        // Given an editable expense with no tag selected and a policy whose tag list is empty.
+        // An empty tag list legitimately arrives from the API without the `tags` key, despite the
+        // PolicyTagList type (see PolicyUtils/tag.ts), so `hasEnabledOptions(tags)` used to receive
+        // `undefined` and `Object.values(undefined)` threw a fatal TypeError.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                // An empty tag list arrives from the API without the `tags` key, despite the PolicyTagList type (see PolicyUtils/tag.ts)
+                Empty: {name: 'Empty', orderWeight: 0, required: false},
+            });
+        });
+
+        // When the expense preview renders, it must not crash and should omit the empty tag row.
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: fieldLabel('common.merchant')})).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('menu-item-Empty')).not.toBeOnTheScreen();
+    });
+
+    it('renders only the tag lists with enabled tags when one independent list omits the tags key', async () => {
+        // Given two independent (non-dependent) tag lists: one empty (no `tags` key) and one with an enabled tag.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                // An empty tag list arrives from the API without the `tags` key, despite the PolicyTagList type (see PolicyUtils/tag.ts)
+                Empty: {name: 'Empty', orderWeight: 0, required: false},
+                Location: {name: 'Location', orderWeight: 1, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        // When the editable expense renders, the empty list is hidden and the enabled sibling list is shown.
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('menu-item-Empty')).not.toBeOnTheScreen();
+    });
+
     it('preserves word wrapping when expense detail labels are made non-selectable', async () => {
         // Given an expense with all labels affected by the non-selectable text styling
         const threadReport = {

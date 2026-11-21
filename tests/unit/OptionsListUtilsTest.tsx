@@ -36,7 +36,9 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
+    hasEnabledOptions,
     hydrateContactOption,
+    isOptionEnabled,
     optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
@@ -55,7 +57,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyCategories, PolicyTag, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Login from '@src/types/onyx/Login';
@@ -8390,6 +8392,67 @@ describe('OptionsListUtils', () => {
         it('should return empty string for empty input', () => {
             const result = getSearchValueForPhoneOrEmail('', 1);
             expect(result).toBe('');
+        });
+    });
+
+    describe('hasEnabledOptions', () => {
+        it('returns false for null or undefined options instead of throwing (regression for Sentry APP-PCJ)', () => {
+            // An empty policy tag list arrives from the API without the `tags` key (see PolicyUtils/tag.ts),
+            // so callers can pass `undefined` here. `Object.values(undefined)` throws a fatal TypeError.
+            expect(hasEnabledOptions(undefined)).toBe(false);
+            expect(hasEnabledOptions(null)).toBe(false);
+        });
+
+        it('returns false for empty options collections', () => {
+            expect(hasEnabledOptions({})).toBe(false);
+            expect(hasEnabledOptions([])).toBe(false);
+        });
+
+        it('returns true when at least one category is enabled and not pending deletion', () => {
+            const categories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true},
+                Meals: {name: 'Meals', enabled: false},
+            };
+            expect(hasEnabledOptions(categories)).toBe(true);
+        });
+
+        it('returns true when at least one tag (from an array) is enabled and not pending deletion', () => {
+            const tags: PolicyTag[] = [
+                {name: 'Berlin', enabled: false},
+                {name: 'Paris', enabled: true},
+            ];
+            expect(hasEnabledOptions(tags)).toBe(true);
+        });
+
+        it('returns false when every option is disabled', () => {
+            expect(hasEnabledOptions({Travel: {name: 'Travel', enabled: false}})).toBe(false);
+            expect(hasEnabledOptions([{name: 'Berlin', enabled: false}])).toBe(false);
+        });
+
+        it('returns false when every enabled option is pending deletion', () => {
+            expect(
+                hasEnabledOptions({
+                    Travel: {name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                }),
+            ).toBe(false);
+            expect(hasEnabledOptions([{name: 'Berlin', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}])).toBe(false);
+        });
+
+        it('treats nullish entries inside the options collection as not enabled', () => {
+            // @ts-expect-error -- Onyx records can hold undefined values at runtime even though the type says otherwise
+            expect(hasEnabledOptions({Travel: undefined})).toBe(false);
+        });
+    });
+
+    describe('isOptionEnabled', () => {
+        it('returns false for nullish options', () => {
+            expect(isOptionEnabled(undefined)).toBe(false);
+        });
+
+        it('returns true only for enabled options that are not pending deletion', () => {
+            expect(isOptionEnabled({name: 'Travel', enabled: true})).toBe(true);
+            expect(isOptionEnabled({name: 'Travel', enabled: false})).toBe(false);
+            expect(isOptionEnabled({name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})).toBe(false);
         });
     });
 

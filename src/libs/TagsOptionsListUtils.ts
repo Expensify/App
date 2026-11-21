@@ -446,16 +446,18 @@ function getUpdatedTransactionTag({
  * Filters the policy tags to return only enabled tags whose parent tag filter
  * matches the provided parent tag value at the given index level.
  *
- * @param tags - The policy tags object containing all available tags
+ * @param tags - The policy tags object containing all available tags. Can be nullish at runtime:
+ * an empty tag list arrives from the API without the `tags` key (see PolicyUtils/tag.ts), and
+ * `Object.values(undefined)` throws, so callers may pass a missing collection here.
  * @param tag - The tag string (potentially multi-level, e.g., "California:North")
  * @param index - The index level to truncate the tag to for parent filtering
  * @returns Array of enabled policy tags that match the parent tag filter
  */
-function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+function getEnabledTags(tags: PolicyTags | null | undefined, tag: string, index: number) {
     // Truncate tag to the current level (e.g., "California:North")
     const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
 
-    return Object.values(tags).filter((policyTag) => {
+    return Object.values(tags ?? {}).filter((policyTag) => {
         if (!policyTag.enabled) {
             return false;
         }

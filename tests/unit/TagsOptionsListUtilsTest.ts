@@ -809,6 +809,35 @@ describe('TagsOptionsListUtils', () => {
             ]);
         });
 
+        it('should hide a multilevel tag list that omits the tags key instead of crashing (regression for Sentry APP-PCJ)', () => {
+            // An empty tag list arrives from the API without the `tags` key, despite the PolicyTagList type
+            // (see PolicyUtils/tag.ts). `hasEnabledOptions(undefined)` used to throw a fatal TypeError.
+            const policyTagsWithMissingTagsKey: PolicyTagLists = {
+                // @ts-expect-error -- an empty tag list arrives from the API without the `tags` key, despite the PolicyTagList type (see PolicyUtils/tag.ts)
+                tagList1: {name: 'Category', required: true, orderWeight: 0},
+                tagList2: {
+                    name: 'Subcategory',
+                    required: false,
+                    tags: {
+                        tag3: {name: 'Tag3', enabled: true},
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: policyTagsWithMissingTagsKey,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: false},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
         it('should handle empty policyTags', () => {
             const result = getTagVisibility({
                 shouldShowTags: true,
@@ -1034,6 +1063,17 @@ describe('TagsOptionsListUtils', () => {
             const result = getEnabledTags(tags, 'Texas:City', 1);
 
             expect(result).toEqual([]);
+        });
+
+        it('returns an empty array for null or undefined tags instead of throwing (regression for Sentry APP-PCJ)', () => {
+            // An empty tag list arrives from the API without the `tags` key (see PolicyUtils/tag.ts),
+            // so callers can pass `undefined` here and `Object.values(undefined)` would throw.
+            expect(getEnabledTags(undefined, 'California:North', 1)).toEqual([]);
+            expect(getEnabledTags(null, 'California:North', 1)).toEqual([]);
+        });
+
+        it('returns an empty array for empty tags', () => {
+            expect(getEnabledTags({}, 'California:North', 1)).toEqual([]);
         });
     });
 

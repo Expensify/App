@@ -936,8 +936,17 @@ function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
 
 /**
  * Verifies that there is at least one enabled option
+ *
+ * NOTE: `options` can be nullish at runtime even though some types declare it as required.
+ * For example, an empty policy tag list arrives from the API without the `tags` key
+ * (see PolicyUtils/tag.ts), so callers like MoneyRequestView can pass `undefined` here.
+ * `Object.values(null/undefined)` throws a fatal TypeError, so guard against it and
+ * treat a missing collection as "no enabled options".
  */
-function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[] | null | undefined): boolean {
+    if (!options) {
+        return false;
+    }
     return Object.values(options).some(isOptionEnabled);
 }
 
