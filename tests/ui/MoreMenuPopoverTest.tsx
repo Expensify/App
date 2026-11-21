@@ -6,9 +6,10 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {FLAT_NAV_SECTION_DEFINITIONS} from '@libs/Navigation/FlatNav/FlatNavUtils';
-import type {FlatNavSection} from '@libs/Navigation/FlatNav/types';
+import type {FlatNavSavedSearchItem, FlatNavSection} from '@libs/Navigation/FlatNav/types';
 import useFlatNavSections from '@libs/Navigation/FlatNav/useFlatNavSections';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,11 +33,24 @@ jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateTo
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => ({indicatorColor: '#ff0000', status: 'hasPolicyErrors'}));
 jest.mock('@libs/telemetry/startTabNavigationSpans', () => ({startNavigateToReportsTabSpans: jest.fn()}));
 
+/** The More menu lists a section only when it has a search to open, and any item that can be opened will do here. */
+const SAVED_SEARCH_ITEM: FlatNavSavedSearchItem = {
+    type: FLAT_NAV.ITEM_TYPE.SAVED_SEARCH,
+    key: savedSearchIDToSearchKey('1'),
+    sectionID: FLAT_NAV.SECTION.SAVED,
+    savedSearchID: '1',
+    name: 'Saved 1',
+    title: 'Saved 1',
+    query: 'type:expense',
+    iconName: 'Bookmark',
+    isDisabled: false,
+};
+
 const SECTIONS: FlatNavSection[] = FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => definition.id !== FLAT_NAV.SECTION.TRAVEL).map(({id, translationPath, iconName}) => ({
     id,
     translationPath,
     iconName,
-    items: [],
+    items: [SAVED_SEARCH_ITEM],
     badgeText: id === FLAT_NAV.SECTION.ACCOUNTING ? '3' : undefined,
 }));
 
