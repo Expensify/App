@@ -54,6 +54,7 @@ import {
     isMapDistanceRequest,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import getTransactionRevertValues from '@libs/TransactionUtils/getTransactionRevertValues';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
@@ -89,7 +90,6 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
@@ -161,7 +161,6 @@ type CreateDistanceRequestInformation = {
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
@@ -184,7 +183,6 @@ type DistanceRequestPlan = {
     onyxData: OnyxData<DistanceRequestOnyxKeys>;
     activeReportID: string;
     shouldPlaySound: boolean;
-    shouldAddPendingNewTransaction: boolean;
     shouldNotifyNewAction: boolean;
     shouldSignalExpenseAdded: boolean;
 };
@@ -978,23 +976,23 @@ function completeSplitBill({
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const optimisticTransaction = {
+        ...updatedTransaction,
+        // Only the confirmation reads this draft flag. A saved scan would take it as an unconfirmed amount, and a failed request can't remove it.
+        isMerchantSet: null,
+        receipt: {
+            state: CONST.IOU.RECEIPT_STATE.OPEN,
+        },
+        // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+        // so the split details page renders the manual layout while offline instead of waiting for the response.
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+    };
 
-    // Save optimistic updated transaction and action
     const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...updatedTransaction,
-                // Only the confirmation reads this draft flag. A saved scan would take it as an unconfirmed amount, and a failed request can't remove it.
-                isMerchantSet: null,
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
-                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
-                // so the split details page renders the manual layout while offline instead of waiting for the response.
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            },
+            value: optimisticTransaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1028,7 +1026,7 @@ function completeSplitBill({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...unmodifiedTransaction,
+                ...getTransactionRevertValues(unmodifiedTransaction, optimisticTransaction),
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
         },
@@ -2128,7 +2126,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
-        moneyRequestReportTransactions,
         reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2444,14 +2441,13 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         onyxData,
         activeReportID: isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID,
         shouldPlaySound: shouldPlaySoundParam,
-        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions),
         shouldNotifyNewAction: !isMoneyRequestReport,
         shouldSignalExpenseAdded: !!isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT,
     };
 }
 
 /**
- * Runs what planDistanceRequest leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ * Runs what planDistanceRequest leaves out, in this order: the sound, the request, then the Expense added message.
  *
  * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
  * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search.
@@ -2459,10 +2455,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
 function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
-    }
-
-    if (plan.shouldAddPendingNewTransaction) {
-        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
     API.writeWhenReady(

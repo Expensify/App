@@ -206,7 +206,8 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
+    it('should disable report field when the only eligible report is already selected and creating from policy chat', async () => {
+        // Given the submitter's only eligible report is already selected, so there is no alternative destination
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: false,
@@ -229,10 +230,12 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
+        // When the confirmation footer renders the report field
         await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the field is read-only because the selected report is the only eligible destination
         const reportItem = screen.getByTestId('menu-item-Report');
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
@@ -259,7 +262,8 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
-    it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
+    it('should disable report field when the only eligible report is already selected and creating from FAB', async () => {
+        // Given the submitter's only eligible report is already selected, so there is no alternative destination
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: true,
@@ -282,10 +286,12 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
+        // When the confirmation footer renders the report field
         await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the field is read-only because the selected report is the only eligible destination
         const reportItem = screen.getByTestId('menu-item-Report');
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });

@@ -744,9 +744,6 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
-                // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
-                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
@@ -1131,20 +1128,16 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+    const {reportPreviewReportActionID, ...newReport} = createNewReport({
         ownerPersonalDetails,
-        false,
+        hasViolations: false,
         isASAPSubmitBetaEnabled,
-        targetPolicy,
+        policy: targetPolicy,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
-        false,
-        undefined,
-        {
-            reportName: newReportName,
-        },
-    );
+        reportName: newReportName,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 

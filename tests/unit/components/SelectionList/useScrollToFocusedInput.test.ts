@@ -30,7 +30,7 @@ describe('useScrollToFocusedInput (native)', () => {
             const scrollToOffset = jest.fn();
             const scroller = {...createViewAt(LIST_TOP, LIST_HEIGHT), scrollTo: jest.fn()};
             const {result} = renderHook(() =>
-                useScrollToFocusedInput({current: {scrollToOffset, getNativeScrollRef: () => createMock<ReturnType<FlashListRef<unknown>['getNativeScrollRef']>>(scroller)}}, false),
+                useScrollToFocusedInput({current: {scrollToOffset, getNativeScrollRef: () => createMock<ReturnType<FlashListRef<unknown>['getNativeScrollRef']>>(scroller)}}),
             );
             result.current.containerRef.current = createMock<ComponentRef<typeof View>>(createViewAt(LIST_TOP, LIST_HEIGHT + 200));
             act(() => result.current.trackScrollOffset(createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {y: SCROLL_OFFSET}}})));
@@ -90,7 +90,7 @@ describe('useScrollToFocusedInput (web)', () => {
         const scrollToOffset = jest.fn();
         const scroller = createElementAt(LIST_TOP, LIST_HEIGHT);
         scroller.scrollTop = SCROLL_OFFSET;
-        const {result} = renderHook(() => useWebScrollToFocusedInput({current: {scrollToOffset, getNativeScrollRef: jest.fn().mockReturnValue(scroller)}}, false));
+        const {result} = renderHook(() => useWebScrollToFocusedInput({current: {scrollToOffset, getNativeScrollRef: jest.fn().mockReturnValue(scroller)}}));
         return {scrollToOffset, scrollToReveal: result.current.scrollToReveal};
     }
 
