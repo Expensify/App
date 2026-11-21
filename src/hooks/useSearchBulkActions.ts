@@ -109,6 +109,7 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchDateRange, SearchGroupKey, SelectedGroupValueFilter} from '@libs/SearchUIUtils';
 import {
     canChangeWorkspaceOfSearchReport,
+    canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
     getColumnsToShow,
@@ -3442,6 +3443,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
                 const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
                 const isDEWEnabled = hasDynamicExternalWorkflow(policy);
+                // Read admin access from the live workspace, because the selection's canChangeApprover flag keeps the
+                // settings from when the report was selected, such as Prevent self-approvals or the workflow type.
+                const canAdminChangeApprover = canPolicyAdminChangeApprover(report, policy);
                 const canReassignCurrentReport = canReassignAsApprover({
                     report,
                     currentUserAccountID: accountID,
@@ -3450,11 +3454,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
 
                 return {
-                    canAdd: !!policy && selectedReport.canChangeApprover && !isDEWEnabled,
-                    canBypass: !!report && !!policy && selectedReport.canChangeApprover && isAllowedToApproveExpenseReport(report, accountID, policy),
+                    canAdd: canAdminChangeApprover && !isDEWEnabled,
+                    canBypass: canAdminChangeApprover && isAllowedToApproveExpenseReport(report, accountID, policy),
                     canReassign:
                         !isDEWEnabled &&
-                        (selectedReport.canChangeApprover || canReassignCurrentReport) &&
+                        (canAdminChangeApprover || canReassignCurrentReport) &&
                         isExpenseReportUtil(report) &&
                         isProcessingReport(report) &&
                         !isMoneyRequestReportPendingDeletion(report) &&

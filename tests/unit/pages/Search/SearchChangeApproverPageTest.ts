@@ -12,6 +12,7 @@ import createMock from '../../../utils/createMock';
 
 const ADD_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.ADD_APPROVER};
 const BYPASS_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.BYPASS_APPROVER};
+const REASSIGN_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.REASSIGN_APPROVER};
 
 function buildReport(reportID: string): Report {
     return {reportID} as Report;
@@ -62,26 +63,37 @@ describe('SearchChangeApproverPage', () => {
             expect(result).toBe(APPROVER_TYPE.BYPASS_APPROVER);
         });
 
-        it('should fall back to the first available option when the selected option is hidden', () => {
-            // Given the default Add selection, but a dynamic external workflow hides Add and leaves only Bypass
+        it('should clear the selection when the selected option is hidden and only Bypass is left', () => {
+            // Given the user picked Reassign, then the workspace switched to a dynamic external workflow, which leaves only Bypass
             const approverTypes = [BYPASS_APPROVER_OPTION];
+
+            // When resolving the active approver type
+            const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.REASSIGN_APPROVER});
+
+            // Then nothing is selected, because confirming Bypass approves the report, so the user must pick it themselves
+            expect(result).toBeUndefined();
+        });
+
+        it('should fall back to an option other than Bypass when the selected option is hidden', () => {
+            // Given the default Add selection on a menu that offers Bypass and Reassign
+            const approverTypes = [BYPASS_APPROVER_OPTION, REASSIGN_APPROVER_OPTION];
 
             // When resolving the active approver type
             const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.ADD_APPROVER});
 
-            // Then the first visible option is used so the menu never highlights or confirms a hidden option
-            expect(result).toBe(APPROVER_TYPE.BYPASS_APPROVER);
+            // Then Reassign is selected, since it only opens the next page and is safe to preselect
+            expect(result).toBe(APPROVER_TYPE.REASSIGN_APPROVER);
         });
 
-        it('should fall back to add approver when there are no available options', () => {
+        it('should select nothing when there are no available options', () => {
             // Given a menu with no options, such as while the selection is still loading
             const approverTypes: Array<{keyForList: ApproverType}> = [];
 
             // When resolving the active approver type
             const result = getSelectedApproverType({approverTypes, selectedApproverType: APPROVER_TYPE.REASSIGN_APPROVER});
 
-            // Then it returns the default type, since the empty menu offers nothing to confirm
-            expect(result).toBe(APPROVER_TYPE.ADD_APPROVER);
+            // Then nothing is selected, so the confirm button has nothing to apply
+            expect(result).toBeUndefined();
         });
     });
 

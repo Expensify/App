@@ -227,6 +227,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 jest.mock('@libs/SearchUIUtils', () => {
     const {
         canChangeWorkspaceOfSearchReport,
+        canPolicyAdminChangeApprover,
         getAllMatchingExpenseActionQuery,
         getAllMatchingExportQueryAndExclusions,
         getColumnsToShow,
@@ -245,6 +246,7 @@ jest.mock('@libs/SearchUIUtils', () => {
         getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
         canChangeWorkspaceOfSearchReport,
+        canPolicyAdminChangeApprover,
         getColumnsToShow,
         replaceIncludedFilterValues,
         // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup

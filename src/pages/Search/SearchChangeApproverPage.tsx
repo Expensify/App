@@ -272,11 +272,11 @@ function SearchChangeApproverPage() {
     // Keep this selection inline so React Compiler preserves caching for selectedPolicies and approverTypes.
     const activeApproverType = approverTypes.some(({keyForList}) => keyForList === selectedApproverType)
         ? selectedApproverType
-        : (approverTypes.at(0)?.keyForList ?? APPROVER_TYPE.ADD_APPROVER);
+        : approverTypes.find(({keyForList}) => keyForList !== APPROVER_TYPE.BYPASS_APPROVER)?.keyForList;
 
     const changeApprover = () => {
-        // The confirm button stays visible on an empty menu, and the fallback selection would otherwise open a hidden option.
-        if (!approverTypes.length) {
+        // Nothing is selected when the menu is empty or only offers Bypass, which the user must pick themselves.
+        if (!activeApproverType) {
             return;
         }
 
@@ -380,6 +380,7 @@ function SearchChangeApproverPage() {
         showButton: true,
         text: translate('iou.changeApprover.title'),
         onConfirm: changeApprover,
+        isDisabled: !activeApproverType,
     };
 
     const listHeader =

@@ -31,6 +31,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
@@ -385,52 +386,50 @@ describe('useSearchBulkActions - CSV export flow', () => {
         [false, CURRENT_USER_ACCOUNT_ID, false, CONST.REPORT.STATUS_NUM.APPROVED, false],
         [false, CURRENT_USER_ACCOUNT_ID, false, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true],
         [false, CURRENT_USER_ACCOUNT_ID, true, CONST.REPORT.STATUS_NUM.SUBMITTED, true, true],
-    ])(
-        'change approver visibility: enforcement=%s, manager=%s, admin capability=%s, status=%s',
-        (enforcement, managerID, canChangeApprover, statusNum, expected, isLoadingSecurityGroup = false) => {
-            // Given a selected report whose snapshot may not grant the admin-only capability.
-            mockAreStrictPolicyRulesEnabled = enforcement;
-            mockIsLoadingSecurityGroup = isLoadingSecurityGroup;
-            mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
-            mockSelectedReports = [
-                {
+    ])('change approver visibility: enforcement=%s, manager=%s, admin=%s, status=%s', (enforcement, managerID, canChangeApprover, statusNum, expected, isLoadingSecurityGroup = false) => {
+        // Given a selected report on a workspace where the user may or may not be an admin.
+        mockAreStrictPolicyRulesEnabled = enforcement;
+        mockIsLoadingSecurityGroup = isLoadingSecurityGroup;
+        mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
+        mockSelectedReports = [
+            {
+                reportID: 'report1',
+                policyID: 'policy1',
+                chatReportID: 'chat1',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                canPay: false,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover,
+                managerID,
+                total: 100,
+            },
+        ];
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
                     reportID: 'report1',
                     policyID: 'policy1',
-                    chatReportID: 'chat1',
-                    action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                    canPay: false,
-                    canApprove: false,
-                    canSubmit: false,
-                    canChangeApprover,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum,
                     managerID,
-                    total: 100,
                 },
-            ];
-            mockCurrentSearchResults = {
-                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
-                        reportID: 'report1',
-                        policyID: 'policy1',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum,
-                        managerID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
-                        id: 'policy1',
-                        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    },
+                [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+                    id: 'policy1',
+                    role: canChangeApprover ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 },
-            };
+            },
+        };
 
-            // When the bulk action menu is rendered from search snapshot data.
-            const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        // When the bulk action menu is rendered from search snapshot data.
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then the menu respects assignment and enforcement while preserving admin capabilities.
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
-        },
-    );
+        // Then the menu respects assignment and enforcement while preserving admin capabilities.
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
 
     it('hides change approver from a current approver on a dynamic external workflow', () => {
         // Given a member who is the current approver of a report on a dynamic external workflow, without the admin capability
@@ -503,9 +502,14 @@ describe('useSearchBulkActions - CSV export flow', () => {
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
                     id: 'policy1',
+                    role: CONST.POLICY.ROLE.ADMIN,
                     approvalMode: isFirstPolicyDEW ? CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL : CONST.POLICY.APPROVAL_MODE.BASIC,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: {id: 'policy2', approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC},
+                [`${ONYXKEYS.COLLECTION.POLICY}policy2`]: {
+                    id: 'policy2',
+                    role: secondHasAdminCapability ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                },
             },
         };
 
@@ -515,6 +519,53 @@ describe('useSearchBulkActions - CSV export flow', () => {
         // Then bypass-only and reassign-only reports cannot open an empty picker, while shared actions remain available
         expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
     });
+
+    it.each([
+        {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, preventSelfApproval: true},
+        {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, preventSelfApproval: false},
+    ])(
+        'uses the live workspace settings instead of the selection flag: approvalMode=$approvalMode, preventSelfApproval=$preventSelfApproval',
+        async ({approvalMode, preventSelfApproval}) => {
+            // Given an admin's own report selected while Prevent self-approvals was on for a dynamic external workflow, so its
+            // selection flag says Change approver is unavailable, and then the workspace switched workflows or turned the setting off
+            mockSelectedTransactions = {transaction1: makeSelectedTransaction()};
+            mockSelectedReports = [makeSelectedReport({canChangeApprover: false})];
+            mockCurrentSearchResults = {
+                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                        reportID: 'report1',
+                        policyID: 'policy1',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                        managerID: 2,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
+                        id: 'policy1',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                        preventSelfApproval: true,
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                id: 'policy1',
+                role: CONST.POLICY.ROLE.ADMIN,
+                approvalMode,
+                preventSelfApproval,
+            });
+            await waitForBatchedUpdates();
+
+            // When the bulk action menu is rendered
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdates();
+
+            // Then Change approver is offered without waiting for Search to refresh, because Add approver or Bypass is available again
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER)).toBe(true);
+        },
+    );
 
     it('uses the unreported-expenses warning for a single expense report', async () => {
         // Given a single selected expense report

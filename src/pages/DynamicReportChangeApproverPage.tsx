@@ -48,12 +48,16 @@ type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 
 type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
-function getSelectedApproverType({approverTypes, selectedApproverType}: {approverTypes: Array<{keyForList: ApproverType}>; selectedApproverType: ApproverType}): ApproverType {
+/**
+ * Returns the approver type the picker should select. When the user's choice is no longer offered, it falls back to the first
+ * Add or Reassign option. It never falls back to Bypass, because confirming Bypass approves the report, so the user must pick it.
+ */
+function getSelectedApproverType({approverTypes, selectedApproverType}: {approverTypes: Array<{keyForList: ApproverType}>; selectedApproverType: ApproverType}): ApproverType | undefined {
     if (approverTypes.some(({keyForList}) => keyForList === selectedApproverType)) {
         return selectedApproverType;
     }
 
-    return approverTypes.at(0)?.keyForList ?? APPROVER_TYPE.ADD_APPROVER;
+    return approverTypes.find(({keyForList}) => keyForList !== APPROVER_TYPE.BYPASS_APPROVER)?.keyForList;
 }
 
 export {getSelectedApproverType};
@@ -114,6 +118,10 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const approverTypes = data.map((item) => ({...item, isSelected: item.keyForList === activeApproverType}));
 
     const changeApprover = () => {
+        if (!activeApproverType) {
+            return;
+        }
+
         if (activeApproverType === APPROVER_TYPE.ADD_APPROVER) {
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
@@ -149,6 +157,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         showButton: true,
         text: translate('iou.changeApprover.title'),
         onConfirm: changeApprover,
+        isDisabled: !activeApproverType,
     };
 
     const listHeader = (
