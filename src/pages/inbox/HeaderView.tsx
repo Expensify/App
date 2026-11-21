@@ -40,6 +40,7 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -134,6 +135,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
     const shouldUseCompactJoinRow = useIsMobileWebLandscape();
     const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {
@@ -339,6 +341,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const startNewConciergeChat = () => {
+        if (isInSidePanel) {
+            openSidePanel({forceConcierge: true});
+            return;
+        }
         collapseConciergeHistory();
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
@@ -537,7 +543,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
+                                    {isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -576,7 +582,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
                 )}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
+                {!isLoading && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
                         <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>
