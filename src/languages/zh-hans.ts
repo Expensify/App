@@ -1837,14 +1837,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: '确认付款',
             reportTotal: '报告总额',
-            unheldAmountBeingPaid: '支付的未冻结金额',
-            debitAmount: '扣款金额',
             employeeWillReceive: '员工将收到',
+            companyWillPay: '公司将支付',
             totalFees: '总费用',
             fxRate: '汇率',
             paymentDetails: '付款详情',
             debitedAmount: '扣款金额',
             employeeReceived: '员工已收到',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-label>由于收款人银行收取的费用和境外税费，收款人实际收到的金额可能会减少。点击${buttonText}即表示我接受 Wise 的<a href="${CONST.WISE.TERMS_URL}">使用条款</a>和<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。</muted-text-label>`,
             payAll: '全部支付',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',

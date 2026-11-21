@@ -1,3 +1,4 @@
+import WisePaymentPrompt from '@components/WisePaymentSummary/components/WisePaymentPrompt';
 import WiseQuoteCarousel from '@components/WisePaymentSummary/components/WiseQuoteCarousel';
 
 import useLocalize from '@hooks/useLocalize';
@@ -45,6 +46,8 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
     const hasEveryQuote = confirmedQuoteIDs.length === quotedReportIDs.length;
     const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
 
+    const confirmText = translate('iou.wisePaymentSummary.payAll');
+
     return (
         <ConfirmModalWrapper
             closeModal={(payload) => {
@@ -56,13 +59,15 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <WiseQuoteCarousel
-                    reports={reports}
-                    quotedReportIDs={quotedReportIDs}
-                    isLoading={isLoading}
-                />
+                <WisePaymentPrompt buttonText={confirmText}>
+                    <WiseQuoteCarousel
+                        reports={reports}
+                        quotedReportIDs={quotedReportIDs}
+                        isLoading={isLoading}
+                    />
+                </WisePaymentPrompt>
             }
-            confirmText={translate('iou.wisePaymentSummary.payAll')}
+            confirmText={confirmText}
             cancelText={translate('common.cancel')}
             isConfirmDisabled={!hasEveryQuote}
             shouldDisableConfirmButtonWhenOffline

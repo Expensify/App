@@ -2068,14 +2068,15 @@ const translations = {
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',
-            unheldAmountBeingPaid: 'Unheld amount being paid',
-            debitAmount: 'Debit amount',
             employeeWillReceive: 'Employee will receive',
+            companyWillPay: 'Company will pay',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-label>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-label>`,
             payAll: 'Pay all',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
