@@ -8515,6 +8515,11 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
                 one: 'Tra pochi minuti sarai il proprietario di questo spazio di lavoro.',
                 other: (count: number) => `Sarai il proprietario di tutti i ${count} spazi di lavoro tra pochi minuti.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Prendere il controllo di tutti unirà l’abbonamento annuale del proprietario al tuo. Questo aumenterà le dimensioni del tuo abbonamento di 1 membro, portando la nuova dimensione del tuo abbonamento a ${finalCount}.`,
+                other: (count: number) =>
+                    `Prendere il controllo di tutti unirà l’abbonamento annuale del proprietario al tuo. Questo aumenterà le dimensioni del tuo abbonamento di ${count} membri, portando la nuova dimensione del tuo abbonamento a ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Attenzione!',

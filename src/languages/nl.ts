@@ -8495,6 +8495,11 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
                 one: 'Je bent over een paar minuten de eigenaar van deze werkruimte.',
                 other: (count: number) => `Je wordt over een paar minuten de eigenaar van alle ${count} werkruimtes.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Als je ze allemaal overneemt, wordt het jaarabonnement van de eigenaar samengevoegd met dat van jou. Hierdoor wordt je abonnement met 1 lid vergroot en wordt je nieuwe abonnementsomvang ${finalCount}.`,
+                other: (count: number) =>
+                    `Als je ze allemaal overneemt, wordt het jaarabonnement van de eigenaar samengevoegd met dat van jou. Hierdoor wordt je abonnement met ${count} leden vergroot en wordt je nieuwe abonnementsomvang ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Voorzichtig!',

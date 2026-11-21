@@ -8568,6 +8568,11 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
                 one: 'Sie werden in wenigen Minuten Eigentümer dieses Arbeitsbereichs sein.',
                 other: (count: number) => `Sie werden in wenigen Minuten Eigentümer aller ${count} Arbeitsbereiche sein.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Wenn Sie alle übernehmen, wird das Jahresabonnement des Eigentümers mit Ihrem zusammengeführt. Dadurch erhöht sich Ihre Abonnementgröße um 1 Mitglied, sodass Ihre neue Abonnementgröße ${finalCount} beträgt.`,
+                other: (count: number) =>
+                    `Wenn Sie alle übernehmen, wird das Jahresabonnement des Eigentümers mit Ihrem zusammengeführt. Dadurch erhöht sich Ihre Abonnementgröße um ${count} Mitglieder, sodass Ihre neue Abonnementgröße ${finalCount} beträgt.`,
+            }),
         },
         exportAgainModal: {
             title: 'Vorsicht!',

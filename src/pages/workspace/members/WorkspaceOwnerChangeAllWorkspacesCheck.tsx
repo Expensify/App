@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SubscriptionTransfer} from '@src/types/onyx/BillingTakeoverPolicies';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -23,6 +24,9 @@ type WorkspaceOwnerChangeAllWorkspacesCheckProps = {
     /** The owner's workspaces the user can take over billing for together, this one included */
     policyIDs: string[];
 
+    /** The owner's annual subscription that taking over all of them merges into the user's, if any */
+    subscriptionTransfer?: SubscriptionTransfer;
+
     /** Takes over billing for all of these workspaces */
     onTakeOverAllWorkspaces: () => void;
 
@@ -30,7 +34,7 @@ type WorkspaceOwnerChangeAllWorkspacesCheckProps = {
     onTakeOverThisWorkspace: () => void;
 };
 
-function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverAllWorkspaces, onTakeOverThisWorkspace}: WorkspaceOwnerChangeAllWorkspacesCheckProps) {
+function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, subscriptionTransfer, onTakeOverAllWorkspaces, onTakeOverThisWorkspace}: WorkspaceOwnerChangeAllWorkspacesCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [ownerDisplayName] = usePersonalDetail(policy?.ownerAccountID, displayNameSelector);
@@ -38,7 +42,17 @@ function WorkspaceOwnerChangeAllWorkspacesCheck({policy, policyIDs, onTakeOverAl
     return (
         <>
             <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{translate('workspace.changeOwner.takeOverAllWorkspacesTitle')}</Text>
-            <Text style={styles.flex1}>{translate('workspace.changeOwner.takeOverAllWorkspacesText', {ownerName: ownerDisplayName ?? policy?.owner ?? '', count: policyIDs.length})}</Text>
+            <View style={styles.flex1}>
+                <Text>{translate('workspace.changeOwner.takeOverAllWorkspacesText', {ownerName: ownerDisplayName ?? policy?.owner ?? '', count: policyIDs.length})}</Text>
+                {!!subscriptionTransfer && (
+                    <Text style={styles.mt4}>
+                        {translate('workspace.changeOwner.takeOverAllWorkspacesSubscriptionText', {
+                            count: subscriptionTransfer.ownerUserCount,
+                            finalCount: subscriptionTransfer.totalUserCount,
+                        })}
+                    </Text>
+                )}
+            </View>
             <View style={[styles.pb5, styles.gap3]}>
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

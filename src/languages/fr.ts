@@ -8594,6 +8594,11 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
                 one: 'Vous serez le responsable de cet espace de travail dans quelques minutes.',
                 other: (count: number) => `Vous serez le responsable des ${count} espaces de travail dans quelques minutes.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Reprendre tous ces espaces de travail fusionnera l’abonnement annuel du propriétaire avec le vôtre. Cela augmentera la taille de votre abonnement de 1 membre, ce qui portera votre nouvelle taille d’abonnement à ${finalCount}.`,
+                other: (count: number) =>
+                    `Reprendre tous ces espaces de travail fusionnera l’abonnement annuel du propriétaire avec le vôtre. Cela augmentera la taille de votre abonnement de ${count} membres, ce qui portera votre nouvelle taille d’abonnement à ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Attention !',

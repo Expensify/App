@@ -8513,6 +8513,11 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
                 one: 'Você será o proprietário deste espaço de trabalho em alguns minutos.',
                 other: (count: number) => `Você será o proprietário de todos os ${count} espaços de trabalho em alguns minutos.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Assumir todos eles vai unir a assinatura anual do proprietário à sua. Isso vai aumentar o tamanho da sua assinatura em 1 membro, fazendo com que o novo tamanho da sua assinatura seja ${finalCount}.`,
+                other: (count: number) =>
+                    `Assumir todos eles vai unir a assinatura anual do proprietário à sua. Isso vai aumentar o tamanho da sua assinatura em ${count} membros, fazendo com que o novo tamanho da sua assinatura seja ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Cuidado!',

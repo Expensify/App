@@ -8396,6 +8396,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 one: '数分後に、あなたがこのワークスペースのオーナーになります。',
                 other: (count: number) => `数分後には、${count} 個すべてのワークスペースのオーナーになります。`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `すべて引き継ぐと、オーナーの年額サブスクリプションがあなたのサブスクリプションに統合されます。これによりサブスクリプションの人数が1名増え、新しいサブスクリプションの人数は${finalCount}名になります。`,
+                other: (count: number) =>
+                    `すべて引き継ぐと、オーナーの年額サブスクリプションがあなたのサブスクリプションに統合されます。これによりサブスクリプションの人数が${count}名増え、新しいサブスクリプションの人数は${finalCount}名になります。`,
+            }),
         },
         exportAgainModal: {
             title: '注意！',

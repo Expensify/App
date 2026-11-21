@@ -8528,6 +8528,11 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
                 one: 'Za kilka minut będziesz właścicielem tej przestrzeni roboczej.',
                 other: (count: number) => `Za kilka minut będziesz właścicielem wszystkich ${count} przestrzeni roboczych.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Przejęcie wszystkich spowoduje połączenie rocznej subskrypcji właściciela z twoją. Zwiększy to rozmiar twojej subskrypcji o 1 członka, dzięki czemu nowy rozmiar twojej subskrypcji wyniesie ${finalCount}.`,
+                other: (count: number) =>
+                    `Przejęcie wszystkich spowoduje połączenie rocznej subskrypcji właściciela z twoją. Zwiększy to rozmiar twojej subskrypcji o ${count} członków, dzięki czemu nowy rozmiar twojej subskrypcji wyniesie ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: 'Uwaga!',

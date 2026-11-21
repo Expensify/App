@@ -8650,6 +8650,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 one: 'Serás el propietario de este espacio de trabajo en unos minutos.',
                 other: (count: number) => `Serás el propietario de los ${count} espacios de trabajo en unos minutos.`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Al hacerte cargo de todos, su suscripción anual se fusionará con la tuya. Esto aumentará el tamaño de tu suscripción en 1 miembro, y el nuevo tamaño de tu suscripción será de ${finalCount}.`,
+                other: (count: number) =>
+                    `Al hacerte cargo de todos, su suscripción anual se fusionará con la tuya. Esto aumentará el tamaño de tu suscripción en ${count} miembros, y el nuevo tamaño de tu suscripción será de ${finalCount}.`,
+            }),
         },
         exportAgainModal: {
             title: '¡Cuidado!',

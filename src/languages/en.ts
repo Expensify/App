@@ -9295,6 +9295,11 @@ const translations = {
                 one: `${ownerName} owns 1 workspace where you're an admin. Do you want to take it over?`,
                 other: (count: number) => `${ownerName} owns ${count} workspaces where you're an admin. Do you want to take over all of them, or just this one?`,
             }),
+            takeOverAllWorkspacesSubscriptionText: ({finalCount}: {finalCount: number}) => ({
+                one: `Taking over all of them will merge their annual subscription with yours. This will increase your subscription size by 1 member making your new subscription size ${finalCount}.`,
+                other: (count: number) =>
+                    `Taking over all of them will merge their annual subscription with yours. This will increase your subscription size by ${count} members making your new subscription size ${finalCount}.`,
+            }),
             takeOverAllWorkspacesButtonText: () => ({
                 one: 'Yes, take it over',
                 other: (count: number) => `Yes, all ${count}`,
