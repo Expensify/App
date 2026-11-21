@@ -4,6 +4,8 @@ import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 
 import usePrevious from '@hooks/usePrevious';
 
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import type {ForwardedRef} from 'react';
 
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
@@ -26,6 +28,9 @@ type SuggestionProps = {
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
+
+    /** Size of the composer the menu is anchored to, the menu is measured again when it changes */
+    parentContainerSize?: Dimensions;
 
     /** Report composer focus state */
     isComposerFocused?: boolean;
@@ -55,6 +60,7 @@ function Suggestions({
     updateComment,
     resetKeyboardInput,
     measureParentContainerAndReportCursor,
+    parentContainerSize,
     isAutoSuggestionPickerLarge = true,
     isComposerFocused,
     isGroupPolicyReport,
@@ -150,6 +156,7 @@ function Suggestions({
         updateComment,
         isAutoSuggestionPickerLarge,
         measureParentContainerAndReportCursor,
+        parentContainerSize,
         isComposerFocused,
         isGroupPolicyReport,
         policyID,
