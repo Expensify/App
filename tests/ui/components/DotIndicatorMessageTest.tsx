@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import type Text from '@components/Text';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -13,8 +14,17 @@ import React from 'react';
 let mockShouldUseNarrowLayout = false;
 
 jest.mock('@components/Icon', () => jest.fn(() => null));
+jest.mock('@components/Button', () => {
+    const {default: MockText} = jest.requireActual<{default: typeof Text}>('@components/Text');
+    function MockButton({children}: {children?: React.ReactNode}) {
+        return children;
+    }
+    MockButton.Icon = () => null;
+    MockButton.Text = ({children}: {children?: React.ReactNode}) => <MockText>{children}</MockText>;
+    return MockButton;
+});
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({DotIndicator: () => null})),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({ArrowCircleClockwise: () => null, DotIndicator: () => null, Download: () => null})),
 }));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useResponsiveLayout', () =>
@@ -81,5 +91,55 @@ describe('DotIndicatorMessage selection override', () => {
 
         // Then native ignores the override and keeps its existing selection behavior.
         expect(screen.getByText(MESSAGE)).toHaveStyle({userSelect: 'text'});
+    });
+});
+
+describe('DotIndicatorMessage receipt error server reason', () => {
+    it('renders the server rejection message while keeping receipt retry and save actions', () => {
+        // Given a receipt error carrying a server rejection reason and a retry callback.
+        const serverReason = 'New expenses cannot be added to this report.';
+
+        // When rendering DotIndicatorMessage with that receipt error.
+        render(
+            <DotIndicatorMessage
+                messages={{
+                    receiptError: {
+                        error: CONST.IOU.RECEIPT_ERROR,
+                        source: 'file:///receipt.jpg',
+                        filename: 'receipt.jpg',
+                        action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                        message: serverReason,
+                    },
+                }}
+                type="error"
+                onRetryReceiptUpload={jest.fn()}
+            />,
+        );
+
+        // Then the server rejection message is shown along with both Try again and Save buttons.
+        expect(screen.getByText(serverReason)).toBeOnTheScreen();
+        expect(screen.getByText('common.tryAgain')).toBeOnTheScreen();
+        expect(screen.getByText('common.save')).toBeOnTheScreen();
+    });
+
+    it('falls back to the generic receipt upload error when no server message is attached', () => {
+        // Given a standard receipt error without a server rejection reason.
+        render(
+            <DotIndicatorMessage
+                messages={{
+                    receiptError: {
+                        error: CONST.IOU.RECEIPT_ERROR,
+                        source: 'file:///receipt.jpg',
+                        filename: 'receipt.jpg',
+                        action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                    },
+                }}
+                type="error"
+                onRetryReceiptUpload={jest.fn()}
+            />,
+        );
+
+        // Then the localized receipt upload failure copy is shown.
+        expect(screen.getByText('iou.error.receiptUploadFailedMessage')).toBeOnTheScreen();
     });
 });

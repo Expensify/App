@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import truncate from 'lodash/truncate';
 
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
@@ -27,7 +28,7 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
 } from './ReportActionsUtils';
-import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {getReceiptErrorServerReason, hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -247,7 +248,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
+        const serverReason = getReceiptErrorServerReason(transaction);
+        RBRMessage = serverReason ? {text: Str.htmlDecode(serverReason)} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
