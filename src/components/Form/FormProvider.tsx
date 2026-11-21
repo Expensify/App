@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePressLoading from '@hooks/usePressLoading';
 
 import {isSafari} from '@libs/Browser';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
@@ -539,6 +540,11 @@ function FormProvider({
                         blurTransitionHandle.current?.cancel();
                         blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
                             callback: () => {
+                                // Focus may have moved to another input while waiting. Keep the keyboard-height
+                                // constraint until text entry has actually ended, rather than expanding behind the keyboard.
+                                if (ComposerFocusManager.getActiveInput()) {
+                                    return;
+                                }
                                 setIsBlurred(true);
                             },
                             waitForUpcomingTransition: true,
