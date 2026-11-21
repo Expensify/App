@@ -19,7 +19,7 @@ import SuggestionMention from '@pages/inbox/report/ReportActionCompose/Suggestio
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList, Report} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -538,6 +538,7 @@ describe('SuggestionMention', () => {
 
     describe('order and size of the suggestion list', () => {
         const MAX_SUGGESTIONS = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS;
+        const CURRENT_USER_ACCOUNT_ID = 1;
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const employeeList: PolicyEmployeeList = {'employee1@example.com': {}, 'employee2@example.com': {}};
         const policyWithEmployees = {...createRandomPolicy(1), employeeList};
@@ -548,7 +549,11 @@ describe('SuggestionMention', () => {
         });
 
         /** The composer gets the personal details from usePersonalDetails, and the sort reads display names from the Onyx store, so both get them */
-        async function setPersonalDetails(personalDetails: PersonalDetailsList) {
+        async function setPersonalDetails(people: PersonalDetails[]) {
+            const personalDetails: PersonalDetailsList = {};
+            for (const person of people) {
+                personalDetails[person.accountID] = person;
+            }
             mockPersonalDetails = personalDetails;
             await act(async () => {
                 await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -572,7 +577,7 @@ describe('SuggestionMention', () => {
         }
 
         async function openDirectMessage() {
-            await openReport(createMock<Report>({reportID: 'dm', participants: {1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}}));
+            await openReport(createMock<Report>({reportID: 'dm', participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}}));
         }
 
         /** Renders the composer with the given text and returns the suggestions it shows */
@@ -589,32 +594,29 @@ describe('SuggestionMention', () => {
         }
 
         /** `count` people named "Person <n>", added in an order unrelated to their names, so the list order comes from sorting */
-        function buildNumberedPeople(count: number): PersonalDetailsList {
-            const personalDetails: PersonalDetailsList = {};
-            for (let index = 0; index < count; index++) {
-                const accountID = 100 + index;
+        function buildNumberedPeople(count: number): PersonalDetails[] {
+            return Array.from({length: count}, (_, index) => {
                 const nameNumber = (index * 11) % count;
-                personalDetails[accountID] = {accountID, login: `person${nameNumber}@example.com`, displayName: `Person ${nameNumber}`};
-            }
-            return personalDetails;
+                return {accountID: 100 + index, login: `person${nameNumber}@example.com`, displayName: `Person ${nameNumber}`};
+            });
         }
 
         it('orders a room by weight, then by display name with the locale collator, then by account ID', async () => {
             // Given a room with two participants, two workspace employees and everyone else, with names that only a numeric,
             // accent and case aware comparison orders correctly, and two people with the same name
-            await setPersonalDetails({
-                10: {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
-                11: {accountID: 11, login: 'participant2@example.com', displayName: 'Amy'},
-                12: {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
-                13: {accountID: 13, login: 'employee2@example.com', displayName: 'Bea'},
-                14: {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
-                15: {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
-                16: {accountID: 16, login: 'emile-accent@example.com', displayName: 'émile'},
-                17: {accountID: 17, login: 'emile-upper@example.com', displayName: 'Emile'},
-                18: {accountID: 18, login: 'emile-lower@example.com', displayName: 'emile'},
-                19: {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
-                20: {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
-            });
+            await setPersonalDetails([
+                {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
+                {accountID: 11, login: 'participant2@example.com', displayName: 'Amy'},
+                {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
+                {accountID: 13, login: 'employee2@example.com', displayName: 'Bea'},
+                {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
+                {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
+                {accountID: 16, login: 'emile-accent@example.com', displayName: 'émile'},
+                {accountID: 17, login: 'emile-upper@example.com', displayName: 'Emile'},
+                {accountID: 18, login: 'emile-lower@example.com', displayName: 'emile'},
+                {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
+                {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
+            ]);
             await openRoomWithParticipants([10, 11]);
 
             // When the mention list for "@e" is shown
@@ -640,14 +642,14 @@ describe('SuggestionMention', () => {
 
         it('orders a direct message by display name, then by account ID, without weights', async () => {
             // Given the same people in a direct message
-            await setPersonalDetails({
-                10: {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
-                12: {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
-                14: {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
-                15: {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
-                19: {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
-                20: {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
-            });
+            await setPersonalDetails([
+                {accountID: 10, login: 'participant1@example.com', displayName: 'Zed'},
+                {accountID: 12, login: 'employee1@example.com', displayName: 'Yara'},
+                {accountID: 14, login: 'kim10@example.com', displayName: 'Kim 10'},
+                {accountID: 15, login: 'kim9@example.com', displayName: 'Kim 9'},
+                {accountID: 19, login: 'same2@example.com', displayName: 'Same Name'},
+                {accountID: 20, login: 'same1@example.com', displayName: 'Same Name'},
+            ]);
             await openDirectMessage();
 
             // When the mention list for a bare "@" is shown
@@ -667,11 +669,11 @@ describe('SuggestionMention', () => {
 
         it('sorts a person by login when they have no display name', async () => {
             // Given one person without a display name, whose login sorts between the other two names
-            await setPersonalDetails({
-                10: {accountID: 10, login: 'zack@example.com', displayName: 'Zack'},
-                11: {accountID: 11, login: 'nobody@example.com'},
-                12: {accountID: 12, login: 'adam@example.com', displayName: 'Adam'},
-            });
+            await setPersonalDetails([
+                {accountID: 10, login: 'zack@example.com', displayName: 'Zack'},
+                {accountID: 11, login: 'nobody@example.com'},
+                {accountID: 12, login: 'adam@example.com', displayName: 'Adam'},
+            ]);
             await openDirectMessage();
 
             // When the mention list for "@example" is shown
@@ -683,12 +685,12 @@ describe('SuggestionMention', () => {
 
         it('matches the search text in the display name or the login, ignoring case', async () => {
             // Given people whose name, login, or neither contains "ali"
-            await setPersonalDetails({
-                10: {accountID: 10, login: 'first@example.com', displayName: 'Alice Smith'},
-                11: {accountID: 11, login: 'kalinda@example.com', displayName: 'Kay Linda'},
-                12: {accountID: 12, login: 'bob@example.com', displayName: 'Bob'},
-                13: {accountID: 13, login: 'natali@example.com'},
-            });
+            await setPersonalDetails([
+                {accountID: 10, login: 'first@example.com', displayName: 'Alice Smith'},
+                {accountID: 11, login: 'kalinda@example.com', displayName: 'Kay Linda'},
+                {accountID: 12, login: 'bob@example.com', displayName: 'Bob'},
+                {accountID: 13, login: 'natali@example.com'},
+            ]);
             await openDirectMessage();
 
             // When the mention list for "@ALI" is shown
@@ -700,15 +702,15 @@ describe('SuggestionMention', () => {
 
         it('leaves out people without a login, optimistic people, system accounts and repeated logins', async () => {
             // Given one person of each kind that cannot be mentioned, and two people with the same login
-            await setPersonalDetails({
-                10: {accountID: 10, displayName: 'Uma No Login'},
-                11: {accountID: 11, login: 'optimistic@example.com', displayName: 'Uma Optimistic', isOptimisticPersonalDetail: true},
-                12: {accountID: 12, login: CONST.EMAIL.NOTIFICATIONS, displayName: 'Uma Notifications'},
-                [CONST.ACCOUNT_ID.NOTIFICATIONS]: {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, login: 'system@example.com', displayName: 'Uma System'},
-                14: {accountID: 14, login: 'repeated@example.com', displayName: 'Uma Zulu'},
-                15: {accountID: 15, login: 'repeated@example.com', displayName: 'Uma Alpha'},
-                16: {accountID: 16, login: 'kept@example.com', displayName: 'Uma Kept'},
-            });
+            await setPersonalDetails([
+                {accountID: 10, displayName: 'Uma No Login'},
+                {accountID: 11, login: 'optimistic@example.com', displayName: 'Uma Optimistic', isOptimisticPersonalDetail: true},
+                {accountID: 12, login: CONST.EMAIL.NOTIFICATIONS, displayName: 'Uma Notifications'},
+                {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, login: 'system@example.com', displayName: 'Uma System'},
+                {accountID: 14, login: 'repeated@example.com', displayName: 'Uma Zulu'},
+                {accountID: 15, login: 'repeated@example.com', displayName: 'Uma Alpha'},
+                {accountID: 16, login: 'kept@example.com', displayName: 'Uma Kept'},
+            ]);
             await openDirectMessage();
 
             // When the mention list for "@uma" is shown
@@ -753,21 +755,21 @@ describe('SuggestionMention', () => {
         it.each(['', 'a', 'jo', 'bob 1'])('shows the same people as sorting every match for "@%s" in a room with many repeated names', async (searchText) => {
             // Given 300 people with few distinct names, some names equal to the login, and participants and employees spread through them
             const names = ['Ann', 'ann', 'Ánn', 'Bob', 'Bob 2', 'Bob 10', 'Joan', 'Jo', 'Zoë', 'Zoe'];
-            const personalDetails: PersonalDetailsList = {};
+            const people: PersonalDetails[] = [];
             const participantAccountIDs: number[] = [];
             const employees: PolicyEmployeeList = {};
             for (let index = 0; index < 300; index++) {
                 const accountID = 1000 + index;
                 const login = `user${(index * 37) % 300}@example.com`;
                 const displayName = index % 9 === 0 ? login : (names.at((index * 13) % names.length) ?? '');
-                personalDetails[accountID] = {accountID, login, displayName};
+                people.push({accountID, login, displayName});
                 if (index % 23 === 0) {
                     participantAccountIDs.push(accountID);
                 } else if (index % 5 === 0) {
                     employees[login] = {};
                 }
             }
-            await setPersonalDetails(personalDetails);
+            await setPersonalDetails(people);
             await openRoomWithParticipants(participantAccountIDs);
             mockUsePolicy.mockReturnValue({...policyWithEmployees, employeeList: employees});
 
@@ -781,8 +783,8 @@ describe('SuggestionMention', () => {
                 }
                 return employees[login] ? 1 : 2;
             };
-            const expectedPeople = Object.values(personalDetails)
-                .map((detail) => ({accountID: detail?.accountID ?? 0, login: detail?.login ?? '', name: detail?.displayName ?? ''}))
+            const expectedPeople = people
+                .map((person) => ({accountID: person.accountID, login: person.login ?? '', name: person.displayName ?? ''}))
                 .filter((person) => (person.name === person.login ? person.login : `${person.name} ${person.login}`).toLowerCase().includes(searchText))
                 .sort(
                     (first, second) =>
