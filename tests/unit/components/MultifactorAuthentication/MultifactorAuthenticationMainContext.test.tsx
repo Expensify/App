@@ -139,6 +139,58 @@ describe('Wallet MFA composed providers', () => {
         expect(state.scenarioResponse?.body).toBeUndefined();
     });
 
+    it('completes authorization on wallet success so the modal can hide before the sheet dismisses', async () => {
+        // Given the real providers and a wallet sheet that is still presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+        expect(state.isAuthorizationComplete).toBe(false);
+
+        // When the wallet reports success, which is when the native sheet starts dismissing.
+        await act(async () => finishWallet?.('success'));
+
+        // Then the scenario asks for a hidden modal as soon as authorization completes, and nothing aborts it.
+        await waitFor(() => expect(state.isAuthorizationComplete).toBe(true));
+        expect(state.scenario?.shouldHideModalOnSuccess).toBe(true);
+        expect(state.error).toBeUndefined();
+    });
+
+    it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
+        // Given the wallet sheet is presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+
+        // When the user cancels in the wallet sheet.
+        await act(async () => finishWallet?.('canceled'));
+
+        // Then authorization never completes, so the modal stays visible for the failure outcome.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isAuthorizationComplete).toBe(false);
+    });
+
     it('requires the existing enrollment flow before wallet provisioning', async () => {
         // Given a device without an enrolled credential.
         mockBiometrics.areLocalCredentialsKnownToServer.mockResolvedValue(false);
