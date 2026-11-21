@@ -469,6 +469,7 @@ describe('useCreateNavigationSuggestions', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: mockGetCurrencyDecimals,
                 rules: undefined,
+                personalDetailsByLogins: {},
                 shouldDismissEmptyReportsConfirmation: true,
             }),
         );

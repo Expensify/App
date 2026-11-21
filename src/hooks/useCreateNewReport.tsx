@@ -9,6 +9,7 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 
 /**
  * Returns a stable callback that creates a new expense report for a given policyID.
@@ -22,6 +23,7 @@ function useCreateNewReport() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     return (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -34,6 +36,7 @@ function useCreateNewReport() {
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
         });
     };

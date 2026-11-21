@@ -195,6 +195,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
             managedCardTransactionID,
         });

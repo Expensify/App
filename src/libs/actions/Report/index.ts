@@ -5113,7 +5113,7 @@ type CreateNewReportParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     shouldNotifyNewAction?: boolean;
     shouldDismissEmptyReportsConfirmation?: boolean;
     managedCardTransactionID?: string;
