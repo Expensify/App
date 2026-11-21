@@ -107,6 +107,16 @@ jest.mock('@libs/TransactionUtils', () => ({
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
+    // Same first-match indexing as the real helper, so the violations filter sees the transactions the test supplies
+    getTransactionsByID: jest.fn((transactions: Transaction[]) => {
+        const transactionsByID = new Map<string, Transaction>();
+        for (const transaction of transactions) {
+            if (!transactionsByID.has(transaction.transactionID)) {
+                transactionsByID.set(transaction.transactionID, transaction);
+            }
+        }
+        return transactionsByID;
+    }),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
