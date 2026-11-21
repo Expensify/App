@@ -2858,6 +2858,8 @@ const SENTRY_LABEL = {
         },
         EXPENSIFY_CARD: {
             ROW: 'WorkspaceExpensifyCard-Row',
+            BANK_ACCOUNT_SUCCESS_CLOSE: 'WorkspaceExpensifyCard-BankAccountSuccessClose',
+            REVIEWING_STATUS: 'ExpensifyCard-ReviewingStatus',
             BULK_ACTIONS_EXPORT_CSV: 'WorkspaceExpensifyCard-BulkActionsExportCSV',
             MORE_MENU_SETTINGS: 'WorkspaceExpensifyCard-MoreMenuSettings',
             EMPTY_STATE_ISSUE_CARD: 'WorkspaceExpensifyCard-EmptyStateIssueCard',
