@@ -666,7 +666,15 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
  *
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
  */
-function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
+function getRateForPolicyChange({
+    transaction,
+    policy,
+    currentRate,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    currentRate?: MileageRate;
+}): {rate: MileageRate; isMatchingRate: boolean} | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
     const p2pRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined;
@@ -674,10 +682,11 @@ function getRateForPolicyChange({transaction, policy, currentRate}: {transaction
     // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
     const rateToMatch = currentRate ?? (p2pRate ? {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)} : undefined);
 
-    const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+    const matchingRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate);
+    const selectedRate = matchingRate ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
 
     // getDefaultMileageRate returns a fully shaped rate with an undefined customUnitRateID when the policy has no enabled rates, so normalize that case to undefined.
-    return selectedRate?.customUnitRateID ? selectedRate : undefined;
+    return selectedRate?.customUnitRateID ? {rate: selectedRate, isMatchingRate: !!matchingRate} : undefined;
 }
 
 /**

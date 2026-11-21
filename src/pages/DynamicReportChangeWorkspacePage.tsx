@@ -81,12 +81,15 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const reportTransactions = useReportTransactions(reportID);
 
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    // The destination is only known on selection; keep its categories and tags ready for confirmation.
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyTagLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -104,6 +107,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -187,6 +191,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, submitterLogin)) {
             const employeeList = policy?.employeeList;
             changeReportPolicyAndInviteSubmitter({
+                sourcePolicy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+                policies,
+                policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
+                policyTagList: policyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`],
+                transactionViolations,
+                reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                getCurrencySymbol,
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 report,
                 parentReport,
@@ -217,6 +229,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         }
 
         changeReportPolicy({
+            sourcePolicy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+            policies,
+            policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
+            policyTagList: policyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`],
+            transactionViolations,
+            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+            getCurrencySymbol,
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             report,
             parentReport,

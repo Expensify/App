@@ -14,6 +14,7 @@ import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actio
 import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
+import type ChangeReportPolicyParams from '@libs/API/parameters/ChangeReportPolicyParams';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import {trackFullstoryEvent} from '@libs/Fullstory/utils';
@@ -6438,6 +6439,281 @@ describe('actions/Report', () => {
         });
     });
 
+    describe.each([false, true])('workspace distance rates (invite submitter: %s)', (inviteSubmitter) => {
+        const reportID = 'workspaceDistanceReport';
+        const ownerLogin = 'distance-owner@example.com';
+        let mockFetch: MockFetch;
+
+        function createDistancePolicy(id: string, rate: number, currency = 'USD'): OnyxTypes.Policy {
+            return {
+                ...createRandomPolicy(2),
+                id,
+                name: id,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: 'USD',
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {[`${id}Rate`]: {customUnitRateID: `${id}Rate`, name: 'Distance rate', enabled: true, currency, rate}},
+                    },
+                },
+            };
+        }
+
+        function createDistanceTransaction(): OnyxTypes.Transaction {
+            return {
+                transactionID: 'distanceExpense',
+                reportID,
+                created: '2026-03-15',
+                amount: -500,
+                currency: 'USD',
+                merchant: '10.00 mi @ $0.50 / mi',
+                reimbursable: true,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'sourceRate',
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            };
+        }
+
+        async function changeWorkspace({
+            transactions = [createDistanceTransaction()],
+            policy = createDistancePolicy('destination', 80),
+            reportOverrides = {},
+            reportActions = {},
+            transactionViolations = {},
+        }: {
+            transactions?: OnyxTypes.Transaction[];
+            policy?: OnyxTypes.Policy;
+            reportOverrides?: Partial<OnyxTypes.Report>;
+            reportActions?: OnyxTypes.ReportActions;
+            transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+        } = {}) {
+            const sourcePolicy = createDistancePolicy('source', 50);
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                policyID: sourcePolicy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'USD',
+                total: -500,
+                ownerAccountID: 1,
+                isWaitingOnBankAccount: false,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ...reportOverrides,
+            };
+            mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+            mockFetch.pause();
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActions),
+                ...transactions.map((transaction) => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction)),
+                ...transactions.map((transaction) =>
+                    Onyx.set(
+                        `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? null,
+                    ),
+                ),
+            ]);
+            await waitForBatchedUpdates();
+            const common = {
+                report,
+                policy,
+                sourcePolicy,
+                reportActions,
+                transactionViolations,
+                policyCategories: {},
+                policyTagList: {},
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`]: sourcePolicy},
+                parentReport: undefined,
+                reportPreviewAction: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                managerLogin: undefined,
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: true,
+                isASAPSubmitBetaEnabled: false,
+                isTrackIntentUser: false,
+                reportTransactions: transactions,
+                rules: undefined,
+                delegateAccountID: undefined,
+                personalDetailsByLogins: {[ownerLogin]: {accountID: 1, login: ownerLogin}},
+                isReportLastVisibleArchived: false,
+            };
+            if (inviteSubmitter) {
+                Report.changeReportPolicyAndInviteSubmitter({...common, currentUser: {accountID: 2}, submitterLogin: ownerLogin, employeeList: {}, reportActionsList: {}});
+            } else {
+                Report.changeReportPolicy({...common, currentUserAccountID: 1, email: ownerLogin, ownerLogin});
+            }
+            await waitForBatchedUpdates();
+            const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+            const call = apiWriteSpy.mock.calls.find(([name]) => name === command);
+            function isPolicyParams(value: unknown): value is ChangeReportPolicyParams {
+                return !!value && typeof value === 'object' && 'reportID' in value && 'policyID' in value && 'reportPreviewReportActionID' in value && 'changePolicyReportActionID' in value;
+            }
+            type ThreadMap = Record<string, {modifiedExpenseReportActionID: string; transactionThreadReportID?: string; transactionThreadCreatedReportActionID?: string}>;
+            function isThreadMap(value: unknown): value is ThreadMap {
+                return (
+                    !!value &&
+                    typeof value === 'object' &&
+                    Object.values(value).every(
+                        (entry: unknown) => !!entry && typeof entry === 'object' && 'modifiedExpenseReportActionID' in entry && typeof entry.modifiedExpenseReportActionID === 'string',
+                    )
+                );
+            }
+            const params = call?.[1];
+            if (!isPolicyParams(params)) {
+                throw new Error('Expected change-workspace API parameters');
+            }
+            const threadMap: unknown = JSON.parse(params.transactionIDToReportActionAndThreadData ?? '{}');
+            if (!isThreadMap(threadMap)) {
+                throw new Error('Expected transaction thread map');
+            }
+            return {params, threadMap, requestData: call?.[2]};
+        }
+
+        afterEach(async () => {
+            mockFetch?.succeed();
+            await mockFetch?.resume();
+        });
+
+        it.each(['matching', 'fallback', 'samePriceFallback', 'existingThread', 'currency', 'approved', 'closed', 'loadingWaypoints', 'sameRateID'] as const)(
+            'updates the expense and API IDs for %s',
+            async (scenario) => {
+                // Given a distance expense moving between workspaces with different rate-selection outcomes
+                const transaction = createDistanceTransaction();
+                const policy = createDistancePolicy('destination', scenario === 'matching' ? 50 : 80, scenario === 'currency' ? 'EUR' : 'USD');
+                if (scenario === 'matching') {
+                    transaction.modifiedAmount = -900;
+                    transaction.modifiedMerchant = 'Manually edited merchant';
+                }
+                if (scenario === 'samePriceFallback' && transaction.comment?.customUnit) {
+                    transaction.comment.customUnit.customUnitRateID = 'deletedRate';
+                    transaction.amount = -800;
+                    transaction.merchant = '10.00 mi @ $0.80 / mi';
+                }
+                if (scenario === 'loadingWaypoints') {
+                    transaction.pendingFields = {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                }
+                if (scenario === 'sameRateID' && transaction.comment?.customUnit) {
+                    transaction.comment.customUnit.customUnitRateID = 'destinationRate';
+                }
+                const iouAction: OnyxTypes.ReportAction = {
+                    reportActionID: 'distanceIOUAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 1,
+                    created: '2026-03-15 00:00:00.000',
+                    originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                    ...(scenario === 'existingThread' ? {childReportID: 'existingDistanceThread'} : {}),
+                };
+                const isSkipped = ['approved', 'closed', 'loadingWaypoints', 'sameRateID'].includes(scenario);
+                const isUnchanged = isSkipped || scenario === 'matching' || scenario === 'samePriceFallback';
+
+                // When either workspace-change command runs while its API response is paused
+                const {params, threadMap} = await changeWorkspace({
+                    transactions: [transaction],
+                    policy,
+                    reportActions: {[iouAction.reportActionID]: iouAction},
+                    reportOverrides:
+                        scenario === 'approved' || scenario === 'closed'
+                            ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: scenario === 'approved' ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.CLOSED}
+                            : {},
+                });
+
+                // Then matching and ineligible expenses keep their values, while fallback prices use the destination rate
+                const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                expect(updated?.amount).toBe(isUnchanged ? transaction.amount : -800);
+                let expectedModifiedAmount: number | undefined;
+                if (scenario === 'matching') {
+                    expectedModifiedAmount = -900;
+                } else if (scenario === 'samePriceFallback' || !isUnchanged) {
+                    expectedModifiedAmount = -800;
+                }
+                expect(updated?.modifiedAmount).toBe(expectedModifiedAmount);
+                expect(updated?.comment?.customUnit?.customUnitRateID).toBe(isSkipped ? transaction.comment?.customUnit?.customUnitRateID : 'destinationRate');
+                if (scenario === 'matching') {
+                    expect(updated?.modifiedMerchant).toBe('Manually edited merchant');
+                }
+                if (isSkipped || scenario === 'matching') {
+                    expect(params.distanceRateUpdatedReportActionID).toBeUndefined();
+                } else {
+                    const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+                    const action = params.distanceRateUpdatedReportActionID ? actions?.[params.distanceRateUpdatedReportActionID] : undefined;
+                    expect(action).toMatchObject({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                        originalMessage: {policyName: 'destination'},
+                    });
+                    expect(action?.created).toBe(DateUtils.addMillisecondsFromDateTime(actions?.[params.changePolicyReportActionID]?.created ?? '', 1));
+                }
+                if (isUnchanged) {
+                    expect(threadMap).toEqual({});
+                } else {
+                    const entry = threadMap[transaction.transactionID];
+                    const threadID = scenario === 'existingThread' ? 'existingDistanceThread' : entry.transactionThreadReportID;
+                    const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+                    expect(actions?.[entry.modifiedExpenseReportActionID]).toMatchObject({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    });
+                    if (scenario === 'existingThread') {
+                        expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+                    } else {
+                        expect(typeof entry.transactionThreadReportID).toBe('string');
+                        expect(typeof entry.transactionThreadCreatedReportActionID).toBe('string');
+                        expect(updated?.transactionThreadReportID).toBe(threadID);
+                    }
+                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(scenario === 'currency' ? 0 : -800);
+                }
+                if (scenario === 'currency') {
+                    expect(updated?.modifiedCurrency).toBe('EUR');
+                }
+            },
+        );
+
+        it('recomputes all violations and rolls back expense fields, totals and newly created threads on failure', async () => {
+            // Given distance and ordinary expenses, including an existing ordinary-expense violation
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+            const ordinary: OnyxTypes.Transaction = {...createDistanceTransaction(), transactionID: 'ordinaryExpense', iouRequestType: undefined, comment: {comment: 'Lunch'}};
+            const originalViolations: OnyxTypes.TransactionViolations = [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            // When changing workspace optimistically and then receiving a failed API response
+            const {params, threadMap, requestData} = await changeWorkspace({
+                transactions: [distance, ordinary],
+                transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`]: originalViolations},
+            });
+            expect(requestData?.optimisticData?.filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))).toHaveLength(2);
+            expect(
+                (await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`))?.some(
+                    (violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                ),
+            ).toBe(false);
+            const entry = threadMap[distance.transactionID];
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            // Then every added price field and thread is removed, and original values and violations return
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`)).toEqual(originalViolations);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${entry.transactionThreadReportID}`)).toBeUndefined();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(-500);
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(params.distanceRateUpdatedReportActionID && actions?.[params.distanceRateUpdatedReportActionID]).toBeUndefined();
+        });
+    });
+
     describe('buildOptimisticChangePolicyData', () => {
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
@@ -6849,8 +7125,8 @@ describe('actions/Report', () => {
             const optimisticReportActionData = optimisticData.find((data) => data.key === parentReportActionKey);
             const failureReportActionData = failureData.find((data) => data.key === parentReportActionKey);
 
-            function isReportActions(value: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>['value']): value is OnyxTypes.ReportActions {
-                return !!value && parentReportActionID in value;
+            function isReportActions(value: unknown): value is OnyxTypes.ReportActions {
+                return !!value && typeof value === 'object' && parentReportActionID in value;
             }
 
             expect(optimisticReportActionData).toBeDefined();

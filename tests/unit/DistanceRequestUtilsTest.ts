@@ -1023,7 +1023,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then the equivalent rate is chosen so the expense is not repriced
-            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'MATCHING_RATE_ID'}, isMatchingRate: true});
         });
 
         it('does not match a disabled rate and falls back to the default rate', () => {
@@ -1037,7 +1037,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then the default rate is used instead
-            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'DEFAULT_RATE_ID'}, isMatchingRate: false});
         });
 
         it('does not match a rate with the same value in a different currency', () => {
@@ -1051,7 +1051,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then it is not treated as a match
-            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'DEFAULT_RATE_ID'}, isMatchingRate: false});
         });
 
         it('does not match any rate when the destination policy uses a different distance unit', () => {
@@ -1068,7 +1068,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then the unit mismatch disqualifies the whole policy from matching and the default rate is used
-            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'DEFAULT_RATE_ID'}, isMatchingRate: false});
         });
 
         it('does not match a value-matching rate whose date range excludes the expense date', () => {
@@ -1082,7 +1082,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then the default rate is used
-            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'DEFAULT_RATE_ID'}, isMatchingRate: false});
         });
 
         it('picks the narrowest date range when several rates match the current value', () => {
@@ -1097,7 +1097,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
 
             // Then the narrower range wins, matching the date ranking used everywhere else
-            expect(result?.customUnitRateID).toBe('MATCHING_H1_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'MATCHING_H1_RATE_ID'}, isMatchingRate: true});
         });
 
         it('returns undefined when the destination policy has no enabled rate', () => {
@@ -1127,7 +1127,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
 
             // Then the P2P rate value is matched against the destination policy
-            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'MATCHING_RATE_ID'}, isMatchingRate: true});
         });
 
         it('matches a P2P expense against the unit saved on the transaction, not the loaded global default unit', () => {
@@ -1148,7 +1148,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
 
             // Then the kilometer rate still matches, so the expense is not repriced by the fallback rate
-            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'MATCHING_RATE_ID'}, isMatchingRate: true});
         });
 
         it('does not match a P2P expense against a destination policy whose unit differs from the transaction unit', () => {
@@ -1166,7 +1166,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
 
             // Then the unit mismatch disqualifies the match and the destination's default rate is used
-            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'DEFAULT_RATE_ID'}, isMatchingRate: false});
         });
 
         it('uses the modified date over the created date when checking rate eligibility', () => {
@@ -1181,7 +1181,59 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
 
             // Then the rate valid for the modified date is matched
-            expect(result?.customUnitRateID).toBe('MATCHING_2025_RATE_ID');
+            expect(result).toMatchObject({rate: {customUnitRateID: 'MATCHING_2025_RATE_ID'}, isMatchingRate: true});
+        });
+
+        it.each([
+            {endDate: '2026-03-14', isMatchingRate: false},
+            {endDate: '2026-03-15', isMatchingRate: true},
+        ])('distinguishes an equivalent fallback from an eligible match ending on $endDate', ({endDate, isMatchingRate}) => {
+            // Given a destination whose only enabled rate has the same value as the source rate
+            const policy = buildDestinationPolicy({ONLY_RATE_ID: buildRate('ONLY_RATE_ID', 70, {endDate})});
+
+            // When selecting a rate for the expense date
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+
+            // Then the selected ID alone does not imply that it was an eligible equivalent match
+            expect(result).toMatchObject({rate: {customUnitRateID: 'ONLY_RATE_ID'}, isMatchingRate});
+        });
+
+        describe('selection reason', () => {
+            it('returns true for a selected rate equivalent to the current rate', () => {
+                // Given a selected rate with the same value, currency and unit as the current rate
+                const policy = buildDestinationPolicy({MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70)});
+                // When checking whether the expense keeps its price
+                const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+                // Then the eligible equivalent rate preserves its price
+                expect(result?.isMatchingRate).toBe(true);
+            });
+            it('returns false for a different default rate', () => {
+                // Given the destination default differs from the current rate
+                const policy = buildDestinationPolicy({DEFAULT_RATE_ID: defaultRate});
+                // When selecting the rate
+                const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy, currentRate});
+                // Then the expense must be recalculated
+                expect(result?.isMatchingRate).toBe(false);
+            });
+            it('matches the saved P2P rate and unit without a resolved current rate', () => {
+                // Given a P2P expense saved in kilometers
+                const transaction = buildTransaction({
+                    comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+                });
+                const policy = buildDestinationPolicy({MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70)}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+                // When selecting its destination rate
+                const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+                // Then the saved P2P value is an eligible match
+                expect(result?.isMatchingRate).toBe(true);
+            });
+            it('treats an unknown non-P2P source rate as a fallback', () => {
+                // Given a workspace rate that could not be resolved
+                const policy = buildDestinationPolicy({DEFAULT_RATE_ID: buildRate('DEFAULT_RATE_ID', 70)});
+                // When selecting without a source rate
+                const result = DistanceRequestUtils.getRateForPolicyChange({transaction: buildTransaction(), policy});
+                // Then no equivalent rate is known
+                expect(result?.isMatchingRate).toBe(false);
+            });
         });
     });
 
