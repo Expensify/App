@@ -486,6 +486,10 @@ const participantsPersonalDetails: PersonalDetailsList = {
     },
 };
 
+const participantsPersonalDetailsByLogins: PersonalDetailsByLogin = Object.fromEntries(
+    Object.values(participantsPersonalDetails).flatMap((personalDetail) => (personalDetail?.login ? [[personalDetail.login, personalDetail]] : [])),
+);
+
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
         email: 'owner@test.com',
@@ -27113,18 +27117,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -27153,18 +27158,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -27181,18 +27187,19 @@ describe('ReportUtils', () => {
             };
 
             const buildEmptyReportWithBeta = (isASAPSubmitBetaEnabled: boolean) =>
-                buildOptimisticEmptyReport(
-                    'test-report-id-201',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
-                    'parent-report-action-id-201',
-                    instantSubmitPolicy,
-                    DateUtils.getDBTime(),
+                buildOptimisticEmptyReport({
+                    reportID: 'test-report-id-201',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
+                    parentReportActionID: 'parent-report-action-id-201',
+                    policy: instantSubmitPolicy,
+                    timeOfCreation: DateUtils.getDBTime(),
                     isASAPSubmitBetaEnabled,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins: participantsPersonalDetailsByLogins,
+                });
 
             it('opens the report when the beta is enabled', () => {
                 // Given a policy that would otherwise submit the report instantly
