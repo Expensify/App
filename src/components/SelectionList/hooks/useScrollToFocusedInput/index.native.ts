@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
+
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
@@ -29,16 +31,12 @@ function isMeasurable(node: MeasurableInput): node is MeasurableNode {
  * `BaseSelectionList` scrolls *list items* into view via `scrollToIndex`, but footer inputs aren't list items,
  * so we instead pull the focused input up toward the top of the list area once the keyboard is shown.
  */
-const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardShown) => {
+const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef) => {
     const containerRef = useRef<ComponentRef<typeof View> | null>(null);
     const scrollOffsetRef = useRef(0);
-    const isKeyboardShownRef = useRef(isKeyboardShown);
+    const isKeyboardShownRef = useKeyboardShownRef();
     const keyboardListenerRef = useRef<EmitterSubscription | null>(null);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        isKeyboardShownRef.current = isKeyboardShown;
-    }, [isKeyboardShown]);
 
     const cleanup = () => {
         keyboardListenerRef.current?.remove();
