@@ -754,8 +754,20 @@ function isDeleteAction(
     cardList: OnyxEntry<CardList>,
     reportActions?: ReportAction[],
     isReportLevelDelete = false,
+    isReportArchived = false,
 ): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, reportOwnerLogin, policy, cardList, isReportLevelDelete);
+    return canDeleteMoneyRequestReport(
+        report,
+        reportTransactions,
+        reportActions ?? [],
+        currentUserAccountID,
+        rules,
+        reportOwnerLogin,
+        policy,
+        cardList,
+        isReportLevelDelete,
+        isReportArchived,
+    );
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -1248,7 +1260,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, submitterLogin, policy, cardList, reportActions ?? [], true)) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, submitterLogin, policy, cardList, reportActions ?? [], true, isArchivedReport(reportNameValuePairs))) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1409,7 +1421,20 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, parentReportActionsList)) {
+    if (
+        isDeleteAction(
+            parentReport,
+            [reportTransaction],
+            currentUserAccountID,
+            rules,
+            parentReportOwnerLogin,
+            policy,
+            cardList,
+            parentReportActionsList,
+            false,
+            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]),
+        )
+    ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

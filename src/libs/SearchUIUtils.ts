@@ -8530,6 +8530,7 @@ function shouldShowDeleteOption(
                   reportPolicy,
                   cardList,
                   true,
+                  isArchivedReport(currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${fullReport.reportID}`]),
               );
           })
         : selectedTransactionsKeys.every((id) => {
@@ -8556,6 +8557,8 @@ function shouldShowDeleteOption(
                   getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
                   parentReportPolicy,
                   cardList,
+                  false,
+                  isArchivedReport(currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReportID}`]),
               );
           });
 }
