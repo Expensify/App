@@ -271,7 +271,7 @@
 "../../src/components/PressableWithSecondaryInteraction/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/PriorityModeController.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/components/ProductMarketingWindow/ProductMarketingWindowManager.tsx"	"rulesdir/no-onyx-loading-status"	2
-"../../src/components/ProductTrainingContext/index.tsx"	"rulesdir/no-onyx-loading-status"	4
+"../../src/components/ProductTrainingContext/index.tsx"	"rulesdir/no-onyx-loading-status"	2
 "../../src/components/PromotedActionsBar.tsx"	"no-restricted-imports"	1
 "../../src/components/PushRowWithModal/PushRowModal.tsx"	"no-restricted-imports"	1
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
