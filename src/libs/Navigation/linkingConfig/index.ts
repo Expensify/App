@@ -1,5 +1,8 @@
+import {hasAuthToken} from '@libs/CurrentUserStore';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
+import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
+import {shouldParkNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import type {LinkingOptions} from '@react-navigation/native';
@@ -20,7 +23,8 @@ const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     // initial URL and later `url` events. The native OAuth callback is consumed by the auth session that opened
     // it, so routing it would only land on NotFound and tear down the returning screen. The signed-out path goes
     // through openReportFromDeepLink instead, which has its own guard.
-    filter: (url) => !isNativeOAuthCallbackURL(url),
+    // A native share that has to wait for onboarding is parked by openReportFromDeepLink, so it is not routed here (#101425).
+    filter: (url) => !isNativeOAuthCallbackURL(url) && !(isNativeShareLink(url) && shouldParkNativeShare(hasAuthToken())),
 };
 
 // eslint-disable-next-line import/prefer-default-export

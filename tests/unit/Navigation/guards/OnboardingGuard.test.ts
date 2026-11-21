@@ -1,5 +1,6 @@
 import OnboardingGuard from '@libs/Navigation/guards/OnboardingGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
+import {keepNativeShareForOnboardingExit} from '@libs/Navigation/helpers/pendingNativeShare';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,6 +15,10 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 let mockSkipOnboarding = false;
+
+jest.mock('@libs/Navigation/helpers/pendingNativeShare', () => ({
+    keepNativeShareForOnboardingExit: jest.fn(),
+}));
 
 jest.mock('@src/CONFIG', () => {
     const actualConfig = jest.requireActual<{default: Record<string, unknown>}>('@src/CONFIG').default;
@@ -90,6 +95,7 @@ describe('OnboardingGuard', () => {
 
     beforeEach(async () => {
         mockSkipOnboarding = false;
+        jest.mocked(keepNativeShareForOnboardingExit).mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -1096,6 +1102,67 @@ describe('OnboardingGuard', () => {
             const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
             expect(result.type).toBe('ALLOW');
+        });
+    });
+
+    describe('native share dropped by the onboarding redirect', () => {
+        const stateWithShareFlow: NavigationState = {
+            ...mockState,
+            index: 1,
+            routeNames: [SCREENS.HOME, NAVIGATORS.SHARE_MODAL_NAVIGATOR],
+            routes: [
+                {key: 'home', name: SCREENS.HOME},
+                {key: 'share', name: NAVIGATORS.SHARE_MODAL_NAVIGATOR},
+            ],
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+        });
+
+        it('keeps the share when the redirect drops an open share flow', () => {
+            // Given a user who needs onboarding while the share flow is open
+            // When the guard redirects to onboarding
+            const result = OnboardingGuard.evaluate(stateWithShareFlow, mockAction, authenticatedContext);
+
+            // Then the share is kept for the onboarding exit
+            expect(result.type).toBe('REDIRECT');
+            expect(keepNativeShareForOnboardingExit).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the share when the share push itself is redirected', () => {
+            // Given a user who needs onboarding
+            // When the action that opens the share flow is redirected to onboarding
+            const openShareAction: NavigationAction = {type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE, payload: {name: NAVIGATORS.SHARE_MODAL_NAVIGATOR}};
+            const result = OnboardingGuard.evaluate(mockState, openShareAction, authenticatedContext);
+
+            // Then the share is kept for the onboarding exit
+            expect(result.type).toBe('REDIRECT');
+            expect(keepNativeShareForOnboardingExit).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not keep anything when no share flow is involved', () => {
+            // Given a user who needs onboarding and no share flow
+            // When the guard redirects to onboarding
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+
+            // Then nothing is kept
+            expect(result.type).toBe('REDIRECT');
+            expect(keepNativeShareForOnboardingExit).not.toHaveBeenCalled();
+        });
+
+        it('does not keep the share when onboarding is not needed', async () => {
+            // Given a user who has completed onboarding while the share flow is open
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates a navigation
+            const result = OnboardingGuard.evaluate(stateWithShareFlow, mockAction, authenticatedContext);
+
+            // Then the share flow is left alone
+            expect(result.type).toBe('ALLOW');
+            expect(keepNativeShareForOnboardingExit).not.toHaveBeenCalled();
         });
     });
 });

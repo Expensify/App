@@ -2,9 +2,10 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 
 import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare} from '@libs/Navigation/helpers/pendingNativeShare';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
@@ -18,8 +19,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
+import {useIsAppLoadPending} from './useInFlightRequests';
 import useOnyx from './useOnyx';
 import useRootNavigationState from './useRootNavigationState';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
@@ -32,6 +34,10 @@ import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const isAppLoadPending = useIsAppLoadPending();
+    // Whether the OpenApp sent for this sign-in has been seen in flight. See the pending native share note below.
+    const hasAppLoadStartedRef = useRef(false);
     const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -65,6 +71,20 @@ function useOnboardingFlowRouter() {
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
     useEffect(() => {
+        if (isAppLoadPending) {
+            hasAppLoadStartedRef.current = true;
+        }
+
+        // A parked native share opens once onboarding is ruled out. For a sign-in during this session that is only known
+        // after its OpenApp has been seen in flight and has finished; the stored loading flags can read "loaded" before that.
+        const openPendingNativeShareOnceLoaded = () => {
+            const hasAppLoadFinished = didUserLogInDuringSession() ? hasAppLoadStartedRef.current && !isAppLoadPending : true;
+            if (!hasLoadedApp || !hasAppLoadFinished) {
+                return;
+            }
+            openPendingNativeShare();
+        };
+
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
 
         const handle = TransitionTracker.runAfterTransitions({
@@ -78,6 +98,7 @@ function useOnboardingFlowRouter() {
                 // Re-read the active route here too: on a cold-launch deep link the render-time check can run before navigation
                 // is ready, so the render-time isVisitingSecureLink may be stale when this transition callback fires.
                 if (getIsVisitingSecureLink()) {
+                    openPendingNativeShareOnceLoaded();
                     return;
                 }
 
@@ -102,6 +123,7 @@ function useOnboardingFlowRouter() {
                 if (CONFIG.IS_HYBRID_APP) {
                     // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                     if (isSingleNewDotEntry) {
+                        openPendingNativeShareOnceLoaded();
                         return;
                     }
 
@@ -115,13 +137,20 @@ function useOnboardingFlowRouter() {
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
+                    openPendingNativeShareOnceLoaded();
                     return;
                 }
 
                 // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
                 // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
                 if (CONFIG.SKIP_ONBOARDING) {
+                    openPendingNativeShareOnceLoaded();
                     return;
+                }
+
+                // Onboarding is coming: the onboarding exit opens a pending native share.
+                if (isOnboardingCompleted === false) {
+                    deferPendingNativeShareUntilOnboardingExit();
                 }
 
                 // Pause the onboarding redirect while required 2FA is in progress:
@@ -143,7 +172,10 @@ function useOnboardingFlowRouter() {
                     Navigation.isNavigationReady().then(() => {
                         startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
                     });
+                    return;
                 }
+
+                openPendingNativeShareOnceLoaded();
             },
         });
 
@@ -152,6 +184,8 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        hasLoadedApp,
+        isAppLoadPending,
         isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
