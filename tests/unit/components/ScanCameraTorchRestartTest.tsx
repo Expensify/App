@@ -5,6 +5,9 @@ import Camera from '@pages/iou/request/step/IOURequestStepScan/components/Camera
 import React from 'react';
 
 let mockFlash = true;
+let mockIsFocused = true;
+let mockIsForeground = true;
+let mockHasPendingPhotoCapture = false;
 let mockTorchMode: 'on' | 'off' = 'on';
 const mockSetTorchMode = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 let mockCapturePhoto: (() => void) | undefined;
@@ -41,8 +44,6 @@ jest.mock('@hooks/useNativeCamera', () => ({
     }),
 }));
 
-jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: () => ({isBetaEnabled: () => true})}));
-
 // Jest resolves the camera platform config to the iOS file, which has no torch path.
 jest.mock('@libs/cameraCapture/platformConfig', () => ({
     __esModule: true,
@@ -52,6 +53,12 @@ jest.mock('@libs/cameraCapture/platformConfig', () => ({
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useNavigation: () => ({isFocused: () => true}),
+    useIsFocused: () => mockIsFocused,
+}));
+
+jest.mock('@hooks/useAppState', () => ({
+    __esModule: true,
+    default: () => ({isForeground: mockIsForeground, isInactive: false, isBackground: !mockIsForeground}),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/captureReceipt', () => ({
@@ -85,7 +92,7 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanContex
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade', () => ({
     __esModule: true,
-    default: () => ({hasPendingPhotoCapture: false, startPhotoCapture: jest.fn(), upgradeReceiptWithPhoto: jest.fn(), discardPendingPhoto: jest.fn()}),
+    default: () => ({hasPendingPhotoCapture: mockHasPendingPhotoCapture, startPhotoCapture: jest.fn(), upgradeReceiptWithPhoto: jest.fn(), discardPendingPhoto: jest.fn()}),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan', () => ({__esModule: true, default: jest.fn()}));
@@ -126,6 +133,9 @@ describe('Scan camera torch after the camera session restarts', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFlash = true;
+        mockIsFocused = true;
+        mockIsForeground = true;
+        mockHasPendingPhotoCapture = false;
         mockTorchMode = 'on';
         mockCapturePhoto = undefined;
         mockViewportProps = {};
@@ -151,8 +161,9 @@ describe('Scan camera torch after the camera session restarts', () => {
     });
 
     it('does not touch the torch when the camera starts with flash off', () => {
-        // Given flash is off
+        // Given flash is off and the torch is off
         mockFlash = false;
+        mockTorchMode = 'off';
         renderCamera();
 
         // When the session starts
@@ -225,5 +236,66 @@ describe('Scan camera torch after the camera session restarts', () => {
 
         // Then the exposure has not adjusted to the torch yet, so the capture takes the flash photo
         expect(wasLastCaptureTorchLit()).toBe(false);
+    });
+});
+
+describe('Scan camera torch when the scan screen is not in use', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockFlash = true;
+        mockIsFocused = true;
+        mockIsForeground = true;
+        mockHasPendingPhotoCapture = false;
+        mockTorchMode = 'on';
+        mockViewportProps = {};
+    });
+
+    it('turns the torch off when the app goes to the background', () => {
+        // Given flash is on and the torch lights the scan screen
+        renderCamera();
+        expect(mockViewportProps.isTorchOn).toBe(true);
+
+        // When the app goes to the background, which leaves the camera session open
+        mockIsForeground = false;
+        renderCamera();
+
+        // Then the torch is turned off instead of shining in the user's pocket
+        expect(mockViewportProps.isTorchOn).toBe(false);
+    });
+
+    it('turns the torch off when another screen, like Replace receipt, opens on top', () => {
+        // Given flash is on and no upgrade photo is being taken
+        // When the scan screen blurs because another camera screen opened on top
+        mockIsFocused = false;
+        renderCamera();
+
+        // Then the torch is turned off, so it does not shine while the new screen shows flash off
+        expect(mockViewportProps.isTorchOn).toBe(false);
+    });
+
+    it('keeps the torch on after the screen blurs while the upgrade photo is being taken', () => {
+        // Given the capture moved on to confirmation and the background upgrade photo is still being taken
+        mockIsFocused = false;
+        mockHasPendingPhotoCapture = true;
+
+        // When the camera renders
+        renderCamera();
+
+        // Then the torch stays on, so the upgrade photo is lit like the snapshot
+        expect(mockViewportProps.isTorchOn).toBe(true);
+    });
+
+    it('turns off a torch left on when a camera with flash off starts', () => {
+        // Given flash is off on this camera, but the torch is still on from the scan screen underneath
+        mockFlash = false;
+        renderCamera();
+
+        // When the session starts
+        act(() => {
+            mockViewportProps.onStarted?.();
+        });
+
+        // Then the torch is turned off, because VisionCamera never applies a new camera's initial 'off'
+        expect(mockSetTorchMode).toHaveBeenCalledWith('off');
     });
 });

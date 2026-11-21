@@ -1,4 +1,9 @@
-import shouldLightFlashWithTorch, {getTorchFallbackReason, getTorchModeProp, TORCH_SETTLE_MS} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
+import shouldLightFlashWithTorch, {
+    getTorchFallbackReason,
+    getTorchModeProp,
+    shouldKeepTorchLit,
+    TORCH_SETTLE_MS,
+} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
 
 const mockPlatformConfig = {canLightFlashWithTorch: true};
 
@@ -9,7 +14,7 @@ jest.mock('@libs/cameraCapture/platformConfig', () => ({
     },
 }));
 
-const ALL_MET = {flash: true, hasFlash: true, hasTorch: true, isBetaEnabled: true, isMultiScanEnabled: false, canUpgradeReceiptQuality: true};
+const ALL_MET = {flash: true, hasFlash: true, hasTorch: true, isMultiScanEnabled: false, canUpgradeReceiptQuality: true};
 
 describe('shouldLightFlashWithTorch', () => {
     beforeEach(() => {
@@ -17,7 +22,7 @@ describe('shouldLightFlashWithTorch', () => {
     });
 
     it('lights a single flash scan with the torch on a platform that can take snapshots', () => {
-        // Given flash on, a phone with a torch, the beta on and a scan that gets the photo upgrade
+        // Given flash on, a phone with a torch and a scan that gets the photo upgrade
         // When the capture mode is decided
         // Then the torch lights it, so the capture can be a fast snapshot
         expect(shouldLightFlashWithTorch(ALL_MET)).toBe(true);
@@ -27,7 +32,6 @@ describe('shouldLightFlashWithTorch', () => {
         ['flash is off', {flash: false}],
         ['the phone has no flash', {hasFlash: false}],
         ['the phone has no torch', {hasTorch: false}],
-        ['the beta is off', {isBetaEnabled: false}],
         ['multi-scan is on, which skips the photo upgrade', {isMultiScanEnabled: true}],
         ['the screen has no photo upgrade', {canUpgradeReceiptQuality: false}],
     ])('keeps the flash photo when %s', (_, override) => {
@@ -44,6 +48,38 @@ describe('shouldLightFlashWithTorch', () => {
         // When the capture mode is decided
         // Then the torch stays off
         expect(shouldLightFlashWithTorch(ALL_MET)).toBe(false);
+    });
+});
+
+describe('shouldKeepTorchLit', () => {
+    const IN_USE = {isTorchRequested: true, isAppInForeground: true, isScreenFocused: true, hasPendingPhotoCapture: false};
+
+    it('keeps the torch lit while the scan screen is in use', () => {
+        // Given flash on with the torch path, the app in the foreground and the scan screen focused
+        // When the torch state is decided
+        // Then the torch stays lit for the next capture
+        expect(shouldKeepTorchLit(IN_USE)).toBe(true);
+    });
+
+    it.each([
+        ['the screen blurs', {isScreenFocused: false, hasPendingPhotoCapture: true}],
+        ['the app goes to the background', {isAppInForeground: false, hasPendingPhotoCapture: true}],
+    ])('keeps the torch lit when %s while the upgrade photo is still being taken', (_, override) => {
+        // Given the background upgrade photo is still being taken
+        // When the torch state is decided
+        // Then the torch stays lit until the photo lands, so it does not replace the lit snapshot with a dark photo
+        expect(shouldKeepTorchLit({...IN_USE, ...override})).toBe(true);
+    });
+
+    it.each([
+        ['flash is off', {isTorchRequested: false}],
+        ['the app is in the background', {isAppInForeground: false}],
+        ['another screen, like Replace receipt, is on top', {isScreenFocused: false}],
+    ])('turns the torch off when %s', (_, override) => {
+        // Given the scan screen is not in use, or flash is off
+        // When the torch state is decided
+        // Then the torch goes off, because unlike a flash it keeps shining until it is turned off
+        expect(shouldKeepTorchLit({...IN_USE, ...override})).toBe(false);
     });
 });
 
