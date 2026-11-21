@@ -163,6 +163,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
     // QBD is also not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration when beta + Codat + CREDIT_CARD_CHARGE are all true.
+    // NetSuite is also not in the discovery list. It reaches the row only through
+    // getActiveVendorMatchingIntegration when beta + REST (oauth2) + CREDIT_CARD_CHARGE are all true.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [

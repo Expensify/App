@@ -102,6 +102,18 @@ function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boo
 }
 
 /**
+ * Returns true when NetSuite is connected over REST (oauth2) and configured to export
+ * non-reimbursable expenses as Credit Card Charges. Mirrors `NetSuite::hasVendorFeature` on the PHP side.
+ */
+function isNetSuiteVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const optionsConfig = connection?.options?.config;
+    // NetSuite payloads can store authType under options.config or at the root config, so check both.
+    const authType = optionsConfig?.authType ?? connection?.config?.authType;
+    return authType === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2 && optionsConfig?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
+}
+
+/**
  * Vendor matching feature gate. Returns true when a supported accounting integration is connected
  * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
  * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
@@ -135,7 +147,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     ) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy));
+    return (
+        isVendorMatchingBetaEnabled &&
+        (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy) || isNetSuiteVendorMatchingActive(policy))
+    );
 }
 
 /**
@@ -216,6 +231,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.QBD;
     }
+    if (isNetSuiteVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+    }
     return undefined;
 }
 
@@ -294,6 +312,13 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         }
         return vendors.filter((vendor) => !!vendor.id && vendor.name !== CONST.QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME);
     }
+    if (isNetSuiteVendorMatchingActive(policy)) {
+        const vendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.data?.vendors;
+        if (!Array.isArray(vendors)) {
+            return undefined;
+        }
+        return vendors.filter((vendor) => !!vendor.id).map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+    }
     return undefined;
 }
 
@@ -366,6 +391,9 @@ function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName):
     } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
         const certiniaConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
         return certiniaConfig?.export?.vendorAccount ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        const netsuiteConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config;
+        return netsuiteConfig?.defaultVendor ?? undefined;
     }
 
     return undefined;
@@ -465,7 +493,17 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     }
     const qbdVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
     if (Array.isArray(qbdVendors)) {
-        return qbdVendors.find((vendor) => vendor.id === vendorID);
+        const qbdVendor = qbdVendors.find((vendor) => vendor.id === vendorID);
+        if (qbdVendor) {
+            return qbdVendor;
+        }
+    }
+    const netsuiteVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.data?.vendors;
+    if (Array.isArray(netsuiteVendors)) {
+        const netsuiteVendor = netsuiteVendors.find((vendor) => vendor.id === vendorID);
+        if (netsuiteVendor) {
+            return {id: netsuiteVendor.id, name: netsuiteVendor.name, currency: '', email: netsuiteVendor.email ?? ''};
+        }
     }
     return undefined;
 }
@@ -553,6 +591,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             return {
                 title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return {
+                title: translate('workspace.common.noVendorsFound'),
+                subtitle: translate('workspace.netsuite.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
@@ -656,6 +699,7 @@ export {
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
     isQuickbooksDesktopVendorMatchingActive,
+    isNetSuiteVendorMatchingActive,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
