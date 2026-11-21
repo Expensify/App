@@ -394,7 +394,9 @@ function ValidateCodeInput({
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<TextInputKeyPressEvent> & Partial<Pick<KeyboardEvent, 'shiftKey'>>) => {
+    const onKeyPress = (
+        event: Omit<Partial<TextInputKeyPressEvent>, 'nativeEvent'> & {nativeEvent?: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'>} & Partial<Pick<KeyboardEvent, 'shiftKey'>>,
+    ) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);

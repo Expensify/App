@@ -74,7 +74,9 @@
         "eslint-plugin-es",
         "shellcheck",
         "patch-package",
-        "diff-so-fancy"
+        "diff-so-fancy",
+        "@babel/plugin-proposal-class-properties",
+        "@react-native/assets-registry"
     ],
     "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
     "ignoreIssues": {
