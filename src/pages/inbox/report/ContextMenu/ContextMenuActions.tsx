@@ -77,6 +77,7 @@ import {
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
+    getMergedReportsMessage,
     getMccGroupCategoryMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
@@ -1447,6 +1448,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.unheldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
                     Clipboard.setString(translate('iou.undeletedExpense'));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS)) {
+                    Clipboard.setString(getMergedReportsMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
                     Clipboard.setString(translate('iou.reject.reportActions.rejectedExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {

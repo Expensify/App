@@ -1726,6 +1726,10 @@ const translations = {
         movedTransactionToAnotherReport: 'moved this expense to another report',
         movedTransactionFrom: (reportUrl: string, reportName: string) => `moved this expense from <a href="${reportUrl}">${reportName}</a>`,
         movedTransactionFromAnotherReport: 'moved this expense from another report',
+        mergedReports: ({reportNames}: {reportNames: string}) => ({
+            one: `merged ${reportNames} into this report`,
+            other: (count: number) => `merged ${count} reports into this report: ${reportNames}`,
+        }),
         unreportedTransaction: (reportUrl: string) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
