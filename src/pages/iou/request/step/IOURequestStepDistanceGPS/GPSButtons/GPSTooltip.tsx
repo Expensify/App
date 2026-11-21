@@ -13,7 +13,12 @@ import React from 'react';
 
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
-function GPSTooltip({children}: React.PropsWithChildren) {
+type GPSTooltipProps = React.PropsWithChildren<{
+    /** Max tooltip width in px. Defaults to the window width minus horizontal padding. Used to cap the tooltip to the button's width so it stays on screen in landscape. */
+    maxWidth?: number;
+}>;
+
+function GPSTooltip({children, maxWidth}: GPSTooltipProps) {
     const [isTracking = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
     const styles = useThemeStyles();
@@ -25,7 +30,7 @@ function GPSTooltip({children}: React.PropsWithChildren) {
         <EducationalTooltip
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shiftVertical={-12}
-            maxWidth={windowWidth - GPS_TOOLTIP_HORIZONTAL_PADDING}
+            maxWidth={maxWidth ?? windowWidth - GPS_TOOLTIP_HORIZONTAL_PADDING}
             renderTooltipContent={renderProductTrainingTooltip}
             shouldRender={shouldShowProductTrainingTooltip}
         >
