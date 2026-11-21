@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -117,6 +118,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
@@ -226,6 +228,7 @@ function handleMoneyRequestStepDistanceNavigation({
     participantsPolicyTags,
     isOffline = false,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
     reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
@@ -448,6 +451,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         getCurrencyDecimals,
                         participantsPolicyTags,
                         rules,
+                        personalDetailsByLogins,
                         reusableDistanceRoutes,
                     });
                     commitDistanceRequest(distanceRequestPlan);

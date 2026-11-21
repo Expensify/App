@@ -26,7 +26,7 @@ import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
-import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
+import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getPersonalDetailsByLogins} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -429,6 +429,7 @@ describe('actions/IOU', () => {
             [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
             [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
         };
+        const mockPersonalDetailsByLogins = getPersonalDetailsByLogins(mockPersonalDetails);
 
         const baseTransactionParams = {
             amount: 400,
@@ -452,6 +453,7 @@ describe('actions/IOU', () => {
             } = {},
         ) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             participants: overrides.participants ?? [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,

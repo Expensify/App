@@ -87,6 +87,7 @@ import {
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
     getOnyxData,
+    getPersonalDetailsByLogins,
     getRequiredOnyxUpdates,
     getRequiredWriteCall,
     translateLocal,
@@ -212,6 +213,7 @@ const mockPersonalDetails: PersonalDetailsList = {
         displayName: VIT_EMAIL,
     },
 };
+const mockPersonalDetailsByLogins = getPersonalDetailsByLogins(mockPersonalDetails);
 
 const getAllPolicyTags = async (): Promise<OnyxCollection<PolicyTagLists>> => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
@@ -412,6 +414,7 @@ describe('split expense', () => {
                 splitBill(
                     // TODO: Migrate after the backend accepts accountIDs
                     {
+                        personalDetailsByLogins: mockPersonalDetailsByLogins,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         participants: [
@@ -751,6 +754,7 @@ describe('split expense', () => {
 
         // When the user split bill on the workspace
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -806,6 +810,7 @@ describe('split expense', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -835,6 +840,7 @@ describe('split expense', () => {
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -871,6 +877,7 @@ describe('split expense', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -912,6 +919,7 @@ describe('split expense', () => {
 
         // When the user split bill twice on the DM
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -939,6 +947,7 @@ describe('split expense', () => {
         await waitForBatchedUpdates();
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1013,6 +1022,7 @@ describe('split expense', () => {
 
         // When doing a distance split expense
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -1065,6 +1075,7 @@ describe('split expense', () => {
 
         // When the user split bill on the group chat
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1128,6 +1139,7 @@ describe('split expense', () => {
 
         // When doing a split bill
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{isPolicyExpenseChat: true, policyID}],
@@ -1241,6 +1253,7 @@ describe('split expense', () => {
 
         // Complete this split bill without changing the description
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -1318,6 +1331,7 @@ describe('split expense', () => {
 
         // When the user fills the fields in by hand and completes the split while still offline
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -1540,9 +1554,11 @@ describe('split expense', () => {
                 displayName: 'Carlos Test',
             },
         };
+        const testPersonalDetailsByLogins = getPersonalDetailsByLogins(testPersonalDetails);
 
         // When splitting a bill with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: testPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1603,9 +1619,11 @@ describe('split expense', () => {
                 displayName: 'Jules',
             },
         };
+        const participantPersonalDetailsByLogins = getPersonalDetailsByLogins(participantPersonalDetails);
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: participantPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [
@@ -1757,8 +1775,10 @@ describe('split expense', () => {
                 displayName: 'Carlos Complete',
             },
         };
+        const completeSplitPersonalDetailsByLogins = getPersonalDetailsByLogins(completeSplitPersonalDetails);
 
         completeSplitBill({
+            personalDetailsByLogins: completeSplitPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -11986,6 +12006,7 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
             displayName: 'Carlos',
         },
     };
+    const distanceMockPersonalDetailsByLogins = getPersonalDetailsByLogins(distanceMockPersonalDetails);
 
     function getDefaultDistanceRequestParams(
         report: Report | undefined,
@@ -11993,6 +12014,7 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
         recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
     ): CreateDistanceRequestInformation {
         return {
+            personalDetailsByLogins: distanceMockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report,
@@ -13076,6 +13098,7 @@ describe('resolveOptimisticSplitChatReportID', () => {
         expect(chatReportID).toBe(optimisticSplitChatReportID);
 
         splitBillAndOpenReport({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             participants,
             currentUserLogin: RORY_EMAIL,

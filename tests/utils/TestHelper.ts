@@ -1,5 +1,7 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
@@ -19,7 +21,7 @@ import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import appSetup from '@src/setup';
-import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {CurrencyList, Response as OnyxResponse, PersonalDetails, PersonalDetailsList, Report, StripeCustomerID} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
@@ -563,6 +565,21 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
+/**
+ * Keys a personal details list by login, the way PersonalDetailsByLoginProvider does, so a test can pass
+ * the same personal details as both `personalDetails` and `personalDetailsByLogins`.
+ */
+function getPersonalDetailsByLogins(personalDetailsList: PersonalDetailsList): PersonalDetailsByLogin {
+    const personalDetailsByLogins: PersonalDetailsByLogin = {};
+    for (const personalDetails of Object.values(personalDetailsList)) {
+        if (!personalDetails?.login) {
+            continue;
+        }
+        personalDetailsByLogins[personalDetails.login] = personalDetails;
+    }
+    return personalDetailsByLogins;
+}
+
 export type {MockFetch};
 export {
     anyArray,
@@ -591,6 +608,7 @@ export {
     setupGlobalFetchMock,
     navigateToSidebarOption,
     getOnyxData,
+    getPersonalDetailsByLogins,
     getNavigateToChatHintRegex,
     formatPhoneNumber,
     localeCompare,
