@@ -5,9 +5,14 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
+import TableDisplaySettingsPopoverComponent from '@components/Table/TableFilterBar/TableDisplaySettingsPopoverComponent';
+import {shouldShowTableDisplaySettingsTrigger} from '@components/Table/TableFilterBar/TableDisplaySettingsTrigger';
+import WorkspaceTaxesTable from '@components/Tables/WorkspaceTaxesTable';
+import type {WorkspaceTaxTableRowData} from '@components/Tables/WorkspaceTaxesTable';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -123,6 +128,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         NavigationContainer: ({children}: {children: React.ReactNode}) => children,
         NavigationRouteContext: ReactLocal.createContext(undefined),
+        NavigationContext: ReactLocal.createContext(undefined),
         ThemeProvider: ({children}: {children: React.ReactNode}) => children,
         useIsFocused: jest.fn(() => true),
         useFocusEffect: jest.fn(),
@@ -3057,6 +3063,207 @@ describe('Table', () => {
             // Without `immediate`, the same MULTI_SELECT filter stages selections behind an Apply/Reset footer.
             expect(screen.getByText('common.apply')).toBeOnTheScreen();
             expect(screen.getByText('common.reset')).toBeOnTheScreen();
+        });
+    });
+
+    describe('display settings', () => {
+        const screenWrapperStatus = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+        const layouts = [
+            {name: 'wide', shouldUseNarrowLayout: false, isMediumScreenWidth: false},
+            {name: 'narrow', shouldUseNarrowLayout: true, isMediumScreenWidth: false},
+            {name: 'medium', shouldUseNarrowLayout: false, isMediumScreenWidth: true},
+        ];
+        const defaultLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+
+        function setLayout(layout: {shouldUseNarrowLayout: boolean; isMediumScreenWidth: boolean}) {
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({...layout, isSmallScreenWidth: layout.shouldUseNarrowLayout}));
+        }
+
+        function DisplaySettingsProviders({children}: React.PropsWithChildren) {
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <ScreenWrapperStatusContext.Provider value={screenWrapperStatus}>{children}</ScreenWrapperStatusContext.Provider>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        function DisplaySettingsPopover() {
+            return (
+                <ListFilterHeightContextProvider>
+                    <TableDisplaySettingsPopoverComponent closeOverlay={jest.fn()} />
+                </ListFilterHeightContextProvider>
+            );
+        }
+
+        const taxes: WorkspaceTaxTableRowData[] = [
+            {name: 'Alpha', taxCode: 'CODE-Z'},
+            {name: 'Bravo', taxCode: 'CODE-A'},
+            {name: 'Charlie', taxCode: 'CODE-M'},
+        ].map((tax) => ({
+            ...tax,
+            keyForList: tax.name,
+            taxRateValue: '10%',
+            defaultLabel: '',
+            enabled: true,
+            isLocked: false,
+            action: jest.fn(),
+            onToggleEnabled: jest.fn(),
+            onClose: jest.fn(),
+        }));
+
+        function TaxesWithDisplaySettings({shouldShowTaxCodeColumn = true}: {shouldShowTaxCodeColumn?: boolean}) {
+            return (
+                <DisplaySettingsProviders>
+                    <WorkspaceTaxesTable
+                        taxes={taxes}
+                        selectedKeys={[]}
+                        selectionEnabled={false}
+                        shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
+                        onRowSelectionChange={jest.fn()}
+                        headerComponent={<DisplaySettingsPopover />}
+                    />
+                </DisplaySettingsProviders>
+            );
+        }
+
+        beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
+        afterEach(() => {
+            if (!defaultLayoutImplementation) {
+                return;
+            }
+            jest.mocked(useResponsiveLayout).mockImplementation(defaultLayoutImplementation);
+        });
+
+        it('shows the trigger only when there is a sortable column', () => {
+            // Given tables without columns or without any sortable columns
+            const unsortableColumns = [
+                {key: 'name', label: 'Name', sortable: false},
+                {key: 'actions', label: '', sortable: false},
+            ];
+
+            // When deciding whether Display options has any useful controls
+            const visibility = [[], unsortableColumns, mockColumns].map((columns) => shouldShowTableDisplaySettingsTrigger({columns}));
+
+            // Then only the table with sortable columns exposes it
+            expect(visibility).toEqual([false, false, true]);
+        });
+
+        it.each(layouts)('shows Display options without filters on $name layouts', async (layout) => {
+            // Given a populated sortable table with no filter configuration
+            setLayout(layout);
+            const props = createDefaultProps();
+
+            // When the toolbar renders at this width
+            render(
+                <DisplaySettingsProviders>
+                    <Table
+                        {...props}
+                        initialSortColumn="name"
+                    >
+                        <Table.FilterBar label="Find" />
+                        <Table.Body />
+                    </Table>
+                </DisplaySettingsProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the accessible Display control is available even at medium-only widths
+            const displayButton = layout.shouldUseNarrowLayout || layout.isMediumScreenWidth ? screen.getByLabelText('search.display.label') : screen.getByText('search.display.label');
+            expect(displayButton).toBeOnTheScreen();
+        });
+
+        it('keeps Tax code sorting and its summary in sync through wide, medium and narrow layouts', async () => {
+            // Given a wide Taxes table whose code order differs from its name order
+            setLayout(layouts[0]);
+            const {rerender} = render(<TaxesWithDisplaySettings />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When Tax code is applied, then its descending order is applied
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}taxCode`));
+            fireEvent.press(screen.getByText('common.apply'));
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByText('search.display.sortOrder'), {});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}desc`));
+            fireEvent.press(screen.getByText('common.apply'));
+
+            for (const layout of [layouts[0], layouts[2], layouts[1], layouts[0]]) {
+                setLayout(layout);
+                rerender(<TaxesWithDisplaySettings />);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then resizing the same table preserves both the actual code-descending rows and the truthful summary
+                expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Charlie', 'Bravo']);
+                expect(screen.getByText(`workspace.taxes.taxCode ${CONST.DOT_SEPARATOR} search.filters.sortOrder.desc`)).toBeOnTheScreen();
+                if (layout.shouldUseNarrowLayout || layout.isMediumScreenWidth) {
+                    expect(screen.queryByText('CODE-Z')).toBeNull();
+                    expect(screen.queryByLabelText(/workspace.taxes.taxCode: CODE-Z/)).toBeNull();
+                } else {
+                    expect(screen.getByText('CODE-Z')).toBeOnTheScreen();
+                }
+            }
+
+            // When Sort by is reset on a compact layout
+            setLayout(layouts[1]);
+            rerender(<TaxesWithDisplaySettings />);
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByText('common.reset'));
+
+            // Then both the default Name column and ascending order are restored
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Bravo', 'Charlie']);
+            expect(screen.getByText(`common.name ${CONST.DOT_SEPARATOR} search.filters.sortOrder.asc`)).toBeOnTheScreen();
+        });
+
+        it.each(layouts.slice(1))('allows Tax code sorting and order reset when starting on $name layouts', async (layout) => {
+            // Given a compact Taxes table, not a table that inherited a desktop selection
+            setLayout(layout);
+            render(<TaxesWithDisplaySettings />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When a new sort field is selected but not applied
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}taxCode`));
+
+            // Then the rows keep their original order until Apply commits the selection
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Bravo', 'Charlie']);
+            fireEvent.press(screen.getByText('common.apply'));
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Bravo', 'Charlie', 'Alpha']);
+
+            // When the order is changed and then reset from the order subpage
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByText('search.display.sortOrder'), {});
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}desc`));
+            fireEvent.press(screen.getByText('common.apply'));
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Charlie', 'Bravo']);
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByText('search.display.sortOrder'), {});
+            fireEvent.press(screen.getByText('common.reset'));
+
+            // Then only the order resets; the chosen code column and hidden compact cells are preserved
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Bravo', 'Charlie', 'Alpha']);
+            expect(screen.getByText(`workspace.taxes.taxCode ${CONST.DOT_SEPARATOR} search.filters.sortOrder.asc`)).toBeOnTheScreen();
+            expect(screen.queryByText('CODE-Z')).toBeNull();
+        });
+
+        it.each(layouts)('omits Tax code sorting when codes are unavailable on $name layouts', async (layout) => {
+            // Given a workspace without a Tax code column
+            setLayout(layout);
+            render(<TaxesWithDisplaySettings shouldShowTaxCodeColumn={false} />);
+
+            // When the user opens the sort-column choices
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the absent code cannot be selected, while the normal sorts remain available
+            expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}taxCode`)).toBeNull();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}name`)).toBeOnTheScreen();
         });
     });
 
