@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+
 // eslint-disable-next-line no-restricted-imports -- type-only wildcard import used solely to type jest.requireActual below; isPaidGroupPolicy is not referenced
 import type * as PolicyUtilsModule from '@libs/PolicyUtils';
 
@@ -25,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// The HOC injects policy/personalDetails from Onyx; the test injects them directly instead.
+// The HOC injects policy from Onyx; the test injects it directly instead.
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (component: unknown) => component);
 jest.mock(
     '@pages/workspace/AccessOrNotFoundWrapper',
@@ -51,6 +53,7 @@ jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn((
 jest.mock('@components/SelectionList/ListItem/UserListItem', () => jest.fn(() => null));
 
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: jest.fn()}));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})));
 jest.mock('@hooks/usePressLoading', () => jest.fn(() => ({isLoading: false, startWithLoading: jest.fn()})));
@@ -117,7 +120,7 @@ const POLICY = {
     ]),
 } as unknown as Policy;
 
-type PageProps = {policy: Policy; personalDetails: PersonalDetailsList; isLoadingReportData: boolean; route: {params: {policyID: string}}};
+type PageProps = {policy: Policy; isLoadingReportData: boolean; route: {params: {policyID: string}}};
 
 // The identity-mocked HOC renders the inner component, so re-type the export to the props it actually accepts.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- re-typing the identity-mocked HOC export to its inner component props
@@ -127,7 +130,6 @@ function pageElement() {
     return (
         <Page
             policy={POLICY}
-            personalDetails={PERSONAL_DETAILS}
             isLoadingReportData={false}
             route={{params: {policyID: 'policy1'}}}
         />
@@ -141,6 +143,7 @@ describe('WorkspaceWorkflowsPayerPage', () => {
 
     beforeEach(() => {
         mockedList.mockClear();
+        jest.mocked(useAllPersonalDetails).mockReturnValue([PERSONAL_DETAILS, {status: 'loaded'}]);
     });
 
     it('pins the initially selected payer to the top section on open', () => {
