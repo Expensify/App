@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import {clearPendingRHPWidth} from '@components/WideRHPContextProvider/pendingRHPWidths';
@@ -8,7 +7,7 @@ import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,6 +17,8 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {CAROUSEL_SOURCE, clearActiveTransactionIDsForSource, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForReportID,
@@ -39,9 +40,9 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
+import {fullPolicySnapshotLastModifiedSelector, reportPreviewPolicySelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
@@ -83,12 +84,12 @@ function MoneyRequestReportPreview({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {markReportRHPWidth} = useWideRHPActions();
-    const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
-    const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
+    const invoiceReceiverAccountID = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : undefined;
+    const [invoiceReceiverPersonalDetail] = usePersonalDetail(invoiceReceiverAccountID);
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const {isOffline} = useNetwork();
     // Full set of the report's transactions (matches ReportUtils' `getReportTransactions`). Used for the receipt/scan/
@@ -103,7 +104,9 @@ function MoneyRequestReportPreview({
     const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: hasReportActionsSelector,
     });
-    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string; conciergeChat: OnyxEntry<Report>} | null>(null);
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string; conciergeChat: OnyxEntry<Report>; personalDetails: OnyxEntry<PersonalDetailsList>} | null>(
+        null,
+    );
     // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
     // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
     const pendingPressActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => {
@@ -122,12 +125,12 @@ function MoneyRequestReportPreview({
     const transactionsWithReceipts = getTransactionsWithReceipts(allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(action, allReportTransactions);
-    const policy = usePolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(policyID)}`, {selector: reportPreviewPolicySelector});
     const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const lastTransaction = transactions?.at(0);
-    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
+    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID, true, undefined, policy?.id === iouReport?.policyID ? policy : undefined);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
@@ -232,7 +235,7 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const resolveChildReportID = (transaction: Transaction, conciergeChat: OnyxEntry<Report>) => {
+    const resolveChildReportID = (transaction: Transaction, conciergeChat: OnyxEntry<Report>, personalDetails: OnyxEntry<PersonalDetailsList>) => {
         let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
         if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
             const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
@@ -258,7 +261,7 @@ function MoneyRequestReportPreview({
                     currentUserAccountID,
                     iouReport,
                     iouReportAction: transactionIOUAction,
-                    personalDetails: personalDetailsList,
+                    personalDetails,
                     fullPolicySnapshotLastModified,
                 })?.reportID;
             }
@@ -363,8 +366,9 @@ function MoneyRequestReportPreview({
         // Read once per press and carry it to the deferred continuation below, which runs in an effect and must not read Onyx itself
         const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const personalDetails = getAllPersonalDetails();
         const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        const childReportID = resolveChildReportID(transaction, conciergeChat);
+        const childReportID = resolveChildReportID(transaction, conciergeChat, personalDetails);
         const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
         if (childReportID) {
             if (!isIOUActionLoaded && iouReportID) {
@@ -386,7 +390,7 @@ function MoneyRequestReportPreview({
         }
 
         if (!isIOUActionLoaded && iouReportID && !isOffline) {
-            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress, conciergeChat};
+            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress, conciergeChat, personalDetails};
             openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
             return;
         }
@@ -404,7 +408,7 @@ function MoneyRequestReportPreview({
             return;
         }
         const pendingTransaction = pendingPress.transaction;
-        const childReportID = resolveChildReportID(pendingTransaction, pendingPress.conciergeChat);
+        const childReportID = resolveChildReportID(pendingTransaction, pendingPress.conciergeChat, pendingPress.personalDetails);
         if (childReportID) {
             pendingExpenseTransactionRef.current = null;
             navigateToExpense(childReportID, pendingPress.originRoute);

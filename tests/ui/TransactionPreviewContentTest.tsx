@@ -128,7 +128,8 @@ const buildTransactionPreviewContent = (violations: TransactionViolation[]) => (
             areThereDuplicates={false}
             sessionAccountID={currentUserAccountID}
             walletTermsErrors={undefined}
-            reportPreviewAction={undefined}
+            managerID={approverAccountID}
+            ownerAccountID={currentUserAccountID}
             navigateToReviewFields={() => {}}
             routeName="Report"
         />

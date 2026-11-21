@@ -33,6 +33,7 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
@@ -79,7 +80,8 @@ function TransactionPreviewContent({
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
-    reportPreviewAction,
+    managerID,
+    ownerAccountID,
     shouldHideOnDelete = true,
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
@@ -97,7 +99,7 @@ function TransactionPreviewContent({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (allRules) => filterRulesForPolicy(allRules, report?.policyID)});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
@@ -118,8 +120,6 @@ function TransactionPreviewContent({
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const accountIDToName = useMentionedAccountIDToNameMap(requestComment);
-    const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;
