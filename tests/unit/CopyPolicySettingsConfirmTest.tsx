@@ -16,6 +16,8 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const SOURCE_POLICY_ID = 'source-policy-1';
@@ -210,5 +212,34 @@ describe('CopyPolicySettingsConfirmPage', () => {
         expect(mockCopyPolicySettings).toHaveBeenCalledTimes(1);
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
         expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(SOURCE_POLICY_ID));
+    });
+
+    it('passes the stored categories and tags to the copy', async () => {
+        // Given a source workspace with categories and tags, and a Control target that needs no upgrade
+        const categories = createRandomPolicyCategories(2);
+        const tags = createRandomPolicyTags('Department', 2);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`, categories);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`, tags);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, createTestPolicy(TARGET_POLICY_ID, 'Target Workspace', CONST.POLICY.TYPE.CORPORATE));
+        await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {sourcePolicyID: SOURCE_POLICY_ID, targetPolicyIDs: [TARGET_POLICY_ID], parts: ['categories', 'tags'] as Part[]});
+        renderConfirmPage();
+        await waitForBatchedUpdates();
+
+        // When the admin confirms the copy
+        act(() => {
+            mockOnPressHolder.current?.();
+        });
+        await waitForBatchedUpdates();
+
+        // Then the copy gets the categories and tags read from Onyx at press time, each in its own argument
+        expect(mockCopyPolicySettings).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`]: categories},
+            {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`]: tags},
+            expect.anything(),
+            false,
+        );
     });
 });
