@@ -334,6 +334,8 @@ describe('DynamicReportDetailsPage', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`, {[iouActionID]: iouAction});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+                // The page reads the invoice's transactions from the derived value, which this test doesn't compute, so seed it.
+                await Onyx.merge(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {[invoiceReportID]: {transactions: {[transactionID]: transaction}, violations: {}}});
                 await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${invoiceReportID}`, {isLoadingInitialReportActions: false});
             });

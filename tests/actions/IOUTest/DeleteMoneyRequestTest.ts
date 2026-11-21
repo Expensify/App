@@ -74,6 +74,12 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const CARLOS_ACCOUNT_ID = 1;
 
+/** Reads every transaction on the report from Onyx, so a test passes deleteMoneyRequest the same list the app would. */
+async function getReportTransactionsFromOnyx(reportID: string | undefined): Promise<Transaction[]> {
+    const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+    return Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+}
+
 OnyxUpdateManager();
 
 describe('actions/IOU/DeleteMoneyRequest', () => {
@@ -457,7 +463,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -557,7 +563,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     reportID: iouReport.reportID,
                     transactionThreadReport: thread,
                     iouReport,
-                    iouReportTransactions: [transaction],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport.reportID),
                     chatReport,
                     isChatIOUReportArchived: false,
                     originalReportID: iouReport.reportID,
@@ -1252,7 +1258,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     isChatIOUReportArchived: undefined,
@@ -1372,7 +1378,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     isSingleTransactionView: true,
@@ -1615,7 +1621,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     transactions: {},
                     violations: {},
                     iouReport,
-                    iouReportTransactions: transaction ? [transaction] : [],
+                    iouReportTransactions: await getReportTransactionsFromOnyx(iouReport?.reportID),
                     chatReport,
                     transactionThreadReport: thread,
                     allTransactionViolationsParam: {},
@@ -2830,7 +2836,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const getLastVisibleActionSpy = jest.spyOn(require('@libs/ReportActionsUtils'), 'getLastVisibleAction');
 
             // When the navigation URL is calculated for the current user
-            getNavigationUrlOnMoneyRequestDelete(DELETED_TRANSACTION_ID, deletedIOUAction, undefined, iouReport, chatReport, false, getCurrencyDecimalsLocal, CURRENT_USER_ACCOUNT_ID, false);
+            getNavigationUrlOnMoneyRequestDelete({
+                transactionID: DELETED_TRANSACTION_ID,
+                reportAction: deletedIOUAction,
+                transactionThreadReport: undefined,
+                iouReport,
+                iouReportTransactions: await getReportTransactionsFromOnyx(IOU_REPORT_ID),
+                chatReport,
+                isChatReportArchived: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                isSingleTransactionView: false,
+            });
 
             // Then the last visible action is resolved with that user's whisper visibility instead of the session fallback
             expect(getLastVisibleActionSpy).toHaveBeenCalledWith(IOU_REPORT_ID, expect.anything(), expect.anything(), undefined, undefined, CURRENT_USER_ACCOUNT_ID);

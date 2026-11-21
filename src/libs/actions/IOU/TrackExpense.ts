@@ -3056,26 +3056,37 @@ function trackExpense(params: CreateTrackExpenseParams) {
     return {iouReport, transactionID: transaction?.transactionID};
 }
 
+type GetNavigationUrlAfterTrackExpenseDeleteParams = {
+    chatReportID: string | undefined;
+    chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
+    transactionID: string | undefined;
+    reportAction: OnyxTypes.ReportAction;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportTransactions: OnyxTypes.Transaction[];
+    chatIOUReport: OnyxEntry<OnyxTypes.Report>;
+    isChatReportArchived: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isSingleTransactionView: boolean | undefined;
+    currentUserAccountID: number;
+};
+
 /**
  * Calculate the URL to navigate to after a track expense deletion
- * @param chatReportID - The ID of the chat report containing the track expense
- * @param transactionID - The ID of the track expense being deleted
- * @param reportAction - The report action associated with the track expense
- * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterTrackExpenseDelete(
-    chatReportID: string | undefined,
-    chatReport: OnyxEntry<OnyxTypes.Report> | undefined,
-    transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    chatIOUReport: OnyxEntry<OnyxTypes.Report>,
-    isChatReportArchived: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isSingleTransactionView: boolean | undefined,
-    currentUserAccountID: number,
-): Route | undefined {
+function getNavigationUrlAfterTrackExpenseDelete({
+    chatReportID,
+    chatReport,
+    transactionID,
+    reportAction,
+    iouReport,
+    iouReportTransactions,
+    chatIOUReport,
+    isChatReportArchived,
+    getCurrencyDecimals,
+    isSingleTransactionView,
+    currentUserAccountID,
+}: GetNavigationUrlAfterTrackExpenseDeleteParams): Route | undefined {
     if (!chatReportID || !transactionID) {
         return undefined;
     }
@@ -3084,17 +3095,18 @@ function getNavigationUrlAfterTrackExpenseDelete(
     if (!isSelfDM(chatReport)) {
         const allReports = getAllReports();
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-        return getNavigationUrlOnMoneyRequestDelete(
+        return getNavigationUrlOnMoneyRequestDelete({
             transactionID,
             reportAction,
             transactionThreadReport,
             iouReport,
-            chatIOUReport,
+            iouReportTransactions,
+            chatReport: chatIOUReport,
             isChatReportArchived,
             getCurrencyDecimals,
             currentUserAccountID,
             isSingleTransactionView,
-        );
+        });
     }
 
     // Only navigate if in single transaction view and the thread will be deleted
@@ -3131,18 +3143,19 @@ function deleteTrackExpense({
         return;
     }
 
-    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete({
         chatReportID,
         chatReport,
         transactionID,
         reportAction,
         iouReport,
+        iouReportTransactions,
         chatIOUReport,
-        isChatIOUReportArchived,
+        isChatReportArchived: isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
         currentUserAccountID,
-    );
+    });
 
     const allReports = getAllReports();
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
