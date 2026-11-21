@@ -222,6 +222,19 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight CONVERTED_AMOUNT filter with valid amount', () => {
+            // Given a converted amount filter with a valid amount
+            const input = 'convertedAmount:100.50';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
+
+            // Then the amount is highlighted like the other amount filters
+            expect(result).toEqual([
+                {start: 16, type: 'mention-user', length: 6}, // convertedAmount:100.50
+            ]);
+        });
+
         it('should not highlight PURCHASE_AMOUNT filter with invalid amount', () => {
             const input = 'purchaseAmount:invalid';
 

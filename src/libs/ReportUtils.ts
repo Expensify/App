@@ -261,6 +261,7 @@ import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportNa
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,
+    getAmountWithDisplaySign,
     getAttendees,
     getBillable,
     getCardID,
@@ -5996,8 +5997,35 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
  * negated. Any other transaction returns its magnitude.
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
-    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getTransactionAmount(transaction, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the transaction amount in its workspace's output currency, signed the same way as getTransactionDisplayAmount.
+ * Expenses created offline have no workspace amount from the server yet, so they return their own amount until the next search.
+ */
+function getTransactionPolicyConvertedDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    if (transaction?.policyConvertedAmount == null) {
+        return getTransactionDisplayAmount(transaction, report, policy);
+    }
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getAmountWithDisplaySign(transaction.policyConvertedAmount, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the flags that decide how a transaction's stored amounts are signed for display, so every displayed amount of one transaction shares the same sign.
+ */
+function getTransactionDisplaySignFlags(
+    transaction: OnyxInputOrEntry<Transaction>,
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+): {isFromExpenseReport: boolean; isFromTrackedExpense: boolean; allowNegative: boolean} {
+    return {
+        isFromExpenseReport: isTransactionFromExpenseReport(report, policy),
+        isFromTrackedExpense: transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+        allowNegative: !!transaction && isDeletedTransaction(transaction),
+    };
 }
 
 /**
@@ -16216,6 +16244,7 @@ export {
     getTransactionCommentObject,
     getTransactionDetails,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,

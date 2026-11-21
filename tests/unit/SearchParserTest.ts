@@ -1604,6 +1604,21 @@ const keywordTests = [
         },
     },
     {
+        query: 'columns:converted-amount,purchase-amount converted-amount>1250',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT],
+            filters: {
+                operator: 'gt',
+                left: 'convertedAmount',
+                right: '1250',
+            },
+        },
+    },
+    {
         query: 'columns:group-from,group-expenses,group-total,group-card,group-feed,group-bank-account,group-withdrawn,group-withdrawal-id',
         expected: {
             type: 'expense',

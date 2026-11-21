@@ -59,6 +59,7 @@ exports[`Column availability single source of truth the derived picker lists mat
   "tagGLCode",
   "exchangeRate",
   "originalamount",
+  "convertedAmount",
   "reportID",
   "base62ReportID",
   "reimbursable",
