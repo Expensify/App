@@ -1,3 +1,4 @@
+// cspell:ignore Yara émile Zack -- fake names in the mention list tests
 import {act, render, waitFor} from '@testing-library/react-native';
 
 import type {TextSelection} from '@components/Composer/types';

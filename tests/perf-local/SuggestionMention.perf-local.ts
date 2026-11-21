@@ -1,3 +1,4 @@
+// cspell:ignore Aiko Lucía Élodie Søren Müller Ivanov Okafor northwind -- fake names and e-mail domains in the benchmark data
 /**
  * Measures one @mention lookup in the composer, for accounts with many personal details. Each measured run renders the real
  * SuggestionMention with a typed mention, which runs getUserMentionOptions (weighting every personal detail in rooms,
