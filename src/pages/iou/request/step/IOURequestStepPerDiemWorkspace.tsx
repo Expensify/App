@@ -64,12 +64,12 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
 
         const perDiemUnit = getPerDiemCustomUnit(policy);
-        if (!perDiemUnit && policy?.id) {
-            fetchPerDiemRates(policy.id);
-        }
-
-        const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
-        if (!canDestinationResolvePolicy) {
+        // The custom unit can arrive before its rates, so keep the selection pending
+        // until rates are available to avoid opening Destination without them.
+        if (!perDiemUnit?.rates) {
+            if (policy?.id) {
+                fetchPerDiemRates(policy.id);
+            }
             setPendingPolicyID(policy?.id);
             return;
         }
@@ -98,13 +98,22 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     };
 
     useEffect(() => {
-        if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
+        if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)?.rates) {
             return;
         }
         const frame = requestAnimationFrame(() => selectWorkspace(pendingPolicy));
         return () => cancelAnimationFrame(frame);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
+
+    useEffect(() => {
+        if (isOffline || !pendingPolicyID || getPerDiemCustomUnit(pendingPolicy)?.rates) {
+            return;
+        }
+        fetchPerDiemRates(pendingPolicyID);
+        // Only retry on connectivity changes; selecting a workspace already starts its fetch.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOffline]);
 
     if (pendingPolicyID) {
         if (isOffline) {
