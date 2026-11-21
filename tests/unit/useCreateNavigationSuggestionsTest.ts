@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {PersonalDetailsByLoginContext} from '@components/PersonalDetailsByLoginProvider';
 import useCreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -14,6 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
@@ -24,6 +30,8 @@ type MockUseCreateReportParams = {
 type MockOnyxOptions = {
     selector?: (value: unknown) => unknown;
 };
+
+const APPROVER_EMAIL = 'approver@test.com';
 
 const mockCreateReport = jest.fn();
 let mockCreateReportIsVisible = true;
@@ -453,14 +461,17 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('creates a report and navigates through the Reports root', () => {
-        // Given the Search router has handed its create callback to useCreateReport
-        renderHook(() => useCreateNavigationSuggestions());
+        // Given the Search router has handed its create callback to useCreateReport, with one approver's personal details available by login
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[APPROVER_EMAIL]: {accountID: 2, login: APPROVER_EMAIL}};
+        const wrapper = ({children}: {children: ReactNode}) =>
+            React.createElement(PersonalDetailsByLoginContext.Provider, {value: {subscribe: () => () => {}, getSnapshot: () => personalDetailsByLogins}}, children);
+        renderHook(() => useCreateNavigationSuggestions(), {wrapper});
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
 
         // When the hook resolves a workspace and calls back with it
         act(() => onCreateReport?.(submitPolicy, true));
 
-        // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
+        // Then the report is created on that workspace with the personal details from the context, and the Reports root is pushed first so back returns to the list
         expect(createNewReport).toHaveBeenCalledWith(
             expect.objectContaining({
                 hasViolations: false,
@@ -469,7 +480,7 @@ describe('useCreateNavigationSuggestions', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: mockGetCurrencyDecimals,
                 rules: undefined,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins,
                 shouldDismissEmptyReportsConfirmation: true,
             }),
         );
