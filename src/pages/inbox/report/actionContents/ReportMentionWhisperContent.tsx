@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -31,6 +32,7 @@ type ReportMentionWhisperContentProps = {
 
 function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}: ReportMentionWhisperContentProps) {
     const isReportArchived = useReportIsArchived(reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const resolution = getOriginalMessage(action)?.resolution;
     const {translate} = useLocalize();
 
@@ -53,7 +55,13 @@ function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_MENTION_WHISPER_YES_BUTTON}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() =>
-                                resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived)
+                                resolveActionableReportMentionWhisper(
+                                    actionOwnerReport,
+                                    action,
+                                    CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE,
+                                    isReportArchived,
+                                    currentUserAccountID,
+                                )
                             }
                         >
                             <Button.Text>{translate('common.yes')}</Button.Text>
@@ -61,7 +69,13 @@ function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}
                         <Button
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_MENTION_WHISPER_NO_BUTTON}
                             onPress={() =>
-                                resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived)
+                                resolveActionableReportMentionWhisper(
+                                    actionOwnerReport,
+                                    action,
+                                    CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING,
+                                    isReportArchived,
+                                    currentUserAccountID,
+                                )
                             }
                         >
                             <Button.Text>{translate('common.no')}</Button.Text>

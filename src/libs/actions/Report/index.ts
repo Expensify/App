@@ -6351,7 +6351,7 @@ function optimisticReportLastData(
     canUserPerformWriteAction?: boolean,
     isReportArchived?: boolean,
 ) {
-    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
+    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions, currentUserAccountID).lastMessageText ?? '';
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions, undefined, undefined, currentUserAccountID);
     return {
         lastMessageText,
@@ -6938,6 +6938,7 @@ function resolveActionableMentionWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean | undefined,
+    currentUserAccountID: number,
     parentReport?: OnyxEntry<Report>,
 ) {
     const reportID = report?.reportID;
@@ -6963,7 +6964,7 @@ function resolveActionableMentionWhisper(
         },
     };
 
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, isReportArchived, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, isReportArchived, optimisticReportActions as ReportActions, currentUserAccountID);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report.lastMessageText,
@@ -7089,8 +7090,9 @@ function resolveActionableMentionConfirmWhisper(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean,
+    currentUserAccountID: number,
 ) {
-    resolveActionableMentionWhisper(report, reportAction, resolution, isReportArchived);
+    resolveActionableMentionWhisper(report, reportAction, resolution, isReportArchived, currentUserAccountID);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -7098,6 +7100,7 @@ function resolveActionableReportMentionWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     isReportArchived: boolean | undefined,
+    currentUserAccountID: number,
 ) {
     const reportId = report?.reportID;
     if (!reportAction || !reportId) {
@@ -7112,7 +7115,7 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, isReportArchived, optimisticReportActions as ReportActions, currentUserAccountID);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report.lastMessageText,
@@ -8726,12 +8729,22 @@ function buildOptimisticChangePolicyData({
         });
 
         // Update the expense chat report
-        const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
-            [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
-        })?.lastMessageText;
-        const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
-            [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
-        })?.lastVisibleActionCreated;
+        const lastMessageText = getLastVisibleMessage(
+            oldWorkspaceChatReportID,
+            isReportLastVisibleArchived,
+            {
+                [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
+            },
+            currentUserAccountID,
+        )?.lastMessageText;
+        const lastVisibleActionCreated = getReportLastMessage(
+            oldWorkspaceChatReportID,
+            isReportLastVisibleArchived,
+            {
+                [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
+            },
+            currentUserAccountID,
+        )?.lastVisibleActionCreated;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
