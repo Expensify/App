@@ -4,8 +4,11 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useHeightWithoutKeyboard from '@hooks/useHeightWithoutKeyboard';
+import useIsLandscapeKeyboardOpen from '@hooks/useIsLandscapeKeyboardOpen';
+import useRevealFocusedInputOnResize from '@hooks/useRevealFocusedInputOnResize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,13 +114,28 @@ function ScreenWrapperContainer({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
-    const {initialHeight} = useInitialDimensions();
+    const heightWithoutKeyboard = useHeightWithoutKeyboard();
     const styles = useThemeStyles();
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
+    const StyleUtils = useStyleUtils();
+    // In phone landscape the keyboard leaves room for one input, so the screen keeps its full height behind the
+    // keyboard and the browser scrolls the input into view. A footer then can't cover the input.
+    const shouldExtendBehindKeyboard = useIsLandscapeKeyboardOpen();
+    const shouldLimitToViewport = shouldEnableMaxHeight && !shouldExtendBehindKeyboard;
+    const viewportMaxHeight = shouldLimitToViewport ? windowHeight : undefined;
+    const maxHeight = shouldExtendBehindKeyboard ? heightWithoutKeyboard : viewportMaxHeight;
+    // Android Chrome resizes the page for the keyboard, so the screen clips itself to the viewport to give the browser
+    // something to scroll. The navigation card can't do that, because it stops clipping mid-animation. The screen is
+    // scrollable so a swipe past the end of a list reaches what's behind the keyboard. WebKit pans the page instead.
+    const shouldScrollWithinScreen = shouldExtendBehindKeyboard && !isMobileWebKit();
+    // A minimum height would win over the maximum height and stop the clipping
+    const minHeight = !shouldScrollWithinScreen && (shouldExtendBehindKeyboard || (shouldEnableMinHeight && !isSafari())) ? heightWithoutKeyboard : undefined;
+    const contentMinHeight = shouldScrollWithinScreen ? heightWithoutKeyboard : undefined;
+    useRevealFocusedInputOnResize(shouldScrollWithinScreen && isFocused);
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
-    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+    const isInputFocused = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+    // When the screen extends behind the keyboard, Safari has to scroll the page to reveal the input
+    const isAvoidingViewportScroll = isInputFocused && shouldLimitToViewport;
     const viewportOffsetTop = useViewportOffsetTop();
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -187,7 +205,12 @@ function ScreenWrapperContainer({
         <View
             ref={ref}
             // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
-            style={[styles.flex1, styles.appBG, styles.screenWrapperContainerMinHeight(minHeight)]}
+            style={[
+                styles.flex1,
+                styles.appBG,
+                styles.screenWrapperContainerMinHeight(minHeight),
+                shouldScrollWithinScreen && [styles.overflowAuto, StyleUtils.getMaximumHeight(windowHeight)],
+            ]}
             {...testToolsTapResponder}
             testID={testID}
             fsClass={forwardedFSClass}
@@ -196,7 +219,7 @@ function ScreenWrapperContainer({
             aria-hidden={shouldHideFromAccessibility}
         >
             <View
-                style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
+                style={[shouldLimitToViewport && {marginTop: viewportOffsetTop}, style, paddingTopStyle, styles.screenWrapperContainerMinHeight(contentMinHeight)]}
                 {...keyboardDismissPanResponder}
             >
                 <KeyboardAvoidingView
