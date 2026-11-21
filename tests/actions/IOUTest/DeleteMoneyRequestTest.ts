@@ -413,6 +413,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 chatReport,
                 transactionThreadReport: thread,
                 isChatIOUReportArchived: false,
+                isArchivedIOUReport: false,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 currentUserEmail: TEST_USER_LOGIN,
