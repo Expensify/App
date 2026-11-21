@@ -1,7 +1,7 @@
 ---
 title: Upcoming Features – Navigation & Search (New Expensify)
 description: Internal AgentZero reference for navigation, natural-language search, table customization, and panel resizing features in development or gated rollout. Not for public search indexing.
-keywords: upcoming, coming soon, planned, roadmap, navigation, Expenses, Reports, More menu, Describe your search, natural language filters, column widths, resize columns, pin columns, Concierge panel, detail panel, beta, AgentZero reference
+keywords: upcoming, coming soon, planned, roadmap, navigation, Expenses, Reports, More menu, Describe your search, natural language filters, column widths, resize columns, pin columns, Concierge panel, beta, AgentZero reference
 noindex: true
 sitemap: false
 internalScope: For AgentZero and internal tooling only. Covers planned and gated navigation, search, table customization, and panel resizing features. Does not describe these features as generally available or guarantee release dates. Do not expose this URL in user-facing help.
@@ -15,4 +15,3 @@ This page is an **AgentZero reference** for navigation and search features in de
 - **Simplified navigation – staged development** – Introduce a compact navigation layout with separate Expenses and Reports sections, plus a More menu for additional sections on mobile. Wide-layout and mobile changes are separate stages; do not assume they are available together.
 - **Adjustable table column widths – gated rollout** – Manually resize table columns on web and desktop, including Spend tables.
 - **Pinned Spend columns – in development** – Keep selected columns visible on the left or right while scrolling wide Spend tables. Column-menu groundwork does not mean pinning itself is released.
-- **Resizable Concierge and detail panels – in development** – Adjust panel widths on wide layouts to give conversations and detailed information more room. Concierge and detail-panel resizing have separate rollout controls.
