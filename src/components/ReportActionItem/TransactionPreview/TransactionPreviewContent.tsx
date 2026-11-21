@@ -105,6 +105,7 @@ function TransactionPreviewContent({
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
+        highlightKey: transaction?.transactionID,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
