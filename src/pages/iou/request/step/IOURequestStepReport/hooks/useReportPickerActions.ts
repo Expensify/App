@@ -8,6 +8,7 @@ import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot'
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 
@@ -215,6 +216,7 @@ function useReportPickerActions({
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
 
     const {handleGlobalCreateReport, handleRegularReportSelection, removeFromReport} = useReportSelectionActions({
@@ -272,6 +274,7 @@ function useReportPickerActions({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
             managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined,
         });
