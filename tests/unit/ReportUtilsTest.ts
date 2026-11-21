@@ -161,6 +161,7 @@ import {
     getReportNotificationPreference,
     getReportNotificationPreferenceForSettings,
     getReportOrDraftReport,
+    getReportParticipantAccountIDSet,
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
@@ -220,6 +221,7 @@ import {
     isReportFieldDisabledForUser,
     isReportManager,
     isReportOutstanding,
+    isReportParticipant,
     isReportPendingDelete,
     isReportTransactionThreadNew,
     isResolvedSupportTicket,
@@ -13868,6 +13870,65 @@ describe('ReportUtils', () => {
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
+        });
+    });
+
+    describe('isReportParticipant', () => {
+        const report: Report = {
+            ...createRandomReport(1, undefined),
+            ownerAccountID: 3,
+            managerID: 4,
+            participants: {
+                0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+        };
+
+        it('returns true for account IDs in the participants list', () => {
+            // Given a report whose participants list holds account IDs 1 and 2
+            // When checking those account IDs
+            // Then both count as participants, whatever their notification preference
+            expect(isReportParticipant(1, report)).toBe(true);
+            expect(isReportParticipant(2, report)).toBe(true);
+        });
+
+        it('returns true for the owner and manager even when they are not in the participants list', () => {
+            // Given a report whose owner (3) and manager (4) are missing from its participants list
+            // When checking the owner and manager
+            // Then they still count as participants
+            expect(isReportParticipant(3, report)).toBe(true);
+            expect(isReportParticipant(4, report)).toBe(true);
+        });
+
+        it('returns false for an account ID that is not a participant, owner or manager', () => {
+            // Given an account ID that has no link to the report
+            // When checking it
+            // Then it is not a participant
+            expect(isReportParticipant(5, report)).toBe(false);
+        });
+
+        it('returns false for a missing or zero account ID even when the participants list has a 0 key', () => {
+            // Given a report whose participants list has a 0 key
+            // When checking a zero or missing account ID
+            // Then neither counts as a participant, because there is no real account behind them
+            expect(isReportParticipant(0, report)).toBe(false);
+            expect(isReportParticipant(undefined, report)).toBe(false);
+        });
+
+        it('returns false when there is no report', () => {
+            // Given no report
+            // When checking any account ID
+            // Then it is not a participant
+            expect(isReportParticipant(1, undefined)).toBe(false);
+        });
+
+        it('builds the participant set from the participants, owner and manager, without a zero account ID', () => {
+            // Given the same report, and no report
+            // When building the participant set that isReportParticipant and the mention suggestions check against
+            // Then it holds the participants, owner and manager but not the 0 key, and is empty without a report
+            expect(getReportParticipantAccountIDSet(report)).toEqual(new Set([1, 2, 3, 4]));
+            expect(getReportParticipantAccountIDSet(undefined)).toEqual(new Set());
         });
     });
 

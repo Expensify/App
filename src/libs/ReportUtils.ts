@@ -12887,21 +12887,27 @@ function isValidReport(report?: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Returns the account IDs that count as participants of a report: its participants, owner and manager.
+ * Build it once when checking many account IDs against the same report.
+ */
+function getReportParticipantAccountIDSet(report: OnyxEntry<Report>): Set<number> {
+    const accountIDs = new Set<number>();
+    for (const accountID of [...Object.keys(report?.participants ?? {}).map(Number), report?.ownerAccountID, report?.managerID]) {
+        if (accountID) {
+            accountIDs.add(accountID);
+        }
+    }
+    return accountIDs;
+}
+
+/**
  * Check to see if we are a participant of this report.
  */
 function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Report>): boolean {
     if (!accountID) {
         return false;
     }
-
-    const possibleAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
-    if (report?.ownerAccountID) {
-        possibleAccountIDs.push(report?.ownerAccountID);
-    }
-    if (report?.managerID) {
-        possibleAccountIDs.push(report?.managerID);
-    }
-    return possibleAccountIDs.includes(accountID);
+    return getReportParticipantAccountIDSet(report).has(accountID);
 }
 
 /**
@@ -16313,6 +16319,7 @@ export {
     shouldDisplayReportFields,
     isReportManager,
     isReportOwner,
+    getReportParticipantAccountIDSet,
     isReportParticipant,
     isSelfDM,
     isSelfDMOrSelfDMThread,
