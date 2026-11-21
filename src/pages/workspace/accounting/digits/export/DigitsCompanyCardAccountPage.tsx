@@ -1,6 +1,6 @@
 /**
  * Lets an admin choose the Digits bank or credit card account that company card transactions export to. Until one is
- * picked, the first active credit card account is used.
+ * picked, the first active credit card account is used, or the first credit card account when none is active.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';

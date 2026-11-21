@@ -92,8 +92,10 @@ describe('DigitsCompanyCardAccountPage', () => {
         // When the page renders
         const props = mockedSelectionScreen.mock.lastCall?.[0];
 
-        // Then both inactive accounts can be picked, and the account of another subtype stays out of the list
+        // Then both inactive accounts can be picked, the account of another subtype stays out of the list, and the
+        // inactive credit card account shows as selected because the exporter uses it while none is picked
         expect(props?.data?.map((item) => item.text)).toEqual(['Credit Cards', 'Bank Accounts']);
+        expect(props?.data?.filter((item) => item.isSelected).map((item) => item.text)).toEqual(['Credit Cards']);
         expect(props?.shouldShowListEmptyContent).toBe(true);
     });
 
