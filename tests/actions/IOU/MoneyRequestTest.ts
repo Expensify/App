@@ -914,6 +914,24 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
+        it('threads currentUserPersonalDetails through to trackExpense when skipping confirmation', () => {
+            // Given a track distance expense that skips confirmation
+            // When the distance step navigates
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then trackExpense gets the caller's details instead of reading the current user from Onyx
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({currentUserPersonalDetails: baseParams.currentUserPersonalDetails}));
+        });
+
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
