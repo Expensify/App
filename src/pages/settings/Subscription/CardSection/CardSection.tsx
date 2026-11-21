@@ -65,7 +65,7 @@ function CardSection() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [earlyRenewalEligibility, earlyRenewalEligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
+    const [earlyRenewalEligibility] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
     const {isNonIncentivizedPeriod, isIncentivizedPeriod} = useEarlyRenewalPeriod();
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
@@ -200,7 +200,7 @@ function CardSection() {
 
     let BillingBanner: React.ReactNode | undefined;
     // Renewing early also resolves an expiring subscription, so the offer wins over every other non-error banner
-    if (earlyRenewalEligibilityMetadata.status === 'loaded' && earlyRenewalEligibility?.canClaim && (isNonIncentivizedPeriod || isIncentivizedPeriod)) {
+    if (earlyRenewalEligibility?.canClaim && (isNonIncentivizedPeriod || isIncentivizedPeriod)) {
         BillingBanner = <EarlyRenewalBillingBanner />;
     } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
         // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
