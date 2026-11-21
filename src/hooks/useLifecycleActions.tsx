@@ -169,7 +169,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         policy,
     );
 
-    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
 
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
 

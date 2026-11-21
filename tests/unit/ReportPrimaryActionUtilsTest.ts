@@ -5,6 +5,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration, isGroupPolicy, isPreferredExporter} from '@libs/PolicyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
+    getAllExpensesToHoldIfApplicable,
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
     isApproveAction,
@@ -2506,6 +2507,43 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: isChatReportArchived.current,
             }),
         ).toBe('');
+    });
+});
+
+describe('getAllExpensesToHoldIfApplicable', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    it('matches each IOU action to its own held expense', () => {
+        // Given an open report where every expense is held and an admin can remove the holds, because each IOU action must be matched to its own expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+        const buildIOUAction = (reportActionID: string, IOUTransactionID: string) =>
+            createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID,
+                childType: CONST.REPORT.TYPE.CHAT,
+                message: [{html: 'html'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID},
+            });
+        const firstAction = buildIOUAction('A1', 'T1');
+        const secondAction = buildIOUAction('A2', 'T2');
+        const actionWithoutExpense = buildIOUAction('A3', 'T3');
+        const transactions = [createMock<Transaction>({transactionID: 'T1', comment: {hold: 'H1'}}), createMock<Transaction>({transactionID: 'T2', comment: {hold: 'H2'}})];
+
+        // When collecting the expenses whose hold can be removed
+        const result = getAllExpensesToHoldIfApplicable(report, [firstAction, secondAction, actionWithoutExpense], transactions, policy, CURRENT_USER_ACCOUNT_ID, undefined, '');
+
+        // Then both held expenses are returned and the action with no matching expense is left out
+        expect(result.map((action) => action.reportActionID)).toEqual(['A1', 'A2']);
     });
 });
 

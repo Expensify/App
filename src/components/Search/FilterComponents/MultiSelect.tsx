@@ -121,11 +121,12 @@ function MultiSelect<T extends string>({
         isSearchable && !onSearchChange
             ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
             : orderedItems;
+    const selectedValues = new Set(selectedItems.map((selectedItem) => selectedItem.value));
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         alternateText: item.alternateText,
         keyForList: item.value,
-        isSelected: !!selectedItems.find((i) => i.value === item.value),
+        isSelected: selectedValues.has(item.value),
         icons: item.icons,
         leftElement: item.leftElement,
         // Without vertical padding a two line title still fits the estimated row height

@@ -199,12 +199,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTagKeys((prevSelectedTags) => {
             const newSelectedTags = [];
 
+            // After a bulk delete every selected tag can be missing, so index renamed tags by their previous name once.
+            // The first tag with a previous name wins, the same one Array.find would return.
+            const renamedTagNameByPreviousName = new Map<string, string>();
+            for (const [name, tag] of Object.entries(singleLevelTags ?? {})) {
+                if (tag.previousTagName !== undefined && !renamedTagNameByPreviousName.has(tag.previousTagName)) {
+                    renamedTagNameByPreviousName.set(tag.previousTagName, name);
+                }
+            }
+
             for (const tagName of prevSelectedTags) {
                 const tagExists = singleLevelTags?.[tagName];
                 if (!tagExists) {
-                    const renamedTag = Object.entries(singleLevelTags ?? {}).find(([, tag]) => tag.previousTagName === tagName);
-                    if (renamedTag) {
-                        newSelectedTags.push(renamedTag[0]);
+                    const renamedTagName = renamedTagNameByPreviousName.get(tagName);
+                    if (renamedTagName !== undefined) {
+                        newSelectedTags.push(renamedTagName);
                         continue;
                     }
                 }

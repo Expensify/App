@@ -22,7 +22,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getTransactionsByID, getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -99,10 +99,11 @@ function SubmitActionButtonContent() {
     // preview context exposes the raw slice, so apply the same filter here or the two Submit buttons disagree on dismissed
     // violations. This stays a pure computation over data already in scope; calling the hook instead would duplicate its
     // Onyx subscriptions for every preview on screen.
+    const transactionsByID = getTransactionsByID(transactions);
     const filteredTransactionViolations: Record<string, TransactionViolations> = {};
     for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
         const transactionID = transactionViolationKey.split('_').at(1) ?? '';
-        const transaction = transactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        const transaction = transactionsByID.get(transactionID);
         filteredTransactionViolations[transactionViolationKey] =
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }

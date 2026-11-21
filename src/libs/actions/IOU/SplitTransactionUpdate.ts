@@ -33,9 +33,10 @@ import {
 import {
     buildOptimisticAddCommentReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getChatByParticipants,
+    getChatsByParticipantsKey,
     getParsedComment,
-    getPolicyExpenseChat,
+    getParticipantsChatKey,
+    getPolicyExpenseChatsByOwnerAccountID,
     getReimbursableTotal,
     getReportOrDraftReport,
     getTransactionDetails,
@@ -764,6 +765,22 @@ function updateSplitTransactions({
 
     const savedSplitCountByReportID = new Map<string, number>();
 
+    // Built on first use so editing many splits doesn't scan every report for each of them. The loop changes some
+    // reports in place but never adds one, so the indexes stay valid for the whole loop.
+    let oneOnOneChatsByParticipantsKey: Map<string, OnyxTypes.Report> | undefined;
+    const policyExpenseChatsByPolicyID = new Map<string, Map<number, OnyxTypes.Report>>();
+    const getCurrentUserPolicyExpenseChat = (policyID: string | undefined) => {
+        if (!policyID) {
+            return undefined;
+        }
+        let chatsByOwnerAccountID = policyExpenseChatsByPolicyID.get(policyID);
+        if (!chatsByOwnerAccountID) {
+            chatsByOwnerAccountID = getPolicyExpenseChatsByOwnerAccountID(policyID, allReportsList);
+            policyExpenseChatsByPolicyID.set(policyID, chatsByOwnerAccountID);
+        }
+        return chatsByOwnerAccountID.get(currentUserPersonalDetails.accountID);
+    };
+
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
@@ -974,9 +991,7 @@ function updateSplitTransactions({
         // For confirmed workspace transactions, override participant and parentChatReport.
         // When viewing from selfDM context, participants and expenseReport are null/selfDM-based,
         // so we must derive the correct workspace expense chat from the existing transaction data.
-        const workspaceChatReport = isConfirmedWorkspaceTransaction
-            ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, existingTransactionReport?.policyID, allReportsList)
-            : undefined;
+        const workspaceChatReport = isConfirmedWorkspaceTransaction ? getCurrentUserPolicyExpenseChat(existingTransactionReport?.policyID) : undefined;
         if (isConfirmedWorkspaceTransaction && workspaceChatReport) {
             requestMoneyInformation.participantParams.participant = {
                 accountID: 0,
@@ -1015,7 +1030,9 @@ function updateSplitTransactions({
         const {participant} = participantParams;
         const participantChatReportID = participant.isPolicyExpenseChat
             ? participant.reportID
-            : getChatByParticipants([Number(participant.accountID), currentUserPersonalDetails.accountID], allReportsList)?.reportID;
+            : (oneOnOneChatsByParticipantsKey ??= getChatsByParticipantsKey(allReportsList)).get(
+                  getParticipantsChatKey([Number(participant.accountID), currentUserPersonalDetails.accountID]),
+              )?.reportID;
 
         // getMoneyRequestInformation sets lastVisibleActionCreated on the selfDM report object in place, so copy the
         // pre-split selfDM before the first call that can touch it

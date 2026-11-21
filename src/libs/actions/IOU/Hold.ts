@@ -10,7 +10,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getIOUActionsByTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -402,9 +402,10 @@ function putTransactionsOnHold({
     ancestors?: Ancestor[];
 }) {
     const transactionsByID = new Map(transactions.map((t) => [t.transactionID, t]));
+    const iouActionsByTransactionID = reportID ? getIOUActionsByTransactionID(getAllReportActions(reportID)) : undefined;
 
     for (const transactionID of transactionsID) {
-        const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
+        const {childReportID} = iouActionsByTransactionID?.get(transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
         const transaction = transactionsByID.get(transactionID);
 

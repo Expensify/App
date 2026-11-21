@@ -2839,6 +2839,30 @@ describe('PolicyUtils', () => {
                 // Then the shared approver is listed once
                 expect(getRuleApprovers(policy, expenseReport)).toEqual(['categoryapprover1@test.com']);
             });
+
+            it('should use the first rule when several rules match the same category or tag', async () => {
+                // Given two rules for the same category and two for the same tag, where only the first of each should apply,
+                // plus a rule whose condition isn't a match so it never applies
+                const matches = CONST.POLICY.RULE_CONDITIONS.MATCHES;
+                const duplicateRulesPolicy = createMock<Policy>({
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    rules: {
+                        approvalRules: [
+                            {approver: 'notmatching@test.com', applyWhen: [{condition: 'contains', field: CONST.POLICY.FIELDS.CATEGORY, value: 'cat1'}]},
+                            {approver: 'firstcategory@test.com', applyWhen: [{condition: matches, field: CONST.POLICY.FIELDS.CATEGORY, value: 'cat1'}]},
+                            {approver: 'secondcategory@test.com', applyWhen: [{condition: matches, field: CONST.POLICY.FIELDS.CATEGORY, value: 'cat1'}]},
+                            {approver: 'firsttag@test.com', applyWhen: [{condition: matches, field: CONST.POLICY.FIELDS.TAG, value: 'tag1'}]},
+                            {approver: 'secondtag@test.com', applyWhen: [{condition: matches, field: CONST.POLICY.FIELDS.TAG, value: 'tag1'}]},
+                        ],
+                    },
+                });
+                const transaction: Transaction = {...createRandomTransaction(0), category: 'cat1', tag: 'tag1', reportID: expenseReport.reportID};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+                // When the rule approvers are read
+                // Then the first matching rule of each kind wins, like the per-transaction rule lookups always did
+                expect(getRuleApprovers(duplicateRulesPolicy, expenseReport)).toEqual(['firstcategory@test.com', 'firsttag@test.com']);
+            });
         });
 
         describe('getSubmitToAccountID', () => {

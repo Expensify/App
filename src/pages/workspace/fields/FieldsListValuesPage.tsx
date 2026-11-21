@@ -154,6 +154,15 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
         return acc;
     }, {});
 
+    // listValueRowsKeyed keeps the last row of a duplicated value, but the bulk actions need the first index, like listValues.indexOf
+    const listValueIndexByValue = new Map<string, number>();
+    for (const [index, value] of listValues.entries()) {
+        if (!listValueIndexByValue.has(value)) {
+            listValueIndexByValue.set(value, index);
+        }
+    }
+    const getListValueIndex = (value: string) => listValueIndexByValue.get(value) ?? -1;
+
     const filterListValueRow = (row?: ReportFieldListValueRowData) => !!row;
     const [selectedKeys, setSelectedKeys] = useFilteredSelection(listValueRowsKeyed, filterListValueRow);
 
@@ -171,7 +180,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
 
     const handleDeleteValues = () => {
-        const valuesToDelete = selectedKeys.map((value) => listValues.indexOf(value)).filter((index) => index !== -1);
+        const valuesToDelete = selectedKeys.map((value) => getListValueIndex(value)).filter((index) => index !== -1);
 
         if (reportFieldID) {
             removeReportFieldListValue({
@@ -225,13 +234,13 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             }
 
             const enabledValues = selectedKeys.filter((value) => {
-                const index = listValues.indexOf(value);
+                const index = getListValueIndex(value);
                 return index !== -1 && !disabledListValues.at(index);
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedKeys.reduce<number[]>((acc, value) => {
-                    const index = listValues.indexOf(value);
+                    const index = getListValueIndex(value);
                     if (index !== -1 && !disabledListValues.at(index)) {
                         acc.push(index);
                     }
@@ -267,13 +276,13 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             }
 
             const disabledValues = selectedKeys.filter((value) => {
-                const index = listValues.indexOf(value);
+                const index = getListValueIndex(value);
                 return index !== -1 && disabledListValues.at(index);
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedKeys.reduce<number[]>((acc, value) => {
-                    const index = listValues.indexOf(value);
+                    const index = getListValueIndex(value);
                     if (index !== -1 && disabledListValues.at(index)) {
                         acc.push(index);
                     }

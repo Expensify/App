@@ -439,10 +439,12 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
     const previousMemberEmails = getWorkflowMemberEmails(initialApprovalWorkflow.members);
     const newMemberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
+    const previousMemberEmailSet = new Set(previousMemberEmails);
+    const newMemberEmailSet = new Set(newMemberEmails);
 
     // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
     // this workflow) from any OTHER workflow's rules first.
-    const joiningMemberEmails = newMemberEmails.filter((email) => !previousMemberEmails.includes(email));
+    const joiningMemberEmails = newMemberEmails.filter((email) => !previousMemberEmailSet.has(email));
     const removeFromOthersDiff = reconcileApprovalWorkflowRulesForRemove(joiningMemberEmails, {existingRules});
     const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeFromOthersDiff);
 
@@ -460,7 +462,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
     // 4. Members taken out of this workflow go back to the default workflow.
     const returnToDefaultDiff = buildReturnToDefaultWorkflowDiff({
-        approvalWorkflow: {...initialApprovalWorkflow, members: initialApprovalWorkflow.members.filter((member) => !newMemberEmails.includes(member.email))},
+        approvalWorkflow: {...initialApprovalWorkflow, members: initialApprovalWorkflow.members.filter((member) => !newMemberEmailSet.has(member.email))},
         defaultApprovalWorkflow,
         existingRules: applyApprovalWorkflowRulesDiff(rulesAfterMembers, chainDiff),
         employees: policy.employeeList ?? {},
@@ -471,7 +473,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
     // Members taken out of this workflow are dropped from its rules, so nothing left in the rules records that their
     // approver is changing. They are marked here instead.
-    const leavingMemberEmails = previousMemberEmails.filter((email) => !newMemberEmails.includes(email));
+    const leavingMemberEmails = previousMemberEmails.filter((email) => !newMemberEmailSet.has(email));
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules, membersWithPendingApprover: leavingMemberEmails});
     updatePolicyDefaultApprover(approvalWorkflow, policy);
@@ -809,7 +811,8 @@ function saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules, shouldUs
             defaultApprovalWorkflow: approvalWorkflow.defaultApprovalWorkflow,
         });
     } else {
-        const membersToRemove = originalMembers.filter((originalMember) => !workflow.members.some((member) => member.email === originalMember.email));
+        const memberEmails = new Set(workflow.members.map((member) => member.email));
+        const membersToRemove = originalMembers.filter((originalMember) => !memberEmails.has(originalMember.email));
         updateApprovalWorkflow(workflow, membersToRemove, [], policy);
     }
 

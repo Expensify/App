@@ -836,7 +836,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
-    const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
+    const payableSelectedReportIDSet = useMemo(() => new Set(payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined)), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
@@ -1684,12 +1684,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     wholeReportIDs.push(selectedItem.reportID);
                 }
             }
+            const wholeReportIDSet = new Set(wholeReportIDs);
             for (const key of Object.keys(selectedTransactions)) {
                 const selectedItem = selectedTransactions[key];
                 if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
                     continue;
                 }
-                if (!selectedItem.reportID || !wholeReportIDs.includes(selectedItem.reportID)) {
+                if (!selectedItem.reportID || !wholeReportIDSet.has(selectedItem.reportID)) {
                     transactionIDsToDelete.push(key);
                 }
             }
@@ -1800,6 +1801,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const searchData = searchResults?.data;
             const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
 
+            // Group once so each selected item doesn't scan every transaction in Onyx.
+            const onyxTransactionsByReportID = new Map<string, Transaction[]>();
+            for (const transaction of Object.values(allTransactions ?? {})) {
+                if (!transaction?.reportID) {
+                    continue;
+                }
+                const reportTransactions = onyxTransactionsByReportID.get(transaction.reportID);
+                if (reportTransactions) {
+                    reportTransactions.push(transaction);
+                } else {
+                    onyxTransactionsByReportID.set(transaction.reportID, [transaction]);
+                }
+            }
+
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
                 const itemReportID = item.reportID;
@@ -1824,9 +1839,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
-                const reportTransactions = Object.values(allTransactions ?? {}).filter(
-                    (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
-                );
+                const reportTransactions = onyxTransactionsByReportID.get(itemReportID) ?? [];
 
                 const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
                 // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
@@ -2377,15 +2390,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+        // Keeps undefined IDs so a transaction without a report still matches a selected report without an ID, as the per-report scans did.
+        const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
         const isAnyPayableTransactionOnHold =
             payableSelectedReports.length > 0
-                ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
+                ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDSet.has(transaction.reportID))
                 : isAnyTransactionOnHold;
         const allMatchingReportActionQuery = areAllMatchingItemsSelected && queryJSON ? getAllMatchingReportActionQuery(queryJSON, excludedTransactions, isExpenseReportType) : undefined;
 
         const getExportOptions = () => {
-            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
+            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDSet.has(id));
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
             const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
@@ -2931,7 +2946,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const allSelectedTransactionsList = selectedReports.length
-                    ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReports.some((report) => report.reportID === t.reportID))
+                    ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReportIDSet.has(t.reportID))
                     : selectedTransactionsKeys
                           .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                           .filter((t): t is NonNullable<typeof t> => !!t);
@@ -3405,7 +3420,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
-            selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
+            selectedTransactions[id].reportID ? selectedReportIDSet.has(selectedTransactions[id].reportID) : true,
         );
         const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
@@ -3539,7 +3554,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         const selectedReportReceiptCount = Object.values(allTransactions ?? {}).filter(
-            (transaction) => !!transaction && selectedReports.some((report) => report.reportID === transaction.reportID) && hasReceiptTransactionUtils(transaction),
+            (transaction) => !!transaction && selectedReportIDSet.has(transaction.reportID) && hasReceiptTransactionUtils(transaction),
         ).length;
         if (isExpenseReportSearch && selectedReportIDs.length > 0 && selectedReportReceiptCount > 0) {
             options.push({
@@ -3778,7 +3793,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOffline,
         selectedReports,
         payableSelectedReports.length,
-        payableSelectedReportIDs,
+        payableSelectedReportIDSet,
         lastPaymentMethods,
         selectedReportIDs,
         personalPolicyID,

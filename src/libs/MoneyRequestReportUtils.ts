@@ -15,7 +15,7 @@ import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionsByTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -100,14 +100,7 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
-    // Keeps the first action per expense, the one getIOUActionForTransactionID would return.
-    const iouActionByTransactionID = new Map<string, ReportAction>();
-    for (const reportAction of reportActions) {
-        const transactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-        if (transactionID !== undefined && !iouActionByTransactionID.has(transactionID)) {
-            iouActionByTransactionID.set(transactionID, reportAction);
-        }
-    }
+    const iouActionByTransactionID = getIOUActionsByTransactionID(reportActions);
 
     const nonDeletedTransactions = Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {

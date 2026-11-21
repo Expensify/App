@@ -174,7 +174,9 @@ function prepareToCleanUpMoneyRequest({
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
     // If we are deleting the last transaction on a report, then delete the report too
-    const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
+    // Bulk delete calls this once per transaction with a growing pending list, so look the IDs up in a Set
+    const transactionIDsPendingDeletionSet = transactionIDsPendingDeletion ? new Set(transactionIDsPendingDeletion) : undefined;
+    const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletionSet?.has(trans.transactionID)).length === 1;
 
     const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`];
     if (shouldDeleteIOUReport) {

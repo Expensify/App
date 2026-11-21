@@ -263,6 +263,29 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(false);
     });
 
+    it.each([
+        [CONST.IOU.REPORT_ACTION_TYPE.CREATE, true],
+        [CONST.IOU.REPORT_ACTION_TYPE.REJECT, false],
+    ])('looks up each expense its own IOU action when both expenses share a report and the second action type is %s', (secondActionType, expected) => {
+        // Given two expenses on the same report, because the IOU actions are indexed once per report and must still resolve per expense
+        const {transaction1, transaction2, reports, policies, report1, reportAction1, reportAction2} = buildTestData();
+        const transactionOnSameReport: Transaction = {...transaction2, reportID: report1.reportID};
+        reportAction2.reportID = report1.reportID;
+        reportAction2.originalMessage = {...reportAction2.originalMessage, type: secondActionType};
+        const sameReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report1.reportID}`]: {
+                [reportAction1.reportActionID]: reportAction1,
+                [reportAction2.reportActionID]: reportAction2,
+            },
+        };
+
+        // When checking whether both expenses can be bulk edited
+        const result = canEditMultipleTransactions([transaction1, transactionOnSameReport], sameReportActions, reports, policies, undefined);
+
+        // Then the result depends on the second expense's own action, so a rejected action blocks bulk edit
+        expect(result).toBe(expected);
+    });
+
     it('returns false when selected entities are reports', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
 

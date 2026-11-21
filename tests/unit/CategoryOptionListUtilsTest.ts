@@ -1506,4 +1506,30 @@ describe('CategoryOptionListUtils', () => {
         expect(defaultSections.map((section) => section.title)).toEqual(['']);
         expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
     });
+    it('uses the first parent category with a matching name, preferring the selected one, when building parent rows', () => {
+        // Given children listed before their parents, so the parent rows are built from the parent lookup, and two "Parent" entries where only the first is enabled
+        const categories = [
+            {name: 'Parent: Child', enabled: true},
+            {name: 'Parent', enabled: true},
+            {name: 'Parent', enabled: false},
+            {name: 'Other: Child', enabled: true},
+            {name: 'Other', enabled: true},
+        ];
+
+        // When the parent rows are built with "Other" selected twice, the first time with a pending delete
+        const result = getCategoryOptionTree(categories, [
+            {name: 'Other', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            {name: 'Other', enabled: true},
+        ]);
+
+        // Then the "Parent" row resolves to the first, enabled entry, the same one Array.find returned
+        const parentRow = result.find((row) => row.keyForList === 'Parent');
+        expect(parentRow?.isSelected).toBe(false);
+        expect(parentRow?.isDisabled).toBe(false);
+
+        // And the "Other" row resolves its parent to the first selected entry, so it is selected and disabled by the pending delete
+        const otherRow = result.find((row) => row.keyForList === 'Other');
+        expect(otherRow?.isSelected).toBe(true);
+        expect(otherRow?.isDisabled).toBe(true);
+    });
 });

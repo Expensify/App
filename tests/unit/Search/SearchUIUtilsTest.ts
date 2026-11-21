@@ -16939,6 +16939,59 @@ describe('SearchUIUtils', () => {
                 `${translateLocal('violations.shortName.customRules')}, ${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.ruleViolation')}`,
             );
         });
+
+        test('gives the same violations when only the snapshot actions are passed', () => {
+            // Given a report whose violation snapshots sit between comments, for two expenses
+            const otherTransactionID = 'tx-has-violations-2';
+            const commentAction = {
+                reportActionID: 'comment-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2025-01-01 00:00:00',
+            } as OnyxTypes.ReportAction;
+            const reportActions = [
+                commentAction,
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                        [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_TAG}],
+                    },
+                }),
+                commentAction,
+                createApprovedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                    },
+                }),
+            ];
+            const hasValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+
+            // When the actions are filtered once, as the Search list does per report
+            const snapshotActions = SearchUIUtils.getViolationSnapshotActions(reportActions);
+
+            // Then only the snapshot actions are kept in order, and each expense reads the same violations as from the full list
+            expect(snapshotActions).toEqual([reportActions.at(1), reportActions.at(3)]);
+            for (const id of [transactionIDForViolations, otherTransactionID, 'tx-without-violations']) {
+                expect(SearchUIUtils.getViolationsForTransaction(snapshotActions, id, hasValues, translateLocal)).toBe(
+                    SearchUIUtils.getViolationsForTransaction(reportActions, id, hasValues, translateLocal),
+                );
+            }
+        });
+
+        test('keeps add-expense-on-submitted and forwarded actions, which also hold snapshots', () => {
+            // Given the other action types the collectors read violations from
+            const reportActions = [
+                {reportActionID: 'a', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, created: '2025-01-01 00:00:00'},
+                {reportActionID: 'b', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, created: '2025-01-01 00:00:00'},
+                {reportActionID: 'c', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2025-01-01 00:00:00'},
+                {reportActionID: 'd', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, created: '2025-01-01 00:00:00'},
+            ] as OnyxTypes.ReportAction[];
+
+            // When the actions are filtered
+            const snapshotActions = SearchUIUtils.getViolationSnapshotActions(reportActions);
+
+            // Then every snapshot type is kept and the money request action is dropped
+            expect(snapshotActions.map((action) => action.reportActionID)).toEqual(['a', 'b', 'c']);
+        });
     });
 
     describe('getGroupColumnWidthFlags', () => {

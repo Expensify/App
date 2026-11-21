@@ -676,6 +676,63 @@ describe('actions/IOU/Hold', () => {
                     return mockFetch.resume();
                 });
         });
+
+        test('should hold each expense in the thread of its first IOU action, and create a thread for an expense without one', async () => {
+            // Given an expense report where expense 1 has two IOU actions pointing at different threads, and expense 2 has no IOU action
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
+            const transaction1 = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
+            const transaction2 = buildOptimisticTransaction({transactionParams: {amount: 200, currency: 'USD', reportID: iouReport.reportID}});
+            const buildIOUAction = (childReportID: string): ReportAction => ({
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction1.amount,
+                    currency: transaction1.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction1.transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                childReportID,
+            });
+            const firstIOUAction = buildIOUAction('firstThread');
+            const secondIOUAction = buildIOUAction('secondThread');
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [firstIOUAction.reportActionID]: firstIOUAction,
+                    [secondIOUAction.reportActionID]: secondIOUAction,
+                },
+            } as ReportActionsCollectionDataSet);
+            const writeSpy = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When both expenses are put on hold in bulk
+            putTransactionsOnHold({
+                transactionsID: [transaction1.transactionID, transaction2.transactionID],
+                allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport},
+                comment: 'bulk hold reason',
+                reportID: iouReport.reportID,
+                reportActions: undefined,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: undefined,
+                transactions: [transaction1, transaction2],
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+
+            // Then expense 1 is held in the thread of its first IOU action, like the single-transaction lookup picks
+            const holdWrites = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.HOLD_MONEY_REQUEST);
+            expect(holdWrites).toHaveLength(2);
+            const firstOptimisticKeys = holdWrites.at(0)?.[2]?.optimisticData?.map((update) => update.key);
+            expect(firstOptimisticKeys).toContain(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}firstThread`);
+            expect(firstOptimisticKeys).not.toContain(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}secondThread`);
+            expect(holdWrites.at(0)?.[1]).not.toHaveProperty('transactionThreadReportID');
+
+            // And expense 2, which has no IOU action, gets a new thread
+            expect(holdWrites.at(1)?.[1]).toHaveProperty('transactionThreadReportID');
+            writeSpy.mockRestore();
+        });
     });
 
     describe('putOnHold with isOffline', () => {

@@ -73,11 +73,12 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isEligible: () => true,
     });
 
+    const selectedCategoryNames = new Set(selectedCategories);
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
         keyForList: category.name,
         text: getDecodedCategoryName(category.name),
         value: category.name,
-        isSelected: selectedCategories.includes(category.name),
+        isSelected: selectedCategoryNames.has(category.name),
     }));
 
     // A rule keeps matching on a category the workspace has since deleted. Listing it is the only way to see what the

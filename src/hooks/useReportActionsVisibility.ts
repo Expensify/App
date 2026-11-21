@@ -81,7 +81,9 @@ function useReportActionsVisibility({
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
     // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
     // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).
-    const reportTransactionIDs = areTransactionsLoaded ? getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID) : undefined;
+    const reportTransactionIDs = areTransactionsLoaded
+        ? new Set(getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID))
+        : undefined;
 
     const visibleReportActions = reportActions.filter((reportAction) => {
         const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;

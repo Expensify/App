@@ -37,6 +37,20 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
  */
 function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = [], shouldShowGLCode = false): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
+    // Parent rows are looked up by name for every segment of every category, so index both lists once.
+    // The first category with a name wins, the same one Array.find would return.
+    const optionsByName = new Map<string, Category>();
+    for (const option of Object.values(options)) {
+        if (!optionsByName.has(option.name)) {
+            optionsByName.set(option.name, option);
+        }
+    }
+    const selectedOptionsByName = new Map<string, Category>();
+    for (const option of Object.values(selectedOptions)) {
+        if (!selectedOptionsByName.has(option.name)) {
+            selectedOptionsByName.set(option.name, option);
+        }
+    }
     for (const option of Object.values(options)) {
         const array = processCategoryNameSegments(option.name);
         for (let index = 0; index < array.length; index++) {
@@ -51,8 +65,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             // For leaf categories, use the original full name so it matches the policy.
             // For parent categories, build the path from the processed segments.
             const searchText = isChild ? option.name : array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
-            const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
-            const optionParent = !isChild && Object.values(options).find((op) => op.name === searchText);
+            const selectedParentOption = !isChild && selectedOptionsByName.get(searchText);
+            const optionParent = !isChild && optionsByName.get(searchText);
             const parentOption = selectedParentOption ?? optionParent;
 
             const isParentOptionDisabled = !parentOption || !parentOption.enabled || parentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -112,14 +126,19 @@ function getCategoryListSections({
     const enabledCategories = Object.values(sortedCategories)
         .filter((category) => category.enabled)
         .map(withGLCode);
-    const enabledCategoriesNames = new Set(enabledCategories.map((category) => category.name));
+    const enabledCategoriesByName = new Map<string, Category>();
+    for (const category of enabledCategories) {
+        if (!enabledCategoriesByName.has(category.name)) {
+            enabledCategoriesByName.set(category.name, category);
+        }
+    }
     const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
     for (const option of selectedOptions) {
-        if (enabledCategoriesNames.has(option.name)) {
-            const categoryObj = enabledCategories.find((category) => category.name === option.name);
+        if (enabledCategoriesByName.has(option.name)) {
+            const categoryObj = enabledCategoriesByName.get(option.name);
             selectedOptionsWithDisabledState.push({
                 ...(categoryObj ?? option),
                 isSelected: true,
@@ -142,6 +161,8 @@ function getCategoryListSections({
         return categorySections;
     }
 
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
+
     if (searchValue) {
         // Step 1: Combine selected and enabled categories for searching
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
@@ -151,7 +172,7 @@ function getCategoryListSections({
             (category) => ({
                 ...category,
                 // Temporarily store if it was selected
-                wasSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+                wasSelected: selectedOptionNames.has(category.name),
             }),
         );
 
@@ -176,7 +197,7 @@ function getCategoryListSections({
         // Step 5: Re-apply the isSelected flag and GL code (lost during sortCategories)
         const finalSearchCategories: Category[] = searchSortedCategories.map((category) => ({
             ...withGLCode(category),
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            isSelected: selectedOptionNames.has(category.name),
         }));
 
         // Step 6: Generate the option tree and push the section
@@ -201,7 +222,6 @@ function getCategoryListSections({
         });
     }
 
-    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
     if (numberOfEnabledCategories < searchInputThreshold) {

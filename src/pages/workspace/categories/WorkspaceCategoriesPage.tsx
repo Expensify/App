@@ -149,12 +149,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategoryKeys((prevSelectedCategories) => {
             const newSelectedCategories = [];
 
+            // After a bulk delete every selected category can be missing, so index renamed categories by their previous name once.
+            // The first category with a previous name wins, the same one Array.find would return.
+            const renamedCategoryNameByPreviousName = new Map<string, string>();
+            for (const [name, category] of Object.entries(policyCategories ?? {})) {
+                if (category.previousCategoryName !== undefined && !renamedCategoryNameByPreviousName.has(category.previousCategoryName)) {
+                    renamedCategoryNameByPreviousName.set(category.previousCategoryName, name);
+                }
+            }
+
             for (const categoryName of prevSelectedCategories) {
                 const categoryExists = policyCategories?.[categoryName];
                 if (!categoryExists) {
-                    const renamedCategory = Object.entries(policyCategories ?? {}).find(([, category]) => category.previousCategoryName === categoryName);
-                    if (renamedCategory) {
-                        newSelectedCategories.push(renamedCategory[0]);
+                    const renamedCategoryName = renamedCategoryNameByPreviousName.get(categoryName);
+                    if (renamedCategoryName !== undefined) {
+                        newSelectedCategories.push(renamedCategoryName);
                         continue;
                     }
                 }

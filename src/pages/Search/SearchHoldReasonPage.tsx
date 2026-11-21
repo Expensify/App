@@ -17,7 +17,7 @@ import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import {queueBulkExpenseAction} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionsByTransactionID} from '@libs/ReportActionsUtils';
 import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -63,6 +63,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     // The report actions are subscribed to so the thread report ID is reactive when the IOU actions load after mount.
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const transactionsByID = new Map(relevantTransactions.map((transaction) => [transaction.transactionID, transaction]));
+    const iouActionsByTransactionID = isBulkHold ? getIOUActionsByTransactionID(reportActions) : undefined;
     const relevantReportIDs = new Set<string>();
     for (const transactionID of relevantTransactionIDs) {
         const selection = selectedTransactions[transactionID];
@@ -70,7 +71,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         if (transactionReportID) {
             relevantReportIDs.add(transactionReportID);
         }
-        const childReportID = isBulkHold ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : selection?.reportAction?.childReportID;
+        const childReportID = isBulkHold ? iouActionsByTransactionID?.get(transactionID)?.childReportID : selection?.reportAction?.childReportID;
         if (childReportID) {
             relevantReportIDs.add(childReportID);
         }
@@ -126,7 +127,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             for (const transactionID of transactionIDs) {
                 const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                 const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
+                const transaction = transactionsByID.get(transactionID) ?? selectedTransactions[transactionID].transaction;
                 const transactionReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`];
 
                 putOnHold({

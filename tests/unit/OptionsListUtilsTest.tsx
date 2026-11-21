@@ -2167,6 +2167,46 @@ describe('OptionsListUtils', () => {
             expect(otherDetail?.isSelected).not.toBe(true);
         });
 
+        it('should mark recent reports as selected when they match a selected option by reportID or by accountID', () => {
+            // Given the recent reports without any selection, to pick one report to match by reportID and a 1:1 chat to match by accountID
+            const getRecentReports = (selectedOptions: Array<Partial<SearchOptionData>>) =>
+                getValidOptions(
+                    {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                    allPolicies,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        lastActions: undefined,
+                        getReportByID: getReportByIDFromOnyx,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        selectedOptions,
+                        includeSelectedOptions: true,
+                        sortedActions: undefined,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                ).options.recentReports;
+            const unselectedReports = getRecentReports([]);
+            const reportsWithUniqueAccountID = unselectedReports.filter(
+                (option) => !!option.accountID && unselectedReports.filter((other) => other.accountID === option.accountID).length === 1,
+            );
+            const reportMatchedByID = reportsWithUniqueAccountID.at(0);
+            const reportMatchedByAccountID = reportsWithUniqueAccountID.at(1);
+            expect(reportMatchedByID).toBeDefined();
+            expect(reportMatchedByAccountID).toBeDefined();
+
+            // When one selected option carries only that reportID, one only that accountID, and one has empty keys that must not match anything
+            const recentReports = getRecentReports([{reportID: reportMatchedByID?.reportID}, {accountID: reportMatchedByAccountID?.accountID}, {accountID: 0, reportID: ''}]);
+
+            // Then exactly those two reports are marked as selected
+            const selectedReportIDs = recentReports.filter((option) => option.isSelected).map((option) => option.reportID);
+            expect(selectedReportIDs.sort()).toEqual([reportMatchedByID?.reportID, reportMatchedByAccountID?.reportID].sort());
+        });
+
         it('should return hasMore true when there are more options than maxElements', () => {
             const {hasMore} = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},

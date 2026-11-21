@@ -59,6 +59,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
+import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -70,6 +71,14 @@ import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFoun
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type DynamicRoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT>;
+
+/**
+ * Index pending chat members by accountID once instead of scanning the pending list for each row.
+ * A member can have several pending entries, and the rows show the last one, like findLast did.
+ */
+function getLastPendingChatMemberByAccountID(pendingChatMembers: PendingChatMember[] | undefined): Map<string, PendingChatMember> {
+    return new Map((pendingChatMembers ?? []).map((member) => [member.accountID, member]));
+}
 
 function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
@@ -200,13 +209,14 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(accountID)));
     };
 
+    const lastPendingChatMemberByAccountID = getLastPendingChatMemberByAccountID(reportMetadata?.pendingChatMembers);
     const result: RoomMemberRowData[] = [];
     for (const accountID of participants) {
         const details = personalDetails?.[accountID];
         if (!details) {
             continue;
         }
-        const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingChatMember = lastPendingChatMemberByAccountID.get(accountID.toString());
         // Check the listed member's own role on the policy, not the viewer's, and fail closed when their login is
         // missing. Kept in sync with the member details page through the shared helper.
         const isProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);

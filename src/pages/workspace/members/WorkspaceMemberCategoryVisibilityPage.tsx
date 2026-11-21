@@ -88,11 +88,13 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     // A no-op once the span has ended, so this only cancels it when the admin leaves before the list renders.
     useEffect(() => () => cancelSpan(CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY), []);
 
+    // Workspaces can have thousands of categories, so selection is checked against a Set
+    const selectedCategorySet = new Set(selectedCategories);
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
         keyForList: category.name,
         text: getDecodedCategoryName(category.name),
         value: category.name,
-        isSelected: selectedCategories.includes(category.name),
+        isSelected: selectedCategorySet.has(category.name),
     }));
 
     const filterCategory = (item: CategoryListItem, searchInput: string) => tokenizedSearch([item], searchInput, (category) => [category.text ?? '']).length > 0;
@@ -110,7 +112,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
     const handleSave = () => {
         // Only categories still on the list count, so one deleted or disabled since the page opened isn't saved.
-        const categoriesToSave = categories.filter((category) => selectedCategories.includes(category.name)).map((category) => category.name);
+        const categoriesToSave = categories.filter((category) => selectedCategorySet.has(category.name)).map((category) => category.name);
         if (categoriesToSave.length === 0) {
             showConfirmModal({
                 title: translate('workspace.people.categoryVisibilityRequiredModal.title'),

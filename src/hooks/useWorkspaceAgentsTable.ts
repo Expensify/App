@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 
 import useAgentsTable from './useAgentsTable';
 import useWorkspaceAgents from './useWorkspaceAgents';
@@ -23,10 +24,24 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
     const {agents, ...rest} = useAgentsTable();
     const {manageableWorkspaceAgents, nonManageableWorkspaceAgentsIDs} = useWorkspaceAgents(policy);
 
+    // Both lists grow with the workspace, so they are indexed once. The first entry is kept for a repeated accountID.
+    const agentByAccountID = new Map<number, AgentRowData>();
+    for (const agentItem of agents) {
+        if (!agentByAccountID.has(agentItem.accountID)) {
+            agentByAccountID.set(agentItem.accountID, agentItem);
+        }
+    }
+    const memberByAccountID = new Map<number, TupleToUnion<typeof workspaceMembers>>();
+    for (const member of workspaceMembers) {
+        if (!memberByAccountID.has(member.accountID)) {
+            memberByAccountID.set(member.accountID, member);
+        }
+    }
+
     const workspaceAgents: AgentRowData[] = [];
     for (const key of Object.keys(manageableWorkspaceAgents)) {
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
-        const agent = agents.find((agentItem) => agentItem.accountID === accountID);
+        const agent = agentByAccountID.get(accountID);
 
         if (!agent) {
             Log.warn('Manageable agent is not found in agents list', {accountID, policyID});
@@ -34,7 +49,7 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
         }
 
         // Attach role if agent is a member of the policy
-        const agentMembership = workspaceMembers.find((member) => member.accountID === accountID);
+        const agentMembership = memberByAccountID.get(accountID);
         if (agentMembership) {
             const role = agentMembership.policyEmployee.role;
             agent.role = policyRoles.find((policyRole) => policyRole === role);
@@ -43,7 +58,7 @@ function useWorkspaceAgentsTable(policy: OnyxEntry<Policy>) {
         workspaceAgents.push(agent);
     }
     for (const accountID of nonManageableWorkspaceAgentsIDs) {
-        const agentMembership = workspaceMembers.find((member) => member.accountID === accountID);
+        const agentMembership = memberByAccountID.get(accountID);
 
         if (!agentMembership) {
             Log.warn('Non-manageable agent is not found in members list', {accountID, policyID});

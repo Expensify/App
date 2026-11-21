@@ -121,6 +121,20 @@ import {
     shouldSuppressBrokenConnectionStatus,
 } from './violations';
 
+/**
+ * Index transactions by ID for callers that look up many IDs in the same list.
+ * Each entry is the first transaction with that ID, the one `transactions.find` would return.
+ */
+function getTransactionsByID(transactions: Transaction[]): Map<string, Transaction> {
+    const transactionsByID = new Map<string, Transaction>();
+    for (const transaction of transactions) {
+        if (!transactionsByID.has(transaction.transactionID)) {
+            transactionsByID.set(transaction.transactionID, transaction);
+        }
+    }
+    return transactionsByID;
+}
+
 function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
@@ -1622,6 +1636,7 @@ function isTransactionOwner(transaction: OnyxEntry<Transaction>, cardList: OnyxE
 
 export {
     buildOptimisticTransaction,
+    getTransactionsByID,
     calculateTaxAmount,
     getWorkspaceTaxesSettingsName,
     getDefaultTaxCode,

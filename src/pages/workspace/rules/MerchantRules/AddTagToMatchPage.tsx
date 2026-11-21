@@ -66,6 +66,7 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
     // per level. A name shared by two levels is one option, since the rule stores the name and not the level.
     const tagItems: TagListItem[] = [];
     const seenTagNames = new Set<string>();
+    const selectedTagNames = new Set(selectedTags);
     for (const tagList of policyTagLists) {
         for (const tag of Object.values(tagList.tags)) {
             if (seenTagNames.has(tag.name)) {
@@ -73,7 +74,7 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
             }
             // A rule keeps a tag it already matches on even once the tag is disabled or on its way out, so it stays
             // removable.
-            const isTagMatched = selectedTags.includes(tag.name);
+            const isTagMatched = selectedTagNames.has(tag.name);
             if ((!tag.enabled || tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isTagMatched) {
                 continue;
             }

@@ -368,13 +368,13 @@ function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: 
  * and return the first approver that is not in the removal set.
  * Falls back to the policy owner if no valid approver is found.
  */
-function findNextApproverInChain(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]): string | undefined {
+function findNextApproverInChain(policy: OnyxEntry<Policy>, selectedMemberEmails: ReadonlySet<string>): string | undefined {
     const employeeList = policy?.employeeList ?? {};
     const visited = new Set<string>();
     let current = employeeList[policy?.approver ?? '']?.forwardsTo;
 
     while (current && !visited.has(current)) {
-        if (!selectedMemberEmails.includes(current)) {
+        if (!selectedMemberEmails.has(current)) {
             return current;
         }
         visited.add(current);
@@ -430,16 +430,22 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     // to the login paired with a selected member. We must NOT use "missing personal details" as the
     // signal, because that would sweep in every other member whose details aren't loaded and delete them too.
     const selectedMemberEmailsWithDuplicates: string[] = [...selectedMemberEmails];
+    // These Sets are looked up once per invited login, approval rule and employee below, and the second one is kept in
+    // sync with selectedMemberEmailsWithDuplicates as logins are added to it.
+    const selectedMemberEmailSet = new Set(selectedMemberEmails);
+    const selectedMemberEmailWithDuplicatesSet = new Set(selectedMemberEmails);
     const primaryLoginsInvited = policy?.primaryLoginsInvited ?? {};
     const employeeList = policy?.employeeList ?? {};
     for (const [secondaryLogin, primaryLogin] of Object.entries(primaryLoginsInvited)) {
         // If the selected member is the secondary login, also remove its primary login (and vice versa),
         // but only when the paired login actually exists in the employeeList.
-        if (selectedMemberEmails.includes(secondaryLogin) && primaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(primaryLogin)) {
+        if (selectedMemberEmailSet.has(secondaryLogin) && primaryLogin in employeeList && !selectedMemberEmailWithDuplicatesSet.has(primaryLogin)) {
             selectedMemberEmailsWithDuplicates.push(primaryLogin);
+            selectedMemberEmailWithDuplicatesSet.add(primaryLogin);
         }
-        if (selectedMemberEmails.includes(primaryLogin) && secondaryLogin in employeeList && !selectedMemberEmailsWithDuplicates.includes(secondaryLogin)) {
+        if (selectedMemberEmailSet.has(primaryLogin) && secondaryLogin in employeeList && !selectedMemberEmailWithDuplicatesSet.has(secondaryLogin)) {
             selectedMemberEmailsWithDuplicates.push(secondaryLogin);
+            selectedMemberEmailWithDuplicatesSet.add(secondaryLogin);
         }
     }
 
@@ -453,7 +459,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     }
 
     const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
-    const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
+    const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmailSet.has(rule?.approver ?? ''));
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
@@ -463,7 +469,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
             key: policyKey,
             value: {
                 employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmailsWithDuplicates) : policy?.approver,
+                approver: selectedMemberEmailSet.has(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmailWithDuplicatesSet) : policy?.approver,
                 rules: {
                     ...(policy?.rules ?? {}),
                     approvalRules: optimisticApprovalRules,
@@ -580,7 +586,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     if (!isEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
         const employeeListEmails = Object.keys(policy?.employeeList ?? {});
-        const remainingLogins = employeeListEmails.filter((email) => !selectedMemberEmails.includes(email));
+        const remainingLogins = employeeListEmails.filter((email) => !selectedMemberEmailSet.has(email));
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
         if (policy?.primaryLoginsInvited) {

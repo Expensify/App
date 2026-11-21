@@ -153,8 +153,9 @@ function PolicyDistanceRatesPage({
 
     const isSelectionModeActive = selectedDistanceRates.length > 0 || isMobileSelectionModeEnabled;
 
+    const selectedDistanceRateIDs = new Set(selectedDistanceRates);
     const canDisableOrDeleteSelectedRates = Object.keys(selectableRates)
-        .filter((rateID) => !selectedDistanceRates.includes(rateID))
+        .filter((rateID) => !selectedDistanceRateIDs.has(rateID))
         .some((rateID) => selectableRates[rateID].enabled);
 
     const fetchDistanceRates = () => {

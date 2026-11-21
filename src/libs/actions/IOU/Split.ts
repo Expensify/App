@@ -29,8 +29,10 @@ import {
     buildOptimisticReportPreview,
     generateReportID,
     getChatByParticipants,
+    getChatsByParticipantsKey,
     getChatReportFromMoneyRequestReport,
     getParsedComment,
+    getParticipantsChatKey,
     getReimbursableTotal,
     getReportNotificationPreference,
     getTransactionDetails,
@@ -1048,6 +1050,12 @@ function completeSplitBill({
     const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false, false, getCurrencyDecimals);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
+    // Built on first use so a split with many participants doesn't scan every report for each of them
+    let oneOnOneChatsByParticipantsKey: Map<string, OnyxTypes.Report> | undefined;
+    const getExistingOneOnOneChat = (accountIDs: number[]) => {
+        oneOnOneChatsByParticipantsKey ??= getChatsByParticipantsKey();
+        return oneOnOneChatsByParticipantsKey.get(getParticipantsChatKey(accountIDs));
+    };
     for (const participant of splitParticipants) {
         // Skip creating the transaction for the current user
         if (participant.email === currentUserEmailForIOUSplit) {
@@ -1074,7 +1082,7 @@ function completeSplitBill({
             // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
-            const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
+            const existingChatReport = getExistingOneOnOneChat(participant.accountID ? [participant.accountID, sessionAccountID] : []);
             isNewOneOnOneChatReport = !existingChatReport;
             oneOnOneChatReport =
                 existingChatReport ??
@@ -1786,6 +1794,12 @@ function createSplitsAndOnyxData({
 
     const allReports = getAllReports();
     const hasMultipleParticipants = participants.length > 1;
+    // Built on first use so a split with many participants doesn't scan every report for each of them
+    let oneOnOneChatsByParticipantsKey: Map<string, OnyxTypes.Report> | undefined;
+    const getExistingOneOnOneChat = (accountIDs: number[]) => {
+        oneOnOneChatsByParticipantsKey ??= getChatsByParticipantsKey();
+        return oneOnOneChatsByParticipantsKey.get(getParticipantsChatKey(accountIDs));
+    };
     for (const participant of participants) {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
@@ -1838,7 +1852,7 @@ function createSplitsAndOnyxData({
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && isOptimisticPersonalDetail(accountID);
         } else {
-            const existingChatReport = getChatByParticipants([accountID, currentUserAccountID]);
+            const existingChatReport = getExistingOneOnOneChat([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && isOptimisticPersonalDetail(accountID);
             oneOnOneChatReport =

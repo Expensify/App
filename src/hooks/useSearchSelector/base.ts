@@ -161,11 +161,21 @@ const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorCont
     CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
 ]);
 
-const doOptionsMatch = (option1: Pick<Option, 'accountID' | 'reportID' | 'login'>, option2: Pick<Option, 'accountID' | 'reportID' | 'login'>) => {
+type OptionMatchFields = Pick<Option, 'accountID' | 'reportID' | 'login'>;
+
+/** The keys a selected option can be matched by. A key that is empty, or a reportID of '-1', never matches. */
+const getOptionMatchKeys = (option: OptionMatchFields) => ({
+    accountID: option.accountID || undefined,
+    reportID: option.reportID && option.reportID !== '-1' ? option.reportID : undefined,
+    login: option.login || undefined,
+});
+
+const doOptionsMatch = (option1: OptionMatchFields, option2: OptionMatchFields) => {
+    const keys = getOptionMatchKeys(option1);
     return (
-        (option1.accountID && option1.accountID === option2.accountID) ||
-        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
-        (option1.login && option1.login === option2.login)
+        (keys.accountID !== undefined && keys.accountID === option2.accountID) ||
+        (keys.reportID !== undefined && keys.reportID === option2.reportID) ||
+        (keys.login !== undefined && keys.login === option2.login)
     );
 };
 
@@ -466,7 +476,26 @@ function useSearchSelectorBase<TSelected extends Option = OptionData>({
         }
     })();
 
-    const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
+    // Same keys doOptionsMatch compares, indexed once so each option is checked in O(1) on every keystroke
+    const selectedAccountIDs = new Set<number>();
+    const selectedReportIDs = new Set<string>();
+    const selectedLogins = new Set<string>();
+    for (const selected of selectedOptions) {
+        const {accountID, reportID, login} = getOptionMatchKeys(selected);
+        if (accountID !== undefined) {
+            selectedAccountIDs.add(accountID);
+        }
+        if (reportID !== undefined) {
+            selectedReportIDs.add(reportID);
+        }
+        if (login !== undefined) {
+            selectedLogins.add(login);
+        }
+    }
+    const isOptionSelected = (option: OptionData) =>
+        (option.accountID !== undefined && selectedAccountIDs.has(option.accountID)) ||
+        (option.reportID !== undefined && selectedReportIDs.has(option.reportID)) ||
+        (option.login !== undefined && selectedLogins.has(option.login));
 
     const searchOptions = {
         ...baseOptions,

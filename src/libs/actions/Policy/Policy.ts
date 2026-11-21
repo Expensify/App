@@ -2085,12 +2085,15 @@ function createPolicyExpenseChats({
         reportCreationData: {},
     };
 
+    // Built once so inviting many members doesn't scan every report for each invitee
+    const policyExpenseChatsByOwnerAccountID = ReportUtils.getPolicyExpenseChatsByOwnerAccountID(policyID);
+
     for (const email of Object.keys(invitedEmailsToAccountIDs)) {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
         const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
-        const oldChat = ReportUtils.getPolicyExpenseChat(cleanAccountID, policyID);
+        const oldChat = policyExpenseChatsByOwnerAccountID.get(cleanAccountID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {

@@ -93,7 +93,8 @@ function useMoneyRequestReportTransactionSelection({
         clearSelectedTransactions,
     });
 
-    const isTransactionSelected = (transactionID: string) => selectedTransactionIDs.includes(transactionID);
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    const isTransactionSelected = (transactionID: string) => selectedTransactionIDSet.has(transactionID);
 
     // Narrower than the rows the list renders: a rejected expense still renders and opens, but no checkbox can hold it.
     const selectableTransactionIDs = visualOrderTransactions.filter(isSelectableReportTransaction).map((transaction) => transaction.transactionID);
@@ -108,7 +109,7 @@ function useMoneyRequestReportTransactionSelection({
             continue;
         }
 
-        const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDs.includes(id)).length;
+        const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDSet.has(id)).length;
         groupSelectionState.set(group.groupKey, {
             isSelected: selectedCount === groupTransactionIDs.length,
             isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,

@@ -1,4 +1,4 @@
-import {getLastVisibleAction, getLastVisibleMessage, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getIOUActionsByTransactionID, getLastVisibleAction, getLastVisibleMessage, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +41,14 @@ const reportActions = createCollection<ReportAction>(
 );
 
 const reportId = '1';
+
+/** One IOU action per expense, the way an expense report holds them. */
+const getIOUReportActions = (transactionCount: number): ReportAction[] =>
+    Array.from({length: transactionCount}, (_, index) => ({
+        ...createRandomReportAction(index),
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: `transaction${index}`, amount: 100, currency: CONST.CURRENCY.USD},
+    }));
 
 describe('ReportActionsUtils', () => {
     beforeAll(() => {
@@ -136,5 +144,28 @@ describe('ReportActionsUtils', () => {
     test('[ReportActionsUtils] getLastClosedReportAction on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() => getLastClosedReportAction(reportActions));
+    });
+
+    describe('IOU action lookup for every expense of a report', () => {
+        test.each([100, 1000, 5000])('getIOUActionForTransactionID per expense with %i expenses', async (transactionCount) => {
+            // Given a report with one IOU action per expense, as the baseline for the indexed lookup below
+            const iouActions = getIOUReportActions(transactionCount);
+            const transactionIDs = Array.from({length: transactionCount}, (_, index) => `transaction${index}`);
+            // When looking up every expense with a scan of all actions
+            // Then the time should grow quadratically with the number of expenses
+            await measureFunction(() => transactionIDs.map((transactionID) => getIOUActionForTransactionID(iouActions, transactionID, true)));
+        });
+
+        test.each([100, 1000, 5000])('getIOUActionsByTransactionID with %i expenses', async (transactionCount) => {
+            // Given the same report, because bulk hold, edit, move and delete look up every selected expense
+            const iouActions = getIOUReportActions(transactionCount);
+            const transactionIDs = Array.from({length: transactionCount}, (_, index) => `transaction${index}`);
+            // When indexing the actions once and looking up every expense
+            // Then the time should grow linearly with the number of expenses
+            await measureFunction(() => {
+                const iouActionsByTransactionID = getIOUActionsByTransactionID(iouActions, true);
+                return transactionIDs.map((transactionID) => iouActionsByTransactionID.get(transactionID));
+            });
+        });
     });
 });

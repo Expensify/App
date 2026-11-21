@@ -72,6 +72,7 @@ function useMoneyRequestReportVisibleActions({
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
+    const reportTransactionIDsSet = new Set(reportTransactionIDs);
     const reportActionsWithVisiblePayments = isWaitingOnBankAccount ? reportActions.filter((action) => !shouldHidePayAction(action, true)) : reportActions;
     const visibleReportActionsNewestFirst = reportActionsWithVisiblePayments.filter((reportAction) => {
         const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowCreatedAction);
@@ -89,7 +90,7 @@ function useMoneyRequestReportVisibleActions({
             return false;
         }
 
-        if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
+        if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDsSet)) {
             return false;
         }
 

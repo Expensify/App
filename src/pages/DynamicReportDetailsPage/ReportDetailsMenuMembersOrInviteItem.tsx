@@ -65,9 +65,12 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
+    // A member can have several pending entries and the latest one wins. The Map constructor keeps the last entry per key.
+    const lastPendingChatMemberByAccountID = new Map((reportMetadata?.pendingChatMembers ?? []).map((member) => [member.accountID, member]));
+
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
-        const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingMember = lastPendingChatMemberByAccountID.get(accountID.toString());
         const detail = personalDetails?.[accountID];
         if (!detail) {
             return [];

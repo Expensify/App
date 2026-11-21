@@ -54,7 +54,8 @@ function useExpensifyCardBulkExportOptions({
             value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.BULK_ACTIONS_EXPORT_CSV,
             onSelected: () => {
-                const selectedCards = cardRows.filter((row) => selectedCardKeys.includes(row.keyForList)).map((row) => row.card);
+                const selectedCardKeySet = new Set(selectedCardKeys);
+                const selectedCards = cardRows.filter((row) => selectedCardKeySet.has(row.keyForList)).map((row) => row.card);
                 exportExpensifyCardListToCSV({
                     policyID,
                     cards: selectedCards,
