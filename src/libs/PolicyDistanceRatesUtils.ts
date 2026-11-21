@@ -373,6 +373,18 @@ function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): 
     return getGovernmentRateCountryForCurrency(policy.outputCurrency);
 }
 
+/** Whether the policy has a government rate copied for its currency. Copied rates stay in the list after auto-update is turned off. */
+function hasGovernmentRateForCurrency(policy: OnyxEntry<Policy>): boolean {
+    const currency = policy?.outputCurrency;
+    const countries: readonly string[] = isSharedGovernmentRateCurrency(currency)
+        ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES
+        : [getGovernmentRateCountryForCurrency(currency) ?? ''];
+    return Object.values(getDistanceRateCustomUnit(policy)?.rates ?? {}).some((rate) => {
+        const sourceRateID = rate.attributes?.governmentRate?.sourceRateID;
+        return rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!sourceRateID && countries.includes(sourceRateID.split('_').at(0) ?? '');
+    });
+}
+
 /** The unit a country publishes its mileage rates in. */
 function getExpectedUnitForCountry(country?: string): Unit | undefined {
     if (!country) {
@@ -787,6 +799,7 @@ export {
     isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
     getAutoUpdateGovernmentRateCountry,
+    hasGovernmentRateForCurrency,
     getExpectedUnitForCountry,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
