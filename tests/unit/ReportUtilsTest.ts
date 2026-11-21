@@ -312,7 +312,7 @@ import Onyx from 'react-native-onyx';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {createRandomExpensifyCard} from '../utils/collections/card';
+import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -7715,6 +7715,68 @@ describe('ReportUtils', () => {
                 expect(
                     canDeleteReportAction(reportPreviewAction, report.reportID, transaction, transactions, childReportActions, currentUserAccountID, undefined, otherDetails, undefined),
                 ).toBe(false);
+            });
+        });
+
+        describe('legacy unreported expenses without an IOU action', () => {
+            const LEGACY_CARD_ID = 9301;
+
+            /** An unreported expense with no IOU action anywhere, on a company card when managed, which its holder may delete. */
+            function buildLegacyUnreportedTransaction(index: number, managedCard: boolean): Transaction {
+                return {
+                    ...createRandomTransaction(index),
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    managedCard,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: LEGACY_CARD_ID,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+                };
+            }
+
+            it('should allow deleting an expense that is not on a managed card', () => {
+                // Given a legacy unreported expense that is not on a managed card, which only its owner can see
+                const transaction = buildLegacyUnreportedTransaction(9302, false);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can delete it, instead of the missing action hiding the option
+                expect(canDelete).toBe(true);
+            });
+
+            it("should allow deleting a managed card expense on the current user's card", () => {
+                // Given a legacy unreported expense on a managed card that is in the current user's card list
+                const transaction = buildLegacyUnreportedTransaction(9303, true);
+                const cardList: CardList = {[LEGACY_CARD_ID]: createRandomCompanyCard(LEGACY_CARD_ID, {accountID: currentUserAccountID})};
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, cardList);
+
+                // Then the card holder can delete it
+                expect(canDelete).toBe(true);
+            });
+
+            it("should not allow deleting a managed card expense on another member's card", () => {
+                // Given a legacy unreported expense on a managed card that isn't in the current user's card list, as an admin sees on their card feed
+                const transaction = buildLegacyUnreportedTransaction(9304, true);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can't delete it, because it belongs to the card holder
+                expect(canDelete).toBe(false);
+            });
+
+            it('should still read the owner from the IOU action when there is one', () => {
+                // Given an unreported expense that is not on a managed card, whose IOU action was created by another user
+                const transaction = buildLegacyUnreportedTransaction(9305, false);
+                const iouAction = buildIOUActionForTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, transaction.transactionID, currentUserAccountID + 1);
+
+                // When the delete option is checked with that action
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the action decides, so the fallback for expenses without an action doesn't let the current user delete it
+                expect(canDelete).toBe(false);
             });
         });
     });

@@ -326,6 +326,7 @@ import {
     isTransactionPendingDelete,
     isTransactionOwner,
     isTransactionSubmittable,
+    isUnreportedTransactionOwnedByCurrentUser,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -3965,7 +3966,8 @@ function canDeleteMoneyRequestReport(
     const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
+    const iouAction = transactionID ? getIOUActionForTransactionID(reportActions, transactionID) : undefined;
+    const isOwner = iouAction?.actorAccountID === currentUserAccountID;
     const isReportOpenOrProcessing = isOpenReport(report) || isProcessingReport(report);
     const isSingleTransaction = reportTransactions.length === 1;
 
@@ -3989,7 +3991,9 @@ function canDeleteMoneyRequestReport(
     const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
 
     if (isUnreported) {
-        return isOwner && canCardTransactionBeDeleted;
+        // A legacy unreported expense can have no IOU action, so its owner is decided from the transaction and the user's own cards
+        const isUnreportedOwner = iouAction ? isOwner : !!transaction && isUnreportedTransactionOwnedByCurrentUser(transaction, isTransactionOwner(transaction, cardList));
+        return isUnreportedOwner && canCardTransactionBeDeleted;
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
