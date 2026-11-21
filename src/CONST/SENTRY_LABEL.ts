@@ -84,6 +84,9 @@ const SENTRY_LABEL = {
         CURRENCY_BUTTON: 'NumberWithSymbolForm-CurrencyButton',
         INPUT: 'NumberWithSymbolForm-Input',
     },
+    KEYPAD_AMOUNT_EDITOR: {
+        INPUT: 'KeypadAmountEditor-Input',
+    },
     TEST_TOOL_MENU: {
         INVALIDATE_AUTH_TOKEN: 'TestToolMenu-InvalidateAuthToken',
         DESTROY_CREDENTIALS: 'TestToolMenu-DestroyCredentials',
