@@ -23,7 +23,7 @@ import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenExpenseReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
@@ -42,6 +42,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -71,17 +72,18 @@ type IOURequestEditReportCommonProps = {
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
-    removeFromReport?: () => void;
+    removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
+    /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
+    isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-
-    /** Leaves a new expense off any report. Offered next to the new report option when passed */
-    selectNoReport?: () => void;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
+    /** Whether only open reports can take the expense, e.g. a tracked expense moved to a workspace, which the server only adds to an open report */
+    shouldOnlyListOpenReports?: boolean;
     /** Whether the expenses being moved belong to more than one submitter */
     hasMultipleSubmitters?: boolean;
     /** Whether every expense being moved sits on a card this user can resolve, which "Auto report" requires */
@@ -123,13 +125,14 @@ function IOURequestEditReportCommon({
     transactionPolicyID,
     removeFromReport,
     isEditing = false,
+    isCreatingExpense = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
-    selectNoReport,
     isPerDiemRequest,
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
+    shouldOnlyListOpenReports = false,
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
@@ -148,9 +151,6 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -197,6 +197,7 @@ function IOURequestEditReportCommon({
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
+
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -234,12 +235,18 @@ function IOURequestEditReportCommon({
                   .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
                   .filter((report): report is NonNullable<typeof report> => report !== undefined)
                   .filter((report) => {
+                      if (shouldOnlyListOpenReports && !isOpenExpenseReport(report)) {
+                          return false;
+                      }
                       const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                       if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                           return false;
                       }
                       if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                           return false;
+                      }
+                      if (isCreatingExpense) {
+                          return canAddTransaction(report, rules);
                       }
                       if (canAddTransaction(report, rules, undefined, true)) {
                           return true;
@@ -317,7 +324,7 @@ function IOURequestEditReportCommon({
         return true;
     };
 
-    const handleSelectReport = (item: TransactionGroupListItem) => {
+    const moveExpenseToSelectedReport = async (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
             dismiss();
             return;
@@ -328,13 +335,16 @@ function IOURequestEditReportCommon({
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
-        if (
-            item?.policyID &&
-            itemPolicy &&
-            shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
-        ) {
-            navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
-            return;
+        if (item.policyID && itemPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
+                navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
+                return;
+            }
         }
 
         // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
@@ -442,33 +452,9 @@ function IOURequestEditReportCommon({
         );
     }
 
-    const noReportOption = selectNoReport ? (
-        <MenuItem.Root
-            onPress={selectNoReport}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER.NO_REPORT}
-        >
-            <MenuItem.Row>
-                <MenuItem.Leading>
-                    <MenuItem.Icon src={icons.Close} />
-                </MenuItem.Leading>
-                <MenuItem.Content>
-                    <MenuItem.Title>{translate('common.none')}</MenuItem.Title>
-                </MenuItem.Content>
-            </MenuItem.Row>
-        </MenuItem.Root>
-    ) : undefined;
-
-    const newReportOption = createReportOption ?? autoReportOption;
-    const headerOptionCount = (newReportOption ? 1 : 0) + (noReportOption ? 1 : 0);
-    const listHeaderContent =
-        headerOptionCount > 0 ? (
-            <>
-                {newReportOption}
-                {noReportOption}
-            </>
-        ) : undefined;
+    const listHeaderContent = createReportOption ?? autoReportOption;
     const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const listSize: ReportListSize = {rowCount: eligibleReports.length + headerOptionCount, isSearchable};
+    const listSize: ReportListSize = {rowCount: eligibleReports.length + (listHeaderContent ? 1 : 0), isSearchable};
 
     let shouldShowNotFoundPage;
     if (listHeaderContent) {
@@ -487,7 +473,7 @@ function IOURequestEditReportCommon({
     const list = (
         <SelectionList
             data={reportOptions}
-            onSelectRow={handleSelectReport}
+            onSelectRow={moveExpenseToSelectedReport}
             titleNumberOfLines={2}
             shouldShowTextInput={isSearchable}
             textInputOptions={{

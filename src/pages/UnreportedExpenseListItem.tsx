@@ -49,7 +49,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
 
-    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false});
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, highlightKey: item?.keyForList});
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
@@ -98,6 +98,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         }}
                         isDisabled={isItemDisabled}
                         shouldShowCheckbox={!readOnly}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM_CHECKBOX}
                         style={styles.p3}
                         isHover={hovered}
                     />

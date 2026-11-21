@@ -21,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
@@ -41,8 +40,7 @@ function TravelCVVPage() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark']);
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [, lockAccountDetailsMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -60,8 +58,6 @@ function TravelCVVPage() {
     useEffect(() => () => setCvv(null), [setCvv]);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
-    const isLoadingAccount = isLoadingOnyxValue(accountMetadata);
-    const isLoadingLockAccountDetails = isLoadingOnyxValue(lockAccountDetailsMetadata);
     const isVerifyAccountInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT));
 
     // Auto-navigate to the validateCode screen on first mount so the user
@@ -74,13 +70,9 @@ function TravelCVVPage() {
         // If the verify-account (validateCode) screen is already in the navigation
         // stack, the user has previously visited it during this mount cycle (e.g.
         // they completed or cancelled the validateCode flow and returned here).
-        // Skip auto-navigation so we don't push a duplicate screen. This check
-        // runs before the loading guards because it doesn't depend on Onyx data.
+        // Skip auto-navigation so we don't push a duplicate screen.
         if (isVerifyAccountInStack) {
             hasAutoNavigatedRef.current = true;
-            return;
-        }
-        if (isLoadingAccount || isLoadingLockAccountDetails) {
             return;
         }
         // Permanent conditions — set the ref so we never retry auto-navigation.
@@ -102,7 +94,7 @@ function TravelCVVPage() {
         }
         hasAutoNavigatedRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
-    }, [isLoadingAccount, isLoadingLockAccountDetails, cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
+    }, [cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
 
     const handleRevealDetailsPress = () => {
         if (isAccountLocked) {
@@ -164,7 +156,12 @@ function TravelCVVPage() {
                                 key={`cvv-${digit}-${index}`}
                                 style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.travelCVVDigitBox]}
                             >
-                                <Text style={[styles.textXLargeThemeText]}>{digit}</Text>
+                                <Text
+                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                    style={[styles.textXLargeThemeText]}
+                                >
+                                    {digit}
+                                </Text>
                             </View>
                         ))}
                     </View>

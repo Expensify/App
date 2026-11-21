@@ -21,6 +21,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import formatTagParentPath from '@libs/formatTagParentPath';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -42,6 +44,9 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
+    /** Defaults to `SKELETON_ROW_COUNT` */
+    skeletonRowCount?: number;
+
     /** Called with the group whose row is pressed */
     onRowPress?: (item: GroupedItem) => void;
 };
@@ -58,7 +63,7 @@ function isMemberGroup(
     );
 }
 
-function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKELETON_ROW_COUNT, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -71,7 +76,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
     const formatGroupValue = (item: GroupedItem, value: number) => (formatValue ? formatValue(value) : convertToDisplayString(item.total ?? 0, item.currency));
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return <InsightsDataTableSkeleton fixedNumItems={skeletonRowCount} />;
     }
 
     if (rows.length === 0) {
@@ -92,6 +97,8 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
                 const isIncrease = hasChange && primaryValue > comparedValue;
                 const isNewSpend = comparedValue === 0;
                 const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
+                const isLevelTag = item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined;
+                const parentLabel = isLevelTag ? formatTagParentPath(item.parentTagPath) : '';
 
                 const rowContent = (
                     <>
@@ -107,7 +114,17 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
                             ) : (
                                 <View style={[styles.chartInlineTableDot, !!point.color && StyleUtils.getBackgroundColorStyle(point.color)]} />
                             )}
-                            <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
+                            <View style={[styles.flex1, styles.mnw0]}>
+                                <Text style={styles.breakWord}>{isLevelTag ? item.formattedTagName : point.label}</Text>
+                                {!!parentLabel && (
+                                    <Text
+                                        variant="label"
+                                        style={[styles.textSupporting, styles.breakWord]}
+                                    >
+                                        {parentLabel}
+                                    </Text>
+                                )}
+                            </View>
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
                             <Text style={styles.textAlignRight}>{formatGroupValue(item, primaryValue ?? 0)}</Text>

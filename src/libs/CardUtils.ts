@@ -1228,6 +1228,16 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
+/**
+ * Gets the country to open Plaid with when reconnecting an existing Plaid feed.
+ * The feed keeps the country its bank connection was made in. That country can differ from the one the workspace currency
+ * points to, for example when the feed is linked from another workspace, and Plaid rejects a country it does not support.
+ * So the workspace currency is only a fallback for feeds that have no stored country.
+ */
+function getPlaidCountryForFeed(feedCountry: string | undefined, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    return feedCountry || getPlaidCountry(outputCurrency, currencyList, countryByIp);
+}
+
 function getCorrectStepForPlaidSelectedBank(selectedBank: BankName) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
@@ -1967,7 +1977,8 @@ function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSetting
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
-const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+const CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [...CARD_PROGRAM_KEYS, CONST.TRAVEL.PROGRAM_TRAVEL_US];
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
     const nested = settings[key];
@@ -2018,6 +2029,34 @@ function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSett
 /** True if `policyID` is in the linked list (case-insensitive). */
 function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | undefined, policyID: string): boolean {
     return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
+}
+
+/** A fund's Expensify Card feed and its Travel Billing feed, which the cards are stored under separately. */
+function getExpensifyCardFeedIDs(fundID: string | number): [string, string] {
+    return [`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`];
+}
+
+/**
+ * The feed IDs of one fund's programs that `policyID` is linked to.
+ *
+ * A fund keeps its card programs and its Travel Billing program side by side under separate feed IDs, and a
+ * workspace is linked to each program on its own. A fund that reaches the workspace through Travel Billing alone
+ * therefore holds no cards the workspace can use from its regular feed.
+ */
+function getPolicyLinkedExpensifyCardFeedIDs(settings: ExpensifyCardSettings, fundID: string, policyID: string): string[] {
+    const isLinkedToPolicy = (base: ExpensifyCardSettingsBase | undefined) =>
+        !!base && (isPolicyIDInLinkedExpensifyCardPolicyList(base.linkedPolicyIDs, policyID) || base.preferredPolicy?.toUpperCase() === policyID.toUpperCase());
+
+    const [cardFeedID, travelFeedID] = getExpensifyCardFeedIDs(fundID);
+    const feedIDs: string[] = [];
+    const isLinkedToCardProgram = isLinkedToPolicy(settings) || CARD_PROGRAM_KEYS.some((key) => isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, key)));
+    if (isLinkedToCardProgram) {
+        feedIDs.push(cardFeedID);
+    }
+    if (isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, CONST.TRAVEL.PROGRAM_TRAVEL_US))) {
+        feedIDs.push(travelFeedID);
+    }
+    return feedIDs;
 }
 
 /** Resolves preferredPolicy from the settings root or the first nested program block that defines it. */
@@ -2648,6 +2687,7 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,
+    getPlaidCountryForFeed,
     getCustomOrFormattedFeedName,
     doesCardFeedExist,
     getCustomFeedNameFromFeeds,
@@ -2690,7 +2730,9 @@ export {
     getCardSettings,
     getSettlementAccountErrors,
     getCardProgramKey,
+    getExpensifyCardFeedIDs,
     getLinkedPolicyIDsFromExpensifyCardSettings,
+    getPolicyLinkedExpensifyCardFeedIDs,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
     getDomainByFundID,

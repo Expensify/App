@@ -2,12 +2,12 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
-import type {SkCanvas, SkParagraph, SkPath} from '@shopify/react-native-skia';
+import type {SkCanvas, SkParagraph, SkPath} from 'react-native-skia';
 
-import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
+import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from 'react-native-skia';
 
-import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
+import type {NativeTabGlyph, NativeTabGlyphName} from './NATIVE_TAB_GLYPHS';
 
 import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
 
@@ -18,6 +18,8 @@ type TabIconLayout = {
     iconBoxSize: number;
     /** Whether the label is drawn under the glyph or beside it, as UIKit lays out a tab in landscape. */
     direction: 'stacked' | 'inline';
+    /** Transparent space after the label of an inline icon. */
+    trailingInset?: number;
 };
 
 type TabIconLabel = {
@@ -32,7 +34,7 @@ type TabIconLabel = {
 };
 
 type TabIconParams = {
-    name: NativeTabName;
+    name: NativeTabGlyphName;
     color: string;
     dotColor?: string;
     label?: TabIconLabel;
@@ -42,9 +44,9 @@ type TabIconParams = {
 const MAX_CACHED_ICONS = 64;
 
 const iconCache = new Map<string, NativeBottomTabIcon | undefined>();
-const glyphPathCache = new Map<NativeTabName, SkPath[]>();
+const glyphPathCache = new Map<NativeTabGlyphName, SkPath[]>();
 
-function getGlyphPaths(name: NativeTabName): SkPath[] {
+function getGlyphPaths(name: NativeTabGlyphName): SkPath[] {
     const cachedPaths = glyphPathCache.get(name);
     if (cachedPaths) {
         return cachedPaths;
@@ -56,10 +58,8 @@ function getGlyphPaths(name: NativeTabName): SkPath[] {
         if (!path) {
             continue;
         }
-        if (isEvenOdd) {
-            path.setFillType(FillType.EvenOdd);
-        }
-        paths.push(path);
+        // Paths are immutable since react-native-skia 2.15, so the fill type is set on a copy made through a builder.
+        paths.push(isEvenOdd ? Skia.PathBuilder.MakeFromPath(path).setFillType(FillType.EvenOdd).detach() : path);
     }
     glyphPathCache.set(name, paths);
     return paths;
@@ -80,7 +80,7 @@ function makeLabelParagraph({text, color, isBold, fontSize, maxWidth}: TabIconLa
     return paragraph;
 }
 
-function drawGlyph(canvas: SkCanvas, name: NativeTabName, left: number, top: number, size: number, color: string) {
+function drawGlyph(canvas: SkCanvas, name: NativeTabGlyphName, left: number, top: number, size: number, color: string) {
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
     paint.setAntiAlias(true);
@@ -130,7 +130,7 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
     if (layout.direction === 'inline') {
         const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
         return {
-            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth : 0)),
+            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth + (layout.trailingInset ?? 0) * scale : 0)),
             canvasHeight,
             contentLeft: (boxSize - contentSize) / 2,
             contentTop: (canvasHeight - contentSize) / 2,

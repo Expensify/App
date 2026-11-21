@@ -52,7 +52,8 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
-        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
+        planDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: 'distance-chat-id', transactionID: 'distance-written-id'})),
+        commitDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -105,6 +106,7 @@ jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
+    const CURRENT_USER_EMAIL = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
     const SELF_DM_REPORT_ID = '2';
     const TEST_LATITUDE = 37.7749;
@@ -135,13 +137,14 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            personalDetailsByLogins: {[CURRENT_USER_EMAIL]: {accountID: currentUserAccountID, login: CURRENT_USER_EMAIL}},
             isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
-            currentUserAccountID: 111,
-            currentUserEmail: 'test@example.com',
+            currentUserAccountID,
+            currentUserEmail: CURRENT_USER_EMAIL,
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
             transactionViolations: {},
@@ -764,7 +767,6 @@ describe('MoneyRequest', () => {
             isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
-            moneyRequestReportTransactions: [],
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',
@@ -943,8 +945,8 @@ describe('MoneyRequest', () => {
             expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
             expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
 
-            // The function must return after trackExpense and not call createDistanceRequest
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            // The function must return after trackExpense and not plan a distance request
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
 
         it.each([
@@ -971,7 +973,7 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            const transactionParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
+            const transactionParams = jest.mocked(Split.planDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
             if (shouldForwardModifiedFields) {
                 expect(transactionParams).toEqual(expect.objectContaining({modifiedAmount: 80, modifiedMerchant: '8 mi @ $0.50 / mi'}));
             } else {
@@ -1020,8 +1022,9 @@ describe('MoneyRequest', () => {
             );
         });
 
-        // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
-        it('should pass the written transaction id from createDistanceRequest (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
+        it('should commit the distance plan and pass its transaction id (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
+            // Given a non-track distance expense that skips confirmation, whose caller also holds an optimistic transaction ID
+            // When the distance step submits it, which writes the expense without a confirmation page
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
@@ -1036,11 +1039,36 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
+            // Then the plan is committed and cleanup targets the transaction it was written under, since neither the draft nor the optimistic ID exists afterwards
+            expect(Split.commitDistanceRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'distance-written-id'}));
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionID: 'distance-written-id',
                 }),
             );
+        });
+
+        it('should not hand the self-DM chat ID to a non-track distance plan', async () => {
+            // Given the chat ID every caller computes, which is the self-DM's reportID when one exists, because only the track branch uses it as a destination
+            const selfDMReportID = 'self-dm-report-id';
+
+            // When a non-track distance expense is submitted with confirmation skipped
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                shouldSkipConfirmation: true,
+                manualDistance: 20,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                optimisticChatReportID: selfDMReportID,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the plan gets no chat ID, so a chat it has to build can never take the self-DM's reportID and overwrite it
+            expect(jest.mocked(Split.planDistanceRequest).mock.calls.at(-1)?.at(0)?.optimisticChatReportID).toBeUndefined();
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
@@ -1150,7 +1178,9 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should call createDistanceRequest for non-TRACK iouType when from manual distance step and skipping confirmation', async () => {
+        it('should plan a distance request for non-TRACK iouType when from manual distance step and skipping confirmation', async () => {
+            // Given a manual distance of 20 entered on the distance step for a non-track expense that skips confirmation
+            // When the distance step submits it, which writes the expense without a confirmation page
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
@@ -1162,7 +1192,8 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
+            // Then the request is planned with that distance and the transaction's details, and with none of the navigation flags the action used to take
+            expect(Split.planDistanceRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     // participants: getParticipantsForTest(),
@@ -1189,13 +1220,15 @@ describe('MoneyRequest', () => {
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
-            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            const distanceParams = jest.mocked(Split.planDistanceRequest).mock.calls.at(-1)?.at(0);
             expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
             expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
             expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
         });
 
-        it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
+        it('should plan a distance request for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
+            // Given a non-track distance expense that skips confirmation without a manual distance, so the route has not supplied one yet
+            // When the distance step submits it, which writes the expense without a confirmation page
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
@@ -1207,7 +1240,8 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
+            // Then the request is planned with no distance and the transaction's details, and with none of the navigation flags the action used to take
+            expect(Split.planDistanceRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     // participants: getParticipantsForTest(),
@@ -1234,7 +1268,7 @@ describe('MoneyRequest', () => {
                     policyRecentlyUsedCurrencies: [],
                 }),
             );
-            const distanceParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0);
+            const distanceParams = jest.mocked(Split.planDistanceRequest).mock.calls.at(-1)?.at(0);
             expect(distanceParams && 'shouldHandleNavigation' in distanceParams).toBeFalsy();
             expect(distanceParams && 'shouldDeferForSearch' in distanceParams).toBeFalsy();
             expect(distanceParams && 'backToReport' in distanceParams).toBeFalsy();
@@ -1566,7 +1600,7 @@ describe('MoneyRequest', () => {
                     }),
                 }),
             );
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
 
         it('should call trackExpense with gpsDistance as distance and forward gpsCoordinates', () => {
@@ -1590,10 +1624,12 @@ describe('MoneyRequest', () => {
                     }),
                 }),
             );
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
 
-        it('should call createDistanceRequest with gpsDistance as distance and forward gpsCoordinates for non-TRACK iouType', () => {
+        it('should plan a distance request with gpsDistance as distance and forward gpsCoordinates for non-TRACK iouType', () => {
+            // Given a non-track GPS distance expense that skips confirmation
+            // When the distance step submits it, which writes the expense without a confirmation page
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
@@ -1606,7 +1642,8 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
+            // Then the GPS distance and coordinates go into the plan, and the expense is not tracked instead
+            expect(Split.planDistanceRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         distance: 3000,
@@ -1640,7 +1677,7 @@ describe('MoneyRequest', () => {
                     ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID),
                 ),
             );
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
     });
