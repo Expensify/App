@@ -38,16 +38,9 @@ If your Workspace is not connected to an accounting system, follow these steps t
 
 ## How to set category tax defaults in New Expensify
 
-Category tax defaults are now managed in New Expensify, not in the Classic category settings. To set a category tax default on a Control workspace with tax tracking enabled:
+Category tax defaults are managed in New Expensify instead of Expensify Classic. To configure them, see [Configure expense defaults in New Expensify](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab).
 
-1. In New Expensify, select **Workspaces > [workspace name] > Rules**.
-2. Open the **Expense defaults** tab and select **Add rule**.
-3. Select **Apply expense defaults**.
-4. Under **If any expense matches:**, select **Category** and choose the category.
-5. Under **Then apply the following defaults:**, select **Tax** and choose the tax rate.
-6. Select **Save rule**.
-
-Learn how to [configure expense defaults in New Expensify](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab), including applying a rule to existing unsubmitted expenses. Workspace-currency and foreign-currency default tax rates are still configured as described above.
+Default tax rates for workspace-currency and foreign-currency expenses are still managed in Expensify Classic.
 
 ---
 
