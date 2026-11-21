@@ -8098,6 +8098,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
+                    case CONST.POLICY.CONNECTIONS.NAME.ODOO:
+                        return 'Odoo';
                     default: {
                         return '';
                     }
@@ -8332,6 +8334,16 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicializando conexão com o Zoho Books';
+                        case 'odooSyncSubsidiaries':
+                            return 'Sincronizando empresas';
+                        case 'odooSyncAccounts':
+                            return 'Sincronizando plano de contas';
+                        case 'odooSyncAnalyticPlans':
+                            return 'Sincronizando planos analíticos';
+                        case 'odooSyncTaxRates':
+                            return 'Sincronizando taxas de imposto';
+                        case 'odooSyncConnection':
+                            return 'Iniciando conexão com o Odoo';
                         case 'campfireSyncImportData':
                             return 'Carregando dados';
                         case 'campfireSyncPayments':
@@ -8405,6 +8417,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            odoo: 'Odoo',
             qboConnectionExpiring: ({date}: {date: string}) => `Sua conexão com o QuickBooks Online expira em ${date}.`,
             qboConnectionExpired: ({date}: {date: string}) => `Sua conexão com o QuickBooks Online expirou em ${date}.`,
             netSuiteOAuthMigrationRequired: 'Atualize sua conexão com o NetSuite para OAuth 2.0 até fevereiro de 2027.',
@@ -10003,6 +10016,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             noVendorsFoundDescription: 'Adicione fornecedores no Digits e sincronize a conexão novamente',
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione contas bancárias ou de cartão de crédito no Digits e sincronize a conexão novamente',
+        },
+        odoo: {
+            odooSetup: 'Configuração do Odoo',
+            enterCredentials: 'Insira a URL do Odoo e sua chave de API',
+            howToFindAPIKey:
+                '<strong>Como encontrar sua chave de API.</strong><ol><li>Entre no Odoo</li><li>Acesse Meu perfil -> Segurança da conta</li><li>Clique em Nova chave de API</li><li>Confirme sua senha, dê à chave um nome descritivo e defina Duração como Chave persistente. Se o Odoo pedir um escopo, escolha RPC</li><li>Copie a chave de API do Odoo e cole abaixo</li></ol>',
+            persistentKeyNote:
+                'Somente administradores do Odoo podem escolher Chave persistente. Os demais usuários podem escolher no máximo 3 meses, então a chave deles expira e eles precisam reconectar com uma nova.',
+            odooURL: 'URL do Odoo',
+            odooURLHint: 'Por exemplo, https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',

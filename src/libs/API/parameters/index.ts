@@ -35,6 +35,7 @@ export type {default as ConnectPolicyToCampfireParams} from './ConnectPolicyToCa
 export type {default as ConnectPolicyToDigitsParams} from './ConnectPolicyToDigitsParams';
 export type {default as ConnectPolicyToZohoBooksParams} from './ConnectPolicyToZohoBooksParams';
 export type {default as ConnectPolicyToBusinessCentralParams} from './ConnectPolicyToBusinessCentralParams';
+export type {default as ConnectPolicyToOdooParams} from './ConnectPolicyToOdooParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
@@ -147,6 +148,8 @@ export type {default as UpdateZohoBooksSyncTravelBillingSettlementsParams} from 
 export type {default as UpdateZohoBooksTravelBillingSettlementsAccountParams} from './UpdateZohoBooksTravelBillingSettlementsAccountParams';
 export type {default as UpdateZohoBooksTravelBillingPayableAccountParams} from './UpdateZohoBooksTravelBillingPayableAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
+export type {default as SyncPolicyToOdooParams} from './SyncPolicyToOdooParams';
+export type {default as UpdateOdooSubsidiaryParams} from './UpdateOdooSubsidiaryParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralCustomerMappingParams} from './UpdateBusinessCentralCustomerMappingParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';

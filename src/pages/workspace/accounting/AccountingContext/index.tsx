@@ -106,6 +106,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
+        'OdooSquare',
     ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);

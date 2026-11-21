@@ -103,6 +103,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
+        'OdooSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
@@ -132,12 +133,16 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
+    const canUseOdooIntegration = isBetaEnabled(CONST.BETAS.ODOO) || !!policy?.connections?.odoo;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
             return canUseDigitsIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ODOO) {
+            return canUseOdooIntegration;
         }
         return true;
     });
@@ -177,7 +182,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const isNetSuiteOAuthConnection =
         connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && policy?.connections?.netsuite?.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2;
-    const shouldShowReconnect = hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || isNetSuiteOAuthConnection);
+    const shouldShowReconnect =
+        hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ODOO || isNetSuiteOAuthConnection);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
     let credentialsMenuSentryLabel: SentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_ENTER_CREDENTIALS;
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
@@ -519,66 +525,70 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
 
         // The Digits Advanced page is added in a later release, so its row stays hidden until then.
         const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
-        const configurationOptions = canWriteAccounting
-            ? [
-                  {
-                      icon: icons.Pencil,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.import'),
-                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.IMPORT,
-                      onPress: integrationData?.onImportPagePress,
-                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
-                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                          : undefined,
-                      pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
-                  },
-                  {
-                      icon: icons.Send,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.export'),
-                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.EXPORT,
-                      onPress: integrationData?.onExportPagePress,
-                      brickRoadIndicator:
-                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                          shouldShowReimbursableExportDestinationAccountError(policy) ||
-                          integrationData?.externalSubscribedExportSettingsHasErrorFields
+        // The Odoo Import, Export and Advanced pages are added in later releases, so its rows stay hidden until then.
+        const shouldShowConfigurationOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ODOO;
+        const configurationOptions =
+            canWriteAccounting && shouldShowConfigurationOptions
+                ? [
+                      {
+                          icon: icons.Pencil,
+                          iconRight: icons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.import'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.IMPORT,
+                          onPress: integrationData?.onImportPagePress,
+                          brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,
-                      pendingAction:
-                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
-                  },
-                  ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
-                      ? [
-                            {
-                                icon: icons.ExpensifyCard,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.cardReconciliation'),
-                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.CARD_RECONCILIATION,
-                                onPress: integrationData?.onCardReconciliationPagePress,
-                            },
-                        ]
-                      : []),
-                  ...(shouldShowAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Gear,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.advanced'),
-                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
-                                onPress: integrationData?.onAdvancedPagePress,
-                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined,
-                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                            },
-                        ]
-                      : []),
-              ]
-            : [];
+                          pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+                      },
+                      {
+                          icon: icons.Send,
+                          iconRight: icons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.export'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.EXPORT,
+                          onPress: integrationData?.onExportPagePress,
+                          brickRoadIndicator:
+                              areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                              shouldShowReimbursableExportDestinationAccountError(policy) ||
+                              integrationData?.externalSubscribedExportSettingsHasErrorFields
+                                  ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                  : undefined,
+                          pendingAction:
+                              settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ??
+                              integrationData?.externalSubscribedExportSettingsPendingAction,
+                      },
+                      ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
+                          ? [
+                                {
+                                    icon: icons.ExpensifyCard,
+                                    iconRight: icons.ArrowRight,
+                                    shouldShowRightIcon: true,
+                                    title: translate('workspace.accounting.cardReconciliation'),
+                                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.CARD_RECONCILIATION,
+                                    onPress: integrationData?.onCardReconciliationPagePress,
+                                },
+                            ]
+                          : []),
+                      ...(shouldShowAdvancedOptions
+                          ? [
+                                {
+                                    icon: icons.Gear,
+                                    iconRight: icons.ArrowRight,
+                                    shouldShowRightIcon: true,
+                                    title: translate('workspace.accounting.advanced'),
+                                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
+                                    onPress: integrationData?.onAdvancedPagePress,
+                                    brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined,
+                                    pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                                },
+                            ]
+                          : []),
+                  ]
+                : [];
 
         // The selected subsidiary or entity can be what breaks a sync, so only an authentication error hides its row.
         const settingsMenuItems: MenuItemData[] = [
