@@ -12,7 +12,7 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getSubmitToAccountID,
+    getSubmitToEmail,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
@@ -89,12 +89,12 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const submitToLogin = getSubmitToEmail(policy, report, ownerLogin, rules);
 
     // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
     // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
     // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isSubmitter) {
+    if (submitToLogin === ownerLogin && policy?.preventSelfApproval && !isSubmitter) {
         return false;
     }
 

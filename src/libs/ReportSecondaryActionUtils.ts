@@ -29,7 +29,6 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getReimbursementChoice,
-    getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
@@ -43,6 +42,7 @@ import {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isWorkflowApprover,
+    getSubmitToEmail,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -271,7 +271,6 @@ function isSubmitAction({
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isCurrentUserWorkflowApprover = !isReportSubmitter && isWorkflowApprover(policy, ownerLogin, rules, report.total ?? 0, currentUserLogin);
 
     if (!isReportSubmitter && !isAdmin && !isCurrentUserWorkflowApprover) {
@@ -288,7 +287,8 @@ function isSubmitAction({
         return false;
     }
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    const submitToLogin = getSubmitToEmail(policy, report, ownerLogin, rules);
+    if (submitToLogin === ownerLogin && policy?.preventSelfApproval) {
         return false;
     }
 

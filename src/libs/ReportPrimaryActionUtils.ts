@@ -12,7 +12,7 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getSubmitToAccountID,
+    getSubmitToEmail,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
@@ -158,9 +158,9 @@ function isSubmitAction(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const submitToLogin = getSubmitToEmail(policy, report, ownerLogin, rules);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+    if (submitToLogin === ownerLogin && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 

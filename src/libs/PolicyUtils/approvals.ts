@@ -387,10 +387,10 @@ function getSubmitToAccountID(
     expenseReport: OnyxEntry<Report>,
     ownerLogin: string | undefined,
     rules: OnyxCollection<Rule>,
-    shouldFallBackWhenManagerIsNotMember = false,
+    personalDetailsByLogins?: PersonalDetailsByLogin,
 ): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
-    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules);
+    return submitToEmail ? (getAccountIDsByLogins([submitToEmail], personalDetailsByLogins).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
 function getSubmitReportManagerAccountID(

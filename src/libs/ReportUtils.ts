@@ -164,6 +164,7 @@ import {
     getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
+    getSubmitToEmail,
     getTagGLCode,
     getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -6190,7 +6191,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
 
     const ownerLogin = getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails());
     const approvalChain = getApprovalChain(policy, report, ownerLogin, rules);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
 
     if (isUnapproved) {
         if (approvalChain.includes(currentUserLogin)) {
@@ -11402,8 +11403,9 @@ function shouldBlockSubmitDueToPreventSelfApproval(
         // An open report hasn't been routed to anybody yet, so what matters is who it is about to be submitted to.
         // getNextApproverAccountID answers "who approves after me", which points at somebody else whenever the
         // submitter is the first of several approvers, so it can't detect self-submission on its own.
-        const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails()), rules);
-        return submitToAccountID === report?.ownerAccountID || isSubmitterSameAsNextApprover;
+        const ownerLogin = Object.values(reportOwnerPersonalDetailsByLogin).find((personalDetails) => personalDetails.accountID === report?.ownerAccountID)?.login;
+        const isSubmittingToSelf = !!ownerLogin && getSubmitToEmail(policy, report, ownerLogin, rules) === ownerLogin;
+        return isSubmittingToSelf || isSubmitterSameAsNextApprover;
     }
 
     return isProcessingReport(report) && (report?.managerID === report?.ownerAccountID || isSubmitterSameAsNextApprover);
