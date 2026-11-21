@@ -2551,6 +2551,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Caché del menú de navegación izquierdo',
             clearleftHandNavCache: 'borrar',
             softKillTheApp: 'Desactivar la aplicación',
+            testBusinessBankAccount: 'Probar cuenta bancaria empresarial en USD',
+            testPersonalBankAccount: 'Probar cuenta bancaria personal en USD',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',
             sentrySendDescription: 'Enviar datos a Sentry',
