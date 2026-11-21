@@ -157,6 +157,11 @@ function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: stri
     );
 }
 
+/** Builds the dashboard-wide query at the bucket the charts are drawn with, without a comparison. */
+function buildDashboardQueryJSON(dashboard: InsightsDashboardID, filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
+    return buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+}
+
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
@@ -214,7 +219,7 @@ function buildInsightsJsonQuery(
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(dashboardFilters);
-    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
+    const queryJSON = buildDashboardQueryJSON(dashboard, dashboardFilters);
     if (!queryJSON) {
         return undefined;
     }
@@ -276,6 +281,6 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {applyInsightsFilters, buildDashboardQueryJSON, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;
