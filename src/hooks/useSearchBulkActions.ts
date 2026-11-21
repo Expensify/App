@@ -68,7 +68,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, hasDynamicExternalWorkflow, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -81,6 +81,7 @@ import {
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -3436,39 +3437,47 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(rejectOption);
         }
 
-        const shouldShowChangeApproverOption =
-            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            !isAnyTransactionOnHold &&
-            areSelectedTransactionsIncludedInReports &&
-            selectedReports.length &&
-            selectedReports.every((selectedReport) => {
-                if (selectedReport.canChangeApprover) {
-                    return true;
-                }
+        if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !isAnyTransactionOnHold && areSelectedTransactionsIncludedInReports && selectedReports.length > 0) {
+            const approverActionsByReport = selectedReports.map((selectedReport) => {
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
-                // Current approvers can reassign without workspace admin access when strict policy rules are off.
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                const isDEWEnabled = hasDynamicExternalWorkflow(policy);
                 const canReassignCurrentReport = canReassignAsApprover({
                     report,
                     currentUserAccountID: accountID,
                     isLoadingSecurityGroup,
                     areStrictPolicyRulesEnabled,
                 });
-                if (!canReassignCurrentReport || !isExpenseReportUtil(report) || !isProcessingReport(report) || isMoneyRequestReportPendingDeletion(report)) {
-                    return false;
-                }
-                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
-                return !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            });
 
-        if (shouldShowChangeApproverOption) {
-            options.push({
-                icon: expensifyIcons.Workflows,
-                text: translate('iou.changeApprover.title'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
-                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_APPROVER,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                return {
+                    canAdd: !!policy && selectedReport.canChangeApprover && !isDEWEnabled,
+                    canBypass: !!report && !!policy && selectedReport.canChangeApprover && isAllowedToApproveExpenseReport(report, accountID, policy),
+                    canReassign:
+                        !isDEWEnabled &&
+                        (selectedReport.canChangeApprover || canReassignCurrentReport) &&
+                        isExpenseReportUtil(report) &&
+                        isProcessingReport(report) &&
+                        !isMoneyRequestReportPendingDeletion(report) &&
+                        !!policy?.approvalMode &&
+                        policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                };
             });
+            // The picker applies one action to the whole selection, so that action must be available on every report.
+            const shouldShowChangeApproverOption =
+                approverActionsByReport.every(({canAdd}) => canAdd) ||
+                approverActionsByReport.every(({canBypass}) => canBypass) ||
+                approverActionsByReport.every(({canReassign}) => canReassign);
+
+            if (shouldShowChangeApproverOption) {
+                options.push({
+                    icon: expensifyIcons.Workflows,
+                    text: translate('iou.changeApprover.title'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_APPROVER,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                });
+            }
         }
 
         // The same as Select all, the reports that can't move are skipped and listed in the status modal.

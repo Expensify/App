@@ -73,6 +73,7 @@ import {
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isActionCreator,
+    isAllowedToApproveExpenseReport,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -1242,7 +1243,12 @@ function getSecondaryReportActions({
         isLoadingSecurityGroup,
         areStrictPolicyRulesEnabled,
     });
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled) {
+    // A dynamic external workflow picks the next approver, so members, whose only change is a reassignment, cannot change it,
+    // and admins can only bypass the approvers, which needs permission to approve the report.
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const canMemberChangeApprover = canReassignReportAsApprover && !isDEWPolicy;
+    const canAdminChangeApprover = isPolicyAdmin(policy) && (!isDEWPolicy || isAllowedToApproveExpenseReport(report, currentUserAccountID, policy));
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (canAdminChangeApprover || canMemberChangeApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
