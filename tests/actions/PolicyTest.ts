@@ -9687,4 +9687,58 @@ describe('actions/Policy', () => {
             expect(ReportUtils.getMoneyRequestSpendBreakdown(optimisticReport).totalDisplaySpend).toBe(5000);
         });
     });
+
+    describe('openPolicyReceiptPartnersPage', () => {
+        const policy = createRandomPolicy(1);
+        const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+        const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policy.id}` as const;
+
+        afterEach(async () => {
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('sets the loading flag while the request is in flight and clears it when the request finishes, without writing the policy', async () => {
+            // Given a workspace, subscribers watching it, and a request that hasn't been answered yet
+            await Onyx.set(POLICY_KEY, policy);
+            let policyWrites = 0;
+            const connection = Onyx.connect({
+                key: POLICY_KEY,
+                callback: () => {
+                    policyWrites++;
+                },
+            });
+            await waitForBatchedUpdates();
+            policyWrites = 0;
+            mockFetch.pause?.();
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, so the Uber card can show a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the server answers
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, and the policy was never rewritten, so everything reading it stays idle
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+            expect(policyWrites).toBe(0);
+            connection.unsubscribe();
+        });
+
+        it('clears the loading flag when the request fails', async () => {
+            // Given a request that will fail
+            mockFetch.fail?.();
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the Uber card isn't stuck on a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+    });
 });
