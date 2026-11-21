@@ -13698,6 +13698,7 @@ ${reportName}`,
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
         toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
         receivedPayment: 'λάβατε πληρωμή',
+        markedAsManuallyExported: (label: string) => `σήμανε αυτήν την αναφορά ως μη αυτόματα εξαχθείσα σε ${label}`,
     },
 };
 export default translations;

@@ -12869,6 +12869,7 @@ ${reportName}`,
         offlineMessage: '您已离线。报表历史可能不是最新的。',
         toMarkAsDone: '标记为已完成',
         receivedPayment: '已收款',
+        markedAsManuallyExported: (label: string) => `已将此报表标记为已手动导出到 ${label}`,
     },
 };
 export default translations;
