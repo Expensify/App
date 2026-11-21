@@ -597,6 +597,43 @@ describe('ReportAlternateTextUtils', () => {
             expect(alternateText).toBe('added an expense policy document in Workspace > Overview');
         });
 
+        it('names a room that the last comment mentions by reportID when the preview is computed from the action', () => {
+            // Given no precomputed last message and a last comment that mentions a room by reportID, whose name is only in the derived report names
+            const mentionedRoomID = '777';
+            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                message: [{type: 'COMMENT', html: `see <mention-report reportID="${mentionedRoomID}"></mention-report>`, text: 'see', isDeletedParentAction: false, deleted: ''}],
+            });
+
+            // When the LHN builds its preview
+            const alternateText = getReportAlternateText({
+                report: makeReport(),
+                lastAction,
+                lastOriginalAction: lastAction,
+                lastActionReport: undefined,
+                card: undefined,
+                lastMessageTextFromReport: '',
+                personalDetails: PERSONAL_DETAILS,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                isReportArchived: false,
+                privateIsArchived: false,
+                conciergeReportID: '999',
+                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room'}},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                translate: translateLocal,
+                localeCompare,
+                formatPhoneNumber,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                rules: undefined,
+            });
+
+            // Then the preview shows the room name instead of #Hidden
+            expect(alternateText).toBe('Alice: see #mentioned-room');
+        });
+
         it('should return the plain last message for a report preview in a workspace chat', () => {
             const report = makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat'});
             expect(getAlternateText({report, lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW), lastMessageTextFromReport: 'owes $1.00'})).toBe('owes $1.00');
@@ -669,6 +706,79 @@ describe('ReportAlternateTextUtils', () => {
             expect(lastMessage).toBe(
                 `${CURRENT_USER_LOGIN} updated this agent's instructions.\nPrevious instructions:\nSummarize expenses.\nNew instructions:\nSummarize expenses and flag policy exceptions.`,
             );
+        });
+
+        it('names a room that the last comment mentions by reportID', () => {
+            // Given a last comment that mentions a room by reportID, as the server sends it, and the room's name only in the derived report names
+            const mentionedRoomID = '777';
+            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                message: [{type: 'COMMENT', html: `see <mention-report reportID="${mentionedRoomID}"></mention-report>`, text: 'see', isDeletedParentAction: false, deleted: ''}],
+            });
+
+            // When the LHN builds the last message text
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report: makeReport(),
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction,
+                lastOriginalAction: lastAction,
+                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room'}},
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the room keeps its name instead of showing as #Hidden
+            expect(lastMessage).toBe('see #mentioned-room');
+        });
+
+        it('names a room that the parent action mentions when a one-expense report swaps it in for the expense action', async () => {
+            // Given a one-expense report whose last action is the expense's IOU CREATE, and whose newest visible action is a comment
+            // that mentions a room by reportID. The IOU CREATE is filtered out, so the preview is built from that comment instead.
+            const report = makeReport({reportID: '200'});
+            const swappedInRoomID = '888';
+            const expenseAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                reportActionID: '2',
+                created: '2024-01-01 00:00:00.000',
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry an IOU CREATE originalMessage so the one-expense filter swaps in the parent's action
+                originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const parentComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '3',
+                created: '2024-01-02 00:00:00.000',
+                message: [{type: 'COMMENT', html: `see <mention-report reportID="${swappedInRoomID}"></mention-report>`, text: 'see', isDeletedParentAction: false, deleted: ''}],
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[parentComment.reportActionID]: parentComment});
+            await waitForBatchedUpdates();
+
+            // When the LHN builds the last message text, with the room's name only in the derived report names
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction: expenseAction,
+                lastOriginalAction: expenseAction,
+                oneTransactionThreadReportID: '201',
+                reportAttributesDerived: {[swappedInRoomID]: {reportName: '#swapped-in-room'}},
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the room in the swapped-in comment keeps its name instead of showing as #Hidden
+            expect(lastMessage).toBe('see #swapped-in-room');
         });
 
         describe('getReportPreviewMessage', () => {
