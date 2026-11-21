@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -210,6 +210,31 @@ describe('WorkspaceListPage', () => {
         // rendered SVG test ID is keyed by its first alphanumeric character. The icon is decorative and
         // hidden from accessibility, so the query must include hidden elements.
         expect(screen.getByTestId('SvgDefaultAvatar_p Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+    });
+
+    it('should show the error from a failed join request until the user dismisses it', async () => {
+        const TEST_POLICY_ID = 'rejected-policy-id';
+        const ERROR_MESSAGE = "You can't request to join this workspace. Ask a workspace admin to invite you.";
+
+        // Given a join request that failed, which leaves an error and no workspace row
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${TEST_POLICY_ID}`, {
+            policyID: TEST_POLICY_ID,
+            errors: {1: ERROR_MESSAGE},
+        });
+
+        // When the workspaces list is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error is shown
+        expect(screen.getByText(ERROR_MESSAGE)).toBeOnTheScreen();
+
+        // When the user dismisses the error
+        fireEvent.press(screen.getByLabelText('Dismiss'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error is gone
+        expect(screen.queryByText(ERROR_MESSAGE)).not.toBeOnTheScreen();
     });
 
     it('should show a "New workspace" button when there are workspaces but no domains', async () => {
