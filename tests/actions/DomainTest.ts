@@ -33,6 +33,8 @@ import {
 import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
 import type {makeRequestWithSideEffects, write} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -192,6 +194,51 @@ describe('actions/Domain', () => {
             const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.SET, false);
 
             expect(failureUpdate.value).toBeNull();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('shows the reason the server sends instead of the generic "try again" error, even when the device clock is ahead of the server', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+            const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+            const serverReason = 'You need a verified email on this domain to ask for admin access.';
+            const deviceClockLeadMicroseconds = 60 * 1000 * 1000;
+
+            // Given the server refused the request and sent its reason, timestamped by a server clock that is a minute behind the device's
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+            await Onyx.merge(domainErrorsKey, {requestAdminshipError: {[DateUtils.getMicroseconds() - deviceClockLeadMicroseconds]: serverReason}});
+
+            // When the request's failure data is applied
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', domainErrorsKey, Onyx.METHOD.MERGE, true);
+            await Onyx.merge(domainErrorsKey, failureUpdate.value);
+
+            // Then the user sees the server's reason, since retrying would not help
+            const domainErrors = await getOnyxValue(domainErrorsKey);
+            expect(getLatestErrorMessage({errors: domainErrors?.requestAdminshipError})).toBe(serverReason);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('shows the generic "try again" error when the request fails without a reason from the server', async () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+            const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+            // Given a request that failed without the server sending a reason, such as a server error
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+
+            // When the request's failure data is applied
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', domainErrorsKey, Onyx.METHOD.MERGE, true);
+            await Onyx.merge(domainErrorsKey, failureUpdate.value);
+
+            // Then the user sees the generic error, since trying again may work
+            const domainErrors = await getOnyxValue(domainErrorsKey);
+            expect(getLatestErrorMessage({errors: domainErrors?.requestAdminshipError})).toBe("We couldn't send your request. Please try again.");
 
             apiWriteSpy.mockRestore();
         });
