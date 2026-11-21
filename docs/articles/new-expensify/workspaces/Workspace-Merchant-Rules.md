@@ -18,16 +18,15 @@ Merchant Rules live on the **Expense defaults** tab of the **Rules** page and ar
 To create a Merchant Rule:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Rules**.
-2. Open the **Expense defaults** tab.
+2. Select the **Expense defaults** tab.
 3. Select **Add rule**, then select **Apply expense defaults**.
-4. Select **Merchant**, then enter the merchant name and choose how it should match:
-   - **Contains**
-   - **Exactly matches**
-5. (Optional) Add **Category** or **Tag** conditions to narrow which expenses match the merchant.
-6. Select the fields you want the rule to update, such as **Category**, **Tax**, or **Amount**.
-7. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
-8. (Optional) Select **Preview** to review matching unsubmitted expenses without changing them.
-9. Select **Save rule**.
+4. Select **Merchant**.
+5. Enter the merchant name, choose a **Match type**, then select **Save**.
+6. (Optional) Add **Category** or **Tag** conditions to narrow which expenses match the rule.
+7. Select the fields you want the rule to update, such as **Category**, **Tax**, or **Amount**.
+8. (Optional) Enable **Apply to existing unsubmitted expenses** to apply the rule to matching unsubmitted expenses.
+9. (Optional) Select **Preview** to see which unsubmitted expenses match the rule without making changes.
+10. Select **Save rule**.
 
 Every condition must match. If you select multiple categories or tags within one condition, matching any selected value is enough. Learn how to [configure combined expense-default conditions](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab), including rules without a merchant condition.
 
