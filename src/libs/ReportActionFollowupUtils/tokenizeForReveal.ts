@@ -100,24 +100,61 @@ function buildClippedNodes(doc: Document, anchor: Anchor): AnyNode[] {
 }
 
 /**
- * Pre-computes progressive HTML stages at character granularity. Atomic
+ * Progressive HTML stages of a reveal. Stage 0 is empty, and each next stage
+ * adds one character or one atomic tag. `at` works like `Array.prototype.at`.
+ */
+type RevealStages = {
+    length: number;
+    at: (index: number) => string | undefined;
+};
+
+/**
+ * `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
+ * custom tags like `<victorypie … />` and nest each following sibling inside the previous one.
+ */
+function parseRevealDocument(html: string): Document {
+    return parseDocument(html, {recognizeSelfClosing: true});
+}
+
+/**
+ * Splits HTML into progressive stages at character granularity. Atomic
  * primitives (mentions, emoji, links, code, images) stay whole.
  */
-function tokenizeForReveal(html: string): string[] {
+function tokenizeForReveal(html: string): RevealStages {
     if (!html) {
         return [''];
     }
-    // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
-    // custom tags like `<victorypie … />` and nest each following sibling inside the previous one. `decodeEntities`
-    // keeps `&amp;`, `&lt;` and `&gt;` escaped on the way back out, so escaped markup in a comment stays text
-    // instead of being re-serialized as live markup.
-    const doc = parseDocument(html, {recognizeSelfClosing: true});
+    const doc = parseRevealDocument(html);
     const anchors = collectAnchors(doc);
-    const stages: string[] = [''];
-    for (const anchor of anchors) {
-        stages.push(render(buildClippedNodes(doc, anchor), {decodeEntities: true}));
-    }
-    return stages;
+    const length = anchors.length + 1;
+
+    // A long reply has thousands of stages and its reveal shows a few hundred, so a stage is serialized only when asked for.
+    const at = (index: number): string | undefined => {
+        const stageIndex = index < 0 ? length + index : index;
+        if (stageIndex === 0) {
+            return '';
+        }
+        const anchor = stageIndex > 0 ? anchors.at(stageIndex - 1) : undefined;
+        if (!anchor) {
+            return undefined;
+        }
+        // `decodeEntities` keeps `&amp;`, `&lt;` and `&gt;` escaped on the way back out, so escaped markup in a
+        // comment stays text instead of being re-serialized as live markup.
+        return render(buildClippedNodes(doc, anchor), {decodeEntities: true});
+    };
+
+    return {length, at};
+}
+
+/**
+ * Index of the stage whose HTML is `html`, or -1 when no stage matches. Each stage adds one anchor,
+ * so only the stage with as many anchors as `html` can match.
+ */
+function findRevealStage(stages: RevealStages, html: string): number {
+    const stageIndex = collectAnchors(parseRevealDocument(html)).length;
+    return stages.at(stageIndex) === html ? stageIndex : -1;
 }
 
 export default tokenizeForReveal;
+export {findRevealStage};
+export type {RevealStages};

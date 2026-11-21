@@ -7,7 +7,8 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
-import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import tokenizeForReveal, {findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import type {RevealStages} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
@@ -32,7 +33,7 @@ type PusherDraftPaceRefs = {
     finalRenderedHTMLRevealIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
     finalRenderedHTMLRevealLastStageRef: MutableRef<number>;
     finalRenderedHTMLRevealStartedAtRef: MutableRef<number>;
-    finalRenderedHTMLRevealTokensRef: MutableRef<string[]>;
+    finalRenderedHTMLRevealTokensRef: MutableRef<RevealStages>;
     lastPaceTickTimeRef: MutableRef<number>;
     latestPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     pusherPaceIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
@@ -377,7 +378,7 @@ function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
-function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, tokens: string[]): number {
+function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, tokens: RevealStages): number {
     const {currentDraftRef} = runtime;
     const currentDraft = currentDraftRef.current;
     if (!currentDraft || currentDraft.streamSessionID !== event.streamSessionID) {
@@ -389,10 +390,7 @@ function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event:
         return 0;
     }
 
-    return Math.max(
-        0,
-        tokens.findLastIndex((token) => token === currentHTML),
-    );
+    return Math.max(0, findRevealStage(tokens, currentHTML));
 }
 
 function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
@@ -928,7 +926,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const finalRenderedHTMLRevealDurationRef = useRef(0);
     const finalRenderedHTMLRevealIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const finalRenderedHTMLRevealTokensRef = useRef<string[]>([]);
+    const finalRenderedHTMLRevealTokensRef = useRef<RevealStages>([]);
     const finalRenderedHTMLRevealStartedAtRef = useRef(0);
     const finalRenderedHTMLRevealLastStageRef = useRef(0);
     const [personalDetailsList] = useAllPersonalDetails();
