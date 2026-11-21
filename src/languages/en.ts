@@ -903,6 +903,11 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
+        },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
         },

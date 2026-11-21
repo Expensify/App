@@ -809,6 +809,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        addToWallet: {
+            failedHeader: "Impossible d'ajouter la carte",
+            failedTitle: "Nous n'avons pas pu ajouter votre carte à votre portefeuille",
+            failedSubtitle: "Une erreur s'est produite lors de l'ajout de la carte. Si elle se trouve déjà dans votre portefeuille, vous pouvez l'y utiliser.",
+        },
         revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
