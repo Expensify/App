@@ -199,7 +199,7 @@ describe('actions/Domain', () => {
         });
 
         it('shows the reason the server sends instead of the generic "try again" error, even when the device clock is ahead of the server', async () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
             const domainAccountID = 123;
             const currentUserAccountID = 456;
             const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
@@ -211,9 +211,7 @@ describe('actions/Domain', () => {
             await Onyx.merge(domainErrorsKey, {requestAdminshipError: {[DateUtils.getMicroseconds() - deviceClockLeadMicroseconds]: serverReason}});
 
             // When the request's failure data is applied
-            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
-            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', domainErrorsKey, Onyx.METHOD.MERGE, true);
-            await Onyx.merge(domainErrorsKey, failureUpdate.value);
+            await Onyx.update(apiWriteSpy.mock.calls.at(0)?.[2]?.failureData ?? []);
 
             // Then the user sees the server's reason, since retrying would not help
             const domainErrors = await getOnyxValue(domainErrorsKey);
@@ -223,7 +221,7 @@ describe('actions/Domain', () => {
         });
 
         it('shows the generic "try again" error when the request fails without a reason from the server', async () => {
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const apiWriteSpy = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
             const domainAccountID = 123;
             const currentUserAccountID = 456;
             const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
@@ -232,9 +230,7 @@ describe('actions/Domain', () => {
             requestDomainAdminship(domainAccountID, currentUserAccountID, false);
 
             // When the request's failure data is applied
-            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
-            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', domainErrorsKey, Onyx.METHOD.MERGE, true);
-            await Onyx.merge(domainErrorsKey, failureUpdate.value);
+            await Onyx.update(apiWriteSpy.mock.calls.at(0)?.[2]?.failureData ?? []);
 
             // Then the user sees the generic error, since trying again may work
             const domainErrors = await getOnyxValue(domainErrorsKey);
