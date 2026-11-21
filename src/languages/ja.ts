@@ -2559,6 +2559,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            hideEnvironmentBadge: '環境バッジを非表示',
             betaOverrides: 'ベータのオーバーライド',
             betaOverridesDescription:
                 'オーバーライドはこの端末にのみ適用され、フロントエンドのチェックにのみ影響します。ベータはアカウントのベータと異なる間だけオーバーライドを保持するため、元に戻すとオーバーライドは削除されます。「すべてのオーバーライドをリセット」はアカウントの値に戻します。一部のベータはバックエンドでも制御されているため、リクエストレベルで失敗する場合があります。',
