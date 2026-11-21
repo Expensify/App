@@ -3274,6 +3274,7 @@ const SENTRY_LABEL = {
         SEND: 'SignIn-Send',
         CONFIRM: 'SignIn-Confirm',
         RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
+        USERNAME_INPUT: 'SignIn-UsernameInput',
         FOOTER_LINK: {
             EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
             SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',
