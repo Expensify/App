@@ -10,6 +10,7 @@ import {
     FAB_OUT as ANIMATION_TIMING_FAB_OUT,
     MENU_ANIMATION_DURATION as ANIMATION_TIMING_MENU_ANIMATION_DURATION,
 } from '@libs/Animation/animationTiming';
+import EXPERIENCE_COOKIE from '@libs/ExperienceCookie/EXPERIENCE_COOKIE';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -8390,15 +8391,7 @@ const CONST = {
         ATTACHMENTS: 'attachments',
     },
 
-    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
-    EXPERIENCE_COOKIE: {
-        NAME: 'experience',
-        VALUES: {
-            NEW: 'new',
-            CLASSIC: 'classic',
-        },
-        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
-    },
+    EXPERIENCE_COOKIE,
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',

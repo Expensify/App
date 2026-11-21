@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import unregisterServiceWorkers from '@libs/unregisterServiceWorkers';
 
 import {Platform} from 'react-native';
 
@@ -29,13 +30,8 @@ async function clearWorkboxRecoveryCaches(): Promise<void> {
         }
     }
 
-    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
-        return;
-    }
-
     try {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((registration) => registration.unregister()));
+        await unregisterServiceWorkers();
     } catch (error) {
         Log.warn('[SW] Failed to unregister service workers during app reset', {error});
     }
