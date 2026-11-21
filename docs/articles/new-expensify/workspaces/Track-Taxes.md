@@ -48,7 +48,9 @@ Once the **Taxes** feature is enabled, you can create and manage tax rates.
 ## Bulk Edit or Delete Tax Rates
 
 1. On the **Taxes** page, select the checkboxes next to the rates you want to modify.
-2. Click **X selected** in the top-right menu.
+2. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On mobile or a narrow screen: Select the button showing the number of rates selected (for example, **2 selected**).
 3. Choose one of the following actions:
    - **Enable Rates** – Mark selected rates as active.
    - **Disable Rates** – Mark selected rates as inactive.

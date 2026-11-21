@@ -173,7 +173,9 @@ You can select several agents from the **Agents** list and delete them together.
 
 1. In the navigation tabs on the left, select **Account > Agents**.
 2. Select the checkbox next to each agent you want to delete.
-3. Select the button that shows the number of agents selected (for example, **2 selected**).
+3. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On web with a narrow screen: Select the button showing the number of agents selected (for example, **2 selected**).
 4. Select **Delete agents**.
 5. Select **Delete** to confirm.
 
@@ -190,7 +192,7 @@ You can select several agents from the **Agents** list and delete them together.
 The selected agents are deleted and you stay on the **Agents** list. Deleting agents can't be undone.
 
 <!-- SCREENSHOT:
-Suggestion: The Agents list with row checkboxes selected and the selected-count button open showing the Delete agents option
+Suggestion: The Agents list on web with row checkboxes selected and the selection bar showing Delete agents
 Location: How to delete multiple agents at once
 Purpose: Shows where row selection and the bulk Delete agents action appear
 -->

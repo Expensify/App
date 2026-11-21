@@ -148,8 +148,10 @@ When importing multi-level Tags, enable **These are independent tags** to import
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
 3. Select one or more tags. 
-4. Choose **Selected** in the top right. 
-5. Select **Delete tag**.
+4. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On mobile or a narrow screen: Select the button showing the number of tags selected (for example, **2 selected**).
+5. Select **Delete tag** or **Delete tags**, depending on how many tags you selected.
 
 **Note:** For multi-level tags, individual tags can’t be deleted manually. Upload a new spreadsheet without the tags you want removed.
 
