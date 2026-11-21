@@ -15,7 +15,8 @@ import {act, render} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+import type SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {SelectionListViewportProps} from '@components/SelectionList/SelectionListWithSections/SelectionListViewport';
 import type {ListItem} from '@components/SelectionList/types';
 import TagPicker from '@components/TagPicker';
 
@@ -42,10 +43,16 @@ const TEST_TIMEOUT_MS = 20 * 60 * 1000;
 
 jest.mock('@libs/API');
 
-const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);
+const mockSelectionList = jest.fn<null, [SelectionListViewportProps<ListItem>]>(() => null);
+const mockSearchInput = jest.fn<null, [React.ComponentProps<typeof SelectionListWithSections.SearchInput>]>(() => null);
 jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
     __esModule: true,
-    default: (props: SelectionListWithSectionsProps<ListItem>) => mockSelectionList(props),
+    default: {
+        Root: ({children}: {children: React.ReactNode}) => children,
+        SearchInput: (props: React.ComponentProps<typeof SelectionListWithSections.SearchInput>) => mockSearchInput(props),
+        SearchStatus: () => null,
+        Viewport: (props: SelectionListViewportProps<ListItem>) => mockSelectionList(props),
+    },
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -137,7 +144,7 @@ function getLastListProps() {
     return listProps;
 }
 
-function getListedRowCount(listProps: SelectionListWithSectionsProps<ListItem>) {
+function getListedRowCount(listProps: SelectionListViewportProps<ListItem>) {
     return listProps.sections.reduce((total, section) => total + section.data.length, 0);
 }
 
@@ -168,6 +175,7 @@ describe('Tag picker search keystroke', () => {
 
     beforeEach(async () => {
         mockSelectionList.mockClear();
+        mockSearchInput.mockClear();
         await act(async () => {
             await Onyx.clear();
         });
@@ -197,18 +205,21 @@ describe('Tag picker search keystroke', () => {
             // Every tag is listed before any search.
             expect(getListedRowCount(getLastListProps())).toBe(tagCount);
 
-            let listPropsBeforeKeystroke = getLastListProps();
+            const changeSearch = mockSearchInput.mock.lastCall?.[0].onChangeText;
+            if (!changeSearch) {
+                throw new Error('TagPicker did not render the search input');
+            }
             let completedKeystrokes = 0;
             let listedRows = 0;
 
             const result = await measureAsyncFunction(
                 async () => {
                     await act(async () => {
-                        listPropsBeforeKeystroke.textInputOptions?.onChangeText?.(searchAfter);
+                        changeSearch(searchAfter);
                     });
                     const listPropsAfterKeystroke = getLastListProps();
                     listedRows = getListedRowCount(listPropsAfterKeystroke);
-                    if (listPropsAfterKeystroke.textInputOptions?.value === searchAfter && listedRows > 0 && listedRows < tagCount) {
+                    if (listPropsAfterKeystroke.searchQuery === searchAfter && listedRows > 0 && listedRows < tagCount) {
                         completedKeystrokes++;
                     }
                 },
@@ -220,11 +231,11 @@ describe('Tag picker search keystroke', () => {
                     // Put the search text back to its value before the keystroke, so every measured run makes the same keystroke.
                     beforeEach: async () => {
                         await act(async () => {
-                            getLastListProps().textInputOptions?.onChangeText?.(searchBefore);
+                            changeSearch(searchBefore);
                         });
-                        listPropsBeforeKeystroke = getLastListProps();
                         // Drop the recorded list props, so earlier runs' sections are not kept in memory.
                         mockSelectionList.mockClear();
+                        mockSearchInput.mockClear();
                     },
                 },
             );

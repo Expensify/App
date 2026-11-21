@@ -27,10 +27,12 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
+
+import {SelectionListViewportContext} from './SelectionListRoot';
 
 function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
@@ -106,6 +108,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldFooterBeInsideList = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListWithSectionsProps<ListItem>) {
+    const interactionRefs = useContext(SelectionListViewportContext);
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
@@ -124,7 +127,12 @@ function BaseSelectionListWithSectionsImpl({
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef);
 
-    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
+    const {
+        focusedIndex: keyboardFocusedIndex,
+        setFocusedIndex,
+        isKeyboardNavigating,
+        setHasKeyBeenPressed,
+    } = useSelectionListKeyboardFocus({
         initialFocusedIndex,
         maxIndex: flattenedData.length - 1,
         disabledIndexes,
@@ -138,10 +146,43 @@ function BaseSelectionListWithSectionsImpl({
         setShouldDisableHoverStyle,
         shouldAllowArrowUpToSearchInput,
         onArrowUpToSearchInput: focusSearchInputFromList,
-        containerRef,
+        // The search field is a sibling of the viewport in a compound list.
+        containerRef: interactionRefs?.rootRef ?? containerRef,
     });
 
-    const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
+    useSelectedItemFocusSync({
+        data: flattenedData,
+        initiallyFocusedItemKey,
+        isItemSelected,
+        focusedIndex: keyboardFocusedIndex,
+        searchValue: syncedSearchValue,
+        setFocusedIndex,
+    });
+
+    const searchFocusedIndex = useSearchFocusSync({
+        searchValue: syncedSearchValue,
+        data: flattenedData,
+        selectedOptionsCount: selectedItems.length,
+        isItemSelected,
+        canSelectMultiple,
+        shouldUpdateFocusedIndex,
+        scrollToIndex,
+        setFocusedIndex,
+        firstFocusableIndex,
+    });
+    const focusedIndex = (interactionRefs ? searchFocusedIndex : undefined) ?? keyboardFocusedIndex;
+
+    const {innerTextInputRef, isTextInputFocusedRef: legacyInputFocusedRef, focusTextInput: focusLegacyInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+    const isTextInputFocusedRef = interactionRefs?.isTextInputFocusedRef ?? legacyInputFocusedRef;
+
+    function focusTextInput() {
+        if (interactionRefs) {
+            interactionRefs.inputRef.current?.focus();
+            return;
+        }
+        focusLegacyInput();
+    }
 
     // A Tab-focused row keeps DOM focus after ArrowUp clears the focused index, so move it back to the search input
     function focusSearchInputFromList() {
@@ -190,6 +231,12 @@ function BaseSelectionListWithSectionsImpl({
         selectRow(focusedItem);
     };
 
+    useImperativeHandle(interactionRefs?.viewportRef, () => ({
+        hasItems: () => itemsCount > 0,
+        submitFocusedRow: selectFocusedItem,
+        handleSearchKeyPress: textInputKeyPress,
+    }));
+
     const clearInputAfterSelect = () => {
         textInputOptions?.onChangeText?.('');
     };
@@ -205,7 +252,7 @@ function BaseSelectionListWithSectionsImpl({
      * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      */
     const updateExternalTextInputFocus = (isTextInputFocused: boolean) => {
-        isTextInputFocusedRef.current = isTextInputFocused;
+        legacyInputFocusedRef.current = isTextInputFocused;
     };
 
     useImperativeHandle(
@@ -222,8 +269,6 @@ function BaseSelectionListWithSectionsImpl({
         [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView],
     );
 
-    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
-
     const hasSelectedItems = selectedItems.length > 0;
     const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
     const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
@@ -237,9 +282,12 @@ function BaseSelectionListWithSectionsImpl({
     // Enter selects the row when keyboard navigation/search is active, propagation should stop,
     // or there is no enabled Enter-capable confirm control that should handle the keypress instead.
     const shouldSelectOnEnter = isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation;
+    const viewportRef = interactionRefs?.viewportRef;
+    // A desktop shortcut subscribed before a transition can still run after the new rows commit.
+    const submitCommittedFocusedRow = () => viewportRef?.current?.submitFocusedRow();
 
     useSelectionListShortcuts({
-        selectFocusedItem,
+        selectFocusedItem: viewportRef ? submitCommittedFocusedRow : selectFocusedItem,
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
@@ -249,27 +297,6 @@ function BaseSelectionListWithSectionsImpl({
         shouldBubble: itemsCount > 0 && !getFocusedItem(),
     });
 
-    useSelectedItemFocusSync({
-        data: flattenedData,
-        initiallyFocusedItemKey,
-        isItemSelected,
-        focusedIndex,
-        searchValue: syncedSearchValue,
-        setFocusedIndex,
-    });
-
-    useSearchFocusSync({
-        searchValue: syncedSearchValue,
-        data: flattenedData,
-        selectedOptionsCount: selectedItems.length,
-        isItemSelected,
-        canSelectMultiple,
-        shouldUpdateFocusedIndex,
-        scrollToIndex,
-        setFocusedIndex,
-        firstFocusableIndex,
-    });
-
     const textInputComponent = () => {
         if (!shouldShowTextInput) {
             return null;
@@ -277,7 +304,7 @@ function BaseSelectionListWithSectionsImpl({
         return (
             <TextInput
                 ref={innerTextInputRef}
-                focusTextInput={focusTextInput}
+                focusTextInput={focusLegacyInput}
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
@@ -286,7 +313,7 @@ function BaseSelectionListWithSectionsImpl({
                 onPress={shouldAllowArrowUpToSearchInput ? () => setFocusedIndex(-1) : undefined}
                 dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
-                onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
+                onFocusChange={updateExternalTextInputFocus}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
@@ -357,7 +384,7 @@ function BaseSelectionListWithSectionsImpl({
     const shouldShowEmptyState = itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent);
     const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
 
-    return (
+    const content = (
         <View
             ref={containerRef}
             style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}
@@ -414,6 +441,8 @@ function BaseSelectionListWithSectionsImpl({
             {!isFooterInsideList && footer}
         </View>
     );
+    // Rows may render a legacy list of their own; it must not register as this viewport.
+    return interactionRefs ? <SelectionListViewportContext.Provider value={null}>{content}</SelectionListViewportContext.Provider> : content;
 }
 
 function BaseSelectionListWithSections<TItem extends ListItem>(props: SelectionListWithSectionsProps<TItem>) {
