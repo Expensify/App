@@ -70,6 +70,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import DistanceRateCalculationSummary from './DistanceRateCalculationSummary';
 import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
@@ -288,6 +289,17 @@ function CreateDistanceRatePage({
                         style={[styles.mh5, styles.flex1]}
                         submitButtonStyles={shouldShowCountryAndKind ? undefined : [styles.mt0]}
                         shouldValidateOnBlur={!shouldShowCountryAndKind}
+                        footerContent={
+                            shouldShowCountryAndKind ? (
+                                <DistanceRateCalculationSummary
+                                    unit={isGovernmentKind ? governmentRateUnit : distanceUnit}
+                                    currency={currency}
+                                    governmentRateCountry={isGovernmentKind ? governmentRateCountry : undefined}
+                                    governmentRate={currentGovernmentRate}
+                                />
+                            ) : undefined
+                        }
+                        shouldRenderFooterAboveSubmit
                         addBottomSafeAreaPadding
                     >
                         {shouldShowCountryAndKind ? (

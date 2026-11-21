@@ -9464,6 +9464,15 @@ const translations = {
                 },
                 noGovernmentRateForOtherCountry: 'There’s no government rate for this country yet.',
                 noGovernmentRateForCountry: (country: string) => `There’s no government rate for ${country} yet.`,
+                unitPaidIn: (unit: string, currency: string) => `${unit}, paid in ${currency}`,
+                governmentRateNotes: {
+                    AU: 'Tax-free up to 5,000 km a year. Above that, PAYG is withheld on the excess',
+                    AT: 'Tax-free up to 30,000 km a year. Above that, the allowance is taxable',
+                    NL: 'One rate covers every transport type, including bicycle and walking',
+                    NO: 'Tax-free up to NOK 3.50 per km. The rest is taxable salary',
+                },
+                governmentRateIndexedQuarterly: (date: string) => `Indexed every quarter. This is the rate from ${date}`,
+                governmentRatePerSwedishMil: (amount: string) => `Skatteverket publishes per Swedish mil (10 km): ${amount} per mil for a car`,
             },
             errors: {
                 rateNameRequired: 'Rate name is required',
