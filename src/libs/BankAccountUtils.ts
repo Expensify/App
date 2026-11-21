@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -230,12 +231,10 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
 
 /**
  * Whether a payment from this account would be rejected until global reimbursements are set up, so the onboarding should open instead of paying.
- * Only an explicit `false` counts, so an account without the flag still goes to the backend, which makes the final call.
+ * An account without the flag counts too, because the backend only pays through global reimbursements once the flag is `true`.
  */
 function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    return (
-        bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
-    );
+    return isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
 }
 
 /**
@@ -243,6 +242,54 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
  */
 function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+type WiseQuotePaymentParams = {
+    paymentType: PaymentMethodType;
+    methodID?: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    isWiseReimbursementsBetaEnabled: boolean;
+    iouReport?: Pick<OnyxTypes.Report, 'currency' | 'nextStep'>;
+    policy?: Pick<OnyxTypes.Policy, 'achAccount'>;
+    wiseQuoteID?: string;
+};
+
+/** The business bank account a payment debits, for admins in the Wise beta. Without a chosen account the backend pays from the workspace account */
+function getBusinessBankAccountForPayment({
+    paymentType,
+    methodID,
+    bankAccountList,
+    isWiseReimbursementsBetaEnabled,
+    policy,
+}: Pick<WiseQuotePaymentParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled' | 'policy'>): OnyxTypes.BankAccount | undefined {
+    const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
+        return undefined;
+    }
+    return bankAccountList?.[bankAccountID];
+}
+
+/** The Wise account a business bank account payment debits */
+function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes.BankAccount | undefined {
+    const bankAccount = getBusinessBankAccountForPayment(params);
+    const isWiseAccount = isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
+    return isWiseAccount ? bankAccount : undefined;
+}
+
+/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
+    return !!params.iouReport?.nextStep?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
+}
+
+/** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
+function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
+    const bankAccount = getWiseBankAccountForPayment(params);
+    if (params.wiseQuoteID || !params.iouReport?.nextStep?.requiresGlobalReimbursement || !bankAccount) {
+        return false;
+    }
+    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
+    return params.iouReport.nextStep.depositCurrency !== bankCurrency;
 }
 
 /**
@@ -253,9 +300,23 @@ function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolea
 }
 
 /**
+ * Whether the admin saved part of the Wise onboarding for any of their bank accounts. The server sets Wise as the provider on the first saved page,
+ * and from then on Wallet shows the account's setup so the admin can return to it.
+ * An account deleted offline still counts until the server removes it, so the banners don't show up before the deletion goes through.
+ */
+function hasStartedWiseOnboarding(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE);
+}
+
+/**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    // Once any account has a Wise setup, Wallet shows where it stands, so the banner has nothing left to promote
+    if (hasStartedWiseOnboarding(bankAccountList)) {
+        return undefined;
+    }
+
     const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
         // Accounts deleted offline stay in the list until the request syncs
         if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -293,6 +354,11 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
 
     const bankAccountID = policy.achAccount?.bankAccountID;
     if (!bankAccountID) {
+        return undefined;
+    }
+
+    // Once any account has a Wise setup, Wallet shows where it stands, so the banner has nothing left to promote
+    if (hasStartedWiseOnboarding(bankAccountList)) {
         return undefined;
     }
 
@@ -507,9 +573,12 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 }
 
 export {
+    getBusinessBankAccountForPayment,
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
+    shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
     isWiseOnboardingSubmitted,

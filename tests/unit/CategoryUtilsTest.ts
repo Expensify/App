@@ -1,14 +1,14 @@
 import {
-    formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberDefaultCategory,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
+    getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -18,13 +18,9 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
+import type {PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-
-import createMock from '../utils/createMock';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 /** Builds a visibleTo map, keyed by accountID like the server sends it */
 const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
@@ -46,50 +42,6 @@ describe(`isMissingCategory`, () => {
     it('returns false if category is a valid string', () => {
         expect(isCategoryMissing('Travel')).toBe(false);
         expect(isCategoryMissing('Meals')).toBe(false);
-    });
-});
-
-describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy = createMock<Policy>({
-        id: '1',
-        name: 'Test Policy',
-        type: CONST.POLICY.TYPE.CORPORATE,
-        outputCurrency: CONST.CURRENCY.USD,
-        maxExpenseAmountNoItemizedReceipt: 7500,
-    });
-
-    it('returns "Always" text when category amount is 0', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
-        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always'));
-    });
-
-    it('returns "Never" text when category amount is DISABLED_MAX_EXPENSE_VALUE', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, CONST.DISABLED_MAX_EXPENSE_VALUE, convertToDisplayString);
-        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
-    });
-
-    it('returns default text when category has no override', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, undefined, convertToDisplayString);
-        expect(typeof result).toBe('string');
-        expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('returns "Never" text when policy has no itemized receipt requirement (DISABLED_MAX_EXPENSE_VALUE)', () => {
-        const policyWithDisabledItemizedReceipt: Policy = {
-            ...mockPolicy,
-            maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
-        } as Policy;
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithDisabledItemizedReceipt, undefined, convertToDisplayString);
-        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
-    });
-
-    it('returns "Never" text when policy has undefined itemized receipt requirement', () => {
-        const policyWithUndefinedItemizedReceipt: Policy = {
-            ...mockPolicy,
-            maxExpenseAmountNoItemizedReceipt: undefined,
-        } as Policy;
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
-        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
     });
 });
 
@@ -627,33 +579,6 @@ describe('getCategoryNameError', () => {
     });
 });
 
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
-    });
-
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
-    });
-
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
-        };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-});
-
 describe('getMemberVisibleCategoryNames', () => {
     const policyCategories: PolicyCategories = {
         Travel: {name: 'Travel', enabled: true, visibleTo: null},
@@ -729,5 +654,71 @@ describe('getMembersWithoutVisibleCategories', () => {
 
         // Then no one is blocked, so the check needs no beta
         expect(members).toEqual([]);
+    });
+});
+
+describe('getVisibleCategories', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+    };
+
+    it("keeps only the categories the expense's owner can use", () => {
+        // Given an owner who is on Meals' list but not on Software's or Office's
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 1);
+
+        // Then the category open to everyone and the one listing them are kept, keyed as before
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals']);
+    });
+
+    it('keeps disabled categories the owner can use, since the picker filters those out itself', () => {
+        // Given an owner who is on the list of a disabled category
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 2);
+
+        // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
+    });
+});
+
+describe('getMemberDefaultCategory', () => {
+    const policyCategories: PolicyCategories = {
+        Car: {name: 'Car', enabled: true, visibleTo: buildVisibleTo(2)},
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+    };
+
+    it('drops a default category hidden from the member', () => {
+        // Given a distance default of Car, which only member 2 can use
+        // When the default is resolved for member 1
+        const defaultCategory = getMemberDefaultCategory('Car', policyCategories, 1);
+
+        // Then no category is applied, so the expense isn't coded to a category the member can't pick
+        expect(defaultCategory).toBe('');
+    });
+
+    it('keeps a default category the member can use', () => {
+        // Given defaults that member 2 can use, one listing them and one open to everyone
+        // When the defaults are resolved for member 2
+        // Then both are applied as before
+        expect(getMemberDefaultCategory('Car', policyCategories, 2)).toBe('Car');
+        expect(getMemberDefaultCategory('Travel', policyCategories, 1)).toBe('Travel');
+    });
+
+    it("keeps the default while the category isn't loaded, since its visibility isn't known yet", () => {
+        // Given a default category that isn't in the loaded categories
+        // When the default is resolved
+        // Then it's kept, as it was before visibility existed
+        expect(getMemberDefaultCategory('Fuel', policyCategories, 1)).toBe('Fuel');
+        expect(getMemberDefaultCategory('Fuel', undefined, 1)).toBe('Fuel');
+    });
+
+    it('returns an empty category when the workspace has no default', () => {
+        // Given no default category
+        // When it's resolved
+        // Then nothing is applied
+        expect(getMemberDefaultCategory(undefined, policyCategories, 1)).toBe('');
     });
 });

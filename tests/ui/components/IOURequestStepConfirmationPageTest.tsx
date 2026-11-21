@@ -13,6 +13,7 @@ import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as IsReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
@@ -97,7 +98,8 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actual,
-        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        planDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        commitDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
     };
 });
@@ -1231,7 +1233,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // transaction's optimistic report ID rather than one a builder would otherwise mint
             const optimisticP2PReportID = 'optimistic-p2p-report-1';
             const transactionID = 'tx-new-p2p';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1298,7 +1300,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 );
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
                 // subscribed to the report that actually gets created
@@ -1317,7 +1321,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a wide pre-mount of the pay destination, which puts it on top of a background Reports stack
             const optimisticP2PReportID = 'optimistic-p2p-report-2';
             const transactionID = 'tx-wide-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1371,7 +1375,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then it goes through the reveal instead of the plain path that dismisses first and drops the pre-mount
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
@@ -1389,7 +1395,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a narrow pre-insert of the pay destination, which already sits under the RHP as the topmost report
             const optimisticP2PReportID = 'optimistic-p2p-report-3';
             const transactionID = 'tx-narrow-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1443,7 +1449,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then sendMoney navigates on its own as it did before wide pre-mounts, because only a wide pre-mount hides the topmost report
                 expect(submitWithDismissFirstSpy).not.toHaveBeenCalled();
@@ -1528,6 +1536,173 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('pre-mounts the picked workspace chat when the expense was moved away from the route workspace chat', async () => {
+            // Given a global create from the Inbox, where the route was seeded with the default workspace chat and the
+            // "To" picker (only editable from global create) then moved the expense to another workspace chat.
+            // The route still points at the default chat, so the screen can't resolve a report and has to rely on the participant.
+            const routeWorkspaceChatReportID = 'route-workspace-chat';
+            const pickedWorkspaceChatReportID = 'picked-workspace-chat';
+            const transactionID = 'tx-picked-workspace';
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+            const isReportTopmostSplitNavigatorSpy = jest.spyOn(IsReportTopmostSplitNavigator, 'default').mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeWorkspaceChatReportID}`, {
+                        reportID: routeWorkspaceChatReportID,
+                        policyID: 'route-policy',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${pickedWorkspaceChatReportID}`, {
+                        reportID: pickedWorkspaceChatReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: pickedWorkspaceChatReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: 0, reportID: pickedWorkspaceChatReportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: routeWorkspaceChatReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the pre-mount destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the picked workspace chat - where the expense lands - is pre-inserted, so dismissing reveals it
+                // directly instead of flashing the screen underneath before navigating there
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(pickedWorkspaceChatReportID)), {
+                    timeout: 2000,
+                });
+                expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(routeWorkspaceChatReportID));
+            } finally {
+                isReportTopmostSplitNavigatorSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('pre-mounts the workspace chat picked on the receipt being viewed when there are multiple receipts', async () => {
+            // Given a global create with two receipts, where the first one is still on the default workspace chat the route
+            // was seeded with and the "To" picker moved only the second one to another workspace chat. The picker writes to the
+            // receipt being viewed, so the route's (first) transaction no longer reflects where the expenses are submitted.
+            const routeWorkspaceChatReportID = 'route-workspace-chat';
+            const pickedWorkspaceChatReportID = 'picked-workspace-chat';
+            const firstTransactionID = 'tx-first-receipt';
+            const secondTransactionID = 'tx-second-receipt';
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+            const isReportTopmostSplitNavigatorSpy = jest.spyOn(IsReportTopmostSplitNavigator, 'default').mockReturnValue(true);
+            const baseTransaction = {
+                amount: 1000,
+                isAmountSet: true,
+                currency: 'USD',
+                merchant: 'Test',
+                created: '2025-01-15',
+                isFromGlobalCreate: true,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            };
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeWorkspaceChatReportID}`, {
+                        reportID: routeWorkspaceChatReportID,
+                        policyID: 'route-policy',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${pickedWorkspaceChatReportID}`, {
+                        reportID: pickedWorkspaceChatReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${firstTransactionID}`, {
+                        ...baseTransaction,
+                        transactionID: firstTransactionID,
+                        reportID: routeWorkspaceChatReportID,
+                        participants: [{accountID: 0, reportID: routeWorkspaceChatReportID, policyID: 'route-policy', isPolicyExpenseChat: true, selected: true}],
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {
+                        ...baseTransaction,
+                        transactionID: secondTransactionID,
+                        reportID: pickedWorkspaceChatReportID,
+                        participants: [{accountID: 0, reportID: pickedWorkspaceChatReportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID: firstTransactionID,
+                                                reportID: routeWorkspaceChatReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.preInsertFullscreenUnderRHP).mockClear();
+
+                // When the user moves on to the second receipt, the one whose workspace was changed
+                const [, nextReceiptButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+                fireEvent.press(nextReceiptButton);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the workspace chat picked for that receipt - where the expenses land - is pre-inserted, rather than the
+                // first receipt's workspace chat, which would leave the user in a workspace the expenses were not submitted to
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(pickedWorkspaceChatReportID)), {
+                    timeout: 2000,
+                });
+            } finally {
+                isReportTopmostSplitNavigatorSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
             }
         });
@@ -2218,7 +2393,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
-        it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
+        it('should route unreported distance expense to the self DM through trackExpense and never plan a distance request', async () => {
             // Given a distance expense started from global create and headed to the self DM, which is the only flow that
             // leaves the draft unreported (reportID 0) at confirmation
             const selfDMReportID = 'self-dm-report-dist';
@@ -2295,7 +2470,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it is tracked in the self DM, since CreateDistanceRequest has no self DM target
             await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -2304,7 +2479,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
-        it('should call createDistanceRequest with personalDetails for non-unreported distance expense', async () => {
+        it('should plan the distance request with personalDetails for non-unreported distance expense', async () => {
+            // Given a distance draft on a workspace expense report
             const transactionID = 'tx-dist-1';
             const policy = createPolicyWithTaxAndDistance();
 
@@ -2374,13 +2550,15 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </OnyxListItemProvider>,
             );
 
+            // When the expense is created from the confirmation page
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
-            const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
+            // Then it is planned with the personal details and the plan is committed, since a plan on its own writes nothing
+            await waitFor(() => expect(Split.planDistanceRequest).toHaveBeenCalled());
+            const params = jest.mocked(Split.planDistanceRequest).mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
+            expect(Split.commitDistanceRequest).toHaveBeenCalledTimes(1);
         });
     });
 

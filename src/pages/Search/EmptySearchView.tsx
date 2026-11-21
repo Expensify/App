@@ -46,8 +46,10 @@ import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboard
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import {Linking, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
+import SearchResetFiltersButton from './SearchResetFiltersButton';
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
@@ -58,6 +60,9 @@ type EmptySearchViewProps = {
     violationSnapshotStartedAt?: string;
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether the Search screen is focused. While hidden, the tab ignores draft writes. */
+    isScreenFocused?: boolean;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -79,9 +84,9 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle, isScreenFocused = true}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const typeMenuSections = useSearchTypeMenuSections();
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -150,7 +155,6 @@ function EmptySearchViewContent({
     const {getCurrencyDecimals} = useCurrencyListActions();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
@@ -173,17 +177,16 @@ function EmptySearchViewContent({
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
@@ -198,9 +201,15 @@ function EmptySearchViewContent({
         onCreateReport: handleCreateWorkspaceReport,
     });
 
+    // Read the drafts on press, since a subscription would re-render this hidden tab when Create expense writes its draft.
+    const startMoneyRequestWithCurrentDrafts = async (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
+        const drafts = await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+        startMoneyRequest(iouType, generateReportID(), validTransactionDraftIDsSelector(drafts));
+    };
+
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
+            startMoneyRequestWithCurrentDrafts(iouType);
         }, session);
     };
 
@@ -208,6 +217,13 @@ function EmptySearchViewContent({
 
     // Default 'Folder' illustration styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
+
+    const getEmptyResultsContent = (): EmptySearchViewItem => ({
+        ...defaultViewItemHeader.folder,
+        title: translate('search.searchResults.emptyResults.title'),
+        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+        children: <SearchResetFiltersButton />,
+    });
 
     const startTestDriveAction = () => {
         startTestDrive();
@@ -240,6 +256,7 @@ function EmptySearchViewContent({
                         ...button,
                         buttonText: translate(button.buttonText),
                     })),
+                    children: menuItem.emptyState.shouldShowResetFilters ? <SearchResetFiltersButton /> : undefined,
                 };
                 break;
             }
@@ -258,6 +275,7 @@ function EmptySearchViewContent({
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                             {translate('travel.subtitle')}{' '}
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE_BOOK_TRAVEL_DEMO_LINK}
                                 onPress={() => {
                                     Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                                 }}
@@ -271,6 +289,7 @@ function EmptySearchViewContent({
                         <View style={[styles.mt6, styles.alignSelfCenter]}>
                             <SearchScopeProvider isOnSearch={false}>
                                 <BookTravelButton
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.BOOK_TRAVEL}
                                     text={translate('search.searchResults.emptyTripResults.buttonText')}
                                     activePolicyID={activePolicy?.id}
                                 />
@@ -281,17 +300,9 @@ function EmptySearchViewContent({
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
                 if (!isFilteredWorkspaceAccessible) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 } else if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 } else if (!hasResults || !hasExpenseReports) {
                     content = {
                         ...defaultViewItemHeader.folder,
@@ -324,17 +335,9 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!content) {
                     if (!isFilteredWorkspaceAccessible) {
-                        content = {
-                            ...defaultViewItemHeader.folder,
-                            title: translate('search.searchResults.emptyResults.title'),
-                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                        };
+                        content = getEmptyResultsContent();
                     } else if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
-                        content = {
-                            ...defaultViewItemHeader.folder,
-                            title: translate('search.searchResults.emptyResults.title'),
-                            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                        };
+                        content = getEmptyResultsContent();
                     } else if (!hasResults || !hasTransactions) {
                         content = {
                             ...defaultViewItemHeader.expenses,
@@ -405,11 +408,7 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {
-                    content = {
-                        ...defaultViewItemHeader.folder,
-                        title: translate('search.searchResults.emptyResults.title'),
-                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    };
+                    content = getEmptyResultsContent();
                 }
                 break;
         }
@@ -417,11 +416,7 @@ function EmptySearchViewContent({
 
     // Fallback to default content if somehow not set (should never happen in practice)
     if (!content) {
-        content = {
-            ...defaultViewItemHeader.folder,
-            title: translate('search.searchResults.emptyResults.title'),
-            subtitle: translate('search.searchResults.emptyResults.subtitle'),
-        };
+        content = getEmptyResultsContent();
     }
 
     return (

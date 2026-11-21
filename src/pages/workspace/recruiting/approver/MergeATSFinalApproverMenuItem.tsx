@@ -7,8 +7,9 @@ import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -31,7 +32,10 @@ function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApp
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
 
     return (
-        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), false, session)}>
+        <MenuItem.Root
+            onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), session)}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FINAL_APPROVER}
+        >
             <MenuItem.Row>
                 <MenuItemField.Content name={description}>
                     {!!finalApprover && (

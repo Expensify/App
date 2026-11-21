@@ -115,7 +115,7 @@ export default Repack.defineRspackConfig((env) => {
                                 jsx: {runtime: 'automatic', development: isDev, refresh: isDev},
                             },
                         },
-                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs')},
+                        {loader: path.resolve(__dirname, '../rsbuild/loaders/fullstory-annotation-loader.mjs'), options: {native: true}},
                     ],
                 },
                 {
@@ -189,7 +189,6 @@ export default Repack.defineRspackConfig((env) => {
             /oxc-react-compiler-loader:/,
             /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
             /Module not found: Can't resolve 'react-native-worklets-core'/,
-            /Module not found: Can't resolve '@shopify\/react-native-skia'/,
             /'`setUpTests` is available only in Jest environment\.'/,
             /Can't resolve 'expo-updates'/,
             /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,

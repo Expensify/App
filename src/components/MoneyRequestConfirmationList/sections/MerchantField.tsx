@@ -5,18 +5,16 @@ import TextInput from '@components/TextInput';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
-import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {TranslationPaths} from '@src/languages/types';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -25,24 +23,26 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {merchantStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
     shouldDisplayFieldError: boolean;
-    formError: string;
+
+    /** The merchant entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
+    fieldError: TranslationPaths | undefined;
 };
 
-function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}: MerchantFieldProps) {
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
@@ -80,17 +80,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
             return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
-        if (formError === 'iou.error.invalidMerchant') {
-            return translate('iou.error.invalidMerchant');
-        }
-
-        // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
-        // merchant is the one that is missing.
-        if (
-            formError === 'common.error.fieldRequired' &&
-            (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually, isPolicyExpenseChat) || (isMerchantRequired && !displayMerchantValue))
-        ) {
-            return translate('common.error.fieldRequired');
+        if (fieldError) {
+            return translate(fieldError);
         }
 
         if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
@@ -113,10 +104,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {merchant: newMerchant, isMerchantSet: true}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -130,7 +121,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mv2]}>
+            <View
+                ref={fieldViewRefs?.merchant}
+                style={[styles.mh4, styles.mv2]}
+            >
                 <TextInput
                     value={merchantInput}
                     readOnly={didConfirm}
@@ -145,6 +139,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
                 />
             </View>
         );

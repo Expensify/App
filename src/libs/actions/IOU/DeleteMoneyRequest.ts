@@ -23,16 +23,12 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCurrency,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils,
-    isOnHold,
-    removeTransactionFromDuplicateTransactionViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isOnHold} from '@libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils/duplicates';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {optimisticReportLastData} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -421,6 +417,7 @@ type CleanUpMoneyRequestParams = {
     isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    parentHierarchicalReports: OnyxCollection<ReportHierarchyInfo>;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -439,6 +436,7 @@ function cleanUpMoneyRequest({
     isOffline,
     isSingleTransactionView = false,
     policy,
+    parentHierarchicalReports,
     chatReportActions,
 }: CleanUpMoneyRequestParams) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -630,7 +628,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+        clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -638,7 +636,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline});
+                    clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, reports: parentHierarchicalReports});
                 }
                 Onyx.update(onyxUpdates);
             },
@@ -673,20 +671,21 @@ function getCleanUpTransactionThreadReportOnyxData({
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
     transactionThread?: OnyxEntry<OnyxTypes.Report>;
-    isArchivedIOUReport: boolean;
     transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
 } &
-    // IouReport and chatReport is required when reportAction is passed. As reportAction can be optional, this union gives better type check
+    // IouReport, chatReport and isArchivedIOUReport are required when reportAction is passed. As reportAction can be optional, this union gives better type check
     (
         | {
               reportAction: ReportAction;
               iouReport: OnyxEntry<OnyxTypes.Report>;
               chatReport: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport: boolean;
           }
         | {
               reportAction?: undefined;
               iouReport?: OnyxEntry<OnyxTypes.Report>;
               chatReport?: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport?: boolean;
           }
     )) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -926,10 +925,11 @@ function deleteMoneyRequest({
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [
+        // The transaction is only removed on success. Setting back the queue-time copy would restore pending fields that earlier requests already cleared.
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {...transaction, pendingAction: null},
+            value: {pendingAction: null},
         },
     ];
 

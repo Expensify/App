@@ -1,13 +1,9 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineFxExpenseAccount} from '@libs/actions/connections/QuickbooksOnline';
@@ -15,11 +11,10 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import FxExpenseAccountSelectPage from '@pages/workspace/accounting/common/FxExpenseAccountSelectPage';
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
 
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 
@@ -34,7 +29,6 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
     const {translate} = useLocalize();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const {expenseAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -55,7 +49,6 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(qboOnlineSelectorOptions, saveSelectedAccount);
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -63,33 +56,17 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
         </View>
     );
 
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.qbo.noAccountsFound')}
-            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
-            containerStyle={styles.pb10}
-        />
-    );
-
     return (
-        <SelectionScreen
+        <FxExpenseAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!canConfigureCurrencyConversionFees}
             displayName="QuickbooksFxExpenseAccountSelectPage"
-            data={listData}
-            textInputOptions={textInputOptions}
-            headerContent={listHeaderComponent}
+            data={searchableList}
             onSelectRow={selectAccount}
-            shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            listEmptyContent={listEmptyContent}
-            shouldShowListEmptyContent={!textInputOptions.value}
+            emptyStateTitle={translate('workspace.qbo.noAccountsFound')}
+            emptyStateSubtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             title="workspace.qbo.advancedConfig.qboFxExpenseAccount"
             headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboFxExpenseAccount', integrationName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
@@ -99,7 +76,9 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             errorRowStyles={[styles.ph5, styles.mv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT)}
             confirmButtonOptions={confirmButtonOptions}
-        />
+        >
+            {listHeaderComponent}
+        </FxExpenseAccountSelectPage>
     );
 }
 

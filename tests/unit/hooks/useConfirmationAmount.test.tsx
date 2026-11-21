@@ -40,6 +40,7 @@ const baseParams: Params = {
     distanceRequestAmount: 250,
     distanceCurrency: 'USD',
     isPerDiemRequest: false,
+    isScanRequest: false,
     prevSubRates: [],
 };
 
@@ -97,6 +98,41 @@ describe('useConfirmationAmount', () => {
         });
         // 100 / 4 = 25
         expect(result.current.formattedAmountPerAttendee).toContain('25.00');
+    });
+
+    it('leaves the per-attendee amount empty for a scan even when the draft is not a scan yet', () => {
+        // Given a scan flag from the caller and a draft that does not carry the scan request type yet, as in the share flow before its draft is initialized
+        const iouAttendees = Array.from({length: 4}, () => createMock<Params['iouAttendees'][number]>({}));
+
+        // When the amount is computed
+        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees, isScanRequest: true}), {wrapper: Wrapper});
+
+        // Then the amount is not split per attendee, because a scan's amount is read off the receipt later
+        expect(result.current.formattedAmountPerAttendee).toBe('');
+    });
+
+    it('formattedAmount is receipt status title when transaction is scanning', () => {
+        // Given a transaction whose receipt is actively being scanned
+        const transaction = createMock<OnyxTypes.Transaction>({
+            transactionID: 'txn1',
+            amount: 0,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.png'},
+            comment: {},
+        });
+
+        // When the confirmation amount is computed
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction,
+                }),
+            {wrapper: Wrapper},
+        );
+
+        // Then the formatted amount shows the scanning status placeholder
+        expect(result.current.formattedAmount).toBe('Scanning…');
     });
 
     it('formattedAmount is empty string for a failed-scan amount placeholder', () => {

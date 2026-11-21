@@ -69,11 +69,12 @@ const mockIcons = {
     NewWorkspace: mockIcon,
 };
 const mockTranslations = new Map([
-    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.addFirstReceipt', 'Add your first receipt'],
     ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
     ['common.chat', 'Chat'],
     ['common.new', 'New'],
     ['iou.addExpense', 'Add expense'],
+    ['iou.createAnExpense', 'Create an expense'],
     ['iou.createExpense', 'Create expense'],
     ['iou.trackDistance', 'Track distance'],
     ['onboarding.workspace.createWorkspace', 'Create workspace'],
@@ -278,7 +279,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(false);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense']);
+        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense', 'Add your first receipt']);
         expect(result.current.find((item) => item.keyForList === 'create_chat')).toMatchObject({
             text: 'Start chat',
             matchTerms: ['Start chat', 'New Chat'],
@@ -460,7 +461,17 @@ describe('useCreateNavigationSuggestions', () => {
         act(() => onCreateReport?.(submitPolicy, true));
 
         // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                policy: submitPolicy,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                rules: undefined,
+                shouldDismissEmptyReportsConfirmation: true,
+            }),
+        );
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

@@ -119,6 +119,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                         </Text>
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBER_DETAILS_REMOVE_BUTTON}
                         onPress={askForConfirmationToRemove}
                         isDisabled={shouldDisableRemoveUser}
                         style={styles.mv5}
@@ -132,6 +133,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                 </View>
                 <View style={styles.w100}>
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.ROOM_MEMBER_DETAILS_PROFILE}
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}

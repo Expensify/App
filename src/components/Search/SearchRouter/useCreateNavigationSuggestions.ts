@@ -98,7 +98,7 @@ function useCreateNavigationMatchTerms() {
     const {translate} = useLocalize();
 
     return {
-        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
+        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('iou.createAnExpense'), translate('homePage.gettingStartedSection.addFirstReceipt')],
         createReport: [translate('report.newReport.createReport')],
         trackDistance: [translate('iou.trackDistance')],
         chat: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
@@ -152,17 +152,16 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 clearLastSearchParams();
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                false,
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
-                false,
                 shouldDismissEmptyReportsConfirmation,
-            );
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});

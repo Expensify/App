@@ -34,6 +34,7 @@ const ACCOUNT_IDS = {
     BOB_BUILDER: 10,
     MARY_JANE_OBRIEN: 11,
     ALEX_SMITH: 14,
+    RENE_DUPONT: 20,
 } as const;
 
 const SESSION = {
@@ -161,7 +162,7 @@ const NAMED_CONTACTS: Array<Pick<PersonalDetails, 'accountID' | 'login' | 'displ
 
     // Stored decomposed (NFD: "e" + combining acute), unlike every other name
     {
-        accountID: 20,
+        accountID: ACCOUNT_IDS.RENE_DUPONT,
         login: 'rene@example.com',
         displayName: 'Rene\u0301 Dupont',
     },
@@ -247,6 +248,27 @@ const SEARCH_QUERIES = [
     '\u0130SMAIL',
     '+15005550006',
     'CURRENT.USER@EXAMPLE.COM',
+
+    // Forms of plain queries above that must find the same options: decomposed accents (NFD) and a combining dot, a lowercase ß, ł,
+    // uppercase and accented Greek, a zero-width space, a non-breaking space, extra or padding spaces, reversed words, and punctuation
+    'Vi\u0301t',
+    'N\u0303u\u0301n\u0303ez',
+    'i\u0307smail',
+    'Rene\u0301',
+    'stra\u00dfe',
+    '\u0142ukasz',
+    '\u0394\u03a5\u03a3\u03a3\u0395\u03a5\u03a3',
+    '\u03b4\u03c5\u03c3\u03c3\u03b5\u03cd\u03c2',
+    'ana\u200bmaria',
+    'bob\u00a0builder',
+    'bob  builder',
+    ' alex smith ',
+    'smith alex',
+    ' al ',
+    "o'brien",
+    'mary jane',
+    'first.last',
+    '555-0006',
 ];
 
 const FIRST_NAMES = ['Ada', 'Bea', 'Cyd', 'Dan', 'Eve', 'Fay', 'Gus', 'Hal', 'Ivy', 'Jon', 'Kim', 'Lou'];
@@ -694,6 +716,11 @@ const ARCHIVED_REPORT_NAME_VALUE_PAIRS = {
     private_isArchived: '2024-01-27 10:00:00.000',
 };
 
+/** Mirrors privateIsArchivedMap so module-level archived reads agree with the map passed to createFilteredOptionList. */
+function getArchivedEntries(privateIsArchivedMap: PrivateIsArchivedMap): Record<string, typeof ARCHIVED_REPORT_NAME_VALUE_PAIRS> {
+    return Object.fromEntries(Object.keys(privateIsArchivedMap).map((key) => [key, ARCHIVED_REPORT_NAME_VALUE_PAIRS]));
+}
+
 /** The account's Onyx keys and values, for every key the search reads back. */
 function getOnyxEntries(fixture: SearchFixture): OnyxMultiSetInput {
     return {
@@ -705,8 +732,7 @@ function getOnyxEntries(fixture: SearchFixture): OnyxMultiSetInput {
         ...fixture.policies,
         ...fixture.draftComments,
 
-        // Mirrors privateIsArchivedMap so module-level archived reads agree with the map passed to createFilteredOptionList
-        ...Object.fromEntries(Object.keys(fixture.privateIsArchivedMap).map((key) => [key, ARCHIVED_REPORT_NAME_VALUE_PAIRS])),
+        ...getArchivedEntries(fixture.privateIsArchivedMap),
     };
 }
 
@@ -735,5 +761,264 @@ function writeSearchFixtureToOnyx(fixture: SearchFixture): Promise<SearchFixture
     return writeOnyxEntries(getOnyxEntries(fixture));
 }
 
-export {generateSearchFixture, writeSearchFixtureToOnyx, ACCOUNT_IDS, CURRENT_USER_EMAIL, POLICY_IDS, SEARCH_QUERIES};
+/** The entries of one collection that differ from `previous`: changed values as they are, removed keys as null. */
+function getChangedEntries<TValue>(previous: Readonly<Record<string, TValue>>, next: Readonly<Record<string, TValue>>): Record<string, TValue | null> {
+    const changes: Record<string, TValue | null> = {};
+    for (const [key, value] of Object.entries(next)) {
+        if (previous[key] !== value) {
+            changes[key] = value;
+        }
+    }
+    for (const key of Object.keys(previous)) {
+        if (!(key in next)) {
+            // Onyx removes a key that is set to null
+            changes[key] = null;
+        }
+    }
+    return changes;
+}
+
+/**
+ * Writes only the keys an update changed or removed, as the server's Onyx updates do, so Onyx re-derives only what depends on them
+ * and every other derived value keeps its reference.
+ */
+function writeSearchFixtureUpdateToOnyx(previous: SearchFixture, next: SearchFixture): Promise<SearchFixtureDerivedData> {
+    return writeOnyxEntries({
+        ...(previous.personalDetails === next.personalDetails ? {} : {[ONYXKEYS.PERSONAL_DETAILS_LIST]: next.personalDetails}),
+        ...(previous.loginList === next.loginList ? {} : {[ONYXKEYS.LOGINS]: next.loginList}),
+        ...getChangedEntries(previous.reports, next.reports),
+        ...getChangedEntries(previous.reportActions, next.reportActions),
+        ...getChangedEntries(previous.policies, next.policies),
+        ...getChangedEntries(previous.draftComments, next.draftComments),
+        ...getChangedEntries(getArchivedEntries(previous.privateIsArchivedMap), getArchivedEntries(next.privateIsArchivedMap)),
+    });
+}
+
+/** Finds a fixture report by its name, so an update never depends on the reportIDs the fixture assigns to rooms and threads. */
+function getReportIDByName(fixture: SearchFixture, reportName: string): string {
+    const reportID = Object.values(fixture.reports).find((report) => report?.reportName === reportName)?.reportID;
+    if (!reportID) {
+        throw new Error(`No fixture report is named ${reportName}`);
+    }
+    return reportID;
+}
+
+/** The reportID of the generated 1:1 DM with a contact, which is DM_REPORT_ID_OFFSET + the contact's accountID. */
+function getDMReportID(accountID: number): string {
+    return String(DM_REPORT_ID_OFFSET + accountID);
+}
+
+/** Applies `changes` to the report with the given reportID. */
+function updateReport(fixture: SearchFixture, reportID: string, changes: Partial<Report>): SearchFixture {
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const report = fixture.reports[reportKey];
+    if (!report) {
+        throw new Error(`No fixture report has the reportID ${reportID}`);
+    }
+    return {
+        ...fixture,
+        reports: {...fixture.reports, [reportKey]: {...report, ...changes}},
+    };
+}
+
+type SearchFixtureUpdate = {
+    description: string;
+    /** Returns the updated account, replacing only the collections that change, as Onyx hands new references only for those. */
+    apply: (fixture: SearchFixture) => SearchFixture;
+};
+
+/** Later than every generated timestamp, so an updated report becomes the most recent one. */
+const UPDATED_LAST_VISIBLE_ACTION_CREATED = '2024-01-29 10:00:00.000';
+const NEW_CONTACT_ACCOUNT_ID = 300;
+
+/** The contact whose DM the "archives a DM" and "unarchives a DM" updates toggle. */
+const ARCHIVED_DM_ACCOUNT_ID = ACCOUNT_IDS.VIT_NOVAK;
+const ARCHIVED_DM_KEY = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getDMReportID(ARCHIVED_DM_ACCOUNT_ID)}` as const;
+
+/** The third filler contact, "Cyd Ames", whose DM already ranks among the rows the blank SearchRouter query displays. */
+const CYD_AMES_ACCOUNT_ID = FIRST_FILLER_ACCOUNT_ID + 2;
+
+/** A sequence of everyday Onyx updates, applied one after another, that an incrementally kept search must follow. */
+const SEARCH_FIXTURE_UPDATES: SearchFixtureUpdate[] = [
+    {
+        description: 'renames a room',
+        apply: (fixture) => updateReport(fixture, getReportIDByName(fixture, '#announce'), {reportName: '#town-hall'}),
+    },
+    {
+        description: 'archives a DM',
+        apply: (fixture) => ({
+            ...fixture,
+            privateIsArchivedMap: {
+                ...fixture.privateIsArchivedMap,
+                [ARCHIVED_DM_KEY]: true,
+            },
+        }),
+    },
+    {
+        description: 'unarchives a DM',
+        apply: (fixture) => ({
+            ...fixture,
+            privateIsArchivedMap: Object.fromEntries(Object.entries(fixture.privateIsArchivedMap).filter(([key]) => key !== ARCHIVED_DM_KEY)),
+        }),
+    },
+    {
+        description: 'deletes a room',
+        apply: (fixture) => {
+            const deletedReportKey = `${ONYXKEYS.COLLECTION.REPORT}${getReportIDByName(fixture, '#admins')}`;
+            return {
+                ...fixture,
+                reports: Object.fromEntries(Object.entries(fixture.reports).filter(([reportKey]) => reportKey !== deletedReportKey)),
+            };
+        },
+    },
+    {
+        description: 'adds a contact and a DM with them',
+        apply: (fixture) => ({
+            ...fixture,
+            personalDetails: {
+                ...fixture.personalDetails,
+                [NEW_CONTACT_ACCOUNT_ID]: {
+                    accountID: NEW_CONTACT_ACCOUNT_ID,
+                    login: 'nora.quill@example.com',
+                    displayName: 'Nora Quill',
+                    firstName: 'Nora',
+                    lastName: 'Quill',
+                },
+            },
+            reports: {
+                ...fixture.reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${getDMReportID(NEW_CONTACT_ACCOUNT_ID)}`]: {
+                    reportID: getDMReportID(NEW_CONTACT_ACCOUNT_ID),
+                    reportName: 'Nora Quill',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: participantsOf([ACCOUNT_IDS.CURRENT_USER, NEW_CONTACT_ACCOUNT_ID]),
+                    lastVisibleActionCreated: UPDATED_LAST_VISIBLE_ACTION_CREATED,
+                },
+            },
+        }),
+    },
+    {
+        description: 'renames a contact',
+        apply: (fixture) => ({
+            ...fixture,
+            personalDetails: {
+                ...fixture.personalDetails,
+                [ACCOUNT_IDS.BOB_BUILDER]: {
+                    ...fixture.personalDetails[ACCOUNT_IDS.BOB_BUILDER],
+                    accountID: ACCOUNT_IDS.BOB_BUILDER,
+                    displayName: 'Robert Builder',
+                },
+            },
+        }),
+    },
+    {
+        description: 'renames a contact without a DM',
+        apply: (fixture) => ({
+            ...fixture,
+            personalDetails: {
+                ...fixture.personalDetails,
+                [ACCOUNT_IDS.RENE_DUPONT]: {
+                    ...fixture.personalDetails[ACCOUNT_IDS.RENE_DUPONT],
+                    accountID: ACCOUNT_IDS.RENE_DUPONT,
+                    displayName: 'Renata Dupont',
+                },
+            },
+        }),
+    },
+    {
+        description: 'removes a contact without a DM',
+        apply: (fixture) => ({
+            ...fixture,
+            personalDetails: Object.fromEntries(Object.entries(fixture.personalDetails).filter(([accountID]) => accountID !== String(ACCOUNT_IDS.RENE_DUPONT))),
+        }),
+    },
+    {
+        description: 'renames a workspace',
+        apply: (fixture) => {
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_IDS.OWN}` as const;
+            const policy = fixture.policies[policyKey];
+            if (!policy) {
+                throw new Error('The fixture has no own workspace');
+            }
+            return {
+                ...fixture,
+                policies: {
+                    ...fixture.policies,
+                    [policyKey]: {...policy, name: 'Atlas Workspace'},
+                },
+            };
+        },
+    },
+
+    // A filler contact's DM that already sits among the 20 rows the blank SearchRouter query displays (the idle list keeps every fixture report,
+    // so nothing is evicted), and which this update moves from the 7th row to the 3rd
+    {
+        description: 'brings an old DM to the top',
+        apply: (fixture) =>
+            updateReport(fixture, getDMReportID(CYD_AMES_ACCOUNT_ID), {
+                lastVisibleActionCreated: UPDATED_LAST_VISIBLE_ACTION_CREATED,
+            }),
+    },
+    {
+        description: 'marks a read DM unread',
+        apply: (fixture) =>
+            updateReport(fixture, getDMReportID(ACCOUNT_IDS.ISMAIL_YILMAZ), {
+                lastActorAccountID: ACCOUNT_IDS.ISMAIL_YILMAZ,
+                lastReadTime: '2024-01-01 00:00:00.000',
+                lastVisibleActionCreated: UPDATED_LAST_VISIBLE_ACTION_CREATED,
+            }),
+    },
+
+    // Moves the thread up and changes the task share destination's preview, which no search matches, so "sleeping" must keep finding nothing
+    {
+        description: 'replies in a thread',
+        apply: (fixture) => {
+            const reply = 'Bring a sleeping bag';
+            const threadReportName = 'Packing list';
+            const threadReportID = getReportIDByName(fixture, threadReportName);
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}` as const;
+            const updated = updateReport(fixture, threadReportID, {
+                lastMessageText: reply,
+                lastActorAccountID: ACCOUNT_IDS.JOSE_NUNEZ,
+                lastVisibleActionCreated: UPDATED_LAST_VISIBLE_ACTION_CREATED,
+            });
+            return {
+                ...updated,
+                reportActions: {
+                    ...fixture.reportActions,
+                    [reportActionsKey]: {
+                        ...fixture.reportActions[reportActionsKey],
+
+                        // The generated thread holds a first reply with reportActionID '1'
+                        '2': {
+                            reportActionID: '2',
+                            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                            created: UPDATED_LAST_VISIBLE_ACTION_CREATED,
+                            actorAccountID: ACCOUNT_IDS.JOSE_NUNEZ,
+                            message: [
+                                {
+                                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                                    html: reply,
+                                    text: reply,
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+        },
+    },
+    {
+        description: 'saves a draft in an empty thread',
+        apply: (fixture) => ({
+            ...fixture,
+            draftComments: {
+                ...fixture.draftComments,
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${getReportIDByName(fixture, 'Empty thread')}`]: 'new draft',
+            },
+        }),
+    },
+];
+
+export {generateSearchFixture, writeSearchFixtureToOnyx, writeSearchFixtureUpdateToOnyx, ACCOUNT_IDS, CURRENT_USER_EMAIL, POLICY_IDS, SEARCH_FIXTURE_UPDATES, SEARCH_QUERIES};
 export type {SearchFixture};

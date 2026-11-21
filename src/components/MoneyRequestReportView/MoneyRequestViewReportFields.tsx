@@ -161,7 +161,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
             // time it was edited, so the field would stop following the field it refers to.
             const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
             const fieldValue = shouldUseRawValue ? (field.value ?? field.defaultValue ?? '') : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-            const violation = isFieldDisabled ? undefined : getFieldViolation(field);
+            const violation = isFieldDisabled ? undefined : getFieldViolation(field, report);
             const violationTranslation = getFieldViolationTranslation(field, violation);
             return {
                 ...field,

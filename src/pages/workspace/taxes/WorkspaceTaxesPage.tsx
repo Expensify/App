@@ -226,6 +226,7 @@ function WorkspaceTaxesPage({
             icon: icons.Trashcan,
             text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
             value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DELETE,
             shouldSkipFocusRestore: true,
             onSelected: async () => {
                 const {action} = await showConfirmModal({
@@ -253,6 +254,7 @@ function WorkspaceTaxesPage({
                 count: enabledRatesCount,
             }),
             value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS.DISABLE,
             onSelected: () => toggleTaxes(false),
         });
     }
@@ -265,12 +267,15 @@ function WorkspaceTaxesPage({
                 count: disabledRatesCount,
             }),
             value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS.ENABLE,
             onSelected: () => toggleTaxes(true),
         });
     }
     const dropdownMenuOptions = options;
 
-    const shouldShowBulkActionsButton = canWriteTaxes && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0);
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = canWriteTaxes && shouldUseNarrowLayout && isMobileSelectionModeEnabled;
 
     const secondaryActions = [
         {
@@ -278,6 +283,7 @@ function WorkspaceTaxesPage({
             text: translate('common.settings'),
             onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_MENU_SETTINGS,
         },
     ];
 
@@ -304,7 +310,7 @@ function WorkspaceTaxesPage({
                         onPress={() => {}}
                         shouldUseOptionIcon
                         customText={translate('common.more')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
+                        sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_MENU_SETTINGS}
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
@@ -395,6 +401,7 @@ function WorkspaceTaxesPage({
                         shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                        bulkActionOptions={canWriteTaxes ? dropdownMenuOptions : undefined}
                     />
                 )}
             </ScreenWrapper>

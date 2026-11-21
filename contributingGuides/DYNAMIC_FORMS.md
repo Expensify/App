@@ -111,7 +111,7 @@ The server can send a type this App version does not know. The schema is typed `
 
 ## Privacy and accessibility
 
-- Every field row, read-only rows included, every confirmation row and the list entry editor are masked in session recordings. The mask sits on the row's `View`, so it also covers inputs that do not pass a FullStory class on, such as `CountryPicker`.
+- Every answer is masked in session recordings: field inputs, read-only values, confirmation values and the list entry editor. Field labels and descriptions stay readable. Each input sits in an `FSClassView`, so the text inputs inside it mask themselves too, including inputs that do not pass a FullStory class on, such as `CountryPicker`. A masked `View` alone isn't enough: FullStory lets an input's own `fs-unmask` override it.
 - The confirmation before removing a list entry names the entry only in its masked prompt, since the modal title cannot be masked.
 - Radio buttons, Yes/No questions and tabs are named after their question for screen readers, and the bold labels above addresses, files and lists are headings.
 

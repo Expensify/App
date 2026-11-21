@@ -118,6 +118,7 @@ function OutcomeScreenBaseContent({
                 </ScrollView>
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.OUTCOME_CLOSE}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         style={styles.flex1}

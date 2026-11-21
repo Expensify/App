@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -44,7 +45,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format} from 'date-fns';
 import React from 'react';
@@ -70,7 +70,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const {isOffline} = useNetwork();
 
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
@@ -95,8 +95,13 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.companyCards.removeCard'),
-            prompt: translate('workspace.moreFeatures.companyCards.removeCardDescription'),
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={[card.cardID]}
+                    descriptionKey="workspace.moreFeatures.companyCards.removeCardDescription"
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
@@ -161,8 +166,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // Don't show NotFoundPage if data is still loading
-    if (!card && !isLoadingOnyxValue(cardListMetadata)) {
+    if (!card) {
         return <NotFoundPage />;
     }
 
@@ -223,6 +227,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     <CardDetailsActionButtons style={styles.mb0}>
                         {!isCSVImportedPersonalCard && (
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.UPDATE}
                                 onPress={updateCard}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 isLoading={card?.isLoadingLastUpdated}
@@ -233,6 +238,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             </CardDetailsActionButton>
                         )}
                         <CardDetailsActionButton
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.VIEW_TRANSACTIONS}
                             onPress={navigateToTransactions}
                             style={styles.flexShrink0}
                         >
@@ -261,6 +267,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                                 style={[styles.flex1, styles.mb0]}
                             />
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.FIX_CONNECTION}
                                 variant={CONST.BUTTON_VARIANT.DANGER}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path))}

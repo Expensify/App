@@ -14,6 +14,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
@@ -23,6 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
+    canReassignAsApprover,
     getDisplayNameForParticipant,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -60,11 +62,18 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
+    const canMemberReassignApprover = canReassignAsApprover({
+        report,
+        currentUserAccountID: currentUserDetails.accountID,
+        isLoadingSecurityGroup,
+        areStrictPolicyRulesEnabled,
+    });
 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
-        !isPolicyAdmin(policy) ||
+        (!isPolicyAdmin(policy) && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report) ||
@@ -120,7 +129,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
 
     const save = () => {
         const newApproverAccountID = allApprovers.find((member) => member.login === selectedMemberEmail)?.value;
-        if (!selectedMemberEmail || !newApproverAccountID) {
+        if (shouldShowNotFoundView || !selectedMemberEmail || !newApproverAccountID) {
             return;
         }
         startWithLoading(() => {
@@ -144,6 +153,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.REASSIGN_APPROVER_SAVE_BUTTON}
             isDisabled={!selectedMemberEmail}
             buttonText={translate('common.save')}
             onSubmit={save}
@@ -169,6 +179,10 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             testID="ReportReassignApproverPage"
             headerTitle={translate('iou.changeApprover.actions.reassignApprover')}
             onBackButtonPress={() => {
+                if (!isPolicyAdmin(policy) && canMemberReassignApprover) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
                 Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
             }}
             subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.actions.reassignApproverPageHeader')}</Text>}
@@ -177,6 +191,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={shouldShowNotFoundView}
             allApprovers={allApprovers}
+            shouldRequirePolicyAdmin={!canMemberReassignApprover}
             listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
             allowMultipleSelection={false}
             onSelectApprover={toggleApprover}

@@ -53,7 +53,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -99,6 +98,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -134,7 +134,6 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
@@ -205,6 +204,7 @@ type GetTrackExpenseInformationParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -256,6 +256,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     currentUserAccountID: number;
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */
@@ -270,6 +271,7 @@ function buildOnyxDataForTrackExpense({
     isASAPSubmitBetaEnabled,
     quickAction,
     currentUserAccountID,
+    currentUserPersonalDetails,
 }: BuildOnyxDataForTrackExpenseParams): OnyxData<BuildOnyxDataForTrackExpenseKeys> {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -656,6 +658,7 @@ function buildOnyxDataForTrackExpense({
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        currentUserPersonalDetails,
         transactionThreadReportID: transactionThreadReport?.reportID,
     });
 
@@ -829,7 +832,7 @@ function getDeleteTrackExpenseInformation({
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction ? {...transaction, pendingAction: null, pendingFields: null} : null,
         });
     }
     if (!shouldRemoveIOUTransaction) {
@@ -913,6 +916,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserPersonalDetails,
         introSelected,
         activePolicy,
         conciergeChat,
@@ -1251,6 +1255,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isASAPSubmitBetaEnabled,
         quickAction,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserPersonalDetails,
     });
 
     onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));
@@ -1730,6 +1735,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         getCurrencyDecimals,
         writeBarrier,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1853,6 +1859,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
         parentChatReportActions: undefined,
         participantChatReportActions: undefined,
@@ -1996,7 +2003,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 category,
                 tag,
                 taxCode,
-                taxAmount,
+                // the existing taxAmount field was inadequate as it does not accept signed values,
+                // the new field was added to preserve existing behavior of the existing field
+                signedTaxAmount: taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
@@ -2029,10 +2038,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 );
             };
         }
-    }
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
     deferredAPIWrite?.();
@@ -2538,6 +2543,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingActionableWhisperReportActionID,
         isASAPSubmitBetaEnabled,
         currentUser,
+        currentUserPersonalDetails,
         introSelected,
         activePolicy,
         conciergeChat,
@@ -2718,6 +2724,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserPersonalDetails,
         introSelected,
         activePolicy,
         conciergeChat,

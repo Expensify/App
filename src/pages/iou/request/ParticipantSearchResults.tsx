@@ -28,7 +28,7 @@ import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
+import {formatSelectedParticipantsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
@@ -121,6 +121,12 @@ type ParticipantSearchResultsProps = {
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -142,6 +148,8 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -195,7 +203,7 @@ function ParticipantSearchResults({
     const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
-        selectedOptions: participants as Participant[],
+        selectedOptions: participants,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats,
         excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
@@ -245,7 +253,7 @@ function ParticipantSearchResults({
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const handleSelectionChange = (options: OptionData[]) => {
+    const handleSelectionChange = (options: Array<Participant | OptionData>) => {
         if (!isIOUSplit) {
             return;
         }
@@ -253,26 +261,27 @@ function ParticipantSearchResults({
         onParticipantsAdded(sanitizedParticipants);
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
-        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        getValidOptionsConfig,
-        shouldInitialize: didScreenTransitionEnd,
-        enablePhoneContacts: isNative,
-        contactOptions: contacts,
-        initialSelected: participants as OptionData[],
-        onSelectionChange: handleSelectionChange,
-        onSingleSelect: (option: OptionData) => {
-            if (isIOUSplit) {
-                return;
-            }
-            addSingleParticipant(option);
-        },
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
+        useSearchSelector<Participant>({
+            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            getValidOptionsConfig,
+            shouldInitialize: didScreenTransitionEnd,
+            enablePhoneContacts: isNative,
+            contactOptions: contacts,
+            initialSelected: participants,
+            onSelectionChange: handleSelectionChange,
+            onSingleSelect: (option: Participant | OptionData) => {
+                if (isIOUSplit) {
+                    return;
+                }
+                addSingleParticipant(option);
+            },
+        });
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 
@@ -309,11 +318,7 @@ function ParticipantSearchResults({
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
-        const formatResults = formatSectionsFromSearchTerm(
-            searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
-            [],
-            [],
+        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, participants, {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
@@ -324,10 +329,8 @@ function ParticipantSearchResults({
             getReportByID,
             rules,
             personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
-        );
+        });
         sections.push({...formatResults.section, sectionIndex: 0});
 
         const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
@@ -441,7 +444,7 @@ function ParticipantSearchResults({
      * @param option
      */
     const addParticipantToSelection = (option: Participant) => {
-        toggleSelection(option as OptionData);
+        toggleSelection(option);
     };
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -555,7 +558,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
@@ -565,6 +568,7 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (

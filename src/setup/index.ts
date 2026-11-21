@@ -72,12 +72,13 @@ export default function () {
             [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
-        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        snapshotMergeKeys: ['pendingAction', 'pendingFields', 'receipt'],
         ramOnlyKeys: [
             ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL,
             ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
@@ -97,7 +98,11 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
             ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH,
+            ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE,
             ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
             ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
@@ -115,6 +120,7 @@ export default function () {
             ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
             ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL,
             ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+            ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID,
             ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
         ],
     });
@@ -136,6 +142,10 @@ export default function () {
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
+
+    // Imports are evaluated lazily on native and no component mounts in a headless start, so nothing else would
+    // load this module there. Load it here so the Sentry user is set in every JS runtime.
+    import('@libs/telemetry/TelemetrySynchronizer');
 
     // Must run after Onyx.init(): a completed exchange persists the session
     finishCloudflareSignInFromURL();

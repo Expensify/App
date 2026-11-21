@@ -14,8 +14,14 @@ type TestMouseDownEvent = {
     currentTarget: HTMLElement;
 };
 
+type TestKeyDownEvent = {
+    nativeEvent: KeyboardEvent | {code: string};
+    preventDefault: () => void;
+};
+
 type CapturedPressableProps = {
     onMouseDown?: (event: TestMouseDownEvent) => void;
+    onKeyDown?: (event: TestKeyDownEvent) => void;
 };
 
 const capturedProps: {current: CapturedPressableProps | null} = {current: null};
@@ -58,6 +64,132 @@ function getCapturedMouseDown(): (event: TestMouseDownEvent) => void {
     return onMouseDown;
 }
 
+/** Sends a key down to the button. Unless told otherwise it carries the DOM keyboard event as its native event, the way react-native-web sends it. */
+function pressKey(code: string, nativeEvent: TestKeyDownEvent['nativeEvent'] = new KeyboardEvent('keydown', {code})): TestKeyDownEvent {
+    const onKeyDown = capturedProps.current?.onKeyDown;
+    if (!onKeyDown) {
+        throw new Error('PressableWithFeedback did not receive onKeyDown');
+    }
+    const event: TestKeyDownEvent = {nativeEvent, preventDefault: jest.fn()};
+    onKeyDown(event);
+    return event;
+}
+
+describe('SelectionButton key down', () => {
+    beforeEach(() => {
+        capturedProps.current = null;
+    });
+
+    it('presses on Space with the keyboard event', () => {
+        // Given a checkbox on web, where a key down carries the browser's keyboard event as its native event
+        const onPress = jest.fn();
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                onPress={onPress}
+                accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            />,
+        );
+
+        // When Space is pressed on it, because that is the key that toggles a checkbox
+        const event = pressKey('Space');
+
+        // Then it should be pressed with that keyboard event because press handlers read the Shift key from it,
+        // and the default should be prevented because Space would otherwise scroll the page
+        expect(onPress).toHaveBeenCalledWith(event.nativeEvent);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('leaves Enter alone by default', () => {
+        // Given a checkbox that does not select on Enter, because Enter usually submits the form around it
+        const onPress = jest.fn();
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                onPress={onPress}
+                accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            />,
+        );
+
+        // When Enter is pressed on it, as it is when submitting a form while the checkbox has focus
+        const event = pressKey('Enter');
+
+        // Then it should not be pressed, and the default should be kept because the form still has to receive the key
+        expect(onPress).not.toHaveBeenCalled();
+        expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('presses on Enter when it selects on Enter', () => {
+        // Given a checkbox that selects on Enter, like a task checkbox where Enter has nothing else to do
+        const onPress = jest.fn();
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                shouldSelectOnPressEnter
+                onPress={onPress}
+                accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            />,
+        );
+
+        // When Enter is pressed on it to toggle it from the keyboard
+        const event = pressKey('Enter');
+
+        // Then it should be pressed with the keyboard event because Enter stands in for a click on this checkbox
+        expect(onPress).toHaveBeenCalledWith(event.nativeEvent);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+
+    it('ignores other keys', () => {
+        // Given a checkbox that selects on Enter, so that Space and Enter are the only keys that should activate it
+        const onPress = jest.fn();
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                shouldSelectOnPressEnter
+                onPress={onPress}
+                accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            />,
+        );
+
+        // When Tab is pressed on it to move focus away
+        const event = pressKey('Tab');
+
+        // Then it should not be pressed, and the default should be kept because Tab has to move focus to the next control
+        expect(onPress).not.toHaveBeenCalled();
+        expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('presses without an event when the key down is not a DOM event', () => {
+        // Given a checkbox whose key downs come from React Native itself, where the native event is plain data and not the browser's keyboard event
+        const onPress = jest.fn();
+        render(
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
+                isChecked
+                onPress={onPress}
+                accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            />,
+        );
+
+        // When Space is pressed on it with such a native event
+        const event = pressKey('Space', {code: 'Space'});
+
+        // Then it should still be pressed because Space toggles a checkbox on every platform,
+        // but without an event because press handlers expect the browser's keyboard event and this is not one
+        expect(onPress).toHaveBeenCalledWith(undefined);
+        expect(event.preventDefault).toHaveBeenCalled();
+    });
+});
+
 describe('SelectionButton shift+mousedown', () => {
     beforeEach(() => {
         capturedProps.current = null;
@@ -80,6 +212,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);
@@ -96,6 +229,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(false);
@@ -113,6 +247,7 @@ describe('SelectionButton shift+mousedown', () => {
                 disabled
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);
@@ -129,6 +264,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const input = document.createElement('input');
@@ -150,6 +286,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const text = document.createElement('p');
@@ -172,6 +309,7 @@ describe('SelectionButton shift+mousedown', () => {
                 onPress={jest.fn()}
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel="checkbox"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);
@@ -188,6 +326,7 @@ describe('SelectionButton shift+mousedown', () => {
                 isChecked
                 onPress={jest.fn()}
                 accessibilityLabel="radio"
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const event = makeMouseDownEvent(true);

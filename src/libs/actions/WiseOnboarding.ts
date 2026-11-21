@@ -13,6 +13,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
+import {openReimbursementAccountPage} from './BankAccounts';
+
 /**
  * Marks the page as unsaved until its own save succeeds, since `errors` is shared by every page and the next page's save clears it. It also covers a save
  * whose answer never comes, as when the app closes during a request that is not queued, since the running saves are kept only in memory. A failed save marks the page again, so when the same page is
@@ -39,7 +41,13 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
                 value: {wiseOnboardingUnsavedPages: {[step]: null}},
             },
         ],
+        // The request queue applies only the failure data when it gives up on a save after its retries, so the save stops running here too
         failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+                value: {[saveID]: null},
+            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
@@ -104,6 +112,16 @@ function clearWiseOnboardingUnsavedPages() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
 }
 
+/** Reads the business details the Wise onboarding form prefills from, and records which bank account the read is for so the form does not read them again. */
+function openReimbursementAccountPageForWiseIntro(bankAccountID: number) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, bankAccountID);
+    openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
+}
+
+function clearWiseIntroReadBankAccountID() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID, null);
+}
+
 /** Submits the business to Wise with the answers its pages saved. Auth creates the Wise profile and opens Wise's review in the same request. */
 function submitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
@@ -146,4 +164,4 @@ function clearWiseBusinessOnboardingSubmission() {
 }
 
 export default saveWiseOnboardingPage;
-export {clearWiseBusinessOnboardingSubmission, clearWiseOnboardingUnsavedPages, submitWiseBusinessOnboarding};
+export {clearWiseIntroReadBankAccountID, clearWiseBusinessOnboardingSubmission, clearWiseOnboardingUnsavedPages, openReimbursementAccountPageForWiseIntro, submitWiseBusinessOnboarding};

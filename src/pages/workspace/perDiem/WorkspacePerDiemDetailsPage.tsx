@@ -91,27 +91,32 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     keyboardShouldPersistTaps="always"
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_DESTINATION}
                         name={translate('common.destination')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={selectedRate?.name}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_SUBRATE}
                         name={translate('common.subrate')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={selectedSubRate?.name}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_AMOUNT}
                         name={translate('workspace.perDiem.amount')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={amountValue}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_CURRENCY}
                         name={translate('common.currency')}
                         onPress={canWritePerDiem ? () => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.getRoute(policyID, rateID, subRateID)) : undefined}
                         value={currencyValue}
                     />
                     {canWritePerDiem && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.DETAILS_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {
