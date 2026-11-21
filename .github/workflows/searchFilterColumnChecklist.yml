@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   remind:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Comment when a Search filter or column is added
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
