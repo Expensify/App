@@ -6,6 +6,7 @@ import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoney
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
@@ -350,6 +351,74 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             expect(tr).toBeFalsy();
+        });
+
+        it('does not leave the expense stuck as pending when the delete fails after an earlier edit succeeded', async () => {
+            if (!transaction || !createIOUAction) {
+                throw new Error('Expected the expense and its IOU action to exist');
+            }
+
+            // Given an amount edit that is still pending when the expense is deleted
+            mockFetch.mockAPICommand(WRITE_COMMANDS.DELETE_MONEY_REQUEST, () => ({jsonCode: 400}));
+            mockFetch.pause();
+            updateMoneyRequestAmountAndCurrency({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                transactionID: transaction.transactionID,
+                transaction,
+                transactions: {},
+                transactionThreadReport: thread,
+                parentReport: iouReport,
+                iouReportOwnerLogin: undefined,
+                transactionViolations: {},
+                reportPolicyTags: undefined,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                taxValue: '',
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                delegateAccountID: undefined,
+                isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+            const editedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(editedTransaction?.pendingFields?.amount).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the expense is deleted, the edit succeeds and the delete fails
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: createIOUAction,
+                transactions: {},
+                violations: {},
+                iouReport,
+                iouReportTransactions: editedTransaction ? [editedTransaction] : [],
+                chatReport,
+                transactionThreadReport: thread,
+                isChatIOUReportArchived: false,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the expense is restored with the edited amount and nothing pending
+            const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(restoredTransaction?.pendingAction).toBeFalsy();
+            expect(restoredTransaction?.pendingFields?.amount).toBeFalsy();
+            expect(restoredTransaction?.modifiedAmount).toBe(editedTransaction?.modifiedAmount);
         });
 
         it('delete the IOU report when there are no expenses left in the IOU report', async () => {

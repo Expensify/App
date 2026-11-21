@@ -132,7 +132,7 @@ function detachReceipt({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...(transaction ?? null),
+                receipt: transaction?.receipt ?? null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
                 pendingFields: {
                     receipt: null,

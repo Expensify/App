@@ -831,7 +831,7 @@ function getDeleteTrackExpenseInformation({
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction ? {...transaction, pendingAction: null, pendingFields: null} : null,
         });
     }
     if (!shouldRemoveIOUTransaction) {
