@@ -8,6 +8,7 @@ import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded,
 import type {FileValidationError} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
+import adoptDerivedFile from '@libs/ReceiptStorage/adoptDerivedFile';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
 
 import CONST from '@src/CONST';
@@ -311,38 +312,43 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             for (const file of filesToConvert) {
                 // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC/DNG images in parallel.
                 // eslint-disable-next-line no-await-in-loop
-                await new Promise<void>((resolve) => {
+                const convertedFile = await new Promise<FileObject | undefined>((resolve) => {
                     convertHeicImage(file, {
-                        onSuccess: (convertedFile) => {
-                            if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                                convertedFilesToResize.push(convertedFile);
-                                resolve();
-                                return;
-                            }
-
-                            if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                                collectedErrors.current.push({
-                                    error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
-                                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                                });
-                                resolve();
-                                return;
-                            }
-
-                            convertedFiles.push(convertedFile);
-                            updateFileOrderMapping(file, convertedFile);
-                            resolve();
-                        },
+                        onSuccess: resolve,
                         onError: () => {
                             Log.warn('Image conversion to JPEG failed, blocking file', {fileName: file.name});
                             collectedErrors.current.push({
                                 error: CONST.FILE_VALIDATION_ERRORS.IMAGE_CONVERSION_FAILED,
                                 isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
                             });
-                            resolve();
+                            resolve(undefined);
                         },
                     });
                 });
+
+                if (!convertedFile) {
+                    continue;
+                }
+
+                if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    collectedErrors.current.push({
+                        error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                        isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                    });
+                    continue;
+                }
+
+                // Adopt before resizing, so the resize reads the kept file and adopting its output can delete that file.
+                // eslint-disable-next-line no-await-in-loop -- one file at a time, like the conversion above
+                const keptFile = await adoptDerivedFile(file, convertedFile, 'convert');
+                updateFileOrderMapping(file, keptFile);
+
+                if (validationState.isValidatingReceipts && keptFile.size && keptFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                    convertedFilesToResize.push(keptFile);
+                    continue;
+                }
+
+                convertedFiles.push(keptFile);
             }
 
             filesToResize.push(...convertedFilesToResize);
@@ -352,7 +358,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         if (filesToResize.length > 0) {
             showLoader();
 
-            const toResizeResults = await Promise.allSettled(filesToResize.map((file) => resizeImageIfNeeded(file)));
+            const maxSize = validationState.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+            const toResizeResults = await Promise.allSettled(
+                filesToResize.map((file) => resizeImageIfNeeded(file, maxSize).then((resizedFile) => adoptDerivedFile(file, resizedFile, 'resize'))),
+            );
 
             for (const [index, result] of toResizeResults.entries()) {
                 if (result.status === 'fulfilled') {

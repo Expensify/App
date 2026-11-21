@@ -1,9 +1,23 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {logReceiptCaptured, logReceiptQueueSnapshot, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {
+    logReceiptCaptured,
+    logReceiptDropped,
+    logReceiptEnqueued,
+    logReceiptImageEditFailed,
+    logReceiptQueueSnapshot,
+    mintAndStampReceiptTraceId,
+} from '@libs/telemetry/ReceiptObservability';
 
 import type {FileObject} from '@src/types/utils/Attachment';
+
+const RECEIPTS_FOLDER = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
+
+jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
+    __esModule: true,
+    default: () => RECEIPTS_FOLDER,
+}));
 
 type CapturedLogLine = {message: string; sendNow?: boolean; params: Record<string, unknown>};
 
@@ -73,6 +87,85 @@ describe('ReceiptObservability', () => {
                 fileExtension: 'heic',
                 fileSizeBytes: 2048,
             });
+        });
+    });
+
+    describe('alert lines for lost receipts', () => {
+        let alertLines: Array<{message: string; params: Record<string, unknown>}>;
+        let logAlertSpy: jest.SpyInstance<void, Parameters<typeof Log.alert>>;
+
+        beforeEach(() => {
+            alertLines = [];
+            logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation((message, params) => {
+                if (!params || typeof params !== 'object' || Array.isArray(params) || params instanceof Error) {
+                    return;
+                }
+                alertLines.push({message, params});
+            });
+        });
+
+        afterEach(() => {
+            logAlertSpy.mockRestore();
+        });
+
+        it('adds the source kind to a dropped line', () => {
+            // Given a receipt whose file was in the image cache and was gone at upload time
+            const source = 'file:///var/mobile/Containers/Data/Application/AAAA-1111/Library/Caches/ImageManipulator/abc.jpg';
+
+            // When the drop is logged
+            logReceiptDropped({
+                receiptTraceId: 'trace-1',
+                transactionID: '1',
+                command: WRITE_COMMANDS.REQUEST_MONEY,
+                source,
+                localUri: source,
+                fileName: 'abc.jpg',
+                statError: undefined,
+                receiptsFolder: {exists: true},
+            });
+
+            // Then the line names the cache, so drops can be counted by cause in Sentry, where paths are not sent
+            expect(alertLines.at(0)?.params).toEqual(expect.objectContaining({event: 'dropped', sourceKind: 'imageManipulatorCache'}));
+        });
+
+        it('flags a queued receipt that is still in the image cache', () => {
+            // Given a converted receipt that was never moved out of the image cache
+            const receipt = {receiptTraceId: 'trace-2', source: 'file:///data/user/0/com.expensify.chat/cache/ImageManipulator/abc.jpg'};
+
+            // When its request is queued
+            logReceiptEnqueued({receipt, transactionID: '2', command: WRITE_COMMANDS.REQUEST_MONEY, persistedQueueLength: 0});
+
+            // Then a nonDurableSource line is logged, which points to the code path that skipped the move
+            expect(alertLines).toEqual([
+                {
+                    message: '[Receipt] nonDurableSource',
+                    params: {event: 'nonDurableSource', receiptTraceId: 'trace-2', transactionID: '2', command: WRITE_COMMANDS.REQUEST_MONEY, sourceKind: 'imageManipulatorCache'},
+                },
+            ]);
+        });
+
+        it('does not flag a queued receipt that is safe', () => {
+            // Given a receipt in the receipts folder, a replaced receipt whose path is on uri, and one already uploaded
+            const receipts = [{source: `file://${RECEIPTS_FOLDER}/photo_1.jpg`}, {uri: `file://${RECEIPTS_FOLDER}/photo_2.jpg`}, {source: 'https://www.expensify.com/receipts/w_abc.jpg'}];
+
+            // When each request is queued
+            for (const receipt of receipts) {
+                logReceiptEnqueued({receipt, transactionID: '3', command: WRITE_COMMANDS.REPLACE_RECEIPT, persistedQueueLength: 0});
+            }
+
+            // Then nothing is flagged, so the line only fires for receipts that can be lost
+            expect(alertLines).toEqual([]);
+        });
+
+        it('logs a failed crop with the error name and not the message', () => {
+            // Given a native crop error whose message contains the file path
+            const error = new TypeError('Could not crop file:///var/mobile/receipt.jpg');
+
+            // When the failure is logged
+            logReceiptImageEditFailed({step: 'crop', error});
+
+            // Then the path stays out of the log
+            expect(alertLines).toEqual([{message: '[Receipt] cropFailed', params: {event: 'cropFailed', step: 'crop', errorName: 'TypeError'}}]);
         });
     });
 
