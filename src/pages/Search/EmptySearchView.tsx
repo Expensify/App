@@ -321,7 +321,7 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            ...(true
+                            ...(isCreateReportVisible
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
