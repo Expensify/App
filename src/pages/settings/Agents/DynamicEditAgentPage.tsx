@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -42,11 +43,11 @@ import {View} from 'react-native';
 
 type DynamicEditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>;
 
-function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
+function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
-    const accountID = route.params.accountID;
+    const [accountID, accountIDMetadata] = useAgentAccountID(route.params.accountID, navigation);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -54,7 +55,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+    const isOnyxLoaded = accountIDMetadata.status === 'loaded' && agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);

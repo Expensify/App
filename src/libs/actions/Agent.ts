@@ -112,9 +112,14 @@ function prepareNewAgentOnyxData(
         },
     ];
 
-    // The optimistic personal detail and agent prompt are not cleared here: replaceOptimisticAgentWithActualAgent
-    // clears them after redirecting any open agent settings screen, so the cleanup can never beat the redirect.
+    // The temporary personal detail is removed here, not by a separate cleanup write, because every write of the personal
+    // details list saves the whole list and could drop another tab's newer entries. Success data is applied together
+    // with the response, so it normally leaves in the same write that brings in the real agent's details (if that data
+    // already arrived through Pusher, success data is applied on its own). The temporary agent record stays until the
+    // first tab that holds the real agent's record and server details removes it (replaceOptimisticAgentWithActualAgent),
+    // so open agent screens always have an agent to show.
     const successData: AnyOnyxUpdate[] = [
+        buildPersonalDetailsUpdate({[optimisticAccountID]: null}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
@@ -409,6 +414,17 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
         },
         buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}}),
     ];
+
+    // The real accountID is known before the queue drains, but the optimistic agent record stays until
+    // replaceOptimisticAgentWithActualAgent removes it, which needs the real agent's record and personal details. The
+    // DELETE marker hides it online meanwhile. A successful deletion removes the real agent, so its success data also
+    // removes the optimistic agent. After a failed one the real agent still exists, so the marker stays and the usual
+    // cleanup removes the optimistic agent.
+    if (agentAccountID !== accountID) {
+        const optimisticAgentKey = `${ONYXKEYS.COLLECTION.AGENT}${accountID}` as const;
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: optimisticAgentKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}});
+        successData.push({onyxMethod: Onyx.METHOD.SET, key: optimisticAgentKey, value: null}, buildPersonalDetailsUpdate({[accountID]: null}));
+    }
 
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
     // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.

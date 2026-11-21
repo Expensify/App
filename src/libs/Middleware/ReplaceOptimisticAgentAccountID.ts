@@ -1,4 +1,5 @@
 import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 
@@ -79,6 +80,13 @@ function rewriteOnyxUpdates(
 }
 
 function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, realAccountIDString: string, optimisticAccountID: number, realAccountID: number): AnyRequest {
+    // A DeleteAgent that targets the real agent keeps the optimistic agent's removals on purpose (deleteAgent adds them
+    // when the real accountID is already known, the append below otherwise). The mapping reaches this middleware more
+    // than once (twice in CreateAgent's response, again in catch-up responses), and rewriting those removals to the
+    // real accountID would leave the optimistic agent behind after a successful deletion.
+    if (request.command === WRITE_COMMANDS.DELETE_AGENT && request.data?.agentAccountID === realAccountID) {
+        return request;
+    }
     const requestClone = clone(request);
     const dataWithReplacedStrings = deepReplaceKeysAndValues(request.data, optimisticAccountIDKey, realAccountIDString);
     requestClone.data = dataWithReplacedStrings ? replaceNumbersInRecord(dataWithReplacedStrings, optimisticAccountID, realAccountID) : dataWithReplacedStrings;
@@ -87,6 +95,12 @@ function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, rea
             continue;
         }
         requestClone[fieldName] = rewriteOnyxUpdates(request[fieldName], optimisticAccountIDKey, realAccountIDString, optimisticAccountID, realAccountID);
+    }
+    // A DeleteAgent queued while CreateAgent was in flight was built to remove the optimistic agent. Rewritten, it only
+    // removes the real one, and replaceOptimisticAgentWithActualAgent never clears the optimistic agent once the real
+    // agent's details are gone. So its original removals are kept too, and they only run if the deletion succeeds.
+    if (request.command === WRITE_COMMANDS.DELETE_AGENT && request.data?.agentAccountID === optimisticAccountID) {
+        requestClone.successData = [...(requestClone.successData ?? []), ...(request.successData ?? [])];
     }
     return requestClone;
 }
@@ -128,7 +142,7 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
             for (const [optimisticAccountIDKey, mappedAccountID] of Object.entries(mapping)) {
                 // Object.entries() returns any here.
                 const realAccountID: unknown = mappedAccountID;
-                // A null entry is a mapping that replaceOptimisticAgentWithActualAgent already consumed and cleared.
+                // Null entries represent removed mappings; valid mappings remain available to other tabs and old URLs.
                 if (typeof realAccountID !== 'number') {
                     continue;
                 }

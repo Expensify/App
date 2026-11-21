@@ -1,3 +1,4 @@
+import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -351,13 +352,19 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
-    it('success data leaves both optimistic entries in place so replaceOptimisticAgentWithActualAgent can clear them after redirecting', () => {
+    it('success data removes the temporary personal detail and leaves the temporary agent record', () => {
+        // Given a new agent whose temporary personal detail must leave the personal details list without a separate
+        // cleanup write, because every write of that list saves it whole and could drop another tab's newer entries
+        // When createAgent builds the CreateAgent request, whose success data is applied together with the response
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
+        // Then its success data removes the temporary personal detail, so it normally leaves in the same write that brings
+        // in the real agent's details, while the temporary agent record stays for replaceOptimisticAgentWithActualAgent to
+        // remove once a tab can show the real agent
         const {successData} = getWriteOptions();
         const accountID = getOptimisticAccountID();
 
-        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(getPersonalDetailValue(successData, accountID)).toBeNull();
         expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${accountID}`)).toBeUndefined();
     });
 
@@ -555,6 +562,45 @@ describe('deleteAgent', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('also marks the optimistic agent as deleted when its real accountID is already known', () => {
+        // Given a CreateAgent response that registered the real accountID while another request kept the queue from
+        // draining, so the agents list still shows the optimistic agent
+        const optimisticAccountID = 4718293056471829;
+        const realAccountID = 9031827465903182;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the agent is deleted through the optimistic accountID the list still holds
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+
+        // Then the request targets the real agent and the optimistic agent is hidden until the result is known. Its cleanup
+        // waits for the real agent's personal details, which a successful deletion removes, so only the success clears it.
+        // A failed deletion leaves it hidden for that cleanup, because the real agent still exists.
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: realAccountID}, expect.any(Object));
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
+            value: null,
+        });
+        expect(successData.filter((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST).map((update) => update.value)).toContainEqual({[optimisticAccountID]: null});
+        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(JSON.stringify(failureData)).not.toContain(String(optimisticAccountID));
+    });
+
+    it('marks only the given agent when no real accountID is known for it', () => {
+        // Given an accountID that has no registered mapping, like any agent that already exists on the server
+
+        // When it is deleted
+        deleteAgent(TEST_ACCOUNT_ID, undefined, undefined, false);
+
+        // Then no other agent key is written
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const agentKeys = [...optimisticData, ...successData, ...failureData].map((update) => String(update.key)).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.AGENT));
+        expect(new Set(agentKeys)).toStrictEqual(new Set([`${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`]));
     });
 
     describe('cascade to policies containing the agent', () => {

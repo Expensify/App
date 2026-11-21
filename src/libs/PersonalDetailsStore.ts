@@ -9,6 +9,14 @@ let loginToPersonalDetails: Record<string, PersonalDetails> = {};
 let accountIDToName: Record<string, string> = {};
 let allLogins: string[] = [];
 
+// Cleanup callers must wait for the initial read before treating an absent record as already removed.
+let resolvePersonalDetailsHydration!: () => void;
+const personalDetailsHydrationPromise = new Promise<void>((resolve) => {
+    resolvePersonalDetailsHydration = resolve;
+});
+
+const personalDetailsListeners = new Set<() => void>();
+
 function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<string, PersonalDetails> {
     const mapping: Record<string, PersonalDetails> = {};
     for (const personalDetail of Object.values(personalDetailsList)) {
@@ -37,6 +45,10 @@ Onyx.connectWithoutView({
             }
         }
         allLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
+        resolvePersonalDetailsHydration();
+        for (const listener of personalDetailsListeners) {
+            listener();
+        }
     },
 });
 
@@ -65,4 +77,13 @@ function getAllPersonalDetailLogins(): string[] {
     return allLogins;
 }
 
-export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin, getAccountIDToNameMap, getAllPersonalDetailLogins};
+// For non-React code that must act once a personal detail arrives, since it cannot add its own connection. Returns the
+// unsubscribe function.
+function subscribeToPersonalDetails(listener: () => void): () => void {
+    personalDetailsListeners.add(listener);
+    return () => {
+        personalDetailsListeners.delete(listener);
+    };
+}
+
+export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin, getAccountIDToNameMap, getAllPersonalDetailLogins, personalDetailsHydrationPromise, subscribeToPersonalDetails};
