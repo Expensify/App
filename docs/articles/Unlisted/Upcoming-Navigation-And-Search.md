@@ -15,4 +15,3 @@ This page is an **AgentZero reference** for navigation and search features in de
 - **Simplified navigation – staged development** – Introduce a compact navigation layout with separate Expenses and Reports sections, plus a More menu for additional sections on mobile. Wide-layout and mobile changes are separate stages; do not assume they are available together.
 - **Adjustable table column widths – gated rollout** – Manually resize table columns on web and desktop, including Spend tables.
 - **Pinned Spend columns – in development** – Keep selected columns visible on the left or right while scrolling wide Spend tables. Column-menu groundwork does not mean pinning itself is released.
-- **Resizable Concierge panel – in development** – Adjust the Concierge panel width on wide layouts to give conversations more room.
