@@ -827,29 +827,51 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
 }
 
 /**
- * Returns the listed workspaces the current user can take over billing for together, or none if the check fails.
+ * Saves in billingTakeoverPolicies which of the listed workspaces the user can take over billing for together.
  */
-async function checkBulkTransferPolicyBillingOwner(policyIDs: string[]): Promise<string[]> {
+function checkBulkTransferPolicyBillingOwner(policyIDs: string[], checkID: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, isLoading: true},
+        },
+    ];
+
+    // The server sets the answer without the checkID, so it's added back here.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, isLoading: false},
+        },
+    ];
+
+    // Without an answer the transfer continues with this workspace only.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.BILLING_TAKEOVER_POLICIES>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BILLING_TAKEOVER_POLICIES,
+            value: {checkID, policyIDs: [], isLoading: false},
+        },
+    ];
+
     const params: CheckBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
 
-    try {
-        // The transfer flow needs the answer before it can offer to take over every workspace, and the answer isn't stored in Onyx.
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return [];
-        }
-        return response.policyIDs ?? [];
-    } catch (error) {
-        Log.hmmm('[Policy] Failed to check the bulk billing transfer', {error});
-        return [];
-    }
+    API.read(READ_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Answers the check with none of the workspaces when it can't reach the server, so the transfer continues with this workspace only.
+ */
+function skipBulkTransferPolicyBillingOwnerCheck(checkID: string) {
+    Onyx.set(ONYXKEYS.BILLING_TAKEOVER_POLICIES, {checkID, policyIDs: [], isLoading: false});
 }
 
 /**
  * Takes over billing for every listed workspace from the transfer flow of policyID.
  */
-function queueBulkTransferPolicyBillingOwner(policyID: string, policyIDs: string[]) {
+function queueBulkTransferPolicyBillingOwner(policyID: string, policyIDs: string[], shouldTransferSubscription: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -886,7 +908,7 @@ function queueBulkTransferPolicyBillingOwner(policyID: string, policyIDs: string
         },
     ];
 
-    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
+    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(','), shouldTransferSubscription};
 
     API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {optimisticData, successData, failureData});
 }
@@ -1714,6 +1736,7 @@ export {
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
     checkBulkTransferPolicyBillingOwner,
+    skipBulkTransferPolicyBillingOwnerCheck,
     queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,

@@ -6,11 +6,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {rand64} from '@libs/NumberUtils';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
 
 import Navigation from '@navigation/Navigation';
@@ -20,7 +22,13 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {checkBulkTransferPolicyBillingOwner, clearWorkspaceOwnerChangeFlow, queueBulkTransferPolicyBillingOwner, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
+import {
+    checkBulkTransferPolicyBillingOwner,
+    clearWorkspaceOwnerChangeFlow,
+    queueBulkTransferPolicyBillingOwner,
+    requestWorkspaceOwnerChange,
+    skipBulkTransferPolicyBillingOwnerCheck,
+} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,60 +61,67 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
     const [ownerPolicyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidAdminPolicyIDsSelector(policy?.ownerAccountID)});
     const otherOwnerPolicyIDs = ownerPolicyIDs.filter((ownerPolicyID) => ownerPolicyID !== policyID);
+    const [billingTakeoverPolicies] = useOnyx(ONYXKEYS.BILLING_TAKEOVER_POLICIES);
+    const {isOffline} = useNetwork();
 
-    // Undefined until the check answers, and empty once the transfer continues with this workspace only.
-    const [transferablePolicyIDs, setTransferablePolicyIDs] = useState<string[]>();
-    const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !transferablePolicyIDs;
-    const shouldShowAllWorkspacesCheck = !!transferablePolicyIDs && transferablePolicyIDs.length > 1;
+    // Tags this visit's check, so an answer an earlier visit left in Onyx is never read
+    const [checkID] = useState(rand64);
+    const isCheckAnswered = billingTakeoverPolicies?.checkID === checkID && !billingTakeoverPolicies?.isLoading;
+    const transferablePolicyIDs = isCheckAnswered ? (billingTakeoverPolicies?.policyIDs ?? getEmptyArray<string>()) : getEmptyArray<string>();
+    const shouldOfferAllWorkspaces = transferablePolicyIDs.includes(policyID) && transferablePolicyIDs.length > 1;
+    const subscriptionTransfer = transferablePolicyIDs.map((transferablePolicyID) => billingTakeoverPolicies?.subscriptionTransfers?.[transferablePolicyID]).find((transfer) => !!transfer);
+    const [hasPickedThisWorkspace, setHasPickedThisWorkspace] = useState(false);
     const [isTakingOverAllWorkspaces, setIsTakingOverAllWorkspaces] = useState(false);
-    const hasStartedTransferRef = useRef(false);
+    const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !isCheckAnswered;
+    const shouldShowAllWorkspacesCheck = shouldOfferAllWorkspaces && !hasPickedThisWorkspace && !policy?.errorFields?.changeOwner;
+    const shouldTakeOverThisWorkspaceOnly = otherOwnerPolicyIDs.length === 0 || (isCheckAnswered && !shouldOfferAllWorkspaces);
+    const hasStartedCheckRef = useRef(false);
+    const hasRequestedOwnerChangeRef = useRef(false);
 
     // An earlier transfer's result stays on the policy until this visit's request starts loading
     const hasTransferStartedLoadingRef = useRef(false);
 
     useNavigateToCardAuthenticationOnLink();
 
-    const takeOverThisWorkspace = () => {
-        setTransferablePolicyIDs([]);
+    const requestThisWorkspaceOwnerChange = () => {
+        hasRequestedOwnerChangeRef.current = true;
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    };
+
+    const takeOverThisWorkspace = () => {
+        setHasPickedThisWorkspace(true);
+        requestThisWorkspaceOwnerChange();
     };
 
     // The transfer always ends on the success or error page, so keep loading until one of them opens
     const takeOverAllWorkspaces = () => {
-        if (!transferablePolicyIDs) {
-            return;
-        }
         setIsTakingOverAllWorkspaces(true);
-        queueBulkTransferPolicyBillingOwner(policyID, transferablePolicyIDs);
+        queueBulkTransferPolicyBillingOwner(policyID, transferablePolicyIDs, !!subscriptionTransfer);
     };
 
     useEffect(() => {
-        if (isLoadingPolicy || hasStartedTransferRef.current) {
-            return;
-        }
-        hasStartedTransferRef.current = true;
-        if (otherOwnerPolicyIDs.length === 0) {
-            requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        if (isLoadingPolicy || otherOwnerPolicyIDs.length === 0 || isCheckAnswered) {
             return;
         }
 
-        let ignore = false;
-        checkBulkTransferPolicyBillingOwner([policyID, ...otherOwnerPolicyIDs]).then((policyIDs) => {
-            if (ignore) {
-                return;
-            }
-            if (policyIDs.includes(policyID) && policyIDs.length > 1) {
-                setTransferablePolicyIDs(policyIDs);
-                return;
-            }
-            takeOverThisWorkspace();
-        });
-        return () => {
-            ignore = true;
-            hasStartedTransferRef.current = false;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- each run starts a new transfer, so it runs once per policy load
-    }, [policyID, isLoadingPolicy]);
+        // The check can't answer offline, so the transfer continues with this workspace only
+        if (isOffline) {
+            skipBulkTransferPolicyBillingOwnerCheck(checkID);
+            return;
+        }
+        if (hasStartedCheckRef.current) {
+            return;
+        }
+        hasStartedCheckRef.current = true;
+        checkBulkTransferPolicyBillingOwner([policyID, ...otherOwnerPolicyIDs], checkID);
+    }, [checkID, isCheckAnswered, isLoadingPolicy, isOffline, otherOwnerPolicyIDs, policyID]);
+
+    useEffect(() => {
+        if (isLoadingPolicy || !shouldTakeOverThisWorkspaceOnly || hasRequestedOwnerChangeRef.current) {
+            return;
+        }
+        requestThisWorkspaceOwnerChange();
+    }, [isLoadingPolicy, requestThisWorkspaceOwnerChange, shouldTakeOverThisWorkspaceOnly]);
 
     useEffect(() => {
         if (!policy) {
@@ -165,6 +180,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                         <WorkspaceOwnerChangeAllWorkspacesCheck
                             policy={policy}
                             policyIDs={transferablePolicyIDs}
+                            subscriptionTransfer={subscriptionTransfer}
                             onTakeOverAllWorkspaces={takeOverAllWorkspaces}
                             onTakeOverThisWorkspace={takeOverThisWorkspace}
                         />
