@@ -166,6 +166,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             clearApprovalWorkflowApprovers();
         } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail);
+        } else if (isChangeApproverRoute) {
+            // An approver of a new workflow is changed from their own page, which is still open under this one
+            backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex);
         } else {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
@@ -181,9 +184,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         if (isRemovingApprover) {
             setRemovingApprover(visibleSelectedApprover);
             clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
-            if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+            // The page the approver was changed from has nothing left to edit once they're removed, so the admin goes back to the workflow
+            if (isChangeApproverRoute) {
+                const workflowRoute =
+                    approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                        ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail)
+                        : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
                 // Don't compare params — see goBack above.
-                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
+                Navigation.goBack(workflowRoute, {compareParams: false});
                 return;
             }
             goBack();

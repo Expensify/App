@@ -8,7 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 
 import WorkspaceWorkflowsApprovalsApproverPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage';
 
@@ -112,6 +112,22 @@ async function editWorkflowWithRemovedApprover() {
     }
     await act(async () => {
         selectApprovalWorkflowForEdit({workflow, defaultWorkflowMembers: [], usedApproverEmails: []});
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
+/** A new workflow for Dave's reports, where Erin approves the ones over 1,000.00 after Bob, as the admin sees it on its summary page. */
+async function startNewWorkflowWithOverLimitApprover() {
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {
+            ...INITIAL_APPROVAL_WORKFLOW,
+            isInitialFlow: false,
+            members: [{email: DAVE_EMAIL, displayName: 'dave'}],
+            approvers: [
+                {email: BOB_EMAIL, displayName: 'bob'},
+                {email: ERIN_EMAIL, displayName: 'erin', overLimitAmount: 100000},
+            ],
+        });
     });
     await waitForBatchedUpdatesWithAct();
 }
@@ -271,5 +287,30 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         expect((await getApproverEmails())?.at(0)).toBe(frankEmail);
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('takes the admin back to the approver they were changing in a new workflow', async () => {
+        // Given the admin opened Erin's page from a new workflow and went on to change her
+        await startNewWorkflowWithOverLimitApprover();
+        await renderPage(1);
+
+        // When they go back without picking anyone
+        jest.mocked(ApproverSelectionList).mock.lastCall?.[0].onBackButtonPress();
+
+        // Then they return to Erin's page, which is still open under the picker, rather than skipping past it to the workflow
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(POLICY_ID, 1), {compareParams: false});
+    });
+
+    it('takes the admin back to a new workflow after removing the approver they were changing', async () => {
+        // Given the admin opened Erin's page from a new workflow and went on to change her
+        await startNewWorkflowWithOverLimitApprover();
+        await renderPage(1);
+
+        // When they unselect Erin
+        await tapRow(ERIN_EMAIL);
+
+        // Then she's taken out of the workflow, and the admin goes back to it since her page has nothing left to edit
+        expect(await getApproverEmails()).toEqual([BOB_EMAIL]);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(POLICY_ID), {compareParams: false});
     });
 });
