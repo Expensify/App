@@ -6,6 +6,7 @@ import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavig
 import getModalRouteOnTop from '@libs/Navigation/helpers/getModalRouteOnTop';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
+import isNavigationStateWithRoutes from '@libs/Navigation/helpers/isNavigationStateWithRoutes';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
 import {isStaleWideTabPreMountPreloadedRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
@@ -233,10 +234,6 @@ function isNavigationPartialRoute(route: unknown): route is NavigationPartialRou
 
 function isRealizedNavigationState(state: unknown): state is NavigationState {
     return isRecord(state) && state.stale === false && typeof state.key === 'string' && Array.isArray(state.routes);
-}
-
-function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
-    return typeof state === 'object' && state !== null && 'routes' in state && Array.isArray(state.routes);
 }
 
 function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
