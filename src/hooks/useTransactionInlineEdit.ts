@@ -1,4 +1,5 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
@@ -11,6 +12,7 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
@@ -43,7 +45,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import {useAllPersonalDetails} from './usePersonalDetails';
+import {useSearchSnapshotPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -160,7 +162,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const [personalDetailsList] = useAllPersonalDetails();
+    const isOnSearch = useIsOnSearch();
+    const searchSnapshotPersonalDetails = useSearchSnapshotPersonalDetails();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
@@ -219,7 +222,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             policyTags,
             isOffline,
             distanceOriginalPolicy,
-            personalDetailsList,
+            personalDetailsList: isOnSearch ? searchSnapshotPersonalDetails : getAllPersonalDetails(),
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,

@@ -14,6 +14,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {canCreateExpensesOnPolicy, isPolicyAccessible, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -76,7 +77,6 @@ import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
@@ -148,7 +148,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
-    const [personalDetails] = useAllPersonalDetails();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -303,7 +302,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyCategories: activePolicyCategories,
                 targetReport: duplicateTargetReport,
                 existingTransactionDraft,
-                personalDetails,
+                personalDetails: getAllPersonalDetails(),
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
@@ -488,7 +487,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     parentChatReport: targetChatForDuplicate,
                     ownerPersonalDetails: currentUserPersonalDetails,
                     isASAPSubmitBetaEnabled,
-                    personalDetails,
+                    personalDetails: getAllPersonalDetails(),
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     isSelfTourViewed,

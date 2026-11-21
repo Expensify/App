@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
@@ -85,7 +86,6 @@ function SearchStaticList({
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -157,7 +157,7 @@ function SearchStaticList({
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
-                personalDetails,
+                personalDetails: getAllPersonalDetails(),
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 delegateAccountID,

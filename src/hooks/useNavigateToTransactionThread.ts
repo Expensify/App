@@ -1,9 +1,9 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getExpenseCreationIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,7 +53,6 @@ type NavigateToTransactionThreadParams = {
 function useNavigateToTransactionThread() {
     const {markReportRHPWidth} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -89,7 +88,7 @@ function useNavigateToTransactionThread() {
                 iouReport: report,
                 iouReportAction: iouAction,
                 transaction,
-                personalDetails,
+                personalDetails: getAllPersonalDetails(),
                 fullPolicySnapshotLastModified: report?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[report.policyID] : undefined,
             });
             if (transactionThreadReport) {

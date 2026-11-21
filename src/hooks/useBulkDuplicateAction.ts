@@ -4,6 +4,7 @@ import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {canDuplicateExpenseIntoSourceReport} from '@libs/ReportUtils';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -29,7 +30,6 @@ import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {useAllPersonalDetails} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 
@@ -79,7 +79,6 @@ function useBulkDuplicateAction({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -142,7 +141,7 @@ function useBulkDuplicateAction({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetPolicyTags: targetPolicyTags ?? {},
             targetReport: duplicateTargetReport,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             isASAPSubmitBetaEnabled,
             introSelected,
             quickAction,

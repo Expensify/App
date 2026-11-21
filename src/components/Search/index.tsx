@@ -1,7 +1,6 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -45,6 +44,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
@@ -213,7 +213,6 @@ function Search({
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
@@ -743,7 +742,7 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    personalDetails,
+                    personalDetails: getAllPersonalDetails(),
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -817,7 +816,7 @@ function Search({
                                 backTo,
                                 currentUserLogin: email ?? '',
                                 currentUserAccountID: accountID,
-                                personalDetails,
+                                personalDetails: getAllPersonalDetails(),
                                 isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow,
                                 delegateAccountID,
@@ -913,7 +912,6 @@ function Search({
             markReportRHPWidth,
             handleSearch,
             introSelected,
-            personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             email,

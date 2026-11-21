@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
@@ -45,7 +45,6 @@ function RecentlyAddedSection() {
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -68,7 +67,7 @@ function RecentlyAddedSection() {
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserEmail,
             currentUserAccountID,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             fullPolicySnapshotLastModifiedByPolicyID,
         };
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
