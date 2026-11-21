@@ -8606,7 +8606,7 @@ type BuildOptimisticEmptyReportParams = {
     isASAPSubmitBetaEnabled: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function buildOptimisticEmptyReport({
