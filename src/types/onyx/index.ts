@@ -23,6 +23,7 @@ import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
+import type BillingTakeoverPolicies from './BillingTakeoverPolicies';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type BlockedRoleChange from './BlockedRoleChange';
 import type BulkAction from './BulkAction';
@@ -477,6 +478,7 @@ export type {
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,
+    BillingTakeoverPolicies,
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
