@@ -27,7 +27,7 @@ type UseContactImportResult = {
 };
 
 type UseContactImportOptions = {
-    /** Whether the screen lists device contacts. Screens that don't skip the permission check and the import. */
+    /** Whether the screen lists device contacts. When false, nothing is checked or imported on focus or on return to the foreground. */
     shouldImportContacts?: boolean;
 };
 
