@@ -7,7 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getVisibleReportActionErrors, isCreatedAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -184,6 +184,7 @@ function useReportActionsScroll({
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const hasMessages = hasNewerActions || renderedVisibleReportActions.some((action) => !isCreatedAction(action));
 
     // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
     // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
@@ -258,6 +259,7 @@ function useReportActionsScroll({
             return range && range.startIndex >= 0 ? range : undefined;
         },
         shouldBeAlignedToTop,
+        hasMessages,
     });
 
     const prevIsComposerFullSize = usePrevious(isComposerFullSize);
