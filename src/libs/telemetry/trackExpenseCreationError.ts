@@ -13,15 +13,15 @@ type ErrorSource = ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_SOURCE>;
 
 const EXPENSE_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE]);
 
-// Commands that indicate a lost expense (e.g., OpenReport fails because expense report was lost)
-const LOST_EXPENSE_INDICATOR_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
+// OpenReport requests that include a transactionID open an expense thread.
+const EXPENSE_THREAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
 
 function isExpenseCommand(command: string | undefined): boolean {
     return !!command && EXPENSE_COMMANDS.has(command);
 }
 
-function isLostExpenseIndicatorCommand(command: string | undefined): boolean {
-    return !!command && LOST_EXPENSE_INDICATOR_COMMANDS.has(command);
+function isExpenseThreadCommand(command: string | undefined): boolean {
+    return !!command && EXPENSE_THREAD_COMMANDS.has(command);
 }
 
 type ExpenseCreationErrorContext = {
@@ -92,6 +92,7 @@ type ApiErrorContext = {
     command: string;
     jsonCode: string | number;
     message?: string;
+    errorUUID?: string;
     transactionID?: string;
     reportID?: string;
     requestData?: Record<string, unknown>;
@@ -99,10 +100,10 @@ type ApiErrorContext = {
 
 function trackExpenseApiError(context: ApiErrorContext): void {
     try {
-        const {command, jsonCode, message, requestData} = context;
+        const {command, jsonCode, message, errorUUID, requestData} = context;
 
         const isExpense = isExpenseCommand(command);
-        const isOpenReport = isLostExpenseIndicatorCommand(command);
+        const isOpenReport = isExpenseThreadCommand(command);
 
         // Only track expense-related commands or OpenReport
         if (!isExpense && !isOpenReport) {
@@ -122,18 +123,24 @@ function trackExpenseApiError(context: ApiErrorContext): void {
             [CONST.TELEMETRY.TAGS.EXPENSE_JSON_CODE]: String(jsonCode),
         };
 
+        if (errorUUID) {
+            tags[CONST.TELEMETRY.TAGS.EXPENSE_ERROR_UUID] = errorUUID;
+        }
+
         const extra: Record<string, unknown> = {
             command,
             jsonCode,
             ...(message && {message}),
+            ...(errorUUID && {errorUUID}),
         };
 
-        const eventMessage = isOpenReport ? `OpenReport Failed: jsonCode ${jsonCode} (possible lost expense)` : `Expense API Error: ${command} returned ${jsonCode}`;
+        const eventMessage = isOpenReport ? `OpenReport Failed: jsonCode ${jsonCode} (expense thread)` : `Expense API Error: ${command} returned ${jsonCode}`;
 
         Sentry.captureMessage(eventMessage, {
             level: 'error',
             tags,
             extra,
+            fingerprint: [errorType, command, String(jsonCode), errorUUID ?? message ?? ''],
         });
     } catch (sentryError) {
         Log.warn('[trackExpenseApiError] Failed to track expense API error', {sentryError, originalContext: context});

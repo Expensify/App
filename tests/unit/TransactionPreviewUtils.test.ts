@@ -207,6 +207,34 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
         });
 
+        it('displays the server rejection reason on a receipt error when present', () => {
+            // Given a scan transaction whose ReceiptError carries a server rejection reason
+            const serverReason = 'New expenses cannot be added to this report.';
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: serverReason,
+                        },
+                    },
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then the server rejection reason is shown instead of the generic receipt upload failure
+            expect(result.RBRMessage).toEqual({text: serverReason});
+        });
+
         it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,

@@ -1,6 +1,7 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
+import reconcileFailureDataWithServerErrors from '@libs/reconcileFailureDataWithServerErrors';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
 import CONST from '@src/CONST';
@@ -105,10 +106,12 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     command: request.command,
                     jsonCode: response.jsonCode ?? 0,
                     message: response.message,
+                    errorUUID: response.UUID,
                     requestData: request.data,
                 });
 
-                return updateHandler(request.failureData);
+                const reconciledFailureData = reconcileFailureDataWithServerErrors(request.failureData, response.onyxData);
+                return reconciledFailureData.length > 0 ? updateHandler(reconciledFailureData) : Promise.resolve();
             }
             return Promise.resolve();
         })

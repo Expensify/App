@@ -138,7 +138,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
-                    {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
+                    {receiptError.message
+                        ? Str.htmlDecode(receiptError.message)
+                        : translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
                 </Text>
             </View>
         );
