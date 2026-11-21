@@ -2,7 +2,10 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -19,10 +22,14 @@ import useSignedInLinkRoute from './useSignedInLinkRoute';
 type InsightsTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
-function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) {
+function InsightsTabButton({selectedTab, isWideLayout, isCompact = false}: InsightsTabButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
@@ -38,7 +45,11 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [
+                    styles.leftNavigationTabBarItem,
+                    isCompact && StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight),
+                    hovered && styles.navigationTabBarItemHovered,
+                ]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
             >
                 {({hovered}) => (

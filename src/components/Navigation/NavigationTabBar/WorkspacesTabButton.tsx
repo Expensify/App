@@ -3,8 +3,11 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -21,10 +24,14 @@ import useSignedInLinkRoute from './useSignedInLinkRoute';
 type WorkspacesTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
+
+    /** Whether the wide-layout button uses the shorter row, for windows too short to fit the full-height rows */
+    isCompact?: boolean;
 };
 
-function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonProps) {
+function WorkspacesTabButton({selectedTab, isWideLayout, isCompact = false}: WorkspacesTabButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, preferredLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -44,7 +51,11 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
                 accessibilityState={workspacesAccessibilityState}
-                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                style={({hovered}) => [
+                    styles.leftNavigationTabBarItem,
+                    isCompact && StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight),
+                    hovered && styles.navigationTabBarItemHovered,
+                ]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
             >
                 {({hovered}) => (
