@@ -18,7 +18,6 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,7 +72,6 @@ function IOURequestStepDistanceGPS({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const isArchived = useReportIsArchived(report?.reportID);
-    const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useAllPersonalDetails();
@@ -163,7 +161,6 @@ function IOURequestStepDistanceGPS({
             iouType,
             action,
             report,
-            moneyRequestReportTransactions,
             isDraftChatReport: !!reportDraft,
             policy,
             transaction,
