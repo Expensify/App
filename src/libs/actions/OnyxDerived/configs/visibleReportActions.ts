@@ -1,4 +1,5 @@
 import {
+    getIOUReportIDFromReportActionPreview,
     isActionableReportMentionWhisper,
     isActionableWhisperRequiringWritePermission,
     isActionOfType,
@@ -12,16 +13,16 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, the type of its report, or sibling actions.
+ * such as write permissions, policy settings, the type of its report, sibling actions, or the report it links to.
  */
-function shouldSkipCachingAction(action: ReportAction): boolean {
+function shouldSkipCachingAction(action: ReportAction, allReports: OnyxCollection<Report>): boolean {
     if (isActionableReportMentionWhisper(action)) {
         return false;
     }
@@ -31,8 +32,25 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
         isActionableWhisperRequiringWritePermission(action) ||
         isConciergeCategoryOptions(action) ||
         isPaymentActionHiddenOutsideInvoices(action) ||
-        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) ||
+        isPreviewOfInvoiceOrUnloadedReport(action, allReports)
     );
+}
+
+/**
+ * An invoice preview is hidden from the bill receiver by the invoice's isHiddenForBillReceiver flag. The flag can change
+ * without the preview changing, so the preview's visibility is checked when it is shown instead. A preview of a report
+ * that isn't loaded yet may be an invoice preview, so it isn't cached either. Loading that report later only recomputes
+ * the report itself, not the chat that holds its preview.
+ */
+function isPreviewOfInvoiceOrUnloadedReport(action: ReportAction, allReports: OnyxCollection<Report>): boolean {
+    const linkedReportID = getIOUReportIDFromReportActionPreview(action);
+    if (!linkedReportID) {
+        return false;
+    }
+
+    const linkedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`];
+    return !linkedReport || linkedReport.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 /**
@@ -47,6 +65,7 @@ function computeReportVisibility(
     currentUserAccountID: number | undefined,
     isSupportTicketReport: boolean,
     isReplacedSupportTicket: boolean,
+    allReports: OnyxCollection<Report>,
 ): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
 
@@ -59,7 +78,7 @@ function computeReportVisibility(
         if (actionID !== action.reportActionID) {
             continue;
         }
-        if (shouldSkipCachingAction(action)) {
+        if (shouldSkipCachingAction(action, allReports)) {
             continue;
         }
         if (isActionableReportMentionWhisper(action)) {
@@ -179,7 +198,7 @@ export default createOnyxDerivedValueConfig({
             const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            result[reportID] = computeReportVisibility(policy, currentUserEmail, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            result[reportID] = computeReportVisibility(policy, currentUserEmail, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket, allReports);
         }
 
         for (const reportID of policyChangedReportIDs) {

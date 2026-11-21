@@ -19,6 +19,7 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
+import {isBillReport} from './BillUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
@@ -978,7 +979,8 @@ function computeReportName({
         return parentReportActionBasedName;
     }
 
-    if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
+    // A bill keeps its stored name, which Auth sets from the vendor's invoice and the user can rename.
+    if (report?.reportName && (report.type === CONST.REPORT.TYPE.EXPENSE || isBillReport(report))) {
         return report?.reportName;
     }
 

@@ -50,7 +50,7 @@ describe('MoneyReportHeaderNextStep', () => {
     it.each([
         {
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-            reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+            reportType: CONST.REPORT.TYPE.BILL,
             target: 'approve the bill',
         },
         {
@@ -60,7 +60,7 @@ describe('MoneyReportHeaderNextStep', () => {
         },
         {
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
-            reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+            reportType: CONST.REPORT.TYPE.BILL,
             target: 'pay this bill',
         },
         {

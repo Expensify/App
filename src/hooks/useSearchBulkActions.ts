@@ -54,6 +54,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
+import {isBillReport} from '@libs/BillUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -593,7 +594,8 @@ function shouldShowBulkDuplicateOption({
 
         const reportID = selectedTransactions[id]?.reportID;
         const submitterReport = reportID ? getReportOrDraftReport({reportID, searchReports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]}) : undefined;
-        if (submitterReport && !isCurrentUserSubmitter(submitterReport)) {
+        // Copying an expense from a bill would turn the vendor's expense into the owner's own expense.
+        if (submitterReport && (isBillReport(submitterReport) || !isCurrentUserSubmitter(submitterReport))) {
             return false;
         }
 

@@ -68,7 +68,7 @@ function WideRHPReceiptPanelGate() {
 
     // A bill with no expense or several expenses keeps the narrow view because it doesn't show the expense table yet.
     // The loaded expenses can be incomplete, so this uses the count from the server.
-    const isOneExpenseBill = report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && isOneTransactionReport(report);
+    const isOneExpenseBill = report?.type === CONST.REPORT.TYPE.BILL && isOneTransactionReport(report);
 
     const shouldShowWideRHP =
         !isConfirmedMultiTransactionReport &&
