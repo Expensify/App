@@ -1,10 +1,12 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import {closeUserAccount} from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {requestUnlockAccount} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,14 +21,21 @@ import SCREENS from '@src/SCREENS';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import type {PropsWithChildren} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 
 import React from 'react';
+
+import createMock from '../utils/createMock';
 
 const DOMAIN_ACCOUNT_ID = 1;
 const MEMBER_ACCOUNT_ID = 2;
 const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+const mockPendingActionsKey = ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS;
+const mockMemberAccountID = MEMBER_ACCOUNT_ID;
 
-let mockDomain: Record<string, BaseVacationDelegate | {shared: Record<string, string>}> | undefined;
+let mockDomain: Record<string, boolean | BaseVacationDelegate | {shared: Record<string, string>}> | undefined;
+let mockIsOffline = false;
+let mockUnlockPendingAction: string | undefined;
 const mockShowDecisionModal = jest.fn();
 const mockShowConfirmModal = jest.fn();
 
@@ -39,6 +48,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/actions/FormActions', () => ({
     clearDraftValues: jest.fn(),
 }));
+
+jest.mock('@libs/actions/User', () => ({requestUnlockAccount: jest.fn(), clearUnlockAccountError: jest.fn()}));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
 jest.mock('@libs/actions/Domain', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Domain'),
@@ -62,7 +74,11 @@ jest.mock('@hooks/useDecisionModal', () => jest.fn(() => ({showDecisionModal: mo
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false})));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [{accountID: 2, login: 'member@example.com'}])}));
 // Every domain read goes through a selector, so each one is applied to the same mock domain record
-jest.mock('@hooks/useOnyx', () => jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => [options?.selector ? options.selector(mockDomain) : undefined]));
+jest.mock('@hooks/useOnyx', () =>
+    jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => [
+        key.startsWith(mockPendingActionsKey) ? {member: {[mockMemberAccountID]: {unlockAccount: mockUnlockPendingAction}}} : options?.selector?.(mockDomain),
+    ]),
+);
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -102,6 +118,8 @@ describe('DomainMemberDetailsPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockDomain = undefined;
+        mockIsOffline = false;
+        mockUnlockPendingAction = undefined;
     });
 
     it('opens the vacation delegate form when the member has no delegate', () => {
@@ -124,6 +142,69 @@ describe('DomainMemberDetailsPage', () => {
         // Then the same form opens with a fresh draft, so the saved delegate, date and time are shown rather than a stale pick
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID));
+    });
+
+    describe('unlock account', () => {
+        beforeEach(() => {
+            mockDomain = {[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${MEMBER_ACCOUNT_ID}`]: true};
+        });
+
+        function pressUnlockRow() {
+            render(
+                <DomainMemberDetailsPage
+                    route={route}
+                    navigation={navigation}
+                />,
+            );
+            jest.mocked(MenuItemAction).mock.lastCall?.[0].onPress?.(createMock<GestureResponderEvent>({}));
+        }
+
+        it('blocks offline unlock requests with the offline alert instead of a received-request modal', () => {
+            // Given a locked member and an offline admin
+            mockIsOffline = true;
+
+            // When the admin presses Unlock account
+            pressUnlockRow();
+
+            // Then nothing is queued and only the offline alert is shown
+            expect(requestUnlockAccount).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline'}));
+        });
+
+        it('submits the online request with the domain context and shows the confirmation', () => {
+            // Given an online admin and a member with no previous unlock request
+            // When the admin presses Unlock account
+            pressUnlockRow();
+
+            // Then the request is submitted once and the next steps are explained
+            expect(requestUnlockAccount).toHaveBeenCalledWith(MEMBER_ACCOUNT_ID, DOMAIN_ACCOUNT_ID, undefined);
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'lockAccountPage.unlockTitle'}));
+        });
+
+        it('reopens the confirmation without resubmitting an already received request', () => {
+            // Given a previously submitted unlock request
+            mockDomain = {...mockDomain, [`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${MEMBER_ACCOUNT_ID}`]: true};
+
+            // When the admin presses the pending row
+            pressUnlockRow();
+
+            // Then the pending label remains and no duplicate request is sent
+            expect(jest.mocked(MenuItemAction).mock.lastCall?.[0].title).toBe('lockAccountPage.pendingUnlockRequest');
+            expect(requestUnlockAccount).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not resubmit a request while its response is in flight', () => {
+            // Given a request whose response has not arrived
+            mockUnlockPendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
+            // When the admin presses Unlock account again
+            pressUnlockRow();
+
+            // Then the duplicate is blocked before the submitted marker exists
+            expect(requestUnlockAccount).not.toHaveBeenCalled();
+        });
     });
 
     describe('close account', () => {

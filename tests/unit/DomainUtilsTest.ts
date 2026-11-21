@@ -359,6 +359,30 @@ describe('DomainUtils', () => {
         });
     });
 
+    it.each(['lockAccountErrors', 'unlockAccountErrors'] as const)('shows domain warning indicators for %s alone', (errorField) => {
+        // Given a member with only a security action error
+        const accountID = 123;
+        const errors: DomainErrors = {errors: {}, memberErrors: {[accountID]: {errors: {}, [errorField]: {timestamp: 'Request failed'}}}};
+
+        // When the domain screens aggregate member errors
+        // Then the error is not hidden just because there is no generic member error
+        expect(hasDomainMembersErrors(errors)).toBe(true);
+    });
+
+    it('includes unlock errors and in-flight requests in the member list row', () => {
+        // Given an in-flight unlock and an error from an earlier attempt
+        const accountID = 123;
+        const pending: DomainPendingAction['member'] = {[accountID]: {unlockAccount: 'update'}};
+        const errors: DomainErrors = {errors: {}, memberErrors: {[accountID]: {errors: {}, unlockAccountErrors: {timestamp: 'Request failed'}}}};
+
+        // When building the member list row
+        const result = getMemberCustomRowProps(123, pending, errors);
+
+        // Then list feedback matches the member details page
+        expect(result.pendingAction).toBe('update');
+        expect(result.errors).toEqual({timestamp: 'Request failed'});
+    });
+
     describe('hasDomainMembersSettingsErrors', () => {
         it('should return false when domainErrors is undefined', () => {
             expect(hasDomainMembersSettingsErrors(undefined)).toBe(false);

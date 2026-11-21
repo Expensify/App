@@ -1422,10 +1422,16 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
         },
     });
 
+    // Lock and unlock requests may still be in flight when an unrelated member error is dismissed.
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         member: {
             [email]: null,
-            [accountID]: null,
+            [accountID]: {
+                pendingAction: null,
+                vacationDelegate: null,
+                twoFactorAuthExemptEmails: null,
+                changeDomainSecurityGroup: null,
+            },
         },
     });
 }
