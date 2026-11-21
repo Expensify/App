@@ -5441,6 +5441,7 @@ ${amount} dla ${merchant} - ${date}`,
                 softApproval: (time: string) => `Zostanie automatycznie zatwierdzone za ${time}. Do tego czasu możesz bezpłatnie anulować.`,
                 hardApproval: (time: string) => `Automatycznie anuluje się za ${time}, jeśli nie zostanie zatwierdzone.`,
             },
+            genericError: 'Nie udało się zaktualizować tej rezerwacji. Spróbuj ponownie.',
         },
         bookingCount: ({count}: {count: number}) => ({
             one: '1 rezerwacja',

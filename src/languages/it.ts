@@ -5398,6 +5398,7 @@ ${amount} per ${merchant} - ${date}`,
                 softApproval: (time: string) => `Approvazione automatica tra ${time}. Cancellazione gratuita fino ad allora.`,
                 hardApproval: (time: string) => `Annullamento automatico tra ${time} se non approvata.`,
             },
+            genericError: 'Impossibile aggiornare questa prenotazione. Riprova.',
         },
         bookingCount: ({count}: {count: number}) => ({
             one: '1 prenotazione',

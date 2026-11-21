@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTripTransactions from '@hooks/useTripTransactions';
 
+import {clearTravelBookingErrors} from '@libs/actions/Travel';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -136,10 +137,13 @@ type BookingViewProps = {
     /** The booking's approval state, which sets its status badge */
     bookingApproval?: BookingApproval;
 
+    /** The trip room the booking's approval state is stored on */
+    tripRoomReportID: string | undefined;
+
     onPress: () => void;
 };
 
-function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
+function BookingView({booking, bookingApproval, tripRoomReportID, onPress}: BookingViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -152,37 +156,46 @@ function BookingView({booking, bookingApproval, onPress}: BookingViewProps) {
     const description = formatCancelledDescription(translate('iou.canceled'), firstReservation ? translate(`travel.${firstReservation.type}`) : '', isCancelled);
 
     return (
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Matches the reservation rows above; the compound MenuItem has no leaf for the trip reservation icon.
-        <MenuItemWithTopDescription
-            sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.BOOKING}
-            description={description}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            title={getBookingTitle(translate, booking.reservations)}
-            titleStyle={[styles.mt1, isCancelled && styles.textSupporting]}
-            numberOfLinesTitle={1}
-            accessibilityLabel={isCancelled ? description : undefined}
-            secondaryIcon={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
-            secondaryIconFill={theme.icon}
-            wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
-            shouldGreyOutWhenDisabled={false}
-            shouldRemoveBackground
-            onPress={onPress}
-            iconHeight={variables.iconSizeNormal}
-            iconWidth={variables.iconSizeNormal}
-            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}
-            isSmallAvatarSubscriptMenu
-            shouldShowRightComponent={!!statusBadge}
-            rightComponent={
-                !!statusBadge && (
-                    <StatusBadge
-                        text={statusBadge.text}
-                        backgroundColor={statusBadge.backgroundColor}
-                        textColor={statusBadge.textColor}
-                        badgeStyles={styles.ml3}
-                    />
-                )
-            }
-        />
+        // Decisions are blocked offline, so a pending one is in flight online and is faded without waiting for the offline state
+        <OfflineWithFeedback
+            pendingAction={bookingApproval?.pendingAction}
+            errors={bookingApproval?.errors}
+            onClose={() => clearTravelBookingErrors(tripRoomReportID, booking.pnrID)}
+            shouldForceOpacity={!!bookingApproval?.pendingAction}
+            errorRowStyles={styles.mt2}
+        >
+            {/* eslint-disable-next-line @typescript-eslint/no-deprecated -- Matches the reservation rows above; the compound MenuItem has no leaf for the trip reservation icon. */}
+            <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.BOOKING}
+                description={description}
+                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                title={getBookingTitle(translate, booking.reservations)}
+                titleStyle={[styles.mt1, isCancelled && styles.textSupporting]}
+                numberOfLinesTitle={1}
+                accessibilityLabel={isCancelled ? description : undefined}
+                secondaryIcon={getTripReservationIcon(expensifyIcons, firstReservation?.type, isCancelled)}
+                secondaryIconFill={theme.icon}
+                wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
+                shouldGreyOutWhenDisabled={false}
+                shouldRemoveBackground
+                onPress={onPress}
+                iconHeight={variables.iconSizeNormal}
+                iconWidth={variables.iconSizeNormal}
+                iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, styles.alignSelfCenter]}
+                isSmallAvatarSubscriptMenu
+                shouldShowRightComponent={!!statusBadge}
+                rightComponent={
+                    !!statusBadge && (
+                        <StatusBadge
+                            text={statusBadge.text}
+                            backgroundColor={statusBadge.backgroundColor}
+                            textColor={statusBadge.textColor}
+                            badgeStyles={styles.ml3}
+                        />
+                    )
+                }
+            />
+        </OfflineWithFeedback>
     );
 }
 
@@ -237,6 +250,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
         <BookingView
             booking={item}
             bookingApproval={reportNameValuePairs?.tripData?.bookingApprovalState?.[item.pnrID]}
+            tripRoomReportID={chatReportID}
             onPress={navigateToTrip}
         />
     );
