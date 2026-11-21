@@ -13675,6 +13675,62 @@ function getNewestOutstandingReportForUser(
 }
 
 /**
+ * Whether saving the expense for this action goes through the money request builder and its report checks: new expenses and tracked
+ * expenses moved to a workspace. Other actions, like editing, move the expense to a report without them.
+ */
+function isSavedThroughMoneyRequestBuilder(action: IOUAction): boolean {
+    return action === CONST.IOU.ACTION.CREATE || action === CONST.IOU.ACTION.SUBMIT || action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
+}
+
+/**
+ * Returns the report the expense would join before the save path's checks run. The Report field and the report picker both start from
+ * it, so they show and mark the same report. For actions saved through the money request builder it matches the builder: the report the
+ * workspace chat points at, or the member's newest open report when the chat's iouReportID was cleared, e.g. after a submit.
+ *
+ * @param chatIOUReport - The report the workspace chat's iouReportID points at
+ * @param policyID - The workspace the expense is created in
+ * @param reportOwnerAccountID - The member the expense is created for
+ * @param outstandingReportsForPolicy - The policy's outstanding reports, from the OUTSTANDING_REPORTS_BY_POLICY_ID derived value
+ */
+function getMoneyRequestReportCandidate(
+    chatIOUReport: OnyxInputOrEntry<Report>,
+    action: IOUAction,
+    policyID: string | undefined,
+    reportOwnerAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    outstandingReportsForPolicy: OnyxCollection<Report>,
+): OnyxInputOrEntry<Report> {
+    if (chatIOUReport || !isSavedThroughMoneyRequestBuilder(action)) {
+        return chatIOUReport;
+    }
+    return getNewestOutstandingReportForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {});
+}
+
+/**
+ * Returns the report a new expense is added to when the user doesn't pick one, or undefined when saving it starts a new report.
+ * The Report field and the report picker both read it, so the picker marks the same report the field shows, and picking any
+ * other report, including the candidate when saving would skip it, writes the choice to the expense.
+ *
+ * @param candidateReport - The report the expense would join, from getMoneyRequestReportCandidate
+ * @param chatReport - The workspace chat the expense is created in
+ */
+function getDefaultMoneyRequestReport(
+    candidateReport: OnyxInputOrEntry<Report>,
+    chatReport: OnyxInputOrEntry<Report>,
+    isScanRequest: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    rules: OnyxCollection<Rule>,
+    action: IOUAction,
+): OnyxInputOrEntry<Report> {
+    // Actions that skip the save path's checks keep the report they were given.
+    if (!isSavedThroughMoneyRequestBuilder(action)) {
+        return candidateReport;
+    }
+    return shouldCreateNewMoneyRequestReport(candidateReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules, action) ? undefined : candidateReport;
+}
+
+/**
  * Whether the member is the approver of any of the policy's reports that are waiting for their approval.
  * An approver assigned through "Change approver" is only stored in the report's `managerID`, so they are not covered by `isPolicyApprover`.
  * @param accountID - The accountID of the member to check
@@ -16368,6 +16424,9 @@ export {
     buildOptimisticMovedTransactionAction,
     getOutstandingReportsForUser,
     getNewestOutstandingReportForUser,
+    getDefaultMoneyRequestReport,
+    getMoneyRequestReportCandidate,
+    isSavedThroughMoneyRequestBuilder,
     isApproverOfOutstandingPolicyReports,
     isReportOutstanding,
     isReportTotalPending,
