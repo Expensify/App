@@ -150,6 +150,7 @@ import {
     isRoomMemberProtectedByPolicyRole,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isNetSuiteVendorMatchingActive,
     isQuickbooksDesktopVendorMatchingActive,
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
@@ -7841,6 +7842,110 @@ describe('PolicyUtils', () => {
                 expect(getVendorEmptyState(policy, translate)).toEqual({
                     title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
+                });
+            });
+        });
+
+        describe('NetSuite vendor matching', () => {
+            const NETSUITE_VENDORS_UNSYNCED = Symbol('NETSUITE_VENDORS_UNSYNCED');
+            const buildNetSuitePolicy = (
+                nonreimbursableExpensesExportDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION> | undefined,
+                vendors: Array<{id: string; name: string; email?: string}> | typeof NETSUITE_VENDORS_UNSYNCED = [{id: 'ns-1', name: 'Acme NetSuite', email: 'ap@acme.test'}],
+                {
+                    authType = CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2,
+                    shouldPlaceAuthTypeAtRoot = false,
+                    defaultVendor,
+                }: {authType?: 'tba' | 'oauth2' | null; shouldPlaceAuthTypeAtRoot?: boolean; defaultVendor?: string} = {},
+            ): Policy => {
+                const resolvedAuthType = authType ?? undefined;
+                return createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            config: shouldPlaceAuthTypeAtRoot ? createMock({authType: resolvedAuthType}) : createMock({}),
+                            options: {
+                                config: createMock({
+                                    authType: shouldPlaceAuthTypeAtRoot ? undefined : resolvedAuthType,
+                                    nonreimbursableExpensesExportDestination,
+                                    defaultVendor,
+                                }),
+                                data: createMock({
+                                    vendors: vendors === NETSUITE_VENDORS_UNSYNCED ? undefined : vendors,
+                                }),
+                            },
+                        },
+                    },
+                });
+            };
+
+            it('requires REST oauth2 and CREDIT_CARD_CHARGE export and the vendorMatching beta', () => {
+                // Given NetSuite REST workspaces with authType in options.config or root config
+                const optionsAuthPolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE);
+                const rootAuthPolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, undefined, {shouldPlaceAuthTypeAtRoot: true});
+
+                // When checking activation and beta gating
+                // Then both activate only when the vendorMatching beta is enabled
+                expect(isNetSuiteVendorMatchingActive(optionsAuthPolicy)).toBe(true);
+                expect(isNetSuiteVendorMatchingActive(rootAuthPolicy)).toBe(true);
+                expect(hasVendorFeature(optionsAuthPolicy, true)).toBe(true);
+                expect(hasVendorFeature(optionsAuthPolicy, false)).toBe(false);
+                expect(hasVendorFeature(rootAuthPolicy, true)).toBe(true);
+                expect(hasVendorFeature(rootAuthPolicy, false)).toBe(false);
+                expect(isNetSuiteVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it.each([
+                {
+                    label: 'SOAP tba connection',
+                    policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, undefined, {authType: CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA}),
+                },
+                {label: 'missing authType', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, undefined, {authType: null})},
+                {label: 'VENDOR_BILL export', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL)},
+                {label: 'JOURNAL_ENTRY export', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY)},
+                {label: 'EXPENSE_REPORT export', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT)},
+                {label: 'missing export destination', policy: buildNetSuitePolicy(undefined)},
+            ])('is inactive for $label', ({policy}) => {
+                // Given a NetSuite workspace that does not meet REST + CREDIT_CARD_CHARGE conditions
+                // When checking the predicate
+                // Then it returns false
+                expect(isNetSuiteVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('reads options.data.vendors, distinguishes loaded-empty from unloaded, and resolves defaultVendor', () => {
+                // Given loaded, loaded-empty, and unloaded NetSuite vendor lists
+                const loadedPolicy = buildNetSuitePolicy(
+                    CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                    [
+                        {id: 'ns-1', name: 'Acme NetSuite', email: 'ap@acme.test'},
+                        {id: '', name: 'No ID Vendor', email: ''},
+                    ],
+                    {defaultVendor: 'ns-1'},
+                );
+                const emptyPolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, []);
+                const unloadedPolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, NETSUITE_VENDORS_UNSYNCED);
+
+                // When reading integration metadata, vendors, load state, and default vendor
+                // Then active NetSuite metadata and vendors match options.data.vendors and options.config.defaultVendor
+                expect(getActiveVendorMatchingIntegration(loadedPolicy)).toBe(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+                expect(getMatchingVendors(loadedPolicy)).toEqual([{id: 'ns-1', name: 'Acme NetSuite', currency: '', email: 'ap@acme.test'}]);
+                expect(getDefaultVendorID(loadedPolicy)).toBe('ns-1');
+                expect(isMatchingVendorListLoaded(loadedPolicy)).toBe(true);
+                expect(isMatchingVendorListLoaded(emptyPolicy)).toBe(true);
+                expect(isMatchingVendorListLoaded(unloadedPolicy)).toBe(false);
+            });
+
+            it('falls back to historical NetSuite vendors in findVendorByID and returns NetSuite empty state copy', () => {
+                // Given a NetSuite workspace that switched away from CREDIT_CARD_CHARGE and an active empty workspace
+                const switchedPolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL, [{id: 'ns-hist', name: 'Historical Vendor', email: ''}]);
+                const emptyActivePolicy = buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, []);
+                const translate = TestHelper.translateLocal;
+
+                // When resolving historical vendor display and empty state copy
+                // Then findVendorByID still finds the NetSuite vendor and empty state uses NetSuite copy
+                expect(findVendorByID(switchedPolicy, 'ns-hist')).toEqual({id: 'ns-hist', name: 'Historical Vendor', currency: '', email: ''});
+                expect(getVendorEmptyState(emptyActivePolicy, translate)).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.netsuite.noVendorsFoundDescription'),
                 });
             });
         });
