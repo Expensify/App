@@ -53,7 +53,7 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
 
     it('resolves each display name once, not on every comparison', () => {
         // Many users with the same weight, so every comparison needs the display names
-        const users = Array.from({length: 50}, (_, index) => ({login: `user${index}@test.com`, weight: 2, accountID: 900 + ((index * 7) % 50)}) as PersonalDetails & {weight: number});
+        const users = Array.from({length: 50}, (_, index) => ({login: `user${index}@test.com`, weight: 2, accountID: 900 + ((index * 7) % 50)}));
         mockGetDisplayNameForParticipant.mockImplementation(({accountID}) => `Name ${accountID}`);
 
         const sorted = getSortedPersonalDetails(users, localeCompare, formatPhoneNumber, translateLocal, 20);
