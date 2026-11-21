@@ -310,6 +310,43 @@ describe('useConnectedAccountingIntegration', () => {
         });
     });
 
+    describe('Credentials menu item on a working NetSuite connection', () => {
+        beforeEach(() => {
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+        });
+
+        it('should offer Update credentials for an OAuth connection', () => {
+            // Given a NetSuite OAuth connection whose last sync succeeded
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteOAuthPolicy);
+
+            // Then the item says Update credentials, so the admin can move the connection back to TBA during the OAuth rollout
+            expect(text).toBe('workspace.accounting.updateCredentials');
+        });
+
+        it('should offer Update credentials for an OAuth connection whose last sync failed without an auth error', () => {
+            // Given a NetSuite OAuth connection whose last sync failed for a reason other than authentication
+            mockSynchronizationError = 'Sync failed';
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteOAuthPolicy);
+
+            // Then the item still says Update credentials, because only an auth error changes it to Reconnect
+            expect(text).toBe('workspace.accounting.updateCredentials');
+        });
+
+        it('should not offer a credentials item for a Token-Based Authentication connection', () => {
+            // Given a working NetSuite Token-Based Authentication connection
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteTBAPolicy);
+
+            // Then no credentials item is shown, because a TBA submit on a working connection resets its settings
+            expect(text).toBeUndefined();
+        });
+    });
+
     describe('Configuration rows for Digits', () => {
         it('should show the Import and Export rows but not the Advanced row', () => {
             // Given a workspace connected to Digits, which has its Import and Export pages but no Advanced page yet
