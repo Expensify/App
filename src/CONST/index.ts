@@ -3467,6 +3467,7 @@ const CONST = {
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
         SERVICE_UNAVAILABLE: 'serviceUnavailable',
+        REAUTH_REPLAY_REJECTED: 'reauthReplayRejected',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
