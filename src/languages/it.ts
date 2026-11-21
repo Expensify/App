@@ -1028,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal in un altro account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Indirizzo email',
         reasonLabel: 'Motivo accesso assistenza',
         reasonHint: 'Nessun ticket recente trovato per questo account.',

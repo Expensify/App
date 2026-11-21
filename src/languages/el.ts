@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal σε άλλο λογαριασμό',
+        navigationLabel: 'Supportal',
         emailLabel: 'Διεύθυνση email',
         reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
         reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
