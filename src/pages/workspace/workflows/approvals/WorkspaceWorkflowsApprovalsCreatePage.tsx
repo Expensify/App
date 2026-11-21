@@ -35,6 +35,7 @@ import type {ScrollView} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
@@ -46,7 +47,6 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {translate} = useLocalize();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
@@ -74,8 +74,9 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
         const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
 
-        startWithLoading(() => {
+        startWithLoading(async () => {
             if (shouldUseApprovalWorkflowRules) {
+                const rulesCollection = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
                 createApprovalWorkflowRules({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
             } else {
                 createApprovalWorkflowAction({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport});

@@ -63,6 +63,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
@@ -101,8 +102,6 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -122,7 +121,6 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -197,8 +195,9 @@ function WorkspaceInviteMessageComponent({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- the drafts are only read once, when the page opens
     }, []);
 
-    const sendInvitation = () => {
+    const sendInvitation = async () => {
         Keyboard.dismiss();
+        const [policyCategories, approvalWorkflow] = await Onyx.multiGet([`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, ONYXKEYS.APPROVAL_WORKFLOW]);
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);

@@ -1,5 +1,5 @@
 /** Covers the rendered card benefits separately from card enrollment and verification workflows. */
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
 import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
@@ -263,7 +263,7 @@ describe('card empty-state benefit composition', () => {
         fireEvent.press(cta, PRESS_EVENT);
 
         // Then a benefit press cannot be confused with the one real enrollment action
-        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(Navigation.navigate).toHaveBeenCalledTimes(1));
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)}));
     });
 });

@@ -64,6 +64,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
 
@@ -89,13 +90,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: guidedSetupAndTourStatusSelector,
-    });
-    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -153,7 +147,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
@@ -234,7 +227,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         });
     };
 
-    const handleBankAccountPress = () => {
+    const pressBankAccount = async () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -245,7 +238,14 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 showUnlockAlreadyRequestedModal(showConfirmModal, translate);
                 return;
             }
+            const [conciergeReportID, initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+            ]);
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
             navigateToConciergeChat({
                 conciergeReportID: conciergeReportID ?? undefined,
                 introSelected,
@@ -273,7 +273,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-        onPress: canInteractWithBankAccountRow ? handleBankAccountPress : undefined,
+        onPress: canInteractWithBankAccountRow ? pressBankAccount : undefined,
         displayInDefaultIconColor: true,
         icon: bankIcon.icon,
         iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
@@ -381,7 +381,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                 <ConnectionStatusMessage
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
-                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? pressBankAccount : undefined}
                                                     actionSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT_CONNECTION_ACTION}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"

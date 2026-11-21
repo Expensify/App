@@ -18,7 +18,7 @@ import RenderHTML from './RenderHTML';
 type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress', 'actionSentryLabel'> & {
     message?: string;
     actionText?: string;
-    onActionPress?: () => void;
+    onActionPress?: () => void | Promise<void>;
     isActionDisabled?: boolean;
     statusTone?: 'default' | 'success' | 'danger';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
