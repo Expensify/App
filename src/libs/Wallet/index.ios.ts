@@ -4,9 +4,9 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
+import type {CardStatus, IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
 
-import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
+import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix, listAppleWalletPasses} from '@expensify/react-native-wallet';
 
 import type {AddCardToWalletOptions} from './types';
 
@@ -66,31 +66,66 @@ async function handleAddCardToWallet(card: Card, cardHolderName: string, cardDes
     }
 }
 
-function isCardInWallet(card: Card): Promise<boolean> {
+type LookupMethod = 'identifier' | 'suffix' | 'suffix fallback' | 'none';
+
+const toYesNo = (value: boolean) => (value ? 'yes' : 'no');
+
+/** Matches a local Apple Wallet pass by the card's last digits. Returns only counts and flags, never identifiers. */
+async function findPassByLastDigits(lastDigits: string | undefined, panReferenceID: string) {
+    const passes = await listAppleWalletPasses();
+    const localPasses = passes.filter((pass) => !pass.isRemote);
+    const matchingPass = lastDigits ? localPasses.find((pass) => !!pass.lastDigits?.endsWith(lastDigits)) : undefined;
+    const idMatches = !!matchingPass && matchingPass.primaryAccountIdentifier === panReferenceID;
+    return {
+        status: matchingPass?.activationState,
+        localCount: localPasses.length,
+        remoteCount: passes.length - localPasses.length,
+        hasMatchingPass: !!matchingPass,
+        idMatches,
+    };
+}
+
+async function isCardInWallet(card: Card): Promise<boolean> {
     const panReferenceID = card.nameValuePairs?.expensifyCard_panReferenceID;
-    if (!panReferenceID) {
-        return Promise.resolve(false);
+    if (!panReferenceID || (!card.token && !card.lastFourPAN)) {
+        return false;
     }
 
-    let callback = null;
-    if (card.token) {
-        callback = getCardStatusByIdentifier(panReferenceID, CONST.COMPANY_CARDS.CARD_TYPE.VISA);
-    } else if (card.lastFourPAN) {
-        callback = getCardStatusBySuffix(card.lastFourPAN);
-    }
+    try {
+        let status: CardStatus = 'not found';
+        let method: LookupMethod = 'none';
+        let summary = '';
 
-    if (callback) {
-        return callback
-            .then((status) => {
-                Log.info(`Card status: ${status}`);
-                return isCardStatusInWallet(status);
-            })
-            .catch((e) => {
-                Log.warn(`isCardInWallet error: ${e}`);
-                return Promise.resolve(false);
-            });
+        if (card.token) {
+            method = 'identifier';
+            status = await getCardStatusByIdentifier(panReferenceID, CONST.COMPANY_CARDS.CARD_TYPE.VISA);
+        } else if (card.lastFourPAN) {
+            method = 'suffix';
+            status = await getCardStatusBySuffix(card.lastFourPAN);
+        }
+
+        // The pass can exist in Wallet under another primary account identifier, so retry by the card's last digits.
+        if (card.token && status === 'not found') {
+            method = 'none';
+            try {
+                const fallback = await findPassByLastDigits(card.lastFourPAN, panReferenceID);
+                summary = `, passes: ${fallback.localCount} local ${fallback.remoteCount} remote, last4 pass: ${toYesNo(fallback.hasMatchingPass)}, id matches: ${toYesNo(fallback.idMatches)}`;
+                if (fallback.status) {
+                    status = fallback.status;
+                    method = 'suffix fallback';
+                }
+            } catch (e) {
+                summary = ', passes: unavailable';
+                Log.warn(`isCardInWallet pass list error: ${String(e)}`);
+            }
+        }
+
+        Log.info(`Card status: ${status} (lookup: ${method}${summary})`);
+        return isCardStatusInWallet(status);
+    } catch (e) {
+        Log.warn(`isCardInWallet error: ${String(e)}`);
+        return false;
     }
-    return Promise.resolve(false);
 }
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};
