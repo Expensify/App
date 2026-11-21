@@ -33,7 +33,8 @@ setup_permissions([
   'Contacts',
   'LocationAccuracy',
   'LocationAlways',
-  'LocationWhenInUse'
+  'LocationWhenInUse',
+  'Microphone'
 ])
 
 # As per the official React Native Firebase documentation: https://rnfirebase.io/#altering-cocoapods-to-use-frameworks

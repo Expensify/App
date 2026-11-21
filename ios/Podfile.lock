@@ -462,10 +462,6 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - NWWebSocket (0.5.10)
-  - Onfido (32.6.2)
-  - onfido-react-native-sdk (15.1.0):
-    - Onfido (~> 32.6.0)
-    - React
   - OpenSSL-Universal (3.6.2000)
   - Plaid (6.4.2)
   - PromisesObjC (2.4.0)
@@ -2964,6 +2960,33 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNEntrustIDV (100.13.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - RNEntrustIDVDeviceSecurity (100.13.0)
+  - RNEntrustIDVDocument (100.13.0):
+    - RNEntrustIDV
+  - RNEntrustIDVWelcome (100.13.0):
+    - RNEntrustIDV
   - RNFBAnalytics (22.2.1):
     - Firebase/Analytics (= 11.13.0)
     - React-Core
@@ -3530,7 +3553,6 @@ DEPENDENCIES:
   - NitroImage (from `../node_modules/react-native-nitro-image`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - NWWebSocket (~> 0.5.10)
-  - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -3632,6 +3654,10 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
+  - "RNEntrustIDV (from `../node_modules/@entrust.corporation/idvsdk-reactnative`)"
+  - "RNEntrustIDVDeviceSecurity (from `../node_modules/@entrust.corporation/idvsdk-reactnative-device-security`)"
+  - "RNEntrustIDVDocument (from `../node_modules/@entrust.corporation/idvsdk-reactnative-document`)"
+  - "RNEntrustIDVWelcome (from `../node_modules/@entrust.corporation/idvsdk-reactnative-welcome`)"
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - RNFS (from `../node_modules/react-native-fs`)
@@ -3682,7 +3708,6 @@ SPEC REPOS:
     - MapboxMaps
     - nanopb
     - NWWebSocket
-    - Onfido
     - OpenSSL-Universal
     - Plaid
     - PromisesObjC
@@ -3763,8 +3788,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-nitro-image"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
-  onfido-react-native-sdk:
-    :path: "../node_modules/@onfido/react-native-sdk"
   pusher-websocket-react-native:
     :path: "../node_modules/@pusher/pusher-websocket-react-native"
   QuickCrypto:
@@ -3965,6 +3988,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
+  RNEntrustIDV:
+    :path: "../node_modules/@entrust.corporation/idvsdk-reactnative"
+  RNEntrustIDVDeviceSecurity:
+    :path: "../node_modules/@entrust.corporation/idvsdk-reactnative-device-security"
+  RNEntrustIDVDocument:
+    :path: "../node_modules/@entrust.corporation/idvsdk-reactnative-document"
+  RNEntrustIDVWelcome:
+    :path: "../node_modules/@entrust.corporation/idvsdk-reactnative-welcome"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -4069,8 +4100,6 @@ SPEC CHECKSUMS:
   NitroImage: 03c650b246b841609b53236df5c03549d156e9ad
   NitroModules: 6232dc95a28a7a221227e618733ce0e674e8753b
   NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
-  Onfido: 65454f91d10758193c857fd149417f6efbea84c5
-  onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   Plaid: 8a212ed955d480364e0deb7fed93625b29811e9d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -4175,6 +4204,10 @@ SPEC CHECKSUMS:
   RNCClipboard: 7a7d4557bfd3370b35c99dfecd92ae7b9fc4948a
   RNCPicker: 7cdfc55a519cc6b4f74bed404051b07c42b23156
   RNDeviceInfo: 43f912bf35adf2aa5b89f77d24c8d74f629cd641
+  RNEntrustIDV: 048c82b703e0764213eac7cfca2ef35c3d7ebd1c
+  RNEntrustIDVDeviceSecurity: 0105531e9e56d85c23b6f37e161ef37f1b430348
+  RNEntrustIDVDocument: 8b3c979785b336fc1590f34bbe3de58e46d01625
+  RNEntrustIDVWelcome: 616eeb7c8969ca8061fb7cad7467ed240fc188bc
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
   RNFBApp: db9c2e6d36fe579ab19b82c0a4a417ff7569db7e
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
@@ -4184,7 +4217,7 @@ SPEC CHECKSUMS:
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
-  RNPermissions: 5938a67cf02a23f8a7f69c170608ab481b81713d
+  RNPermissions: 7a6c0f09f802726179fb3f813bd41d511a073d51
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: e75c988a6527ec651ea2957b93891ddb64d530d4
   RNScreens: 433b8c24dd1dfeaa3b61f72d55052cb64fd19c5f
@@ -4205,6 +4238,6 @@ SPEC CHECKSUMS:
   VisionCamera: c0e2c308592613de270de5f6e722b53d04a26f0d
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
 
-PODFILE CHECKSUM: 22066e0768760f4bad500b497f3d1576110fd025
+PODFILE CHECKSUM: bf1715110bfe988b37530631930cd3d56b3618c7
 
 COCOAPODS: 1.16.2

@@ -137,7 +137,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         val manager = this.getSystemService(ACTIVITY_SERVICE) as ActivityManager
 
         return manager.runningAppProcesses.any {
-            it.pid == pid && it.processName.endsWith(":onfido_process")
+            it.pid == pid && it.processName.endsWith(":entrust_idv_process")
         }
     }
 }
