@@ -82,6 +82,48 @@ If the value re-runs an effect, directly or through a callback in a dependency a
 
 `rulesdir/no-unsafe-onyx-read` enforces where a read may run, that it sits inside a component or hook in those directories, and that `Onyx.get` and `Onyx.multiGet` are called directly. It cannot be disabled inline in any linted file outside `tests/`. `rulesdir/no-onyx-get-snapshot-key` enforces which keys `Onyx.get()` may read. It can be disabled only with a reason after `--`. Reviewers check the rest with [ONYX-1](../../.claude/skills/app-coding-standards/rules/onyx-1-no-render-reachable-onyx-read.md), which has examples.
 
+## Choosing between `useOnyx` and `useOnyxState`
+Use `useOnyx` (from `@hooks/useOnyx`) to read a single key. Use `useOnyxState` (from `@hooks/useOnyxState`) when a component needs a small result derived from multiple keys. Reviewers check this with [ONYX-2](../../.claude/skills/app-coding-standards/rules/onyx-2-use-onyx-vs-use-onyx-state.md).
+
+`useOnyxState` runs one selector over a read-only view of the store, records which keys it read, and re-renders only when the output changes. The output is compared by reference first and then with deep equality; pass `selectorEquality` to compare it another way. Reading `report_1` subscribes to that member only, while reading the `report_` root subscribes to every member.
+
+Inside a `SearchScopeProvider`, a read of a key in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` comes from the current Search snapshot instead, so the selector depends on the whole snapshot and re-runs on every write to it, whichever member it read.
+
+### - Single-key reads MUST use `useOnyx`
+A selector over one key is what `useOnyx` already does, and its `selector` option narrows the value the same way. `useOnyxState` adds a dependency recorder and a store proxy for no gain, and drops the loading status `useOnyx` returns.
+
+```typescript
+const [policyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => policy?.name});
+```
+
+### - Small results derived from multiple keys SHOULD use `useOnyxState`
+Reading each key with its own `useOnyx` and combining them during render re-renders the component when any field of any of those records changes, even if the derived value does not. One `useOnyxState` selector reads all of them and re-renders only when the result changes.
+
+```typescript
+import {isPolicyAdmin} from '@libs/ReportUtils';
+
+// BAD: re-renders on every change to the report or the policy, even though only one boolean is used.
+const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+const isReportPolicyAdmin = isPolicyAdmin(policy);
+
+// GOOD: one listener on the report and its policy, re-renders only when the boolean flips.
+const isReportPolicyAdmin = useOnyxState((state) => {
+    const report = state[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return isPolicyAdmin(state[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
+});
+```
+
+Keep `useOnyx` when the component needs to know whether the data has loaded. `useOnyxState` has no loading status, so before the store loads, its selector runs on empty data and `false` above means both "not admin" and "not loaded yet".
+
+### - Every Onyx value a selector uses MUST come from `state`
+`useOnyxState` subscribes only to the keys read through `state`. A helper that reads Onyx on its own, through a module-level `Onyx.connectWithoutView` variable such as `allPolicies`, is invisible to it, so the result stays cached after that data changes. Pass the values in from `state`, or use a helper that takes them as parameters.
+
+### - `useOnyxState` selectors SHOULD return small values and read member keys
+Return a scalar, an ID, an array of IDs, or a flat object of primitives. Returning whole records re-renders the component whenever any field of them changes, the same as subscribing to them with `useOnyx`. Read the records the component renders with `useOnyx`, and keep `useOnyxState` for the value that decides which ones.
+
+Build member keys from IDs you already have instead of reading a collection root and filtering it. Reading `state[ONYXKEYS.COLLECTION.TRANSACTION]` subscribes to every transaction and re-runs the scan on every transaction write, in every mounted instance.
+
 ## Onyx Derived Values
 
 Derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
