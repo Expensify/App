@@ -581,7 +581,8 @@ function requestDomainAdminship(domainAccountID: number, currentUserAccountID: n
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: domainErrorsKey,
-            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.requestAccessError')},
+            // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.requestAccessError', 0)},
         },
     ];
 
