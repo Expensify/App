@@ -31,6 +31,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -73,7 +74,7 @@ const VendorsListStack = createPlatformStackNavigator<WorkspaceSplitNavigatorPar
 const VendorDetailsStack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 function buildQBOPolicy(defaultVendorID?: string): Policy {
-    return {
+    return createMock<Policy>({
         ...LHNTestUtils.getFakePolicy(POLICY_ID),
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.CORPORATE,
@@ -89,11 +90,11 @@ function buildQBOPolicy(defaultVendorID?: string): Policy {
                 },
             },
         },
-    };
+    });
 }
 
 function buildIntacctPolicy(defaultVendorID?: string): Policy {
-    return {
+    return createMock<Policy>({
         ...LHNTestUtils.getFakePolicy(POLICY_ID),
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.CORPORATE,
@@ -111,11 +112,11 @@ function buildIntacctPolicy(defaultVendorID?: string): Policy {
                 },
             },
         },
-    };
+    });
 }
 
 function buildXeroPolicy(defaultVendorID?: string): Policy {
-    return {
+    return createMock<Policy>({
         ...LHNTestUtils.getFakePolicy(POLICY_ID),
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.CORPORATE,
@@ -131,7 +132,7 @@ function buildXeroPolicy(defaultVendorID?: string): Policy {
                 },
             },
         },
-    };
+    });
 }
 
 async function renderVendorsPage(policy: Policy, policyVendors: PolicyVendors) {
@@ -149,9 +150,15 @@ async function renderVendorsPage(policy: Policy, policyVendors: PolicyVendors) {
                             <VendorsListStack.Navigator initialRouteName={SCREENS.WORKSPACE.VENDORS}>
                                 <VendorsListStack.Screen
                                     name={SCREENS.WORKSPACE.VENDORS}
-                                    component={WorkspaceVendorsPage}
                                     initialParams={{policyID: POLICY_ID}}
-                                />
+                                >
+                                    {(props) => (
+                                        <WorkspaceVendorsPage
+                                            {...props}
+                                            isConnectionDataFetchNeeded={false}
+                                        />
+                                    )}
+                                </VendorsListStack.Screen>
                             </VendorsListStack.Navigator>
                         </NavigationContainer>
                     </ModalProvider>

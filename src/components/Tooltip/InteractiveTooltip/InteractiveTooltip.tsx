@@ -266,4 +266,3 @@ const InteractiveTooltip = {
 };
 
 export default InteractiveTooltip;
-export type {InteractiveTooltipContentProps, InteractiveTooltipRootProps, InteractiveTooltipTriggerProps};

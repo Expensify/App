@@ -55,4 +55,4 @@ function useInteractiveTooltipActions(): InteractiveTooltipActionsContextValue {
 }
 
 export {InteractiveTooltipStateContext, InteractiveTooltipActionsContext, useInteractiveTooltipState, useInteractiveTooltipActions};
-export type {InteractiveTooltipStateContextValue, InteractiveTooltipActionsContextValue};
+export type {InteractiveTooltipActionsContextValue};
