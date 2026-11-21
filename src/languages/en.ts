@@ -8334,6 +8334,9 @@ const translations = {
             disableVendor: 'Disable vendor',
             disableVendors: 'Disable vendors',
             updateFailureMessage: 'An error occurred while updating the vendor, please try again',
+            externalID: 'External ID',
+            defaultVendorTooltipPrefix: 'To disable this vendor, change your',
+            accountingExportSettings: 'accounting export settings',
         },
         tags: {
             tagName: 'Tag name',

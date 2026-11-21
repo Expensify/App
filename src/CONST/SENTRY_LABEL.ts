@@ -2096,6 +2096,8 @@ const SENTRY_LABEL = {
             },
             ROW: 'WorkspaceVendors-Row',
             BULK_ACTIONS_DROPDOWN: 'WorkspaceVendors-BulkActionsDropdown',
+            DETAILS_ENABLE_SWITCH: 'WorkspaceVendors-DetailsEnableSwitch',
+            DETAILS_ACCOUNTING_EXPORT_SETTINGS_LINK: 'WorkspaceVendors-DetailsAccountingExportSettingsLink',
         },
         DISTANCE_RATES: {
             ROW: 'WorkspaceDistanceRates-Row',

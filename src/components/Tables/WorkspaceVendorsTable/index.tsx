@@ -1,11 +1,8 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import Switch from '@components/Switch';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
-import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -13,25 +10,17 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
-import {View} from 'react-native';
 
-type WorkspaceVendorTableColumnKey = 'name' | 'enabled';
+import type {WorkspaceVendorTableRowData} from './WorkspaceVendorsTableRow';
 
-type WorkspaceVendorTableRowData = TableData & {
-    name: string;
-    enabled: boolean;
-    isLocked: boolean;
-    errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
-    onToggleEnabled: (enabled: boolean) => void;
-    dismissError: () => void;
-};
+import WorkspaceVendorsTableRow from './WorkspaceVendorsTableRow';
+
+type WorkspaceVendorTableColumnKey = 'name' | 'enabled' | 'actions';
 
 type WorkspaceVendorsTableProps = {
     /** Vendor rows to render */
@@ -54,7 +43,6 @@ type WorkspaceVendorsTableProps = {
 };
 
 function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceVendorsTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<WorkspaceVendorTableColumnKey, WorkspaceVendorTableRowData>> = [
@@ -75,6 +63,12 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                 alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceVendorTableRowData> = (item1, item2, activeSorting) => {
@@ -92,42 +86,12 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
         return results.length > 0;
     };
 
-    const renderVendorItem = ({item, index}: ListRenderItemInfo<WorkspaceVendorTableRowData>) => {
-        const accessibilityLabel = [item.name, item.enabled ? translate('common.enabled') : translate('common.disabled')].filter(Boolean).join(', ');
-
-        return (
-            <Table.Row
-                interactive={selectionEnabled}
-                accessibilityLabel={accessibilityLabel}
-                rowIndex={index}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW}
-                disabled={item.disabled}
-                offlineWithFeedback={{
-                    errors: item.errors,
-                    pendingAction: item.pendingAction,
-                    onClose: item.dismissError,
-                }}
-            >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                    <TextWithTooltip
-                        shouldShowTooltip
-                        numberOfLines={1}
-                        text={item.name}
-                    />
-                </View>
-                <View style={[styles.justifyContentCenter, styles.alignItemsEnd]}>
-                    <Switch
-                        isOn={item.enabled}
-                        showLockIcon={item.isLocked}
-                        disabled={item.disabled}
-                        accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
-                        onToggle={item.onToggleEnabled}
-                    />
-                </View>
-            </Table.Row>
-        );
-    };
+    const renderVendorItem = ({item, index}: ListRenderItemInfo<WorkspaceVendorTableRowData>) => (
+        <WorkspaceVendorsTableRow
+            item={item}
+            rowIndex={index}
+        />
+    );
 
     const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.vendors.findVendor')} />);
 

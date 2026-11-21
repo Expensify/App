@@ -7,7 +7,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getQuickbooksOnlineIntegrationName} from '@libs/AccountingUtils';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyVendor} from '@src/types/onyx';
 import type {ConnectionName, Vendor} from '@src/types/onyx/Policy';
 import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 
@@ -634,6 +634,24 @@ function getXeroSupplierByID(policy: OnyxEntry<Policy>, supplierID: string | und
     return contact ? {id: contact.id, name: contact.name, currency: '', email: contact.email} : undefined;
 }
 
+/**
+ * Whether a normalized vendor entry matches the workspace's configured default vendor ID.
+ */
+function isDefaultVendor(vendorKey: string, externalID: string | undefined, defaultVendorID: string | undefined): boolean {
+    if (!defaultVendorID) {
+        return false;
+    }
+    return vendorKey === defaultVendorID || (!!externalID && externalID === defaultVendorID);
+}
+
+/**
+ * Whether a vendor entry's identifying fields are read-only.
+ * Imported vendors are owned by the accounting sync, so every entry stays read-only until manually created vendors can opt into editing.
+ */
+function isVendorReadOnly(vendor: PolicyVendor | undefined): boolean {
+    return !!vendor;
+}
+
 export {
     findVendorByID,
     getVendorDisplayName,
@@ -641,6 +659,8 @@ export {
     getMatchingVendorByID,
     getMatchingVendors,
     getDefaultVendorID,
+    isDefaultVendor,
+    isVendorReadOnly,
     sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,

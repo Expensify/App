@@ -7722,6 +7722,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             disableVendor: 'Désactiver le fournisseur',
             disableVendors: 'Désactiver les fournisseurs',
             updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour du fournisseur, veuillez réessayer',
+            externalID: 'ID externe',
+            defaultVendorTooltipPrefix: 'Pour désactiver ce fournisseur, modifiez vos',
+            accountingExportSettings: 'paramètres d’export comptable',
         },
         tags: {
             tagName: 'Nom du tag',

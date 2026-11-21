@@ -28,7 +28,7 @@ import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveVendorMatchingIntegration, getDefaultVendorID, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
+import {getActiveVendorMatchingIntegration, getDefaultVendorID, hasVendorFeature, isDefaultVendor as isDefaultVendorUtil, sortVendors} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -36,6 +36,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyVendors} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -210,21 +211,25 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         });
     };
 
-    const sortedVendors = sortVendors(Object.values(policyVendors ?? {}), localeCompare);
+    const sortedVendors = sortVendors(
+        Object.entries(policyVendors ?? {}).map(([vendorKey, vendor]) => ({...vendor, vendorKey})),
+        localeCompare,
+    );
 
     const vendorRows: WorkspaceVendorTableRowData[] = sortedVendors.map((vendor) => {
-        const isDefaultVendor = vendor.externalID === defaultVendorID;
+        const isDefaultVendor = isDefaultVendorUtil(vendor.vendorKey, vendor.externalID, defaultVendorID ? `${defaultVendorID}` : undefined);
         const isLocked = (vendor.enabled && isDefaultVendor) || !canWriteVendors;
 
         return {
-            keyForList: vendor.externalID,
+            keyForList: vendor.vendorKey,
             name: vendor.name,
             enabled: vendor.enabled,
             isLocked,
             errors: vendor.errors ?? undefined,
             pendingAction: vendor.pendingAction,
-            onToggleEnabled: (enabled: boolean) => handleVendorToggle(enabled, vendor.externalID),
-            dismissError: () => clearVendorErrors(policyID, vendor.externalID),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_VENDOR_DETAILS.getRoute(policyID, vendor.vendorKey)),
+            onToggleEnabled: (enabled: boolean) => handleVendorToggle(enabled, vendor.vendorKey),
+            dismissError: () => clearVendorErrors(policyID, vendor.vendorKey),
         };
     });
 

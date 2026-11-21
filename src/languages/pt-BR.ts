@@ -7652,6 +7652,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             disableVendor: 'Desativar fornecedor',
             disableVendors: 'Desativar fornecedores',
             updateFailureMessage: 'Ocorreu um erro ao atualizar o fornecedor, tente novamente por favor',
+            externalID: 'ID externo',
+            defaultVendorTooltipPrefix: 'Para desativar este fornecedor, altere suas',
+            accountingExportSettings: 'configurações de exportação contábil',
         },
         tags: {
             tagName: 'Nome da tag',

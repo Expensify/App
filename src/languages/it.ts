@@ -7654,6 +7654,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             disableVendor: 'Disabilita fornitore',
             disableVendors: 'Disattiva fornitori',
             updateFailureMessage: "Si è verificato un errore durante l'aggiornamento del fornitore, riprova per favore",
+            externalID: 'ID esterno',
+            defaultVendorTooltipPrefix: 'Per disabilitare questo fornitore, modifica le tue',
+            accountingExportSettings: 'impostazioni di esportazione contabile',
         },
         tags: {
             tagName: 'Nome tag',
