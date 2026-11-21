@@ -8,7 +8,7 @@ import updateUnread, {setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdate
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect} from 'react';
+import {useDeferredValue, useEffect} from 'react';
 
 /** Keeps the tab title and app badge unread count in sync. Renders nothing. */
 function UnreadIndicatorUpdater() {
@@ -21,16 +21,22 @@ function UnreadIndicatorUpdater() {
     const {currentReportID} = useCurrentReportIDState();
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`);
 
-    // React Compiler caches this on its inputs, so it only reruns when one of them changes
-    const unreadReports = UnreadIndicatorUtils.getUnreadReportsForUnreadIndicator(reports, currentReportID, draftComment, {
-        reportNameValuePairs,
-        reportActions,
-        reportAttributes,
+    // The count only feeds an effect, so the scan over all reports runs in a deferred low priority render and
+    // doesn't compete with the render that shows a just-sent message. React Compiler caches the scan on its inputs.
+    const deferredReports = useDeferredValue(reports);
+    const deferredReportNameValuePairs = useDeferredValue(reportNameValuePairs);
+    const deferredReportActions = useDeferredValue(reportActions);
+    const deferredReportAttributes = useDeferredValue(reportAttributes);
+    const deferredCurrentReportID = useDeferredValue(currentReportID);
+    const deferredDraftComment = useDeferredValue(draftComment);
+    const unreadReportIDs = UnreadIndicatorUtils.getUnreadReportIDsForUnreadIndicator(deferredReports, deferredCurrentReportID, deferredDraftComment, {
+        reportNameValuePairs: deferredReportNameValuePairs,
+        reportActions: deferredReportActions,
+        reportAttributes: deferredReportAttributes,
         currentUserLogin: session?.email,
         currentUserAccountID: session?.accountID,
         conciergeReportID,
     });
-    const unreadReportIDs = unreadReports.map((report) => report?.reportID).filter((reportID): reportID is string => !!reportID);
 
     useEffect(() => {
         const publish = () => updateUnread(unreadReportIDs.length, unreadReportIDs);

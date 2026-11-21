@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useRoute} from '@react-navigation/native';
+import {getStableReportSelector} from '@selectors/Report';
 import React from 'react';
 
 import type ReportScreenNavigationProps from './types';
@@ -19,7 +20,8 @@ import ReportActionsLoadingSkeleton from './report/ReportActionsLoadingSkeleton'
 function ReportActions() {
     const route = useRoute<ReportScreenNavigationProps['route']>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    // Stable projection: this component and ChatReportActions do not use the `last*` heartbeat fields, which change on every send. Components that need them subscribe themselves
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
 
     if (!report) {
         return (

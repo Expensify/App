@@ -720,6 +720,13 @@ function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportA
     );
 }
 
+/** Shared result for an empty action list, so callers that rerender often (chats never collapse anything) keep one identity instead of getting fresh Maps each call. Read only. */
+const EMPTY_SYSTEM_MESSAGE_DISPLAY_STATE: SystemMessageDisplayState = {
+    displayReportActions: [],
+    runsByAnchorReportActionID: new Map(),
+    reportActionIDToDisplayIndex: new Map(),
+};
+
 /**
  * Creates a displayed report-action list while retaining a lookup from every canonical action to its rendered row.
  * A run stays expanded when pagination extends it as long as any prior member ID remains in expandedReportActionIDs.
@@ -729,6 +736,10 @@ function getSystemMessageDisplayState(
     expandedReportActionIDs: ReadonlySet<string>,
     forceExpandedReportActionIDs: readonly string[] = [],
 ): SystemMessageDisplayState {
+    if (reportActions.length === 0) {
+        return EMPTY_SYSTEM_MESSAGE_DISPLAY_STATE;
+    }
+
     const displayReportActions: ReportAction[] = [];
     const runsByAnchorReportActionID = new Map<string, SystemMessageRun>();
     const reportActionIDToDisplayIndex = new Map<string, number>();
