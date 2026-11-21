@@ -565,10 +565,6 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-/**
- * Keys a personal details list by login, the way PersonalDetailsByLoginProvider does, so a test can pass
- * the same personal details as both `personalDetails` and `personalDetailsByLogins`.
- */
 function getPersonalDetailsByLogins(personalDetailsList: PersonalDetailsList): PersonalDetailsByLogin {
     const personalDetailsByLogins: PersonalDetailsByLogin = {};
     for (const personalDetails of Object.values(personalDetailsList)) {
