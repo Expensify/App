@@ -7849,7 +7849,7 @@ describe('PolicyUtils', () => {
         describe('NetSuite vendor matching', () => {
             const NETSUITE_VENDORS_UNSYNCED = Symbol('NETSUITE_VENDORS_UNSYNCED');
             const buildNetSuitePolicy = (
-                nonreimbursableExpensesExportDestination: string | undefined,
+                nonreimbursableExpensesExportDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION> | undefined,
                 vendors: Array<{id: string; name: string; email?: string}> | typeof NETSUITE_VENDORS_UNSYNCED = [{id: 'ns-1', name: 'Acme NetSuite', email: 'ap@acme.test'}],
                 {
                     authType = CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2,
