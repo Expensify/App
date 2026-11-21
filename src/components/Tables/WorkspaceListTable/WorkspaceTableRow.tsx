@@ -6,7 +6,6 @@ import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 
@@ -21,35 +20,24 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {WorkspaceRowData} from '.';
 
 import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
-import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
     item: WorkspaceRowData;
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
-
-    /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
-    onDeleteWorkspace: (policyID: string) => void;
-
-    /** Called when the user picks Archive in the row menu, so the page can mount the archive flow */
-    onArchiveWorkspace: (policyID: string) => void;
-
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'Hourglass']);
-    const threeDotsMenuRef = useRef<ThreeDotsMenuHandle>(null);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -97,18 +85,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         </Tooltip>
     );
 
-    const ThreeDotsMenuWithBrickRoadIndicator = (
-        <View style={[styles.flexRow, styles.gap1]}>
-            {item.role === CONST.POLICY.ROLE.ADMIN && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />}
-            <WorkspaceRowThreeDotsMenu
-                item={item}
-                onDeleteWorkspace={onDeleteWorkspace}
-                onArchiveWorkspace={onArchiveWorkspace}
-                pendingDeletePolicyID={pendingDeletePolicyID}
-                threeDotsMenuRef={threeDotsMenuRef}
-            />
-        </View>
-    );
+    const brickRoadIndicator = item.role === CONST.POLICY.ROLE.ADMIN && !item.isJoinRequestPending && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />;
 
     return (
         <Table.Row
@@ -118,9 +95,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
             onPress={item.action}
-            // On web, FlashList applies a new row width only after the window resize has re-rendered the menu,
-            // so the menu re-measures its anchor once the row has its new size.
-            onWrapperLayout={() => threeDotsMenuRef.current?.updateMenuPosition?.()}
             offlineWithFeedback={{
                 errors: item.errors,
                 shouldHideOnDelete: false,
@@ -159,7 +133,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </View>
                             </View>
 
-                            {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
+                            {brickRoadIndicator}
 
                             <Icon
                                 src={icons.ArrowRight}
@@ -226,7 +200,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}
                                 {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                             >
-                                {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
+                                {brickRoadIndicator}
 
                                 <Icon
                                     src={icons.ArrowRight}

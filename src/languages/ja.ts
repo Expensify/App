@@ -468,8 +468,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `このワークスペースを退出すると、優先エクスポーターとしてあなたの代わりにワークスペースのオーナーである${workspaceOwner}が設定されます。`,
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `このワークスペースを退出すると、あなたに代わってワークスペースのオーナーである${workspaceOwner}が技術連絡先になります。`,
-        leaveWorkspaceReimburser:
-            '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
+        leaveWorkspaceReimburser: '支払担当者のため、このワークスペースから退出することはできません。［ワークフロー］＞［支払い］で新しい支払担当者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
         nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
@@ -577,6 +576,15 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        archive: 'アーカイブ',
+        leaveWorkspacesConfirmation: 'これらのワークスペースを退出すると、',
+        leaveWorkspacesConsequenceMember: 'この相手には経費を送信できません',
+        leaveWorkspacesConsequenceAuditor: '相手のレポートや設定を表示することはできません',
+        leaveWorkspacesConsequenceAdmin: 'そのユーザーの設定を管理することはできません',
+        leaveWorkspacesConsequenceApprover: 'ワークスペースのオーナーが承認ワークフローであなたの代わりになります',
+        leaveWorkspacesConsequenceExporter: 'ワークスペースのオーナーが、優先エクスポーターとしてあなたに代わります',
+        leaveWorkspacesConsequenceTechContact: 'ワークスペースのオーナーが、技術連絡先としてあなたに代わります',
+        leaveWorkspacesFailed: '自分が所有者または支払者として設定されているワークスペースは退出できません。これらを確認してから、もう一度お試しください。',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} 日`,
             other: (count: number) => `${formattedCount ?? count} 日`,
@@ -5411,7 +5419,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             archive: 'ワークスペースをアーカイブ',
             archiveConfirmation: 'このワークスペースをアーカイブしてもよろしいですか？',
             archiveWithThirdPartyCardsConfirmation:
-                'このワークスペースをアーカイブしてもよろしいですか？ すべてのクレジットカードのユーザーへの割り当てが解除され、未申請のカード経費は完全に削除されます。',
+                'このワークスペースをアーカイブしてもよろしいですか？メンバーに割り当てられているすべてのクレジットカードが解除され、未提出のカード経費は完全に削除されます。',
             archiveWithExpensifyCardsConfirmation:
                 'このワークスペースをアーカイブしてもよろしいですか？ すべての Expensify カードの利用限度額が $0 に設定され、新しい購入はすべて自動的に拒否されます。',
             unarchive: 'アーカイブ解除',
@@ -5544,6 +5552,36 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roleSelectorDescription: `メンバーのワークスペース権限を管理するロールを割り当ててください。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">ワークスペースロールを比較</a>。`,
             roleSelectorFeedback: '必要なロールが見つかりませんか？',
             roleSelectorFeedbackLink: 'お知らせください',
+            archiveWorkspacesConfirmation: 'これらのワークスペースをアーカイブしてもよろしいですか？',
+            archiveWorkspacesConfirmationWithConsequences: 'これらのワークスペースをアーカイブしてもよろしいですか？この操作により、次のことが行われます。',
+            archiveConsequenceExpensifyCardLimits: 'すべての Expensify カードの上限額を $0 に設定します',
+            archiveConsequenceDeclinePurchases: '新しい購入の試行は自動的に拒否します',
+            archiveConsequenceUnassignCards: 'メンバーからすべてのクレジットカードの割り当てを解除します',
+            archiveConsequenceDeleteCardExpenses: '未提出のカード経費をすべて完全に削除します',
+            setAsDefaultShort: 'デフォルトに設定',
+            exportMembers: 'メンバーをエクスポート',
+            archiveWorkspacesTitle: () => ({
+                one: '1件のワークスペースをアーカイブしますか?',
+                other: (count: number) => `${count} 件のワークスペースをアーカイブしますか？`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: 'ワークスペースを1つ退出しますか？',
+                other: (count: number) => `${count} 件のワークスペースから退出しますか？`,
+            }),
+            transferOwnerWorkspacesTitle: () => ({
+                one: '1つのワークスペースのオーナーを移譲しますか？',
+                other: (count: number) => `${count} 件のワークスペースのオーナーを譲渡しますか？`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `${total}件のワークスペースのうち${count}件を退出しました`,
+            archivedWorkspacesTitle: (count: number, total: number) => `${total}件のワークスペースのうち${count}件をアーカイブしました`,
+            archiveWorkspacesFailed: '自分が所有していないワークスペースや、すでにアーカイブされているワークスペースはアーカイブできません。内容を確認してから、もう一度お試しください。',
+            transferredOwnerWorkspacesTitle: (count: number, total: number) => `${total}件のワークスペースのうち${count}件のオーナーを譲渡しました`,
+            transferOwnerWorkspacesFailed:
+                'すでに所有している、または管理者ではないワークスペースは移行できません。また、一部のワークスペースは事前に追加の手順が必要です。移行するワークスペースは、1回につき1つずつ選択してください。',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `${total} ワークスペース中 ${count} 件のメンバーをエクスポートしました`,
+            exportMembersFailed:
+                'アーカイブされたワークスペース、またはメンバーを管理できないワークスペースのメンバーはエクスポートできません。これらを確認してから、もう一度お試しください。',
+            bulkTransferOwnerNoneEligible: '選択されたワークスペースは一緒に移管できません。移管するワークスペースを1つずつ選択してください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',

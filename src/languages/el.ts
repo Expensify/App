@@ -469,8 +469,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, θα αντικατασταθείτε ως προτιμώμενος εξαγωγέας από τον/την ${workspaceOwner}, τον/την κάτοχο του χώρου εργασίας.`,
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Αν αποχωρήσετε από αυτόν τον χώρο εργασίας, θα αντικατασταθείτε ως τεχνική επαφή από τον/την ${workspaceOwner}, τον/την ιδιοκτήτη/ιδιοκτήτρια του χώρου εργασίας.`,
-        leaveWorkspaceReimburser:
-            'Δεν μπορείτε να αποχωρήσετε από αυτόν τον χώρο εργασίας ως αυτός που πραγματοποιεί τις επιστροφές χρημάτων. Ορίστε νέο υπεύθυνο επιστροφών στο Χώροι εργασίας > Πραγματοποίηση ή παρακολούθηση πληρωμών και δοκιμάστε ξανά.',
+        leaveWorkspaceReimburser: 'Δεν μπορείτε να αποχωρήσετε από αυτόν τον χώρο εργασίας ως πληρωτής. Ορίστε έναν νέο πληρωτή στο Ροές εργασιών > Πληρωμές και δοκιμάστε ξανά.',
         reimbursable: 'Επανεντάξιμο',
         nonReimbursable: 'Μη επιστρέψιμο',
         editYourProfile: 'Επεξεργαστείτε το προφίλ σας',
@@ -575,6 +574,16 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
         shareReport: 'Κοινοποιήστε την αναφορά',
         reportShared: 'Η αναφορά κοινοποιήθηκε',
+        archive: 'Αρχειοθέτηση',
+        leaveWorkspacesConfirmation: 'Αν αποχωρήσετε από αυτούς τους χώρους εργασίας:',
+        leaveWorkspacesConsequenceMember: 'Δεν θα μπορείτε να τους υποβάλλετε έξοδα',
+        leaveWorkspacesConsequenceAuditor: 'Δεν θα μπορείτε να βλέπετε τις αναφορές και τις ρυθμίσεις τους',
+        leaveWorkspacesConsequenceAdmin: 'Δεν θα μπορείτε να διαχειρίζεστε τις ρυθμίσεις τους',
+        leaveWorkspacesConsequenceApprover: 'Ο κάτοχος του χώρου εργασίας θα σας αντικαταστήσει στη ροή έγκρισης',
+        leaveWorkspacesConsequenceExporter: 'Ο κάτοχος του χώρου εργασίας θα σας αντικαταστήσει ως προτιμώμενο εξαγωγέα',
+        leaveWorkspacesConsequenceTechContact: 'Ο κάτοχος του χώρου εργασίας θα σας αντικαταστήσει ως τεχνική επαφή',
+        leaveWorkspacesFailed:
+            'Δεν μπορείτε να αποχωρήσετε από χώρους εργασίας που ανήκουν σε εσάς ή στους οποίους είστε ο ορισμένος πληρωτής. Ελέγξτε αυτούς τους χώρους εργασίας και δοκιμάστε ξανά.',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} ημέρα`,
             other: (count: number) => `${formattedCount ?? count} ημέρες`,
@@ -5565,7 +5574,7 @@ ${amount} για ${merchant} - ${date}`,
             archive: 'Αρχειοθέτηση χώρου εργασίας',
             archiveConfirmation: 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας;',
             archiveWithThirdPartyCardsConfirmation:
-                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Θα καταργηθεί η ανάθεση όλων των πιστωτικών καρτών από τους χρήστες και θα διαγραφούν οριστικά όσες δαπάνες καρτών δεν έχουν υποβληθεί.',
+                'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Αυτή η ενέργεια θα αποδεσμεύσει όλες τις πιστωτικές κάρτες από τα μέλη και θα διαγράψει οριστικά όλες τις μη υποβληθείσες δαπάνες κάρτας.',
             archiveWithExpensifyCardsConfirmation:
                 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτόν τον χώρο εργασίας; Όλα τα όρια των Expensify Card θα οριστούν σε $0 και κάθε νέα απόπειρα αγοράς θα απορρίπτεται αυτόματα.',
             unarchive: 'Αναίρεση αρχειοθέτησης',
@@ -5705,6 +5714,37 @@ ${amount} για ${merchant} - ${date}`,
             roleSelectorDescription: `Αναθέστε έναν ρόλο για τη διαχείριση των δικαιωμάτων χώρου εργασίας ενός μέλους. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Συγκρίνετε ρόλους χώρου εργασίας</a>.`,
             roleSelectorFeedback: 'Δεν βλέπετε τον ρόλο που χρειάζεστε;',
             roleSelectorFeedbackLink: 'Ενημερώστε μας',
+            archiveWorkspacesConfirmation: 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτούς τους χώρους εργασίας;',
+            archiveWorkspacesConfirmationWithConsequences: 'Είστε βέβαιοι ότι θέλετε να αρχειοθετήσετε αυτούς τους χώρους εργασίας; Αυτό θα:',
+            archiveConsequenceExpensifyCardLimits: 'Ορίστε όλα τα όρια της Κάρτας Expensify σε $0',
+            archiveConsequenceDeclinePurchases: 'Απορρίπτετε αυτόματα κάθε νέα προσπάθεια αγοράς',
+            archiveConsequenceUnassignCards: 'Αφαίρεση ανάθεσης όλων των πιστωτικών καρτών από τα μέλη',
+            archiveConsequenceDeleteCardExpenses: 'Μόνιμη διαγραφή όλων των μη υποβληθέντων δαπανών κάρτας',
+            setAsDefaultShort: 'Ορισμός ως προεπιλογή',
+            exportMembers: 'Εξαγωγή μελών',
+            archiveWorkspacesTitle: () => ({
+                one: 'Αρχειοθέτηση 1 χώρου εργασίας;',
+                other: (count: number) => `Αρχειοθέτηση ${count} χώρων εργασίας;`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: 'Να αποχωρήσετε από 1 χώρο εργασίας;',
+                other: (count: number) => `Αποχώρηση από ${count} χώρους εργασίας;`,
+            }),
+            transferOwnerWorkspacesTitle: () => ({
+                one: 'Να μεταβιβαστεί η κυριότητα 1 χώρου εργασίας;',
+                other: (count: number) => `Μεταβίβαση ιδιοκτήτη σε ${count} χώρους εργασίας;`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `Αποχωρήσατε από ${count} από τους ${total} χώρους εργασίας`,
+            archivedWorkspacesTitle: (count: number, total: number) => `Αρχειοθετήθηκαν ${count} από ${total} χώρους εργασίας`,
+            archiveWorkspacesFailed: 'Δεν μπορείτε να αρχειοθετήσετε χώρους εργασίας που δεν σας ανήκουν ή που είναι ήδη αρχειοθετημένοι. Ελέγξτε τους και προσπαθήστε ξανά.',
+            transferredOwnerWorkspacesTitle: (count: number, total: number) => `Μεταφέρθηκε ο κάτοχος σε ${count} από ${total} χώρους εργασίας`,
+            transferOwnerWorkspacesFailed:
+                'Δεν μπορείτε να μεταφέρετε χώρους εργασίας που ήδη σας ανήκουν ή στους οποίους δεν είστε διαχειριστής, και για ορισμένους απαιτούνται πρώτα επιπλέον βήματα. Επιλέξτε έναν χώρο εργασίας κάθε φορά για να τον μεταφέρετε.',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `Εξήχθησαν μέλη από ${count} από συνολικά ${total} χώρους εργασίας`,
+            exportMembersFailed:
+                'Δεν μπορείτε να εξαγάγετε μέλη από αρχειοθετημένους χώρους εργασίας ή από χώρους εργασίας στους οποίους δεν μπορείτε να διαχειριστείτε μέλη. Παρακαλούμε ελέγξτε τα και δοκιμάστε ξανά.',
+            bulkTransferOwnerNoneEligible:
+                'Κανένας από τους επιλεγμένους χώρους εργασίας δεν μπορεί να μεταφερθεί μαζί με άλλους. Επιλέξτε έναν χώρο εργασίας κάθε φορά για να τον μεταφέρετε.',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',

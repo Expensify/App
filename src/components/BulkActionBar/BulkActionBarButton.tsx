@@ -74,6 +74,7 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                 }}
                 size={CONST.BUTTON_SIZE.SMALL}
                 isDisabled={option.disabled}
+                isLoading={option.shouldShowLoadingSpinnerIcon}
                 accessibilityLabel={option.text}
                 accessibilityState={hasSubMenu ? {expanded: isMenuVisible} : undefined}
                 accessibilityHasPopup={hasSubMenu ? CONST.ROLE.MENU : undefined}

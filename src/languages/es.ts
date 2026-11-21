@@ -458,8 +458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Si dejas este espacio de trabajo, serás reemplazado como el contacto técnico por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        leaveWorkspaceReimburser:
-            'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
+        leaveWorkspaceReimburser: 'No puedes salir de este espacio de trabajo siendo el pagador. Establece un nuevo pagador en Flujos de trabajo > Pagos y vuelve a intentarlo.',
         reimbursable: 'Reembolsable',
         nonReimbursable: 'No reembolsable',
         editYourProfile: 'Edita tu perfil',
@@ -562,6 +561,15 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporta a',
         shareReport: 'Compartir informe',
         reportShared: 'Informe compartido',
+        archive: 'Archivar',
+        leaveWorkspacesConfirmation: 'Si abandonas estos espacios de trabajo:',
+        leaveWorkspacesConsequenceMember: 'No podrás enviarles gastos',
+        leaveWorkspacesConsequenceAuditor: 'No podrás ver sus informes ni su configuración',
+        leaveWorkspacesConsequenceAdmin: 'No podrás gestionar su configuración',
+        leaveWorkspacesConsequenceApprover: 'La persona propietaria del espacio de trabajo te sustituirá en el flujo de aprobación',
+        leaveWorkspacesConsequenceExporter: 'El propietario del espacio de trabajo te sustituirá como exportador preferido',
+        leaveWorkspacesConsequenceTechContact: 'La persona propietaria del espacio de trabajo te sustituirá como contacto técnico',
+        leaveWorkspacesFailed: 'No puedes salir de los espacios de trabajo que posees o en los que estás configurado como pagador. Revisa estos y vuelve a intentarlo.',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} día`,
             other: (count: number) => `${formattedCount ?? count} días`,
@@ -5479,7 +5487,7 @@ ${amount} para ${merchant} - ${date}`,
             archive: 'Archivar espacio de trabajo',
             archiveConfirmation: '¿Estás seguro de que quieres archivar este espacio de trabajo?',
             archiveWithThirdPartyCardsConfirmation:
-                '¿Estás seguro de que quieres archivar este espacio de trabajo? Se desasignarán todas las tarjetas de crédito de los usuarios y se eliminarán permanentemente los gastos de tarjeta no enviados.',
+                '¿Seguro que quieres archivar este espacio de trabajo? Esto desasignará todas las tarjetas de crédito de los miembros y eliminará permanentemente cualquier gasto con tarjeta no enviado.',
             archiveWithExpensifyCardsConfirmation:
                 '¿Estás seguro de que quieres archivar este espacio de trabajo? Se establecerán todos los límites de las Tarjetas Expensify a $0 y se rechazarán automáticamente los nuevos intentos de compra.',
             unarchive: 'Desarchivar',
@@ -5619,6 +5627,37 @@ ${amount} para ${merchant} - ${date}`,
             roleSelectorDescription: `Asigna un rol para gestionar los permisos de espacio de trabajo de un miembro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Comparar roles de espacio de trabajo</a>.`,
             roleSelectorFeedback: '¿No ves el rol que necesitas?',
             roleSelectorFeedbackLink: 'Cuéntanos',
+            archiveWorkspacesConfirmation: '¿Seguro que quieres archivar estos espacios de trabajo?',
+            archiveWorkspacesConfirmationWithConsequences: '¿Seguro que quieres archivar estos espacios de trabajo? Esto:',
+            archiveConsequenceExpensifyCardLimits: 'Establecer todos los límites de la Tarjeta Expensify en 0 $',
+            archiveConsequenceDeclinePurchases: 'Rechazar automáticamente cualquier nuevo intento de compra',
+            archiveConsequenceUnassignCards: 'Quitar todas las tarjetas de crédito de los miembros',
+            archiveConsequenceDeleteCardExpenses: 'Eliminar permanentemente todos los gastos con tarjeta no enviados',
+            setAsDefaultShort: 'Establecer como predeterminado',
+            exportMembers: 'Exportar miembros',
+            archiveWorkspacesTitle: () => ({
+                one: '¿Archivar 1 espacio de trabajo?',
+                other: (count: number) => `¿Archivar ${count} espacios de trabajo?`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: '¿Salir de 1 espacio de trabajo?',
+                other: (count: number) => `¿Salir de ${count} espacios de trabajo?`,
+            }),
+            transferOwnerWorkspacesTitle: () => ({
+                one: '¿Transferir la propiedad de 1 espacio de trabajo?',
+                other: (count: number) => `¿Transferir la propiedad de ${count} espacios de trabajo?`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `Has salido de ${count} de ${total} espacios de trabajo`,
+            archivedWorkspacesTitle: (count: number, total: number) => `Archivaste ${count} de ${total} espacios de trabajo archivados`,
+            archiveWorkspacesFailed: 'No puedes archivar espacios de trabajo que no posees o que ya están archivados. Por favor, revísalos e inténtalo de nuevo.',
+            transferredOwnerWorkspacesTitle: (count: number, total: number) => `Se transfirió la propiedad de ${count} de ${total} espacios de trabajo`,
+            transferOwnerWorkspacesFailed:
+                'No puedes transferir espacios de trabajo que ya posees o de los que no eres administrador, y algunos requieren pasos adicionales primero. Selecciona un espacio de trabajo a la vez para transferirlo.',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `Miembros exportados de ${count} de ${total} espacios de trabajo`,
+            exportMembersFailed:
+                'No puedes exportar miembros de espacios de trabajo archivados ni de espacios de trabajo en los que no puedas gestionar miembros. Por favor, compruébalo e inténtalo de nuevo.',
+            bulkTransferOwnerNoneEligible:
+                'Ninguno de los espacios de trabajo seleccionados se puede transferir junto con los demás. Selecciona un espacio de trabajo a la vez para transferirlo.',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',

@@ -163,6 +163,7 @@ const WRITE_COMMANDS = {
     RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER: 'ResolveActionableReportMentionWhisper',
     DELETE_WORKSPACE: 'DeleteWorkspace',
     ARCHIVE_POLICY: 'ArchivePolicy',
+    QUEUE_BULK_ARCHIVE_POLICY: 'QueueBulkArchivePolicy',
     UNARCHIVE_POLICY: 'UnarchivePolicy',
     DELETE_MEMBERS_FROM_WORKSPACE: 'DeleteMembersFromWorkspace',
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
@@ -189,6 +190,7 @@ const WRITE_COMMANDS = {
     IMPORT_CSV_COMPANY_CARDS: 'ImportCSVCompanyCards',
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
+    QUEUE_BULK_EXPORT_POLICY_MEMBERS: 'QueueBulkExportPolicyMembers',
     EXPORT_TAGS_CSV: 'ExportSingleLevelTagsCSV',
     EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV: 'ExportMultiLevelTagsCSV',
     EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV: 'ExportDependentTags',
@@ -424,6 +426,7 @@ const WRITE_COMMANDS = {
     CATEGORIZE_TRACKED_EXPENSE: 'CategorizeTrackedExpense',
     SHARE_TRACKED_EXPENSE: 'ShareTrackedExpense',
     LEAVE_POLICY: 'LeavePolicy',
+    QUEUE_BULK_LEAVE_POLICY: 'QueueBulkLeavePolicy',
     DISMISS_VIOLATION: 'DismissViolation',
     SEND_INVOICE: 'SendInvoice',
     PAY_INVOICE: 'PayInvoice',
@@ -997,6 +1000,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.TRANSFER_WALLET_BALANCE]: Parameters.TransferWalletBalanceParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE]: Parameters.DeleteWorkspaceParams;
     [WRITE_COMMANDS.ARCHIVE_POLICY]: Parameters.ArchivePolicyParams;
+    [WRITE_COMMANDS.QUEUE_BULK_ARCHIVE_POLICY]: Parameters.QueueBulkArchivePolicyParams;
     [WRITE_COMMANDS.UNARCHIVE_POLICY]: Parameters.UnarchivePolicyParams;
     [WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE]: Parameters.DeleteMembersFromWorkspaceParams;
     [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: Parameters.AddMembersToWorkspaceParams;
@@ -1020,6 +1024,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS]: Parameters.ImportCSVCompanyCardsParams;
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
+    [WRITE_COMMANDS.QUEUE_BULK_EXPORT_POLICY_MEMBERS]: Parameters.QueueBulkExportPolicyMembersParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
     [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
@@ -1270,6 +1275,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE]: Parameters.CategorizeTrackedExpenseParams;
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
+    [WRITE_COMMANDS.QUEUE_BULK_LEAVE_POLICY]: Parameters.QueueBulkLeavePolicyParams;
     [WRITE_COMMANDS.DISMISS_VIOLATION]: Parameters.DismissViolationParams;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
