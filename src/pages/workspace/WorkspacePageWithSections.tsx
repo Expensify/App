@@ -39,7 +39,10 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton'> & {
+        /** Replaces the default back navigation (backButtonRoute, then Navigation.goBack). Not called while the not-found view is shown, which always goes back to the workspace settings pages. */
+        onBackButtonPress?: () => void | Promise<void>;
+
         shouldSkipVBBACall?: boolean;
         headerText: string;
 

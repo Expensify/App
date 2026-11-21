@@ -91,7 +91,7 @@ import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './Wa
 
 import PaymentMethodListItem from './PaymentMethodListItem';
 
-type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void;
+type PaymentMethodPressHandler = ({event, accountType, accountData, methodID, icon, description, isDefault}: PaymentMethodPressHandlerParams) => void | Promise<void>;
 
 type CardPressHandler = ({event, cardID, cardData, icon}: CardPressHandlerParams) => void;
 
@@ -143,7 +143,7 @@ type PaymentMethodListProps = {
     shouldShowBankAccountSections?: boolean;
 
     /** Function to be called when the user presses the add bank account button */
-    onAddBankAccountPress?: () => void;
+    onAddBankAccountPress?: () => void | Promise<void>;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
@@ -263,8 +263,8 @@ function PaymentMethodList({
 
     const mapBankStatusToRowStatus = (
         status: BankAccountConnectionStatus,
-        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
-        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void | Promise<void>,
+        onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void | Promise<void>,
         isPendingDelete = false,
         onPlaidPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({

@@ -19,6 +19,8 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMoreFeaturesPage from '@pages/workspace/WorkspaceMoreFeaturesPage';
 
+import * as PerDiemActions from '@userActions/Policy/PerDiem';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -385,6 +387,60 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(navigateToConciergeChatSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Per diem toggle', () => {
+        it('passes the stored quick action to enablePerDiem when the switch is toggled', async () => {
+            // Given a Control workspace with per diem off and a stored global create quick action, which enablePerDiem needs to clear a stale per diem quick action
+            const quickAction = {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: '123'};
+            const enablePerDiemSpy = jest.spyOn(PerDiemActions, 'enablePerDiem').mockImplementation(() => undefined);
+            try {
+                await TestHelper.signInWithTestUser();
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+                    await Onyx.set(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickAction);
+                });
+                renderPage({policyID: POLICY_ID});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user turns the per diem switch on
+                fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.perDiem.subtitle'));
+
+                // Then the handler reads the quick action at press time and hands it to enablePerDiem
+                await waitFor(() => {
+                    expect(enablePerDiemSpy).toHaveBeenCalledWith(POLICY_ID, true, undefined, true, quickAction);
+                });
+            } finally {
+                enablePerDiemSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('Taxes toggle', () => {
+        it('passes the stored government mileage rates to enablePolicyTaxes when the switch is toggled', async () => {
+            // Given a workspace with taxes off and stored government mileage rates, which enablePolicyTaxes uses to add the government rates
+            const governmentMileageRates = [{sourceRateID: 'US_2026-01-01', currency: CONST.CURRENCY.USD, name: '2026 United States', rate: 70, startDate: '2026-01-01'}];
+            const enablePolicyTaxesSpy = jest.spyOn(PolicyActions, 'enablePolicyTaxes').mockImplementation(() => undefined);
+            try {
+                await TestHelper.signInWithTestUser();
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+                    await Onyx.set(ONYXKEYS.GOVERNMENT_MILEAGE_RATES, governmentMileageRates);
+                });
+                renderPage({policyID: POLICY_ID});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the user turns the taxes switch on
+                fireEvent.press(await findUnlockedSwitch('workspace.moreFeatures.taxes.subtitle'));
+
+                // Then the handler reads the rates at press time and hands them to enablePolicyTaxes
+                await waitFor(() => {
+                    expect(enablePolicyTaxesSpy).toHaveBeenCalledWith(POLICY_ID, true, expect.anything(), expect.objectContaining({governmentMileageRates}));
+                });
+            } finally {
+                enablePolicyTaxesSpy.mockRestore();
+            }
         });
     });
 
