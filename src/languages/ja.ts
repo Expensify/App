@@ -3422,6 +3422,7 @@ ${date} の ${merchant} への ${amount}`,
         subtitle: '異なる通貨で払い戻す場合、換算手数料が発生することがあります。以下で手数料を負担する側を選択してください。これは国境を越えた換算にのみ適用されます。',
         companyPays: '会社が負担',
         employeePays: '従業員が負担',
+        employeePaysDisabledDescription: '銀行口座が別の通貨を使用している間は、ワークスペースが換算手数料を負担する必要があります。',
         errorMessage: '通貨換算手数料の設定を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
     workflowsCreateApprovalsPage: {

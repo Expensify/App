@@ -3463,6 +3463,7 @@ ${amount} per ${merchant} - ${date}`,
             'Quando rimborsi in una valuta diversa, potrebbero essere applicate commissioni di conversione. Seleziona di seguito chi pagherà le commissioni. Questo vale solo per le conversioni transfrontaliere.',
         companyPays: "Paga l'azienda",
         employeePays: 'Paga il dipendente',
+        employeePaysDisabledDescription: 'Lo spazio di lavoro deve pagare le commissioni di conversione finché il conto bancario usa una valuta diversa.',
         errorMessage: 'Impossibile modificare la preferenza sulle commissioni di conversione valuta. Riprova oppure contatta l’assistenza.',
     },
     workflowsCreateApprovalsPage: {

@@ -1,10 +1,11 @@
+import {canUseMismatchedCurrencyPolicyBankAccount} from '@libs/BankAccountUtils';
 import {getExpensifyCardEnrollmentRoute, isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
-import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement, setWorkspaceCurrencyConversionFeesPreference, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
@@ -16,6 +17,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useReviewWorkspaceSettingsTaskCompletion from './useReviewWorkspaceSettingsTaskCompletion';
 
 type ApplyWorkspaceCurrencyChangeOptions = {
@@ -38,6 +40,7 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+    const {isBetaEnabled} = usePermissions();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     return (
@@ -52,6 +55,13 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             governmentRateCountry,
             governmentMileageRates: governmentMileageRates ?? [],
         });
+        if (
+            canUseMismatchedCurrencyPolicyBankAccount(policy.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)) &&
+            currencyCode !== policy.achAccount?.bankCurrency &&
+            !policy.globalReimbursementFXPreferCompany
+        ) {
+            setWorkspaceCurrencyConversionFeesPreference(policy.id, true, policy.globalReimbursementFXPreferCompany);
+        }
         clearCorpayBankAccountFields();
 
         const isUkEuCurrencySupported = isCurrencySupportedForECards(currencyCode);

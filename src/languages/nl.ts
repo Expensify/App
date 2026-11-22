@@ -3463,6 +3463,7 @@ ${amount} voor ${merchant} - ${date}`,
             'Bij vergoedingen in een andere valuta kunnen omrekeningskosten van toepassing zijn. Selecteer hieronder wie de kosten betaalt. Dit geldt alleen voor grensoverschrijdende omrekeningen.',
         companyPays: 'Bedrijf betaalt',
         employeePays: 'Werknemer betaalt',
+        employeePaysDisabledDescription: 'De werkruimte moet de conversiekosten betalen zolang de bankrekening een andere valuta gebruikt.',
         errorMessage: 'De voorkeur voor valutaomrekeningskosten kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
     },
     workflowsCreateApprovalsPage: {

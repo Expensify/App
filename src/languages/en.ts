@@ -3645,6 +3645,7 @@ const translations = {
         subtitle: 'When reimbursing in a different currency, conversion fees may apply. Select who will pay the fees below. This only applies to cross-border conversions.',
         companyPays: 'Company pays',
         employeePays: 'Employee pays',
+        employeePaysDisabledDescription: 'The workspace must pay conversion fees while the bank account uses a different currency.',
         errorMessage: "Currency conversion fee preference couldn't be changed. Please try again or contact support.",
     },
     workflowsCreateApprovalsPage: {

@@ -4,6 +4,8 @@ import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {setWorkspaceCurrencyConversionFeesPreference} from '@userActions/Policy/Policy';
+
 import {WorkspaceOverviewCurrencyPage} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
 import type {WorkspaceOverviewCurrencyPageProps} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
 
@@ -34,7 +36,7 @@ jest.mock('@components/CurrencySelectionList', () => {
     const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({onSelect}: {onSelect: (item: CurrencyListItem) => void}) => (
         <>
-            {['USD', 'GBP', 'EUR', 'AUD'].map((currencyCode) => (
+            {['USD', 'GBP', 'EUR', 'AUD', 'NOK'].map((currencyCode) => (
                 <Pressable
                     key={currencyCode}
                     testID={`currency-${currencyCode}`}
@@ -119,6 +121,7 @@ jest.mock('@userActions/FormActions', () => ({clearDraftValues: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({
     isCurrencySupportedForGlobalReimbursement: () => false,
     updateGeneralSettings: jest.fn(),
+    setWorkspaceCurrencyConversionFeesPreference: jest.fn(),
 }));
 jest.mock('@userActions/ReimbursementAccount', () => ({
     navigateToBankAccountRoute: jest.fn(),
@@ -131,9 +134,9 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseRoute = jest.mocked(useRoute);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
-function renderPage(shouldStartExpensifyCardEnrollment = true) {
+function renderPage(shouldStartExpensifyCardEnrollment = true, policy: Policy = mockPolicy) {
     mockUseRoute.mockReturnValue(createMock<ReturnType<typeof useRoute>>({params: {shouldStartExpensifyCardEnrollment}}));
-    const props = createMock<WorkspaceOverviewCurrencyPageProps>({policy: mockPolicy});
+    const props = createMock<WorkspaceOverviewCurrencyPageProps>({policy});
     render(<WorkspaceOverviewCurrencyPage {...props} />);
 }
 
@@ -186,5 +189,60 @@ describe('WorkspaceOverviewCurrencyPage', () => {
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
+    });
+
+    describe('with an EUR VBA linked to the workspace', () => {
+        const policyWithEurVBA = createMock<Policy>({
+            ...mockPolicy,
+            outputCurrency: CONST.CURRENCY.EUR,
+            achAccount: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN, bankCurrency: CONST.CURRENCY.EUR},
+        });
+
+        it('sets company-paid FX when the beta is on and the new currency differs from the VBA currency', () => {
+            // Given the beta is on and an open EUR VBA is linked to the workspace
+            mockIsBetaEnabled = true;
+            renderPage(false, policyWithEurVBA);
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then the workspace pays the conversion fees
+            expect(setWorkspaceCurrencyConversionFeesPreference).toHaveBeenCalledWith(POLICY_ID, true, undefined);
+        });
+
+        it('does not change FX when the new currency matches the VBA currency', () => {
+            // Given the beta is on and an open EUR VBA is linked to a NOK workspace
+            mockIsBetaEnabled = true;
+            renderPage(false, createMock<Policy>({...policyWithEurVBA, outputCurrency: 'NOK'}));
+
+            // When the admin changes the workspace currency back to EUR
+            fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.EUR}`));
+
+            // Then FX stays as it is
+            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+        });
+
+        it('does not change FX when the company already pays', () => {
+            // Given the beta is on and the company already pays the conversion fees
+            mockIsBetaEnabled = true;
+            renderPage(false, createMock<Policy>({...policyWithEurVBA, globalReimbursementFXPreferCompany: true}));
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then no extra request is sent
+            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+        });
+
+        it('does not change FX when the beta is off', () => {
+            // Given the beta is off and an open EUR VBA is linked to the workspace
+            renderPage(false, policyWithEurVBA);
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then behavior stays the same as before the beta
+            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+        });
     });
 });

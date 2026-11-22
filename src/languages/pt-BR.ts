@@ -3464,6 +3464,7 @@ ${amount} para ${merchant} - ${date}`,
         subtitle: 'Ao reembolsar em uma moeda diferente, taxas de conversão podem ser aplicadas. Selecione abaixo quem pagará as taxas. Isso se aplica apenas a conversões internacionais.',
         companyPays: 'A empresa paga',
         employeePays: 'O funcionário paga',
+        employeePaysDisabledDescription: 'O workspace deve pagar as taxas de conversão enquanto a conta bancária usar uma moeda diferente.',
         errorMessage: 'Não foi possível alterar a preferência de taxas de conversão de moeda. Tente novamente ou entre em contato com o suporte.',
     },
     workflowsCreateApprovalsPage: {
