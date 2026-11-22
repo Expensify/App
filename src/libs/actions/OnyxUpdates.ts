@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
@@ -73,6 +73,16 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = shouldQueueUpdates ? queueOnyxUpdates : Onyx.update;
 
+    const finishApplying = () => {
+        Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
+        return Promise.resolve(response);
+    };
+
+    // Search writes its snapshot in the response, success and finally data, so one update renders and stores it once
+    if (request.command === READ_COMMANDS.SEARCH && response.jsonCode === CONST.JSON_CODE.SUCCESS && !response.paginationOnyxData) {
+        return updateHandler([...(response.onyxData ?? []), ...(request.successData ?? []), ...(request.finallyData ?? [])]).then(finishApplying);
+    }
+
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
@@ -118,10 +128,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
             }
             return Promise.resolve();
         })
-        .then(() => {
-            Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
-            return Promise.resolve(response);
-        });
+        .then(finishApplying);
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
