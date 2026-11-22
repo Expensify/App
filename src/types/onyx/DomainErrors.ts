@@ -82,6 +82,11 @@ type DomainSecurityGroupErrors = {
      * Errors related to the override preferred policy with card policy setting
      */
     overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the group's default Expensify Card limit
+     */
+    defaultCardUnapprovedExpenseLimitErrors?: OnyxCommon.Errors;
 };
 
 /**

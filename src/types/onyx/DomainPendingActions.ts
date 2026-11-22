@@ -84,6 +84,11 @@ type DomainSecurityGroupPendingActions = {
      * Pending action for the override preferred policy with card policy setting
      */
     overridePreferredPolicyWithCardPolicy?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the group's default Expensify Card limit
+     */
+    defaultCardUnapprovedExpenseLimit?: OnyxCommon.PendingAction;
 };
 
 /**

@@ -1652,6 +1652,53 @@ describe('actions/Domain', () => {
 
             apiWriteSpy.mockRestore();
         });
+
+        const cardLimitCases: Array<{description: string; storedLimit: number | undefined; newLimit: number}> = [
+            {description: 'a new card limit', storedLimit: 50000, newLimit: 100000},
+            {description: 'a card limit of 0', storedLimit: 50000, newLimit: 0},
+            {description: 'a card limit on a group without a stored one', storedLimit: undefined, newLimit: 100000},
+        ];
+        test.each(cardLimitCases)('applies $description optimistically and restores the stored limit on failure', async ({storedLimit, newLimit}) => {
+            // Given a stored group, so a failed update must roll back to its stored limit or to no limit at all
+            const domainAccountID = 123;
+            const groupID = '456';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}` as const satisfies SecurityGroupKey;
+            const currentSecurityGroup: DomainSecurityGroup = {
+                name: 'Group',
+                shared: {},
+                enableRestrictedPolicyCreation: false,
+                enableRestrictedPrimaryLogin: false,
+                defaultCardUnapprovedExpenseLimit: storedLimit,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {[SECURITY_GROUP_KEY]: currentSecurityGroup});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When the group card limit is updated
+            updateDomainSecurityGroup(domainAccountID, groupID, currentSecurityGroup, {defaultCardUnapprovedExpenseLimit: newLimit}, 'defaultCardUnapprovedExpenseLimit');
+
+            // Then the request sends the new limit in the group value
+            const [, parameters] = TestHelper.getRequiredWriteCall(request.mock.calls, 0);
+            expect(parameters.settingsName).toBe('defaultCardUnapprovedExpenseLimit');
+            expect(JSON.parse(String(parameters.value))).toEqual(expect.objectContaining({defaultCardUnapprovedExpenseLimit: newLimit}));
+
+            // Then Onyx shows the new limit as pending until the request resolves
+            const data = request.mock.calls.at(0)?.[2];
+            await Onyx.update(data?.optimisticData ?? []);
+            const optimisticDomain = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+            const optimisticPendingActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+            expect(optimisticDomain?.[SECURITY_GROUP_KEY]?.defaultCardUnapprovedExpenseLimit).toBe(newLimit);
+            expect(optimisticPendingActions?.[SECURITY_GROUP_KEY]?.defaultCardUnapprovedExpenseLimit).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // Then a failed request restores the stored limit, clears the pending action, and shows an error on the limit
+            await Onyx.update(data?.failureData ?? []);
+            const failedDomain = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+            const failedPendingActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+            const failedErrors = await getOnyxValue(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+            expect(failedDomain?.[SECURITY_GROUP_KEY]?.defaultCardUnapprovedExpenseLimit).toBe(storedLimit);
+            expect(failedPendingActions?.[SECURITY_GROUP_KEY]?.defaultCardUnapprovedExpenseLimit).toBeUndefined();
+            expect(Object.keys(failedErrors?.[SECURITY_GROUP_KEY]?.defaultCardUnapprovedExpenseLimitErrors ?? {})).toHaveLength(1);
+            request.mockRestore();
+        });
     });
 
     describe('deleteDomainSecurityGroup', () => {
