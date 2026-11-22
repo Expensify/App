@@ -29,6 +29,7 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getReimbursementChoice,
+    getSubmitToEmail,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
@@ -42,7 +43,6 @@ import {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isWorkflowApprover,
-    getSubmitToEmail,
 } from './PolicyUtils';
 import {
     getAllReportActions,
