@@ -63,7 +63,7 @@ import {removeActiveTransactionIDsForReport} from '@userActions/TransactionThrea
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type {Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -131,9 +131,12 @@ type UpdateSplitTransactionsParams = UpdateSplitTransactionsData & {
     /** Readiness barrier the API write waits on before applying its optimistic data, handed down by whoever navigates. */
     writeBarrier?: WriteReadyBarrier;
 
-    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
-    shouldSkipReportHighlightRail?: boolean;
+    /** Whether the splits this update creates flash as new in the report's table. Deleting a split creates none, and flows that never show the report pass false. */
+    shouldFlagNewSplitsForReportTable: boolean;
 };
+
+/** The builder inputs a split sets up, which a reverse split or a confirmed workspace expense then overrides. The rest are passed to the builder directly. */
+type SplitMoneyRequestInputs = Pick<MoneyRequestInformationParams, 'participantParams' | 'policyParams' | 'transactionParams' | 'parentChatReport' | 'existingTransaction'>;
 
 /**
  * Picks the transaction in `snapshotData` whose conversion can be reused for `transaction`: candidates are
@@ -337,7 +340,7 @@ function updateSplitTransactions({
     policyRecentlyUsedCurrencies,
     isFromSplitExpensesFlow,
     writeBarrier,
-    shouldSkipReportHighlightRail,
+    shouldFlagNewSplitsForReportTable,
     personalDetails,
     transactionReport,
     expenseReport: expenseReportFromParams,
@@ -847,9 +850,9 @@ function updateSplitTransactions({
 
         const splitExpenseMerchant = splitExpense.merchant ?? '';
         const originalTransactionTaxCode = resolveCurrentTaxCode(policy, originalTransactionDetails?.taxCode ?? '');
+        const originalTransactionAttendees = Array.isArray(originalTransactionDetails?.attendees) ? originalTransactionDetails.attendees : undefined;
 
-        const requestMoneyInformation = {
-            isVendorMatchingBetaEnabled,
+        const requestMoneyInformation: SplitMoneyRequestInputs = {
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
                 payeeEmail: currentUserPersonalDetails?.login ?? '',
@@ -858,7 +861,6 @@ function updateSplitTransactions({
             policyParams: {
                 policy,
                 policyCategories,
-                policyTags,
             },
             transactionParams: {
                 amount: Math.abs(originalTransaction?.amount ?? 0),
@@ -870,7 +872,7 @@ function updateSplitTransactions({
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
                 originalTransactionID,
-                attendees: splitTransaction?.comment?.attendees ?? originalTransactionDetails?.attendees,
+                attendees: splitTransaction?.comment?.attendees ?? originalTransactionAttendees,
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
                 pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -892,7 +894,7 @@ function updateSplitTransactions({
                 waypoints: splitExpense.waypoints,
                 customUnit: splitExpense.customUnit,
                 // For distance transactions, also pass distance from customUnit.quantity so buildOptimisticTransaction sets it correctly
-                distance: splitExpense.customUnit?.quantity,
+                distance: splitExpense.customUnit?.quantity ?? undefined,
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
                 // Mark this split as belonging to self DM so money-request
@@ -904,19 +906,7 @@ function updateSplitTransactions({
             // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
             parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport({reportID: selfDMReportID, reportDraft: {}}) : fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
-            isASAPSubmitBetaEnabled,
-            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
-            currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
-            transactionViolations,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            personalDetails,
-            delegateAccountID,
-            isTrackIntentUser,
-            formatPhoneNumber,
-            getCurrencyDecimals,
-            rules,
-        } as MoneyRequestInformationParams;
+        };
 
         if (isReverseSplitOperation) {
             requestMoneyInformation.transactionParams = {
@@ -928,7 +918,7 @@ function updateSplitTransactions({
                 comment: splitExpense.description,
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
-                attendees: originalTransactionDetails?.attendees as Attendee[],
+                attendees: originalTransactionAttendees,
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
                 taxCode: splitExpense.taxCode ?? originalTransactionTaxCode,
                 taxAmount:
@@ -1036,7 +1026,7 @@ function updateSplitTransactions({
             participantParams,
             parentChatReport,
             policyParams: {...policyParams, policyTagList},
-            transactionParams: {...transactionParams, shouldSkipReportHighlightRail},
+            transactionParams,
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
@@ -1048,6 +1038,8 @@ function updateSplitTransactions({
             isReportTotalChangeOnHold: isCreationOfSplits && isTransactionOnHold,
             isSplitExpense: true,
             isReverseSplitOperation,
+            // A reverse split brings the original expense back in place of the remaining split, so it adds no row.
+            shouldFlagNewTransactionForReportTable: shouldFlagNewSplitsForReportTable && !isReverseSplitOperation,
             currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
