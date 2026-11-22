@@ -13,6 +13,7 @@ concurrency:
 jobs:
   jest:
     if: ${{ (github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
+    # Draft test of Jest on Blacksmith ARM runners (https://github.com/Expensify/Expensify/issues/707344)
     runs-on: blacksmith-8vcpu-ubuntu-2404-arm
     env:
       CI: true
