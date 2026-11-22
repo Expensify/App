@@ -5,15 +5,14 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {openReport} from '@libs/actions/Report';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 
 import DynamicSplitBillDetailsPage from '@pages/iou/DynamicSplitBillDetailsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type * as ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -38,12 +37,12 @@ jest.mock('@libs/actions/Report', () => ({
 jest.mock('@pages/inbox/report/withReportAndReportActionOrNotFound', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@components/FullscreenLoadingIndicator', () => {
-    const {Text} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     return () => <Text>loading</Text>;
 });
 
 jest.mock('@components/BlockingViews/FullPageNotFoundView', () => {
-    const {Text} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockFullPageNotFoundView({shouldShow, children}: {shouldShow: boolean; children: React.ReactNode}) {
         return shouldShow ? <Text>not found</Text> : children;
     }
@@ -67,7 +66,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-type SplitBillDetailsPageProps = PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
+type SplitBillDetailsPageProps = React.ComponentProps<typeof DynamicSplitBillDetailsPage>;
 
 const report: Report = {
     reportID: DM_REPORT_ID,
@@ -83,6 +82,7 @@ const splitReportAction = createMock<ReportAction>({
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     actorAccountID: CURRENT_USER_ACCOUNT_ID,
     created: '2026-11-01 00:00:00.000',
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         IOUTransactionID: SPLIT_TRANSACTION_ID,
