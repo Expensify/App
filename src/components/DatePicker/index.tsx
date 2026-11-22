@@ -3,6 +3,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useInputFSClass from '@hooks/useInputFSClass';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -68,6 +69,8 @@ function DatePicker({
     const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    // The calendar renders in a popover outside the form, so it doesn't inherit the form's mask. It takes the class the input picks for itself instead.
+    const calendarFSClass = useInputFSClass(forwardedFSClass, {autoComplete});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -279,7 +282,7 @@ function DatePicker({
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
-                forwardedFSClass={forwardedFSClass}
+                forwardedFSClass={calendarFSClass}
                 shouldCloseWhenBrowserNavigationChanged
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
