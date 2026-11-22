@@ -9,7 +9,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 
 import {updateReportField, updateReportName} from '@libs/actions/Report';
 import Log from '@libs/Log';
-import {getReportFieldKey, hasViolations as hasViolationsReportUtils, isReportFieldDisabled, isReportFieldOfTypeTitle} from '@libs/ReportUtils';
+import {getReportFieldKey, getReportFieldOptionExternalID, hasViolations as hasViolationsReportUtils, isReportFieldDisabled, isReportFieldOfTypeTitle} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,14 +64,20 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         );
         const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin);
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
-        const matchedReportFieldIndex = reportField.values.findIndex((fieldValue) => fieldValue === value);
-        const matchingExternalID = reportField.externalIDs?.[matchedReportFieldIndex] ?? '';
-        if (!matchingExternalID) {
-            Log.hmmm(`No matching external ID found for report field value "${value}" in report field "${reportField.name}" (${reportField.fieldID})`);
+        let externalID = reportField.externalID;
+        if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
+            // The inline inputs pass the workspace's current option names with the external IDs saved on the report, and those can be in a
+            // different order. Read the names and IDs from the workspace field, and use the report's copy only once the workspace has dropped the field.
+            const optionsField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[reportField.fieldID] ?? reportField;
+            externalID = getReportFieldOptionExternalID(optionsField, value);
+            if (!externalID) {
+                Log.hmmm(`No matching external ID found for report field value "${value}" in report field "${reportField.name}" (${reportField.fieldID})`);
+            }
         }
+
         updateReportField({
             report: {...report, reportID: report.reportID},
-            reportField: {...reportField, value, externalID: matchingExternalID},
+            reportField: {...reportField, value, externalID},
             previousReportField: reportField,
             policy,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),

@@ -155,6 +155,7 @@ import {
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -33136,5 +33137,58 @@ describe('isReportTransactionThreadNew', () => {
         // When checking it
         // Then it is not a transaction thread
         expect(isReportTransactionThreadNew({parentReportID: '1'}, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
+    });
+});
+
+describe('getReportFieldOptionExternalID', () => {
+    const buildListField = (values: string[], externalIDs: string[], disabledOptions: boolean[]): PolicyReportField => ({
+        fieldID: 'field_id_LOCATION',
+        name: 'Location',
+        type: CONST.REPORT_FIELD_TYPES.LIST,
+        defaultValue: '',
+        orderWeight: 1,
+        deletable: false,
+        target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+        values,
+        keys: externalIDs,
+        externalIDs,
+        disabledOptions,
+        isTax: false,
+    });
+
+    it('returns the external ID at the position of the matching option', () => {
+        // Given a list field whose options each have their own external ID
+        const field = buildListField(['Corporate / Marketing', 'SW Sales / Marketing', 'Advisory / Consulting'], ['46', '336', '21'], [false, false, false]);
+
+        // When looking up an option by its name
+        // Then the ID at that option's position comes back, so the export gets the option the user picked
+        expect(getReportFieldOptionExternalID(field, 'SW Sales / Marketing')).toBe('336');
+    });
+
+    it('prefers an enabled option over a disabled option with the same name', () => {
+        // Given two options with the same name where only the second one is enabled, as the dropdown only offers enabled options
+        const field = buildListField(['Location A', 'Location A'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then the enabled option's ID comes back, because that is the only one the user could have picked
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('2');
+    });
+
+    it('returns the disabled option ID when no enabled option has the name', () => {
+        // Given a saved value that only matches a disabled option
+        const field = buildListField(['Location A', 'Location B'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then that option's ID still comes back, so the value keeps its own ID instead of none
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('1');
+    });
+
+    it('returns an empty string when no option has the name', () => {
+        // Given a value that is not one of the field's options
+        const field = buildListField(['Location A'], ['1'], [false]);
+
+        // When looking it up
+        // Then no ID comes back, instead of the ID of some other option
+        expect(getReportFieldOptionExternalID(field, 'Location B')).toBe('');
     });
 });
