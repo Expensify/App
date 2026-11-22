@@ -6135,6 +6135,11 @@ const ROUTES = {
         getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/name` as const,
     },
 
+    DOMAIN_GROUP_EDIT_CARD_LIMIT: {
+        route: 'domain/:domainAccountID/groups/:groupID/card-limit',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/card-limit` as const,
+    },
+
     DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE: {
         route: 'domain/:domainAccountID/groups/:groupID/preferred-workspace',
         getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/preferred-workspace` as const,

@@ -74,6 +74,10 @@ type DomainSettingsParamList = {
         domainAccountID: number;
         groupID: string;
     };
+    [SCREENS.DOMAIN.GROUP_EDIT_CARD_LIMIT]: {
+        domainAccountID: number;
+        groupID: string;
+    };
     [SCREENS.DOMAIN.SECURITY_GROUPS_PREFERRED_WORKSPACE]: {
         domainAccountID: number;
         groupID: string;

@@ -1505,6 +1505,8 @@ const ONYXKEYS = {
         ADD_DOMAIN_MEMBER_FORM_DRAFT: 'addDomainMemberFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
+        EDIT_DOMAIN_GROUP_CARD_LIMIT_FORM: 'editDomainGroupCardLimitForm',
+        EDIT_DOMAIN_GROUP_CARD_LIMIT_FORM_DRAFT: 'editDomainGroupCardLimitFormDraft',
         SPEND_RULE_MAX_AMOUNT_FORM: 'spendRuleMaxAmountForm',
         SPEND_RULE_MAX_AMOUNT_FORM_DRAFT: 'spendRuleMaxAmountFormDraft',
         SPEND_RULE_MERCHANT_EDIT_FORM: 'spendRuleMerchantEditForm',
@@ -1681,6 +1683,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
+    [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
     [ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM]: FormTypes.SpendRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_EDIT_FORM]: FormTypes.SpendRuleMerchantEditForm;
     [ONYXKEYS.FORMS.ADD_AGENT_FORM]: FormTypes.AddAgentForm;
