@@ -617,7 +617,8 @@ function PaymentMethodList({
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
                 const typeMatches = !filterType || account.accountData?.type === filterType;
-                const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency || canUseMismatchedCurrencyBankAccount(account, isMismatchedReimbursementCurrencyBetaEnabled);
+                const currencyMatches =
+                    !filterCurrency || account.bankCurrency === filterCurrency || canUseMismatchedCurrencyBankAccount(account, isMismatchedReimbursementCurrencyBetaEnabled);
                 const shouldInclude = !excludeBankAccountID || account.methodID !== excludeBankAccountID;
 
                 return typeMatches && currencyMatches && shouldInclude;

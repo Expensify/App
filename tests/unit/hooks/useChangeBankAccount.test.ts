@@ -123,8 +123,8 @@ describe('useChangeBankAccount', () => {
     });
 
     describe('with an EUR Corpay account and a NOK workspace', () => {
-        const EUR_CORPAY_BANK_ACCOUNT_LIST = {
-            '111': {
+        const EUR_CORPAY_BANK_ACCOUNT_LIST = createMock<BankAccountList>({
+            [String(111)]: {
                 methodID: 111,
                 bankCurrency: CONST.CURRENCY.EUR,
                 bankCountry: 'DE',
@@ -134,8 +134,7 @@ describe('useChangeBankAccount', () => {
                     additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
                 },
             },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        } as unknown as BankAccountList;
+        });
 
         it('opens the existing-account picker when the beta is on', async () => {
             // Given the beta is on and the only other account is an EUR Corpay account

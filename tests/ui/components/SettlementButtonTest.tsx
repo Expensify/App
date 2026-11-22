@@ -961,7 +961,13 @@ describe('SettlementButton', () => {
                 ...bankAccountList[BANK_ACCOUNT_ID].accountData,
                 additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
             };
-            await setupOnyxState({report: nokReport, chatReport: createChatReport(), policy: nokPolicy, bankAccountList, betas: isBetaOn ? [CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY] : []});
+            await setupOnyxState({
+                report: nokReport,
+                chatReport: createChatReport(),
+                policy: nokPolicy,
+                bankAccountList,
+                betas: isBetaOn ? [CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY] : [],
+            });
 
             // When the payer opens the pay menu
             render(

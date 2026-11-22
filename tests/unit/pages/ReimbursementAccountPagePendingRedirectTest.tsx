@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -487,7 +487,11 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
     describe('with a NOK workspace linked to an EUR bank account', () => {
         const CURRENCY_ERROR = /different currency than USD/;
-        const LOADED_ACCOUNT: ReimbursementAccount = {isLoading: false, shouldShowResetModal: false, achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.OPEN, currency: CONST.CURRENCY.EUR})};
+        const LOADED_ACCOUNT: ReimbursementAccount = {
+            isLoading: false,
+            shouldShowResetModal: false,
+            achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.OPEN, currency: CONST.CURRENCY.EUR}),
+        };
         const buildNokPolicy = (state: string): Policy => ({
             ...USD_POLICY,
             outputCurrency: 'NOK',
@@ -507,10 +511,10 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
 
             // When the page is opened with no route params besides the policy
-            const {queryByText} = await renderPage();
+            await renderPage();
 
             // Then the page does not block the admin with the currency error
-            expect(queryByText(CURRENCY_ERROR)).toBeNull();
+            expect(screen.queryByText(CURRENCY_ERROR)).not.toBeOnTheScreen();
         });
 
         it('still shows the currency error when the beta is on and the admin changes the bank account', async () => {
@@ -519,10 +523,10 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
 
             // When the page is opened to set up a new account in the change flow
-            const {queryByText} = await renderPage({policyID: POLICY_ID, isChangingBankAccount: true});
+            await renderPage({policyID: POLICY_ID, isChangingBankAccount: true});
 
             // Then the currency error shows, because a new account must use a supported currency
-            expect(queryByText(CURRENCY_ERROR)).not.toBeNull();
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
         });
 
         it('still shows the currency error when the beta is on and the page opens a new setup', async () => {
@@ -531,10 +535,10 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
 
             // When the page is opened with stepToOpen=new
-            const {queryByText} = await renderPage({policyID: POLICY_ID, stepToOpen: 'new'});
+            await renderPage({policyID: POLICY_ID, stepToOpen: 'new'});
 
             // Then the currency error shows, because a new account must use a supported currency
-            expect(queryByText(CURRENCY_ERROR)).not.toBeNull();
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
         });
 
         it('opens a locked linked account without the currency error when the beta is on', async () => {
@@ -543,10 +547,10 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.LOCKED));
 
             // When a user who is not the reimburser opens the page with no route params
-            const {queryByText} = await renderPage();
+            await renderPage();
 
             // Then the page does not show the currency error
-            expect(queryByText(CURRENCY_ERROR)).toBeNull();
+            expect(screen.queryByText(CURRENCY_ERROR)).not.toBeOnTheScreen();
         });
 
         it('shows the currency error when the beta is off', async () => {
@@ -555,10 +559,10 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
 
             // When the page is opened with no route params besides the policy
-            const {queryByText} = await renderPage();
+            await renderPage();
 
             // Then the page behaves as before and shows the currency error
-            expect(queryByText(CURRENCY_ERROR)).not.toBeNull();
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
         });
     });
 });

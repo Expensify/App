@@ -47,7 +47,8 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const {isBetaEnabled} = usePermissions();
     const isEmployeePaysDisabled =
-        canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)) && policy?.achAccount?.bankCurrency !== policy?.outputCurrency;
+        canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)) &&
+        policy?.achAccount?.bankCurrency !== policy?.outputCurrency;
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY

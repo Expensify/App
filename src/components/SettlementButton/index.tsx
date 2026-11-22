@@ -268,7 +268,12 @@ function SettlementButton({
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, policy?.achAccount?.bankAccountID, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY));
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(
+        formattedPaymentMethods,
+        currency,
+        policy?.achAccount?.bankAccountID,
+        isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY),
+    );
     const businessBankAccountOptions =
         isExpenseReport && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))

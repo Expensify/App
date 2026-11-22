@@ -109,8 +109,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
-    const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, undefined, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
     const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (details) =>
@@ -155,10 +153,13 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
+    const hasValidExistingAccounts =
+        getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, undefined, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)).length > 0;
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
-    const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
+    const hasOtherEligibleExistingAccounts =
+        getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)).length > 0;
 
     const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -211,7 +212,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 showAddBankAccountPermissionModal();
                 return;
             }
-            if (isMismatchedReimbursementCurrencyBetaEnabled && hasValidExistingAccounts) {
+            if (isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY) && hasValidExistingAccounts) {
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, workflowsBackTo));
                 return;
             }
