@@ -139,6 +139,7 @@ jobs:
         with:
           path: .jest-cache
           # Separate namespace: a 16-way shard holds different suites than the same number of an 8-way shard.
+      # Second run reuses the caches saved by the first run.
           key: ${{ runner.os }}-jest16-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
           restore-keys: ${{ runner.os }}-jest16-${{ matrix.chunk }}-
 
