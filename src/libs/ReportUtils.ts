@@ -164,7 +164,7 @@ import {
     getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
-    getSubmitToEmail,
+    isSubmittingToSelf,
     getTagGLCode,
     getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -11382,20 +11382,18 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions, report, policy);
 }
 
-/**
- * @param reportOwnerPersonalDetailsByLogin - Only the report owner's entry is needed, because the next approver's account ID is only
- * compared against the owner's. Approvers missing from the map get a generated account ID, which never equals the owner's.
- */
 function shouldBlockSubmitDueToPreventSelfApproval(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
-    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin,
+    reportOwnerPersonalDetails: PersonalDetails | undefined,
 ): boolean {
     if (!policy?.preventSelfApproval || !isReportOwner(report)) {
         return false;
     }
 
+    const reportOwnerLogin = reportOwnerPersonalDetails?.login;
+    const reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin = reportOwnerLogin && reportOwnerPersonalDetails ? {[reportOwnerLogin]: reportOwnerPersonalDetails} : {};
     const nextApproverAccountID = getNextApproverAccountID(report, rules, undefined, undefined, reportOwnerPersonalDetailsByLogin);
     const isSubmitterSameAsNextApprover = nextApproverAccountID === report?.ownerAccountID;
 
@@ -11403,9 +11401,7 @@ function shouldBlockSubmitDueToPreventSelfApproval(
         // An open report hasn't been routed to anybody yet, so what matters is who it is about to be submitted to.
         // getNextApproverAccountID answers "who approves after me", which points at somebody else whenever the
         // submitter is the first of several approvers, so it can't detect self-submission on its own.
-        const ownerLogin = Object.values(reportOwnerPersonalDetailsByLogin).find((personalDetails) => personalDetails.accountID === report?.ownerAccountID)?.login;
-        const isSubmittingToSelf = !!ownerLogin && getSubmitToEmail(policy, report, ownerLogin, rules) === ownerLogin;
-        return isSubmittingToSelf || isSubmitterSameAsNextApprover;
+        return isSubmittingToSelf(policy, report, reportOwnerLogin, rules) || isSubmitterSameAsNextApprover;
     }
 
     return isProcessingReport(report) && (report?.managerID === report?.ownerAccountID || isSubmitterSameAsNextApprover);

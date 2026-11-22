@@ -29,7 +29,7 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getReimbursementChoice,
-    getSubmitToEmail,
+    isSubmittingToSelf,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
@@ -287,8 +287,7 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToLogin = getSubmitToEmail(policy, report, ownerLogin, rules);
-    if (submitToLogin === ownerLogin && policy?.preventSelfApproval) {
+    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval) {
         return false;
     }
 

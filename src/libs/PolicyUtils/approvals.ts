@@ -379,6 +379,10 @@ function getSubmitToEmail(
     return managerEmail;
 }
 
+function isSubmittingToSelf(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>): boolean {
+    return !!ownerLogin && getSubmitToEmail(policy, expenseReport, ownerLogin, rules) === ownerLogin;
+}
+
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
@@ -467,6 +471,7 @@ export {
     isWorkflowApprover,
     getManagerAccountID,
     getSubmitToEmail,
+    isSubmittingToSelf,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
     getForwardsToAccount,
