@@ -704,3 +704,51 @@ describe('getCombinedCardFeedsFromAllFeeds forceReimbursable', () => {
         expect(getFeed(result)?.forceReimbursable).toBe('force_no');
     });
 });
+
+describe('getCombinedCardFeedsFromAllFeeds liabilityType', () => {
+    const domainID = 1234;
+    const feed = cardFeedAmericaExpressMock;
+
+    it.each(['pending', 'failed', 'saved'])('preserves local liability feedback for a %s change without overriding unrelated OAuth settings', (state) => {
+        // Given stale OAuth liability and metadata that would otherwise hide a local save or rollback
+        const localValue = CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+        const oAuthValue = CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT;
+        const errors = {1: 'Save failed'};
+        const feeds: OnyxCollection<CardFeeds> = {
+            [`sharedNVP_private_domain_member_${domainID}`]: {
+                settings: {
+                    companyCards: {
+                        [feed]: {
+                            liabilityType: localValue,
+                            forceReimbursable: 'force_yes',
+                            ...(state === 'pending' ? {pendingFields: {liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+                            ...(state === 'failed' ? {errorFields: {liabilityType: errors}} : {}),
+                        },
+                    },
+                    oAuthAccountDetails: {
+                        [feed]: {
+                            accountList: [],
+                            credentials: '',
+                            expiration: 0,
+                            liabilityType: oAuthValue,
+                            forceReimbursable: 'force_no',
+                            pendingFields: {forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {forceReimbursable: errors},
+                        },
+                    },
+                },
+            },
+        };
+
+        // When feed settings and OAuth details are combined for display
+        const combinedFeed = Object.values(getCombinedCardFeedsFromAllFeeds(feeds)).at(0);
+
+        // Then local feedback wins only while needed, and unrelated OAuth properties retain their precedence
+        expect(combinedFeed?.liabilityType).toBe(state === 'saved' ? oAuthValue : localValue);
+        expect(combinedFeed?.pendingFields?.liabilityType).toBe(state === 'pending' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined);
+        expect(combinedFeed?.errorFields?.liabilityType).toEqual(state === 'failed' ? errors : undefined);
+        expect(combinedFeed?.forceReimbursable).toBe('force_no');
+        expect(combinedFeed?.pendingFields?.forceReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(combinedFeed?.errorFields?.forceReimbursable).toEqual(errors);
+    });
+});
