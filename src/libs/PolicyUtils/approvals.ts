@@ -339,9 +339,9 @@ function isWorkflowApprover(policy: OnyxEntry<Policy>, ownerLogin: string | unde
     return !!userEmail && !!ownerLogin && !isSubmitAndClose(policy) && userEmail === getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, personalDetailsByLogins?: PersonalDetailsByLogin, reportTotal = 0) {
     const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
-    return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
+    return managerEmail ? (getAccountIDsByLogins([managerEmail], personalDetailsByLogins).at(0) ?? -1) : -1;
 }
 
 /**

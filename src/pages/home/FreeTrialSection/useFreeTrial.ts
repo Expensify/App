@@ -1,9 +1,8 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
-import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import type {DiscountInfo} from '@libs/SubscriptionUtils';
 import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyDiscountInfo, isUserOnFreeTrial, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 
@@ -37,15 +36,13 @@ function useFreeTrial(): FreeTrialState {
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const {accountID} = useCurrentUserPersonalDetails();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     const onFreeTrial = isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial);
     const hasPaymentCard = doesUserHavePaymentCardAdded(userBillingFundID);
-    const hasOwnedPaidPolicies = getOwnedPaidPolicies(allPolicies, accountID).length > 0;
-    const showDiscount = shouldShowDiscountBanner(accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
+    const showDiscount = shouldShowDiscountBanner(hasOwnedPaidPolicy, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
     const daysLeft = calculateRemainingFreeTrialDays(lastDayFreeTrial);
 
     const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => (showDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null));
@@ -65,7 +62,7 @@ function useFreeTrial(): FreeTrialState {
         };
     }, [firstDayFreeTrial, showDiscount]);
 
-    if (!onFreeTrial || hasPaymentCard || !hasOwnedPaidPolicies) {
+    if (!onFreeTrial || hasPaymentCard || !hasOwnedPaidPolicy) {
         return {shouldShowFreeTrialSection: false, discountType: null, daysLeft: 0, discountInfo: null};
     }
 
