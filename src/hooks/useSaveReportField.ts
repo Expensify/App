@@ -37,8 +37,6 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
 
     return (reportField: PolicyReportField, value: string) => {
-        console.log('value', value);
-        console.log('reportField', reportField);
         if (!report) {
             return;
         }
