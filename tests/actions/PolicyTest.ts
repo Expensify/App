@@ -5495,9 +5495,9 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // The policy join should have the genericAdd error
+            // The policy join should have the cannotRequestToJoin error
             expect(policyJoinData?.errors).toBeTruthy();
-            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.people.error.genericAdd'));
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(TestHelper.translateLocal('workspace.common.cannotRequestToJoin'));
 
             mockFetch.succeed?.();
         });
