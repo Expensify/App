@@ -40,7 +40,7 @@ function ReportPreviewActionButton() {
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
-            return <PayActionButton />;
+            return <PayActionButton isSecondary={shouldShowViewFirst} />;
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING && connectedIntegration) {

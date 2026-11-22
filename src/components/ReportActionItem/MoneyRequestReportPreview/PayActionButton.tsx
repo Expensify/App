@@ -41,7 +41,12 @@ import Onyx from 'react-native-onyx';
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
-function PayActionButton() {
+type PayActionButtonProps = {
+    /** Defaults to false; keeps the approval loading button in the neutral style while View is the highlighted action. */
+    isSecondary?: boolean;
+};
+
+function PayActionButton({isSecondary = false}: PayActionButtonProps) {
     const {isBetaEnabled} = usePermissions();
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isOffline} = useNetwork();
@@ -186,6 +191,7 @@ function PayActionButton() {
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            isSecondary={isSecondary}
             reportID={iouReportID}
             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
             onAnimationFinish={stopAnimation}
