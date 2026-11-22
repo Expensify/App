@@ -349,7 +349,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             const iouReport = isIOUReport(candidateIOUReport) || isExpenseReport(candidateIOUReport) || isInvoiceReport(candidateIOUReport) ? candidateIOUReport : undefined;
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
             const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
-            const isArchivedIOUReport = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]);
 
             // A self-DM expense is a tracked expense: it has no IOU report to key the cleanup on, so it goes
             // through the track-expense flow, which resolves the self-DM report actions and the whisper.
@@ -382,7 +381,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isSingleTransactionView,
                     isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${candidateIOUReport?.reportID}`]),
                     isChatIOUReportArchived: false,
-                    isArchivedIOUReport,
+                    isArchivedIOUReport: false,
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
@@ -398,6 +397,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             const chatIOUReportID = chatReport?.reportID;
             const isChatIOUReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`]);
+            const isArchivedIOUReport = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]);
             const iouPolicy = iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined;
             deleteMoneyRequest({
                 transactionID,

@@ -2773,6 +2773,94 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given the IOU report is archived, the user can't write, so the actionable whisper is hidden
             expect(getPreviewCreated(ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID, true)).toBe(olderIOUAction.created);
         });
+
+        it('falls back to isArchivedIOUReport when isChatIOUReportArchived is not passed', async () => {
+            const CHAT_REPORT_ID = '71001';
+            const IOU_REPORT_ID = '71002';
+            const WHISPER_TARGET_ACCOUNT_ID = 811;
+
+            const olderComment: ReportAction = {
+                ...createRandomReportAction(20),
+                reportActionID: 'archivedFallbackOlderComment',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderComment`, and only visible to the whispered-to account while they can write. */
+            const actionableWhisper: ReportAction = {
+                ...createRandomReportAction(21),
+                reportActionID: 'archivedFallbackActionableWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'mentioned you', text: 'mentioned you', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            const previewAction: ReportAction = {
+                ...createRandomReportAction(22),
+                reportActionID: 'archivedFallbackPreview',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childVisibleActionCount: 2,
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            };
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(23),
+                reportActionID: 'archivedFallbackDeletedIOU',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childVisibleActionCount: 1,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '71003', amount: 100, currency: 'USD', IOUReportID: IOU_REPORT_ID},
+            };
+
+            const chatReport: Report = {...createRandomReport(71001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...createRandomReport(71002, undefined),
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[previewAction.reportActionID]: previewAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [actionableWhisper.reportActionID]: actionableWhisper,
+                [deletedIOUAction.reportActionID]: deletedIOUAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getPreviewCreated = (isArchivedIOUReport: boolean) => {
+                // isChatIOUReportArchived is intentionally omitted so the fallback to isArchivedIOUReport is exercised.
+                const result = getCleanUpTransactionThreadReportOnyxData({
+                    shouldDeleteTransactionThread: false,
+                    reportAction: deletedIOUAction,
+                    iouReport,
+                    chatReport,
+                    currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                    isArchivedIOUReport,
+                });
+                const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
+                const value: unknown = entry && 'value' in entry ? entry.value : undefined;
+                if (!isObject(value)) {
+                    return undefined;
+                }
+                const updatedPreview = value[previewAction.reportActionID];
+                if (!isObject(updatedPreview) || typeof updatedPreview.childLastVisibleActionCreated !== 'string') {
+                    return undefined;
+                }
+                return updatedPreview.childLastVisibleActionCreated;
+            };
+
+            // Given the fallback marks the IOU report as archived, the user can't write, so the actionable whisper is hidden
+            expect(getPreviewCreated(true)).toBe(olderComment.created);
+
+            // Given the fallback marks the IOU report as not archived, the actionable whisper is the newest action they can see
+            expect(getPreviewCreated(false)).toBe(actionableWhisper.created);
+        });
     });
 
     describe('deleteMoneyRequest last visible action', () => {
