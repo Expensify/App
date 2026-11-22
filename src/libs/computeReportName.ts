@@ -63,6 +63,7 @@ import {
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
+    getAutoReconciliationFailedMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
@@ -655,6 +656,10 @@ function computeReportNameBasedOnReportAction({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED)) {
+        return Parser.htmlToText(getAutoReconciliationFailedMessage(translate, parentReportAction, convertToDisplayString));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {

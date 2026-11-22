@@ -76,6 +76,7 @@ import React from 'react';
 
 import ApprovalFlowContent from './ApprovalFlowContent';
 import AutoPayFeeDisclosureContent from './AutoPayFeeDisclosureContent';
+import AutoReconciliationFailedMessage from './AutoReconciliationFailedMessage';
 import BillPayHistoryContent from './BillPayHistoryContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
@@ -543,6 +544,14 @@ function ActionContentRouter({
                 action={action}
                 policyID={policyID}
                 originalReport={originalReport}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED)) {
+        return (
+            <AutoReconciliationFailedMessage
+                action={action}
+                policyID={policyID}
             />
         );
     }

@@ -35,6 +35,7 @@ import type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     PolicyBudgetFrequency,
+    ReconciliationIssue,
 } from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -366,6 +367,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
@@ -399,6 +401,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
 const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
@@ -6262,6 +6265,88 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     return message;
 }
 
+function formatAutoReconciliationIssueLine(
+    translate: LocalizedTranslate,
+    issue: ReconciliationIssue,
+    label: string,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
+    const journalLabel = issue.journal && issue.journalTitle ? `${issue.journal} – ${issue.journalTitle}` : (issue.journal ?? issue.journalTitle ?? '');
+    const currency = issue.currency ?? CONST.CURRENCY.USD;
+
+    switch (issue.code) {
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.JOURNAL_MISSING_OR_INACTIVE:
+            return translate('report.actions.type.autoReconciliationFailed.journalMissingOrInactive', journalLabel);
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.JOURNAL_NO_BOOK:
+            return translate('report.actions.type.autoReconciliationFailed.journalNoBook', journalLabel);
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.DEFAULT_CARD_IS_RECONCILIATION_CARD:
+            return translate('report.actions.type.autoReconciliationFailed.defaultCardIsReconciliationCard', issue.card ?? '');
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.ENTRY_REJECTED: {
+            const formattedAmount = issue.amount ? convertToDisplayString(issue.amount, currency) : '';
+            const prefixParts = [issue.date, formattedAmount].filter(Boolean);
+            const prefix = prefixParts.length > 0 ? `${prefixParts.join(', ')}. ` : '';
+            return translate('report.actions.type.autoReconciliationFailed.entryRejected', prefix, label, issue.errorMessage ?? '');
+        }
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.CARD_OR_LIABILITY_ACCOUNT_MISSING_OR_INACTIVE: {
+            const details = [issue.card, issue.glAccount].filter(Boolean).join(', ');
+            return translate('report.actions.type.autoReconciliationFailed.cardOrLiabilityAccountMissingOrInactive', details);
+        }
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.NO_SETTLEMENT_BANK_ACCOUNT:
+            return translate('report.actions.type.autoReconciliationFailed.noSettlementBankAccount');
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.SETTLEMENT_BANK_ACCOUNT_NOT_IN_INTACCT:
+            return translate('report.actions.type.autoReconciliationFailed.settlementBankAccountNotInIntacct', issue.bankAccount ?? '', label);
+        case CONST.AUTO_RECONCILIATION_ISSUE.CODE.TOO_MANY_SETTLEMENTS_WAITING: {
+            const count = issue.waitingCount ?? 0;
+            const range =
+                issue.waitingDateStart && issue.waitingDateEnd ? translate('report.actions.type.autoReconciliationFailed.dateRange', issue.waitingDateStart, issue.waitingDateEnd) : '';
+            const total = issue.waitingTotal ? `, ${convertToDisplayString(issue.waitingTotal, currency)}` : '';
+            return translate('report.actions.type.autoReconciliationFailed.tooManySettlementsWaiting', {count, range, total});
+        }
+        default:
+            return issue.errorMessage || translate('report.actions.type.autoReconciliationFailed.fallback');
+    }
+}
+
+function getAutoReconciliationFailedMessage(
+    translate: LocalizedTranslate,
+    action: OnyxEntry<ReportAction>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED) ? getOriginalMessage(action) : undefined;
+    const label = originalMessage?.label ?? '';
+    const issues = originalMessage?.issues ?? [];
+    const mentionedAccountID = originalMessage?.mentionedAccountIDs?.at(0);
+
+    let hasExpensifyCard = false;
+    let hasTravelBilling = false;
+    const issueLines: string[] = [];
+
+    for (const issue of issues) {
+        if (issue.programme === CONST.AUTO_RECONCILIATION_ISSUE.PROGRAMME.EXPENSIFY_CARD) {
+            hasExpensifyCard = true;
+        } else if (issue.programme === CONST.AUTO_RECONCILIATION_ISSUE.PROGRAMME.TRAVEL_BILLING) {
+            hasTravelBilling = true;
+        }
+        issueLines.push(formatAutoReconciliationIssueLine(translate, issue, label, convertToDisplayString));
+    }
+
+    let header: string;
+    if (issueLines.length === 0) {
+        header = translate('report.actions.type.autoReconciliationFailed.genericHeader', label);
+    } else if (hasExpensifyCard && !hasTravelBilling) {
+        header = translate('report.actions.type.autoReconciliationFailed.expensifyCardHeader', {count: issueLines.length, label});
+    } else if (hasTravelBilling && !hasExpensifyCard) {
+        header = translate('report.actions.type.autoReconciliationFailed.travelBillingHeader', {count: issueLines.length, label});
+    } else {
+        header = translate('report.actions.type.autoReconciliationFailed.combinedHeader', {count: issueLines.length, label});
+    }
+
+    const mentionPrefix = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> ` : '';
+    const encodedHeader = `<strong>${Str.htmlEncode(header)}</strong>`;
+    const encodedLines = issueLines.map((line) => `<br/>${Str.htmlEncode(line)}`).join('');
+    return `${mentionPrefix}${encodedHeader}${encodedLines}`;
+}
+
 /**
  * Returns the feed name the company cards page shows, so admins recognize the feed in the message.
  */
@@ -6674,6 +6759,7 @@ export {
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getAutoReconciliationFailedMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,

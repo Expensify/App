@@ -71,6 +71,7 @@ import {
     getForwardedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
+    getAutoReconciliationFailedMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
@@ -1479,6 +1480,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(translate('iou.reopened'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(translate, reportAction, report?.policyID, isTryNewDotNVPDismissed));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_RECONCILIATION_FAILED)) {
+                    setClipboardMessage(getAutoReconciliationFailedMessage(translate, reportAction, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
                     setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {

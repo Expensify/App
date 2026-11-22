@@ -958,6 +958,23 @@ function updateSageIntacctFxExpenseAccount(policyID: string | undefined, expense
     );
 }
 
+function updateSageIntacctReconciliationJournal(policyID: string | undefined, journalID: string, oldJournalID?: string) {
+    if (!policyID || journalID === oldJournalID) {
+        return;
+    }
+
+    const parameters = {
+        policyID,
+        journalID,
+    };
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_RECONCILIATION_JOURNAL,
+        parameters,
+        prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.RECONCILIATION_JOURNAL, journalID, oldJournalID),
+    );
+}
+
 function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
     if (!policyID) {
         return;
@@ -1013,6 +1030,7 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctFxExpenseAccount,
+    updateSageIntacctReconciliationJournal,
     updateSageIntacctEntity,
     updateSageIntacctAccountingMethod,
     changeMappingsValueFromDefaultToTag,

@@ -1,5 +1,6 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -20,6 +21,14 @@ import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensify
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {
+    formatSageIntacctJournalLabel,
+    formatSageIntacctLiabilityAccount,
+    getResolvedSageIntacctReconciliationCard,
+    getResolvedSageIntacctReconciliationJournal,
+    getSageIntacctJournalBookLabel,
+    isSageIntacctReconciliationJournalValid,
+} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -79,23 +88,46 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [continuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${effectiveDomainID}`);
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
+    const [reconciliationLiabilityAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_LIABILITY_ACCOUNT_ID}${effectiveDomainID}`);
+
+    useEffect(() => {
+        if (continuousReconciliation !== undefined || !policyID) {
+            return;
+        }
+        openPolicyAccountingPage(policyID);
+    }, [continuousReconciliation, policyID]);
 
     const resolvedCardSettings = getCardSettings(cardSettings);
     const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as AccountingConnectionName;
+    const isSageIntacct = connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
     const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName);
     const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
+    const resolvedSageIntacctCard = getResolvedSageIntacctReconciliationCard(policy, reconciliationLiabilityAccountID, !!continuousReconciliation);
+    const resolvedSageIntacctLiabilityAccount = formatSageIntacctLiabilityAccount(resolvedSageIntacctCard?.value, resolvedSageIntacctCard?.liabilityAccountTitle);
+    const resolvedSageIntacctJournal = getResolvedSageIntacctReconciliationJournal(policy, !!continuousReconciliation);
+    const isSageIntacctJournalValid = isSageIntacctReconciliationJournalValid(policy, resolvedSageIntacctJournal);
+    const isSageIntacctMissingRequiredSelection = isSageIntacct && (!resolvedSageIntacctCard || !isSageIntacctJournalValid);
+
     const handleToggleContinuousReconciliation = (value: boolean) => {
         if (!policyID) {
             return;
         }
-        toggleContinuousReconciliation(effectiveDomainID, policyID, value, connectionName, currentConnectionName);
+        toggleContinuousReconciliation(
+            effectiveDomainID,
+            policyID,
+            value,
+            connectionName,
+            currentConnectionName,
+            value && isSageIntacct ? resolvedSageIntacctCard?.id : undefined,
+            reconciliationLiabilityAccountID,
+        );
         if (value) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path));
         }
@@ -123,20 +155,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                 break;
         }
     }
-
-    const fetchPolicyAccountingData = () => {
-        if (!policyID) {
-            return;
-        }
-        openPolicyAccountingPage(policyID);
-    };
-
-    useEffect(() => {
-        if (continuousReconciliation !== undefined) {
-            return;
-        }
-        fetchPolicyAccountingData();
-    }, [continuousReconciliation, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -183,7 +201,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
                         switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CONTINUOUS_RECONCILIATION_SWITCH}
-                        disabled={!autoSync}
+                        disabled={!autoSync || (!continuousReconciliation && isSageIntacctMissingRequiredSelection)}
                         isActive={!!continuousReconciliation}
                         onToggle={handleToggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
@@ -200,9 +218,49 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             />
                         </View>
                     )}
+                    {isSageIntacct && (
+                        <View style={styles.mt5}>
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_CHARGE_CARD}
+                                name={translate('workspace.sageIntacct.reconciliation.chargeCard')}
+                                value={resolvedSageIntacctCard?.name}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_CHARGE_CARD_SELECT.path))}
+                            />
+                            {!!resolvedSageIntacctLiabilityAccount && (
+                                <FormHelpMessage
+                                    isError={false}
+                                    shouldShowRedDotIndicator={false}
+                                    message={translate('workspace.sageIntacct.reconciliation.liabilityAccountSubtitle', resolvedSageIntacctLiabilityAccount)}
+                                    style={[styles.mt0, styles.mb0, styles.ph5, styles.pb2]}
+                                />
+                            )}
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_JOURNAL}
+                                name={translate('workspace.sageIntacct.reconciliation.journal')}
+                                value={formatSageIntacctJournalLabel(resolvedSageIntacctJournal)}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_RECONCILIATION_JOURNAL_SELECT.path))}
+                            />
+                            {!!resolvedSageIntacctJournal && (
+                                <FormHelpMessage
+                                    isError={false}
+                                    shouldShowRedDotIndicator={false}
+                                    message={getSageIntacctJournalBookLabel(resolvedSageIntacctJournal.value, translate)}
+                                    style={[styles.mt0, styles.mb0, styles.ph5, styles.pb2]}
+                                />
+                            )}
+                            {isSageIntacctMissingRequiredSelection && !continuousReconciliation && (
+                                <FormHelpMessage
+                                    isError={false}
+                                    shouldShowRedDotIndicator={false}
+                                    message={translate('workspace.sageIntacct.reconciliation.requireChargeCardAndJournal')}
+                                    style={[styles.mt1, styles.mb0, styles.ph5, styles.pb2]}
+                                />
+                            )}
+                        </View>
+                    )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
                         {!!paymentBankAccountID && !!continuousReconciliation && (
-                            <View style={styles.mt5}>
+                            <View style={isSageIntacct ? undefined : styles.mt5}>
                                 <MenuItemField
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_ACCOUNT}
                                     name={translate('workspace.accounting.reconciliationAccount')}
