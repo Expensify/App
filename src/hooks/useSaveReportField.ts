@@ -66,8 +66,6 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
         let externalID = reportField.externalID;
         if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
-            // The inline inputs pass the workspace's current option names with the external IDs saved on the report, and those can be in a
-            // different order. Read the names and IDs from the workspace field, and use the report's copy only once the workspace has dropped the field.
             const optionsField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[reportField.fieldID] ?? reportField;
             externalID = getReportFieldOptionExternalID(optionsField, value);
             if (!externalID) {
