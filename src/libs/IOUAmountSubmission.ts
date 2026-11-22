@@ -411,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 },
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
                 conciergeChat,
@@ -465,6 +466,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 formatPhoneNumber,
                 getCurrencyDecimals,
                 rules,
+                // Only used for the optimistic next approver of a submitted workspace report, which this skip-confirmation flow never targets (it excludes policy expense chats).
+                personalDetailsByLogins: undefined,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -698,6 +701,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     updateMoneyRequestAmountAndCurrency({
         isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
+        transaction: currentTransaction,
         transactionThreadReport: report,
         parentReport,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),

@@ -15,7 +15,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, Rule, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -26,12 +26,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 
 import {isFailedScanAmountPlaceholder} from './amountUtils';
-import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
 import {
-    getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
     hasLocallyKnownDistance,
@@ -40,7 +35,9 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isScanRequest,
-} from './index';
+} from './fields';
+import getDistanceInMeters from './getDistanceInMeters';
+import {getCategoryTaxDetails} from './tax';
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
     return {
@@ -136,8 +133,9 @@ function getUpdatedTransaction({
     policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
-    getCurrencyDecimals,
     getCurrencySymbol,
+    getCurrencyDecimals,
+    rules,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -147,8 +145,11 @@ function getUpdatedTransaction({
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Expense default rules, which is where a category's tax rate lives */
+    rules?: OnyxCollection<Rule>;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -407,7 +408,7 @@ function getUpdatedTransaction({
         // change here only writes a rate that the response immediately overwrites. Split drafts have no such
         // response and send whatever tax the draft holds, so they keep recalculating.
         if (transactionChanges.category || isSplitTransaction) {
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, rules, getCurrencyDecimals);
             if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
                 updatedTransaction.taxCode = categoryTaxCode;
                 updatedTransaction.taxAmount = categoryTaxAmount;

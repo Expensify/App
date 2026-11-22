@@ -1,8 +1,8 @@
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {TransactionItemRowProps} from '@components/TransactionItemRow/types';
 
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,8 +17,11 @@ import React from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
+import InlineCategoryPicker from './InlineCategoryPicker';
+
 type CategoryGLCodeCellProps = TransactionDataCellProps &
-    EditableProps<string> & {
+    Omit<EditableProps<string>, 'onSave'> & {
+        onSave?: TransactionItemRowProps['onEditCategory'];
         policyID?: string;
         policyCategories?: PolicyCategories;
 
@@ -62,8 +65,9 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
             onStartEditing={startEditing}
             anchorRef={anchorRef}
             popoverContent={
-                <CategoryPickerModal
+                <InlineCategoryPicker
                     policyID={policyID}
+                    onSave={onSave}
                     selectedCategory={categoryForComparison}
                     shouldAlwaysShowGLCode
                     searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}

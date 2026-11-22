@@ -5,13 +5,16 @@ import {checkIfWalletIsAvailable, isCardInWallet} from '@libs/Wallet';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 type UseIsCardInWalletType = {
     isInWallet: boolean | null;
     isLoading: boolean;
     isCardAvailable: boolean;
     isWalletAvailable: boolean;
+
+    /** Re-reads the card status from the device wallet, e.g. right after the user adds the card */
+    refreshWalletStatus: () => Promise<void>;
 };
 
 function useIsCardInWallet(card: Card): UseIsCardInWalletType {
@@ -19,17 +22,24 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const [isWalletAvailable, setIsWalletAvailable] = useState(false);
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const checkIfCardIsInWallet = () => {
-        isCardInWallet(card)
-            .then((result) => {
+    const latestRequestIDRef = useRef(0);
+    const latestReadRef = useRef<Promise<void>>(Promise.resolve());
+    const refreshWalletStatus = () => {
+        latestRequestIDRef.current += 1;
+        const requestID = latestRequestIDRef.current;
+
+        const read = isCardInWallet(card)
+            .catch(() => false)
+            .then((result): Promise<void> | undefined => {
+                // Reads can resolve out of order (e.g. a focus refresh started meanwhile), so a stale one waits for the newest
+                if (requestID !== latestRequestIDRef.current) {
+                    return latestReadRef.current;
+                }
                 setIsInWallet(result);
-            })
-            .catch(() => {
-                setIsInWallet(false);
-            })
-            .finally(() => {
                 setIsLoading(false);
             });
+        latestReadRef.current = read;
+        return read;
     };
 
     useEffect(() => {
@@ -37,8 +47,8 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
             return;
         }
 
-        checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet, isCardAvailable, card]);
+        refreshWalletStatus();
+    }, [refreshWalletStatus, isCardAvailable, card]);
 
     useEffect(() => {
         if (!isCardAvailable) {
@@ -59,7 +69,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
         if (!isCardAvailable) {
             return;
         }
-        checkIfCardIsInWallet();
+        refreshWalletStatus();
     });
 
     return {
@@ -67,6 +77,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
         isLoading,
         isCardAvailable,
         isWalletAvailable,
+        refreshWalletStatus,
     };
 }
 

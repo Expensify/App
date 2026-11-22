@@ -5,8 +5,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {getSidePanelInsetStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
+import type {ViewStyle} from 'react-native';
+import type {Writable} from 'type-fest';
 
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
@@ -26,7 +29,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded, sidePanelWidth, isSidePanelResizable} = useSidePanelState();
     const {width: singleRHPWidth} = useSingleRHPWidth();
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
@@ -42,10 +45,11 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         enter,
         applySidePanelOffset = false,
     }) => {
-        const cardStyle = StyleUtils.getCardStyles(screen.width);
+        const cardStyle: Writable<Animated.WithAnimatedValue<ViewStyle>> = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {
-            cardStyle.paddingRight = sidePanelOffset.current;
+            // A resizable panel's inset is left to CSS, so dragging its edge moves the page without rendering the cards.
+            cardStyle.paddingRight = isSidePanelResizable ? getSidePanelInsetStyleValue(sidePanelWidth) : sidePanelOffset.current;
         }
 
         // Suppress card entry animation while the side panel is mid-transition on narrow layout — keeps the

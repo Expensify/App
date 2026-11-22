@@ -80,6 +80,14 @@ const LOCALIZED_TOKENS = [
     {token: 'ppp', label: 'ppp (localized long time)'},
     {token: 'pp', label: 'pp (localized medium time)'},
     {token: 'p', label: 'p (localized short time)'},
+    // Timezone names. date-fns-tz takes them from `Intl` in the locale's language, so New York reads `EDT` in English,
+    // `GMT-4` in German and `UTC−4` in French. Plain date-fns always writes a GMT offset for them, the same in every
+    // language, so they only count for date-fns-tz formatters. The `O` offset tokens are left out because they read
+    // `GMT-4` in every language with either library.
+    {token: 'zzzz', label: 'zzzz (long timezone name)', isTimeZoneName: true},
+    {token: 'zzz', label: 'zzz (timezone name)', isTimeZoneName: true},
+    {token: 'zz', label: 'zz (timezone name)', isTimeZoneName: true},
+    {token: 'z', label: 'z (timezone name)', isTimeZoneName: true},
     {token: 'aaaa', label: 'aaaa (AM/PM)'},
     {token: 'aaa', label: 'aaa (AM/PM)'},
     {token: 'aa', label: 'aa (AM/PM)'},
@@ -116,6 +124,12 @@ function unwrapTypeScriptExpression(node) {
 }
 
 /**
+ * The module whose formatters name timezones through `Intl`, so only its formatters localize the `z` tokens. Its
+ * single-function imports, such as `date-fns-tz/formatInTimeZone`, count too.
+ */
+const TIME_ZONE_NAMING_MODULE_PATTERN = /^date-fns-tz(?:\/|$)/;
+
+/**
  * `CONST.DATE.*` machine formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized,
  * so a newly added format is guarded by default rather than silently escaping this rule. `SHORT_DATE_FORMAT` (`MM-dd`)
  * has no such tokens either, but it is only ever shown to users, so it is left out and needs the user's locale like any
@@ -137,15 +151,19 @@ function stripEscapedLiterals(pattern) {
 
 /**
  * @param {string} pattern
+ * @param {boolean} isTimeZoneNaming whether the formatter comes from date-fns-tz, which localizes timezone names
  * @returns {string[]} labels of the localized tokens the pattern contains
  */
-function findLocalizedTokens(pattern) {
+function findLocalizedTokens(pattern, isTimeZoneNaming) {
     let remaining = stripEscapedLiterals(pattern);
     const found = [];
 
     // Longest tokens first so that MMMM is not reported as MMM. Consuming each match keeps overlapping tokens (MMM inside
     // MMMM) from being counted twice. A consumed token becomes a space, so what is left on either side stays apart.
-    for (const {token, pattern: tokenPattern, label} of LOCALIZED_TOKENS) {
+    for (const {token, pattern: tokenPattern, label, isTimeZoneName} of LOCALIZED_TOKENS) {
+        if (isTimeZoneName && !isTimeZoneNaming) {
+            continue;
+        }
         if (tokenPattern) {
             if (!tokenPattern.test(remaining)) {
                 continue;
@@ -255,6 +273,8 @@ function create(context) {
     // Local name -> index of the format argument, resolved from the imports so that aliases such as
     // `import {format as timezoneFormat}` are still checked.
     const formatters = new Map(Object.entries(LOCAL_FORMATTER_FORMAT_ARG_INDEX));
+    // Local names of the formatters that come from date-fns-tz. The local wrappers all wrap date-fns-tz.
+    const timeZoneNamingFormatters = new Set(Object.keys(LOCAL_FORMATTER_FORMAT_ARG_INDEX));
 
     return {
         ImportDeclaration(node) {
@@ -270,6 +290,9 @@ function create(context) {
                     continue;
                 }
                 formatters.set(specifier.local.name, formatArgIndex);
+                if (TIME_ZONE_NAMING_MODULE_PATTERN.test(node.source.value)) {
+                    timeZoneNamingFormatters.add(specifier.local.name);
+                }
             }
         },
         CallExpression(node) {
@@ -298,7 +321,7 @@ function create(context) {
 
             // A ternary or template literal can carry the unknown-format marker inside a longer pattern. The marker is not
             // date-fns text, so it is reported on its own and replaced with a space before the rest is scanned for tokens.
-            const tokens = findLocalizedTokens(pattern.replaceAll(UNKNOWN_LOCALIZED, ' '));
+            const tokens = findLocalizedTokens(pattern.replaceAll(UNKNOWN_LOCALIZED, ' '), timeZoneNamingFormatters.has(calleeName));
             if (pattern.includes(UNKNOWN_LOCALIZED)) {
                 tokens.push('a format from CONST.DATE that may be localized');
             }

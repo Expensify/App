@@ -2177,6 +2177,43 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONSENT_EXPIRING action', async () => {
+            // Given an upcoming consent-expiry warning for an Amex company card feed
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING, {
+                policyID: 'pol123',
+                bank: 'oauth.americanexpressfdx.com 1001',
+                feedName: 'American Express Business',
+                consentGrantedAt: 1790000000,
+                consentExpiresAt: 1797776000,
+                warningDaysBeforeExpiry: 14,
+            });
+
+            // When the warning is displayed in the admins room
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it explains the upcoming expiry and offers the workspace connection link
+            expect(screen.getByText(/American Express Business card connection will need renewed consent in two weeks/)).toBeOnTheScreen();
+            expect(screen.getByText(/Reconnect the card connection before consent expires/)).toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -3841,7 +3878,9 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
+            // A same-month range is joined the way the language writes it, which in English is an en dash. `\s` also
+            // matches the thin spaces `Intl` puts around it.
+            expect(screen.getByText(/Jan 1\s–\s3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {

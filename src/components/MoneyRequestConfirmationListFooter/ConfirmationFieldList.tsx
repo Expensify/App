@@ -182,6 +182,7 @@ function ConfirmationFieldList({
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                         <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SHOW_MORE_FIELDS_BUTTON}
                             onPress={() => compactState.setShowMoreFields(true)}
                             size={CONST.BUTTON_SIZE.SMALL}
                             innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}

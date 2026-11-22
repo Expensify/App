@@ -14,6 +14,7 @@ import {
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
     saveSearch,
+    saveSearchFilters,
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
@@ -178,10 +179,14 @@ describe('SearchActions', () => {
     });
 
     describe('deleteSavedSearch', () => {
-        it('sends the optimistic DELETE, failure revert, and success removal keyed by the savedSearchID', () => {
+        it('sends the optimistic DELETE, failure revert, and success removal of the search and its column widths', () => {
+            // Given a saved search
             const savedSearchID = '987654321';
+
+            // When it's deleted
             deleteSavedSearch(savedSearchID);
 
+            // Then once the server confirms, its column widths go too, for every data type its query could have had
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_SAVED_SEARCH,
                 {savedSearchID},
@@ -191,8 +196,37 @@ describe('SearchActions', () => {
                     successData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}},
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[savedSearchIDToSearchKey(savedSearchID)]: null}},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+                            value: {
+                                [`search:expense:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:expense-report:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:invoice:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:task:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:trip:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:chat:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                            },
+                        },
                     ],
                 },
+            );
+        });
+    });
+
+    describe('saveSearchFilters', () => {
+        it('stores the query as the one the Spend tab restores, locally and on the server', () => {
+            // Given a query that differs from the stored one by its pins alone, a change that sends no search
+            const query = 'type:expense left-pinned-columns:category';
+
+            // When it's saved for the Expenses tab
+            saveSearchFilters(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
+
+            // Then the tab reads it at once, and the server keeps it for the next session
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH_FILTERS,
+                {jsonQuery: JSON.stringify({searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, inputQuery: query})},
+                {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query}}}]},
             );
         });
     });

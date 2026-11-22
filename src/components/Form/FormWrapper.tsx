@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
+import FSClassView from '@components/FSClassView';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
@@ -18,10 +19,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
@@ -163,11 +164,16 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number) => {
-        // Wait for the keyboard animation to complete
-        setTimeout(() => {
+    const scrollTo = (y: number, shouldDelayScroll = true) => {
+        const scrollToOffset = () => {
             formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
-        }, CONST.ANIMATED_TRANSITION);
+        };
+        if (!shouldDelayScroll) {
+            scrollToOffset();
+            return;
+        }
+        // Focus can arrive before the keyboard animation completes; didShow callers can skip this wait.
+        setTimeout(scrollToOffset, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
@@ -258,22 +264,34 @@ function FormWrapper({
     );
 
     if (!shouldUseScrollView) {
-        if (shouldSubmitButtonStickToBottom) {
-            return (
-                <>
-                    {scrollViewContent()}
-                    {SubmitButton}
-                </>
-            );
+        const content = shouldSubmitButtonStickToBottom ? (
+            <>
+                {scrollViewContent()}
+                {SubmitButton}
+            </>
+        ) : (
+            scrollViewContent()
+        );
+
+        // Without the scroll view there's no FSClassView around the form, so one is added when a class is passed. Forms without a class keep their layout.
+        if (!forwardedFSClass) {
+            return content;
         }
 
-        return scrollViewContent();
+        return (
+            <FSClassView
+                style={styles.flex1}
+                forwardedFSClass={forwardedFSClass}
+            >
+                {content}
+            </FSClassView>
+        );
     }
 
     return (
-        <View
+        <FSClassView
             style={styles.flex1}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             {scrollContextEnabled ? (
                 <ScrollViewWithContext
@@ -302,7 +320,7 @@ function FormWrapper({
                 </ScrollView>
             )}
             {shouldSubmitButtonStickToBottom && SubmitButton}
-        </View>
+        </FSClassView>
     );
 }
 

@@ -1,6 +1,7 @@
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -83,28 +85,48 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
+    const defaultBadgeWidth = getBadgeWidth(styles, translate('common.default'));
+    // The Requested badge leads with an icon and its margin.
+    const requestedBadgeWidth = getBadgeWidth(styles, translate('workspace.common.requested'), variables.iconSizeExtraSmall + styles.mr1.marginRight);
+    const getRowBadgesWidth = (item: WorkspaceRowData) => (item.isDefault ? defaultBadgeWidth : 0) + (item.isJoinRequestPending ? requestedBadgeWidth : 0);
+    const shownBadgesWidths = workspaces.map(getRowBadgesWidth).filter((badgesWidth) => badgesWidth > 0);
+
+    const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey, WorkspaceRowData>> = [
         {
             sortable: true,
             key: 'workspaces',
             label: translate('common.workspaces'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.title, fontSize: fontScale.text, trailingWidth: getRowBadgesWidth(item)}],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+                dragMinWidth: getBadgeColumnDragMinWidth(shownBadgesWidths, variables.tableMemberCellAvatarWidth),
+            },
         },
         {
             sortable: true,
             key: 'owner',
             label: translate('common.owner'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.ownerName ? [{text: item.ownerName, fontSize: fontScale.text}] : []),
+                extraWidth: variables.tableInlineAvatarCellWidth,
+            },
         },
         {
             sortable: true,
             key: 'type',
             label: translate('workspace.common.workspaceType'),
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: getUserFriendlyWorkspaceType(item.type, translate), fontSize: fontScale.text}],
+                // A workspace type is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             sortable: false,
             key: 'actions',
             width: variables.workspaceTableActionColumnWidth,
             label: '',
-            styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
         },
     ];
 
@@ -130,8 +152,10 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
-    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
+    // Submit workspaces lock every member, including the owner, to the Editor role, so Editors there get the same archived access as Admins.
+    const canAccessArchived = ({role, type}: Pick<WorkspaceRowData, 'role' | 'type'>) =>
+        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || (type === CONST.POLICY.TYPE.SUBMIT && role === CONST.POLICY.ROLE.EDITOR);
+    const canSeeFilter = canUseArchivePolicies && workspaces.some(canAccessArchived);
     const searchBarComponent = (
         <Table.FilterBar
             label={translate('workspace.common.findWorkspace')}
@@ -154,7 +178,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
-        if (item.isArchived && !canAccessArchived(item.role)) {
+        if (item.isArchived && !canAccessArchived(item)) {
             return false;
         }
 
@@ -200,6 +224,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                   buttonAction: () =>
                       interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session),
                   buttonText: translate('workspace.new.newWorkspace'),
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.EMPTY_STATE_NEW_WORKSPACE,
               },
           ]
         : undefined;
@@ -207,6 +232,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     return (
         <Table
             ref={ref}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_LIST}
             data={canSeeFilter ? workspaces : workspaces.filter((w) => !w.isArchived)}
             columns={workspaceTableColumns}
             renderItem={renderTableItem}

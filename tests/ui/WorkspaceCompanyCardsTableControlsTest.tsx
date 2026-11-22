@@ -1,27 +1,26 @@
 import {render, screen} from '@testing-library/react-native';
 
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {WorkspaceCompanyCardBulkActionType} from '@components/Tables/WorkspaceCompanyCardsTable/useWorkspaceCompanyCardsBulkActions';
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
-import type {WorkspaceCompanyCardTableItemData} from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
-import localFileDownload from '@libs/localFileDownload';
+import CONST from '@src/CONST';
 
 import React from 'react';
-
-type MockDropdownOption = {
-    value: string;
-    onSelected: () => void;
-};
 
 type MockButtonProps = {
     customText: string;
     isDisabled?: boolean;
-    options: MockDropdownOption[];
+    options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>>;
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
-let mockProcessedData: Array<Partial<WorkspaceCompanyCardTableItemData> & {selected?: boolean}> = [];
 let mockShouldUseNarrowLayout = true;
+
+/** The one action every selection offers, which is enough to tell an enabled dropdown from a disabled one. */
+const bulkActionOptions: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [
+    {text: 'workspace.expensifyCard.exportAsCSV', value: 'exportCSV', sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
+];
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -47,26 +46,13 @@ jest.mock('@components/Table', () => {
 });
 
 jest.mock('@components/Table/TableContext', () => ({
-    useTableContext: () => ({
-        processedData: mockProcessedData,
-        shouldUseNarrowTableLayout: true,
-    }),
-}));
-
-jest.mock('@hooks/useConfirmModal', () => ({
-    __esModule: true,
-    default: () => ({showConfirmModal: jest.fn()}),
-}));
-
-jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({}),
+    useTableContext: () => ({shouldUseNarrowTableLayout: true}),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
         translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`),
-        getLocalDateFromDatetime: jest.fn(),
     }),
 }));
 
@@ -88,33 +74,20 @@ jest.mock('@hooks/useThemeStyles', () => ({
     }),
 }));
 
-jest.mock('@libs/actions/CompanyCards', () => ({unassignWorkspaceCompanyCard: jest.fn()}));
-jest.mock('@libs/CardNavigationUtils', () => jest.fn());
-jest.mock('@libs/CardUtils', () => ({formatMaskedCardName: jest.fn()}));
-jest.mock('@libs/localFileDownload', () => jest.fn());
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
-
-function renderControls(isSelectionModeEnabled: boolean) {
-    const clearCardSelection = jest.fn();
-    const renderResult = render(
+function renderControls(isSelectionModeEnabled: boolean, selectedCardsCount = 0) {
+    return render(
         <WorkspaceCompanyCardsTableControls
-            policyID="policy123"
-            domainOrWorkspaceAccountID={123}
-            bankName={undefined}
-            feedName="oauth.chase.com#123"
-            canWriteCompanyCards
-            clearCardSelection={clearCardSelection}
+            bulkActionOptions={bulkActionOptions}
             isSelectionModeEnabled={isSelectionModeEnabled}
+            selectedCardsCount={selectedCardsCount}
         />,
     );
-    return {clearCardSelection, ...renderResult};
 }
 
 describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockButtonProps.current = undefined;
-        mockProcessedData = [];
         mockShouldUseNarrowLayout = true;
     });
 
@@ -127,9 +100,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
     });
 
     it('enables the action after a card is selected and keeps search mounted', () => {
-        mockProcessedData = [{selected: true, disabled: false, isAssigned: false}];
-
-        renderControls(true);
+        renderControls(true, 1);
 
         expect(mockButtonProps.current).toEqual(expect.objectContaining({customText: 'workspace.common.selected:1', isDisabled: false}));
         expect(screen.getByTestId('WorkspaceCompanyCardsFilterBar')).toBeTruthy();
@@ -142,16 +113,12 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
         expect(screen.getByTestId('WorkspaceCompanyCardsFilterBar')).toBeTruthy();
     });
 
-    it('exports formula-like card names as quoted text', async () => {
-        // Given a selected company card with a formula-like custom name
-        mockProcessedData = [{selected: true, isAssigned: true, cardName: 'card123', customCardName: '=SUM(1,2)', cardholder: {accountID: 1, login: 'alex@example.com'}}];
-        jest.mocked(formatMaskedCardName).mockReturnValue('1234');
-        renderControls(true);
+    it('does not show the action on a wide layout, where the floating bar carries it instead', () => {
+        mockShouldUseNarrowLayout = false;
 
-        // When the CSV export action is selected
-        mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
+        renderControls(true, 1);
 
-        // Then the existing export still uses one safe text cell for the card name
-        expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));
+        expect(screen.queryByTestId('WorkspaceCompanyCardsBulkActions')).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardsFilterBar')).toBeTruthy();
     });
 });

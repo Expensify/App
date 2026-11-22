@@ -144,6 +144,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                             <TextLink
                                 style={[styles.label]}
                                 onPress={handleSettingsPress}
+                                sentryLabel={CONST.SENTRY_LABEL.COUNTRY_FULL_STEP.SETTINGS_LINK}
                             >
                                 {translate('common.settings').toLowerCase()}
                             </TextLink>

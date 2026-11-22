@@ -226,7 +226,7 @@ function mapTransactionItemToSelectedEntry({
             groupExchangeRate: item.groupExchangeRate,
             currencyConversionRate: item.currencyConversionRate,
             reportID: item.reportID,
-            policyID: item.policyID,
+            policyID: item.report?.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
             displayAmount: item.formattedTotal,
             groupAmount: item.groupAmount,
@@ -532,10 +532,11 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
             if (!isMoneyRequestReport(item)) {
                 continue;
             }
+            const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
             const isSelected =
                 item.transactions.length === 0
                     ? !!item.keyForList && transactionIDs[item.keyForList]?.isSelected
-                    : item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
+                    : selectableTransactions.length > 0 && selectableTransactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
             if (!isSelected) {
                 continue;
             }
@@ -574,7 +575,7 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
                 reportID: item.reportID,
                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 total,
-                policyID: item.policyID,
+                policyID: item.report?.policyID,
                 canPay: item.canPay,
                 canApprove: item.canApprove,
                 canSubmit: item.canSubmit,
@@ -962,7 +963,6 @@ export {
     isGroupSelected,
     getGroupCheckboxState,
     isRowChecked,
-    getSearchGroupCount,
     getSearchGroupCountByKey,
     getGroupByCount,
     resolveGroupCount,

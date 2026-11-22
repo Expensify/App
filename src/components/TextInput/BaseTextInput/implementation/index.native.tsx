@@ -24,6 +24,7 @@ import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -94,7 +95,8 @@ function BaseTextInput({
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
-    sentryLabel,
+    // A press on the field focuses the input, so inputs without a label of their own report under a shared one.
+    sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.FIELD,
     rightHandSideComponent,
     shouldAllowFocusInLandscapeMode = false,
     ...props
@@ -278,20 +280,21 @@ function BaseTextInput({
 
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
-        styles.textInputContainer,
-        !hasLabel && styles.pt0,
-        textInputContainerStyles,
-        !shouldApplyPaddingToContainer && styles.p0,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
-        inputProps.disabled && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
-    ]);
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
+        StyleSheet.flatten([
+            styles.textInputContainer,
+            !hasLabel && styles.pt0,
+            textInputContainerStyles,
+            !shouldApplyPaddingToContainer && styles.p0,
+            !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+            autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
+            !hideFocusedState && isFocused && styles.borderColorFocus,
+            (!!hasError || !!errorText) && styles.borderColorDanger,
+            autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+            isAutoGrowHeightMarkdown && styles.pb2,
+            inputProps.disabled && styles.textInputDisabledContainer,
+            shouldAddPaddingBottom && styles.pb1,
+        ]) ?? {};
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
     // We extract the horizontal padding/border from the input container to get an accurate width.
@@ -446,6 +449,7 @@ function BaseTextInput({
                                 onBlur={onBlur}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
+                                forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
@@ -491,6 +495,7 @@ function BaseTextInput({
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.TEXT_INPUT.PASSWORD_VISIBILITY_TOGGLE}
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {

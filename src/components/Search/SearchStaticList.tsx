@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
@@ -120,7 +121,7 @@ function SearchStaticList({
             reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, getEffectiveSortBy(queryJSON), sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
@@ -307,6 +308,7 @@ function SearchStaticList({
                         isSelected={false}
                         isDisabled
                         shouldShowCheckbox={canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM_CHECKBOX}
                         shouldShowErrors
                         violations={item.violations}
                         isDateColumnCreated={isCreatedDateType(type)}
@@ -358,42 +360,42 @@ function SearchStaticList({
             style={styles.flex1}
             onLayout={onLayout}
         >
-            {!shouldUseNarrowLayout &&
-                columns.length > 0 && (
-                    // The headings span the row's full height, so the checkbox carries the vertical padding instead.
-                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
-                        {canSelectMultiple && (
-                            <View
-                                style={styles.pv2}
-                                accessibilityElementsHidden
-                                importantForAccessibility="no-hide-descendants"
-                            >
-                                <Checkbox
-                                    accessibilityLabel={translate('workspace.people.selectAll')}
-                                    isChecked={false}
-                                    disabled
-                                    containerStyle={styles.m0}
-                                    onPress={() => {}}
-                                />
-                            </View>
-                        )}
-                        <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
-                            <SearchTableHeader
-                                canSelectMultiple={canSelectMultiple}
-                                columns={columns}
-                                type={type}
-                                onSortPress={() => {}}
-                                sortBy={sortBy}
-                                sortOrder={sortOrder}
-                                shouldShowYear={false}
-                                isAmountColumnWide={false}
-                                isTaxAmountColumnWide={false}
-                                shouldShowSorting={false}
-                                groupBy={validGroupBy}
+            {!shouldUseNarrowLayout && columns.length > 0 && (
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
+                    {canSelectMultiple && (
+                        <View
+                            style={styles.pv2}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        >
+                            <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={false}
+                                disabled
+                                containerStyle={styles.m0}
+                                onPress={() => {}}
                             />
                         </View>
+                    )}
+                    <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
+                        <SearchTableHeader
+                            canSelectMultiple={canSelectMultiple}
+                            columns={columns}
+                            type={type}
+                            onSortPress={() => {}}
+                            sortBy={sortBy}
+                            sortOrder={sortOrder}
+                            shouldShowYear={false}
+                            isAmountColumnWide={false}
+                            isTaxAmountColumnWide={false}
+                            shouldShowSorting={false}
+                            groupBy={validGroupBy}
+                        />
                     </View>
-                )}
+                </View>
+            )}
             <FlatList
                 data={sortedData}
                 renderItem={shouldUseNarrowLayout ? renderItem : (info) => renderWideItem(info, sortedData.length)}

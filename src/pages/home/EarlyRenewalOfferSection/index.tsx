@@ -91,6 +91,7 @@ function EarlyRenewalOfferSection() {
                         <Text style={styles.widgetItemTitle}>{canClaim ? claimSubtitle : translate('earlyRenewal.adminSubtitle')}</Text>
                     </View>
                     <Button
+                        sentryLabel={canClaim ? CONST.SENTRY_LABEL.HOME_PAGE.EARLY_RENEWAL_CLAIM_BUTTON : CONST.SENTRY_LABEL.HOME_PAGE.EARLY_RENEWAL_NUDGE_BUTTON}
                         isDisabled={canClaim && isOffline}
                         isLoading={canClaim && !!eligibility.pendingAction}
                         onPress={canClaim ? showEarlyRenewalConfirmation : openEarlyRenewalDraft}

@@ -98,7 +98,8 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actual,
-        createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        planDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
+        commitDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
     };
 });
@@ -1232,7 +1233,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // transaction's optimistic report ID rather than one a builder would otherwise mint
             const optimisticP2PReportID = 'optimistic-p2p-report-1';
             const transactionID = 'tx-new-p2p';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1299,7 +1300,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 );
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
                 // subscribed to the report that actually gets created
@@ -1318,7 +1321,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a wide pre-mount of the pay destination, which puts it on top of a background Reports stack
             const optimisticP2PReportID = 'optimistic-p2p-report-2';
             const transactionID = 'tx-wide-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1372,7 +1375,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then it goes through the reveal instead of the plain path that dismisses first and drops the pre-mount
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
@@ -1390,7 +1395,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a narrow pre-insert of the pay destination, which already sits under the RHP as the topmost report
             const optimisticP2PReportID = 'optimistic-p2p-report-3';
             const transactionID = 'tx-narrow-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1444,7 +1449,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
 
                 // When the user sends money
-                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+                await act(async () => {
+                    await sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+                });
 
                 // Then sendMoney navigates on its own as it did before wide pre-mounts, because only a wide pre-mount hides the topmost report
                 expect(submitWithDismissFirstSpy).not.toHaveBeenCalled();
@@ -2386,7 +2393,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
-        it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
+        it('should route unreported distance expense to the self DM through trackExpense and never plan a distance request', async () => {
             // Given a distance expense started from global create and headed to the self DM, which is the only flow that
             // leaves the draft unreported (reportID 0) at confirmation
             const selfDMReportID = 'self-dm-report-dist';
@@ -2463,7 +2470,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it is tracked in the self DM, since CreateDistanceRequest has no self DM target
             await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
-            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -2472,7 +2479,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
-        it('should call createDistanceRequest with personalDetails for non-unreported distance expense', async () => {
+        it('should plan the distance request with personalDetails for non-unreported distance expense', async () => {
+            // Given a distance draft on a workspace expense report
             const transactionID = 'tx-dist-1';
             const policy = createPolicyWithTaxAndDistance();
 
@@ -2542,13 +2550,15 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </OnyxListItemProvider>,
             );
 
+            // When the expense is created from the confirmation page
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = jest.mocked(Split.createDistanceRequest);
-            const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
+            // Then it is planned with the personal details and the plan is committed, since a plan on its own writes nothing
+            await waitFor(() => expect(Split.planDistanceRequest).toHaveBeenCalled());
+            const params = jest.mocked(Split.planDistanceRequest).mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
+            expect(Split.commitDistanceRequest).toHaveBeenCalledTimes(1);
         });
     });
 

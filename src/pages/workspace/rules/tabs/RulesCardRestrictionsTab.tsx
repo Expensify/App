@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
@@ -19,6 +20,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
 
@@ -30,9 +32,12 @@ type RulesCardRestrictionsTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent}: RulesCardRestrictionsTabProps) {
+function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, headerComponent, bulkActionOptions}: RulesCardRestrictionsTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -117,6 +122,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
                 isDisabled: !canWriteMoreFeatures,
                 buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
                 buttonAction: handleGetExpensifyCardPress,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CARD_RESTRICTIONS_EMPTY_STATE_GET_EXPENSIFY_CARD,
             },
         ],
     };
@@ -128,6 +134,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            bulkActionOptions={bulkActionOptions}
             emptyState={cardRulesEmptyState}
         />
     );

@@ -175,6 +175,7 @@ function DateSelectPopup({
                     <View style={[styles.flex1, useRangeLayout && styles.ml2]}>
                         <ActionButtons
                             containerStyle={[styles.flexRow, styles.gap2]}
+                            applySentryLabel={applySentryLabel}
                             onApply={applyChanges}
                         />
                     </View>
