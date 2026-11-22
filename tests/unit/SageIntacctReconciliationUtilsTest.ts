@@ -21,7 +21,7 @@ import {translateLocal} from '../utils/TestHelper';
 function createIntacctPolicy(overrides?: {journals?: SageIntacctJournal[]; creditCards?: SageIntacctCreditCard[]; reconciliationJournal?: string}): Policy {
     const basePolicy = createRandomPolicy(1);
     const baseIntacctConfig: SageIntacctConnectionsConfig = {
-        credentials: {companyID: 'COMP', userID: 'USER'},
+        credentials: {companyID: 'COMP', userID: 'USER', password: ''},
         mappings: {
             departments: CONST.SAGE_INTACCT_MAPPING_VALUE.NONE,
             classes: CONST.SAGE_INTACCT_MAPPING_VALUE.NONE,
@@ -31,7 +31,7 @@ function createIntacctPolicy(overrides?: {journals?: SageIntacctJournal[]; credi
             syncItems: false,
             dimensions: [],
         },
-        tax: {syncTax: false},
+        tax: {syncTax: false, taxSolutionID: ''},
         export: {
             exportDate: CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE,
             nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,

@@ -42,7 +42,7 @@ function AutoReconciliationFailedMessage({action, policyID}: AutoReconciliationF
         if (!resolvedPolicyID) {
             return;
         }
-        const matchedConnection = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((name) => name === originalMessage?.connectionName);
+        const matchedConnection = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((name) => name === originalMessage?.connectionName);
         const connectionRoute = matchedConnection ? getRouteParamForConnection(matchedConnection) : undefined;
         if (hasExpensifyCard && !hasTravelBilling && connectionRoute) {
             Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(resolvedPolicyID, connectionRoute));

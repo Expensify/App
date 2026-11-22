@@ -162,7 +162,7 @@ function DynamicSageIntacctReconciliationJournalSelectPage({policy}: WithPolicyC
             errors={getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.RECONCILIATION_JOURNAL)}
             onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.RECONCILIATION_JOURNAL)}
             confirmButtonOptions={{
-                enabled: data.length > 0,
+                showButton: data.length > 0,
                 text: translate('common.save'),
                 isDisabled: !selectedJournalID || isNoBookBlocked,
                 onConfirm: saveJournal,

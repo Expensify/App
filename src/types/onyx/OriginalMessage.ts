@@ -2060,7 +2060,6 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
-    OriginalMessageAutoReconciliationFailed,
     ReconciliationIssue,
     ViolationsSnapshot,
 };

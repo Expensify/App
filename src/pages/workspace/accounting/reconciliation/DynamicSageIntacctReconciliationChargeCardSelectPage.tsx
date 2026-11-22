@@ -120,7 +120,7 @@ function DynamicSageIntacctReconciliationChargeCardSelectPage({policy}: WithPoli
             listFooterContent={data.length > 0 ? listFooterContent : null}
             pendingAction={pendingAction}
             confirmButtonOptions={{
-                enabled: data.length > 0,
+                showButton: data.length > 0,
                 text: translate('common.save'),
                 isDisabled: !selectedCardID,
                 onConfirm: saveCard,
