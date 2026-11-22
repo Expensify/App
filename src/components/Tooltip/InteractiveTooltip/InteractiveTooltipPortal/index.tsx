@@ -111,6 +111,7 @@ function InteractiveTooltipPortal({
                     >
                         {children}
                     </View>
+                    {/* pointerWrapperStyle uses fixed positioning on web, so override it to absolute to anchor the pointer to this non-transformed wrapper. */}
                     <View style={[pointerWrapperStyle, styles.pAbsolute]}>
                         <View style={pointerStyle} />
                     </View>

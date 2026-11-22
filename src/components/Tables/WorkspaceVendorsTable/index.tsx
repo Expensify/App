@@ -10,6 +10,7 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -23,6 +24,11 @@ import WorkspaceVendorsTableRow from './WorkspaceVendorsTableRow';
 type WorkspaceVendorTableColumnKey = 'name' | 'enabled' | 'actions';
 
 type WorkspaceVendorsTableProps = {
+    policyID: string;
+
+    /** Active accounting integration used as fallback when resolving the default vendor's export settings route. */
+    connectedIntegration?: ConnectionName;
+
     /** Vendor rows to render */
     vendors: WorkspaceVendorTableRowData[];
 
@@ -35,6 +41,9 @@ type WorkspaceVendorsTableProps = {
     /** Callback fired when row selection changes */
     onRowSelectionChange?: (selectedKeys: string[]) => void;
 
+    /** Reports the rendered tooltip root element on web so the parent screen can register it with a focus trap. */
+    onTooltipElementChange?: (element: HTMLElement | null) => void;
+
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
 
@@ -42,7 +51,17 @@ type WorkspaceVendorsTableProps = {
     bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceVendorsTableProps) {
+function WorkspaceVendorsTable({
+    policyID,
+    connectedIntegration,
+    vendors,
+    selectionEnabled = false,
+    selectedKeys = [],
+    onRowSelectionChange,
+    onTooltipElementChange,
+    headerComponent,
+    bulkActionOptions,
+}: WorkspaceVendorsTableProps) {
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<WorkspaceVendorTableColumnKey, WorkspaceVendorTableRowData>> = [
@@ -90,6 +109,9 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
         <WorkspaceVendorsTableRow
             item={item}
             rowIndex={index}
+            policyID={policyID}
+            connectedIntegration={connectedIntegration}
+            onTooltipElementChange={onTooltipElementChange}
         />
     );
 

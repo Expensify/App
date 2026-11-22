@@ -15,11 +15,13 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getAccountingExportRoute from '@libs/Navigation/helpers/getAccountingExportRoute';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,11 +31,9 @@ type WorkspaceVendorTableRowData = TableData & {
     enabled: boolean;
     isLocked: boolean;
 
-    /** When set, renders the default-vendor locked toggle tooltip linking to this export route. */
-    defaultVendorExportRoute?: Route;
-
-    /** Reports the rendered tooltip root element on web so the parent screen can register it with a focus trap. */
-    onTooltipElementChange?: (element: HTMLElement | null) => void;
+    /** True when the row is the active workspace default vendor and should show the locked tooltip. */
+    isDefaultVendorLocked: boolean;
+    origin?: PolicyConnectionName;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
@@ -44,9 +44,16 @@ type WorkspaceVendorTableRowData = TableData & {
 type WorkspaceVendorsTableRowProps = {
     item: WorkspaceVendorTableRowData;
     rowIndex: number;
+    policyID: string;
+
+    /** Active accounting integration used as fallback when resolving the default vendor's export settings route. */
+    connectedIntegration?: ConnectionName;
+
+    /** Reports the rendered tooltip root element on web so the parent screen can register it with a focus trap. */
+    onTooltipElementChange?: (element: HTMLElement | null) => void;
 };
 
-function WorkspaceVendorsTableRow({item, rowIndex}: WorkspaceVendorsTableRowProps) {
+function WorkspaceVendorsTableRow({item, rowIndex, policyID, connectedIntegration, onTooltipElementChange}: WorkspaceVendorsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -86,14 +93,14 @@ function WorkspaceVendorsTableRow({item, rowIndex}: WorkspaceVendorsTableRowProp
                         style={[styles.justifyContentCenter, styles.alignItemsEnd]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        {item.defaultVendorExportRoute ? (
+                        {item.isDefaultVendorLocked ? (
                             <DefaultVendorLockedSwitch
                                 accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
-                                accountingExportRoute={item.defaultVendorExportRoute}
+                                accountingExportRoute={getAccountingExportRoute(policyID, item.origin ?? connectedIntegration)}
                                 onToggle={item.onToggleEnabled}
                                 switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
                                 linkSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ACCOUNTING_EXPORT_SETTINGS_LINK}
-                                onTooltipElementChange={item.onTooltipElementChange}
+                                onTooltipElementChange={onTooltipElementChange}
                                 isNested
                             />
                         ) : (

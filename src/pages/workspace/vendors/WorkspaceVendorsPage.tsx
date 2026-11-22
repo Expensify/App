@@ -26,7 +26,6 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
-import getAccountingExportRoute from '@libs/Navigation/helpers/getAccountingExportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -224,18 +223,14 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         const isDefaultVendor = isDefaultVendorUtil(vendor.vendorKey, vendor.externalID, defaultVendorID ? `${defaultVendorID}` : undefined);
         const isDefaultVendorLocked = vendor.enabled && isDefaultVendor;
         const isLocked = isDefaultVendorLocked || !canWriteVendors;
-        let defaultVendorExportRoute;
-        if (isDefaultVendorLocked && canWriteVendors) {
-            defaultVendorExportRoute = getAccountingExportRoute(policyID, vendor.origin ?? getActiveVendorMatchingIntegration(policy));
-        }
 
         return {
             keyForList: vendor.vendorKey,
             name: vendor.name,
             enabled: vendor.enabled,
             isLocked,
-            defaultVendorExportRoute,
-            onTooltipElementChange: isDefaultVendorLocked && canWriteVendors ? setTooltipElement : undefined,
+            isDefaultVendorLocked: isDefaultVendorLocked && canWriteVendors,
+            origin: vendor.origin,
             errors: vendor.errors ?? undefined,
             pendingAction: vendor.pendingAction,
             action: () => Navigation.navigate(ROUTES.WORKSPACE_VENDOR_DETAILS.getRoute(policyID, vendor.vendorKey)),
@@ -319,10 +314,13 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
                     {!isLoading && (
                         <WorkspaceVendorsTable
+                            policyID={policyID}
+                            connectedIntegration={connectedIntegration}
                             vendors={vendorRows}
                             selectionEnabled={canWriteVendors}
                             selectedKeys={selectedVendorKeys}
                             onRowSelectionChange={setSelectedVendorKeys}
+                            onTooltipElementChange={setTooltipElement}
                             headerComponent={headerContent}
                             bulkActionOptions={canWriteVendors && vendorBulkActionOptions.length > 0 ? vendorBulkActionOptions : undefined}
                         />
