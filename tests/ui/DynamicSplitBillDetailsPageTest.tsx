@@ -12,9 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
-import type * as ReactNative from 'react-native';
-
 import React from 'react';
+import {View as MockView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -25,8 +24,8 @@ const OTHER_USER_ACCOUNT_ID = 2;
 const DM_REPORT_ID = 'dm';
 const SPLIT_REPORT_ACTION_ID = 'splitAction';
 const SPLIT_TRANSACTION_ID = 'splitTransaction';
-const LOADING_TEXT = 'loading';
-const NOT_FOUND_TEXT = 'not found';
+const LOADING_TEST_ID = 'loading';
+const NOT_FOUND_TEST_ID = 'notFound';
 
 jest.mock('@libs/actions/Report', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Report'),
@@ -36,15 +35,11 @@ jest.mock('@libs/actions/Report', () => ({
 // The wrapper's own loading and not-found checks are not under test, so the page gets its report and action from props
 jest.mock('@pages/inbox/report/withReportAndReportActionOrNotFound', () => (Component: React.ComponentType) => Component);
 
-jest.mock('@components/FullscreenLoadingIndicator', () => {
-    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    return () => <Text>loading</Text>;
-});
+jest.mock('@components/FullscreenLoadingIndicator', () => () => <MockView testID="loading" />);
 
 jest.mock('@components/BlockingViews/FullPageNotFoundView', () => {
-    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockFullPageNotFoundView({shouldShow, children}: {shouldShow: boolean; children: React.ReactNode}) {
-        return shouldShow ? <Text>not found</Text> : children;
+        return shouldShow ? <MockView testID="notFound" /> : children;
     }
     return MockFullPageNotFoundView;
 });
@@ -133,8 +128,8 @@ describe('DynamicSplitBillDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the page shows the loader instead of not-found, and doesn't send a second OpenReport that would replace the running one
-        expect(screen.getByText(LOADING_TEXT)).toBeOnTheScreen();
-        expect(screen.queryByText(NOT_FOUND_TEXT)).not.toBeOnTheScreen();
+        expect(screen.getByTestId(LOADING_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(NOT_FOUND_TEST_ID)).not.toBeOnTheScreen();
         expect(openReport).not.toHaveBeenCalled();
     });
 
@@ -147,8 +142,8 @@ describe('DynamicSplitBillDetailsPage', () => {
         // Then the page fetches the chat once, keeping its unread state because the user only views the split, and shows the loader meanwhile
         expect(openReport).toHaveBeenCalledTimes(1);
         expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: DM_REPORT_ID, shouldMarkAsRead: false, shouldKeepManualUnreadMarker: true}));
-        expect(screen.getByText(LOADING_TEXT)).toBeOnTheScreen();
-        expect(screen.queryByText(NOT_FOUND_TEXT)).not.toBeOnTheScreen();
+        expect(screen.getByTestId(LOADING_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(NOT_FOUND_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('shows not-found when the chat load finishes without the transaction', async () => {
@@ -157,7 +152,7 @@ describe('DynamicSplitBillDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
         renderPage();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText(LOADING_TEXT)).toBeOnTheScreen();
+        expect(screen.getByTestId(LOADING_TEST_ID)).toBeOnTheScreen();
 
         // When that load finishes and still has no transaction for the split, as for a split that no longer exists
         await act(async () => {
@@ -166,7 +161,7 @@ describe('DynamicSplitBillDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the page stops loading and shows not-found, so a missing split never spins forever
-        expect(screen.getByText(NOT_FOUND_TEXT)).toBeOnTheScreen();
-        expect(screen.queryByText(LOADING_TEXT)).not.toBeOnTheScreen();
+        expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(LOADING_TEST_ID)).not.toBeOnTheScreen();
     });
 });
