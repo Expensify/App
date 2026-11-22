@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtraContainersContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +26,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearVendorErrors, openPolicyVendorsPage, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
+import getAccountingExportRoute from '@libs/Navigation/helpers/getAccountingExportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -43,7 +45,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type UseVendorBulkActionOptionsParams = {
@@ -154,6 +156,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
     const policyData = usePolicyData(policyID);
     const [selectedVendorKeys, setSelectedVendorKeys] = useFilteredSelection(policyVendors, (vendor) => !!vendor);
+    const parentFocusTrapContainers = useContext(FocusTrapExtraContainersContext);
+    const [tooltipElement, setTooltipElement] = useState<HTMLElement | null>(null);
 
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.vendors');
 
@@ -218,13 +222,20 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
 
     const vendorRows: WorkspaceVendorTableRowData[] = sortedVendors.map((vendor) => {
         const isDefaultVendor = isDefaultVendorUtil(vendor.vendorKey, vendor.externalID, defaultVendorID ? `${defaultVendorID}` : undefined);
-        const isLocked = (vendor.enabled && isDefaultVendor) || !canWriteVendors;
+        const isDefaultVendorLocked = vendor.enabled && isDefaultVendor;
+        const isLocked = isDefaultVendorLocked || !canWriteVendors;
+        let defaultVendorExportRoute;
+        if (isDefaultVendorLocked && canWriteVendors) {
+            defaultVendorExportRoute = getAccountingExportRoute(policyID, vendor.origin ?? getActiveVendorMatchingIntegration(policy));
+        }
 
         return {
             keyForList: vendor.vendorKey,
             name: vendor.name,
             enabled: vendor.enabled,
             isLocked,
+            defaultVendorExportRoute,
+            onTooltipElementChange: isDefaultVendorLocked && canWriteVendors ? setTooltipElement : undefined,
             errors: vendor.errors ?? undefined,
             pendingAction: vendor.pendingAction,
             action: () => Navigation.navigate(ROUTES.WORKSPACE_VENDOR_DETAILS.getRoute(policyID, vendor.vendorKey)),
@@ -232,6 +243,8 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             dismissError: () => clearVendorErrors(policyID, vendor.vendorKey),
         };
     });
+
+    const focusTrapExtraContainers = tooltipElement ? [...parentFocusTrapContainers, tooltipElement] : parentFocusTrapContainers;
 
     const headerContent = currentConnectionName ? (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -258,62 +271,64 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.VENDORS}
             shouldBeBlocked={!isFeatureAvailable}
         >
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnableMaxHeight
-                style={[styles.defaultModalContainer]}
-                testID="WorkspaceVendorsPage"
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
-            >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.vendors')}
-                    onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
-                            clearTableSelection();
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
+            <FocusTrapExtraContainersContext.Provider value={focusTrapExtraContainers}>
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
+                    style={[styles.defaultModalContainer]}
+                    testID="WorkspaceVendorsPage"
+                    shouldShowOfflineIndicatorInWideScreen
+                    offlineIndicatorStyle={styles.mtAuto}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
-                        <VendorBulkActions
-                            options={vendorBulkActionOptions}
-                            selectedVendorsCount={selectedVendorKeys.length}
+                    <HeaderWithBackButton
+                        shouldUseHeadlineHeader={!selectionModeHeader}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                        title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.vendors')}
+                        onBackButtonPress={() => {
+                            if (isMobileSelectionModeEnabled) {
+                                clearTableSelection();
+                                turnOffMobileSelectionMode();
+                                return;
+                            }
+                            Navigation.goBack();
+                        }}
+                    >
+                        {!shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
+                            <VendorBulkActions
+                                options={vendorBulkActionOptions}
+                                selectedVendorsCount={selectedVendorKeys.length}
+                            />
+                        )}
+                    </HeaderWithBackButton>
+                    {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
+                        <View style={[styles.pl5, styles.pr5]}>
+                            <VendorBulkActions
+                                options={vendorBulkActionOptions}
+                                selectedVendorsCount={selectedVendorKeys.length}
+                            />
+                        </View>
+                    )}
+
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
                         />
                     )}
-                </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && canShowBulkActions && (
-                    <View style={[styles.pl5, styles.pr5]}>
-                        <VendorBulkActions
-                            options={vendorBulkActionOptions}
-                            selectedVendorsCount={selectedVendorKeys.length}
+
+                    {!isLoading && (
+                        <WorkspaceVendorsTable
+                            vendors={vendorRows}
+                            selectionEnabled={canWriteVendors}
+                            selectedKeys={selectedVendorKeys}
+                            onRowSelectionChange={setSelectedVendorKeys}
+                            headerComponent={headerContent}
+                            bulkActionOptions={canWriteVendors && vendorBulkActionOptions.length > 0 ? vendorBulkActionOptions : undefined}
                         />
-                    </View>
-                )}
-
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                    />
-                )}
-
-                {!isLoading && (
-                    <WorkspaceVendorsTable
-                        vendors={vendorRows}
-                        selectionEnabled={canWriteVendors}
-                        selectedKeys={selectedVendorKeys}
-                        onRowSelectionChange={setSelectedVendorKeys}
-                        headerComponent={headerContent}
-                        bulkActionOptions={canWriteVendors && vendorBulkActionOptions.length > 0 ? vendorBulkActionOptions : undefined}
-                    />
-                )}
-            </ScreenWrapper>
+                    )}
+                </ScreenWrapper>
+            </FocusTrapExtraContainersContext.Provider>
         </AccessOrNotFoundWrapper>
     );
 }

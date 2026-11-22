@@ -218,6 +218,7 @@ function InteractiveTooltipTrigger({children}: InteractiveTooltipTriggerProps) {
 
     return (
         <Hoverable
+            shouldUseNativeHoverEvents
             onHoverIn={enterTriggerHover}
             onHoverOut={leaveTriggerHover}
         >

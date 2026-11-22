@@ -1,6 +1,7 @@
 /**
  * Renders a single row in the workspace vendors table with its name, enable toggle, and push chevron.
  */
+import DefaultVendorLockedSwitch from '@components/DefaultVendorLockedSwitch';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -17,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
@@ -26,6 +28,12 @@ type WorkspaceVendorTableRowData = TableData & {
     name: string;
     enabled: boolean;
     isLocked: boolean;
+
+    /** When set, renders the default-vendor locked toggle tooltip linking to this export route. */
+    defaultVendorExportRoute?: Route;
+
+    /** Reports the rendered tooltip root element on web so the parent screen can register it with a focus trap. */
+    onTooltipElementChange?: (element: HTMLElement | null) => void;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
@@ -78,15 +86,27 @@ function WorkspaceVendorsTableRow({item, rowIndex}: WorkspaceVendorsTableRowProp
                         style={[styles.justifyContentCenter, styles.alignItemsEnd]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <Switch
-                            isOn={item.enabled}
-                            showLockIcon={item.isLocked}
-                            disabled={item.disabled}
-                            accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
-                            onToggle={item.onToggleEnabled}
-                            isNested
-                        />
+                        {item.defaultVendorExportRoute ? (
+                            <DefaultVendorLockedSwitch
+                                accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                                accountingExportRoute={item.defaultVendorExportRoute}
+                                onToggle={item.onToggleEnabled}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
+                                linkSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ACCOUNTING_EXPORT_SETTINGS_LINK}
+                                onTooltipElementChange={item.onTooltipElementChange}
+                                isNested
+                            />
+                        ) : (
+                            <Switch
+                                isOn={item.enabled}
+                                showLockIcon={item.isLocked}
+                                disabled={item.disabled}
+                                accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
+                                onToggle={item.onToggleEnabled}
+                                isNested
+                            />
+                        )}
                     </View>
                     <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
                         <Icon

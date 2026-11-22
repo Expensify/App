@@ -2090,6 +2090,7 @@ const SENTRY_LABEL = {
         },
         VENDORS: {
             ROW_ENABLE_SWITCH: 'WorkspaceVendors-RowEnableSwitch',
+            ROW_ACCOUNTING_EXPORT_SETTINGS_LINK: 'WorkspaceVendors-RowAccountingExportSettingsLink',
             BULK_ACTIONS: {
                 ENABLE: 'WorkspaceVendors-BulkActions-Enable',
                 DISABLE: 'WorkspaceVendors-BulkActions-Disable',

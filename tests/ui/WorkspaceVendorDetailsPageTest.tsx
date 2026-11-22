@@ -260,6 +260,31 @@ describe('WorkspaceVendorsPage and WorkspaceVendorDetailsPage', () => {
                 }),
             );
         });
+
+        it('shows the accounting export settings tooltip when pressing a locked default vendor row toggle', async () => {
+            // Given a workspace whose default vendor appears in the Vendors table
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            await renderVendorsPage(buildQBOPolicy(DEFAULT_VENDOR_ID), {
+                [DEFAULT_VENDOR_ID]: {externalID: DEFAULT_VENDOR_ID, name: 'Default Vendor', enabled: true, origin: CONST.POLICY.CONNECTIONS.NAME.QBO},
+            });
+
+            // When the admin presses the locked row toggle
+            const toggle = screen.getByRole(CONST.ROLE.SWITCH, {
+                name: `${TestHelper.translateLocal('workspace.vendors.enableVendor')}: Default Vendor, ${TestHelper.translateLocal('common.locked')}`,
+            });
+            fireEvent.press(toggle);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the RHP does not open, no disable call is sent, and the tooltip link routes to accounting export settings
+            expect(mockSetPolicyVendorsEnabled).not.toHaveBeenCalled();
+            expect(navigateSpy).not.toHaveBeenCalled();
+            const exportSettingsLink = await screen.findByText(TestHelper.translateLocal('workspace.vendors.accountingExportSettings'));
+            expect(exportSettingsLink).toBeOnTheScreen();
+
+            fireEvent.press(exportSettingsLink, {preventDefault: jest.fn()});
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalledWith(`workspaces/${POLICY_ID}/connections/accounting/quickbooks-online/export`);
+        });
     });
 
     describe('WorkspaceVendorDetailsPage', () => {

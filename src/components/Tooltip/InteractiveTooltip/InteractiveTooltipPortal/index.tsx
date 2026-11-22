@@ -6,6 +6,7 @@ import Hoverable from '@components/Hoverable';
 import {usePopoverActions} from '@components/PopoverProvider';
 
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
@@ -30,6 +31,7 @@ function InteractiveTooltipPortal({
 }: InteractiveTooltipPortalProps) {
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
     const {setActivePopoverExtraAnchorRef} = usePopoverActions();
     const {closeTooltip, onTooltipElementChange, enterTooltipHover, leaveTooltipHover, enterTooltipFocus, leaveTooltipFocus} = actionsValue;
 
@@ -109,7 +111,7 @@ function InteractiveTooltipPortal({
                     >
                         {children}
                     </View>
-                    <View style={pointerWrapperStyle}>
+                    <View style={[pointerWrapperStyle, styles.pAbsolute]}>
                         <View style={pointerStyle} />
                     </View>
                 </View>

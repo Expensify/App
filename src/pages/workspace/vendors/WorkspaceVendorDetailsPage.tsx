@@ -1,6 +1,7 @@
 /**
  * Right-hand pane displaying a single workspace vendor's enablement toggle and read-only details.
  */
+import DefaultVendorLockedSwitch from '@components/DefaultVendorLockedSwitch';
 import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtraContainersContext';
 import Header from '@components/Header';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -9,15 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import InteractiveTooltip, {useInteractiveTooltipActions} from '@components/Tooltip/InteractiveTooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearVendorErrors, setPolicyVendorsEnabled} from '@libs/actions/Policy/Vendor';
@@ -31,68 +28,10 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
-
-type DefaultVendorLockedSwitchProps = {
-    onToggle: (enabled: boolean) => void;
-};
-
-function DefaultVendorLockedSwitch({onToggle}: DefaultVendorLockedSwitchProps) {
-    const {translate} = useLocalize();
-    const {openTooltip} = useInteractiveTooltipActions();
-
-    return (
-        <Switch
-            isOn
-            accessibilityLabel={translate('workspace.vendors.enableVendor')}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.DETAILS_ENABLE_SWITCH}
-            onToggle={onToggle}
-            disabled
-            disabledAction={openTooltip}
-            showLockIcon
-            shouldAnimateOnExternalChange
-        />
-    );
-}
-
-type DefaultVendorTooltipBodyProps = {
-    accountingExportRoute: Route;
-};
-
-function DefaultVendorTooltipBody({accountingExportRoute}: DefaultVendorTooltipBodyProps) {
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const {closeTooltip} = useInteractiveTooltipActions();
-
-    const openAccountingExportSettings = () => {
-        closeTooltip();
-        Navigation.navigate(accountingExportRoute);
-    };
-
-    return (
-        <Text
-            variant="micro"
-            color={theme.textReversed}
-            textAlign="center"
-        >
-            {translate('workspace.vendors.defaultVendorTooltipPrefix')}{' '}
-            <TextLink
-                variant="micro"
-                style={StyleUtils.getColorStyle(theme.linkReversed)}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.DETAILS_ACCOUNTING_EXPORT_SETTINGS_LINK}
-                onPress={openAccountingExportSettings}
-            >
-                {translate('workspace.vendors.accountingExportSettings')}
-            </TextLink>
-            .
-        </Text>
-    );
-}
 
 type WorkspaceVendorDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.VENDOR_DETAILS>;
 
@@ -180,20 +119,14 @@ function WorkspaceVendorDetailsPage({route}: WorkspaceVendorDetailsPageProps) {
                                         {translate('workspace.vendors.enableVendor')}
                                     </Text>
                                     {isDefaultVendorLocked && canWriteVendors ? (
-                                        <InteractiveTooltip.Root
-                                            anchorAlignment={{
-                                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                            }}
+                                        <DefaultVendorLockedSwitch
+                                            accessibilityLabel={translate('workspace.vendors.enableVendor')}
+                                            accountingExportRoute={accountingExportRoute}
+                                            onToggle={toggleVendorEnabled}
+                                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.DETAILS_ENABLE_SWITCH}
+                                            linkSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.DETAILS_ACCOUNTING_EXPORT_SETTINGS_LINK}
                                             onTooltipElementChange={setTooltipElement}
-                                        >
-                                            <InteractiveTooltip.Trigger>
-                                                <DefaultVendorLockedSwitch onToggle={toggleVendorEnabled} />
-                                            </InteractiveTooltip.Trigger>
-                                            <InteractiveTooltip.Content>
-                                                <DefaultVendorTooltipBody accountingExportRoute={accountingExportRoute} />
-                                            </InteractiveTooltip.Content>
-                                        </InteractiveTooltip.Root>
+                                        />
                                     ) : (
                                         <Switch
                                             isOn={vendor.enabled}
