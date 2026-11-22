@@ -21,8 +21,7 @@ type UseReportDeepLinkOnOpenParams = {
 };
 
 /**
- * When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
- * So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
+ * Calls OpenReport for pages that need a report's data when nothing else has loaded it, such as a deep link or a cache reset
  */
 function useReportDeepLinkOnOpen({reportID, isReportLoaded, shouldFetchReport, shouldMarkAsRead, shouldKeepManualUnreadMarker}: UseReportDeepLinkOnOpenParams) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

@@ -95,7 +95,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
 
     // Perform all the loading checks
     // Clearing the cache (also from another tab) wipes IS_LOADING_REPORT_DATA and the report, but keeps IS_LOADING_APP set
-    const isLoadingReport = (isLoadingReportData || !!isLoadingApp) && !report?.reportID;
+    const isLoadingReport = (isLoadingReportData || isLoadingApp) && !report?.reportID;
     const isLoadingReportAction = isEmptyObject(reportActions) || (reportLoadingState?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), hasGuidesEmails, isReportArchived));

@@ -48,6 +48,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {isLoadingInitialReportActionsSelector} from '@selectors/ReportMetaData';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -78,19 +79,19 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const privateIsArchived = useReportIsArchived(reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const [isLoadingInitialReportActions = false] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const isSplitTransactionMissing = !!IOUTransactionID && isEmptyObject(transaction);
 
     // Wait until a loading phase has been seen, so the render before the fetch starts doesn't show not-found
-    const isLoadingInitialReportActions = !!reportLoadingState?.isLoadingInitialReportActions;
-    const [hasSeenReportLoading, setHasSeenReportLoading] = useState(isLoadingInitialReportActions);
-    if (isLoadingInitialReportActions && !hasSeenReportLoading) {
+    const [hasSeenReportLoading, setHasSeenReportLoading] = useState(isSplitTransactionMissing && isLoadingInitialReportActions);
+    if (isSplitTransactionMissing && isLoadingInitialReportActions && !hasSeenReportLoading) {
         setHasSeenReportLoading(true);
     }
 
-    // The split's transaction lives on no real report and only comes back with the chat's OpenReport,
-    // which nothing sends when the split is opened from Search or after a cache reset. Only the data is needed, so the chat stays unread.
-    // A load of the chat that is already running carries it too, so only fetch when none has been seen
-    const isSplitTransactionMissing = !!IOUTransactionID && isEmptyObject(transaction);
+    // The split's transaction is on no real report, so nothing reloads it when the split opens from Search or after a cache reset.
+    // Fetch the chat only when no load of it has been seen, and without marking it read.
     useReportDeepLinkOnOpen({
         reportID,
         isReportLoaded: !isSplitTransactionMissing,
