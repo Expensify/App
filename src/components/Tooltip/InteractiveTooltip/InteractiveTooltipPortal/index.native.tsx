@@ -52,6 +52,10 @@ function InteractiveTooltipPortal({
 
     const measureWrapperLayout = (event: LayoutChangeEvent) => {
         const {width, height} = event.nativeEvent.layout;
+        // getTooltipStyles adds 1px to width, so ignoring width-only updates prevents a layout feedback loop.
+        if (height === wrapperMeasuredHeight) {
+            return;
+        }
         setContentMeasuredWidth(width);
         setWrapperMeasuredHeight(height);
     };

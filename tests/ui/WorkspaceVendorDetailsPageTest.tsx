@@ -316,6 +316,7 @@ describe('WorkspaceVendorsPage and WorkspaceVendorDetailsPage', () => {
 
         it('renders an empty External ID field when the normalized vendor entry has no externalID', async () => {
             // Given a vendor entry with an empty externalID
+            // When the vendor details RHP renders for that vendor
             await renderVendorDetailsPage(
                 buildQBOPolicy(),
                 {
@@ -454,6 +455,7 @@ describe('WorkspaceVendorsPage and WorkspaceVendorDetailsPage', () => {
 
         it('renders NotFoundPage when the vendor is no longer present in policyVendors_', async () => {
             // Given a vendor ID that is no longer in policyVendors_ after a sync
+            // When the vendor details RHP renders for that removed vendor
             await renderVendorDetailsPage(buildQBOPolicy(), {}, 'removed-vendor');
 
             // Then the vendor details RHP is not rendered
