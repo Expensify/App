@@ -94,9 +94,7 @@ jobs:
       matrix:
         chunk: [1, 2, 3, 4, 5, 6, 7, 8]
         config:
-          - {variant: 'A-8vcpu-6w-4GB', runner: blacksmith-8vcpu-ubuntu-2404, workers: 6, idleLimit: 4GB}
           - {variant: 'B-4vcpu-3w-2GB', runner: blacksmith-4vcpu-ubuntu-2404, workers: 3, idleLimit: 2GB}
-          - {variant: 'C-4vcpu-3w-3GB', runner: blacksmith-4vcpu-ubuntu-2404, workers: 3, idleLimit: 3GB}
     name: sizing ${{ matrix.config.variant }} (job ${{ matrix.chunk }})
     steps:
       - name: Checkout
@@ -115,6 +113,37 @@ jobs:
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ matrix.chunk }}/8 --maxWorkers=${{ matrix.config.workers }} --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+
+  jestSizing16:
+    # Draft test: option B spread over 16 shards to cut wait time (https://github.com/Expensify/Expensify/issues/707344)
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      CI: true
+      NODE_OPTIONS: '--experimental-vm-modules --max-old-space-size=8192'
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    name: sizing D-16shards-4vcpu-3w (job ${{ matrix.chunk }})
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Cache Jest cache
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          # Separate namespace: a 16-way shard holds different suites than the same number of an 8-way shard.
+          key: ${{ runner.os }}-jest16-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
+          restore-keys: ${{ runner.os }}-jest16-${{ matrix.chunk }}-
+
+      - name: Jest tests
+        run: npm test -- --silent --shard=${{ matrix.chunk }}/16 --maxWorkers=3 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
   storybookTests:
     if: ${{ (github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
