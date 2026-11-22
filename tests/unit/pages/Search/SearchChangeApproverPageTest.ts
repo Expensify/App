@@ -1,6 +1,6 @@
 import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
-import {areAllSelectedPoliciesLoaded, areAllSelectedReportsLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+import {areAllSelectedPoliciesLoaded, areAllSelectedReportsLoaded, canAddApproverToAllReports, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -226,6 +226,80 @@ describe('SearchChangeApproverPage', () => {
                     isLoadingSecurityGroup: false,
                 }),
             ).toBe(false);
+        });
+    });
+
+    describe('canAddApproverToAllReports', () => {
+        const policyID = 'policyA';
+        const policy = createMock<Policy>({
+            id: policyID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+        const report = createMock<Report>({
+            reportID: 'reportA',
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: 123,
+        });
+        const selectedReports = [{reportID: report.reportID, policyID}];
+
+        it('should return true when an admin selects reports that await approval', () => {
+            // Given an admin's workspace and a submitted report that awaits approval
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy};
+
+            // When checking whether an approver can be added to the selection
+            const canAdd = canAddApproverToAllReports({selectedReports, onyxReports: {[report.reportID]: report}, allPolicies});
+
+            // Then Add approver is available
+            expect(canAdd).toBe(true);
+        });
+
+        it('should return false when a selected report was approved while the picker is open', () => {
+            // Given a selected report that another approver has approved
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy};
+            const approvedReport = {...report, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+            // When checking whether an approver can be added to the selection
+            const canAdd = canAddApproverToAllReports({selectedReports, onyxReports: {[report.reportID]: approvedReport}, allPolicies});
+
+            // Then Add approver is hidden, so the picker cannot fall back to it and open it on its own
+            expect(canAdd).toBe(false);
+        });
+
+        it('should return false for a dynamic external workflow', () => {
+            // Given an admin's workspace that uses a dynamic external workflow
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL}};
+
+            // When checking whether an approver can be added to the selection
+            const canAdd = canAddApproverToAllReports({selectedReports, onyxReports: {[report.reportID]: report}, allPolicies});
+
+            // Then the external workflow keeps Add approver hidden
+            expect(canAdd).toBe(false);
+        });
+
+        it('should return false when the user is not an admin', () => {
+            // Given a member of the workspace
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {...policy, role: CONST.POLICY.ROLE.USER}};
+
+            // When checking whether an approver can be added to the selection
+            const canAdd = canAddApproverToAllReports({selectedReports, onyxReports: {[report.reportID]: report}, allPolicies});
+
+            // Then only admins can add approvers
+            expect(canAdd).toBe(false);
+        });
+
+        it('should return false when a selected report is missing from Onyx', () => {
+            // Given a selected report that has not loaded yet
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy};
+
+            // When checking whether an approver can be added to the selection
+            const canAdd = canAddApproverToAllReports({selectedReports, onyxReports: {}, allPolicies});
+
+            // Then Add approver waits until the report's state is known
+            expect(canAdd).toBe(false);
         });
     });
 

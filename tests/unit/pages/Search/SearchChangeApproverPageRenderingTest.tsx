@@ -161,6 +161,59 @@ describe('SearchChangeApproverPage permissions', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('keeps the spinner while reports load after an earlier visit left the loading flag off', async () => {
+        // Given an earlier visit that finished loading and selected reports that are not in Onyx yet
+        await Onyx.set(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE, false);
+        await waitForBatchedUpdates();
+
+        // When the user opens the bulk change approver menu before this visit's request starts
+        render(<SearchChangeApproverPage />);
+
+        // Then the spinner shows instead of the unavailable view
+        expect(FullScreenLoadingIndicator).toHaveBeenCalled();
+        expect(FullPageNotFoundView).not.toHaveBeenCalled();
+
+        // When the request starts and then returns the reports
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE, true);
+            await waitForBatchedUpdates();
+            await loadReports([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.ADMIN]);
+        });
+
+        // Then the picker shows the options without ever showing the unavailable view
+        expect(FullPageNotFoundView).not.toHaveBeenCalledWith(expect.objectContaining({shouldShow: true}), undefined);
+        const props = jest.mocked(SelectionList).mock.calls.at(-1)?.[0];
+        expect(props?.data?.map((option) => option.keyForList)).toEqual([APPROVER_TYPE.ADD_APPROVER, APPROVER_TYPE.BYPASS_APPROVER, APPROVER_TYPE.REASSIGN_APPROVER]);
+    });
+
+    it('does not open Add approver on its own when a selected report is approved while Reassign is selected', async () => {
+        // Given an admin who selected Reassign for reports that await approval
+        await loadReports([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.ADMIN]);
+        render(<SearchChangeApproverPage />);
+        const reassignOption = jest
+            .mocked(SelectionList)
+            .mock.calls.at(-1)?.[0]
+            ?.data?.find((option) => option.keyForList === APPROVER_TYPE.REASSIGN_APPROVER);
+        act(() => {
+            if (!reassignOption) {
+                return;
+            }
+            jest.mocked(SelectionList).mock.calls.at(-1)?.[0]?.onSelectRow?.(reassignOption);
+        });
+
+        // When another approver approves one of the selected reports
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}reportA`, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            await waitForBatchedUpdates();
+        });
+
+        // Then Add approver is hidden and the picker does not navigate anywhere without the user's choice
+        const props = jest.mocked(SelectionList).mock.calls.at(-1)?.[0];
+        expect(props?.data?.map((option) => option.keyForList)).not.toContain(APPROVER_TYPE.ADD_APPROVER);
+        expect(props?.data?.some((option) => option.isSelected)).toBe(false);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('waits for permissions before closing or automatically navigating', async () => {
         // Given selected reports whose permissions have not loaded yet
         await Onyx.set(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE, true);

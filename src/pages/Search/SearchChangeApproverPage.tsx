@@ -40,7 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -93,6 +93,22 @@ function shouldAutoApplyApprover({
 
 export {shouldAutoApplyApprover};
 
+/**
+ * Whether a selected report can still have its approver changed: its workspace is loaded, not pending deletion, and not on
+ * a dynamic external workflow, and the report is an expense report that awaits approval. Callers add their own permission checks.
+ */
+function isReportEligibleForApproverChange(policy: OnyxEntry<Policy>, report: OnyxEntry<Report>): policy is Policy {
+    return (
+        !!policy &&
+        !!report &&
+        !isPendingDeletePolicy(policy) &&
+        !hasDynamicExternalWorkflow(policy) &&
+        isMoneyRequestReport(report) &&
+        !isMoneyRequestReportPendingDeletion(report) &&
+        isProcessingReport(report)
+    );
+}
+
 function canReassignAllReports({
     selectedReports,
     onyxReports,
@@ -113,7 +129,11 @@ function canReassignAllReports({
         selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-            const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            if (!isReportEligibleForApproverChange(policy, report)) {
+                return false;
+            }
+
+            const isApprovalEnabled = !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
             const canReassignReportAsApprover = canReassignAsApprover({
                 report,
                 currentUserAccountID,
@@ -121,22 +141,38 @@ function canReassignAllReports({
                 areStrictPolicyRulesEnabled,
             });
 
-            return (
-                !!policy &&
-                !!report &&
-                !hasDynamicExternalWorkflow(policy) &&
-                (isPolicyAdmin(policy) || canReassignReportAsApprover) &&
-                !isPendingDeletePolicy(policy) &&
-                isMoneyRequestReport(report) &&
-                !isMoneyRequestReportPendingDeletion(report) &&
-                isProcessingReport(report) &&
-                isApprovalEnabled
-            );
+            return (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled;
         })
     );
 }
 
 export {canReassignAllReports};
+
+/**
+ * Whether the current user can add an approver to every selected report: they must be an admin of each workspace, no
+ * workspace can use a dynamic external workflow, and every report must still be awaiting approval.
+ */
+function canAddApproverToAllReports({
+    selectedReports,
+    onyxReports,
+    allPolicies,
+}: {
+    selectedReports: SelectedReportRef[];
+    onyxReports: Record<string, Report> | undefined;
+    allPolicies: OnyxCollection<Policy>;
+}): boolean {
+    return (
+        selectedReports.length > 0 &&
+        selectedReports.every((selectedReport) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+
+            return isReportEligibleForApproverChange(policy, report) && isPolicyAdmin(policy);
+        })
+    );
+}
+
+export {canAddApproverToAllReports};
 
 function SearchChangeApproverPage() {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -213,6 +249,17 @@ function SearchChangeApproverPage() {
     const areSelectedReportsLoaded = areAllSelectedReportsLoaded(selectedReports, onyxReports);
     const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
+    // The loading flag can still be false from an earlier visit until the request for this selection starts, so missing
+    // reports or policies keep the spinner until the flag has turned on. The request is sent again whenever the number of
+    // selected reports changes, so that number identifies the selection here too. State is adjusted during render so the
+    // first frame already shows the spinner.
+    const [loadingSelectionCount, setLoadingSelectionCount] = useState<number>();
+    if (isLoadingBulkChangeApproverPage && loadingSelectionCount !== selectedReports.length) {
+        setLoadingSelectionCount(selectedReports.length);
+    }
+    const hasStartedLoadingSelection = loadingSelectionCount === selectedReports.length;
+    const isWaitingForSelection = isLoadingBulkChangeApproverPage || (!hasStartedLoadingSelection && (!areSelectedPoliciesLoadedForSelection || !areSelectedReportsLoaded));
+
     const getApproverTypes = () => {
         const data: Array<ListItem<ApproverType>> = [];
 
@@ -220,7 +267,7 @@ function SearchChangeApproverPage() {
             return data;
         }
 
-        if (hasAdminPermission && !hasSelectedDEWEnabledPolicy) {
+        if (canAddApproverToAllReports({selectedReports, onyxReports, allPolicies})) {
             data.push({
                 text: translate('iou.changeApprover.actions.addApprover'),
                 keyForList: APPROVER_TYPE.ADD_APPROVER,
@@ -394,7 +441,7 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if (!isOffline && isLoadingBulkChangeApproverPage) {
+    if (!isOffline && isWaitingForSelection) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
