@@ -3,6 +3,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -87,7 +88,6 @@ import {
     getCurrencyDecimalsLocal,
     getCurrencySymbolLocal,
     getOnyxData,
-    getPersonalDetailsByLogins,
     getRequiredOnyxUpdates,
     getRequiredWriteCall,
     translateLocal,
@@ -213,7 +213,7 @@ const mockPersonalDetails: PersonalDetailsList = {
         displayName: VIT_EMAIL,
     },
 };
-const mockPersonalDetailsByLogins = getPersonalDetailsByLogins(mockPersonalDetails);
+const mockPersonalDetailsByLogins = buildPersonalDetailsByLogin(mockPersonalDetails);
 
 const getAllPolicyTags = async (): Promise<OnyxCollection<PolicyTagLists>> => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
@@ -1554,7 +1554,7 @@ describe('split expense', () => {
                 displayName: 'Carlos Test',
             },
         };
-        const testPersonalDetailsByLogins = getPersonalDetailsByLogins(testPersonalDetails);
+        const testPersonalDetailsByLogins = buildPersonalDetailsByLogin(testPersonalDetails);
 
         // When splitting a bill with explicit personalDetails
         splitBill({
@@ -1619,7 +1619,7 @@ describe('split expense', () => {
                 displayName: 'Jules',
             },
         };
-        const participantPersonalDetailsByLogins = getPersonalDetailsByLogins(participantPersonalDetails);
+        const participantPersonalDetailsByLogins = buildPersonalDetailsByLogin(participantPersonalDetails);
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
@@ -1775,7 +1775,7 @@ describe('split expense', () => {
                 displayName: 'Carlos Complete',
             },
         };
-        const completeSplitPersonalDetailsByLogins = getPersonalDetailsByLogins(completeSplitPersonalDetails);
+        const completeSplitPersonalDetailsByLogins = buildPersonalDetailsByLogin(completeSplitPersonalDetails);
 
         completeSplitBill({
             personalDetailsByLogins: completeSplitPersonalDetailsByLogins,
@@ -12006,7 +12006,7 @@ describe('planDistanceRequest and commitDistanceRequest', () => {
             displayName: 'Carlos',
         },
     };
-    const distanceMockPersonalDetailsByLogins = getPersonalDetailsByLogins(distanceMockPersonalDetails);
+    const distanceMockPersonalDetailsByLogins = buildPersonalDetailsByLogin(distanceMockPersonalDetails);
 
     function getDefaultDistanceRequestParams(
         report: Report | undefined,

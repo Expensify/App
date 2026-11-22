@@ -1,3 +1,5 @@
+import {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -26,7 +28,7 @@ import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
-import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getPersonalDetailsByLogins} from '../../utils/TestHelper';
+import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -429,7 +431,7 @@ describe('actions/IOU', () => {
             [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
             [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
         };
-        const mockPersonalDetailsByLogins = getPersonalDetailsByLogins(mockPersonalDetails);
+        const mockPersonalDetailsByLogins = buildPersonalDetailsByLogin(mockPersonalDetails);
 
         const baseTransactionParams = {
             amount: 400,
