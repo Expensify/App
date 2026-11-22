@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useChangeBankAccount from '@hooks/useChangeBankAccount';
+import usePermissions from '@hooks/usePermissions';
 
 import Navigation from '@navigation/Navigation';
 
@@ -13,7 +14,14 @@ import type {BankAccountList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@hooks/usePermissions');
+
+function mockIsBetaEnabled(enabledBetas: string[]) {
+    jest.mocked(usePermissions).mockReturnValue(createMock<ReturnType<typeof usePermissions>>({isBetaEnabled: (beta) => enabledBetas.includes(beta)}));
+}
 
 jest.mock('@navigation/Navigation', () => ({
     __esModule: true,
@@ -65,6 +73,7 @@ describe('useChangeBankAccount', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockIsBetaEnabled([]);
     });
 
     afterEach(async () => {
@@ -111,5 +120,52 @@ describe('useChangeBankAccount', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockPrepareNewBankAccountSetup).not.toHaveBeenCalled();
         expect(mockNavigateToBankAccountRoute).not.toHaveBeenCalled();
+    });
+
+    describe('with an EUR Corpay account and a NOK workspace', () => {
+        const EUR_CORPAY_BANK_ACCOUNT_LIST = {
+            '111': {
+                methodID: 111,
+                bankCurrency: CONST.CURRENCY.EUR,
+                bankCountry: 'DE',
+                accountData: {
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+                },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        } as unknown as BankAccountList;
+
+        it('opens the existing-account picker when the beta is on', async () => {
+            // Given the beta is on and the only other account is an EUR Corpay account
+            mockIsBetaEnabled([CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY]);
+            await setBankAccountList(EUR_CORPAY_BANK_ACCOUNT_LIST);
+            const {result} = renderHook(() => useChangeBankAccount(POLICY_ID, 'NOK', CURRENT_BANK_ACCOUNT_ID));
+            await waitForBatchedUpdates();
+
+            // When the admin changes the bank account
+            act(() => result.current());
+
+            // Then the picker opens, because the EUR account can pay a NOK workspace
+            expect(mockNavigate).toHaveBeenCalledWith(
+                ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID, undefined, CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT),
+            );
+            expect(mockNavigateToBankAccountRoute).not.toHaveBeenCalled();
+        });
+
+        it('starts a fresh setup when the beta is off', async () => {
+            // Given the beta is off and the only other account is an EUR Corpay account
+            await setBankAccountList(EUR_CORPAY_BANK_ACCOUNT_LIST);
+            const {result} = renderHook(() => useChangeBankAccount(POLICY_ID, 'NOK', CURRENT_BANK_ACCOUNT_ID));
+            await waitForBatchedUpdates();
+
+            // When the admin changes the bank account
+            act(() => result.current());
+
+            // Then a fresh setup starts, because the currency check rejects the EUR account
+            expect(mockNavigateToBankAccountRoute).toHaveBeenCalledWith({policyID: POLICY_ID, isChangingBankAccount: true});
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
     });
 });

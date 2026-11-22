@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     canLinkPlaid,
+    canUseMismatchedCurrencyBankAccount,
     getBankAccountConnectionStatus,
     getBankAccountState,
     isGlobalReimbursementsEnabled,
@@ -148,6 +149,9 @@ type PaymentMethodListProps = {
 
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
     filterCurrency?: string;
+
+    /** Whether the mismatched reimbursement currency beta is enabled, which lets some accounts in another currency pass the currency filter */
+    isMismatchedReimbursementCurrencyBetaEnabled?: boolean;
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -214,6 +218,7 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     filterCurrency,
+    isMismatchedReimbursementCurrencyBetaEnabled = false,
     excludeStates,
     excludeBankAccountID,
     shouldHideDefaultBadge = false,
@@ -609,7 +614,7 @@ function PaymentMethodList({
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
                 const typeMatches = !filterType || account.accountData?.type === filterType;
-                const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
+                const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency || canUseMismatchedCurrencyBankAccount(account, isMismatchedReimbursementCurrencyBetaEnabled);
                 const shouldInclude = !excludeBankAccountID || account.methodID !== excludeBankAccountID;
 
                 return typeMatches && currencyMatches && shouldInclude;

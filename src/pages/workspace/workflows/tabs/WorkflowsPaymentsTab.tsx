@@ -107,7 +107,8 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
+    const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, undefined, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
     const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (details) =>
@@ -155,7 +156,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
-    const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
+    const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
 
     const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -206,6 +207,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
             if (!isPolicyAdmin(policy, currentUserLogin)) {
                 showAddBankAccountPermissionModal();
+                return;
+            }
+            if (isMismatchedReimbursementCurrencyBetaEnabled && hasValidExistingAccounts) {
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, workflowsBackTo));
                 return;
             }
             showConfirmModal({

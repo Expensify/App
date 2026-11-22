@@ -27,7 +27,7 @@ import {Str} from 'expensify-common';
 
 import type {ApprovalWorkflowRulesDiff} from './RuleUtils';
 
-import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {canUseMismatchedCurrencyBankAccount, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
@@ -822,6 +822,7 @@ function getEligibleExistingBusinessBankAccounts(
     policyCurrency: string | undefined,
     shouldIncludePartiallySetup?: boolean,
     excludeBankAccountID?: number,
+    isMismatchedReimbursementCurrencyBetaEnabled = false,
 ) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
@@ -829,7 +830,7 @@ function getEligibleExistingBusinessBankAccounts(
 
     return Object.values(bankAccountList).filter((account) => {
         return (
-            account.bankCurrency === policyCurrency &&
+            (account.bankCurrency === policyCurrency || canUseMismatchedCurrencyBankAccount(account, isMismatchedReimbursementCurrencyBetaEnabled)) &&
             (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
             account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             account.methodID !== excludeBankAccountID
@@ -873,14 +874,18 @@ function getApprovalLimitDescription({approver, currency, translate, formatPhone
  * @param bankAccountList - list of bank accounts
  * @param policy - given policy
  */
-function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+function getOpenConnectedToPolicyBusinessBankAccounts(
+    bankAccountList: BankAccountList | undefined,
+    policy: OnyxEntry<Policy> | undefined,
+    isMismatchedReimbursementCurrencyBetaEnabled = false,
+) {
     if (!bankAccountList || policy === undefined) {
         return [];
     }
 
     return Object.values(bankAccountList).filter((account) => {
         return (
-            account.bankCurrency === policy?.outputCurrency &&
+            (account.bankCurrency === policy?.outputCurrency || canUseMismatchedCurrencyBankAccount(account, isMismatchedReimbursementCurrencyBetaEnabled)) &&
             account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
             account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID

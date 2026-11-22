@@ -14,10 +14,12 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canUseMismatchedCurrencyPolicyBankAccount} from '@libs/BankAccountUtils';
 import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -115,6 +117,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
     const hasClearedStalePlaidErrorsRef = useRef(false);
@@ -153,7 +156,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isNonUSDWorkspace
             ? !isCurrencySupportedForECards(policyCurrency)
-            : policyCurrency && !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
+            : policyCurrency &&
+              !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType) &&
+              (isChangingBankAccount ||
+                  !!route.params?.stepToOpen ||
+                  !canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), true));
 
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';

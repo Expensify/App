@@ -5,14 +5,15 @@ import {hasOtherEligibleBusinessBankAccountsSelector} from '@selectors/Reimburse
 
 const CURRENCY = 'USD';
 
-function createBankAccount(methodID: number, overrides?: {currency?: string; state?: string; type?: string}): BankAccount {
+function createBankAccount(methodID: number, overrides?: {currency?: string; state?: string; type?: string; country?: string; provider?: 'CORPAY' | 'WISE'}): BankAccount {
     return {
         methodID,
         bankCurrency: overrides?.currency ?? CURRENCY,
-        bankCountry: CONST.COUNTRY.US,
+        bankCountry: overrides?.country ?? CONST.COUNTRY.US,
         accountData: {
             state: overrides?.state ?? CONST.BANK_ACCOUNT.STATE.OPEN,
             type: overrides?.type ?? CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            additionalData: overrides?.provider ? {globalReimbursementProvider: overrides.provider} : undefined,
         },
     };
 }
@@ -66,5 +67,27 @@ describe('hasOtherEligibleBusinessBankAccountsSelector', () => {
             a2: createBankAccount(2),
         };
         expect(hasOtherEligibleBusinessBankAccountsSelector(CURRENCY, 1)(bankAccountList)).toBe(true);
+    });
+
+    it('returns true for an open non-US Corpay account in another currency when the beta is on', () => {
+        // Given an open EUR Corpay account outside the US and a NOK workspace
+        const bankAccountList: BankAccountList = {a1: createBankAccount(1, {currency: 'EUR', country: 'DE', provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})};
+
+        // When the beta is on
+        const result = hasOtherEligibleBusinessBankAccountsSelector('NOK', undefined, true)(bankAccountList);
+
+        // Then the account counts as eligible
+        expect(result).toBe(true);
+    });
+
+    it('returns false for an account in another currency when the beta is off', () => {
+        // Given an open EUR Corpay account outside the US and a NOK workspace
+        const bankAccountList: BankAccountList = {a1: createBankAccount(1, {currency: 'EUR', country: 'DE', provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})};
+
+        // When the beta is off
+        const result = hasOtherEligibleBusinessBankAccountsSelector('NOK', undefined)(bankAccountList);
+
+        // Then the currency check rejects the account as before
+        expect(result).toBe(false);
     });
 });

@@ -27,7 +27,7 @@ import type {Merge, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
-import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {canUseMismatchedCurrencyBankAccount, isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
@@ -176,7 +176,12 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
+function getBusinessBankAccountOptions(
+    formattedPaymentMethods: PaymentMethod[],
+    currency?: string,
+    defaultBankAccountID?: number,
+    isMismatchedReimbursementCurrencyBetaEnabled = false,
+): BusinessBankAccountOption[] {
     const options = formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
@@ -189,7 +194,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&
-                matchesCurrency(method, currency)
+                (matchesCurrency(method, currency) || canUseMismatchedCurrencyBankAccount(method, isMismatchedReimbursementCurrencyBetaEnabled))
             );
         })
         .map((formattedPaymentMethod) => ({

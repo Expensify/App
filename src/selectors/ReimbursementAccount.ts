@@ -22,9 +22,9 @@ const unsavedWiseOnboardingPageKeysSelector = (reimbursementAccount: OnyxEntry<R
  * Returns a selector that reports whether there are other eligible existing business bank accounts that could be connected.
  */
 const hasOtherEligibleBusinessBankAccountsSelector =
-    (currency: string | undefined, excludeBankAccountID: number | undefined) =>
+    (currency: string | undefined, excludeBankAccountID: number | undefined, isMismatchedReimbursementCurrencyBetaEnabled = false) =>
     (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
-        getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, excludeBankAccountID).length > 0;
+        getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, excludeBankAccountID, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
 
 export {
     reimbursementAccountErrorSelector,
