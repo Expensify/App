@@ -109,14 +109,6 @@ type RevealStages = {
 };
 
 /**
- * `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
- * custom tags like `<victorypie … />` and nest each following sibling inside the previous one.
- */
-function parseRevealDocument(html: string): Document {
-    return parseDocument(html, {recognizeSelfClosing: true});
-}
-
-/**
  * Splits HTML into progressive stages at character granularity. Atomic
  * primitives (mentions, emoji, links, code, images) stay whole.
  */
@@ -124,7 +116,9 @@ function tokenizeForReveal(html: string): RevealStages {
     if (!html) {
         return [''];
     }
-    const doc = parseRevealDocument(html);
+    // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
+    // custom tags like `<victorypie … />` and nest each following sibling inside the previous one.
+    const doc = parseDocument(html, {recognizeSelfClosing: true});
     const anchors = collectAnchors(doc);
     const length = anchors.length + 1;
 
@@ -147,12 +141,25 @@ function tokenizeForReveal(html: string): RevealStages {
 }
 
 /**
- * Index of the stage whose HTML is `html`, or -1 when no stage matches. Each stage adds one anchor,
- * so only the stage with as many anchors as `html` can match.
+ * Index of the stage whose HTML is `html`, or -1 when no stage matches. Every stage is longer than the
+ * one before it, so a binary search on length finds the only stage that can match.
  */
 function findRevealStage(stages: RevealStages, html: string): number {
-    const stageIndex = collectAnchors(parseRevealDocument(html)).length;
-    return stages.at(stageIndex) === html ? stageIndex : -1;
+    let low = 0;
+    let high = stages.length - 1;
+    while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        const stage = stages.at(middle) ?? '';
+        if (stage.length === html.length) {
+            return stage === html ? middle : -1;
+        }
+        if (stage.length < html.length) {
+            low = middle + 1;
+        } else {
+            high = middle - 1;
+        }
+    }
+    return -1;
 }
 
 export default tokenizeForReveal;

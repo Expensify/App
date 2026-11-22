@@ -187,4 +187,34 @@ describe('tokenizeForReveal', () => {
         expect(foundStages).toEqual(Array.from({length: stages.length}, (_, index) => index));
         expect(findRevealStage(stages, '<p>Hello</p>')).toBe(-1);
     });
+
+    it('finds the stage of raw text that reads back as fewer characters', () => {
+        // Given noscript text that is written back unescaped, so `&lt;` reads back as one character
+        const html = '<p>a</p><noscript>&amp;lt;</noscript>';
+        const stages = tokenizeForReveal(html);
+
+        // When the HTML on screen is any one of its stages
+        const foundStages = Array.from({length: stages.length}, (_, index) => findRevealStage(stages, stages.at(index) ?? ''));
+
+        // Then the reveal still continues from that stage instead of starting over
+        expect(stages.at(5)).toBe('<p>a</p><noscript>&lt;</noscript>');
+        expect(foundStages).toEqual(Array.from({length: stages.length}, (_, index) => index));
+    });
+
+    it('makes every stage longer than the one before it, so a stage can be found by its length', () => {
+        // Given replies with raw text, escaped markup, atomic tags and empty elements
+        const replies = [
+            '<p>a</p><noscript>x&amp;lt;y&amp;amp;</noscript><p>b <strong>c</strong></p>',
+            '<p>Type &lt;strong&gt;bold&lt;/strong&gt;, Jack &amp; Jill.</p><br/><p></p>',
+            '<p>Hi <mention-user accountID="42">@daniel</mention-user> <emoji>✅</emoji> <a href="https://example.com">docs</a> <code>npm</code></p>',
+        ];
+
+        for (const reply of replies) {
+            // When every stage is built
+            const lengths = getAllStages(reply).map((stage) => stage.length);
+
+            // Then each one is longer than the stage before it
+            expect(lengths.slice(1).every((length, index) => length > (lengths.at(index) ?? 0))).toBe(true);
+        }
+    });
 });
