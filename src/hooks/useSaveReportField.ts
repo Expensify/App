@@ -8,6 +8,7 @@
 import {useSession} from '@components/OnyxListItemProvider';
 
 import {updateReportField, updateReportName} from '@libs/actions/Report';
+import Log from '@libs/Log';
 import {getReportFieldKey, hasViolations as hasViolationsReportUtils, isReportFieldDisabled, isReportFieldOfTypeTitle} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -65,6 +66,9 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
         const matchedReportFieldIndex = reportField.values.findIndex((fieldValue) => fieldValue === value);
         const matchingExternalID = reportField.externalIDs?.[matchedReportFieldIndex] ?? '';
+        if (!matchingExternalID) {
+            Log.hmmm(`No matching external ID found for report field value "${value}" in report field "${reportField.name}" (${reportField.fieldID})`);
+        }
         updateReportField({
             report: {...report, reportID: report.reportID},
             reportField: {...reportField, value, externalID: matchingExternalID},
