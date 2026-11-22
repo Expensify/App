@@ -6,6 +6,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
@@ -87,6 +88,8 @@ function KYCWall({
     const [doesSubmitterPersonalDetailExist] = usePersonalDetail(ownerAccountID, doesPersonalDetailExist);
 
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -365,7 +368,7 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
-            const hasOpenConnectedBusinessBankAccount = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policy).length > 0;
+            const hasOpenConnectedBusinessBankAccount = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policy, isMismatchedReimbursementCurrencyBetaEnabled).length > 0;
             const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
             const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
@@ -446,6 +449,7 @@ function KYCWall({
             fundList,
             getAnchorPosition,
             iouReport,
+            isMismatchedReimbursementCurrencyBetaEnabled,
             onSuccessfulKYC,
             selectPaymentMethod,
             shouldIncludeDebitCard,

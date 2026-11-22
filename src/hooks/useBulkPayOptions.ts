@@ -128,7 +128,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, defaultBankAccountID);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, defaultBankAccountID, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY));
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({

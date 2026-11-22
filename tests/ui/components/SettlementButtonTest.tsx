@@ -699,6 +699,45 @@ describe('SettlementButton', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
+        it.each([
+            ['lists', true],
+            ['does not list', false],
+        ])('%s an EUR Corpay account for a NOK expense report when the beta is %s', async (_label, isBetaOn) => {
+            // Given a NOK expense report and an open EUR business account outside the US that Corpay manages
+            const nokPolicy = createTestPolicy({outputCurrency: 'NOK', achAccount: workspaceBankAccount});
+            const nokReport = createExpenseReport({currency: 'NOK'});
+            const bankAccountList = createBankAccountList('5678');
+            bankAccountList[BANK_ACCOUNT_ID].bankCurrency = CONST.CURRENCY.EUR;
+            bankAccountList[BANK_ACCOUNT_ID].bankCountry = 'DE';
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {
+                ...bankAccountList[BANK_ACCOUNT_ID].accountData,
+                additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+            };
+            await setupOnyxState({report: nokReport, chatReport: createChatReport(), policy: nokPolicy, bankAccountList, betas: isBetaOn ? [CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY] : []});
+
+            // When the payer opens the pay menu
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency="NOK"
+                        formattedAmount="NOK 100.00"
+                        iouReport={nokReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', 'NOK 100.00')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the beta lets the EUR account pay the NOK report
+            if (isBetaOn) {
+                expect(screen.getByTestId('PopoverMenuItem-Test Bank Account')).toBeOnTheScreen();
+            } else {
+                expect(screen.queryByTestId('PopoverMenuItem-Test Bank Account')).not.toBeOnTheScreen();
+            }
+        });
+
         it('pays from another accessible business account without connecting it to the workspace', async () => {
             // Given the admin owns a usable account different from the workspace account.
             const policy = createTestPolicy({achAccount: workspaceBankAccount});
