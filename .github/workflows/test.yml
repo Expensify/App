@@ -82,6 +82,20 @@ jobs:
           # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
           fail_ci_if_error: false
 
+  # Draft test: prints the CPU model behind each Blacksmith runner type (https://github.com/Expensify/Expensify/issues/707344)
+  cpuInfo:
+    name: CPU info (${{ matrix.runner }})
+    strategy:
+      matrix:
+        runner: [blacksmith-8vcpu-ubuntu-2404, blacksmith-8vcpu-ubuntu-2404-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Print CPU and memory details
+        run: |
+          lscpu
+          echo "nproc: $(nproc)"
+          free -h
+
   storybookTests:
     if: ${{ (github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
