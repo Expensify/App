@@ -63,8 +63,7 @@ module.exports = {
     setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
     setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
     // Restarts a worker between suites once it holds this much memory, so long-lived CI workers don't get OOM killed.
-    // Draft test override (https://github.com/Expensify/Expensify/issues/707344); defaults to 2GB.
-    workerIdleMemoryLimit: process.env.JEST_WORKER_IDLE_MEMORY_LIMIT ?? '2GB',
+    workerIdleMemoryLimit: '2GB',
     cacheDirectory: '<rootDir>/.jest-cache',
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {
