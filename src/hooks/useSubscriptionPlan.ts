@@ -2,28 +2,29 @@ import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Policy} from '@src/types/onyx';
 
-import {useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
 function useSubscriptionPlan() {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
 
-    // Filter workspaces in which user is the owner and the type is either corporate (control) or team (collect)
-    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, userMetadata?.accountID), [policies, userMetadata?.accountID]);
+    // Only the plan type leaves the selector, so changes to unrelated workspaces do not re-render the consumers.
+    // Workspaces in which the user is the owner and the type is either corporate (control) or team (collect) count.
+    const selector = (policies: OnyxCollection<Policy>) => {
+        const ownerPolicies = getOwnedPaidPolicies(policies, userMetadata?.accountID);
+        if (!ownerPolicies.length) {
+            return null;
+        }
 
-    if (isEmptyObject(ownerPolicies)) {
-        return null;
-    }
+        // Corporate (control) workspace is supposed to be the higher priority
+        return ownerPolicies.some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE) ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    };
+    const [subscriptionPlan] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
 
-    // Check if user has corporate (control) workspace
-    const hasControlWorkspace = ownerPolicies.some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
-
-    // Corporate (control) workspace is supposed to be the higher priority
-    return hasControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    return subscriptionPlan ?? null;
 }
 
 export default useSubscriptionPlan;
