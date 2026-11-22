@@ -175,6 +175,19 @@ describe('tokenizeForReveal', () => {
         expect(stages.at(-7)).toBeUndefined();
     });
 
+    it('reads fractional indexes the way Array.prototype.at does', () => {
+        // Given the stages of a short reply and the same stages as an array
+        const html = '<p>ab</p>';
+        const stages = tokenizeForReveal(html);
+        const allStages = getAllStages(html);
+
+        // When a stage is read with a fractional index
+        const indexes = [0.5, 1.9, -0.5, -1.5];
+
+        // Then it is the stage the array gives for that index
+        expect(indexes.map((index) => stages.at(index))).toEqual(indexes.map((index) => allStages.at(index)));
+    });
+
     it('finds the stage that matches HTML already on screen', () => {
         // Given a reply with formatting, a mention, a link and a list
         const html = '<p>Hi <mention-user accountID="42">@daniel</mention-user>, see <a href="https://example.com">our docs</a>.</p><ul><li><strong>Submit</strong> &amp; approve</li></ul>';

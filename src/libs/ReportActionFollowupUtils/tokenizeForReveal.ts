@@ -124,7 +124,8 @@ function tokenizeForReveal(html: string): RevealStages {
 
     // A long reply has thousands of stages and its reveal shows a few hundred, so a stage is serialized only when asked for.
     const at = (index: number): string | undefined => {
-        const stageIndex = index < 0 ? length + index : index;
+        const truncated = Math.trunc(index);
+        const stageIndex = truncated < 0 ? length + truncated : truncated;
         if (stageIndex === 0) {
             return '';
         }
