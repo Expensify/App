@@ -5,6 +5,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {hasExpensifyCardFeedSelector} from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +44,8 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
     const {domainAccountID, groupID} = route.params;
 
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const cardCurrency = useCurrencyForExpensifyCard({fundID: domainAccountID});
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: selectGroupByID(groupID),
@@ -48,6 +53,14 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
 
     const [namePendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: domainSecurityGroupSettingPendingActionSelector('name', groupID)});
     const [nameErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: domainSecurityGroupSettingErrorsSelector('nameErrors', groupID)});
+
+    const [hasExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`, {selector: hasExpensifyCardFeedSelector});
+    const [cardLimitPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingPendingActionSelector('defaultCardUnapprovedExpenseLimit', groupID),
+    });
+    const [cardLimitErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingErrorsSelector('defaultCardUnapprovedExpenseLimitErrors', groupID),
+    });
 
     const [deleteGroupPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: domainSecurityGroupSettingPendingActionSelector('deleteGroup', groupID),
@@ -83,6 +96,21 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                             value={group?.name}
                         />
                     </OfflineWithFeedback>
+                    {!!hasExpensifyCardFeed && (
+                        <OfflineWithFeedback
+                            pendingAction={cardLimitPendingAction}
+                            errors={cardLimitErrors}
+                            onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'defaultCardUnapprovedExpenseLimitErrors')}
+                            errorRowStyles={[styles.mh5]}
+                        >
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CARD_LIMIT}
+                                name={translate('workspace.expensifyCard.cardLimit')}
+                                onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_CARD_LIMIT.getRoute(domainAccountID, groupID))}
+                                value={convertToDisplayString(group?.defaultCardUnapprovedExpenseLimit ?? 0, cardCurrency)}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <DefaultGroupToggle
                         domainAccountID={domainAccountID}
                         groupID={groupID}

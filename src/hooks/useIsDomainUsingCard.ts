@@ -40,3 +40,4 @@ function useIsDomainUsingCard(domainAccountID: number): {isDomainUsingCard: bool
 }
 
 export default useIsDomainUsingCard;
+export {hasExpensifyCardFeedSelector};

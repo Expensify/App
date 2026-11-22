@@ -3784,6 +3784,7 @@ const SENTRY_LABEL = {
             CREATE_PREFERRED_WORKSPACE: 'DomainGroups-CreatePreferredWorkspace',
             DELETE_GROUP: 'DomainGroups-DeleteGroup',
             NAME: 'DomainGroups-Name',
+            CARD_LIMIT: 'DomainGroups-CardLimit',
             PREFERRED_WORKSPACE: 'DomainGroups-PreferredWorkspace',
             ROW: 'DomainGroups-Row',
             DEFAULT_GROUP_SWITCH: 'DomainGroups-DefaultGroupSwitch',
