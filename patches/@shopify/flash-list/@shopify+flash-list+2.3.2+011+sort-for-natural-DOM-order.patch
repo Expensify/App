@@ -396,9 +396,9 @@ index 8e3db51..e66d406 100644
 +        if (Platform.OS !== "web") {
 +            return;
 +        }
-+        // Sort before paint. The deferred sort is still pending a second
-+        // after load, and a drag across unsorted rows stringifies backwards.
-+        if (!shouldHoldSort()) {
++        // Sort before paint so a drag right after load does not cross unsorted rows.
++        // A recycle while scrolling already appends rows out of order. Sorting here would run on every scroll frame, so leave that to the deferred scroll sort.
++        if (!shouldHoldSort() && !isScrolling()) {
 +            sortItems();
 +        }
 +        maybeDoSortOnScroll();

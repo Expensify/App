@@ -1,9 +1,13 @@
 /**
  * Chrome drops a drag-selection that starts in the blank LHN (or collapses one when a row's hover
  * menu mounts) by anchoring on an empty element. While the primary button is down, rebuild the range
- * from the report text under the pointer so the selection survives that.
+ * from the report text under the pointer so the selection survives that. Current Safari has the same
+ * caret API, so this only arms for a press in the list or the LHN. A composer drag stays with the browser.
  */
-const REPORT_ACTIONS_LIST_SELECTOR = '[data-testid="report-actions-list"], [data-testid="money-request-report-actions-list"]';
+import CONST from '@src/CONST';
+
+const REPORT_ACTIONS_LIST_SELECTOR = `[data-testid="${CONST.TEST_ID.REPORT_ACTIONS_LIST}"], [data-testid="${CONST.TEST_ID.MONEY_REQUEST_REPORT_ACTIONS_LIST}"]`;
+const RESCUE_DRAG_START_SELECTOR = `${REPORT_ACTIONS_LIST_SELECTOR}, [data-testid="${CONST.TEST_ID.BASE_SIDEBAR_SCREEN}"]`;
 
 type TextPoint = {
     node: Text;
@@ -55,8 +59,25 @@ function getReportTextPoint(x: number, y: number): TextPoint | null {
     return {node, offset: range?.startOffset ?? 0};
 }
 
+function shouldRescueDrag(target: EventTarget | null): boolean {
+    let element: Element | null = null;
+    if (target instanceof Element) {
+        element = target;
+    } else if (target instanceof Node) {
+        element = target.parentElement;
+    }
+    if (!element) {
+        return false;
+    }
+    // The composer is an input or contenteditable. Its anchor is not a text node, so taking over would steal a drag that starts there and moves into the chat.
+    if (element.closest('input, textarea, [contenteditable="true"], [contenteditable=""]')) {
+        return false;
+    }
+    return element.closest(RESCUE_DRAG_START_SELECTOR) !== null;
+}
+
 function onMouseDown(event: MouseEvent) {
-    if (event.button !== 0) {
+    if (event.button !== 0 || !shouldRescueDrag(event.target)) {
         return;
     }
 

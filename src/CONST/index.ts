@@ -10572,6 +10572,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {

@@ -261,7 +261,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 <InvertedFlashList
                     {...listProps}
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    testID="report-actions-list"
+                    testID={CONST.TEST_ID.REPORT_ACTIONS_LIST}
                     style={styles.overscrollBehaviorContain}
                     data={listData}
                     renderItem={renderItem}
