@@ -3,8 +3,14 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+type MockNavigationAction = {
+    type: string;
+    source?: string;
+    target?: string;
+};
+
 type MockBeforeRemoveEvent = {
-    data: {action: {type: string}};
+    data: {action: MockNavigationAction};
     defaultPrevented: boolean;
     preventDefault: () => void;
 };
@@ -61,6 +67,8 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         get current() {
             return {dispatch: mockNavigationDispatch, goBack: jest.fn()};
         },
+        isReady: () => true,
+        getRootState: () => ({key: 'root', routes: [{key: 'rhp-route'}]}),
     },
 }));
 
@@ -75,9 +83,9 @@ const dispatchPopstate = () => {
     });
 };
 
-const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
+const createBeforeRemoveEvent = (type: string, action: Omit<MockNavigationAction, 'type'> = {}): MockBeforeRemoveEvent => {
     const event: MockBeforeRemoveEvent = {
-        data: {action: {type}},
+        data: {action: {type, ...action}},
         defaultPrevented: false,
         preventDefault: () => {
             event.defaultPrevented = true;
@@ -86,8 +94,8 @@ const createBeforeRemoveEvent = (type: string): MockBeforeRemoveEvent => {
     return event;
 };
 
-const invokeBeforeRemove = (type: string): MockBeforeRemoveEvent => {
-    const event = createBeforeRemoveEvent(type);
+const invokeBeforeRemove = (type: string, action?: Omit<MockNavigationAction, 'type'>): MockBeforeRemoveEvent => {
+    const event = createBeforeRemoveEvent(type, action);
     act(() => {
         mockBeforeRemoveCallback?.(event);
     });
@@ -98,7 +106,8 @@ describe('useDiscardChangesConfirmation (web)', () => {
     let historyGoSpy: jest.SpyInstance;
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
-    const renderDiscardHook = (getHasUnsavedChanges: () => boolean) => renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges}));
+    const renderDiscardHook = (getHasUnsavedChanges: () => boolean, shouldCloseRHPOnDiscard?: boolean) =>
+        renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges, shouldCloseRHPOnDiscard}));
 
     const resolveModalWith = async (action: string) => {
         await act(async () => {
@@ -312,6 +321,42 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             expect(afterSave.defaultPrevented).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('replays a click outside the RHP at the root navigator on Discard, so the whole RHP closes', async () => {
+            // Given a dirty create expense step stacked in the RHP, which closes the whole RHP on Discard
+            renderDiscardHook(() => true, true);
+
+            // When the user clicks outside the RHP, which sends a GO_BACK without a target from the root-level RHP route, and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then the replay targets the root, which closes the whole RHP instead of only the top screen
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('replays a click outside the RHP unchanged on Discard by default, so only the screen closes', async () => {
+            // Given a dirty screen stacked in the RHP outside the create expense flow, such as the agent avatar page
+            renderDiscardHook(() => true);
+
+            // When the user clicks outside the RHP and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then it is sent again as it was, so the user goes back to the previous page as before
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route'});
+        });
+
+        it('replays other blocked navigations unchanged on Discard', async () => {
+            // Given a dirty create expense step, which closes the whole RHP on Discard after a click outside
+            renderDiscardHook(() => true, true);
+
+            // When a targeted pop, such as a header back, is blocked and the user picks Discard
+            invokeBeforeRemove('POP', {source: 'some-screen', target: 'rhp-stack'});
+            await resolveModalWith('CONFIRM');
+
+            // Then it is sent again as it was, since the navigator it targets handles it the same way
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', source: 'some-screen', target: 'rhp-stack'});
         });
     });
 

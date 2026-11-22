@@ -58,6 +58,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -106,32 +107,15 @@ function DynamicIOURequestStepDistanceManual({
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [personalDetails] = useAllPersonalDetails();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftIDsSelector,
-    });
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -147,7 +131,6 @@ function DynamicIOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -183,6 +166,7 @@ function DynamicIOURequestStepDistanceManual({
     const [typedDistance, setTypedDistance] = useState(committedDistance);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedDistance, committedDistance, isCreatingNewRequest),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -245,12 +229,13 @@ function DynamicIOURequestStepDistanceManual({
         translate,
     });
 
-    const navigateToNextPage = (amount: string) => {
+    const navigateToNextPage = async (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
 
         if (action === CONST.IOU.ACTION.EDIT) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
+                const splitDraftTransaction = await Onyx.get(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
                 setDraftSplitTransaction(
                     transaction.transactionID,
                     splitDraftTransaction ?? transaction,
@@ -270,6 +255,14 @@ function DynamicIOURequestStepDistanceManual({
             const shouldUpdateTransaction = isDistanceChanged || isDistanceUnitChanged;
 
             if (shouldUpdateTransaction) {
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, recentWaypoints] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ]);
                 updateMoneyRequestDistance({
                     isVendorMatchingBetaEnabled,
                     transaction,
@@ -289,7 +282,7 @@ function DynamicIOURequestStepDistanceManual({
                     recentWaypoints,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
@@ -300,6 +293,20 @@ function DynamicIOURequestStepDistanceManual({
             Navigation.goBack(backTo);
             return;
         }
+
+        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules, introSelected, transactionDrafts, onboarding, conciergeChat] =
+            await Onyx.multiGet([
+                ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+                ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                ONYXKEYS.NVP_ONBOARDING,
+                `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ]);
+        const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
         setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
@@ -341,12 +348,12 @@ function DynamicIOURequestStepDistanceManual({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
-            isSelfTourViewed: !!isSelfTourViewed,
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeChat,
-            draftTransactionIDs,
+            draftTransactionIDs: validTransactionDraftIDsSelector(transactionDrafts),
             optimisticTransactionID,
             optimisticChatReportID,
             isTrackIntentUser,

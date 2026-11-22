@@ -597,6 +597,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges,
         onCancel: restoreLastInputFocus,
         onConfirm: isEditingConfirmation

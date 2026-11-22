@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -173,6 +174,9 @@ const JULES_ACCOUNT_ID = 2;
 const JULES_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
@@ -267,9 +271,6 @@ beforeEach(async () => {
         keys: ONYXKEYS,
         initialKeyStates: {
             [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-            },
         },
     });
 });
@@ -1309,6 +1310,7 @@ describe('split expense', () => {
 
         let splitTransaction = await getScanSplitTransaction();
         const splitTransactionID = splitTransaction?.transactionID;
+        const transactionBeforeCompleting = splitTransaction;
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -1320,7 +1322,7 @@ describe('split expense', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
-            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD} : undefined,
+            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD, isMerchantSet: true} : undefined,
             sessionAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
@@ -1345,10 +1347,14 @@ describe('split expense', () => {
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
 
-        // Then the split goes back to being a scan request so the user can retry from the original state
+        // Then the split goes back to being a scan request so the user can retry from the original state, without the draft's typed-merchant flag, which a scan would read as an unconfirmed amount
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.isMerchantSet).toBeUndefined();
         expect(splitTransaction?.errors).toBeTruthy();
+        expect(splitTransaction?.modifiedAmount).toBe(transactionBeforeCompleting?.modifiedAmount);
+        expect(splitTransaction?.modifiedCurrency).toBe(transactionBeforeCompleting?.modifiedCurrency);
+        expect(splitTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
     });
 
     it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
@@ -2779,6 +2785,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -3018,6 +3025,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3202,6 +3210,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3415,6 +3424,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3581,6 +3591,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3746,6 +3757,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5367,6 +5379,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5983,6 +5996,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6170,6 +6184,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6362,6 +6377,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6564,6 +6580,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6862,6 +6879,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -7006,6 +7024,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -7152,6 +7171,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -7308,6 +7328,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -13755,5 +13776,26 @@ describe('setDraftSplitTransaction', () => {
 
         // Then the action no longer falls back by itself, so the null merge clears the draft
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
+    });
+
+    it('remembers whether the merchant was typed, which the expense edit itself does not carry', async () => {
+        // Given a split draft whose merchant the user never typed
+        const transactionID = 'typed-merchant';
+        const draftTransaction = createRandomTransaction(1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user types a merchant, and later clears it again
+        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+        // Then the draft records each state, so a placeholder the user typed can be told apart from one the split was seeded with
+        expect(typedDraft?.modifiedMerchant).toBe('(none)');
+        expect(typedDraft?.isMerchantSet).toBe(true);
+        expect(clearedDraft?.isMerchantSet).toBe(false);
     });
 });

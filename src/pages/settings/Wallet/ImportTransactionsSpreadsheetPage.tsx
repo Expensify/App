@@ -15,7 +15,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -30,7 +29,7 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
     const existingCardID = cardID ? Number(cardID) : undefined;
     const backTo = cardID ? undefined : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-    const [savedColumnLayouts, savedColumnLayoutsMetadata] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const cardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardByIdSelector(String(cardID))(cardList) : undefined);
     const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
@@ -42,7 +41,7 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
 
     // Importing a spreadsheet stores the name the person gave the card where its account number goes,
     // and UploadOFX rejects a statement for a card holding a name.
-    const hasImportedSpreadsheet = isLoadingOnyxValue(savedColumnLayoutsMetadata) || !!previouslySavedLayout;
+    const hasImportedSpreadsheet = !!previouslySavedLayout;
 
     const uploadStatement = async (file: FileObject) => {
         // Re-uploading to an existing card skips the settings step, so keep the configuration the card was imported with

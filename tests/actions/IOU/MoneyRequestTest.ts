@@ -106,6 +106,7 @@ jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
+    const CURRENT_USER_EMAIL = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
     const SELF_DM_REPORT_ID = '2';
     const TEST_LATITUDE = 37.7749;
@@ -136,13 +137,14 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            personalDetailsByLogins: {[CURRENT_USER_EMAIL]: {accountID: currentUserAccountID, login: CURRENT_USER_EMAIL}},
             isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
-            currentUserAccountID: 111,
-            currentUserEmail: 'test@example.com',
+            currentUserAccountID,
+            currentUserEmail: CURRENT_USER_EMAIL,
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
             transactionViolations: {},
