@@ -214,12 +214,13 @@ describe('WorkspaceListPage', () => {
 
     it('should show the error from a failed join request until the user dismisses it', async () => {
         const TEST_POLICY_ID = 'rejected-policy-id';
+        const ERROR_KEY = '1';
         const ERROR_MESSAGE = "You can't request to join this workspace. Ask a workspace admin to invite you.";
 
         // Given a join request that failed, which leaves an error and no workspace row
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${TEST_POLICY_ID}`, {
             policyID: TEST_POLICY_ID,
-            errors: {1: ERROR_MESSAGE},
+            errors: {[ERROR_KEY]: ERROR_MESSAGE},
         });
 
         // When the workspaces list is opened
