@@ -24,7 +24,7 @@ import {setForceOffline} from '@libs/NetworkState';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isRecord} from '@libs/ObjectUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2261,7 +2261,10 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
-        it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
+        it('should auto-select a valid distance rate when the current rate is disabled on a different destination workspace', async () => {
+            // Given a move between workspaces, so the destination must select a rate
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: 'otherPolicy', type: CONST.REPORT.TYPE.EXPENSE});
+            await loadReports();
             const policyID = '101';
             const disabledRateID = 'disabled_rate';
             const enabledRateID = 'enabled_rate';
@@ -2328,6 +2331,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            // When the disabled rate is moved to the destination workspace
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
@@ -2346,6 +2350,7 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the enabled destination rate is selected
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(enabledRateID);
         });
@@ -2512,6 +2517,223 @@ describe('Transaction', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+        });
+
+        describe('distance rate selection on workspace changes', () => {
+            const SOURCE_POLICY_ID = 'sourcePolicy';
+            const DESTINATION_POLICY_ID = 'destinationPolicy';
+
+            function createDistancePolicy(policyID: string, rates: Record<string, {rate: number; enabled?: boolean; endDate?: string}>): Policy {
+                return {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    outputCurrency: 'USD',
+                    customUnits: {
+                        distanceUnit: {
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'distanceUnit',
+                            defaultCategory: '',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: Object.fromEntries(
+                                Object.entries(rates).map(([customUnitRateID, {rate, enabled = true, endDate}], index) => [
+                                    customUnitRateID,
+                                    {currency: 'USD', customUnitRateID, enabled, name: customUnitRateID, rate, index, endDate},
+                                ]),
+                            ),
+                        },
+                    },
+                };
+            }
+
+            function createDistanceTransaction(reportID: string, customUnitRateID: string): Transaction {
+                return generateTransaction({
+                    reportID,
+                    amount: -500,
+                    currency: 'USD',
+                    merchant: '10.00 mi @ $0.50 / mi',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 10},
+                    },
+                });
+            }
+
+            async function moveDistanceExpense(transaction: Transaction, policies: Record<string, Policy>, sourcePolicyID?: string) {
+                const mockAPIWrite = jest.spyOn(API, 'write');
+                const destinationReport = {
+                    ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                    reportID: FAKE_NEW_REPORT_ID,
+                    policyID: DESTINATION_POLICY_ID,
+                    ownerAccountID: CURRENT_USER_ID,
+                    currency: 'USD',
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+                if (sourcePolicyID) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, {reportID: FAKE_OLD_REPORT_ID, policyID: sourcePolicyID, type: CONST.REPORT.TYPE.EXPENSE});
+                }
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, destinationReport);
+                await loadReports();
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: CURRENT_USER_EMAIL,
+                    currentUserPersonalDetails,
+                    newReport: destinationReport,
+                    policy: policies[DESTINATION_POLICY_ID],
+                    policies: Object.fromEntries(Object.entries(policies).map(([id, policy]) => [`${ONYXKEYS.COLLECTION.POLICY}${id}`, policy])),
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                    policyTagList: undefined,
+                    reports,
+                    transactionViolations: {},
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                const [, params, data] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                if (!isChangeTransactionsReportParams(params)) {
+                    throw new Error('Expected ChangeTransactionsReport params');
+                }
+                if (!isCapturedOnyxData(data)) {
+                    throw new Error('Expected ChangeTransactionsReport Onyx data');
+                }
+                const threadData = readProperty(parseJSONRecord(params.transactionIDToReportActionAndThreadData, 'transaction threads'), transaction.transactionID);
+                const actions = (data?.optimisticData ?? [])
+                    .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                    .flatMap((update) => {
+                        const value: unknown = update.value;
+                        return isRecord(value) ? Object.values(value) : [];
+                    });
+                const modifiedExpenseActions = actions.filter(
+                    (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> =>
+                        isRecord(action) && action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                );
+                const movedAction = actions.find((action) => isRecord(action) && action.reportActionID === readProperty(threadData, 'movedReportActionID'));
+                mockAPIWrite.mockRestore();
+                return {
+                    threadData,
+                    modifiedExpenseActions,
+                    movedAction,
+                    data,
+                    transaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`),
+                    violations: await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`),
+                };
+            }
+
+            it.each(['disabledRate', 'deletedRate'])('preserves an invalid %s when moving between reports on the same workspace', async (rateID) => {
+                // Given a workspace expense with a disabled or deleted rate
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, rateID);
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, disabledRate: {rate: 50, enabled: false}})};
+
+                // When its report changes without changing workspace
+                const result = await moveDistanceExpense(transaction, policies, DESTINATION_POLICY_ID);
+
+                // Then the invalid rate and amount stay unchanged and the violation remains visible
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe(rateID);
+                expect(result.transaction?.amount).toBe(-500);
+                expect(result.violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)).toBe(true);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(result.threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it('preserves the disabled rate when an unreported expense returns to its workspace', async () => {
+                // Given an unreported expense that still carries its original workspace rate
+                const transaction = createDistanceTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, 'disabledRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, disabledRate: {rate: 50, enabled: false}})};
+
+                // When it moves back to that workspace
+                const result = await moveDistanceExpense(transaction, policies);
+
+                // Then the disabled rate does not cause a workspace change or repricing
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('disabledRate');
+                expect(result.transaction?.amount).toBe(-500);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it.each([FAKE_OLD_REPORT_ID, CONST.REPORT.UNREPORTED_REPORT_ID])('matches the source rate and preserves an edited amount when moving from report %s', async (reportID) => {
+                // Given an expense with a disabled source rate and a manually overridden amount
+                const transaction = {...createDistanceTransaction(reportID, 'sourceRate'), modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50, enabled: false}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, matchingRate: {rate: 50}}),
+                };
+
+                // When another workspace has an eligible equivalent rate
+                const result = await moveDistanceExpense(transaction, policies, reportID === FAKE_OLD_REPORT_ID ? SOURCE_POLICY_ID : undefined);
+
+                // Then only the rate ID changes, not the expense's price or merchant
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('matchingRate');
+                expect(result.transaction?.modifiedAmount).toBe(-900);
+                expect(result.transaction?.merchant).toBe(transaction.merchant);
+                expect(result.transaction?.modifiedMerchant).toBeUndefined();
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it('reprices a fallback and sends one Concierge action ordered after the move, with cleanup on success and failure', async () => {
+                // Given an expense with no equivalent rate on the destination
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}}),
+                };
+
+                // When the expense changes workspace
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then the optimistic message and the API share an ID so the server replaces the message
+                expect(result.transaction?.modifiedAmount).toBe(-670);
+                expect(result.modifiedExpenseActions).toHaveLength(1);
+                const action = result.modifiedExpenseActions.at(0);
+                if (!action) {
+                    throw new Error('Expected a Concierge rate adjustment');
+                }
+                expect(action?.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+                expect(getOriginalMessage(action)).toEqual(expect.objectContaining({oldAmount: 500, amount: 670, oldMerchant: transaction.merchant}));
+                expect(readProperty(result.threadData, 'modifiedExpenseReportActionID')).toBe(action?.reportActionID);
+                expect(action?.created).toBe(DateUtils.addMillisecondsFromDateTime(String(readProperty(result.movedAction, 'created')), 1));
+                expect(result.data.successData).toEqual(expect.arrayContaining([expect.objectContaining({value: {[action.reportActionID]: {pendingAction: null}}})]));
+                expect(result.data.failureData).toEqual(expect.arrayContaining([expect.objectContaining({value: {[action.reportActionID]: null}})]));
+            });
+
+            it.each([
+                {endDate: '2026-03-14', shouldReprice: true},
+                {endDate: '2026-03-15', shouldReprice: false},
+            ])('distinguishes an expired fallback from an eligible match ending $endDate', async ({endDate, shouldReprice}) => {
+                // Given an edited expense and an equivalent destination rate whose eligibility depends on the date
+                const transaction = {...createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate'), created: '2026-03-15', modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {destinationRate: {rate: 50, endDate}}),
+                };
+
+                // When the expense moves to the new workspace
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then only a valid match preserves the override; expired fallback rates still reprice
+                expect(result.transaction?.modifiedAmount).toBe(shouldReprice ? -500 : -900);
+                expect(result.modifiedExpenseActions).toHaveLength(shouldReprice ? 1 : 0);
+            });
+
+            it('keeps the violation when the destination has no enabled rates', async () => {
+                // Given a destination with only a disabled rate
+                const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
+                const policies = {[DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {disabledRate: {rate: 67, enabled: false}})};
+
+                // When a distance expense moves there
+                const result = await moveDistanceExpense(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then no rate can be selected and the user is still prompted to fix the violation
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe('sourceRate');
+                expect(result.violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)).toBe(true);
+                expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
         });
 
         describe('when all matching items are selected (jsonQuery + hash)', () => {
