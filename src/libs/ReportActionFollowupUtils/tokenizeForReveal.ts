@@ -113,9 +113,6 @@ type RevealStages = {
  * primitives (mentions, emoji, links, code, images) stay whole.
  */
 function tokenizeForReveal(html: string): RevealStages {
-    if (!html) {
-        return [''];
-    }
     // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
     // custom tags like `<victorypie … />` and nest each following sibling inside the previous one.
     const doc = parseDocument(html, {recognizeSelfClosing: true});
@@ -163,6 +160,9 @@ function findRevealStage(stages: RevealStages, html: string): number {
     return -1;
 }
 
+/** Stages of an empty reply, where the empty stage 0 is the only one. */
+const EMPTY_REVEAL_STAGES = tokenizeForReveal('');
+
 export default tokenizeForReveal;
-export {findRevealStage};
+export {EMPTY_REVEAL_STAGES, findRevealStage};
 export type {RevealStages};

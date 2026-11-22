@@ -7,7 +7,7 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
-import tokenizeForReveal, {findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import tokenizeForReveal, {EMPTY_REVEAL_STAGES, findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import type {RevealStages} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
@@ -133,7 +133,7 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
     completedPusherDraftEventRef.current = null;
     terminalPusherDraftEventRef.current = null;
     finalRenderedHTMLRevealDurationRef.current = 0;
-    finalRenderedHTMLRevealTokensRef.current = [];
+    finalRenderedHTMLRevealTokensRef.current = EMPTY_REVEAL_STAGES;
     finalRenderedHTMLRevealStartedAtRef.current = 0;
     finalRenderedHTMLRevealLastStageRef.current = 0;
     visibleBodyMarkdownRef.current = '';
@@ -460,7 +460,7 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
     const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
     if (tokens.length < MIN_TRICKLE_TOKEN_COUNT || currentStage === tokens.length - 1) {
         finalRenderedHTMLRevealDurationRef.current = 0;
-        finalRenderedHTMLRevealTokensRef.current = [];
+        finalRenderedHTMLRevealTokensRef.current = EMPTY_REVEAL_STAGES;
         finalRenderedHTMLRevealStartedAtRef.current = 0;
         finalRenderedHTMLRevealLastStageRef.current = 0;
         publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
@@ -926,7 +926,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const finalRenderedHTMLRevealDurationRef = useRef(0);
     const finalRenderedHTMLRevealIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const finalRenderedHTMLRevealTokensRef = useRef<RevealStages>([]);
+    const finalRenderedHTMLRevealTokensRef = useRef<RevealStages>(EMPTY_REVEAL_STAGES);
     const finalRenderedHTMLRevealStartedAtRef = useRef(0);
     const finalRenderedHTMLRevealLastStageRef = useRef(0);
     const [personalDetailsList] = useAllPersonalDetails();

@@ -1,5 +1,5 @@
 // cspell:ignore dani
-import tokenizeForReveal, {findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import tokenizeForReveal, {EMPTY_REVEAL_STAGES, findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 
 import {isTag} from 'domhandler';
 import {parseDocument} from 'htmlparser2';
@@ -20,6 +20,18 @@ function getAllStages(html: string): string[] {
 describe('tokenizeForReveal', () => {
     it('returns just the empty stage for an empty input', () => {
         expect(getAllStages('')).toEqual(['']);
+    });
+
+    it('keeps only the empty stage 0 in EMPTY_REVEAL_STAGES, like an empty reply', () => {
+        // Given the stages a reveal holds before any reply arrives
+        const stages = EMPTY_REVEAL_STAGES;
+
+        // When they are read like an array
+        const readStages = [stages.at(0), stages.at(-1), stages.at(1)];
+
+        // Then stage 0 is the only one, and it is empty
+        expect(stages.length).toBe(1);
+        expect(readStages).toEqual(['', '', undefined]);
     });
 
     it('reveals plain text character-by-character inside a single block', () => {
