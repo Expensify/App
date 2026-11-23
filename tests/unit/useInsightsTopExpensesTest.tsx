@@ -10,7 +10,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import {INSIGHTS_DETAILS_SECTION_STATE} from '@pages/Insights/details/insightsDetailsSectionState';
 import useInsightsTopExpenses from '@pages/Insights/details/useInsightsTopExpenses';
-import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {buildTopExpensesQueryJSON, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,9 +89,11 @@ function buildSearchMetadata() {
     };
 }
 
-function renderTopExpenses(query: string) {
-    return renderHook((props: {query: string}) => useInsightsTopExpenses(props.query, TOP_EXPENSES_QUERY_JSON?.hash ?? 0), {
-        initialProps: {query},
+function renderTopExpenses(query = TOP_EXPENSES_QUERY_JSON) {
+    if (!query) {
+        throw new Error('Expected a valid Top expenses query');
+    }
+    return renderHook(() => useInsightsTopExpenses(query), {
         wrapper: ({children}) => <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>{children}</ComposeProviders>,
     });
 }
@@ -116,7 +118,7 @@ describe('useInsightsTopExpenses', () => {
         it('is loading until the response arrives', async () => {
             // Given no stored response for the query
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the skeleton with no rows
@@ -129,7 +131,7 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(12, 11), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it lists the 10 largest remaining expenses in order, since optimistic writes can add rows beyond the limit
@@ -143,7 +145,7 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it still lists them, since the Spend tab's filters don't apply to this query
@@ -155,7 +157,7 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it asks the user to refresh rather than reporting an error
@@ -167,7 +169,7 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'Server error'}, search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the error state
@@ -179,7 +181,7 @@ describe('useInsightsTopExpenses', () => {
             mockIsOffline = true;
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then it shows the offline state instead of a skeleton that would never resolve
@@ -192,12 +194,29 @@ describe('useInsightsTopExpenses', () => {
             await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
 
             // When the panel renders
-            const {result} = renderTopExpenses(QUERY);
+            const {result} = renderTopExpenses();
             await waitForBatchedUpdatesWithAct();
 
             // Then the stored expenses stay visible, since they are still accurate as of the last load
             expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
+    });
+
+    it('waits for scoped Details even when Search already loaded the same expense query', async () => {
+        // Given an ordinary Search snapshot with results from more than one workspace
+        await Onyx.set(SNAPSHOT_KEY, {
+            data: buildSnapshotData(2),
+            search: buildSearchMetadata(),
+        });
+        const query = withInsightsSnapshotHash(TOP_EXPENSES_QUERY_JSON, CONST.INSIGHTS.GRAPH.TOP_SPENDERS);
+
+        // When Top spenders Details opens before its response is ready
+        const {result} = renderTopExpenses(query);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it does not display the unscoped Search rows
+        expect(result.current.state).toBe(INSIGHTS_DETAILS_SECTION_STATE.LOADING);
+        expect(result.current.expenses).toEqual([]);
     });
 });

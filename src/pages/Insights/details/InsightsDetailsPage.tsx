@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
+import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +19,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {applyInsightsFilters, buildTopExpensesQueryJSON, scopeInsightsDrillDownQuery, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -48,12 +48,13 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-    const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
+    const isTopSpenders = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS;
+    const memberAccountID = isTopSpenders ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
-    const chartQueryJSON = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)) : undefined;
+    const chartQueryJSON = chartSpec && isResolved ? withInsightsSnapshotHash(buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)), chartSpec.graphKey) : undefined;
     const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
@@ -74,7 +75,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
-    const topExpensesQueryJSON = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery) : undefined;
+    const topExpensesQueryJSON = chartSpec && drillDownQuery ? withInsightsSnapshotHash(buildTopExpensesQueryJSON(drillDownQuery), chartSpec.graphKey) : undefined;
     const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
     const detailsQuery =
         chartSpec && topExpensesSnapshotHash !== undefined
@@ -88,9 +89,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   lastDay: getInsightsLastDay(asOf),
               })
             : undefined;
-    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
+    const requestDetails = useRequestInsightsDetails(detailsQuery, isTopSpenders ? undefined : topExpensesQueryJSON);
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
+    const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
     const summary = details?.summary;
     const detailsState = getInsightsDetailsSectionState({
         isOffline,
@@ -148,10 +150,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     state={detailsState}
                                 />
                             )}
-                            {topExpensesSnapshotHash !== undefined && (
+                            {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (
                                 <InsightsTopExpenses
-                                    query={drillDownQuery}
-                                    snapshotHash={topExpensesSnapshotHash}
+                                    queryJSON={topExpensesQueryJSON}
+                                    viewAllQuery={viewAllQueryJSON && buildViewOnSpendQuery(viewAllQueryJSON)}
                                     onRetry={requestDetails}
                                 />
                             )}

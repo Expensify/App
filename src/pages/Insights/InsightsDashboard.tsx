@@ -270,7 +270,19 @@ function InsightsDashboardContent({
     }
 
     const renderChart = (
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
+        {
+            chart,
+            queryJSON,
+            snapshot,
+            previousPeriodQueryJSON,
+            previousPeriodSnapshot,
+            averageQueryJSON,
+            averageSnapshot,
+            average,
+            isDashboardLoaded,
+            eligiblePolicyIDs,
+            stages,
+        }: InsightsDashboardChart,
         isHeadline = false,
     ) => (
         <InsightsChartWidget
@@ -285,6 +297,7 @@ function InsightsDashboardContent({
             averageSnapshot={averageSnapshot}
             average={average}
             isDashboardLoaded={isDashboardLoaded}
+            eligiblePolicyIDs={eligiblePolicyIDs}
             stages={stages}
             filters={filters}
             insightsScope={insightsScope}
@@ -467,6 +480,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
             isDashboardLoaded: hasDashboardResponse(dashboard),
+            eligiblePolicyIDs: graph?.eligiblePolicyIDs,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });

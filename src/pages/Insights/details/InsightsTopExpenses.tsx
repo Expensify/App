@@ -2,10 +2,9 @@ import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -46,19 +45,19 @@ import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
-    query: SearchQueryString;
+    queryJSON: Readonly<SearchQueryJSON>;
 
-    snapshotHash: number;
+    viewAllQuery?: SearchQueryString;
     onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({queryJSON, viewAllQuery, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash);
+    const {expenses, state} = useInsightsTopExpenses(queryJSON);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -131,9 +130,9 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
                 >
                     {translate('insightsPage.topExpenses')}
                 </Text>
-                {!!queryJSON && expenses.length > 0 && (
+                {!!viewAllQuery && expenses.length > 0 && (
                     <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                         accessibilityRole={CONST.ROLE.LINK}
                         accessibilityLabel={translate('insightsPage.viewAll')}
                         sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
