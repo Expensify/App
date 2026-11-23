@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
@@ -9,9 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -60,6 +64,9 @@ type WorkspaceTagsTableProps = {
     shouldShowApproverColumn: boolean;
     emptyState: TableEmptyStateProps;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected tags support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
 export default function WorkspaceTagsTable({
@@ -73,6 +80,7 @@ export default function WorkspaceTagsTable({
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -82,7 +90,7 @@ export default function WorkspaceTagsTable({
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
 
-    const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
+    const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey, WorkspaceTagTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
@@ -92,6 +100,10 @@ export default function WorkspaceTagsTable({
                 // editableCellHeader matches the padded name cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
@@ -99,6 +111,9 @@ export default function WorkspaceTagsTable({
                       key: 'glCode' as const,
                       label: translate('workspace.tags.glCode'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceTagTableRowData) => (item.glCode ? [{text: item.glCode, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -108,6 +123,10 @@ export default function WorkspaceTagsTable({
                       key: 'approver' as const,
                       label: translate('common.approver'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceTagTableRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : []),
+                          extraWidth: variables.tableInlineAvatarCellWidth,
+                      },
                   },
               ]
             : []),
@@ -129,7 +148,7 @@ export default function WorkspaceTagsTable({
                       sortable: true,
                       width: variables.tableSwitchColumnWidth,
                       styling: {
-                          containerStyles: [styles.justifyContentEnd],
+                          alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
                       },
                   },
               ]
@@ -203,6 +222,8 @@ export default function WorkspaceTagsTable({
         <Table
             // useSorting reads initialSortColumn only on mount, so remount the table when switching between single- and multi-level tags.
             key={isMultiLevelTags ? 'multiLevelTags' : 'singleLevelTags'}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAGS}
             data={tags}
             // Without a sort column, multi-level tags keep their orderWeight (import) order from getTagLists.
             initialSortColumn={isMultiLevelTags ? undefined : 'name'}
@@ -221,8 +242,9 @@ export default function WorkspaceTagsTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }
 
-export type {WorkspaceTagTableRowData, WorkspaceTagTableColumnKey};
+export type {WorkspaceTagTableRowData};

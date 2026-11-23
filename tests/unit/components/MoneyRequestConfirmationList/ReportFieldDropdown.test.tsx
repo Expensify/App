@@ -19,7 +19,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../../utils/collections/policies';
-import getOnyxValue from '../../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 // Only the write matters here, so the action is stubbed to record what it is asked to save.
@@ -28,15 +27,14 @@ jest.mock('@libs/actions/Transaction', () => ({
     setTransactionReport: jest.fn(),
 }));
 
-// The dropdown sets the expense type on the route of the form it is rendered in.
-const FORM_ROUTE_KEY = 'form-route';
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useRoute: () => ({key: FORM_ROUTE_KEY, name: 'form', params: {}}),
-}));
-
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: jest.fn()}));
+
+const mockIsBetaEnabled = jest.fn<boolean, [string]>(() => false);
+jest.mock('@hooks/usePermissions', () => {
+    const actualUsePermissions = jest.requireActual<{default: () => Record<string, unknown>}>('@hooks/usePermissions').default;
+    return () => ({...actualUsePermissions(), isBetaEnabled: mockIsBetaEnabled});
+});
 
 // Where a new report may go, and whether the workspace is behind on billing. Each test sets the case it needs rather than
 // building the policies and billing state the real hooks read.
@@ -66,11 +64,18 @@ const CURRENT_REPORT_ID = 'report1';
 const OTHER_REPORT_ID = 'report2';
 
 const chatReport: Report = {reportID: CHAT_REPORT_ID, policyID: POLICY_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, iouReportID: CURRENT_REPORT_ID};
-const currentReport: Report = {reportID: CURRENT_REPORT_ID, policyID: POLICY_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE};
+// An open report, so a new expense can join it on its own.
+const currentReport: Report = {
+    reportID: CURRENT_REPORT_ID,
+    policyID: POLICY_ID,
+    chatReportID: CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    ownerAccountID: 1,
+    managerID: 1,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
 const otherReport: Report = {reportID: OTHER_REPORT_ID, policyID: POLICY_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE};
-const CURRENT_USER_ACCOUNT_ID = 5;
-const SELF_DM_REPORT_ID = 'selfDM1';
-const selfDMReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
 
 const getDropdown = (onClose: jest.Mock, isVisible = true) => (
     <OnyxListItemProvider>
@@ -117,6 +122,7 @@ describe('ReportFieldDropdown', () => {
         mockPolicyForMovingExpenses = undefined;
         mockShouldSelectPolicy = false;
         mockIsCreateReportRestricted = false;
+        mockIsBetaEnabled.mockReturnValue(false);
         jest.mocked(setTransactionReport).mockClear();
         // Each navigate-away test spies on the navigation and transition tracker; nothing keeps those spies between tests.
         jest.restoreAllMocks();
@@ -142,7 +148,9 @@ describe('ReportFieldDropdown', () => {
         await waitForBatchedUpdates();
         expect(mockModalProps?.selectedReportID).toBe(CURRENT_REPORT_ID);
         expect(mockModalProps?.transactionIDs).toEqual([TRANSACTION_ID]);
-        act(() => mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID}));
+        await act(async () => {
+            mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID});
+        });
 
         // Then the draft is moved to `report2` straight away, with no screen transition to wait for, and the container closes
         expect(setTransactionReport).toHaveBeenCalledTimes(1);
@@ -175,48 +183,6 @@ describe('ReportFieldDropdown', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('puts the draft expense on the self DM when no report is picked', async () => {
-        // Given a draft expense being created in a workspace chat, by a user with a self DM
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
-        await setDraftExpense();
-        const setParams = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
-        const onClose = jest.fn();
-
-        // When the report row's dropdown opens and the user picks None
-        renderDropdown(onClose);
-        await waitForBatchedUpdates();
-        act(() => mockModalProps?.selectNoReport?.());
-        await waitForBatchedUpdates();
-
-        // Then the draft goes on no report and to the self DM, where it is saved unreported, the form is told it now
-        // holds a tracked expense, and the container closes
-        expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
-        const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
-        expect(draft?.participants).toEqual([expect.objectContaining({reportID: SELF_DM_REPORT_ID, isSelfDM: true})]);
-        expect(setParams).toHaveBeenCalledWith({iouType: CONST.IOU.TYPE.TRACK}, FORM_ROUTE_KEY);
-        expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not offer no report for a per diem expense, which only exists on a workspace', async () => {
-        // Given a per diem draft expense being created in a workspace chat
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-            transactionID: TRANSACTION_ID,
-            reportID: CURRENT_REPORT_ID,
-            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-            participants: [{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, isPolicyExpenseChat: true, selected: true}],
-        });
-        await waitForBatchedUpdates();
-
-        // When the report row's dropdown opens
-        renderDropdown(jest.fn());
-        await waitForBatchedUpdates();
-
-        // Then the list is not handed the option
-        expect(mockModalProps).toBeDefined();
-        expect(mockModalProps?.selectNoReport).toBeUndefined();
-    });
-
     it('only closes when the current report is picked again', async () => {
         // Given a draft expense already on `report1`
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
@@ -235,6 +201,51 @@ describe('ReportFieldDropdown', () => {
         // Then nothing is written and the container closes
         expect(setTransactionReport).not.toHaveBeenCalled();
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('moves a scan in the ASAP submit beta to the open report the chat points at when the user picks it', async () => {
+        // Given the user is in the ASAP submit beta, and a scan is being created in a workspace chat that points at an open report.
+        // Saving a scan in this beta starts a new report, so the Report field shows New report even though the chat points at `report1`.
+        mockIsBetaEnabled.mockImplementation((beta: string) => beta === CONST.BETAS.ASAP_SUBMIT);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CHAT_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            participants: [{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, isPolicyExpenseChat: true, selected: true}],
+        });
+        await waitForBatchedUpdates();
+        const onClose = jest.fn();
+
+        // When the report row's dropdown opens and the user picks `report1`
+        renderDropdown(onClose);
+        await waitForBatchedUpdates();
+        await act(async () => {
+            mockModalProps?.selectReport({value: CURRENT_REPORT_ID, keyForList: CURRENT_REPORT_ID, policyID: POLICY_ID});
+        });
+
+        // Then the list doesn't mark `report1`, matching the field, and picking it moves the draft there, so saving adds the scan to it
+        // instead of starting a new report
+        expect(mockModalProps?.selectedReportID).not.toBe(CURRENT_REPORT_ID);
+        expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, expect.objectContaining({reportID: CURRENT_REPORT_ID}), true);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reevaluate unchanged beta permissions when only the draft amount changes', async () => {
+        // Given a mounted picker with a stable permissions function, as provided by usePermissions
+        await setDraftExpense();
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.ASAP_SUBMIT);
+        mockIsBetaEnabled.mockClear();
+
+        // When unrelated draft data makes the picker hook render again
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 100});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the compiler reuses the unchanged beta result instead of evaluating permissions again
+        expect(mockIsBetaEnabled).not.toHaveBeenCalled();
     });
 
     it('mounts the list only while the container is open or still closing', async () => {

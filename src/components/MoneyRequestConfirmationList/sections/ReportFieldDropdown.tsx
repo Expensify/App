@@ -1,22 +1,18 @@
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import ReportPickerModal from '@components/ReportPicker/ReportPickerModal';
 
 import useOnyx from '@hooks/useOnyx';
 
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
 
 import useReportPickerActions from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerActions';
 
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type ReportFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type ReportFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked report is written to */
     transactionID: string;
 };
@@ -33,8 +29,6 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
     // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
     const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
     const [transaction] = useOnyx(`${transactionCollection}${transactionID}`);
-    // The list is rendered inside the form's screen, so this is the form's route.
-    const formRoute = useRoute();
 
     const {listProps} = useReportPickerActions({
         transaction,
@@ -46,7 +40,6 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
         onNavigateAway: onClose,
         // The container has no screen transition to wait for, and the row should show the new report as soon as it closes.
         shouldWriteAfterTransition: false,
-        setFormIOUType: (formIOUType: IOUType) => Navigation.setParams({iouType: formIOUType}, formRoute.key),
     });
 
     return (
@@ -62,7 +55,7 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
 }
 
 /**
- * The report list, in the container anchored to the expense form's report row. `ExpenseFieldDropdown` keeps a dropdown
+ * The report list, in the container anchored to the expense form's report row. `DropdownField` keeps a dropdown
  * mounted once it has been opened, so the list is mounted here only while its container is open or still closing: its
  * hooks subscribe to whole report, policy and transaction collections and fetch outstanding reports again on every
  * reconnect, which the form should not pay for while the list is hidden.

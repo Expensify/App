@@ -15,6 +15,7 @@ import {
     hasPendingDEWSubmit,
     isActionOfType,
     isApprovedAction,
+    isExportedToIntegrationAction,
     isForwardedAction,
     isMarkAsClosedAction,
     isPayAction,
@@ -54,6 +55,8 @@ type GetReportHistoryStepsParams = {
     reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
+const VALID_EXPORT_LABELS = new Set<string>(Object.values(CONST.EXPORT_LABELS));
+
 function getCompletedStep(
     translate: LocalizedTranslate,
     reportAction: ReportAction,
@@ -91,8 +94,27 @@ function getCompletedStep(
     if (isReopenedAction(reportAction)) {
         return {...step, icon: 'CircularArrowBackwards', label: translate('iou.reopened')};
     }
+    if (isPayAction(reportAction) && getOriginalMessage(reportAction)?.isSubmitterMarkedPaymentReceived) {
+        return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.receivedPayment')};
+    }
     if (isPayAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
+    }
+    if (isExportedToIntegrationAction(reportAction)) {
+        const {label, markedManually, type} = getOriginalMessage(reportAction) ?? {};
+        // A manual mark is already done when it is made, so it skips the pending wording the chat shows until the server confirms it
+        if (markedManually) {
+            return {...step, icon: 'Export', label: translate('reportHistoryPage.markedAsManuallyExported', label ?? '')};
+        }
+        // A started export stays pending on this client until reload when the export fails, so only the server's outcome counts as a step
+        if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            return undefined;
+        }
+        // CSV template exports reuse this action with the template name as the label, and they only belong in the report conversation
+        if (!label || !VALID_EXPORT_LABELS.has(label) || type === CONST.EXPORT_TEMPLATE) {
+            return undefined;
+        }
+        return {...step, icon: 'Export', label: translate('report.actions.type.exportedToIntegration.automatic', label)};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
         return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};

@@ -2,7 +2,7 @@ import {getIsShareSheetOpen} from '@libs/fileDownload/shareSheetState';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 
 import type CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -63,6 +63,7 @@ type ReportActionContextMenu = {
     hideContextMenu: HideContextMenu;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
+    handleHoldEducationalModal: (performHold: () => void, moneyRequestChatReport: OnyxEntry<Report>) => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
@@ -201,5 +202,23 @@ function clearActiveReportAction() {
     return contextMenuRef.current.clearActiveReportAction();
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal, registerEnsureContextMenuMounted};
+function handleHoldEducationalModal(performHold: () => void, moneyRequestChatReport: OnyxEntry<Report>) {
+    if (!contextMenuRef.current) {
+        performHold();
+        return;
+    }
+    contextMenuRef.current.handleHoldEducationalModal(performHold, moneyRequestChatReport);
+}
+
+export {
+    contextMenuRef,
+    showContextMenu,
+    hideContextMenu,
+    isActiveReportAction,
+    clearActiveReportAction,
+    showDeleteModal,
+    hideDeleteModal,
+    handleHoldEducationalModal,
+    registerEnsureContextMenuMounted,
+};
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

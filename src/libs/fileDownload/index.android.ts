@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 
 import CONST from '@src/CONST';
@@ -11,7 +12,18 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, getMimeType, getMimeTypeFromUri, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert, splitExtensionFromFileName} from './FileUtils';
+import {
+    appendTimeToFileName,
+    getFileName,
+    getMimeType,
+    getMimeTypeFromUri,
+    isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
+    showGeneralErrorAlert,
+    showPermissionErrorAlert,
+    showSuccessAlert,
+    splitExtensionFromFileName,
+} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
@@ -89,7 +101,14 @@ function handleDownload(
     });
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true): Promise<void> => {
+const postDownloadFile = (
+    translate: LocalizedTranslate,
+    url: string,
+    fileName?: string,
+    formData?: FormData,
+    onDownloadFailed?: (error?: HttpsError) => void,
+    appendTimestamp = true,
+): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -101,8 +120,8 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
                 throw new Error('Failed to download file');
             }
             const contentType = response.headers.get('content-type');
-            if (contentType === 'application/json' && fileName?.includes('.csv')) {
-                throw new Error();
+            if (isErrorResponseForFileDownload(contentType, fileName)) {
+                return rejectWithFileDownloadError(response);
             }
             return response.text();
         })
@@ -117,11 +136,11 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             RNFetchBlob.fs.unlink(downloadPath);
             showSuccessAlert(translate);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
             if (!onDownloadFailed) {
                 showGeneralErrorAlert(translate);
             }
-            onDownloadFailed?.();
+            onDownloadFailed?.(error instanceof HttpsError ? error : undefined);
         });
 };
 

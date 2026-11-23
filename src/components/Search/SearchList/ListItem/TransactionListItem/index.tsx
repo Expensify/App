@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverAnchor,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
@@ -234,6 +235,8 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
@@ -263,6 +266,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             onUndelete: () => onUndelete?.(transactionItem),
@@ -270,6 +275,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
+            // Transaction rows cannot approve reports; do not initialize a report approval hook for each row.
+            confirmApproveReportViolations: () => undefined,
             currentUserAccountID,
             currentUserLogin,
             activePolicy,
