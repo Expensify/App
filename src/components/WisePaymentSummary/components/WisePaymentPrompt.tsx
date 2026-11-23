@@ -22,7 +22,7 @@ type WisePaymentPromptProps = {
     /** The quote the admin confirms */
     children: ReactNode;
 
-    /** Text of the button that confirms the payment, which the disclosure quotes */
+    /** How the disclosure names the button that confirms the payment, without the amount the button shows */
     buttonText: string;
 };
 
@@ -35,7 +35,7 @@ function WisePaymentPrompt({children, buttonText}: WisePaymentPromptProps) {
     const insets = useSafeAreaInsets();
     const {isContentWrappedInScrollView} = useContext(ModalContext);
 
-    // Non-breaking spaces keep the quoted button text, like "Pay $10.10", and each link label on one line in the disclosure
+    // Non-breaking spaces keep the quoted button text, like "Pay all", and each link label on one line in the disclosure
     const disclosure = translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: buttonText.replaceAll(' ', NON_BREAKING_SPACE)}).replaceAll(
         /(<a [^>]*>)([^<]*)(<\/a>)/g,
         (link, openingTag: string, label: string, closingTag: string) => `${openingTag}${label.replaceAll(' ', NON_BREAKING_SPACE)}${closingTag}`,
