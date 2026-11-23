@@ -54,10 +54,6 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             return stateWithInitialHistory;
         };
 
-        function rehydrate(newState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) {
-            return getRehydratedState(newState, configOptions);
-        }
-
         const getStateForAction = (state: RootHistoryState, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) => {
             // Snapshot is stale if its RHP key vanished via a non-DISMISS path.
             if (pendingReveal && !state.routes.some((r) => r.key === pendingReveal?.rhpKey)) {
@@ -73,14 +69,14 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
 
             // REPLACE: capture pending reveal + freeze history (intermediate frame; useLinking historyDelta=0).
             if (isReplaceFullscreenUnderRHPAction(action)) {
-                const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, rehydrate);
+                const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, getRehydratedState);
                 pendingReveal = result.pendingReveal;
                 return result.state;
             }
 
             // REMOVE: cancel path; clear snapshot + freeze history (same rationale as REPLACE).
             if (isRemoveFullscreenUnderRHPAction(action)) {
-                const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, rehydrate);
+                const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, getRehydratedState);
                 if (state.history) {
                     pendingReveal = null;
                 }
@@ -91,17 +87,17 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // useLinking sees historyDelta=0 and just `history.replace`s the current entry,
             // preserving the prior fullscreen browser entry. (RN 7.x useLinking semantics.)
             if (isDismissModalAction(action) && pendingReveal && state.history) {
-                const result = getRevealDismissState(state, newState, configOptions, pendingReveal, rehydrate);
+                const result = getRevealDismissState(state, newState, configOptions, pendingReveal, getRehydratedState);
                 pendingReveal = result.pendingReveal;
                 if (result.state) {
                     return result.state;
                 }
             }
 
-            const rehydrated = rehydrate(newState, configOptions);
+            const rehydrated = getRehydratedState(newState, configOptions);
 
             // forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
-            // had a trailing modal back-guard entry; rehydrate() re-appends it on top of the freshly
+            // had a trailing modal back-guard entry; getRehydratedState() re-appends it on top of the freshly
             // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
             // the top modal entry so the new history length matches the previous one and useLinking
             // sees historyDelta === 0 → history.replace, letting the new screen consume the guard entry.
