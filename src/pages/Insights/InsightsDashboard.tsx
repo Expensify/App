@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -165,7 +164,6 @@ function InsightsDashboardContent({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
@@ -352,13 +350,11 @@ function InsightsDashboardContent({
                     collapsable={false}
                     style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
                 >
-                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
-                        <InsightsAICardRow
-                            insights={aiInsights}
-                            insightsScope={insightsScope}
-                            hasFailedToLoad={hasFailedToLoad}
-                        />
-                    )}
+                    <InsightsAICardRow
+                        insights={aiInsights}
+                        insightsScope={insightsScope}
+                        hasFailedToLoad={hasFailedToLoad}
+                    />
                     {renderChart(headlineChart, true)}
                     {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>

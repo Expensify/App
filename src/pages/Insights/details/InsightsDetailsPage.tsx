@@ -7,7 +7,6 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,7 +36,6 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
@@ -68,7 +66,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
+    if (!chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
