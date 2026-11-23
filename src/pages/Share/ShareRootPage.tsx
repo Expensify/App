@@ -5,7 +5,6 @@ import TabSelector from '@components/TabSelector/TabSelector';
 
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
@@ -16,18 +15,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
-import type {ShareActionContent} from '@libs/ShareActionHandlerModule';
 
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
@@ -46,13 +43,10 @@ function showErrorAlert(title: string, message: string) {
 }
 
 function ShareRootPage() {
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
-
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
-    const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFileIfNecessary = (file: ShareTempFile) => {
-        if (!file || isTextShared || !shouldValidateFile(file)) {
+    const validateFileIfNecessary = (file: ShareTempFile, isOutdatedRead: () => boolean) => {
+        if (!file || !shouldValidateFile(file)) {
             return;
         }
 
@@ -62,6 +56,9 @@ function ShareRootPage() {
                 return undefined;
             })
             .then((size) => {
+                if (isOutdatedRead()) {
+                    return;
+                }
                 validateFiles(
                     [
                         {
@@ -77,6 +74,8 @@ function ShareRootPage() {
             });
     };
 
+    // Native reads run concurrently and can finish in any order, so only the most recent read may update the screen, and none may once it unmounts.
+    const latestShareReadIDRef = useRef(0);
     const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
@@ -96,61 +95,84 @@ function ShareRootPage() {
     }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = () => {
-        ShareActionHandler.processFiles((processedFiles: ShareActionContent[] | string) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
-            if (errorTitle) {
-                return;
-            }
-            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
-                setErrorTitle(translate('attachmentPicker.wrongFileType'));
-                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
-                return;
-            }
+        latestShareReadIDRef.current += 1;
+        const shareReadID = latestShareReadIDRef.current;
+        const isOutdatedRead = () => shareReadID !== latestShareReadIDRef.current;
 
-            const isImage = /image\/.*/.test(tempFile?.mimeType);
-            if (tempFile?.mimeType && tempFile?.mimeType !== 'txt' && !isImage) {
-                getFileSize(tempFile?.content).then((size) => {
-                    if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                        setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-                    }
-
-                    if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                        setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-                    }
-                });
-            }
-
-            // Skip the standalone corruption check for files that go through `validateFileIfNecessary`,
-            // because `validateFiles` already runs corruption checks internally. Running both would
-            // surface a duplicate (and potentially misleading) "corrupt attachment" alert.
-            if (isImage && !shouldValidateFile(tempFile)) {
-                const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
-                validateImageForCorruption(fileObject).catch(() => {
+        ShareActionHandler.processFiles()
+            .then((sharedFiles) => {
+                const tempFile = sharedFiles.at(0);
+                if (errorTitle || isOutdatedRead()) {
+                    return;
+                }
+                if (!tempFile) {
                     setErrorTitle(translate('attachmentPicker.attachmentError'));
-                    setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                });
-            }
-
-            const {fileExtension} = splitExtensionFromFileName(tempFile?.content);
-            if (tempFile) {
-                if (tempFile.mimeType) {
-                    if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
-                        setIsFileScannable(true);
-                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
-                        // even when a previous Share session left the tab on SHARE.
-                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
-                    } else {
-                        setIsFileScannable(false);
-                    }
-                    validateFileIfNecessary(tempFile);
-                    setIsFileReady(true);
+                    setErrorMessage(translate('attachmentView.attachmentNotFound'));
+                    return;
+                }
+                if (!shareFileMimeTypes.includes(tempFile.mimeType)) {
+                    setErrorTitle(translate('attachmentPicker.wrongFileType'));
+                    setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+                    return;
                 }
 
+                const isImage = /image\/.*/.test(tempFile.mimeType);
+                if (tempFile.mimeType !== CONST.SHARE_FILE_MIMETYPE.TXT && !isImage) {
+                    getFileSize(tempFile.content)
+                        .then((size) => {
+                            if (isOutdatedRead()) {
+                                return;
+                            }
+                            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
+                                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+                            }
+
+                            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
+                                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
+                            }
+                        })
+                        .catch((error: unknown) => {
+                            Log.warn('[ShareRootPage] Failed to get the shared file size', {error});
+                        });
+                }
+
+                // Skip the standalone corruption check for files that go through `validateFileIfNecessary`,
+                // because `validateFiles` already runs corruption checks internally. Running both would
+                // surface a duplicate (and potentially misleading) "corrupt attachment" alert.
+                if (isImage && !shouldValidateFile(tempFile)) {
+                    const fileObject: FileObject = {name: tempFile.id, uri: tempFile.content, type: tempFile.mimeType};
+                    validateImageForCorruption(fileObject).catch(() => {
+                        if (isOutdatedRead()) {
+                            return;
+                        }
+                        setErrorTitle(translate('attachmentPicker.attachmentError'));
+                        setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    });
+                }
+
+                const {fileExtension} = splitExtensionFromFileName(tempFile.content);
+                if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
+                    setIsFileScannable(true);
+                    // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                    // even when a previous Share session left the tab on SHARE.
+                    Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
+                } else {
+                    setIsFileScannable(false);
+                }
+                validateFileIfNecessary(tempFile, isOutdatedRead);
+                setIsFileReady(true);
                 addTempShareFile(tempFile);
-            }
-        });
+            })
+            .catch((error: unknown) => {
+                Log.warn('[ShareRootPage] Failed to process the shared files', {error});
+                if (errorTitle || isOutdatedRead()) {
+                    return;
+                }
+                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                setErrorMessage(translate('attachmentView.attachmentNotFound'));
+            });
     };
 
     useEffect(() => {
@@ -171,6 +193,10 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
+
+        return () => {
+            latestShareReadIDRef.current += 1;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

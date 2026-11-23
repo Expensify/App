@@ -331,7 +331,7 @@ describe('useInviteeGettingStartedItems', () => {
 
             // Then each one leads to its own screen
             expect(result.current.addNameItem.route).toBe(ROUTES.SETTINGS_DISPLAY_NAME);
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.anything(), CONST.IOU.REQUEST_TYPE.SCAN);
+            await waitFor(() => expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.anything(), CONST.IOU.REQUEST_TYPE.SCAN));
             expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('app-download-links'));
             navigateSpy.mockRestore();
         });
