@@ -1326,9 +1326,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
 
         // And the skipped report is listed by name so the user knows to mark it as paid manually
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1);
-        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(
-            expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, skippedReports: [{reportID: NON_REIMBURSABLE_REPORT_ID, reportName: 'Card lunch'}]}),
-        );
+        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, skippedReportNames: ['Card lunch']}));
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
@@ -1346,7 +1344,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         // Then the modal explains that none of the reports can be paid through the bank account, without listing them
         await waitFor(() => expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1));
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}));
-        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReports).toBeUndefined();
+        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReportNames).toBeUndefined();
 
         // And nothing is paid while the selection stays, so the user can mark the reports as paid right away
         expect(payMoneyRequest).not.toHaveBeenCalled();

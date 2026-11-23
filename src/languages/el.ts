@@ -1739,7 +1739,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `πληρώθηκε ${amount} με προσωπικό λογαριασμό ${last4Digits}` : `Πληρώθηκε με προσωπικό λογαριασμό`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `πληρώθηκε ${amount} με επαγγελματικό λογαριασμό ${last4Digits}` : `Πληρωμή με επαγγελματικό λογαριασμό`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Πληρώστε ${formattedAmount} μέσω ${policyName}` : `Πληρωμή μέσω ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Πληρωμή με x${lastFour}` : 'Πληρωμή με τραπεζικό λογαριασμό'),
         bankPaySkippedReportsDescription:
             'Αυτές οι αναφορές δεν πληρώθηκαν μέσω του τραπεζικού λογαριασμού επειδή είτε δεν είναι επιστρέψιμες είτε έχουν συνολικό ποσό μηδέν ή μικρότερο. Μπορείτε να τις σημειώσετε χειροκίνητα ως πληρωμένες, αν προτιμάτε.',
         bankPayAllReportsSkippedDescription:

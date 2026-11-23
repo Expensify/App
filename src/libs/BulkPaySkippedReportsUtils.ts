@@ -45,10 +45,6 @@ function getBankPaySkippedReports({
     lastPaymentMethods,
 }: GetBankPaySkippedReportsParams): Map<string, Report> {
     const skippedReports = new Map<string, Report>();
-    if (!isABAPayment && paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        return skippedReports;
-    }
-
     for (const reportID of new Set(reportIDs)) {
         const report = reportID ? getReportFromSearchSnapshot(reportID, searchData, allReports) : undefined;
         if (!reportID || !report) {

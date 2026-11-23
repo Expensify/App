@@ -1671,7 +1671,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネス口座（末尾${last4Digits}）で${amount}を支払いました` : `ビジネスアカウントで支払済み`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName}で${formattedAmount}を支払う` : `${policyName}で支払う`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `x${lastFour}で支払う` : '銀行口座で支払う'),
         bankPaySkippedReportsDescription: 'これらのレポートは、払い戻し対象外であるか、合計金額が0以下のため、銀行口座で支払われませんでした。必要に応じて、手動で支払済みにできます。',
         bankPayAllReportsSkippedDescription: '選択したレポートは払い戻し対象外であるか、合計金額が0以下です。必要に応じて、これらのレポートを手動で支払済みにできます。',
         bankPayReportSkippedDescription: 'このレポートは払い戻し対象外であるか、合計金額が0以下です。必要に応じて、手動で支払済みにできます。',

@@ -338,7 +338,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onPress: (params: PaymentActionParams) => {
             // Pay via ABA is a bank payment sent as paid elsewhere, and its menu item comes straight here instead of through onPaymentSelect
             if (isBankPayBlocked && params.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
-                showReportBankPaySkippedModal(undefined, true);
+                showReportBankPaySkippedModal({isABAPayment: true});
                 return;
             }
             confirmPayment(params);

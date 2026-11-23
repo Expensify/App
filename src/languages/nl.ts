@@ -1686,7 +1686,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
         bankPaySkippedReportsDescription:
             'Deze rapporten zijn niet via de bankrekening betaald omdat ze niet vergoedbaar zijn of een totaalbedrag van nul of minder hebben. Je kunt ze desgewenst handmatig als betaald markeren.',
         bankPayAllReportsSkippedDescription:

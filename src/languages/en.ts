@@ -1843,7 +1843,6 @@ const translations = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Pay with x${lastFour}` : 'Pay with bank account'),
         bankPaySkippedReportsDescription:
             "These reports weren't paid through the bank account because they are either non-reimbursable or have a total amount of zero or less. You can manually mark them as paid if you'd prefer.",
         bankPayAllReportsSkippedDescription: 'The reports selected are non-reimbursable or have a total amount of zero or less. You can manually mark these reports as paid if preferred.',

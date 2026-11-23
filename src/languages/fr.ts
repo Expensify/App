@@ -1698,7 +1698,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
         bankPaySkippedReportsDescription:
             "Ces notes de frais n'ont pas été payées via le compte bancaire, car elles ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.",
         bankPayAllReportsSkippedDescription:

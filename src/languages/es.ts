@@ -1679,7 +1679,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: (policyName, formattedAmount) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Pagar con x${lastFour}` : 'Pagar con cuenta bancaria'),
         bankPaySkippedReportsDescription:
             'Estos informes no se pagaron con la cuenta bancaria porque no son reembolsables o tienen un importe total de cero o menos. Si lo prefieres, puedes marcarlos como pagados manualmente.',
         bankPayAllReportsSkippedDescription:

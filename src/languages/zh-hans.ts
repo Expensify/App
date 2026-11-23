@@ -1620,7 +1620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `使用 x${lastFour} 支付` : '使用银行账户支付'),
         bankPaySkippedReportsDescription: '这些报表未通过银行账户支付，因为它们不可报销或总金额为零或更少。如有需要，你可以手动将其标记为已支付。',
         bankPayAllReportsSkippedDescription: '所选报表不可报销或总金额为零或更少。如有需要，你可以手动将这些报表标记为已支付。',
         bankPayReportSkippedDescription: '此报表不可报销或总金额为零或更少。如有需要，你可以手动将其标记为已支付。',

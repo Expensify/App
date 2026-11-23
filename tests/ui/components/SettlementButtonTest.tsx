@@ -1147,7 +1147,7 @@ describe('SettlementButton', () => {
             // Then the modal names the picked account and explains why it can't pay the report, and nothing is paid
             expect(mockShowConfirmModal).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: translateLocal('iou.payWithBankAccountTitle', '5678'),
+                    title: translateLocal('walletPage.wiseGlobalReimbursementsBulkPayModal.title', '5678'),
                     prompt: translateLocal('iou.bankPayReportSkippedDescription'),
                 }),
             );

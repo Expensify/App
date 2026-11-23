@@ -141,11 +141,16 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/** The workspace's AU withdrawal account, which ABA files pay from */
+function getABAWithdrawalAccount(policy: OnyxInputOrEntry<Policy>) {
+    return policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+}
+
 /**
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
-    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+    const withdrawalAccount = getABAWithdrawalAccount(policy);
 
     // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
     const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
@@ -209,6 +214,7 @@ export {
     hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    getABAWithdrawalAccount,
     canPayViaABA,
     getReimbursementCountryISOs,
     getPolicyBankAccountCountry,

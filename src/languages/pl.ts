@@ -1731,7 +1731,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Zapłać z x${lastFour}` : 'Zapłać z konta bankowego'),
         bankPaySkippedReportsDescription:
             'Te raporty nie zostały opłacone z konta bankowego, ponieważ nie podlegają zwrotowi lub ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć je jako opłacone.',
         bankPayAllReportsSkippedDescription:
