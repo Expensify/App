@@ -4,6 +4,7 @@ import CenteredModalLayout from '@components/CenteredModalLayout';
 import HeaderTitle from '@components/HeaderTitle';
 import ScrollView from '@components/ScrollView';
 import WisePaymentSummary from '@components/WisePaymentSummary';
+import WiseReceiptDownloadButton from '@components/WisePaymentSummary/components/WiseReceiptDownloadButton';
 import {getLatestPaidWisePaymentAmounts} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 import getWisePaymentSummaryRows from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
 
@@ -26,6 +27,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type DynamicWisePaymentDetailsModalProps = PlatformStackScreenProps<FeatureTrainingNavigatorParamList, typeof SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT>;
 
@@ -56,9 +58,12 @@ function DynamicWisePaymentDetailsModal({route}: DynamicWisePaymentDetailsModalP
                     style={styles.flexShrink1}
                     contentContainerStyle={[styles.ph5, styles.pt5]}
                 >
-                    <HeaderTitle style={styles.mb5}>
-                        <HeaderTitle.Text>{translate('iou.wisePaymentSummary.paymentDetails')}</HeaderTitle.Text>
-                    </HeaderTitle>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb5]}>
+                        <HeaderTitle>
+                            <HeaderTitle.Text>{translate('iou.wisePaymentSummary.paymentDetails')}</HeaderTitle.Text>
+                        </HeaderTitle>
+                        <WiseReceiptDownloadButton reportID={reportID} />
+                    </View>
                     {!!report && !!amounts && (
                         <WisePaymentSummary
                             reportID={reportID}

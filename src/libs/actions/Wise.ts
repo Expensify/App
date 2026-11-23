@@ -1,5 +1,5 @@
-import {read} from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {makeRequestWithSideEffects, read} from '@libs/API';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {canReuseWiseQuote, getWiseQuoteRequest} from '@libs/WiseQuoteUtils';
 
@@ -69,6 +69,14 @@ function getWiseQuote(report: Report, full: boolean) {
     read(READ_COMMANDS.GET_WISE_QUOTE, {reportID: report.reportID, full}, onyxData);
 }
 
+/**
+ * Has the server save the receipt of the report's Wise transfer as a PDF and resolves with its file name, or undefined when there is none.
+ * Nothing is shown while it runs or kept after it, so it skips Onyx and hands the name straight to the download.
+ */
+function getWiseTransferReceiptFileName(reportID: string): Promise<string | undefined> {
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_WISE_TRANSFER_RECEIPT, {reportID}).then((response) => response?.fileName);
+}
+
 /** Drops the link, which carries a token */
 function clearWiseKYCReviewEmbeddedLink() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, null);
@@ -82,4 +90,4 @@ function setOptimisticWiseOnboardingInReview(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}});
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, getWiseQuote, setOptimisticWiseOnboardingInReview};
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, getWiseQuote, getWiseTransferReceiptFileName, setOptimisticWiseOnboardingInReview};

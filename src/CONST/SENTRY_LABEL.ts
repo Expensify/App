@@ -198,6 +198,7 @@ const SENTRY_LABEL = {
     },
     WISE_PAYMENT_DETAILS: {
         GOT_IT: 'WisePaymentDetails-GotIt',
+        DOWNLOAD_RECEIPT: 'WisePaymentDetails-DownloadReceipt',
     },
     PRODUCT_MARKETING_WINDOW: {
         CTA: 'ProductMarketingWindow-CTA',

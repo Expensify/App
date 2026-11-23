@@ -2074,6 +2074,7 @@ const translations = {
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
+            downloadReceipt: 'Download receipt',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             payAll: 'Pay all',
