@@ -187,6 +187,7 @@ Use `group-by:` to group results by a specific dimension.
 |---|---|---|
 | `group-by:from` | Group results by submitter | `type:expense group-by:from` |
 | `group-by:approver` | Group results by approver. Each group shows the approver, the number of expenses, and the total amount. Expand a group to see that approver's expenses | `type:expense group-by:approver` |
+| `group-by:violation` | Group expenses by the type of violation recorded when they were submitted or approved | `type:expense group-by:violation has:submitted-violation` |
 | `group-by:card` | Group results by card | `type:expense group-by:card` |
 | `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |
 | `group-by:merchant` | Group results by merchant | `type:expense group-by:merchant` |

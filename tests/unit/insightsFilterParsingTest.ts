@@ -84,11 +84,12 @@ describe('insightsFilterParsing', () => {
 
                 // When the stored selections override the dashboard defaults
                 const parsed = parseInsightsFilters(query);
-                const filters = {...DEFAULT_INSIGHTS_FILTERS, ...parsed};
+                const defaultFilters = DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND];
+                const filters = {...defaultFilters, ...parsed};
 
                 // Then only the invalid date is ignored, so it cannot reach date formatting or the next query
                 expect(parsed).not.toHaveProperty('date');
-                expect(filters.date).toEqual(DEFAULT_INSIGHTS_FILTERS.date);
+                expect(filters.date).toEqual(defaultFilters.date);
                 expect(filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
                 expect(filters.groupCurrency).toBe('PLN');
             },

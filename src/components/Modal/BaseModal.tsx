@@ -1,15 +1,16 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FSClassContext from '@components/FSClassView/FSClassContext';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -185,9 +186,15 @@ function BaseModal({
         };
     }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal, coveringModalID]);
 
+    const hideModalOnUnmount = (callHideCallback: boolean) => {
+        // Unmounting while visible skips the dismiss effect, so resolve the ready-to-focus promise here or delayed composer focus waits on it forever.
+        handleDismissModal();
+        hideModal(callHideCallback);
+    };
+
     useEffect(() => {
-        hideModalCallbackRef.current = hideModal;
-    }, [hideModal]);
+        hideModalCallbackRef.current = hideModalOnUnmount;
+    }, [hideModalOnUnmount]);
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
@@ -260,7 +267,7 @@ function BaseModal({
 
     // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {isResizable: isResizableSingleRHP} = useResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
@@ -438,7 +445,9 @@ function BaseModal({
                                 </PressableWithoutFeedback>
                             )}
                             <FSClassContext.Provider value={forwardedFSClass}>
-                                <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                                    <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                </HorizontalSafeAreaContext.Provider>
                             </FSClassContext.Provider>
                         </Animated.View>
                         {stackedResizableRHPWidth !== undefined &&

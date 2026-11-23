@@ -77,7 +77,11 @@ function ImportSpreadsheetColumns({
                         {customHeaderText ?? (
                             <>
                                 {translate('spreadsheet.importDescription')}
-                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
+                                <TextLink
+                                    href={learnMoreLink ?? ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.LEARN_MORE_LINK}
+                                >{` ${translate('common.learnMore')}`}</TextLink>
+                                .
                             </>
                         )}
                     </Text>

@@ -1,5 +1,7 @@
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {AccessibilityState} from 'react-native';
 
 import {use} from 'react';
@@ -16,9 +18,13 @@ type ConsumablePressProps = {
     accessibilityHasPopup?: AccessibilityHasPopup;
     nativeID?: string;
     accessibilityControls?: string | string[];
+    sentryLabel?: SentryLabel;
 };
 
-/** Chains consumer then responder; publishers gate via `event.defaultPrevented`. */
+/**
+ * Chains consumer then responder; publishers gate via `event.defaultPrevented`. The consumer's label wins, and the
+ * responder's label covers a consumer that has none.
+ */
 function usePressResponderProps(consumer: ConsumablePressProps): ConsumablePressProps {
     const responder = use(PressResponderContext);
     if (!responder) {
@@ -44,8 +50,8 @@ function usePressResponderProps(consumer: ConsumablePressProps): ConsumablePress
         accessibilityHasPopup: responder.accessibilityHasPopup ?? consumer.accessibilityHasPopup,
         nativeID: responder.nativeID ?? consumer.nativeID,
         accessibilityControls: responder.accessibilityControls ?? consumer.accessibilityControls,
+        sentryLabel: consumer.sentryLabel ?? responder.sentryLabel,
     };
 }
 
 export default usePressResponderProps;
-export type {ConsumablePressProps};

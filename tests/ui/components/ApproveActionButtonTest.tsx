@@ -1,8 +1,11 @@
 import {act, render} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ApproveActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ApproveActionButton';
 
+import type useConfirmModal from '@hooks/useConfirmModal';
 import useOnyx from '@hooks/useOnyx';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {hasHeldExpensesFromTransactions} from '@libs/ReportUtils';
 
@@ -10,12 +13,17 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
+import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+
+import createMock from '../../utils/createMock';
+
+type ShowConfirmModal = ReturnType<typeof useConfirmModal>['showConfirmModal'];
+type ModalResult = Awaited<ReturnType<ShowConfirmModal>>;
 
 const TEST_IOU_REPORT_ID = '1001';
 
@@ -108,14 +116,32 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
     default: jest.fn(() => ({})),
 }));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+const mockShowConfirmModal = jest.fn<ReturnType<ShowConfirmModal>, Parameters<ShowConfirmModal>>();
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
+}));
+// Keep modal presentation synchronous here; transition timing has separate coverage.
+jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({
+    __esModule: true,
+    default: (showConfirmModal: ShowConfirmModal, options: Parameters<ShowConfirmModal>[0]) => showConfirmModal(options),
+}));
 
 const mockedUseOnyx = jest.mocked(useOnyx);
+const mockedUseTransactionsAndViolationsForReport = jest.mocked(useTransactionsAndViolationsForReport);
 const mockedApproveMoneyRequest = jest.mocked(approveMoneyRequest);
 const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
 
 describe('ApproveActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseTransactionsAndViolationsForReport.mockReturnValue({transactions: {}, violations: {}, isLoaded: true});
+        mockShowConfirmModal.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
         mockApprovalButtonProps.current = undefined;
         mockReportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
         mockIsDelegateAccessRestricted = false;
@@ -167,6 +193,31 @@ describe('ApproveActionButton', () => {
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: false}));
     });
 
+    it('forwards the transaction violations collection to approveMoneyRequest', () => {
+        // Given the full transaction violations collection is loaded, which approveMoneyRequest needs to evaluate sibling reports in the chat
+        const allTransactionViolations: OnyxCollection<TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+        };
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(iouReport);
+            }
+            if (key === ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS) {
+                return createOnyxResult(allTransactionViolations);
+            }
+            return createOnyxResult(undefined);
+        });
+        render(<ApproveActionButton />);
+
+        // When the user approves the report
+        act(() => {
+            mockApprovalButtonProps.current?.onApprove(true);
+        });
+
+        // Then the collection read by the hook is passed through, so the action no longer reads violations from Onyx itself
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({allTransactionViolations}));
+    });
+
     it('surfaces held expenses to the approval button so it shows the approval options instead of approving directly', () => {
         mockedHasHeldExpenses.mockReturnValue(true);
         render(<ApproveActionButton />);
@@ -185,5 +236,41 @@ describe('ApproveActionButton', () => {
 
         expect(mockShowDelegateNoAccessModal).toHaveBeenCalled();
         expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it.each([ModalActions.CLOSE, ModalActions.CONFIRM])('waits for the violation modal and handles %s without bypassing confirmation', async (action) => {
+        // Given a report with a visible warning and a modal that has not been answered yet
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: TEST_IOU_REPORT_ID, merchant: 'Merchant', amount: 1000, currency: 'USD'});
+        mockedUseTransactionsAndViolationsForReport.mockReturnValue({
+            transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: transaction},
+            violations: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+            },
+            isLoaded: true,
+        });
+        let resolveModal: ((result: ModalResult) => void) | undefined;
+        mockShowConfirmModal.mockReturnValue(
+            new Promise<ModalResult>((resolve) => {
+                resolveModal = resolve;
+            }),
+        );
+        render(<ApproveActionButton />);
+
+        // When approval is requested, it must wait for the user's response
+        act(() => mockApprovalButtonProps.current?.onApprove(true));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({confirmText: 'common.approveAnyway'}));
+        expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+        await act(async () => {
+            resolveModal?.({action});
+        });
+
+        // Then closing the warning cancels approval, and explicit confirmation approves exactly once
+        if (action === ModalActions.CONFIRM) {
+            expect(mockedApproveMoneyRequest).toHaveBeenCalledTimes(1);
+            expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReport: iouReport, full: true, onApproved: mockStartApprovedAnimation}));
+        } else {
+            expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
+            expect(mockStartApprovedAnimation).not.toHaveBeenCalled();
+        }
     });
 });

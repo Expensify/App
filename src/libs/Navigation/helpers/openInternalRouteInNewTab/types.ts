@@ -3,11 +3,12 @@ type ModifiedMouseEvent = {
     stopPropagation?: () => void;
     metaKey?: boolean;
     ctrlKey?: boolean;
+    shiftKey?: boolean;
     button?: number;
     key?: string;
     nativeEvent?: unknown;
 };
 
-type ModifiedMouseEventSource = Pick<ModifiedMouseEvent, 'metaKey' | 'ctrlKey' | 'button' | 'key'>;
+type ModifiedMouseEventSource = Pick<ModifiedMouseEvent, 'metaKey' | 'ctrlKey' | 'shiftKey' | 'button' | 'key'>;
 
 export type {ModifiedMouseEvent, ModifiedMouseEventSource};
