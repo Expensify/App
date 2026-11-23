@@ -19,6 +19,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {authTokenSelector} from '@src/selectors/Session';
 
 import type {SeverityLevel} from '@sentry/react-native';
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
@@ -53,6 +54,7 @@ function msSince(startedAt: number | null): number | undefined {
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [authToken] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenSelector});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
@@ -67,7 +69,9 @@ function SAMLSignInPage() {
 
     const signInWithToken = (shortLivedAuthToken: string) => {
         Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-        signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, authToken, true, lastVisitedPath, credentials?.login).catch((error) => {
+            Log.hmmm('SAMLSignInPage - Failed to sign in with shortLivedAuthToken', {error});
+        });
     };
 
     useAppState({
