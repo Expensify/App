@@ -8,7 +8,7 @@ import {hashText} from '@libs/UserUtils';
 import getInsightsDateRange from '@pages/Insights/getInsightsDateRange';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {buildDashboardQueryJSON} from '@pages/Insights/insightsQueries';
+import {buildDetailsFiltersQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import type {InsightsGraphKey} from '@src/types/onyx';
@@ -126,13 +126,13 @@ function buildInsightsDetailsQuery({
     // Sent as dates rather than the preset, which the server would count from its own today and could reject the period for falling outside it
     const {start, end} = getInsightsDateRange(filters.date, lastDay);
     const datedFilters = 'preset' in filters.date && start && end ? {...filters, date: {from: start, to: end}} : filters;
-    const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, datedFilters);
+    const filtersQueryJSON = buildDetailsFiltersQueryJSON(datedFilters);
     if (!period || !filtersQueryJSON) {
         return undefined;
     }
 
     const item = itemGroupBy ? {groupBy: itemGroupBy, value: itemGroupBy === CONST.SEARCH.GROUP_BY.FROM ? Number(itemKey) : itemKey} : undefined;
-    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, groupBy: periodGroupBy, period, item};
+    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: periodGroupBy, period, item};
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {

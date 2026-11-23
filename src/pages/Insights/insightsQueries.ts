@@ -162,6 +162,11 @@ function buildDashboardQueryJSON(dashboard: InsightsDashboardID, filters: Insigh
     return buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
 }
 
+/** Builds the Details panel's filters, leaving the group currency out since GetInsightsDetails takes it separately as `targetCurrency`. */
+function buildDetailsFiltersQueryJSON(filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
+    return buildDashboardQuery(buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupCurrency: undefined}), CONST.INSIGHTS.DASHBOARD.SPEND);
+}
+
 type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
@@ -281,6 +286,6 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDashboardQueryJSON, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {applyInsightsFilters, buildDateFormValues, buildDetailsFiltersQueryJSON, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;
