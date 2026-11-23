@@ -123,6 +123,14 @@ const restrictedHeaderImportPatterns = [
 
 // castToSentryLabel tells TypeScript a label is defined, so outside the few wrappers that need it, it would hide a missing
 // label. Those wrappers attach their own handlers or get the label from context, so TypeScript can't narrow it there.
+// The nitro-utils entry creates Nitro hybrid objects when it loads, and those only exist on iOS and Android. The web
+// typecheck can't catch a runtime import of it from shared code, because the entry restates the native NitroModules type.
+const nitroUtilsRestrictedImportPath = {
+    name: '@expensify/nitro-utils',
+    message: 'Nitro modules only exist on iOS and Android. Import @expensify/nitro-utils from a .native, .ios or .android file. Type-only imports are still allowed.',
+    allowTypeImports: true,
+};
+
 const CAST_TO_SENTRY_LABEL_FILES = [
     'src/components/Button/Button.tsx',
     'src/components/MenuItem/MenuItem.tsx',
@@ -513,33 +521,28 @@ export default await buildOxlintConfig({
             },
         },
         {
-            files: CAST_TO_SENTRY_LABEL_FILES,
-            rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]}]},
-        },
-        {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
-        {
-            // The nitro-utils entry creates Nitro hybrid objects when it loads, and those only exist on iOS and Android.
-            // The web typecheck can't catch a runtime import of it, because the entry restates the native NitroModules type.
             files: ['src/**/*.{ts,tsx}'],
             excludeFiles: ['src/**/*.native.{ts,tsx}', 'src/**/*.ios.{ts,tsx}', 'src/**/*.android.{ts,tsx}'],
             rules: {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: '@expensify/nitro-utils',
-                                message:
-                                    'Nitro modules only exist on iOS and Android. Import @expensify/nitro-utils from a .native, .ios or .android file. Type-only imports are still allowed.',
-                                allowTypeImports: true,
-                            },
-                        ],
-                        patterns: restrictedImportPatterns,
+                        paths: [...restrictedImportPaths, nitroUtilsRestrictedImportPath],
+                        patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns, ...castToSentryLabelImportPatterns],
                     },
                 ],
             },
         },
+        {
+            files: CAST_TO_SENTRY_LABEL_FILES,
+            rules: {
+                'no-restricted-imports': [
+                    'error',
+                    {paths: [...restrictedImportPaths, nitroUtilsRestrictedImportPath], patterns: [...typescriptRestrictedImportPatterns, ...restrictedHeaderImportPatterns]},
+                ],
+            },
+        },
+        {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
         {
             files: ['modules/ExpensifyNitroUtils/src/**/*'],
             rules: {
