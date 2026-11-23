@@ -63,8 +63,8 @@ describe.each([
 
     function renderDirtyStepOverFirstStep(dirtyStep = DirtyStep) {
         renderMoneyRequestNavigation({
-            openSteps: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION],
-            stepComponents: {[SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: dirtyStep},
+            openSteps: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT],
+            stepComponents: {[SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: dirtyStep},
             stepParams: {action: CONST.IOU.ACTION.CREATE, iouType: CONST.IOU.TYPE.CREATE, transactionID: '1', reportID: '1'},
         });
     }
@@ -120,7 +120,7 @@ describe.each([
 
         // Then nothing closes, so the changes are still there
         expect(getRootRouteNames()).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
-        expect(getMoneyRequestStepNames()).toEqual([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]);
+        expect(getMoneyRequestStepNames()).toEqual([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]);
     });
 
     it('closes the whole RHP when the user presses Esc and picks Discard', async () => {

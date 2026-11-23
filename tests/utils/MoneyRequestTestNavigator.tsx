@@ -25,7 +25,7 @@ import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
 /** The create expense steps this tree registers */
-const MONEY_REQUEST_TEST_SCREENS = [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME] as const;
+const MONEY_REQUEST_TEST_SCREENS = [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT] as const;
 
 type MoneyRequestTestScreen = TupleToUnion<typeof MONEY_REQUEST_TEST_SCREENS>;
 

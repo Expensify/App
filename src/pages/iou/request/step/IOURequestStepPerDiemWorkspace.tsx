@@ -54,7 +54,6 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
     const [isLoadingPerDiemRates] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_PER_DIEM_RATES);
-    const wasLoadingPerDiemRates = usePrevious(isLoadingPerDiemRates);
     const wasOffline = usePrevious(isOffline);
     // Picking a row only marks it and the footer button moves on, so a workspace that starts out selected can be kept
     // without having to tap it again.
@@ -132,23 +131,19 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
     }, [pendingPolicy, pendingPolicyID]);
 
     useEffect(() => {
-        if (!pendingPolicyID || getPerDiemCustomUnit(pendingPolicy)) {
-            return;
-        }
         // The fetch was dropped while offline, so ask again once back online rather than leave the loader up.
-        if (wasOffline && !isOffline) {
-            fetchPerDiemRates(pendingPolicyID);
+        if (!pendingPolicyID || getPerDiemCustomUnit(pendingPolicy) || !wasOffline || isOffline) {
             return;
         }
-        // The fetch finished without giving the workspace a per diem unit, e.g. it failed, so go back to the list and
-        // let the user pick the workspace again instead of waiting on a loader that never ends.
-        if (wasLoadingPerDiemRates && isLoadingPerDiemRates === false) {
-            setPendingPolicyID(undefined);
-        }
+        fetchPerDiemRates(pendingPolicyID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingPerDiemRates, isOffline]);
+    }, [isOffline]);
 
-    if (pendingPolicyID) {
+    // Once the fetch finishes without giving the workspace a per diem unit, e.g. it failed, show the list again so the
+    // user can pick the workspace again instead of waiting on a loader that never ends.
+    const isWaitingForPerDiemRates = !!pendingPolicyID && (!!getPerDiemCustomUnit(pendingPolicy) || isOffline || isLoadingPerDiemRates !== false);
+
+    if (isWaitingForPerDiemRates) {
         if (isOffline) {
             return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
         }
