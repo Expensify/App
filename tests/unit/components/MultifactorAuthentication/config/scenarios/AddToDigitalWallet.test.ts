@@ -45,7 +45,7 @@ describe('AddToDigitalWallet scenario', () => {
         expect(response.httpStatusCode).toBe(status === 'success' ? 200 : undefined);
         const expectedReasons = {
             success: undefined,
-            canceled: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED,
+            canceled: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED,
             error: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED,
         };
         expect(response.reason).toBe(expectedReasons[status]);
@@ -108,14 +108,41 @@ describe('AddToDigitalWallet scenario', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('skips the outcome screen when the user cancels', async () => {
-        // Given the user chose "Set Up Later" or dismissed the wallet sheet.
+    it('skips the outcome screen when the user dismisses the wallet sheet', async () => {
+        // Given the user dismissed the wallet sheet after authentication succeeded.
         // When the provider completes the canceled scenario.
-        const result = await AddToDigitalWallet.callback(false, {httpStatusCode: undefined, message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED}, params);
+        const result = await AddToDigitalWallet.callback(
+            false,
+            {httpStatusCode: undefined, message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED},
+            params,
+        );
 
         // Then no failure screen is shown.
         expect(result).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN);
         expect(getPaymentMethods).not.toHaveBeenCalled();
+    });
+
+    it('shows the outcome screen when the user cancels the MFA flow', async () => {
+        // Given the user closed the MFA modal, which the provider reports as a generic cancel.
+        // When the provider completes the canceled scenario.
+        const result = await AddToDigitalWallet.callback(false, {httpStatusCode: undefined, message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED}, params);
+
+        // Then the default failure screen is shown like in other scenarios.
+        expect(result).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
+        expect(getPaymentMethods).not.toHaveBeenCalled();
+    });
+
+    it('keeps the generic cancel reason when the flow was aborted', async () => {
+        // Given the MFA flow was aborted while the wallet sheet reported a cancel.
+        jest.mocked(handleAddCardToWallet).mockResolvedValue('canceled');
+        const controller = new AbortController();
+        controller.abort();
+
+        // When the scenario action normalizes the result.
+        const response = await AddToDigitalWallet.action(params, {signal: controller.signal});
+
+        // Then the flow cancel reason wins over the wallet sheet one.
+        expect(response.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED);
     });
 
     it('only overrides the failure screen for the wallet reason', () => {

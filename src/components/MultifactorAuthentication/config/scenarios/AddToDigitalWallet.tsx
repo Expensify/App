@@ -13,6 +13,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
+import type {TokenizationStatus} from '@expensify/react-native-wallet';
+
 import React from 'react';
 
 const WalletFailureScreen = createScreenWithDefaults(
@@ -24,6 +26,16 @@ const WalletFailureScreen = createScreenWithDefaults(
     },
     'WalletFailureScreen',
 );
+
+/** Keeps the wallet sheet cancel apart from the MFA flow cancel, which shows the default failure screen. */
+function getFailureReason(status: TokenizationStatus, isAborted: boolean | undefined) {
+    if (isAborted) {
+        return CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED;
+    }
+    return status === 'canceled'
+        ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED
+        : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED;
+}
 
 type Payload = {
     card: Card;
@@ -46,10 +58,7 @@ export default {
             }
             return {
                 httpStatusCode: undefined,
-                reason:
-                    status === 'canceled' || context?.signal.aborted
-                        ? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED
-                        : CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED,
+                reason: getFailureReason(status, context?.signal.aborted),
                 message: undefined,
             };
         } catch (error) {
@@ -76,7 +85,7 @@ export default {
     },
     callback: async (isSuccessful, input, payload) => {
         // Dismissing the wallet sheet is a user choice, so no failure screen is shown.
-        if (!isSuccessful && input.message === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED) {
+        if (!isSuccessful && input.message === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED) {
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
         }
         if (!isSuccessful || !payload || !('card' in payload)) {

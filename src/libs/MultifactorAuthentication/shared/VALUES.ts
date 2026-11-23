@@ -49,6 +49,8 @@ const REASON = {
         CANCELED: 'Local: Flow canceled by user',
         /** Authentication succeeded but adding the card to the digital wallet failed. */
         WALLET_PROVISIONING_FAILED: 'Local: Digital wallet provisioning failed',
+        /** The user dismissed the native wallet sheet after authentication succeeded. */
+        WALLET_PROVISIONING_CANCELED: 'Local: Digital wallet provisioning canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
         WEBAUTHN: {
@@ -185,6 +187,7 @@ type ReasonValue = DeepLeafValues<typeof REASON>;
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.CANCELED,
+    REASON.LOCAL_ERRORS.WALLET_PROVISIONING_CANCELED,
     REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
     REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
     REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
