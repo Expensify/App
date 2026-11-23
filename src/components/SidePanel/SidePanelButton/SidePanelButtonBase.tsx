@@ -4,12 +4,17 @@ import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -22,6 +27,10 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
     const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
+    const {isBetaEnabled} = usePermissions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The narrow layout has no Concierge item in its tab bar, so help opens the Concierge page there
+    const shouldOpenConciergePage = shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.FLAT_NAV);
 
     if (shouldHideHelpButton) {
         return null;
@@ -34,7 +43,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 accessibilityLabel={translate('common.help')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={openSidePanel}
+                onPress={shouldOpenConciergePage ? () => Navigation.navigate(ROUTES.CONCIERGE_CHATS) : openSidePanel}
             >
                 <Icon
                     src={Concierge}

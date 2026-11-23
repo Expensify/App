@@ -1,0 +1,43 @@
+/**
+ * The dot on the Concierge item, shown while a Concierge conversation has something the user hasn't read: a thread with
+ * an unread reply, or a Concierge message posted after the user last read the DM that they haven't opened yet. The DM
+ * itself only starts new conversations on the Concierge page, so its own read state isn't counted.
+ */
+import {isUnreadConciergeMessage, isUnreadConciergeThread} from '@libs/ConciergeConversationUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {getReportLastReadTime} from '@selectors/Report';
+
+import useOnyx from './useOnyx';
+import useTheme from './useTheme';
+
+type ConciergeTabIndicatorStatusResult = {
+    /** The indicator dot color */
+    indicatorColor: string;
+
+    /** Whether a Concierge conversation has something the user hasn't read */
+    hasUnreadConversation: boolean;
+};
+
+function useConciergeTabIndicatorStatus(): ConciergeTabIndicatorStatusResult {
+    const theme = useTheme();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
+    const hasUnreadThreadSelector = (reports: OnyxCollection<Report>) =>
+        !!conciergeReportID && Object.values(reports ?? {}).some((report) => isUnreadConciergeThread(report, conciergeReportID));
+    const [hasUnreadThread = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasUnreadThreadSelector});
+
+    const [conciergeLastReadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: getReportLastReadTime});
+    const hasUnreadMessageSelector = (reportActions: OnyxEntry<ReportActions>) =>
+        Object.values(reportActions ?? {}).some((reportAction) => isUnreadConciergeMessage(reportAction, conciergeLastReadTime));
+    const [hasUnreadMessage = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: hasUnreadMessageSelector});
+
+    return {indicatorColor: theme.iconSuccessFill, hasUnreadConversation: hasUnreadThread || hasUnreadMessage};
+}
+
+export default useConciergeTabIndicatorStatus;

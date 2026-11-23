@@ -525,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         concierge: {
+            title: 'Concierge',
             greeting: 'こんにちは、どのようにお手伝いできますか？',
             showHistory: '履歴を表示',
             subtitle: 'あなた専用のAIアシスタント',
@@ -12728,6 +12729,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
         connectionsMoved: 'すべての連携をひとまとめに',
+        conciergeHistory: '過去のConciergeとのチャットはこちら',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

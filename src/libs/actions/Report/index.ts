@@ -9641,6 +9641,7 @@ export {
     flagReportNavigatedAway,
     clearReportNavigatedAway,
     navigateToAndOpenChildReport,
+    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndCreateGroupChat,

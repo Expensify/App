@@ -8,6 +8,7 @@ import SCREENS from '@src/SCREENS';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import getTopmostReportParams from './getTopmostReportParams';
+import {isReportSplitNavigatorName} from './isNavigatorName';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
@@ -94,7 +95,7 @@ function getFocusedReportParams(state: State): FocusedReportParams | undefined {
             return getSearchFullscreenMoneyRequestReportParams(activeTab);
         }
 
-        if (activeTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+        if (isReportSplitNavigatorName(activeTab.name)) {
             return getReportsSplitFocusedReportParams(activeTab);
         }
 

@@ -531,6 +531,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         concierge: {
+            title: 'Concierge',
             greeting: 'Cześć, w czym mogę pomóc?',
             showHistory: 'Pokaż historię',
             subtitle: 'Twój osobisty asystent AI',
@@ -12953,6 +12954,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Uzyskaj dostęp do swojego konta i ustawień osobistych.</tooltip>',
         connectionsMoved: 'Wszystkie twoje połączenia w jednym miejscu',
+        conciergeHistory: 'Tutaj znajdziesz swoje wcześniejsze czaty z Concierge',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

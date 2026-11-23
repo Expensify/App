@@ -28,6 +28,8 @@ const PRE_MOUNT_BUFFER_HOSTS_SET = new Set<string>([NAVIGATORS.RIGHT_MODAL_NAVIG
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(Object.values(SCREENS.ONBOARDING));
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
+// The Concierge page shows the same report screen as the Inbox, for Concierge conversations
+const REPORT_SPLIT_NAVIGATORS_SET = new Set<string>([NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR]);
 const WORKSPACES_TAB_SET = new Set(Object.values([NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, SCREENS.WORKSPACES_LIST, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]));
 
 /**
@@ -67,8 +69,21 @@ function isSidebarScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorSidebarScreen>(screen, SIDEBARS_SET);
 }
 
+function isReportSplitNavigatorName(screen: string | undefined) {
+    return checkIfScreenHasMatchingNameToSetValues(screen, REPORT_SPLIT_NAVIGATORS_SET);
+}
+
 function isWorkspaceNavigatorRouteName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<WorkspaceNavigatorRouteName>(screen, WORKSPACES_TAB_SET);
 }
 
-export {isFullScreenName, isModalNavigatorName, isOnboardingFlowName, isPreMountBufferHostName, isSidebarScreenName, isSplitNavigatorName, isWorkspaceNavigatorRouteName};
+export {
+    isFullScreenName,
+    isModalNavigatorName,
+    isOnboardingFlowName,
+    isPreMountBufferHostName,
+    isReportSplitNavigatorName,
+    isSidebarScreenName,
+    isSplitNavigatorName,
+    isWorkspaceNavigatorRouteName,
+};

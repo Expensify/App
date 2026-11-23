@@ -29,6 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useState} from 'react';
 
+import useConciergePageReportID from './useConciergePageReportID';
 import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -172,6 +173,7 @@ function useReportActionsScroll({
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const conciergePageReportID = useConciergePageReportID();
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
@@ -183,7 +185,7 @@ function useReportActionsScroll({
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = Object.fromEntries(sortedVisibleReportActions.map((action) => [action.reportActionID, action]));
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergePageReportID);
 
     // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
     // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from

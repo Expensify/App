@@ -529,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restrictions: 'Περιορισμοί',
         tagGLCode: 'Ετικέτα κωδικού GL',
         concierge: {
+            title: 'Concierge',
             greeting: 'Γεια σας, πώς μπορώ να σας βοηθήσω;',
             showHistory: 'Εμφάνιση ιστορικού',
             subtitle: 'Ο προσωπικός σας βοηθός AI',
@@ -13180,6 +13181,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
         connectionsMoved: 'Όλες οι συνδέσεις σας σε ένα σημείο',
+        conciergeHistory: 'Βρείτε εδώ τις προηγούμενες συνομιλίες σας με τον Concierge',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',

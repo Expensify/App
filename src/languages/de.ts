@@ -527,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
         concierge: {
+            title: 'Concierge',
             greeting: 'Hallo, wie kann ich helfen?',
             showHistory: 'Verlauf anzeigen',
             subtitle: 'Dein persönlicher KI-Assistent',
@@ -12990,6 +12991,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         markAllAsReadTouchScreen: '<tooltip>Lange drücken, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Greifen Sie auf Ihr Konto und Ihre persönlichen Einstellungen zu.</tooltip>',
         connectionsMoved: 'Alle Ihre Verbindungen an einem Ort',
+        conciergeHistory: 'Hier finden Sie Ihre bisherigen Concierge-Chats',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

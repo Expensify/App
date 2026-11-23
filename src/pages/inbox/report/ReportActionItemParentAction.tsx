@@ -3,13 +3,15 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isConciergePageThread} from '@libs/isInConciergeConversation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
+import {isArchivedReport, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
 import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -25,6 +27,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AncestorReportActionItem from './AncestorReportActionItem';
+import AncestorThreadDivider from './AncestorThreadDivider';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 
@@ -88,6 +91,10 @@ function ReportActionItemParentAction({
     });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    // A Concierge thread reads as one conversation that opens with Concierge's message, so that message has no
+    // background or divider setting it apart from the replies
+    const {isBetaEnabled} = usePermissions();
+    const isConciergeConversationThread = isBetaEnabled(CONST.BETAS.FLAT_NAV) && isConciergePageThread(report, conciergeReportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
@@ -111,7 +118,7 @@ function ReportActionItemParentAction({
 
     return (
         <View style={[styles.pRelative]}>
-            <AnimatedEmptyStateBackground />
+            {!isConciergeConversationThread && <AnimatedEmptyStateBackground />}
             <OfflineWithFeedback
                 shouldDisableOpacity
                 errors={
@@ -120,7 +127,7 @@ function ReportActionItemParentAction({
                 errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
-                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
+                {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}, index) => (
                     <AncestorReportActionItem
                         key={ancestorReportAction.reportActionID}
                         report={ancestorReport}
@@ -140,7 +147,16 @@ function ReportActionItemParentAction({
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         reportsParentHierarchy={reportsParentHierarchy}
-                    />
+                    >
+                        {!(isConciergeConversationThread && index === 0) && (
+                            <AncestorThreadDivider
+                                report={ancestorReport}
+                                reportAction={ancestorReportAction}
+                                shouldDisplayNewMarker={shouldDisplayNewMarker}
+                                isAncestorReportArchived={isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`])}
+                            />
+                        )}
+                    </AncestorReportActionItem>
                 ))}
             </OfflineWithFeedback>
             {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}

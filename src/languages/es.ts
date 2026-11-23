@@ -519,6 +519,7 @@ const translations: TranslationDeepObject<typeof en> = {
         year: 'Año',
         quarter: 'Trimestre',
         concierge: {
+            title: 'Concierge',
             greeting: 'Hola, ¿en qué puedo ayudarte?',
             showHistory: 'Mostrar historial',
             subtitle: 'Tu asistente de IA personal',
@@ -13245,6 +13246,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>Mantén pulsado para <strong>marcar todo como leído</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Accede a tu cuenta y a tu configuración personal.</tooltip>',
         connectionsMoved: 'Todas tus conexiones en un solo lugar',
+        conciergeHistory: 'Encuentra aquí tus chats anteriores con Concierge',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

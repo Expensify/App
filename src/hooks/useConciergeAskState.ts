@@ -15,6 +15,7 @@ import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsConciergeInboxDM from './useIsConciergeInboxDM';
+import useIsInConciergePage from './useIsInConciergePage';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -34,6 +35,8 @@ type ConciergeAskState = {
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
+    // The Concierge chat on the Concierge page only starts new conversations, so it shows the welcome screen instead of its history
+    const isInConciergePage = useIsInConciergePage();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -57,8 +60,8 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    const isHistoryExpanded = isConciergeInboxDM && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers;
+    const isHistoryExpanded = isConciergeInboxDM && ((showFullHistory && !isInConciergePage) || !!route.params?.reportActionID);
+    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isInConciergePage || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
 
     return {
         isHistoryExpanded,

@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useState} from 'react';
 
+import useConciergePageReportID from './useConciergePageReportID';
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
@@ -47,8 +48,9 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const conciergePageReportID = useConciergePageReportID();
 
-    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction, conciergePageReportID);
 
     const {
         reportActions: unfilteredReportActions,

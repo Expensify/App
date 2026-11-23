@@ -123,6 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import isInConciergeConversation, {isConciergePageThread} from './isInConciergeConversation';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -2663,6 +2664,8 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
  * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
  * `reports` let a caller pass its own subscribed collections and fall back to the
  * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ *
+ * @param excludedConciergeReportID - The Concierge DM whose conversations are skipped, because the Concierge page shows them instead of the Inbox
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
@@ -2672,6 +2675,7 @@ function findLastAccessedReport(
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
+    excludedConciergeReportID?: string,
 ): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
@@ -2685,6 +2689,10 @@ function findLastAccessedReport(
 
     const isEligible = (report: OnyxEntry<Report>) => {
         if (excludeReportID && report?.reportID === excludeReportID) {
+            return false;
+        }
+
+        if (excludedConciergeReportID && isInConciergeConversation(report?.reportID, excludedConciergeReportID, reportsCollection)) {
             return false;
         }
 
@@ -2973,11 +2981,13 @@ function isThreadMemberProtectedByParentReport(parentReport: OnyxInputOrEntry<Re
 }
 
 /**
- * Checks if a report aligns its action list to the top (transaction threads, money request / invoice reports).
+ * Checks if a report aligns its action list to the top (transaction threads, Concierge page threads, money request / invoice reports).
+ *
+ * @param conciergePageReportID - The Concierge DM, when its threads open on the Concierge page
  */
-function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, conciergePageReportID?: string): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isConciergePageThread(report, conciergePageReportID) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**

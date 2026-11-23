@@ -526,6 +526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
         concierge: {
+            title: 'Concierge',
             greeting: 'Hoi, waarmee kan ik je helpen?',
             showHistory: 'Geschiedenis weergeven',
             subtitle: 'Je persoonlijke AI-assistent',
@@ -12901,6 +12902,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
         connectionsMoved: 'Al je connecties op één plek',
+        conciergeHistory: 'Vind hier je eerdere Concierge-chats',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',

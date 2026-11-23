@@ -23,12 +23,12 @@ import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import ConciergeSplitNavigator from './ConciergeSplitNavigator';
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
-import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey, isNativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
@@ -73,9 +73,9 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
     // selects the new item in the same commit as Search moves.
     const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
     // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
-    // slot, inside the first item with no item shown as selected.
-    const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>
-        route.name in tabLabels
+    // slot, inside the first item with no item shown as selected. The Concierge page has no glyph, so it never has a bar item.
+    const getScreenOptions = ({route, navigation}: {route: {name: keyof TabNavigatorParamList}; navigation: {getState: () => NavigationState}}) =>
+        route.name in tabLabels && isNativeTabRouteName(route.name)
             ? {
                   ...screenOptions,
                   ...getTabOptions(route.name),
@@ -97,6 +97,10 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={HomePage}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.CONCIERGE_SPLIT_NAVIGATOR}
+                    component={ConciergeSplitNavigator}
                 />
                 <Tab.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}

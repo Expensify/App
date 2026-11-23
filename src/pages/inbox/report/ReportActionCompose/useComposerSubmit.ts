@@ -1,6 +1,7 @@
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInConciergePage from '@hooks/useIsInConciergePage';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -32,6 +33,7 @@ import useSidePanelContext from './useSidePanelContext';
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
+    const isInConciergePage = useIsInConciergePage();
     const sidePanelContext = useSidePanelContext(reportID);
     const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
@@ -107,7 +109,12 @@ function useComposerSubmit(reportID: string) {
             return;
         }
 
-        if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
+        // On the Concierge page every message to Concierge starts a thread, tasks included, and Concierge handles it there
+        const shouldStartThread = shouldRespondInThread && isInConciergePage;
+        if (
+            !shouldStartThread &&
+            createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})
+        ) {
             if (shouldRespondInThread && !isInSidePanel) {
                 setShowFullHistory(true);
             }

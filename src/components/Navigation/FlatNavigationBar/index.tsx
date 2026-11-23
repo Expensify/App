@@ -6,6 +6,7 @@ import {DEFAULT_INSIGHTS_TAB_ROUTE} from '@components/Navigation/NavigationTabBa
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
+import useConciergeTabNavigation from '@components/Navigation/NavigationTabBar/useConciergeTabNavigation';
 import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHomeTabNavigation';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
@@ -24,6 +25,7 @@ import {
 import ScrollView from '@components/ScrollView';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import useConciergeTabIndicatorStatus from '@hooks/useConciergeTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -67,17 +69,19 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
+    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Concierge', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isCollapsed, isPeeking, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
 
     const {status: inboxStatus, indicatorColor: inboxIndicatorColor} = useInboxTabIndicatorStatus();
     const {status: workspacesStatus, indicatorColor: workspacesIndicatorColor} = useWorkspacesTabIndicatorStatus();
     const {status: accountStatus} = useAccountTabIndicatorStatus();
+    const {hasUnreadConversation: hasUnreadConciergeConversation, indicatorColor: conciergeIndicatorColor} = useConciergeTabIndicatorStatus();
 
     const isHomeSelected = selectedTab === NAVIGATION_TABS.HOME;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
 
+    const navigateToConcierge = useConciergeTabNavigation(selectedTab === NAVIGATION_TABS.CONCIERGE);
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
     const getSignedInLinkRoute = useSignedInLinkRoute();
@@ -216,6 +220,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                                 onPress={navigateToHome}
                                                 linkRoute={ROUTES.HOME}
+                                            />
+                                            <FlatNavItem
+                                                isCollapsed={isVisuallyCollapsed}
+                                                label={translate('common.concierge.title')}
+                                                icon={icons.Concierge}
+                                                isSelected={selectedTab === NAVIGATION_TABS.CONCIERGE}
+                                                statusIndicatorColor={hasUnreadConciergeConversation ? conciergeIndicatorColor : undefined}
+                                                accessibilityLabel={getTabAccessibilityLabel(translate('common.concierge.title'), hasUnreadConciergeConversation, translate)}
+                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.CONCIERGE}
+                                                onPress={navigateToConcierge}
                                             />
                                             <FlatNavItem
                                                 isCollapsed={isVisuallyCollapsed}
