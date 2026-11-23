@@ -96,10 +96,10 @@ describe('DotIndicatorMessage selection override', () => {
 
 describe('DotIndicatorMessage receipt error server reason', () => {
     it('renders the server rejection message while keeping receipt retry and save actions', () => {
-        // Given a receipt error carrying a server rejection reason and a retry callback.
+        // Given a receipt error alongside a server rejection reason and a retry callback.
         const serverReason = 'New expenses cannot be added to this report.';
 
-        // When rendering DotIndicatorMessage with that receipt error.
+        // When rendering DotIndicatorMessage with both errors.
         render(
             <DotIndicatorMessage
                 messages={{
@@ -108,8 +108,8 @@ describe('DotIndicatorMessage receipt error server reason', () => {
                         source: 'file:///receipt.jpg',
                         filename: 'receipt.jpg',
                         action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
-                        message: serverReason,
                     },
+                    serverError: serverReason,
                 }}
                 type="error"
                 onRetryReceiptUpload={jest.fn()}

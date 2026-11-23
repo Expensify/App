@@ -329,9 +329,6 @@ type ReceiptError = {
     /** Parameters required to retry the failed action */
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
-    /** Server rejection reason when the failure is not a generic upload error */
-    message?: string;
-
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 

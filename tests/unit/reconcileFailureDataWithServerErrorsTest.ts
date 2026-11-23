@@ -90,7 +90,7 @@ describe('reconcileFailureDataWithServerErrors', () => {
         ]);
     });
 
-    it('preserves ReceiptError retry metadata and attaches the server rejection message', () => {
+    it('preserves ReceiptError retry metadata unchanged when server errors are present', () => {
         // Given a scan expense failure where the server wrote a rejection reason to onyxData.
         const receiptError = {
             error: CONST.IOU.RECEIPT_ERROR,
@@ -140,13 +140,13 @@ describe('reconcileFailureDataWithServerErrors', () => {
         // When reconciling failureData against the server errors.
         const result = reconcileFailureDataWithServerErrors(failureData, responseOnyxData);
 
-        // Then every ReceiptError keeps its retry fields and receives the server rejection reason.
+        // Then every ReceiptError stays intact so the UI can show the server error alongside retry controls.
         expect(result).toEqual([
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: transactionKey,
                 value: {
-                    errors: {[clientErrorKey]: {...receiptError, message: serverReason}},
+                    errors: {[clientErrorKey]: receiptError},
                     pendingFields: {receipt: null},
                 },
             },
@@ -155,7 +155,7 @@ describe('reconcileFailureDataWithServerErrors', () => {
                 key: reportActionsKey,
                 value: {
                     [actionID]: {
-                        errors: {[clientErrorKey]: {...receiptError, message: serverReason}},
+                        errors: {[clientErrorKey]: receiptError},
                     },
                 },
             },

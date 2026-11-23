@@ -8,6 +8,7 @@ import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 
 import DateUtils from './DateUtils';
@@ -263,6 +264,28 @@ function isTranslationKeyError(message: unknown): message is TranslationKeyError
     return (message as Record<string, unknown>)?.translationKey !== undefined;
 }
 
+/** Returns the latest non-empty HTML-decoded string error from an error map that may also contain ReceiptError entries. */
+function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): string | undefined {
+    if (!errors) {
+        return undefined;
+    }
+
+    const latestKey = Object.keys(errors)
+        .sort()
+        .reverse()
+        .find((key) => {
+            const error = errors[key];
+            return typeof error === 'string' && error.trim().length > 0;
+        });
+
+    if (!latestKey) {
+        return undefined;
+    }
+
+    const error = errors[latestKey];
+    return typeof error === 'string' ? Str.htmlDecode(error) : undefined;
+}
+
 export {
     addErrorMessage,
     getAuthenticateErrorMessage,
@@ -275,6 +298,7 @@ export {
     getLatestErrorMessage,
     getLatestErrorMessageField,
     getLatestError,
+    getLatestStringErrorMessage,
     getMicroSecondOnyxErrorWithTranslationKey,
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,

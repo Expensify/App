@@ -11325,12 +11325,6 @@ function hasReceiptError(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return Object.values(errorMessages).some((error) => isReceiptError(error));
 }
 
-function getReceiptErrorServerReason(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
-    const errors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
-    const receiptError = Object.values(errors ?? {}).find(isReceiptError);
-    return receiptError?.message?.trim() ? receiptError.message : undefined;
-}
-
 /**
  * Checks to see if a report contains a violation of type `notice`
  */
@@ -16265,7 +16259,6 @@ export {
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasReceiptError,
-    getReceiptErrorServerReason,
     hasReportNameError,
     getReportActionWithSmartscanError,
     hasSmartscanError,

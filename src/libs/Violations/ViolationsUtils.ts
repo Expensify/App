@@ -518,6 +518,8 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         allErrors = {...allErrors, ...action.errors};
     }
 
+    let hasReceiptUploadError = false;
+
     // Extract error messages
     for (const errorValue of Object.values(allErrors)) {
         if (!errorValue) {
@@ -526,7 +528,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            hasReceiptUploadError = true;
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
@@ -535,6 +537,10 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
                 uniqueMessages.add(nestedErrorValue);
             }
         }
+    }
+
+    if (hasReceiptUploadError && uniqueMessages.size === 0) {
+        uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
     }
 
     return Array.from(uniqueMessages);

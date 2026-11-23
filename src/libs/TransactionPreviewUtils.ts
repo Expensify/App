@@ -10,7 +10,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
 import truncate from 'lodash/truncate';
 
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
@@ -18,6 +17,7 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import {getLatestStringErrorMessage} from './ErrorUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {
@@ -28,7 +28,7 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
 } from './ReportActionsUtils';
-import {getReceiptErrorServerReason, hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -248,8 +248,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        const serverReason = getReceiptErrorServerReason(transaction);
-        RBRMessage = serverReason ? {text: Str.htmlDecode(serverReason)} : {translationPath: 'iou.error.receiptFailureMessageShort'};
+        const serverReason = getLatestStringErrorMessage(transaction?.errors);
+        RBRMessage = serverReason ? {text: serverReason} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {

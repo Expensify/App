@@ -208,20 +208,22 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays the server rejection reason on a receipt error when present', () => {
-            // Given a scan transaction whose ReceiptError carries a server rejection reason
+            // Given a scan transaction with both a ReceiptError and a server rejection message
             const serverReason = 'New expenses cannot be added to this report.';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+            const mixedErrors = {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+                serverError: serverReason,
+            } as unknown as Transaction['errors'];
             const functionArgs = {
                 ...basicProps,
                 transaction: {
                     ...basicProps.transaction,
-                    errors: {
-                        receiptError: {
-                            error: CONST.IOU.RECEIPT_ERROR,
-                            source: 'file:///receipt.jpg',
-                            filename: 'receipt.jpg',
-                            message: serverReason,
-                        },
-                    },
+                    errors: mixedErrors,
                 },
                 violations: [],
                 originalTransaction: undefined,

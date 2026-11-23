@@ -6,7 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
+import {getLatestStringErrorMessage, isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getPlatform from '@libs/getPlatform';
 
@@ -130,6 +130,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     };
 
     if (receiptError) {
+        const serverError = getLatestStringErrorMessage(messages);
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
@@ -138,9 +139,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
-                    {receiptError.message
-                        ? Str.htmlDecode(receiptError.message)
-                        : translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
+                    {serverError ?? translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
                 </Text>
             </View>
         );

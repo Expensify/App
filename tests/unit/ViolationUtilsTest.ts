@@ -5002,6 +5002,64 @@ describe('getRBRMessages', () => {
 
         expect(result).toBe(expectedResult);
     });
+
+    it('should omit the generic receipt failure message when a server error is present alongside a ReceiptError', () => {
+        // Given a scan transaction with both a server rejection string and a ReceiptError.
+        const serverReason = 'New expenses cannot be added to this report.';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+            },
+            serverError: serverReason,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then only the server rejection reason is returned without appending Receipt upload failed.
+        expect(result).toBe(serverReason);
+    });
+
+    it('should keep the generic receipt failure message when only a ReceiptError is present', () => {
+        // Given a scan transaction with only a ReceiptError and no server error string.
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then the generic short receipt failure copy is still returned.
+        expect(result).toBe(translateLocal('iou.error.receiptFailureMessageShort'));
+    });
 });
 
 describe('hasVisibleViolationsForUser', () => {
