@@ -2,11 +2,11 @@ import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/Charts/utils';
 import {ELLIPSIS, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 import type {Scale} from 'victory-native';
 
-import {Paragraph} from '@shopify/react-native-skia';
 import React from 'react';
+import {Paragraph} from 'react-native-skia';
 
 type ChartYAxisLabelsProps = {
     /** Tick values on the Y axis. */

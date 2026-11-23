@@ -830,12 +830,16 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             willPushNewRequest: conflictAction.pushNewRequest ?? false,
             hasNextAction: !!conflictAction.nextAction,
         });
-        await deletePersistedRequestsByIndices(conflictAction.indices);
+        const deletion = deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
             Log.info('[SequentialQueue] Pushing new request after delete', false, {
                 command: newRequest.command,
             });
-            await savePersistedRequest(newRequest);
+            // Both calls update the queue in memory before returning. Append before awaiting persistence so a request
+            // queued in the meantime cannot be saved and sent ahead of this one.
+            await Promise.all([deletion, savePersistedRequest(newRequest)]);
+        } else {
+            await deletion;
         }
         if (conflictAction.nextAction) {
             Log.info('[SequentialQueue] Processing next conflict action', false, {

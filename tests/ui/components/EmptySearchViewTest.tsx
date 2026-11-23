@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -7,6 +7,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import * as SearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
+import * as MoneyRequest from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues, buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -17,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultTheme} from '@src/styles/theme';
 import type {Beta, Policy} from '@src/types/onyx';
 
-import React, {useContext, useMemo} from 'react';
+import React, {Profiler, useContext, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -226,6 +227,66 @@ describe('EmptySearchView', () => {
 
     describe('type is Expense', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+        it('should not re-render when a draft is written while Search is hidden', async () => {
+            // Given the empty state is rendered on a hidden Search tab inside a Profiler and has settled
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+            });
+            const onRender = jest.fn();
+            render(
+                <Profiler
+                    id="EmptySearchView"
+                    onRender={onRender}
+                >
+                    <Wrapper>
+                        <EmptySearchView
+                            similarSearchHash={1}
+                            type={dataType}
+                            hasResults={false}
+                            isScreenFocused={false}
+                        />
+                    </Wrapper>
+                </Profiler>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            const renderCountBeforeDraft = onRender.mock.calls.length;
+
+            // When Create expense writes its draft
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the hidden empty state does not re-render
+            expect(renderCountBeforeDraft).toBeGreaterThan(0);
+            expect(onRender).toHaveBeenCalledTimes(renderCountBeforeDraft);
+        });
+
+        it('should pass the current draft IDs when Create expense is pressed', async () => {
+            // Given a signed in user with a draft left from an earlier Create expense flow
+            const startMoneyRequestSpy = jest.spyOn(MoneyRequest, 'startMoneyRequest').mockImplementation(() => {});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+            });
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={1}
+                        type={dataType}
+                        hasResults={false}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses Create expense
+            fireEvent.press(await screen.findByText(translateLocal('iou.createExpense')));
+
+            // Then that draft goes to startMoneyRequest, so starting a new flow still clears it
+            await waitFor(() => expect(startMoneyRequestSpy).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), ['draft1']));
+        });
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
             // Given user hasn't clicked on "Take a test drive" yet
