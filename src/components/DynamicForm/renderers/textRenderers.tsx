@@ -1,6 +1,6 @@
 import AmountForm from '@components/AmountForm';
+import CurrencyDropdownAdapter from '@components/CurrencyDropdownAdapter';
 import DatePicker from '@components/DatePicker';
-import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
@@ -130,6 +130,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={CurrencyDropdownAdapter}
+                            sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                            backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                             inputID={field.currencyKey}
                             shouldSaveDraft={inputProps.shouldSaveDraft}
                             forwardedFSClass={inputProps.forwardedFSClass}

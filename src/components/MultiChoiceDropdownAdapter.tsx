@@ -1,46 +1,52 @@
 /** Form input for a choice field that takes several answers, drawn as the expense form's dropdown row */
-import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
-import type {DynamicFormChoice} from '@components/DynamicForm/utils/getFieldOptions';
-import MultiValuePickerPopover from '@components/ValuePicker/MultiValuePickerPopover';
-import MultiValueSelectionList from '@components/ValuePicker/MultiValueSelectionList';
-
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, Ref} from 'react';
 import type {View} from 'react-native';
 
 import React from 'react';
 
-type MultiChoiceDropdownAdapterProps = ForwardedFSClassProps & {
-    /** Options, one row each */
-    items: DynamicFormChoice[];
+import type {DropdownChoice} from './DropdownChoiceAdapter';
+import type {DropdownRowSentryLabelProps} from './FormDropdownField';
 
-    /** Name of the field, shown in the row and read with its value */
-    label: string;
+import FormDropdownField from './FormDropdownField';
+import MultiValuePickerPopover from './ValuePicker/MultiValuePickerPopover';
+import MultiValueSelectionList from './ValuePicker/MultiValueSelectionList';
 
-    /** Heading of the list once it opens */
-    title: string;
+type MultiChoiceDropdownAdapterProps = ForwardedFSClassProps &
+    DropdownRowSentryLabelProps & {
+        /** Options, one row each */
+        items: DropdownChoice[];
 
-    /** Keys of the picked options. FormProvider starts an unanswered list field as an empty string. */
-    value?: string[] | string;
+        /** Sentry label for the Apply button, in the anchored list and on the full page */
+        applyButtonSentryLabel: SentryLabel;
 
-    /** Called with the keys of the applied options. Applying the options the field already holds does not call it. */
-    onInputChange?: (value: string[]) => void;
+        /** Name of the field, shown in the row and read with its value */
+        label: string;
 
-    /** Validation error shown under the row */
-    errorText?: string;
+        /** Heading of the list once it opens */
+        title: string;
 
-    /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-    disabled?: boolean;
+        /** Keys of the picked options. FormProvider starts an unanswered list field as an empty string. */
+        value?: string[] | string;
 
-    /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-    ref?: Ref<ComponentRef<typeof View>>;
+        /** Called with the keys of the applied options. Applying the options the field already holds does not call it. */
+        onInputChange?: (value: string[]) => void;
 
-    /** Called when the list closes, so FormProvider validates a field closed without an answer */
-    onBlur?: () => void;
-};
+        /** Validation error shown under the row */
+        errorText?: string;
+
+        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        disabled?: boolean;
+
+        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
+        ref?: Ref<ComponentRef<typeof View>>;
+
+        /** Called when the list closes, so FormProvider validates a field closed without an answer */
+        onBlur?: () => void;
+    };
 
 function haveSameValues(first: string[], second: string[]) {
     return first.length === second.length && first.every((value) => second.includes(value));
@@ -51,7 +57,21 @@ function haveSameValues(first: string[], second: string[]) {
  * button, as the attendees row applies its selection. A field that asks the server for new requirements therefore asks
  * once per Apply rather than once per checked option.
  */
-function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: MultiChoiceDropdownAdapterProps) {
+function MultiChoiceDropdownAdapter({
+    items,
+    label,
+    title,
+    value,
+    onInputChange,
+    errorText = '',
+    disabled = false,
+    forwardedFSClass,
+    ref,
+    onBlur,
+    sentryLabel,
+    backButtonSentryLabel,
+    applyButtonSentryLabel,
+}: MultiChoiceDropdownAdapterProps) {
     const selectedValues = Array.isArray(value) ? value : [];
     const displayValue = items
         .filter((item) => selectedValues.includes(item.value))
@@ -68,7 +88,7 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
     };
 
     return (
-        <DynamicFormDropdownField
+        <FormDropdownField
             label={label}
             value={displayValue}
             title={title}
@@ -77,16 +97,17 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
             rowRef={ref}
             onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
+            sentryLabel={sentryLabel}
             renderDropdown={(dropdownProps) => (
                 <MultiValuePickerPopover
                     {...dropdownProps}
                     shouldShowHeader
                     title={title}
-                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
+                    backButtonSentryLabel={backButtonSentryLabel}
                     items={items}
                     selectedValues={selectedValues}
                     onApply={applyValues}
-                    applyButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY}
+                    applyButtonSentryLabel={applyButtonSentryLabel}
                     forwardedFSClass={forwardedFSClass}
                 />
             )}
@@ -99,7 +120,7 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
                         applyValues(appliedValues);
                         onClose();
                     }}
-                    applyButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY}
+                    applyButtonSentryLabel={applyButtonSentryLabel}
                     addBottomSafeAreaPadding
                 />
             )}

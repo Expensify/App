@@ -1,24 +1,30 @@
-/** The dropdown row every DynamicForm choice field shares, with the full-page list it falls back to */
-import DropdownField from '@components/DropdownField';
-import type {DropdownFieldRenderProps} from '@components/DropdownField';
-import FSClassView from '@components/FSClassView';
-import ModalContext from '@components/Modal/ModalContext';
-import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
-
+/** A form field drawn as a dropdown row, with the full-page list it falls back to. See the dropdown rows section of contributingGuides/FORMS.md */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import CONST from '@src/CONST';
+import type {SentryLabel, WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
 import React, {useContext, useState} from 'react';
 
-import DynamicFormFullPageList from './DynamicFormFullPageList';
+import type {DropdownFieldRenderProps} from './DropdownField';
 
-type DynamicFormDropdownFieldRenderProps = {
+import DropdownField from './DropdownField';
+import FormDropdownFullPageList from './FormDropdownFullPageList';
+import FSClassView from './FSClassView';
+import ModalContext from './Modal/ModalContext';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from './SelectionListPopoverHeader';
+
+/** Sentry labels every dropdown row input takes: one for the row, one for the back button of its anchored list */
+type DropdownRowSentryLabelProps = WithRequiredSentryLabel & {
+    /** Sentry label for the back button in the header of the anchored list, so each form's presses are attributed to it */
+    backButtonSentryLabel: SentryLabel;
+};
+
+type FormDropdownFieldRenderProps = {
     /** Whether the list is open, so a list that keeps unapplied picks can drop them each time it opens or closes */
     isVisible: boolean;
 
@@ -26,37 +32,38 @@ type DynamicFormDropdownFieldRenderProps = {
     onClose: () => void;
 };
 
-type DynamicFormDropdownFieldProps = ForwardedFSClassProps & {
-    /** Name of the field, shown in the row and read with its value */
-    label: string;
+type FormDropdownFieldProps = ForwardedFSClassProps &
+    WithRequiredSentryLabel & {
+        /** Name of the field, shown in the row and read with its value */
+        label: string;
 
-    /** The answer as the row shows it. Empty leaves the field name as the placeholder */
-    value?: string;
+        /** The answer as the row shows it. Empty leaves the field name as the placeholder */
+        value?: string;
 
-    /** Name screen readers hear in place of `label` and `value`, for a field whose label alone does not say what it belongs to */
-    accessibilityLabel?: string;
+        /** Name screen readers hear in place of `label` and `value`, for a field whose label alone does not say what it belongs to */
+        accessibilityLabel?: string;
 
-    /** Heading of the list once it opens, on the narrow layout's sheet and on the full page */
-    title: string;
+        /** Heading of the list once it opens, on the narrow layout's sheet and on the full page */
+        title: string;
 
-    /** Validation error shown under the row and read with it */
-    errorText: string;
+        /** Validation error shown under the row and read with it */
+        errorText: string;
 
-    /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-    disabled: boolean;
+        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        disabled: boolean;
 
-    /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-    rowRef?: Ref<ComponentRef<typeof View>>;
+        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
+        rowRef?: Ref<ComponentRef<typeof View>>;
 
-    /** Called each time the list closes, so FormProvider marks the field touched and shows a required error for a list closed without an answer */
-    onBlur?: () => void;
+        /** Called each time the list closes, so FormProvider marks the field touched and shows a required error for a list closed without an answer */
+        onBlur?: () => void;
 
-    /** The field's list in the container anchored to the row. Only called once the row is first pressed. The container renders outside the row, so the list masks itself with `forwardedFSClass` */
-    renderDropdown: (props: DropdownFieldRenderProps) => ReactNode;
+        /** The field's list in the container anchored to the row. Only called once the row is first pressed. The container renders outside the row, so the list masks itself with `forwardedFSClass` */
+        renderDropdown: (props: DropdownFieldRenderProps) => ReactNode;
 
-    /** The same list on a page of its own, for when neither side of the row has room for one option */
-    renderFullPageList: (props: DynamicFormDropdownFieldRenderProps) => ReactNode;
-};
+        /** The same list on a page of its own, for when neither side of the row has room for one option */
+        renderFullPageList: (props: FormDropdownFieldRenderProps) => ReactNode;
+    };
 
 /**
  * A choice field drawn as the expense form's dropdown row: a bordered box like a text input whose options open in a
@@ -64,7 +71,7 @@ type DynamicFormDropdownFieldProps = ForwardedFSClassProps & {
  * navigate to, so when the row has no room for its container, or sits in a modal the container would draw behind, the
  * list opens on a full page instead, masked like the field.
  */
-function DynamicFormDropdownField({
+function FormDropdownField({
     label,
     value,
     accessibilityLabel,
@@ -76,7 +83,8 @@ function DynamicFormDropdownField({
     renderDropdown,
     renderFullPageList,
     onBlur,
-}: DynamicFormDropdownFieldProps) {
+    sentryLabel,
+}: FormDropdownFieldProps) {
     const styles = useThemeStyles();
     // BaseModal tells its children they render inside it, so any modal holding the fields opens the full page
     const isInsideModal = !useContext(ModalContext).default;
@@ -109,9 +117,9 @@ function DynamicFormDropdownField({
                         },
                     })
                 }
-                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                sentryLabel={sentryLabel}
             />
-            <DynamicFormFullPageList
+            <FormDropdownFullPageList
                 isVisible={isFullPageListVisible}
                 title={title}
                 onClose={closeFullPageList}
@@ -122,10 +130,10 @@ function DynamicFormDropdownField({
                 >
                     {renderFullPageList({isVisible: isFullPageListVisible, onClose: closeFullPageList})}
                 </FSClassView>
-            </DynamicFormFullPageList>
+            </FormDropdownFullPageList>
         </>
     );
 }
 
-export default DynamicFormDropdownField;
-export type {DynamicFormDropdownFieldRenderProps};
+export default FormDropdownField;
+export type {DropdownRowSentryLabelProps, FormDropdownFieldRenderProps};

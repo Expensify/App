@@ -1,4 +1,4 @@
-import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
+import DropdownChoiceAdapter from '@components/DropdownChoiceAdapter';
 import {getCountryChoices} from '@components/DynamicForm/utils/getFieldOptions';
 import InputWrapper from '@components/Form/InputWrapper';
 
@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {useAddressFields} from '@pages/ReimbursementAccount/AddressFormFields/AddressFields';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -26,6 +28,8 @@ function DynamicFormAddressCountryDropdown({disabled = false}: DynamicFormAddres
         <View style={styles.mt4}>
             <InputWrapper
                 InputComponent={DropdownChoiceAdapter}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                 inputID={inputKeys.country ?? 'country'}
                 shouldSaveDraft={shouldSaveDraft}
                 items={getCountryChoices(translate)}

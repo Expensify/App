@@ -1,51 +1,65 @@
 /** Form input for a currency field, drawn as the expense form's dropdown row */
-import CurrencyPickerPopover from '@components/CurrencyPickerPopover';
-import CurrencySelectionList from '@components/CurrencySelectionList';
-import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
-
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
-import CONST from '@src/CONST';
 
 import type {ComponentRef, Ref} from 'react';
 import type {View} from 'react-native';
 
 import React from 'react';
 
-type CurrencyDropdownAdapterProps = ForwardedFSClassProps & {
-    /** Name of the field, shown in the row */
-    label: string;
+import type {DropdownRowSentryLabelProps} from './FormDropdownField';
 
-    /** Heading of the list once it opens */
-    title: string;
+import CurrencyPickerPopover from './CurrencyPickerPopover';
+import CurrencySelectionList from './CurrencySelectionList';
+import FormDropdownField from './FormDropdownField';
 
-    /** Name screen readers hear instead of `label`, for a currency whose label alone does not say which amount it belongs to */
-    accessibilityLabel?: string;
+type CurrencyDropdownAdapterProps = ForwardedFSClassProps &
+    DropdownRowSentryLabelProps & {
+        /** Name of the field, shown in the row */
+        label: string;
 
-    /** Currency code */
-    value?: string;
+        /** Heading of the list once it opens */
+        title: string;
 
-    /** Called with a newly picked currency code. Picking the currency the field already holds does not call it. */
-    onInputChange?: (value: string) => void;
+        /** Name screen readers hear instead of `label`, for a currency whose label alone does not say which amount it belongs to */
+        accessibilityLabel?: string;
 
-    /** Validation error shown under the row */
-    errorText?: string;
+        /** Currency code */
+        value?: string;
 
-    /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-    disabled?: boolean;
+        /** Called with a newly picked currency code. Picking the currency the field already holds does not call it. */
+        onInputChange?: (value: string) => void;
 
-    /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-    ref?: Ref<ComponentRef<typeof View>>;
+        /** Validation error shown under the row */
+        errorText?: string;
 
-    /** Called when the list closes, so FormProvider validates a field closed without an answer */
-    onBlur?: () => void;
-};
+        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        disabled?: boolean;
+
+        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
+        ref?: Ref<ComponentRef<typeof View>>;
+
+        /** Called when the list closes, so FormProvider validates a field closed without an answer */
+        onBlur?: () => void;
+    };
 
 /** A currency field whose searchable currency list opens in a container anchored to its row */
-function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: CurrencyDropdownAdapterProps) {
+function CurrencyDropdownAdapter({
+    label,
+    title,
+    accessibilityLabel,
+    value,
+    onInputChange,
+    errorText = '',
+    disabled = false,
+    forwardedFSClass,
+    ref,
+    onBlur,
+    sentryLabel,
+    backButtonSentryLabel,
+}: CurrencyDropdownAdapterProps) {
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const currencyCode = value === '' ? undefined : value;
@@ -59,7 +73,7 @@ function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInp
     };
 
     return (
-        <DynamicFormDropdownField
+        <FormDropdownField
             label={label}
             value={displayValue}
             accessibilityLabel={accessibilityLabel ? [accessibilityLabel, displayValue].filter(Boolean).join(', ') : undefined}
@@ -69,13 +83,14 @@ function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInp
             rowRef={ref}
             onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
+            sentryLabel={sentryLabel}
             renderDropdown={(dropdownProps) => (
                 <CurrencyPickerPopover
                     {...dropdownProps}
                     shouldFitContentHeight
                     shouldShowHeader
                     title={title}
-                    backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
+                    backButtonSentryLabel={backButtonSentryLabel}
                     selectedCurrencyCode={currencyCode}
                     onSelected={(item) => selectCurrency(item.currencyCode)}
                     forwardedFSClass={forwardedFSClass}

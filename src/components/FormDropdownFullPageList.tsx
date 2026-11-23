@@ -1,15 +1,15 @@
-/** A DynamicForm choice field's list on a page of its own */
-import Header from '@components/Header';
-import Modal from '@components/Modal';
-import ScreenWrapper from '@components/ScreenWrapper';
-
+/** The list of a form's dropdown row on a page of its own */
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
 
-type DynamicFormFullPageListProps = {
+import Header from './Header';
+import Modal from './Modal';
+import ScreenWrapper from './ScreenWrapper';
+
+type FormDropdownFullPageListProps = {
     isVisible: boolean;
 
     /** Heading of the page, the field's question */
@@ -27,7 +27,7 @@ type DynamicFormFullPageListProps = {
  * one option, where the expense form would navigate to the field's page. A form field has no page to go to, so its
  * list opens here instead.
  */
-function DynamicFormFullPageList({isVisible, title, onClose, children}: DynamicFormFullPageListProps) {
+function FormDropdownFullPageList({isVisible, title, onClose, children}: FormDropdownFullPageListProps) {
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -40,7 +40,7 @@ function DynamicFormFullPageList({isVisible, title, onClose, children}: DynamicF
             <ScreenWrapper
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="DynamicFormFullPageList"
+                testID="FormDropdownFullPageList"
             >
                 <Header>
                     <Header.BackButton onPress={onClose} />
@@ -52,4 +52,4 @@ function DynamicFormFullPageList({isVisible, title, onClose, children}: DynamicF
     );
 }
 
-export default DynamicFormFullPageList;
+export default FormDropdownFullPageList;

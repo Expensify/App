@@ -1,6 +1,6 @@
+import type {DropdownChoice} from '@components/DropdownChoiceAdapter';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {Choice} from '@components/RadioButtons';
 
 import StringUtils from '@libs/StringUtils';
 
@@ -11,11 +11,6 @@ import getLocalizedText from './getLocalizedText';
 import isCountryCode from './isCountryCode';
 
 type DynamicFormOptionField = DynamicFormChoiceField | DynamicFormMultiChoiceField | DynamicFormCountryField;
-
-type DynamicFormChoice = Choice & {
-    /** Text a list's search matches instead of the label. Countries list their ISO code and name, as the country selector searches them. */
-    searchValue?: string;
-};
 
 const COUNTRY_OPTIONS: DynamicFormFieldOption[] = Object.keys(CONST.ALL_COUNTRIES)
     .filter(isCountryCode)
@@ -47,18 +42,19 @@ function getOptionLabel(option: DynamicFormFieldOption, translate: LocalizedTran
     return getLocalizedText(translate, option.labelKey, option.label) ?? option.key;
 }
 
-function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate, isCountryList: boolean): DynamicFormChoice[] {
+function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTranslate, isCountryList: boolean): DropdownChoice[] {
     return options.map((option) => {
         const label = getOptionLabel(option, translate);
         return {
             value: option.key,
             label,
+            // Countries list their ISO code and name, as the country selector searches them
             searchValue: isCountryList ? StringUtils.sanitizeString(`${option.key}${label}`) : undefined,
         };
     });
 }
 
-function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DynamicFormChoice[] {
+function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValues, translate: LocalizedTranslate): DropdownChoice[] {
     const options = getFieldOptions(field, values);
     // Wise sends some country lists, like the account holder's address country, as a `select` of country codes, so those search by code too
     const isCountryField = field.type === 'country' || field.type === 'countryMultiselect' || (options.length > 0 && options.every((option) => isCountryCode(option.key)));
@@ -66,10 +62,9 @@ function getFieldChoices(field: DynamicFormOptionField, values: DynamicFormValue
 }
 
 /** Every country, listed and searched the way a country field lists them, for the country of an address */
-function getCountryChoices(translate: LocalizedTranslate): DynamicFormChoice[] {
+function getCountryChoices(translate: LocalizedTranslate): DropdownChoice[] {
     return getChoices(COUNTRY_OPTIONS, translate, true);
 }
 
 export default getFieldOptions;
 export {getCountryChoices, getFieldChoices, getOptionLabel};
-export type {DynamicFormChoice};
