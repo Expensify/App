@@ -1,4 +1,4 @@
-import {hasInFlightSearch, search} from '@libs/actions/Search';
+import {hasInFlightSearch, search, waitForInFlightSearch} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -57,5 +57,35 @@ describe('hasInFlightSearch', () => {
 
         // Then the query is no longer loading
         expect(hasInFlightSearch(queryJSON.hash)).toBe(false);
+    });
+
+    it('waits for every loading page of the query, and resolves at once when none is loading', async () => {
+        // Given a group loading its first page and its "show more" page at the same time
+        const queryJSON = getQueryJSON('type:expense category:Food');
+        const resolveFirstPage = holdNextRequest();
+        const resolveShowMore = holdNextRequest();
+        search({queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        search({queryJSON, searchKey: undefined, offset: 50, shouldCalculateTotals: false, isLoading: false});
+        await Promise.resolve();
+
+        // When something waits for the query's running searches
+        const onFinished = jest.fn();
+        const waiting = waitForInFlightSearch(queryJSON.hash).then(onFinished);
+
+        // Then it is still waiting after only the first page lands
+        resolveFirstPage();
+        await new Promise<void>((resolve) => {
+            setTimeout(resolve, 0);
+        });
+        expect(onFinished).not.toHaveBeenCalled();
+
+        // And it finishes once the "show more" page lands too, with nothing left loading
+        resolveShowMore();
+        await waiting;
+        expect(onFinished).toHaveBeenCalled();
+        expect(hasInFlightSearch(queryJSON.hash)).toBe(false);
+
+        // And a query with nothing loading doesn't wait at all
+        await expect(waitForInFlightSearch(getQueryJSON('type:expense category:Travel').hash)).resolves.toBeUndefined();
     });
 });

@@ -2,7 +2,7 @@
 import type {SearchListItem, TransactionGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
-import {hasInFlightSearch, search} from '@libs/actions/Search';
+import {hasInFlightSearch, search, waitForInFlightSearch} from '@libs/actions/Search';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem} from '@libs/SearchUIUtils';
 
 import type {Transaction} from '@src/types/onyx';
@@ -43,11 +43,41 @@ function fetchGroupFirstPage(queryJSON: SearchQueryJSON) {
 
 function useOpenGroupsRefetch({data, expandedGroups, newTransactions, groupBy}: UseOpenGroupsRefetchParams) {
     const isScreenFocused = useIsFocused();
+    const isMountedRef = useRef(true);
+    const groupsWaitingToRefetchRef = useRef(new Set<number>());
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    // The RHP can close before the new expense is written, so coming back to the screen fetches the group without it.
+    // Skipping because that search is running would leave the expense out, so fetch again once the search finishes.
+    const refetchGroupWithNewTransaction = (queryJSON: SearchQueryJSON) => {
+        const {hash} = queryJSON;
+        if (!hasInFlightSearch(hash)) {
+            fetchGroupFirstPage(queryJSON);
+            return;
+        }
+        if (groupsWaitingToRefetchRef.current.has(hash)) {
+            return;
+        }
+        groupsWaitingToRefetchRef.current.add(hash);
+        waitForInFlightSearch(hash).then(() => {
+            groupsWaitingToRefetchRef.current.delete(hash);
+            if (!isMountedRef.current) {
+                return;
+            }
+            refetchGroupWithNewTransaction(queryJSON);
+        });
+    };
 
     const refetchOpenGroupsWithNewTransactions = useEffectEvent(() => {
         for (const group of getOpenGroups(data, expandedGroups)) {
             if (newTransactions.some((transaction) => isTransactionMatchWithGroupItem(transaction, group, groupBy))) {
-                fetchGroupFirstPage(group.transactionsQueryJSON);
+                refetchGroupWithNewTransaction(group.transactionsQueryJSON);
             }
         }
     });

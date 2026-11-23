@@ -1,9 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useOpenGroupsRefetch from '@components/Search/hooks/useOpenGroupsRefetch';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
-import {hasInFlightSearch, search} from '@libs/actions/Search';
+import {hasInFlightSearch, search, waitForInFlightSearch} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -20,10 +20,33 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
     hasInFlightSearch: jest.fn(() => false),
+    waitForInFlightSearch: jest.fn(() => Promise.resolve()),
 }));
 
 const mockSearch = jest.mocked(search);
 const mockHasInFlightSearch = jest.mocked(hasInFlightSearch);
+const mockWaitForInFlightSearch = jest.mocked(waitForInFlightSearch);
+
+/** Holds the group's running search open until the test finishes it */
+function holdInFlightSearch(hash: number | undefined) {
+    let finishSearch = () => {};
+    mockHasInFlightSearch.mockImplementation((searchHash) => searchHash === hash);
+    mockWaitForInFlightSearch.mockImplementation(
+        () =>
+            new Promise<void>((resolve) => {
+                finishSearch = () => {
+                    mockHasInFlightSearch.mockReturnValue(false);
+                    resolve();
+                };
+            }),
+    );
+    return async () => {
+        await act(async () => {
+            finishSearch();
+            await Promise.resolve();
+        });
+    };
+}
 
 const FOOD_QUERY = buildSearchQueryJSON('type:expense category:Food');
 const TRAVEL_QUERY = buildSearchQueryJSON('type:expense category:Travel');
@@ -54,7 +77,10 @@ function renderRefetch(initialProps: HookProps) {
 
 beforeEach(() => {
     mockSearch.mockClear();
+    mockHasInFlightSearch.mockReset();
     mockHasInFlightSearch.mockReturnValue(false);
+    mockWaitForInFlightSearch.mockReset();
+    mockWaitForInFlightSearch.mockResolvedValue(undefined);
     mockIsScreenFocused.current = true;
 });
 
@@ -158,5 +184,55 @@ describe('useOpenGroupsRefetch', () => {
         // Then only the other group is fetched, because fetching the first page would reset the loading group's offset under it
         expect(mockSearch).toHaveBeenCalledTimes(1);
         expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: TRAVEL_QUERY, offset: 0}));
+    });
+
+    it('fetches an open group again after its running search finishes when an expense is created in it', async () => {
+        // Given an open group whose search was sent before the new expense was written, as when the RHP closes first and
+        // returning to the screen fetches the group again
+        const expandedGroups = new Set(['Food']);
+        const {rerender} = renderRefetch({expandedGroups});
+        const finishSearch = holdInFlightSearch(FOOD_QUERY?.hash);
+
+        // When the expense is created in it while that search is running
+        rerender({expandedGroups, newTransactions: [buildTransaction('1', 'Food')]});
+
+        // Then the group waits instead of fetching over the running search
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // And it fetches its first page again once that search finishes, so the new expense shows up
+        await finishSearch();
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: FOOD_QUERY, offset: 0}));
+    });
+
+    it('fetches a waiting group only once when several expenses are created in it during its running search', async () => {
+        // Given an open group with a running search
+        const expandedGroups = new Set(['Food']);
+        const {rerender} = renderRefetch({expandedGroups});
+        const finishSearch = holdInFlightSearch(FOOD_QUERY?.hash);
+
+        // When two expenses are created in it, one after the other, before that search finishes
+        rerender({expandedGroups, newTransactions: [buildTransaction('1', 'Food')]});
+        rerender({expandedGroups, newTransactions: [buildTransaction('2', 'Food')]});
+        await finishSearch();
+
+        // Then a single fetch covers both, since it is sent after both were created
+        expect(mockWaitForInFlightSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch a waiting group after the list unmounts', async () => {
+        // Given an open group waiting for its running search after an expense was created in it
+        const expandedGroups = new Set(['Food']);
+        const {rerender, unmount} = renderRefetch({expandedGroups});
+        const finishSearch = holdInFlightSearch(FOOD_QUERY?.hash);
+        rerender({expandedGroups, newTransactions: [buildTransaction('1', 'Food')]});
+
+        // When the list unmounts before that search finishes
+        unmount();
+        await finishSearch();
+
+        // Then nothing is fetched for a list that is no longer shown
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 });

@@ -1393,6 +1393,19 @@ function hasInFlightSearch(hash: number) {
     return false;
 }
 
+/** Resolves once every page of this query that is waiting for its response has finished */
+function waitForInFlightSearch(hash: number): Promise<void> {
+    const keyPrefix = getSearchDedupeKeyPrefix(hash);
+    const pendingRequests: Array<Promise<unknown>> = [];
+    for (const [dedupeKey, request] of inFlightSearchRequests) {
+        if (dedupeKey.startsWith(keyPrefix) && request.promise) {
+            pendingRequests.push(request.promise);
+        }
+    }
+    // search() catches its own failures, so these promises never reject
+    return Promise.all(pendingRequests).then(() => undefined);
+}
+
 /** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
 function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
     if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
@@ -3075,6 +3088,7 @@ export {
     isFirstPageSearchInFlight,
     consumePageRequestedSearch,
     hasInFlightSearch,
+    waitForInFlightSearch,
     clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};
