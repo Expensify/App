@@ -2623,6 +2623,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
             clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
+            testBusinessBankAccount: 'Przetestuj firmowe konto bankowe w USD',
+            testPersonalBankAccount: 'Testowe osobiste konto bankowe w USD',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
             sentrySendDescription: 'Wysyłaj dane do Sentry',

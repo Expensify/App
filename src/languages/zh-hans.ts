@@ -2485,6 +2485,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左侧导航缓存',
             clearleftHandNavCache: '清除',
             softKillTheApp: '软关闭应用程序',
+            testBusinessBankAccount: '测试美元企业银行账户',
+            testPersonalBankAccount: '测试美元个人银行账户',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
             sentrySendDescription: '向 Sentry 发送数据',

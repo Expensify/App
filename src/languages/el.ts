@@ -2646,6 +2646,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'μνήμη προσωρινής αποθήκευσης αριστερού πλαϊνού μενού',
             clearleftHandNavCache: 'Εκκαθάριση',
             softKillTheApp: 'Κλείσιμο της εφαρμογής (soft kill)',
+            testBusinessBankAccount: 'Δοκιμαστικός επαγγελματικός τραπεζικός λογαριασμός USD',
+            testPersonalBankAccount: 'Δοκιμαστικός προσωπικός τραπεζικός λογαριασμός σε USD',
             kill: 'Σκότωσε',
             sentryDebug: 'Εντοπισμός σφαλμάτων Sentry',
             sentrySendDescription: 'Αποστολή δεδομένων στο Sentry',
