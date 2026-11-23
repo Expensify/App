@@ -1139,6 +1139,7 @@ function duplicateReport({
         getCurrencyDecimals,
         rules,
         reportName: newReportName,
+        personalDetailsByLogins,
     });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
