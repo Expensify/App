@@ -77,10 +77,10 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
 function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsFilters['date']; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    // Home has no tag level picker, so it never loads workspace tag lists. Loading them means one request per workspace,
-    // which large accounts cannot afford on every Home load. Without them the saved tag level is used as is, and the
-    // Insights page corrects a level that no longer exists.
-    const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies);
+    // Home has no tag level picker, so it leaves out the workspaces that would make the filters load and check tag lists.
+    // That takes one request per workspace, which large accounts cannot afford on every Home load. Home uses the saved
+    // tag level as is, and the Insights page corrects a level that no longer exists.
+    const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], getPoliciesInScope(policies, filters.policyIDs), session?.email)
