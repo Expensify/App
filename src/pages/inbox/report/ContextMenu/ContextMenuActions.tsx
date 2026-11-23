@@ -1766,7 +1766,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
             return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
         },
-        onPress: (closePopover, {reportAction, translate, encryptedAuthToken}) => {
+        onPress: (_closePopover, {reportAction, translate, encryptedAuthToken}) => {
             const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html, reportAction?.reportActionID);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '', encryptedAuthToken);
@@ -1774,19 +1774,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            const startDownload = () =>
-                downloadAttachmentFile(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), undefined, isAnchorTag && isMobileSafari()).then(() =>
-                    setDownload(sourceID, false),
-                );
-            if (!closePopover) {
-                startDownload();
-                return;
-            }
-            // The iOS share sheet can't be presented while the context menu is still closing, so the download starts once it is hidden
-            hideContextMenu(true, () => {
-                startDownload();
-                ReportActionComposeFocusManager.focus();
-            });
+            // The menu is not closed here: the Download item is disabled with a spinner while the file downloads, and the share sheet opens over the menu
+            // (or on its own if the user closed the menu in the meantime) once the file is ready.
+            downloadAttachmentFile(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), undefined, isAnchorTag && isMobileSafari()).then(() =>
+                setDownload(sourceID, false),
+            );
         },
         getDescription: () => {},
         shouldDisable: (download) => download?.isDownloading ?? false,
