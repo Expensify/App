@@ -554,6 +554,8 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
     // The trip search sorts by start date, trip name and traveler, but not by end date
     CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+    // Search has no transactionID sort yet, so Sort by cannot offer it
+    CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
 ]);
 
 function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
