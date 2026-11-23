@@ -11,12 +11,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
-type PolicyAccountingPageOnyxProps = {
+type ConnectionsAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyConnectionsProps &
-    PolicyAccountingPageOnyxProps & {
+type ConnectionsAccountingPageProps = WithPolicyConnectionsProps &
+    ConnectionsAccountingPageOnyxProps & {
         policy: OnyxEntry<Policy>;
     };
 
@@ -47,4 +47,4 @@ type AccountingIntegration = {
     hasUnmetConnectPrerequisite?: boolean;
 };
 
-export type {MenuItemData, PolicyAccountingPageProps, AccountingIntegration};
+export type {MenuItemData, ConnectionsAccountingPageProps, AccountingIntegration};
