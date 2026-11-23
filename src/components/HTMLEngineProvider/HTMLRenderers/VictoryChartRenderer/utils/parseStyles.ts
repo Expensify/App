@@ -1,5 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {TNode} from 'react-native-render-html';
+import type {Writable} from 'type-fest';
 
 import lodashIsObject from 'lodash/isObject';
 
@@ -17,7 +18,7 @@ type ChartNodeStyle = ViewStyle & {
  * Returns separate style objects for the node itself and its parent container.
  */
 function parseStyles(tnode: TNode): {nodeStyles: ChartNodeStyle; parentNodeStyles: ViewStyle} {
-    const nodeStyles: ChartNodeStyle = {};
+    const nodeStyles: Writable<ChartNodeStyle> = {};
     const parentNodeStyles: ViewStyle = {};
 
     const parsedHeight = parseAttribute(tnode.attributes.height);
