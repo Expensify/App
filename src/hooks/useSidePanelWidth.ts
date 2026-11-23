@@ -5,13 +5,11 @@ import getSidePanelWidthBounds from '@libs/Navigation/helpers/sidePanelWidth/get
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import useIsWideRHPDisplayed from './useIsWideRHPDisplayed';
 import usePaneWidth from './usePaneWidth';
-import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -31,8 +29,8 @@ function useSidePanelWidth(): SidePanelWidth {
     // Only an extra large window docks the panel. A smaller one floats it over the page, which leaves the page and the RHP where they are.
     const bounds = getSidePanelWidthBounds(windowWidth, isExtraLargeScreenWidth ? {navigationBarWidth, isWideRHPDisplayed} : undefined);
     const width = usePaneWidth(ONYXKEYS.SIDE_PANEL_WIDTH, variables.resizableSidePanelDefaultWidth, bounds);
-    const {isBetaEnabled} = usePermissions();
-    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_SIDE_PANEL);
+    // TEMP: force-enabled for local prototyping
+    const isResizable = true;
 
     // Outside the beta the panel keeps its fixed width, even when a width was saved while the beta was on.
     return {width: isResizable ? width : variables.sidePanelWidth, bounds, isResizable};

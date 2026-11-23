@@ -19,10 +19,10 @@ type SingleRHPWidth = {
 function useSingleRHPWidth(): SingleRHPWidth {
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const {shouldHideSidePanel, sidePanelWidth} = useSidePanelState();
+    const {shouldHideSidePanel, sidePanelWidth, sidePanelMode} = useSidePanelState();
 
     // Mirrors when SidePanelContextProvider shifts the RHP left by the panel's width.
-    const bounds = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0);
+    const bounds = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel && sidePanelMode === 'docked' ? sidePanelWidth : 0);
     const width = usePaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, variables.rhpWidth, bounds);
 
     return {width, bounds};

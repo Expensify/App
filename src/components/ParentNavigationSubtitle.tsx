@@ -4,10 +4,12 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldKeepNavigationInSidePanel from '@hooks/useShouldKeepNavigationInSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import SidePanelActions from '@libs/actions/SidePanel';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -91,6 +93,7 @@ function ParentNavigationSubtitle({
     // true whenever this component renders inside an RHP, which would always block the super-wide path below.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const shouldKeepNavigationInSidePanel = useShouldKeepNavigationInSidePanel();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -147,6 +150,11 @@ function ParentNavigationSubtitle({
 
     const onPress = () => {
         if (!parentReportID) {
+            return;
+        }
+
+        if (shouldKeepNavigationInSidePanel) {
+            SidePanelActions.setSidePanelReportID(parentReportID);
             return;
         }
 

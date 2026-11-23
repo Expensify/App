@@ -356,6 +356,11 @@ const CONST = {
     MENU_ANIMATION_DURATION: ANIMATION_TIMING_MENU_ANIMATION_DURATION,
     KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
+    // Where the side panel sits on a wide layout: beside the page or floating over its bottom-right corner.
+    SIDE_PANEL_MODE: {
+        DOCKED: 'docked',
+        FLOATING: 'floating',
+    },
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,

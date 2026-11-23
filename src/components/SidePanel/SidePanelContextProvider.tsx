@@ -19,13 +19,17 @@ import type {SidePanel} from '@src/types/onyx';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import type {PropsWithChildren, RefObject} from 'react';
+import type {ValueOf} from 'type-fest';
 
+import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {createContext, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
 import useSidePanelDockProgress from './useSidePanelDockProgress';
+
+type SidePanelMode = ValueOf<typeof CONST.SIDE_PANEL_MODE>;
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -47,11 +51,15 @@ type SidePanelStateContextProps = {
     isSidePanelResizable: boolean;
     sidePanelNVP?: SidePanel;
     sessionStartTime: string | null;
+
+    /** Narrow layouts always dock, so this is only floating on a wide layout. */
+    sidePanelMode: SidePanelMode;
 };
 
 type SidePanelActionsContextProps = {
     openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
+    setSidePanelMode: (mode: SidePanelMode) => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -67,6 +75,7 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelWidthBounds: {min: variables.sidePanelWidth, max: variables.sidePanelWidth},
     isSidePanelResizable: false,
     sessionStartTime: null,
+    sidePanelMode: 'docked',
 });
 
 const SidePanelReportIDContext = createContext<string | undefined>(undefined);
@@ -74,6 +83,7 @@ const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
     closeSidePanel: () => {},
+    setSidePanelMode: () => {},
 });
 
 /**
@@ -86,10 +96,30 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
+    const {
+        shouldHideSidePanel,
+        shouldHideSidePanelBackdrop: shouldHideDockedSidePanelBackdrop,
+        shouldHideHelpButton,
+        isSidePanelHiddenOrLargeScreen: isDockedSidePanelHiddenOrLargeScreen,
+        sidePanelNVP,
+    } = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
-    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
+    // The panel opens as a floating popover until the user docks it, and remembers that choice on this device.
+    const [selectedSidePanelMode = CONST.SIDE_PANEL_MODE.FLOATING] = useOnyx(ONYXKEYS.SIDE_PANEL_MODE);
+    const setSidePanelMode = SidePanelActions.setSidePanelMode;
+    // An open RHP docks the panel beside it instead of stacking a floating card next to it. The saved choice returns once the RHP closes.
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
+    // A mode saved before minimizing was removed still opens as the floating popover.
+    const sidePanelMode: SidePanelMode =
+        shouldUseNarrowLayout || isRHPVisible || selectedSidePanelMode === CONST.SIDE_PANEL_MODE.DOCKED ? CONST.SIDE_PANEL_MODE.DOCKED : CONST.SIDE_PANEL_MODE.FLOATING;
+    const isSidePanelDocked = sidePanelMode === 'docked';
+
+    // A floating panel sits over the page like a support chat popover, so it neither insets the page nor blocks it with a backdrop.
+    const shouldHideSidePanelBackdrop = shouldHideDockedSidePanelBackdrop || !isSidePanelDocked;
+    const isSidePanelHiddenOrLargeScreen = isDockedSidePanelHiddenOrLargeScreen || !isSidePanelDocked;
+
+    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel && isSidePanelDocked;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? dockedSidePanelWidth : 0));
     const dockedSidePanelWidthRef = useSidePanelDockProgress(sidePanelOffset, dockedSidePanelWidth, shouldApplySidePanelOffset);
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
@@ -144,6 +174,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         // This is intentional state management for coordinating with the animation lifecycle.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidePanelTransitionEnded(false);
+        // The floating card enters and leaves on the same timing as an RHP card.
+        let floatingTransitionDuration: number | undefined;
+        if (!isSidePanelDocked) {
+            floatingTransitionDuration = shouldHideSidePanel ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB : CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB;
+        }
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? dockedSidePanelWidthRef.current : 0,
@@ -152,7 +187,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             }),
             Animated.timing(sidePanelTranslateX.current, {
                 toValue: shouldHideSidePanel ? sidePanelWidthRef.current : 0,
-                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
+                duration: floatingTransitionDuration ?? CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
         ]).start(({finished}) => {
@@ -166,7 +201,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, dockedSidePanelWidthRef]);
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, dockedSidePanelWidthRef, isSidePanelDocked]);
 
     const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
@@ -203,6 +238,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         isSidePanelResizable,
         sidePanelNVP,
         sessionStartTime,
+        sidePanelMode,
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -210,6 +246,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const actionsValue = {
         openSidePanel,
         closeSidePanel,
+        setSidePanelMode,
     };
 
     return (
@@ -223,3 +260,4 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
 export default SidePanelContextProvider;
 export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};
+export type {SidePanelMode};

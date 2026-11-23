@@ -471,7 +471,6 @@ const SENTRY_LABEL = {
         BACK_BUTTON: 'HeaderView-BackButton',
         CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
         DETAILS_BUTTON: 'HeaderView-DetailsButton',
-        EXPAND_BUTTON: 'HeaderView-ExpandButton',
         JOIN_BUTTON: 'HeaderView-JoinButton',
         NEW_CONCIERGE_CHAT_BUTTON: 'HeaderView-NewConciergeChatButton',
         CHRONOS_TIMER_MENU_START_TIMER: 'HeaderView-ChronosTimerMenuStartTimer',
@@ -3035,6 +3034,8 @@ const SENTRY_LABEL = {
     SIDE_PANEL: {
         HELP: 'SidePanel-Help',
         OVERLAY: 'SidePanel-Overlay',
+        POP_OUT_BUTTON: 'SidePanel-PopOutButton',
+        DOCK_BUTTON: 'SidePanel-DockButton',
     },
     PRODUCT_TRAINING: {
         TOOLTIP: 'ProductTraining-Tooltip',
