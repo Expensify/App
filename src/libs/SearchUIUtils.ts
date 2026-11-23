@@ -4575,6 +4575,10 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID) {
+        return data.sort((a, b) => compareValues(a.transactionID, b.transactionID, sortOrder, sortBy, localeCompare, true));
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
         return data.sort((a, b) => {
             // Sort by the name of the export destination, matching the backend. compareValues keeps rows that were
