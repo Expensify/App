@@ -11,6 +11,7 @@ import shouldReportActivity from './shouldReportActivity';
  * @returns callback to unsubscribe
  */
 function addBecameActiveListener(callback: () => void): () => void {
+    // The Strict API types `AppState.currentState` as a plain string, not `AppStateStatus`
     let previousAppState: string = AppState.currentState ?? CONST.APP_STATE.ACTIVE;
 
     function appStateChangeCallback(state: AppStateStatus) {

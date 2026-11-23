@@ -35,13 +35,12 @@ type RenderedNode = {parent?: RenderedNode | null; props?: {style?: StyleProp<Vi
 /** The pinned banner no longer sits in the column, so the gap lives on an ancestor of the buttons. */
 function paddingBottomAbove(start: RenderedNode): number | undefined {
     let current = start.parent;
-    while (current && typeof current === 'object' && 'props' in current) {
-        const props = current.props;
-        const style: unknown = StyleSheet.flatten(props && typeof props === 'object' && 'style' in props ? props.style : undefined);
-        if (style && typeof style === 'object' && 'paddingBottom' in style && typeof style.paddingBottom === 'number') {
+    while (current) {
+        const style = StyleSheet.flatten(current.props?.style);
+        if (typeof style?.paddingBottom === 'number') {
             return style.paddingBottom;
         }
-        current = 'parent' in current ? current.parent : null;
+        current = current.parent;
     }
     return undefined;
 }
