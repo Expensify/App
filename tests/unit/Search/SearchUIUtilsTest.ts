@@ -9358,6 +9358,46 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should sort expenses by Transaction ID as whole numbers without losing digits', () => {
+            // Given transaction IDs of different lengths, where text order differs from number order, and two IDs that a
+            // double can't tell apart because they differ past its 15 to 17 significant digits
+            const shortestID = '999999999999999999';
+            const middleID = '1234567890123456789';
+            const largeID = '4611686018427387904';
+            const largestID = '4611686018427387905';
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const unorderedTransactions: TransactionListItemType[] = [largeID, shortestID, largestID, middleID].map((id) => ({
+                ...baseTransaction,
+                transactionID: id,
+                keyForList: id,
+            }));
+
+            // When the expenses are sorted by Transaction ID in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they follow the IDs' number order, so the backend's order and the local order agree
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([shortestID, middleID, largeID, largestID]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([largestID, largeID, middleID, shortestID]);
+        });
+
         it('should keep the row order unchanged when sorting a column that is empty for every row (asc and desc are no-ops)', () => {
             // Regression test for https://github.com/Expensify/App/issues/94893: sorting an all-empty column must be a no-op —
             // the order stays the same and is identical for both directions. `created` is intentionally unsorted so that the
