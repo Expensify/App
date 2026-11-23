@@ -1,6 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -54,6 +55,7 @@ import {
     isMapDistanceRequest,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import getTransactionRevertValues from '@libs/TransactionUtils/getTransactionRevertValues';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
@@ -89,7 +91,6 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
@@ -160,8 +161,8 @@ type CreateDistanceRequestInformation = {
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: OnyxTypes.Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
@@ -184,7 +185,6 @@ type DistanceRequestPlan = {
     onyxData: OnyxData<DistanceRequestOnyxKeys>;
     activeReportID: string;
     shouldPlaySound: boolean;
-    shouldAddPendingNewTransaction: boolean;
     shouldNotifyNewAction: boolean;
     shouldSignalExpenseAdded: boolean;
 };
@@ -215,6 +215,7 @@ type CreateSplitsAndOnyxDataParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -269,6 +270,7 @@ type CompleteSplitBillActionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -308,6 +310,7 @@ type SplitBillActionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -349,6 +352,7 @@ function splitBill({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -387,6 +391,7 @@ function splitBill({
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     });
 
@@ -459,6 +464,7 @@ function splitBillAndOpenReport({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -497,6 +503,7 @@ function splitBillAndOpenReport({
         participantsPolicyTags,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     });
 
@@ -965,6 +972,7 @@ function completeSplitBill({
     sessionEmail,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -978,21 +986,23 @@ function completeSplitBill({
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const optimisticTransaction = {
+        ...updatedTransaction,
+        // Only the confirmation reads this draft flag. A saved scan would take it as an unconfirmed amount, and a failed request can't remove it.
+        isMerchantSet: null,
+        receipt: {
+            state: CONST.IOU.RECEIPT_STATE.OPEN,
+        },
+        // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+        // so the split details page renders the manual layout while offline instead of waiting for the response.
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+    };
 
-    // Save optimistic updated transaction and action
     const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...updatedTransaction,
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
-                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
-                // so the split details page renders the manual layout while offline instead of waiting for the response.
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            },
+            value: optimisticTransaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1026,7 +1036,7 @@ function completeSplitBill({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...unmodifiedTransaction,
+                ...getTransactionRevertValues(unmodifiedTransaction, optimisticTransaction),
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
         },
@@ -1228,6 +1238,7 @@ function completeSplitBill({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
 
@@ -1398,6 +1409,11 @@ function setDraftSplitTransaction(
           })
         : null;
 
+    // getUpdatedTransaction only applies the fields an expense stores, so the draft's own flag for a typed merchant is copied over here.
+    if (updatedTransaction && Object.hasOwn(transactionChanges, 'isMerchantSet')) {
+        updatedTransaction.isMerchantSet = transactionChanges.isMerchantSet;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 
@@ -1562,6 +1578,7 @@ function createSplitsAndOnyxData({
     formatPhoneNumber,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -2031,6 +2048,7 @@ function createSplitsAndOnyxData({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
 
@@ -2120,8 +2138,8 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         optimisticChatReportID,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
-        moneyRequestReportTransactions,
         reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2212,6 +2230,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
         onyxData = splitOnyxData;
@@ -2319,6 +2338,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
             parentChatReportActions: undefined,
             participantChatReportActions: undefined,
@@ -2437,14 +2457,13 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         onyxData,
         activeReportID: isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID,
         shouldPlaySound: shouldPlaySoundParam,
-        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions),
         shouldNotifyNewAction: !isMoneyRequestReport,
         shouldSignalExpenseAdded: !!isFromGlobalCreate && iouType !== CONST.IOU.TYPE.SPLIT,
     };
 }
 
 /**
- * Runs what planDistanceRequest leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ * Runs what planDistanceRequest leaves out, in this order: the sound, the request, then the Expense added message.
  *
  * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
  * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search.
@@ -2452,10 +2471,6 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
 function commitDistanceRequest(plan: DistanceRequestPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
-    }
-
-    if (plan.shouldAddPendingNewTransaction) {
-        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
     API.writeWhenReady(

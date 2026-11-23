@@ -484,7 +484,8 @@ describe('SearchActionsBarCreateButton', () => {
 
         // Then the report goes to the preferred workspace, which the domain made the user's default, and no selector opens
         expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
-        expect(mockCreateNewReport.mock.calls.at(0)?.at(3)).toEqual(expect.objectContaining({id: preferredPolicyID}));
+        expect(mockCreateNewReport).toHaveBeenCalledWith(expect.objectContaining({policy: expect.objectContaining({id: preferredPolicyID})}));
+        expect(mockCreateNewReport.mock.calls.at(0)?.at(0)).toHaveProperty('personalDetailsByLogins', expect.any(Object));
         expect(mockNavigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 });
