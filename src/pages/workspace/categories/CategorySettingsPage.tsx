@@ -15,6 +15,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
@@ -31,13 +32,14 @@ import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -70,7 +72,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
     const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
@@ -89,6 +91,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const conditionNames = useExpenseDefaultConditionNames(policy);
 
     const contextualRules = !policyCategory
         ? []
@@ -99,7 +102,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
               categoryName: policyCategory.name,
               translate,
               convertToDisplayString,
+              convertToDisplayStringWithoutCurrency,
               isOffline,
+              conditionNames,
           });
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
@@ -190,6 +195,14 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
     };
 
+    const navigateToVisibleTo = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO, {
+            name: CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO,
+            op: CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO,
+        });
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path));
+    };
+
     const deleteCategory = () => {
         deleteWorkspaceCategories(
             policyData,
@@ -222,6 +235,11 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     if (!policyCategory) {
         return <NotFoundPage />;
     }
+
+    // A missing visibleTo means every member can use the category. visibleTo can still hold removed members, members pending
+    // removal and optimistic invite IDs, so only current members are counted, which matches the checked rows on the Visible to page.
+    const visibleToMemberCount = policyMemberAccountIDs.filter((accountID) => isCategoryVisibleToMember(policyCategory, accountID)).length;
+    const visibleToText = policyCategory.visibleTo ? translate('workspace.categories.membersCount', {count: visibleToMemberCount}) : translate('workspace.common.everyone');
 
     return (
         <AccessOrNotFoundWrapper
@@ -278,6 +296,17 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             value={decodedCategoryName}
                         />
                     </OfflineWithFeedback>
+                    {isControlPolicy(policy) && (
+                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.visibleTo}>
+                            <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_VISIBLE_TO}
+                                name={translate('workspace.categories.visibleTo')}
+                                // The server rejects visibility changes on a disabled category, so the row is read-only until it's enabled again.
+                                onPress={canWriteCategories && policyCategory.enabled ? navigateToVisibleTo : undefined}
+                                value={visibleToText}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_GL_CODE}

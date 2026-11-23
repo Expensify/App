@@ -12,6 +12,7 @@
  */
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ScrollViewProps, ViewStyle} from 'react-native';
 
@@ -45,6 +46,7 @@ function getSpacing(style: ViewStyle, keys: SpacingKey[]): number {
 }
 
 function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: HorizontalSafeAreaBleedProps): HorizontalSafeAreaBleed {
+    const styles = useThemeStyles();
     const placement = useContext(HorizontalSafeAreaContext);
     const {left, right} = useSafeAreaInsets();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -60,6 +62,10 @@ function useHorizontalSafeAreaBleed({style, contentContainerStyle, horizontal}: 
     return {
         style: [
             style,
+            // The negative margins only widen the scroll view to both screen edges when it stretches across its
+            // parent, so a width or alignment set by the caller (like w100) would just shift it left instead.
+            styles.wAuto,
+            styles.alignSelfStretch,
             {
                 marginLeft: getSpacing(margins, ['marginLeft', 'marginHorizontal', 'margin']) - left,
                 marginRight: getSpacing(margins, ['marginRight', 'marginHorizontal', 'margin']) - right,

@@ -517,6 +517,7 @@ type MergeReportsProps = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -2541,6 +2542,9 @@ type CreateTransactionThreadReportParams = {
 
     /** The self DM holding the expense, used instead of the current user's when set */
     selfDMReportID?: string;
+
+    /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
+    isOwnedByCurrentUser?: boolean;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2563,7 +2567,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,
@@ -4846,6 +4850,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     reportName?: string;
 };
 
@@ -4860,23 +4865,25 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     reportName,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(
+    const optimisticReportData = buildOptimisticEmptyReport({
         reportID,
         accountID,
         login,
         parentReport,
-        reportPreviewReportActionID,
+        parentReportActionID: reportPreviewReportActionID,
         policy,
         timeOfCreation,
         isASAPSubmitBetaEnabled,
         getCurrencyDecimals,
         rules,
-    );
+        personalDetailsByLogins,
+    });
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -5098,20 +5105,35 @@ function buildNewReportOptimisticData({
     };
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
+type CreateNewReportParams = {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    shouldNotifyNewAction?: boolean;
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    managedCardTransactionID?: string;
+    reportName?: string;
+};
+
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    policy,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
     shouldNotifyNewAction = false,
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
-    const {managedCardTransactionID, reportName} = options;
+    shouldDismissEmptyReportsConfirmation,
+    managedCardTransactionID,
+    reportName,
+}: CreateNewReportParams) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -5122,11 +5144,12 @@ function createNewReport(
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
-        hasViolationsParam,
+        hasViolationsParam: hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         reportName,
     });
 
@@ -8225,6 +8248,7 @@ function convertIOUReportToExpenseReport(
         ...getNegatedReportTotals(iouReport),
     };
 
+    // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
@@ -8524,7 +8548,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -9349,6 +9373,7 @@ function mergeReports({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     currentUserPersonalDetails,
+    personalDetailsByLogins,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -9384,6 +9409,7 @@ function mergeReports({
         getCurrencyDecimals,
         getCurrencySymbol,
         currentUserPersonalDetails,
+        personalDetailsByLogins,
     });
 
     const {

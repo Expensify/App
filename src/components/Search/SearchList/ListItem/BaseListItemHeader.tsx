@@ -40,7 +40,8 @@ type GroupColumnKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION;
 
 /** Supported column style keys for sizing */
 type ColumnStyleKey =
@@ -51,7 +52,8 @@ type ColumnStyleKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
-    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION;
 
 type BaseListItemHeaderProps<TItem extends ListItem> = {
     item: BaseGroupListItemType;

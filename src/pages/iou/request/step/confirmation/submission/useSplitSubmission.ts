@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import Log from '@libs/Log';
@@ -84,6 +85,7 @@ function useSplitSubmission({
     const {transactionViolationsRef} = useSubmissionViolations();
     const reportTransactions = useReportTransactions(report?.reportID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
 
@@ -210,6 +212,7 @@ function useSplitSubmission({
                     formatPhoneNumber,
                     participantsPolicyTags,
                     rules,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
@@ -259,6 +262,7 @@ function useSplitSubmission({
                 formatPhoneNumber,
                 participantsPolicyTags,
                 rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             if (shouldHandleNavigation) {
                 cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});

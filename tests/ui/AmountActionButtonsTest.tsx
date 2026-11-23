@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import AmountFormField from '@components/AmountFormField';
 import ComposeProviders from '@components/ComposeProviders';
@@ -6,7 +6,10 @@ import KeypadAmountEditor from '@components/KeypadAmountEditor';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useTheme from '@hooks/useTheme';
+
 import type * as NativeNavigation from '@react-navigation/native';
+import type {View} from 'react-native';
 
 import React from 'react';
 
@@ -268,6 +271,61 @@ describe('Amount action buttons', () => {
             expect(onInputChange).toHaveBeenLastCalledWith('-12');
             expect(input).toHaveDisplayValue('-12');
             expect(input.props.selection).toEqual({start: 2, end: 2});
+        });
+    });
+
+    describe('borderless style', () => {
+        const renderButtons = (shouldUseBorderlessStyle?: boolean, currencyButtonRef?: React.RefObject<View | null>) =>
+            renderWithProviders(
+                <AmountFormField
+                    value="12"
+                    allowNegative
+                >
+                    <AmountFormField.SignFlipButton shouldUseBorderlessStyle={shouldUseBorderlessStyle} />
+                    <AmountFormField.CurrencyPickerButton
+                        ref={currencyButtonRef}
+                        currency="USD"
+                        shouldUseBorderlessStyle={shouldUseBorderlessStyle}
+                    />
+                </AmountFormField>,
+            );
+
+        it('mutes the button labels when the buttons sit inside a field without their fill', async () => {
+            // Given the flip and currency buttons drawn borderless, as part of the field they sit in
+            const mutedColor = renderHook(() => useTheme()).result.current.textSupporting;
+
+            // When they render
+            renderButtons(true);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then their labels take the supporting color, matching the icons beside them
+            expect(screen.getByText('Flip')).toHaveStyle({color: mutedColor});
+            expect(screen.getByText('USD')).toHaveStyle({color: mutedColor});
+        });
+
+        it('keeps the button labels in their own color by default', async () => {
+            // Given the flip and currency buttons with their default fill
+            const mutedColor = renderHook(() => useTheme()).result.current.textSupporting;
+
+            // When they render
+            renderButtons();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then their labels keep the button's text color, so existing callers look the same
+            expect(screen.getByText('Flip')).not.toHaveStyle({color: mutedColor});
+            expect(screen.getByText('USD')).not.toHaveStyle({color: mutedColor});
+        });
+
+        it('hands the currency button to its ref, so focus can return to it once the picker closes', async () => {
+            // Given a ref for the currency button
+            const currencyButtonRef = React.createRef<View>();
+
+            // When the button renders
+            renderButtons(true, currencyButtonRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the ref points at it
+            expect(currencyButtonRef.current).not.toBeNull();
         });
     });
 });
