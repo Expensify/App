@@ -1665,6 +1665,22 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getYearDateRange', () => {
+        it('returns the first and last day of a year', () => {
+            // Given a year
+            // When its range is built
+            // Then it covers January 1 through December 31
+            expect(DateUtils.getYearDateRange(2025)).toEqual({start: '2025-01-01', end: '2025-12-31'});
+        });
+
+        it.each([2025.5, Number.NaN])('returns undefined for year %p', (year) => {
+            // Given a year that isn't a whole number, which would build a date string no search can parse
+            // When its range is built
+            // Then there is no range rather than an invalid filter
+            expect(DateUtils.getYearDateRange(year)).toBeUndefined();
+        });
+    });
+
     describe('isDateStringInMonth', () => {
         it('matches no date for a month outside the year', () => {
             // Given month 13, which would otherwise roll into January of the next year

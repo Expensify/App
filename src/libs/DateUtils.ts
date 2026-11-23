@@ -27,6 +27,7 @@ import {
     intervalToDuration,
     isAfter,
     isBefore,
+    isExists,
     isSameDay,
     isSameMonth,
     isSameSecond,
@@ -1391,21 +1392,13 @@ const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone | 
     return formatDBTimeWithoutMilliseconds(fromZonedTime(endOfDayLocal, timeZone ?? 'UTC').valueOf());
 };
 
-const MONTHS_PER_YEAR = 12;
-const QUARTERS_PER_YEAR = 4;
-
-/** `Date` rolls an out-of-range month into another year, and throws when formatting a year that isn't a number, so a range is only built for a real period. */
-function isRealPeriod(year: number, period: number, periodsPerYear: number): boolean {
-    return Number.isInteger(year) && Number.isInteger(period) && period >= 1 && period <= periodsPerYear;
-}
-
 /**
  * Returns the start and end dates of a month in the format yyyy-MM-dd, or undefined when the year or month doesn't name a real month.
  * @param year - Year (e.g., 2025)
  * @param month - Month (1-12, where 1 is January)
  */
 function getMonthDateRange(year: number, month: number): {start: string; end: string} | undefined {
-    if (!isRealPeriod(year, month, MONTHS_PER_YEAR)) {
+    if (!isExists(year, month - 1, 1)) {
         return undefined;
     }
     return {
@@ -1504,7 +1497,11 @@ function getShortFormattedDateRangeForSearch(startDate: string, endDate: string,
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
-function getYearDateRange(year: number): {start: string; end: string} {
+/** Returns the start and end dates of a year in the format yyyy-MM-dd, or undefined when the year doesn't name a real year. */
+function getYearDateRange(year: number): {start: string; end: string} | undefined {
+    if (!isExists(year, 0, 1)) {
+        return undefined;
+    }
     return {
         start: `${year}-01-01`,
         end: `${year}-12-31`,
@@ -1513,7 +1510,7 @@ function getYearDateRange(year: number): {start: string; end: string} {
 
 /** Returns the start and end dates of a quarter in the format yyyy-MM-dd, or undefined when the year or quarter (1-4) doesn't name a real quarter. */
 function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} | undefined {
-    if (!isRealPeriod(year, quarter, QUARTERS_PER_YEAR)) {
+    if (!isExists(year, (quarter - 1) * 3, 1)) {
         return undefined;
     }
     const startMonth = (quarter - 1) * 3 + 1;

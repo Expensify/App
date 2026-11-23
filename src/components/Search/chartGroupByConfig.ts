@@ -48,9 +48,10 @@ type ChartGroupByConfig = {
 
 const getMonthRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined);
 
+const getYearRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined);
+
 const getQuarterRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined);
 
-/** Builds the drill-down filter for a time group, or no filter when the group has no real period */
 function buildDateFilterQuery(range: ChartBucketRange | undefined, dateFilterKey?: SearchDateFilterKeys): string {
     return range ? buildBucketFilterQuery(range, dateFilterKey) : '';
 }
@@ -128,13 +129,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? (item.formattedYear ?? '') : ''),
         axisLabelSteps: [1, 2, 5],
-        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
-            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.YEAR) {
-                return '';
-            }
-            return buildBucketFilterQuery(DateUtils.getYearDateRange(item.year), dateFilterKey);
-        },
-        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined),
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => buildDateFilterQuery(getYearRange(item), dateFilterKey),
+        getDateRange: getYearRange,
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',

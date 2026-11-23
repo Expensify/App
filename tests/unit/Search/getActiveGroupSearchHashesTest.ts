@@ -94,15 +94,13 @@ describe('getActiveGroupSearchHashes', () => {
 
     it.each([
         [CONST.SEARCH.GROUP_BY.FROM, {accountID: 42}],
-        [CONST.SEARCH.GROUP_BY.FROM, {accountID: 0}],
-        [CONST.SEARCH.GROUP_BY.APPROVER, {accountID: 0}],
         [CONST.SEARCH.GROUP_BY.CARD, {accountID: 42, cardID: 7, bank: 'vcf', cardName: 'Card', lastFourPAN: '1234'}],
         [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, {entryID: 5, accountNumber: '1234', bankName: CONST.BANK_NAMES.GENERIC_BANK, debitPosted: '2026-09-11', state: 1}],
         [CONST.SEARCH.GROUP_BY.CATEGORY, {category: ''}],
         [CONST.SEARCH.GROUP_BY.MERCHANT, {merchant: 'Acme'}],
         [CONST.SEARCH.GROUP_BY.TAG, {tag: CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE}],
     ])('returns the same search a %s section opens for %o', (groupBy, groupFields) => {
-        // Given a value-grouped search with one group in the snapshot, including an ID of 0, which only a presence check keeps
+        // Given a value-grouped search with one group in the snapshot
         const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${groupBy}`);
         const data: OnyxTypes.SearchResults['data'] = {
             personalDetailsList: {},
@@ -135,6 +133,40 @@ describe('getActiveGroupSearchHashes', () => {
         expect(hashes).toEqual([sectionHash]);
     });
 
+    it.each([CONST.SEARCH.GROUP_BY.FROM, CONST.SEARCH.GROUP_BY.APPROVER])('gives a %s section of account 0 no search to open or keep', (groupBy) => {
+        // Given a group of account 0, which only comes from incomplete data and whose search the backend can never match
+        const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${groupBy}`);
+        const data: OnyxTypes.SearchResults['data'] = {
+            personalDetailsList: {},
+            [`${CONST.SEARCH.GROUP_PREFIX}0` as const]: {accountID: 0, count: 1, currency: CONST.CURRENCY.USD, total: 100},
+        };
+
+        // When the active hashes and the sections are built from it
+        const hashes = getActiveGroupSearchHashes(data, queryJSON);
+        const [sections] = getSections({
+            dateFnsLocale: undefined,
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            data,
+            currentAccountID: 1,
+            currentUserEmail: '',
+            translate: translateLocal,
+            formatPhoneNumber,
+            bankAccountList: {},
+            rules: undefined,
+            groupBy,
+            queryJSON,
+            conciergeReportID: undefined,
+            convertToDisplayString,
+            reportAttributesDerivedValue: {},
+        });
+        const section = sections.at(0);
+
+        // Then it is still listed, but opens no empty search and keeps no snapshot
+        expect(section).toBeDefined();
+        expect(section && 'transactionsQueryJSON' in section ? section.transactionsQueryJSON : undefined).toBeUndefined();
+        expect(hashes).toEqual([]);
+    });
+
     it('gives a paid-by section no search to open', () => {
         // Given a paid-by grouping, which only Insights tables use because Search can't group by it yet
         const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.PAID_BY}`);
@@ -162,7 +194,7 @@ describe('getActiveGroupSearchHashes', () => {
         });
         const section = sections.at(0);
 
-        // Then it is still listed but has no query, like a violation group, since nothing in Search could open it
+        // Then it is still listed but has no query, since nothing in Search could open it
         expect(section).toBeDefined();
         expect(section && 'transactionsQueryJSON' in section ? section.transactionsQueryJSON : undefined).toBeUndefined();
     });

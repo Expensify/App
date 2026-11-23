@@ -3346,7 +3346,7 @@ function getQuarterGroupDateRange(group: SearchQuarterGroup): SearchDateRange | 
 }
 
 function getYearGroupDateRange(group: SearchYearGroup): SearchDateRange | undefined {
-    return Number.isInteger(group.year) ? DateUtils.getYearDateRange(group.year) : undefined;
+    return DateUtils.getYearDateRange(group.year);
 }
 
 /**
@@ -3371,12 +3371,9 @@ function getGroupDateRange(groupBy: SearchGroupBy, group: SearchGroup): SearchDa
     }
 }
 
-/**
- * The transactions search a date group opens. Day, month, quarter and year sections and the active group hashes all build it here, so a group's cached snapshot matches the search that opens it.
- * Week sections call `buildDateRangeGroupQuery` themselves because their label also needs the range trimmed to the date filter.
- */
-function getDateGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, dateRange: SearchDateRange | undefined): SearchQueryJSON | undefined {
-    return queryJSON && dateRange ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
+/** The transactions search a date group opens, built in one place so a group's cached snapshot matches the search that opens it */
+function getDateGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, dateRange: SearchDateRange): SearchQueryJSON | undefined {
+    return queryJSON ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
 }
 
 /** The group for expenses without a category comes back with an empty value, which the search syntax spells as `CATEGORY_EMPTY_VALUE` */
@@ -3408,10 +3405,11 @@ function getTagGroupFilterValue(tag: string): string {
  */
 function getSelectedGroupFilterEntry(groupBy: SearchGroupBy, group: SearchGroup): SelectedGroupFilterEntry | undefined {
     switch (groupBy) {
+        // The backend reads an account ID that isn't positive as -1, so from:0 / approver:0 never match anything and a group of 0 (only from incomplete data) gets no filter
         case CONST.SEARCH.GROUP_BY.FROM:
-            return 'accountID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: group.accountID} : undefined;
+            return 'accountID' in group && group.accountID > 0 ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: group.accountID} : undefined;
         case CONST.SEARCH.GROUP_BY.APPROVER:
-            return 'accountID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: group.accountID} : undefined;
+            return 'accountID' in group && group.accountID > 0 ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: group.accountID} : undefined;
         case CONST.SEARCH.GROUP_BY.VIOLATION:
             return 'violation' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: group.violation} : undefined;
         case CONST.SEARCH.GROUP_BY.CARD:
@@ -3544,8 +3542,9 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
 }
 
 /**
- * The transactions search a group opens, built from the same filter the group's export uses. Sections and the active group hashes both build it here,
- * so a group's cached snapshot matches the search that opens it and its export selects the same expenses.
+ * The transactions search a group opens, built in one place so a group's cached snapshot matches the search that opens it.
+ * It uses the same filter as the group's export, so both select the same expenses, except for dependent tags: their search is also scoped
+ * to the tag's level and parents, while their export only filters by tag name and so includes the same tag under every other parent.
  * Insights-only groupings like paid-by get no query, because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303).
  */
 function getGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, groupBy: SearchGroupBy, group: SearchGroup): SearchQueryJSON | undefined {
@@ -3636,7 +3635,6 @@ function getMemberSections(
             const memberGroup = data[key] as SearchMemberGroup;
 
             const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
-            // Paid-by groups only appear in Insights tables, which don't open groups, so they get no query
             const transactionsQueryJSON = getGroupTransactionsQueryJSON(queryJSON, groupBy, memberGroup);
             const formattedName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
             const section = {
@@ -4089,6 +4087,7 @@ function getWeekSections(
             if (!rawRange) {
                 continue;
             }
+            // The week's label also needs the range trimmed to the date filter, so this calls buildDateRangeGroupQuery instead of getDateGroupTransactionsQueryJSON
             const dateResult = queryJSON ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             weeks[key] = {
                 weekGroup,

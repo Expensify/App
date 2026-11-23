@@ -176,11 +176,12 @@ const cases: ChartGroupByCase[] = [
     },
 ];
 
-const outOfRangePeriodCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
+const invalidPeriodCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
     {groupBy: CONST.SEARCH.GROUP_BY.MONTH, item: createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2025, month: 13})},
     {groupBy: CONST.SEARCH.GROUP_BY.MONTH, item: createMock<TransactionMonthGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2025, month: 0})},
     {groupBy: CONST.SEARCH.GROUP_BY.QUARTER, item: createMock<TransactionQuarterGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.QUARTER, year: 2025, quarter: 5})},
     {groupBy: CONST.SEARCH.GROUP_BY.QUARTER, item: createMock<TransactionQuarterGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.QUARTER, year: 2025, quarter: 0})},
+    {groupBy: CONST.SEARCH.GROUP_BY.YEAR, item: createMock<TransactionYearGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.YEAR, year: Number.NaN})},
 ];
 
 const optionalLabelCases: Array<Pick<ChartGroupByCase, 'groupBy' | 'item'>> = [
@@ -285,12 +286,12 @@ describe('CHART_GROUP_BY_CONFIG', () => {
         expect(config.getFilterQuery(mismatchedItem)).toBe('');
     });
 
-    test.each(outOfRangePeriodCases)('gives no range or filter for a $groupBy group outside its year', ({groupBy, item}) => {
-        // Given a group whose month or quarter doesn't exist, which `Date` would otherwise roll into another year
+    test.each(invalidPeriodCases)('gives no range or filter for a $groupBy group with no real period', ({groupBy, item}) => {
+        // Given a group whose month or quarter doesn't exist, which `Date` would otherwise roll into another year, or whose year isn't a whole number
         const config = CHART_GROUP_BY_CONFIG[groupBy];
 
         // When the chart reads its range and drill-down filter
-        // Then neither points at a period in the wrong year
+        // Then neither points at a period in the wrong year or builds an invalid date filter
         expect(config.getDateRange?.(item)).toBeUndefined();
         expect(config.getFilterQuery(item)).toBe('');
     });
