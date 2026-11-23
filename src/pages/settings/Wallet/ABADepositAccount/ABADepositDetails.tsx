@@ -8,7 +8,6 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -52,14 +51,14 @@ type ABADepositDetailsProps = {
     onSuccess: () => void;
 };
 
-function TermsOfServiceLabel() {
+function TermsAndPrivacyLabel() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // CheckboxWithLabel indents plain text labels by ml1 but not custom ones, so this adds the same indent to line up with them
+    // CheckboxWithLabel indents and wraps plain text labels but not custom ones, so this does the same to line up with them
     return (
-        <View style={styles.ml1}>
-            <RenderHTML html={translate('common.acceptTermsOfService')} />
+        <View style={[styles.ml1, styles.flexShrink1]}>
+            <RenderHTML html={translate('common.acceptTermsAndPrivacy')} />
         </View>
     );
 }
@@ -199,18 +198,11 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                     <InputWrapper
                         InputComponent={CheckboxWithLabel}
                         inputID={INPUT_IDS.ACCEPT_TERMS}
-                        LabelComponent={TermsOfServiceLabel}
-                        aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                        LabelComponent={TermsAndPrivacyLabel}
+                        aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate('common.privacyPolicy')}`}
                         defaultValue={false}
                         style={styles.mt6}
                     />
-                    <TextLink
-                        href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        style={styles.mt3}
-                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
-                    >
-                        {translate('common.privacy')}
-                    </TextLink>
                 </View>
             </FormProvider>
         </InteractiveStepWrapper>
