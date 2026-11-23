@@ -53,7 +53,7 @@ function FlatNavSupportalItem({isCollapsed, isSupportAgent, isSwitcherVisible, s
                 icon={icons.UserSearch}
                 accessibilityLabel={translate('supportalSwitcher.title')}
                 role={CONST.ROLE.BUTTON}
-                isSelected={isSwitcherVisible}
+                isSelected={false}
                 isExpanded={isSwitcherVisible}
                 // Same action as the floating action button it replaces, so it keeps that button's Sentry and FullStory identifier.
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.SUPPORTAL_SWITCHER_BUTTON}
