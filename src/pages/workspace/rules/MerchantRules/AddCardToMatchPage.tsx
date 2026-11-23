@@ -30,7 +30,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     // Stored as card IDs, which is what the `cardID` filter carries.
     const cardItems: RuleConditionItem[] = policyCards.map((card) => ({
         value: String(card.cardID),
-        text: cardNames[String(card.cardID)] ?? String(card.cardID),
+        text: cardNames[String(card.cardID)] ?? translate('workspace.companyCards.deletedCard'),
     }));
 
     return (
@@ -42,7 +42,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
             backToRoute={backToRoute}
             items={cardItems}
             onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch})}
-            getFallbackText={(cardID) => cardNames[cardID] ?? cardID}
+            getFallbackText={(cardID) => cardNames[cardID] ?? translate('workspace.companyCards.deletedCard')}
             isLoading={isLoadingCards}
         />
     );

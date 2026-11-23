@@ -335,9 +335,9 @@ function ExpenseDefaultRulePageBase({
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const submittersToMatch = form?.submittersToMatch ?? [];
-    // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
+    // A submitter who has left the workspace has no name left to read, so the row names them as hidden rather than showing the stored ID.
     const submittersToMatchDisplayName =
-        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? submitterAccountID).join(', ') : undefined;
+        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? translate('common.hidden')).join(', ') : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
@@ -348,8 +348,9 @@ function ExpenseDefaultRulePageBase({
     const amountMatchType = form?.amountMatchType ?? getDefaultMatchType('amountMatchType');
     const getAmountToMatchDisplayName = () => (amountToMatch ? getAmountComparisonText(amountToMatch, amountMatchType, translate, convertToDisplayStringWithoutCurrency) : undefined);
     const cardsToMatch = form?.cardsToMatch ?? [];
-    // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
-    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? cardID).join(', ') : undefined;
+    // A deactivated card is gone from Onyx, so the row names it as deleted rather than showing the stored ID.
+    const cardsToMatchDisplayName =
+        cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? translate('workspace.companyCards.deletedCard')).join(', ') : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {

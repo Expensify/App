@@ -376,7 +376,7 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate('workspace.rules.expenseDefaultsTable.cardIs', values.map((cardID) => conditionNames.cards?.[cardID] ?? cardID).join(', '));
+        return translate('workspace.rules.expenseDefaultsTable.cardIs', values.map((cardID) => conditionNames.cards?.[cardID] ?? translate('workspace.companyCards.deletedCard')).join(', '));
     }
 
     if (field === CONDITION.TAX_RATE) {
@@ -390,7 +390,7 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate('workspace.rules.expenseDefaultsTable.submitterIs', values.map((accountID) => conditionNames.submitters?.[accountID] ?? accountID).join(', '));
+        return translate('workspace.rules.expenseDefaultsTable.submitterIs', values.map((accountID) => conditionNames.submitters?.[accountID] ?? translate('common.hidden')).join(', '));
     }
 
     if (field === CONDITION.MERCHANT_TYPE) {
