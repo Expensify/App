@@ -65,41 +65,6 @@ type BasicRuleMenuItem = {
 
 const COLLECT_ALLOWED_RULE_KEYS = new Set<string>([RULE_MENU_ITEM_KEYS.REQUIRE_FIELDS, RULE_MENU_ITEM_KEYS.BILLABLE_EXPENSES]);
 
-type IndividualExpenseRuleRowProps = {
-    item: BasicRuleMenuItem;
-    onPress?: () => void;
-};
-
-function IndividualExpenseRuleRow({item, onPress}: IndividualExpenseRuleRowProps) {
-    const styles = useThemeStyles();
-    return (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
-            <MenuItem.Root
-                onPress={onPress}
-                style={styles.sectionMenuItemTopDescription}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
-            >
-                <MenuItem.Row style={styles.gap0}>
-                    <MenuItem.Leading>
-                        <View style={styles.mr5}>
-                            <MenuItem.IconNarrow src={item.icon} />
-                        </View>
-                    </MenuItem.Leading>
-                    <MenuItem.Content>
-                        <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>
-                        {!!item.description && <MenuItem.Description numberOfLines={1}>{item.description}</MenuItem.Description>}
-                    </MenuItem.Content>
-                    {!!onPress && (
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    )}
-                </MenuItem.Row>
-            </MenuItem.Root>
-        </OfflineWithFeedback>
-    );
-}
-
 function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: IndividualExpenseRulesSectionRevampProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
@@ -277,13 +242,38 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     ];
 
     const renderMenuItems = (items: BasicRuleMenuItem[]) =>
-        items.map((item) => (
-            <IndividualExpenseRuleRow
-                key={item.key}
-                item={item}
-                onPress={canWriteRules ? callIfAuthenticated(() => handleMenuItemPress(item), session) : undefined}
-            />
-        ));
+        items.map((item) => {
+            const onPress = canWriteRules ? callIfAuthenticated(() => handleMenuItemPress(item), session) : undefined;
+            return (
+                <OfflineWithFeedback
+                    key={item.key}
+                    pendingAction={item.pendingAction}
+                >
+                    <MenuItem.Root
+                        onPress={onPress}
+                        style={styles.sectionMenuItemTopDescription}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+                    >
+                        <MenuItem.Row style={styles.gap0}>
+                            <MenuItem.Leading>
+                                <View style={styles.mr5}>
+                                    <MenuItem.IconNarrow src={item.icon} />
+                                </View>
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>
+                                {!!item.description && <MenuItem.Description numberOfLines={1}>{item.description}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            {!!onPress && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                </OfflineWithFeedback>
+            );
+        });
 
     return (
         <Section

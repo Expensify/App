@@ -111,67 +111,6 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-type ExpenseDefaultRuleFieldProps = {
-    item: SectionItemType;
-    canWriteRules: boolean;
-    shouldShowError: boolean;
-};
-
-function ExpenseDefaultRuleField({item, canWriteRules, shouldShowError}: ExpenseDefaultRuleFieldProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    const canEditItem = canWriteRules && !item.isLocked;
-    const errorText = canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : '';
-    return (
-        <MenuItem.Root
-            onPress={canEditItem ? callIfAuthenticated(item.onPress, session) : undefined}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-        >
-            <MenuItem.Row style={styles.gap0}>
-                {!!item.icon && (
-                    <MenuItem.Leading>
-                        <View style={styles.mr3}>
-                            <MenuItem.IconNarrow src={item.icon} />
-                        </View>
-                    </MenuItem.Leading>
-                )}
-                <MenuItem.Content>
-                    {item.title ? (
-                        <>
-                            <MenuItem.FieldName>{item.description}</MenuItem.FieldName>
-                            {item.shouldRenderAsHTML ? (
-                                <MenuItem.FieldValueHTML>{item.title}</MenuItem.FieldValueHTML>
-                            ) : (
-                                <MenuItem.FieldValue
-                                    numberOfLines={2}
-                                    style={styles.flex1}
-                                >
-                                    {item.title}
-                                </MenuItem.FieldValue>
-                            )}
-                        </>
-                    ) : (
-                        <MenuItem.FieldNamePlaceholder>{item.description}</MenuItem.FieldNamePlaceholder>
-                    )}
-                </MenuItem.Content>
-                {canEditItem && (
-                    <MenuItem.Trailing>
-                        {!!item.required && !item.title && !errorText && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
-                        <MenuItem.Chevron />
-                    </MenuItem.Trailing>
-                )}
-            </MenuItem.Row>
-            {!!errorText && (
-                <MenuItem.HelpText
-                    isError
-                    message={errorText}
-                />
-            )}
-        </MenuItem.Root>
-    );
-}
-
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
     if (value === undefined) {
         return translate('common.dontChange');
@@ -236,6 +175,7 @@ function ExpenseDefaultRulePageBase({
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTags = getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>();
@@ -715,13 +655,55 @@ function ExpenseDefaultRulePageBase({
     ) : null;
 
     const renderSectionItem = (item: SectionItemType) => {
+        const canEditItem = canWriteRules && !item.isLocked;
+        const errorText = canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : '';
         return (
-            <ExpenseDefaultRuleField
+            <MenuItem.Root
                 key={item.key}
-                item={item}
-                canWriteRules={canWriteRules}
-                shouldShowError={shouldShowError}
-            />
+                onPress={canEditItem ? callIfAuthenticated(item.onPress, session) : undefined}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+            >
+                <MenuItem.Row style={styles.gap0}>
+                    {!!item.icon && (
+                        <MenuItem.Leading>
+                            <View style={styles.mr3}>
+                                <MenuItem.IconNarrow src={item.icon} />
+                            </View>
+                        </MenuItem.Leading>
+                    )}
+                    <MenuItem.Content>
+                        {item.title ? (
+                            <>
+                                <MenuItem.FieldName>{item.description}</MenuItem.FieldName>
+                                {item.shouldRenderAsHTML ? (
+                                    <MenuItem.FieldValueHTML>{item.title}</MenuItem.FieldValueHTML>
+                                ) : (
+                                    <MenuItem.FieldValue
+                                        numberOfLines={2}
+                                        style={styles.flex1}
+                                    >
+                                        {item.title}
+                                    </MenuItem.FieldValue>
+                                )}
+                            </>
+                        ) : (
+                            <MenuItem.FieldNamePlaceholder>{item.description}</MenuItem.FieldNamePlaceholder>
+                        )}
+                    </MenuItem.Content>
+                    {canEditItem && (
+                        <MenuItem.Trailing>
+                            {!!item.required && !item.title && !errorText && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    )}
+                </MenuItem.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
         );
     };
 
