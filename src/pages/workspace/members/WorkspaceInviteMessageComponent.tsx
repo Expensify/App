@@ -32,6 +32,7 @@ import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalD
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
+    canRoleCreateExpenses,
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
@@ -115,8 +116,12 @@ function WorkspaceInviteMessageComponent({
     const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
     const canChangeInviteRole = !isSubmitPolicy(policy) && canMemberAssignElevatedRole(policy, currentUserLogin);
     const fallbackInviteRole = canManageUserRole ? CONST.POLICY.ROLE.USER : CONST.POLICY.ROLE.AUDITOR;
+    // Card assignment invite steps require cardholders to create expenses, so ignore draft roles without that permission.
+    const isDraftRoleAllowed = !isInviteNewMemberStep || canRoleCreateExpenses(workspaceInviteRoleDraftFromOnyx);
     const draftInviteRole =
-        workspaceInviteRoleDraftFromOnyx && canMemberAssignRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx) ? workspaceInviteRoleDraftFromOnyx : fallbackInviteRole;
+        workspaceInviteRoleDraftFromOnyx && isDraftRoleAllowed && canMemberAssignRole(policy, currentUserLogin, workspaceInviteRoleDraftFromOnyx)
+            ? workspaceInviteRoleDraftFromOnyx
+            : fallbackInviteRole;
     // Submit workspaces only allow inviting editors, so default the invite role accordingly when no draft is set.
     // The backend ignores any other role for Submit workspaces, but defaulting here keeps the UI honest before submit.
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
