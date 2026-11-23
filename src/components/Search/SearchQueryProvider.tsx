@@ -70,8 +70,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
     const [defaultExpensifyCardID] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (card) => defaultExpensifyCardSelector(card)?.id});
-    // Selects only the flag, so a write to any policy doesn't rebuild the suggested searches and with them the value every
-    // SearchQueryContext consumer reads.
     const [shouldShowExpensifyCard = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies) => getSuggestedSearchesVisibility(email, {}, policies, undefined).shouldShowExpensifyCard,
     });
