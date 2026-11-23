@@ -44,6 +44,10 @@ function BulkActionStatusManager() {
     if (bulkAction?.shouldSendFromConcierge && conciergeBulkActionID !== openBulkActionID) {
         setConciergeBulkActionID(openBulkActionID);
     }
+    // A failed Concierge request rolls the flag back, so clearing the record closes the modal again.
+    if (bulkAction && !bulkAction.shouldSendFromConcierge && conciergeBulkActionID === openBulkActionID) {
+        setConciergeBulkActionID(undefined);
+    }
     if (openBulkActionID && !bulkAction && conciergeBulkActionID !== openBulkActionID) {
         setOpenBulkActionID(undefined);
     }
