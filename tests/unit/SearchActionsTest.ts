@@ -14,6 +14,7 @@ import {
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
     saveSearch,
+    saveSearchFilters,
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
@@ -209,6 +210,23 @@ describe('SearchActions', () => {
                         },
                     ],
                 },
+            );
+        });
+    });
+
+    describe('saveSearchFilters', () => {
+        it('stores the query as the one the Spend tab restores, locally and on the server', () => {
+            // Given a query that differs from the stored one by its pins alone, a change that sends no search
+            const query = 'type:expense left-pinned-columns:category';
+
+            // When it's saved for the Expenses tab
+            saveSearchFilters(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
+
+            // Then the tab reads it at once, and the server keeps it for the next session
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH_FILTERS,
+                {jsonQuery: JSON.stringify({searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, inputQuery: query})},
+                {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query}}}]},
             );
         });
     });
