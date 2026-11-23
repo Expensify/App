@@ -1,4 +1,5 @@
-// Rows that add a test bank account to the signed-in user. Shown to anyone on dev and to internal test accounts on other builds, never on production.
+// Rows that add a test bank account to the signed-in user. Shown to anyone on a local server and to internal test accounts on the staging server, never on production.
+import useActiveServer from '@hooks/useActiveServer';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,19 +34,22 @@ function BankAccountTestToolRows() {
     const {translate} = useLocalize();
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((addTestBankAccount?: () => void) => addTestBankAccount?.());
 
-    const {isDevelopment, isProduction} = useEnvironment();
+    const {isProduction} = useEnvironment();
+    const {activeServer, isStagingIgnored: isOnLocalServer} = useActiveServer();
     const [email = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isOnAllowedEmailDomain = Str.extractEmailDomain(email).toLowerCase() === CONST.TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN;
+    const isAllowedOnStagingServer = activeServer === CONST.SERVER.STAGING && isOnAllowedEmailDomain;
 
-    if (isProduction || (!isDevelopment && !isOnAllowedEmailDomain)) {
+    // The server only accepts the command from anyone when it is local, and from internal test accounts when it is staging
+    if (isProduction || (!isOnLocalServer && !isAllowedOnStagingServer)) {
         return null;
     }
 
     const addTestBankAccount = (type: ValueOf<typeof CONST.TEST_BANK_ACCOUNT_TYPE>) => {
         const addAndOpenWallet = () => addTestBankAccountAndOpenWallet(type);
 
-        // A personal bank account needs a validated account, and outside dev so does a business one
-        if (!isUserValidated && (type === CONST.TEST_BANK_ACCOUNT_TYPE.PERSONAL || !isDevelopment)) {
+        // A personal bank account needs a validated account, and on the staging server so does a business one
+        if (!isUserValidated && (type === CONST.TEST_BANK_ACCOUNT_TYPE.PERSONAL || !isOnLocalServer)) {
             verifyAccountAndResume(addAndOpenWallet);
             return;
         }
