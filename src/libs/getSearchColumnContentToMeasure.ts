@@ -248,6 +248,8 @@ function getTransactionColumnContentToMeasure(
             return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID}];
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return [{text: item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))}];
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return [{text: item.transactionID}];
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return [{text: item.withdrawalID}];
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
