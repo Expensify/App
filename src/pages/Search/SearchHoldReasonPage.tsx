@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getRowsCheckedInExcludedGroups} from '@components/Search/selectionBuilders';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,15 +14,18 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
+import {queueBulkExpenseAction} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
 
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -42,7 +46,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {reportID} = route.params ?? {};
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path);
     const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
-    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -83,12 +88,22 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const ancestors = useAncestors(report);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    // "Select all" can cover more expenses than are loaded, so the backend holds every match.
+    const shouldQueueOnServer = !isBulkHold && areAllMatchingItemsSelected;
     const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        if (isBulkHold) {
+        if (shouldQueueOnServer) {
+            queueBulkExpenseAction(
+                CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions),
+                comment,
+            );
+            clearSelectedTransactions();
+        } else if (isBulkHold) {
             putTransactionsOnHold({
                 transactionsID: selectedTransactionIDs,
                 allReports: relevantReports,
@@ -162,6 +177,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             expenseCount={expenseCount}
             backTo={backTo}
             isSubmitter={isSubmitter}
+            enabledWhenOffline={!shouldQueueOnServer}
         />
     );
 }
