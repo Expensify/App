@@ -826,6 +826,14 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 }
 
 /**
+ * Decides whether an unreported expense without an IOU action (a legacy expense) belongs to the current user.
+ * Only the owner sees an unreported expense, except a managed card expense, which admins also see on their card feeds.
+ */
+function isUnreportedTransactionOwnedByCurrentUser(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>, isCardHeldByCurrentUser: boolean): boolean {
+    return !isManagedCardTransaction(transaction) || isCardHeldByCurrentUser;
+}
+
+/**
  * Determine whether a transaction is imported from a credit card.
  * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
  */
@@ -1696,6 +1704,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isUnreportedTransactionOwnedByCurrentUser,
     isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,

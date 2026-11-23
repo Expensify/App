@@ -18,22 +18,25 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+const mockRenderedHTML: string[] = [];
+
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
+        mockRenderedHTML.push(html);
         const plainText = html.replaceAll(/<[^>]*>/g, '');
         return ReactMock.createElement(Text, null, plainText);
     };
 });
 
-const renderConfirmation = (planName?: string) => {
+const renderConfirmation = (planName?: string, policyName = 'MyWorkspace') => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <NavigationContainer>
                 <UpgradeConfirmation
-                    policyName="MyWorkspace"
+                    policyName={policyName}
                     planName={planName}
                     afterUpgradeAcknowledged={() => {}}
                     confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.CONFIRMATION_GOT_IT}
@@ -53,6 +56,7 @@ describe('UpgradeConfirmation', () => {
     afterEach(() => {
         cleanup();
         jest.clearAllMocks();
+        mockRenderedHTML.length = 0;
     });
 
     it('shows the Collect plan in the success message when upgrading to Collect', async () => {
@@ -80,5 +84,20 @@ describe('UpgradeConfirmation', () => {
 
         // Then the success message defaults to the Control plan
         expect(await screen.findByText('to the Control plan', {exact: false})).toBeTruthy();
+    });
+
+    it('renders markup in the workspace name as literal text instead of HTML', async () => {
+        // Given a workspace name that an admin set to contain HTML markup and special characters
+        const maliciousName = '<a href="https://example.com">Click</a><img src="https://example.com/x.png"/> & "Co"';
+
+        // When the confirmation renders for that workspace
+        renderConfirmation('Control', maliciousName);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the name reaches the HTML renderer encoded, so it adds no link, image or styling and its characters still display as typed
+        const html = mockRenderedHTML.at(-1) ?? '';
+        expect(html).toContain('&lt;a href=&quot;https://example.com&quot;&gt;Click&lt;/a&gt;&lt;img src=&quot;https://example.com/x.png&quot;/&gt; &amp; &quot;Co&quot;');
+        expect(html).not.toContain('<a href="https://example.com">');
+        expect(html).not.toContain('<img');
     });
 });
