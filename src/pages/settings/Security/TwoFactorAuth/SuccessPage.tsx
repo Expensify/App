@@ -8,17 +8,15 @@ import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
 import SuccessPageBase from './SuccessPageBase';
 
 function SuccessPage() {
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
-    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, false, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = () => {

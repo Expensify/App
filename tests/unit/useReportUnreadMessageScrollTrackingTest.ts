@@ -757,9 +757,9 @@ describe('useReportUnreadMessageScrollTracking', () => {
             act(() => {
                 result.current.onViewableItemsChanged({
                     viewableItems: [
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
-                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
-                        {index: 5, key: 'reportActions_5', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}, timestamp: 0},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}, timestamp: 0},
+                        {index: 5, key: 'reportActions_5', isViewable: true, item: {}, timestamp: 0},
                     ],
                     changed: [],
                 });
@@ -790,9 +790,9 @@ describe('useReportUnreadMessageScrollTracking', () => {
             act(() => {
                 result.current.onViewableItemsChanged({
                     viewableItems: [
-                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
-                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}, timestamp: 0},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}, timestamp: 0},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}, timestamp: 0},
                     ],
                     changed: [],
                 });
@@ -823,8 +823,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
             act(() => {
                 result.current.onViewableItemsChanged({
                     viewableItems: [
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
-                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}, timestamp: 0},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}, timestamp: 0},
                     ],
                     changed: [],
                 });
@@ -855,8 +855,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
             act(() => {
                 result.current.onViewableItemsChanged({
                     viewableItems: [
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
-                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
+                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}, timestamp: 0},
+                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}, timestamp: 0},
                     ],
                     changed: [],
                 });
@@ -884,7 +884,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             );
             act(() => {
                 result.current.onViewableItemsChanged({
-                    viewableItems: [{index: 0, key: 'reportActions_0', isViewable: true, item: {}}],
+                    viewableItems: [{index: 0, key: 'reportActions_0', isViewable: true, item: {}, timestamp: 0}],
                     changed: [],
                 });
             });
@@ -893,7 +893,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             // When the user scrolls further up so only older messages are visible
             act(() => {
                 result.current.onViewableItemsChanged({
-                    viewableItems: [{index: 8, key: 'reportActions_8', isViewable: true, item: {}}],
+                    viewableItems: [{index: 8, key: 'reportActions_8', isViewable: true, item: {}, timestamp: 0}],
                     changed: [],
                 });
             });

@@ -115,6 +115,23 @@ const WIDE_LAYOUT: ResponsiveLayoutResult = {
     isInLandscapeMode: false,
 };
 
+// The phone layout, where the table drops its columns and each row lists its values under the name.
+const NARROW_LAYOUT: ResponsiveLayoutResult = {
+    ...WIDE_LAYOUT,
+    shouldUseNarrowLayout: true,
+    isSmallScreenWidth: true,
+    isLargeScreenWidth: false,
+    isSmallScreen: true,
+    onboardingIsMediumOrLargerScreenWidth: false,
+};
+
+// A tablet or half-width desktop window. The table also uses its narrow rows here, even though shouldUseNarrowLayout is off.
+const MEDIUM_LAYOUT: ResponsiveLayoutResult = {
+    ...WIDE_LAYOUT,
+    isMediumScreenWidth: true,
+    isLargeScreenWidth: false,
+};
+
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const POLICY_ID = 'policy-1';
@@ -181,6 +198,11 @@ function getColumnHeaderLabel() {
 // The heading opens the column menu, which is named after the column.
 function getColumnHeadingLabel() {
     return TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: getColumnHeaderLabel()});
+}
+
+/** Returns the narrow row text for a tax reclaimable amount, e.g. "Tax reclaimable on $5.00". */
+function getNarrowRowText(amount: string) {
+    return TestHelper.translateLocal('workspace.distanceRates.taxReclaimableOnAmount', amount);
 }
 
 /** Returns the tax reclaimable cell texts in the order the rows are rendered. */
@@ -361,6 +383,76 @@ describe('PolicyDistanceRatesPage', () => {
         // Then ascending order puts the lowest amount first, and descending order puts the highest first
         expect(sortRates(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['$2.00', '$5.00', '$8.00']);
         expect(sortRates(CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['$8.00', '$5.00', '$2.00']);
+    });
+
+    describe.each([
+        ['phone', NARROW_LAYOUT],
+        ['medium', MEDIUM_LAYOUT],
+    ])('narrow layout (%s)', (_layoutName, layout) => {
+        beforeEach(() => {
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(layout);
+        });
+
+        it('shows the amount in the row when the column is visible', async () => {
+            // Given a narrow table layout and a workspace that tracks tax on a $10.00 rate where 50% is tax reclaimable
+            // When the distance rates page renders
+            await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
+
+            // Then the row shows the amount, since the narrow layout has no column for it and admins need it to tell rates apart
+            expect(screen.getByText(getNarrowRowText('$5.00'))).toBeTruthy();
+        });
+
+        it('shows the amount only for rates that have one', async () => {
+            // Given a narrow table layout with one rate that has an amount and one that has no percentage set
+            // When the distance rates page renders
+            await renderPage([
+                buildRate('missing', {attributes: {taxRateExternalID: TAX_RATE_ID}}),
+                buildRate('set', {attributes: {taxClaimablePercentage: 0.2, taxRateExternalID: TAX_RATE_ID}}),
+            ]);
+
+            // Then only the rate with an amount shows the line, like the blank cell in the wide layout
+            expect(screen.getByText(getNarrowRowText('$2.00'))).toBeTruthy();
+            expect(screen.getAllByText(new RegExp(`^${getColumnHeaderLabel()} `))).toHaveLength(1);
+        });
+
+        it.each([
+            ['policy tax tracking is off', {trackingEnabled: false, taxEnabled: true}],
+            ['distance tax is off', {trackingEnabled: true, taxEnabled: false}],
+        ])('hides the amount when %s', async (_, settings) => {
+            // Given a narrow table layout and a rate that would have an amount, but only one of the two tax settings is on
+            // When the distance rates page renders
+            await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})], settings);
+
+            // Then the row doesn't show the amount, matching the hidden column in the wide layout
+            expect(screen.queryByText(getNarrowRowText('$5.00'))).toBeNull();
+        });
+
+        it('shows the full date range on its own line', async () => {
+            // Given a narrow table layout and a rate that is only valid for part of the year
+            // When the distance rates page renders
+            await renderPage([buildRate('cars', {startDate: '2026-08-01', endDate: '2026-08-31'})]);
+
+            // Then the whole date range is its own text, so it isn't cut off behind the rate on phones
+            expect(screen.getByText(TestHelper.translateLocal('iou.rateValidDateRange', {startDate: 'Aug 1, 2026', endDate: 'Aug 31, 2026'}))).toBeTruthy();
+        });
+
+        it('hides the enable toggle', async () => {
+            // Given a narrow table layout and an enabled rate
+            // When the distance rates page renders
+            await renderPage([buildRate('cars')]);
+
+            // Then the row has no switch, since its width goes to the stacked rate details and rates are toggled from bulk selection or the details page
+            expect(screen.queryByRole(CONST.ROLE.SWITCH)).toBeNull();
+        });
+    });
+
+    it('shows the enable toggle in the wide layout', async () => {
+        // Given the wide table layout and an enabled rate
+        // When the distance rates page renders
+        await renderPage([buildRate('cars')]);
+
+        // Then the row keeps its switch column
+        expect(screen.getByRole(CONST.ROLE.SWITCH)).toBeTruthy();
     });
 
     it('prefills a raw amount and saves the converted percentage on blur', async () => {
