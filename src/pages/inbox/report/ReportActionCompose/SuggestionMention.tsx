@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getReportParticipantAccountIDSet, isGroupChat} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
@@ -375,9 +375,11 @@ function SuggestionMention({
                     const policyEmployee = policy?.employeeList?.[detail.login];
                     return !!policyEmployee && isEmptyObject(policyEmployee.errors);
                 };
+                // Build the participant set once per lookup, so checking every personal detail stays cheap in rooms with many participants
+                const reportParticipantAccountIDs = getReportParticipantAccountIDSet(currentReport);
                 // Smaller weight means higher order in suggestion list
                 const getPersonalDetailsWeight = (detail: PersonalDetails): number => {
-                    if (isReportParticipant(detail.accountID, currentReport)) {
+                    if (reportParticipantAccountIDs.has(detail.accountID)) {
                         return 0;
                     }
                     if (isPolicyEmployee(detail)) {

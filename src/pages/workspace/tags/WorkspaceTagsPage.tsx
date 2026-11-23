@@ -101,9 +101,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
     if (!policyTagList) {
         return undefined;
     }
-    return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
-        ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-        : undefined;
+    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 }
 
 /** Tag list names can repeat, so add the unique orderWeight to make each multi-level row key unique. */
@@ -181,12 +179,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const canSelectMultiple = isSelectionEnabled && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
 
-    const tagsList = isMultiLevelTags
-        ? policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
-              acc[getTagListRowKey(policyTagList)] = policyTagList;
-              return acc;
-          }, {})
-        : policyTagLists?.at(0)?.tags;
+    // Only single-level tags can be selected (see `isSelectionEnabled`), so only their tags are needed to update the selection.
+    const singleLevelTags = policyTagLists.at(0)?.tags;
 
     const updateWorkspaceRequiresTag = (value: boolean, orderWeight: number) => {
         if (!canWriteTags) {
@@ -206,45 +200,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             const newSelectedTags = [];
 
             for (const tagName of prevSelectedTags) {
-                if (isMultiLevelTags) {
-                    const tagListExists = tagsList?.[tagName];
-                    if (!tagListExists) {
-                        const renamedTagList = Object.entries(tagsList ?? {}).find(([, tagList]) => {
-                            const typedTagList = tagList as {previousTagName?: string};
-                            return typedTagList.previousTagName === tagName;
-                        });
-                        if (renamedTagList) {
-                            newSelectedTags.push(renamedTagList[0]);
-                            continue;
-                        }
+                const tagExists = singleLevelTags?.[tagName];
+                if (!tagExists) {
+                    const renamedTag = Object.entries(singleLevelTags ?? {}).find(([, tag]) => tag.previousTagName === tagName);
+                    if (renamedTag) {
+                        newSelectedTags.push(renamedTag[0]);
+                        continue;
                     }
+                }
 
-                    if (tagListExists && tagListExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        newSelectedTags.push(tagName);
-                    }
-                } else {
-                    const tagExists = tagsList?.[tagName];
-                    if (!tagExists) {
-                        const renamedTag = Object.entries(tagsList ?? {}).find(([, tag]) => {
-                            const typedTag = tag as {previousTagName?: string};
-                            return typedTag.previousTagName === tagName;
-                        });
-                        if (renamedTag) {
-                            newSelectedTags.push(renamedTag[0]);
-                            continue;
-                        }
-                    }
-
-                    if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        newSelectedTags.push(tagName);
-                    }
+                if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedTags.push(tagName);
                 }
             }
 
             return newSelectedTags;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tagsList]);
+    }, [singleLevelTags]);
 
     useEffect(() => {
         if (!canWriteTags || !isMultiLevelTags || hasDependentTags) {
@@ -565,43 +538,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }
     const secondaryActions = menuItems;
 
-    const getHeaderButtons = () => {
-        if (!canWriteTags && secondaryActions.length === 0) {
-            return null;
-        }
-
+    const getBulkActionOptions = () => {
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
-
-        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
-        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
-            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
-            return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {hasPrimaryActions && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={navigateToCreateTagPage}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        >
-                            <Button.Icon src={expensifyIcons.Plus} />
-                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
-                        </Button>
-                    )}
-                    {secondaryActions.length > 0 && (
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
-                        />
-                    )}
-                </View>
-            );
-        }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
@@ -695,6 +633,46 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
+        return options;
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteTags && secondaryActions.length === 0) {
+            return null;
+        }
+
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        if (!canWriteTags || !isSelectionEnabled || !shouldUseNarrowLayout || !isMobileSelectionModeEnabled) {
+            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
+            return (
+                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                    {hasPrimaryActions && (
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={navigateToCreateTagPage}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
+                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
+                    )}
+                    {secondaryActions.length > 0 && (
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('common.more')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
+                            options={secondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
+                        />
+                    )}
+                </View>
+            );
+        }
+
         return (
             <ButtonWithDropdownMenu
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -703,7 +681,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 isSplitButton={false}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
-                options={options}
+                options={getBulkActionOptions()}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
@@ -847,6 +825,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         emptyState={tagsTableEmptyState}
                         onRowSelectionChange={setSelectedTagKeys}
                         headerComponent={hasVisibleTags ? headerContent : undefined}
+                        bulkActionOptions={canWriteTags && isSelectionEnabled ? getBulkActionOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>
