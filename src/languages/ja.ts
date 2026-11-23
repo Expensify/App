@@ -5567,19 +5567,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 one: '1つのワークスペースから退出しますか？',
                 other: (count: number) => `${count} 個のワークスペースから離れますか？`,
             }),
-            transferOwnerWorkspacesTitle: () => ({
-                one: '1つのワークスペースのオーナーを移譲しますか？',
-                other: (count: number) => `${count} 件のワークスペースのオーナーを譲渡しますか？`,
-            }),
             leftWorkspacesTitle: (count: number, total: number) => `${total} 個のワークスペースのうち ${count} 個を退出しました`,
             archivedWorkspacesTitle: (count: number, total: number) => `${total} 個のワークスペースのうち ${count} 個をアーカイブしました`,
             archiveWorkspacesFailed: '自分が所有していないワークスペースや、すでにアーカイブされているワークスペースはアーカイブできません。内容を確認して、もう一度お試しください。',
-            transferredOwnerWorkspacesTitle: (count: number, total: number) => `${total}件のワークスペースのうち${count}件のオーナーを譲渡しました`,
-            transferOwnerWorkspacesFailed:
-                'すでに所有している、または管理者ではないワークスペースは移行できません。また、一部のワークスペースは事前に追加の手順が必要です。移行するワークスペースは、1回につき1つずつ選択してください。',
             exportedMembersWorkspacesTitle: (count: number, total: number) => `${total} 件のワークスペースのうち ${count} 件のメンバーをエクスポートしました`,
             exportMembersFailed: 'メンバーを管理できないワークスペースのメンバーはエクスポートできません。対象のワークスペースを確認してから、もう一度お試しください。',
-            bulkTransferOwnerNoneEligible: '選択されたワークスペースは一緒に移管できません。移管するワークスペースを1つずつ選択してください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',

@@ -5650,21 +5650,13 @@ ${amount} für ${merchant} – ${date}`,
                 one: '1 Arbeitsbereich verlassen?',
                 other: (count: number) => `${count} Arbeitsbereiche verlassen?`,
             }),
-            transferOwnerWorkspacesTitle: () => ({
-                one: 'Eigentümer:in von 1 Arbeitsbereich übertragen?',
-                other: (count: number) => `Eigentümer von ${count} Arbeitsbereichen übertragen?`,
-            }),
             leftWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen verlassen`,
             archivedWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen archiviert`,
             archiveWorkspacesFailed:
                 'Sie können keine Arbeitsbereiche archivieren, die Sie nicht besitzen oder die bereits archiviert sind. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
-            transferredOwnerWorkspacesTitle: (count: number, total: number) => `Eigentümer von ${count} von ${total} Arbeitsbereichen übertragen`,
-            transferOwnerWorkspacesFailed:
-                'Sie können keine Arbeitsbereiche übertragen, die Sie bereits besitzen oder für die Sie keine Admin-Rolle haben, und für einige sind zunächst zusätzliche Schritte erforderlich. Wählen Sie jeweils einen Arbeitsbereich aus, um ihn zu übertragen.',
             exportedMembersWorkspacesTitle: (count: number, total: number) => `Exportierte Mitglieder von ${count} von insgesamt ${total} Arbeitsbereichen`,
             exportMembersFailed:
                 'Sie können Mitglieder von Arbeitsbereichen, in denen Sie keine Mitglieder verwalten können, nicht exportieren. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
-            bulkTransferOwnerNoneEligible: 'Keine der ausgewählten Workspaces kann gemeinsam übertragen werden. Wählen Sie jeweils einen Workspace aus, um ihn zu übertragen.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',

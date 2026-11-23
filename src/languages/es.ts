@@ -5642,20 +5642,11 @@ ${amount} para ${merchant} - ${date}`,
                 one: '¿Salir de 1 espacio de trabajo?',
                 other: (count: number) => `¿Salir de ${count} espacios de trabajo?`,
             }),
-            transferOwnerWorkspacesTitle: () => ({
-                one: '¿Transferir la propiedad de 1 espacio de trabajo?',
-                other: (count: number) => `¿Transferir la propiedad de ${count} espacios de trabajo?`,
-            }),
             leftWorkspacesTitle: (count: number, total: number) => `Has salido de ${count} de ${total} espacios de trabajo`,
             archivedWorkspacesTitle: (count: number, total: number) => `Se archivaron ${count} de ${total} espacios de trabajo`,
             archiveWorkspacesFailed: 'No puedes archivar espacios de trabajo que no posees o que ya están archivados. Por favor, compruébalos e inténtalo de nuevo.',
-            transferredOwnerWorkspacesTitle: (count: number, total: number) => `Se transfirió la propiedad de ${count} de ${total} espacios de trabajo`,
-            transferOwnerWorkspacesFailed:
-                'No puedes transferir espacios de trabajo que ya posees o de los que no eres administrador, y algunos requieren pasos adicionales primero. Selecciona un espacio de trabajo a la vez para transferirlo.',
             exportedMembersWorkspacesTitle: (count: number, total: number) => `Miembros exportados de ${count} de ${total} espacios de trabajo`,
             exportMembersFailed: 'No puedes exportar miembros de espacios de trabajo en los que no puedes gestionar miembros. Por favor, compruébalos e inténtalo de nuevo.',
-            bulkTransferOwnerNoneEligible:
-                'Ninguno de los espacios de trabajo seleccionados se puede transferir junto con los demás. Selecciona un espacio de trabajo a la vez para transferirlo.',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
