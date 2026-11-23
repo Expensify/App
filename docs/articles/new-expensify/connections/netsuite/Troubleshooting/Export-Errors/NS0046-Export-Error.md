@@ -1,8 +1,8 @@
 ---
 title: NS0046 Export Error in NetSuite Integration
-description: Learn what the NS0046 export error means and how to apply valid NetSuite customer or project tags to billable expenses before exporting.
-keywords: NS0046, NetSuite billable expense error, customer project required NetSuite, billable expense not coded NetSuite, invalid project NetSuite, Expensify NetSuite integration, Workspace Admin
-internalScope: Audience is Workspace Admins using the NetSuite integration. Covers resolving the NS0046 export error caused by missing or inactive customer or project tags on billable expenses. Does not cover role permission or subsidiary mismatch issues.
+description: Learn how to fix NS0046 billable coding errors and the related NetSuite error “This expense line cannot be billable.”
+keywords: NS0046, NetSuite billable expense error, This expense line cannot be billable, enable Customers, customer project required NetSuite, uncheck Billable, Expensify NetSuite integration, Workspace Admin
+internalScope: Audience is workspace admins using the NetSuite integration. Covers NS0046 customer or project coding, enabling Customers, and related billable-line errors. Does not cover role permission or subsidiary mismatch issues.
 ---
 
 # NS0046 Export Error in NetSuite Integration
@@ -35,6 +35,20 @@ This is a billable coding issue, not a role permission or subsidiary mismatch is
 ## How to Fix the NS0046 Export Error
 
 Follow the steps below to correct the billable coding.
+
+---
+
+## How to enable NetSuite Customers for billable expenses
+
+If an expense should be billed to a customer, make sure the workspace imports the customer or project coding it needs.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to NetSuite, then select **Import**.
+3. Enable **Customers** if disabled, and confirm customers or projects are imported at the level needed for your billable expenses.
+4. Select **More (⋮)**, then select **Sync now**.
+5. Apply a valid imported **Customer** or **Project** to each billable expense before retrying the export.
+
+Learn how to [configure NetSuite customer and project imports](/articles/new-expensify/connections/netsuite/Configure-Netsuite).
 
 ---
 
@@ -90,6 +104,24 @@ On mobile:
 5. Select **Sync now**.
 
 After syncing, open the report and retry exporting to NetSuite.
+
+---
+
+## How to fix “This expense line cannot be billable” in NetSuite
+
+You may see this separate NetSuite validation error, including after correcting a required field such as Line of Business:
+
+> Error while accessing a resource. This expense line cannot be billable.
+
+This is not the NS0046 missing-customer error. Confirm whether the affected expense should actually be billed to a customer.
+
+If it should **not** be billable:
+
+1. Open the report and edit the affected expense in Expensify.
+2. Clear the **Billable** checkbox.
+3. Save the change and retry exporting the report.
+
+If it **should** remain billable, do not clear **Billable** just to make the export succeed. Confirm the customer or project coding using the steps above, then ask your NetSuite administrator to review why the expense line does not allow billing. Enabling Customers alone does not guarantee that NetSuite will accept a billable line.
 
 ---
 

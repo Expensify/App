@@ -103,6 +103,34 @@ describe('useDynamicColumnWidths', () => {
         expect(thirdSave?.resizedColumnKeys).toEqual(['name', 'description']);
     });
 
+    it('stops a drag at the minimum width a column sets, or at its content when that is narrower', () => {
+        // Given a name column that sets a 300px minimum, like a member column does
+        const columnsWithMinWidth: Array<TableColumn<'name' | 'description', Tax>> = COLUMNS.map((column) =>
+            column.key === 'name' ? {...column, dynamicSizing: {getContentToMeasure: (tax) => [{text: tax.name}], minWidth: 300}} : column,
+        );
+
+        // When its names need 640px
+        const {result, rerender} = renderDynamicColumnWidths({data: LONG_DATA, columns: columnsWithMinWidth});
+
+        // Then a drag can't take it below the 300px it set, so the column stays readable
+        expect(result.current.dragMinWidths.name).toBe(300);
+
+        // When its names only need the 56px its header takes
+        rerender({data: SHORT_DATA, columns: columnsWithMinWidth});
+
+        // Then a drag stops at that content width, since the column never needs more room than its content
+        expect(result.current.dragMinWidths.name).toBe(56);
+    });
+
+    it('lets a column without a minimum be dragged down to the usual drag bound', () => {
+        // Given columns that set no minimum or drag bound of their own
+        // When the hook runs
+        const {result} = renderDynamicColumnWidths({data: LONG_DATA});
+
+        // Then the name column gets no floor of its own, so a drag can narrow it as far as any other column
+        expect(result.current.dragMinWidths.name).toBeUndefined();
+    });
+
     it('saves nothing when dynamic sizing is off', () => {
         // Given a table that hasn't opted into dynamic sizing, which narrow layouts also turn off
         // When the hook runs

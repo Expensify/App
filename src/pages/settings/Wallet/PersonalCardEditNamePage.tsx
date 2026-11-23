@@ -28,7 +28,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
 import type {CardList} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -41,7 +40,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path);
     const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
-    const [card, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [cardholder] = usePersonalDetail(card?.accountID);
     const defaultValue = card?.nameValuePairs?.cardTitle ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
@@ -64,10 +63,6 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
 
         return errors;
     };
-
-    if (isLoadingOnyxValue(cardListMetadata)) {
-        return null;
-    }
 
     return (
         <ScreenWrapper

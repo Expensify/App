@@ -29,6 +29,7 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isReportManager,
 } from '@libs/ReportUtils';
+import getTransactionRevertValues from '@libs/TransactionUtils/getTransactionRevertValues';
 
 import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
@@ -378,6 +379,7 @@ function getOnyxTargetTransactionData({
         data = getUpdateMoneyRequestParams({
             isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
+            transaction: targetTransaction,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportOwnerLogin,
@@ -400,35 +402,33 @@ function getOnyxTargetTransactionData({
     }
 
     const onyxData = data.onyxData;
+    const targetTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}` as const;
 
-    onyxData.optimisticData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-        value: {
-            // Clear the old count so it does not describe the newly chosen receipt.
-            receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
-        },
-    });
+    const optimisticReceipt = {
+        // Clear the old count so it does not describe the newly chosen receipt.
+        receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
+    };
+    onyxData.optimisticData?.push({onyxMethod: Onyx.METHOD.MERGE, key: targetTransactionKey, value: optimisticReceipt});
+    // The builder's failure data only reverts what the builder wrote, so the writes added here need their own.
+    onyxData.failureData?.push({onyxMethod: Onyx.METHOD.MERGE, key: targetTransactionKey, value: getTransactionRevertValues(targetTransaction, optimisticReceipt)});
 
     // getUpdateMoneyRequestParams currently derives optimistic distance data from transaction.routes.
     // In the merge flow, the selected merchant determines waypoints/customUnit => we can optimistic distance data from the selected merchant's waypoints/customUnit instead of transaction.routes
     if (isDistanceRequest(targetTransaction)) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-            value: {
-                comment: {
-                    waypoints: mergeTransaction.waypoints ?? null,
-                    customUnit: mergeTransaction.customUnit ?? null,
-                    ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
-                    ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
-                    ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
-                    ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
-                },
-                routes: mergeTransaction.routes ?? null,
-                iouRequestType: mergeTransaction.iouRequestType ?? targetTransaction.iouRequestType ?? null,
+        const optimisticDistance = {
+            comment: {
+                waypoints: mergeTransaction.waypoints ?? null,
+                customUnit: mergeTransaction.customUnit ?? null,
+                ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+                ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+                ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+                ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
             },
-        });
+            routes: mergeTransaction.routes ?? null,
+            iouRequestType: mergeTransaction.iouRequestType ?? targetTransaction.iouRequestType ?? null,
+        };
+        onyxData.optimisticData?.push({onyxMethod: Onyx.METHOD.MERGE, key: targetTransactionKey, value: optimisticDistance});
+        onyxData.failureData?.push({onyxMethod: Onyx.METHOD.MERGE, key: targetTransactionKey, value: getTransactionRevertValues(targetTransaction, optimisticDistance)});
     }
 
     return onyxData;
@@ -464,6 +464,7 @@ type MergeTransactionRequestParams = {
     sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isSourceActionIOUReportArchived: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -504,6 +505,7 @@ function mergeTransactionRequest({
     sourceActionChatReport,
     rules,
     isVendorMatchingBetaEnabled,
+    isSourceActionIOUReportArchived,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -577,10 +579,11 @@ function mergeTransactionRequest({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
             value: null,
         };
+        // Requests queued earlier have finished by now, so the pending state in this copy is stale.
         const failureSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
-            value: sourceTransaction,
+            value: {...sourceTransaction, pendingAction: null, pendingFields: null},
         };
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
@@ -679,6 +682,7 @@ function mergeTransactionRequest({
                 currentUserAccountID: currentUserAccountIDParam,
                 iouReport: sourceActionIOUReport,
                 chatReport: sourceActionChatReport,
+                isArchivedIOUReport: isSourceActionIOUReportArchived,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });

@@ -65,8 +65,8 @@ describe('getInsightsDetailsPeriod', () => {
     });
 
     it('uses the drawn Group by on Spend over time, even for a preset with a period of its own', () => {
-        // Given This month drawn by week on Spend over time
-        const filters: InsightsFilters = {...BASE_FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, groupBy: CONST.SEARCH.GROUP_BY.WEEK};
+        // Given Last month drawn by week on Spend over time
+        const filters: InsightsFilters = {...BASE_FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, groupBy: CONST.SEARCH.GROUP_BY.WEEK};
 
         // When a point on Spend over time opens the Details panel
         const period = getInsightsDetailsPeriod(filters, CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME);

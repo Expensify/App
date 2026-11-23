@@ -33,4 +33,3 @@ function Sub({children, id: subID}: SubProps): React.ReactElement {
 Sub.displayName = 'PopoverMenu.Sub';
 
 export default Sub;
-export type {SubProps};
