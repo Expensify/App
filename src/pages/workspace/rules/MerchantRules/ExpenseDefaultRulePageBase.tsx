@@ -323,6 +323,8 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+    // The conditions beyond merchant, category and tag are held back while their deploy blockers are open.
+    const canUseMoreConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
@@ -528,20 +530,25 @@ function ExpenseDefaultRulePageBase({
         {
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
-                {
-                    key: 'submittersToMatch',
-                    description: translate('common.submitter'),
-                    title: submittersToMatchDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Paycheck,
-                },
-                {
-                    key: 'amountToMatch',
-                    description: translate('iou.amount'),
-                    title: getAmountToMatchDisplayName(),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
-                },
+                canUseMoreConditions
+                    ? {
+                          key: 'submittersToMatch',
+                          description: translate('common.submitter'),
+                          title: submittersToMatchDisplayName,
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paycheck,
+                      }
+                    : undefined,
+                canUseMoreConditions
+                    ? {
+                          key: 'amountToMatch',
+                          description: translate('iou.amount'),
+                          title: getAmountToMatchDisplayName(),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Cash,
+                      }
+                    : undefined,
                 {
                     key: 'merchantToMatch',
                     description: translate('common.merchant'),
@@ -552,14 +559,18 @@ function ExpenseDefaultRulePageBase({
                         ),
                     icon: icons.Basket,
                 },
-                {
-                    key: 'merchantTypesToMatch',
-                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
-                    title: merchantTypesToMatchDisplayName,
-                    onPress: () =>
-                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Basket,
-                },
+                canUseMoreConditions
+                    ? {
+                          key: 'merchantTypesToMatch',
+                          description: translate('workspace.rules.merchantTypeRule.merchantType'),
+                          title: merchantTypesToMatchDisplayName,
+                          onPress: () =>
+                              Navigation.navigate(
+                                  getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID)),
+                              ),
+                          icon: icons.Basket,
+                      }
+                    : undefined,
                 hasCategoriesToMatch()
                     ? {
                           key: 'categoriesToMatch',
@@ -580,15 +591,17 @@ function ExpenseDefaultRulePageBase({
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Tag,
                       },
-                {
-                    key: 'reimbursableToMatch',
-                    description: translate('common.reimbursable'),
-                    title: getBooleanTitle(form?.reimbursableToMatch, translate),
-                    onPress: () =>
-                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Paycheck,
-                },
-                isBillableEnabled || form?.billableToMatch !== undefined
+                canUseMoreConditions
+                    ? {
+                          key: 'reimbursableToMatch',
+                          description: translate('common.reimbursable'),
+                          title: getBooleanTitle(form?.reimbursableToMatch, translate),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paycheck,
+                      }
+                    : undefined,
+                canUseMoreConditions && (isBillableEnabled || form?.billableToMatch !== undefined)
                     ? {
                           key: 'billableToMatch',
                           description: translate('common.billable'),
@@ -598,21 +611,26 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.Paycheck,
                       }
                     : undefined,
-                {
-                    key: 'dateToMatch',
-                    description: translate('common.date'),
-                    title: getDateToMatchDisplayName(),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Calendar,
-                },
-                {
-                    key: 'currenciesToMatch',
-                    description: translate('common.currency'),
-                    title: currenciesToMatchDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
-                },
-                areCardsEnabled || cardsToMatch.length > 0
+                canUseMoreConditions
+                    ? {
+                          key: 'dateToMatch',
+                          description: translate('common.date'),
+                          title: getDateToMatchDisplayName(),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Calendar,
+                      }
+                    : undefined,
+                canUseMoreConditions
+                    ? {
+                          key: 'currenciesToMatch',
+                          description: translate('common.currency'),
+                          title: currenciesToMatchDisplayName,
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Cash,
+                      }
+                    : undefined,
+                canUseMoreConditions && (areCardsEnabled || cardsToMatch.length > 0)
                     ? {
                           key: 'cardsToMatch',
                           description: translate('common.card'),
@@ -621,7 +639,7 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.CreditCard,
                       }
                     : undefined,
-                hasUsableTaxRates(policy) || taxRatesToMatch.length > 0
+                canUseMoreConditions && (hasUsableTaxRates(policy) || taxRatesToMatch.length > 0)
                     ? {
                           key: 'taxRatesToMatch',
                           description: translate('workspace.taxes.taxRate'),
@@ -631,13 +649,15 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                {
-                    key: 'hasToMatch',
-                    description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
-                    title: getHasToMatchDisplayName(),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Paperclip,
-                },
+                canUseMoreConditions
+                    ? {
+                          key: 'hasToMatch',
+                          description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
+                          title: getHasToMatchDisplayName(),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paperclip,
+                      }
+                    : undefined,
             ],
         },
         {
