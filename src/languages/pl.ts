@@ -6902,6 +6902,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
             },
+            autoCreateVendor: 'Automatycznie twórz dostawców',
+            autoCreateVendorDescription: 'Expensify automatycznie utworzy dostawców w DualEntry, jeśli jeszcze nie istnieją.',
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
             syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
             billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},

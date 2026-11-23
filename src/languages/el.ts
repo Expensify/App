@@ -7012,6 +7012,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν εξοφληθούν',
                 },
             },
+            autoCreateVendor: 'Αυτόματη δημιουργία προμηθευτών',
+            autoCreateVendorDescription: 'Η Expensify θα δημιουργεί αυτόματα προμηθευτές στο DualEntry, αν δεν υπάρχουν ήδη.',
             syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},

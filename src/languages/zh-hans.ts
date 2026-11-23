@@ -6617,6 +6617,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付报销将在支付后导出',
                 },
             },
+            autoCreateVendor: '自动创建供应商',
+            autoCreateVendorDescription: '如果供应商尚未在 DualEntry 中存在，Expensify 将自动创建这些供应商。',
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},

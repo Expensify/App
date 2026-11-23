@@ -6872,6 +6872,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando forem pagas',
                 },
             },
+            autoCreateVendor: 'Criar fornecedores automaticamente',
+            autoCreateVendorDescription: 'O Expensify criará automaticamente fornecedores no DualEntry se eles ainda não existirem.',
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
             billPaymentAccount: {label: 'Conta de pagamento de faturas', description: 'Escolha de onde deseja pagar as contas e criaremos o pagamento no DualEntry.'},

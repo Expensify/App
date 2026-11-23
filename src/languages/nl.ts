@@ -6859,6 +6859,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contante uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            autoCreateVendor: 'Leveranciers automatisch aanmaken',
+            autoCreateVendorDescription: 'Expensify maakt automatisch leveranciers aan in DualEntry als ze nog niet bestaan.',
             syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
             syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
             billPaymentAccount: {label: 'Rekening voor rekeningbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},

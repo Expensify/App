@@ -6908,6 +6908,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden beim Bezahlen exportiert',
                 },
             },
+            autoCreateVendor: 'Lieferanten automatisch erstellen',
+            autoCreateVendorDescription: 'Expensify erstellt in DualEntry automatisch Lieferanten, wenn sie noch nicht vorhanden sind.',
             syncReimbursedReports: 'Abgerechnete Berichte synchronisieren',
             syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
             billPaymentAccount: {

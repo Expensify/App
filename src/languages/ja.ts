@@ -6780,6 +6780,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われるとエクスポートされます',
                 },
             },
+            autoCreateVendor: 'ベンダーを自動作成',
+            autoCreateVendorDescription: 'Expensify は、存在しない場合は DualEntry にベンダーを自動的に作成します。',
             syncReimbursedReports: '精算済みレポートを同期',
             syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
             billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
