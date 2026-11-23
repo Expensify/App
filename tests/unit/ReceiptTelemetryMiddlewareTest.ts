@@ -183,6 +183,31 @@ describe('ReceiptTelemetry middleware', () => {
         expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({transactionCount: 0});
     });
 
+    it.each([WRITE_COMMANDS.MERGE_TRANSACTION, WRITE_COMMANDS.MERGE_DUPLICATES, WRITE_COMMANDS.RESOLVE_DUPLICATES])(
+        'logs the expenses that %s removes next to the one it keeps',
+        async (command) => {
+            // Given a merge or duplicate resolution, which sends the kept expense as transactionID and the others as an array
+            const request: Request<OnyxKey> = {command, data: {transactionID: TRANSACTION_ID, transactionIDList: ['456', '789']}};
+
+            // When the server accepts it
+            await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}), request, true);
+
+            // Then the removed ids are on the line too, so searching by a deleted expense's id finds the command that removed it
+            expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({transactionID: TRANSACTION_ID, transactionIDs: '456,789', transactionCount: 2});
+        },
+    );
+
+    it('logs the one expense a merge removes, even though a single moved id is not listed', async () => {
+        // Given a merge of one source expense into the kept one
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.MERGE_TRANSACTION, data: {transactionID: TRANSACTION_ID, transactionIDList: ['456']}};
+
+        // When the server rejects it
+        await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.EXP_ERROR}), request, true);
+
+        // Then the source id is still logged, because unlike a move it is not the line's transactionID
+        expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({transactionID: TRANSACTION_ID, transactionIDs: '456', transactionCount: 1, resultClass: 'permanent'});
+    });
+
     it('stays silent for commands outside the receipt trail', async () => {
         // Given a command unrelated to expenses
         const request: Request<OnyxKey> = {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}};

@@ -124,10 +124,15 @@ const RECEIPT_TRAIL_COMMANDS = new Set<string>([...RECEIPT_BEARING_COMMANDS, ...
  */
 type ReceiptServerResultClass = 'success' | 'alreadyCreated' | 'transient' | 'permanent' | 'cancelled';
 
-/** The trail fields read from a request's params. ChangeTransactionsReport sends `transactionList`, a comma-separated list, instead of `transactionID`. */
+/**
+ * The trail fields read from a request's params. ChangeTransactionsReport sends `transactionList`, a comma-separated
+ * list, instead of `transactionID`. Merge and duplicate commands send the kept expense as `transactionID` and the
+ * others, which they delete or hold, as the `transactionIDList` array.
+ */
 type ReceiptTrailRequestData = {
     transactionID?: unknown;
     transactionList?: unknown;
+    transactionIDList?: unknown;
     receipt?: {receiptTraceId?: unknown; receiptEnqueuedAt?: unknown};
 };
 
@@ -135,10 +140,10 @@ type ReceiptTrailFields = {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
 
-    /** Set only when a move carries more than one transaction, capped at MAX_LOGGED_TRANSACTION_IDS. */
+    /** A move's ids when it carries more than one, or the ids a merge or duplicate command removes. Capped at MAX_LOGGED_TRANSACTION_IDS. */
     transactionIDs: string | undefined;
 
-    /** How many transactions a move carries. 0 for a move of every expense matching a search, which sends no list. */
+    /** How many ids the list carries. 0 for a move of every expense matching a search, which sends no list. */
     transactionCount: number | undefined;
 
     hasReceipt: boolean;
@@ -150,20 +155,22 @@ const MAX_LOGGED_TRANSACTION_IDS = 20;
 
 function getReceiptTrailFields(data: ReceiptTrailRequestData | undefined): ReceiptTrailFields {
     const receipt = data?.receipt;
+    const transactionID = typeof data?.transactionID === 'string' && data.transactionID ? data.transactionID : undefined;
     const hasTransactionList = typeof data?.transactionList === 'string';
     const listedTransactionIDs = typeof data?.transactionList === 'string' ? data.transactionList.split(',').filter(Boolean) : [];
 
+    // The removed expenses are logged too, or a receipt lost in a merge never shows up when searching by its id
+    const otherTransactionIDs = Array.isArray(data?.transactionIDList) ? data.transactionIDList.filter((id): id is string => typeof id === 'string' && !!id) : undefined;
+
     // A single-expense move joins the trail by transactionID like every other command
-    let transactionID = typeof data?.transactionID === 'string' ? data.transactionID : undefined;
-    if (!transactionID && listedTransactionIDs.length === 1) {
-        transactionID = listedTransactionIDs.at(0);
-    }
+    const movedTransactionID = listedTransactionIDs.length === 1 ? listedTransactionIDs.at(0) : undefined;
+    const loggedTransactionIDs = otherTransactionIDs ?? (listedTransactionIDs.length > 1 ? listedTransactionIDs : []);
 
     return {
         receiptTraceId: typeof receipt?.receiptTraceId === 'string' ? receipt.receiptTraceId : undefined,
-        transactionID,
-        transactionIDs: listedTransactionIDs.length > 1 ? listedTransactionIDs.slice(0, MAX_LOGGED_TRANSACTION_IDS).join(',') : undefined,
-        transactionCount: hasTransactionList ? listedTransactionIDs.length : undefined,
+        transactionID: transactionID ?? movedTransactionID,
+        transactionIDs: loggedTransactionIDs.length > 0 ? loggedTransactionIDs.slice(0, MAX_LOGGED_TRANSACTION_IDS).join(',') : undefined,
+        transactionCount: otherTransactionIDs?.length ?? (hasTransactionList ? listedTransactionIDs.length : undefined),
         hasReceipt: !!receipt,
         receiptEnqueuedAt: typeof receipt?.receiptEnqueuedAt === 'number' ? receipt.receiptEnqueuedAt : undefined,
     };
