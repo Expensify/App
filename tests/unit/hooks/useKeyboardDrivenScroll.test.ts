@@ -15,9 +15,14 @@ const mockScrollTo = jest.fn();
 let mockVisibleHeight = 0;
 let mockScrollOffset = 0;
 const SCROLL_VIEW_TAG = 10;
-// Only passed to the mocked Reanimated functions
+// Height of the scroll view's content when the hook measures it, or null when it can't be measured
+let mockMeasuredContentHeight: number | null = null;
+// Passed to the mocked Reanimated functions, and the hook measures its content through it
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
-const MOUNTED_SCROLL_VIEW = {} as KeyboardScrollable;
+const MOUNTED_SCROLL_VIEW = {
+    getInnerViewRef: () =>
+        mockMeasuredContentHeight === null ? null : {measure: (callback: (x: number, y: number, width: number, height: number) => void) => callback(0, 0, 0, mockMeasuredContentHeight ?? 0)},
+} as unknown as KeyboardScrollable;
 // The caller's animated ref. The hook reads only current and observe, and the scroll view is mounted, so observers get its tag right away.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
 const scrollableRef = {
@@ -30,6 +35,9 @@ const scrollableRef = {
 const mockSetFrameCallbackActive = jest.fn();
 let mockFrameCallback: (() => void) | undefined;
 let mockFocusedInputTag: number | null = null;
+/** The hook's reaction to the input the keyboard provider reports as focused. */
+type MockFocusedInputReaction = (inputTag: number | null, previousInputTag: number | null) => void;
+let mockFocusedInputReaction: MockFocusedInputReaction | undefined;
 const mockRegisterForEvents = jest.fn();
 /** The part of a native scroll event the hook reads. */
 type MockScrollViewEvent = {eventName: string; contentSize: {height: number}};
@@ -48,6 +56,10 @@ jest.mock('react-native-reanimated', () => ({
     useFrameCallback: (callback: () => void) => {
         mockFrameCallback = callback;
         return {callbackId: 1, isActive: false, setActive: mockSetFrameCallbackActive};
+    },
+    // Only the hook's reaction to the focused input is registered, and setFocusedInput runs it
+    useAnimatedReaction: (_prepare: unknown, react: MockFocusedInputReaction) => {
+        mockFocusedInputReaction = react;
     },
     useEvent: (handler: (event: MockScrollViewEvent) => void) => {
         mockScrollViewEventHandler = handler;
@@ -115,9 +127,11 @@ function setProviderKeyboard(progress: number, height: number) {
     mockProviderKeyboard = {progress, height};
 }
 
-/** Sets which input the keyboard provider reports as focused, or none. */
+/** Sets which input the keyboard provider reports as focused, or none, and runs the hook's reaction to it. */
 function setFocusedInput(inputTag: number | null) {
+    const previousInputTag = mockFocusedInputTag;
     mockFocusedInputTag = inputTag;
+    mockFocusedInputReaction?.(inputTag, previousInputTag);
 }
 
 describe('useKeyboardDrivenScroll', () => {
@@ -128,7 +142,9 @@ describe('useKeyboardDrivenScroll', () => {
         mockVisibleHeight = 600;
         mockScrollOffset = 0;
         mockContentHeight = 0;
+        mockMeasuredContentHeight = null;
         mockFrameCallback = undefined;
+        mockFocusedInputReaction = undefined;
         scrollableRef.current = MOUNTED_SCROLL_VIEW;
         setProviderKeyboard(0, 0);
         setFocusedInput(FIRST_INPUT_TAG);
@@ -148,7 +164,7 @@ describe('useKeyboardDrivenScroll', () => {
         jest.useRealTimers();
     });
 
-    it('moves toward the offset on every keyboard frame without animation, and lands on it when the keyboard stops', () => {
+    it('moves toward the offset on every keyboard frame without animation, and slides the rest of the way when the keyboard stops', () => {
         // Given focus while the keyboard is closed and the content is at the top
         const {scrollWithKeyboard, startKeyboard, moveKeyboard, endKeyboard} = renderKeyboardDrivenScroll();
         scrollWithKeyboard(120);
@@ -162,11 +178,12 @@ describe('useKeyboardDrivenScroll', () => {
         moveKeyboard(200);
         endKeyboard(KEYBOARD_HEIGHT);
 
-        // Then each frame moves the content by the keyboard's share of its animation, so it doesn't jump on the first frame
+        // Then each frame moves the content by the keyboard's share of its animation, so it doesn't jump on the first frame,
+        // and the content slides the rest of the way when the keyboard stops short of its last frames
         expect(mockScrollTo).toHaveBeenCalledTimes(3);
         expect(mockScrollTo).toHaveBeenNthCalledWith(1, scrollableRef, 0, 40, false);
         expect(mockScrollTo).toHaveBeenNthCalledWith(2, scrollableRef, 0, 80, false);
-        expect(mockScrollTo).toHaveBeenNthCalledWith(3, scrollableRef, 0, 120, false);
+        expect(mockScrollTo).toHaveBeenNthCalledWith(3, scrollableRef, 0, 120, true);
     });
 
     it('moves from where the user scrolled, not from the top', () => {
@@ -231,20 +248,33 @@ describe('useKeyboardDrivenScroll', () => {
         expect(mockScrollTo).toHaveBeenNthCalledWith(2, scrollableRef, 0, 200, false);
     });
 
-    it('takes the target at once when a keyboard event keeps its height', () => {
-        // Given an open keyboard and a target below the content
+    it('slides to the target of the next input at once when focus moves while the keyboard stays open', () => {
+        // Given an open keyboard with a target for the first input
+        const {scrollWithKeyboard, startKeyboard, endKeyboard} = renderWithSettledTarget();
+
+        // When focus moves to the second input, and iOS starts and ends a keyboard event of the same height with no frames between
+        setFocusedInput(SECOND_INPUT_TAG);
+        startKeyboard(KEYBOARD_HEIGHT);
+        scrollWithKeyboard(400);
+        endKeyboard(KEYBOARD_HEIGHT);
+
+        // Then the content slides to the new target right away, once, instead of jumping to it when the keyboard event ends
+        expect(mockScrollTo).toHaveBeenCalledTimes(1);
+        expect(mockScrollTo).toHaveBeenCalledWith(scrollableRef, 0, 400, true);
+    });
+
+    it('slides to a target that came after the last keyboard frame', () => {
+        // Given a keyboard that reached its height before the target came, with its end event still to come
         const {scrollWithKeyboard, startKeyboard, moveKeyboard, endKeyboard} = renderKeyboardDrivenScroll();
         startKeyboard(KEYBOARD_HEIGHT);
-        endKeyboard(KEYBOARD_HEIGHT);
-        scrollWithKeyboard(120);
-        mockScrollTo.mockClear();
-
-        // When a keyboard event starts and moves at the same height
-        startKeyboard(KEYBOARD_HEIGHT);
         moveKeyboard(KEYBOARD_HEIGHT);
+        scrollWithKeyboard(120);
 
-        // Then there is no animation to follow, so the content takes the target
-        expect(mockScrollTo).toHaveBeenCalledWith(scrollableRef, 0, 120, false);
+        // When the keyboard event ends
+        endKeyboard(KEYBOARD_HEIGHT);
+
+        // Then no frame moved the content, so it slides to the target instead of jumping
+        expect(mockScrollTo).toHaveBeenCalledWith(scrollableRef, 0, 120, true);
     });
 
     it('does not scroll past the top for a negative offset', () => {
@@ -454,6 +484,40 @@ describe('useKeyboardDrivenScroll', () => {
         expect(mockScrollTo).not.toHaveBeenCalled();
     });
 
+    it('keeps the content where the user dragged it when the target comes after the drag', () => {
+        // Given an open keyboard, and the user who focused the second input and started dragging before JS handled the focus
+        const {scrollWithKeyboard, startKeyboard, endKeyboard, startDrag} = renderKeyboardDrivenScroll();
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        setFocusedInput(SECOND_INPUT_TAG);
+        jest.advanceTimersByTime(100);
+        startDrag();
+
+        // When the target of the focus comes, and then the settle delay passes
+        jest.advanceTimersByTime(100);
+        scrollWithKeyboard(120);
+        runFrameAfter(500);
+
+        // Then nothing scrolls against the user's drag or pulls the content back after it
+        expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('applies the target when the user dragged before the input got focus', () => {
+        // Given an open keyboard, and the user who dragged the content and then focused the second input
+        const {scrollWithKeyboard, startKeyboard, endKeyboard, startDrag} = renderKeyboardDrivenScroll();
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        startDrag();
+        jest.advanceTimersByTime(100);
+        setFocusedInput(SECOND_INPUT_TAG);
+
+        // When the target of the focus comes
+        scrollWithKeyboard(120);
+
+        // Then the content slides to it, as the drag was not about this input
+        expect(mockScrollTo).toHaveBeenCalledWith(scrollableRef, 0, 120, true);
+    });
+
     it('follows the end the scroll view can reach, instead of jumping to a target past it on the first frame', () => {
         // Given a scroll view that shrinks with the keyboard, scrolled 100 px above its end, and a target past its end
         mockContentHeight = 1000;
@@ -471,6 +535,33 @@ describe('useKeyboardDrivenScroll', () => {
         endKeyboard(KEYBOARD_HEIGHT);
 
         // Then the content covers half of the way to the end it can reach on that frame, and lands on the end when the keyboard stops
+        expect(mockScrollTo).toHaveBeenNthCalledWith(1, scrollableRef, 0, 425, false);
+        expect(mockScrollTo).toHaveBeenNthCalledWith(2, scrollableRef, 0, 700, false);
+    });
+
+    it.each([
+        ['before the user scrolled', null],
+        ['after the content grew since the last scroll', 700],
+    ])('follows the reachable end measured when the target is set, %s', (_case, lastScrollContentHeight) => {
+        // Given a scroll view whose last scroll event, if any, reported less content than it has now, and a target past its end
+        mockScrollOffset = 300;
+        const {scrollWithKeyboard, startKeyboard, moveKeyboard, endKeyboard, scroll} = renderKeyboardDrivenScroll();
+        if (lastScrollContentHeight !== null) {
+            mockContentHeight = lastScrollContentHeight;
+            scroll();
+        }
+
+        // When the target is set while the content is 1000 px tall, and the keyboard opens as the view shrinks with it
+        mockMeasuredContentHeight = 1000;
+        scrollWithKeyboard(Number.MAX_SAFE_INTEGER);
+        startKeyboard(KEYBOARD_HEIGHT);
+        mockVisibleHeight = 450;
+        moveKeyboard(KEYBOARD_HEIGHT / 2);
+        mockVisibleHeight = 300;
+        moveKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+
+        // Then the content follows the end of the measured content instead of jumping to the end on the first frame or stopping short of it
         expect(mockScrollTo).toHaveBeenNthCalledWith(1, scrollableRef, 0, 425, false);
         expect(mockScrollTo).toHaveBeenNthCalledWith(2, scrollableRef, 0, 700, false);
     });
