@@ -3281,8 +3281,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'グローバル払い戻しの設定が進行中です。', link: '続行。'},
-            inReview: {message: 'グローバル払い戻しの設定を審査中です。', link: 'ステータスを確認。'},
+            inProgress: {message: 'グローバル払い戻しの設定が進行中です。'},
+            inReview: {message: 'グローバル払い戻しの設定を審査中です。', action: 'ステータスを確認'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',

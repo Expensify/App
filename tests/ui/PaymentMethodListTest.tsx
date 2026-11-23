@@ -352,7 +352,7 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
         // Then the row shows the setup is in progress, and Continue opens the intro, which picks the onboarding up where the admin left it
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
@@ -368,11 +368,11 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
         // Then the row says the setup is in progress, since the admin still has answers to give, and Continue opens the status page because the onboarding is already with Wise
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(screen.queryByText('Check status.')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Check status')).not.toBeOnTheScreen();
         expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
     });
 
@@ -385,11 +385,11 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Check status
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Check status.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Check status'), {preventDefault: jest.fn()});
 
         // Then the row says the setup is in review instead of offering to continue it, since the answers are already with Wise, and Check status opens its status page
         expect(screen.getByText('Global reimbursements setup in review.', {exact: false})).toBeOnTheScreen();
-        expect(screen.queryByText('Continue.')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Continue')).not.toBeOnTheScreen();
         expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
     });
 

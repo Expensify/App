@@ -3312,8 +3312,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Conta bancária rejeitada', heading: 'Nosso parceiro recusou sua conta bancária', description: 'Converse com o Concierge para mais informações.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configuração de reembolsos globais em andamento.', link: 'Continuar.'},
-            inReview: {message: 'Configuração de reembolsos globais em análise.', link: 'Verificar status.'},
+            inProgress: {message: 'Configuração de reembolsos globais em andamento.'},
+            inReview: {message: 'Configuração de reembolsos globais em análise.', action: 'Verificar status'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurar reembolsos globais?',
