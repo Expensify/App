@@ -1065,7 +1065,7 @@ function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeed
     }
 
     const suffix = feedName.slice(displayBase.base.length);
-    if (!suffix || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
+    if (suffix === '' || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
         return displayBase.displayName;
     }
 
