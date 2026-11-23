@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Rapport-ID',
         longReportID: 'Lang rapport-ID',
         withdrawalID: 'Opname-ID',
+        transactionID: 'Transactie-ID',
         internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
         amountDebited: 'Afgeschreven bedrag',
         amountReimbursed: 'Terugbetaald bedrag',
