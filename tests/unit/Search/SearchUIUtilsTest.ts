@@ -14065,6 +14065,28 @@ describe('SearchUIUtils', () => {
             expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
+        test('Should show the Transaction ID column on expense searches when it is selected', () => {
+            // Given an expense search where the user selected the Transaction ID column
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+
+            // When the columns to show are computed with and without that column selected
+            const columnsWithTransactionID = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID],
+            });
+            const defaultColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: defaultVisibleColumns,
+            });
+
+            // Then the column only shows when the user picked it, since it is off by default
+            expect(columnsWithTransactionID).toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+        });
+
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
