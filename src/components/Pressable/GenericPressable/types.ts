@@ -49,6 +49,7 @@ type RequiredAccessibilityLabel =
 type PressHandlerProp = 'onPress' | 'onLongPress';
 
 type PressableProps = RNPressableProps &
+    // React Native 0.88 drops these from Pressable, but list rows still use them for hover state on web.
     Pick<ViewProps, 'onMouseEnter' | 'onMouseLeave'> &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &

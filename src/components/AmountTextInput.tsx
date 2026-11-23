@@ -12,6 +12,10 @@ import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 import TextInput from './TextInput';
 
+/**
+ * React Native's key press event has no `ctrlKey`. Only web key events carry it, so it is optional here and the
+ * Ctrl+D forward-delete check has to handle it being missing.
+ */
 type AmountTextInputKeyPressEvent = {
     nativeEvent: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'> & {ctrlKey?: boolean};
     preventDefault: () => void;

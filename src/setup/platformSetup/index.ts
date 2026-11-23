@@ -72,6 +72,7 @@ export default function () {
     // Initialize Cache API
     CacheAPI.init();
 
+    // react-native-web renders into a DOM node, which React Native's types describe as a native root tag.
     (AppRegistry.runApplication as WebAppRegistry['runApplication'])(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });

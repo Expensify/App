@@ -16,6 +16,10 @@ type RHPFrameStyleParams<TWidth extends OverlayPositionValue> = {
     shouldUseCenteredFrame: boolean;
 };
 
+/**
+ * Generic so the returned style keeps the width type the caller passed in. A plain number gives a style a regular
+ * `View` accepts, while an animated width gives one only an animated view accepts.
+ */
 type GetRHPFrameStyle = <TWidth extends OverlayPositionValue>(params: RHPFrameStyleParams<TWidth>) => StyleProp<ViewStyle | {width: TWidth}>;
 
 export default GetRHPFrameStyle;
