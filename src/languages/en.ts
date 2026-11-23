@@ -9465,7 +9465,7 @@ const translations = {
                 },
                 noGovernmentRateForOtherCountry: 'There’s no government rate for this country yet.',
                 noGovernmentRateForCountry: (country: string) => `There’s no government rate for ${country} yet.`,
-                // @context Summary line on the Add distance rate page describing how the new rate will be paid, e.g. "Kilometers, paid in EUR". "paid" describes future payments, not a past one.
+                // @context Summary line on the Add distance rate page, for example “Kilometers, paid in EUR”. unit is the distance unit and currency is a currency code. “Paid” describes how the rate is paid out, not a payment that already happened.
                 unitPaidIn: (unit: string, currency: string) => `${unit}, paid in ${currency}`,
                 governmentRateNotes: {
                     AU: 'Tax-free up to 5,000 km a year. Above that, PAYG is withheld on the excess',
@@ -9473,7 +9473,7 @@ const translations = {
                     NL: 'One rate covers every transport type, including bicycle and walking',
                     NO: 'Tax-free up to NOK 3.50 per km. The rest is taxable salary',
                 },
-                // @context Note about Belgium's government mileage rate. "Rate" means the mileage reimbursement rate per kilometer, not an interest rate.
+                // @context Note about Belgium’s government mileage rate. date is the date the current rate started. “Rate” means a mileage reimbursement rate, not an interest rate.
                 governmentRateIndexedQuarterly: (date: string) => `Indexed every quarter. This is the rate from ${date}`,
                 governmentRatePerSwedishMil: (amount: string) => `Skatteverket publishes per Swedish mil (10 km): ${amount} per mil for a car`,
             },
