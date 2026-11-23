@@ -1,4 +1,4 @@
-import {canReuseWiseQuote, getWiseQuoteRequest} from '@libs/WiseQuoteUtils';
+import {canReuseWiseQuote, getWiseQuoteRequest, isWiseQuoteExpired} from '@libs/WiseQuoteUtils';
 
 import CONST from '@src/CONST';
 import type {Report, WiseQuote} from '@src/types/onyx';
@@ -86,6 +86,29 @@ describe('WiseQuoteUtils', () => {
             // When the admin pays the report
             // Then a new quote is fetched instead of showing the error again
             expect(canReuseWiseQuote(failedReport, getWiseQuoteRequest(failedReport, true, true), NOW)).toBe(false);
+        });
+    });
+
+    describe('isWiseQuoteExpired', () => {
+        it('accepts a quote valid for more than 30 seconds', () => {
+            // Given a quote that expires in 31 seconds
+            // When the admin pays with it
+            // Then the payment goes through with this quote
+            expect(isWiseQuoteExpired('2026-11-06T16:00:31Z', NOW)).toBe(false);
+        });
+
+        it('treats a quote as expired 30 seconds before its expiry time', () => {
+            // Given a quote that expires in 30 seconds, and the device clock can differ from the server's
+            // When the admin pays with it
+            // Then a new quote is fetched instead, so Wise doesn't reject the payment
+            expect(isWiseQuoteExpired('2026-11-06T16:00:30Z', NOW)).toBe(true);
+        });
+
+        it('treats a quote past its expiry time as expired', () => {
+            // Given a quote that expired a minute ago
+            // When the admin pays with it
+            // Then a new quote is fetched instead
+            expect(isWiseQuoteExpired('2026-11-06T15:59:00Z', NOW)).toBe(true);
         });
     });
 });

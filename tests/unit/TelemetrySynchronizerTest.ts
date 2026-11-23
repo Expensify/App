@@ -169,6 +169,33 @@ describe('TelemetrySynchronizer', () => {
         });
     });
 
+    describe('Sentry user', () => {
+        it('should set the Sentry user from the session', async () => {
+            // Given a signed-in session, which is the only source of the user every span is tagged with
+            const session: Session = {email: 'test@example.com', accountID: 1};
+
+            // When the session reaches Onyx
+            await Onyx.set(ONYXKEYS.SESSION, session);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Sentry gets the account ID and email so spans are attributed to this user
+            expect(Sentry.setUser).toHaveBeenLastCalledWith({id: 1, email: 'test@example.com'});
+        });
+
+        it('should clear the Sentry user when the session is removed', async () => {
+            // Given a signed-in user that Sentry already knows about
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: 1});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user signs out and the session is cleared
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Sentry user is cleared so later spans are not attributed to the signed-out account
+            expect(Sentry.setUser).toHaveBeenLastCalledWith({id: undefined, email: undefined});
+        });
+    });
+
     describe('sendTryNewDotCohortTag', () => {
         it('should call Sentry.setTag when cohort exists', async () => {
             const mockTryNewDot: TryNewDot = {

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isWiseQuoteExpired} from '@libs/WiseQuoteUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,10 +24,13 @@ type WiseQuoteConfirmModalWrapperProps = ModalProps & {
     isPayingUnheldOnly: boolean;
 
     onConfirm: (wiseQuoteID: string) => void;
+
+    /** Runs instead of onConfirm when the admin pays with a quote Wise would reject as expired */
+    onQuoteExpired: () => void;
 };
 
 /** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying */
-function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm}: WiseQuoteConfirmModalWrapperProps) {
+function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm, onQuoteExpired}: WiseQuoteConfirmModalWrapperProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [wiseQuote] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote});
@@ -37,9 +41,14 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
         <ConfirmModalWrapper
             closeModal={(payload) => {
                 closeModal(payload);
-                if (payload?.action === ModalActions.CONFIRM && wiseQuoteID) {
-                    onConfirm(wiseQuoteID);
+                if (payload?.action !== ModalActions.CONFIRM || !wiseQuoteID) {
+                    return;
                 }
+                if (isWiseQuoteExpired(wiseQuote?.expiresAt)) {
+                    onQuoteExpired();
+                    return;
+                }
+                onConfirm(wiseQuoteID);
             }}
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
