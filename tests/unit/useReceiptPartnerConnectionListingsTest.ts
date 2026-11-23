@@ -21,10 +21,10 @@ const mockShowReadOnlyModal = jest.fn();
 const mockIcons = {Lyft: jest.fn(), Instacart: jest.fn(), DoorDash: jest.fn(), AmericanAirlines: jest.fn(), United: jest.fn(), Delta: jest.fn(), Kayak: jest.fn()};
 const expectedGuides = [
     {key: 'lyft', title: 'Lyft', icon: mockIcons.Lyft, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Lyft'},
-    {key: 'instacart', title: 'Instacart', icon: mockIcons.Instacart, helpURL: 'https://example.com/expensify-help/instacart'},
-    {key: 'doordash', title: 'DoorDash', icon: mockIcons.DoorDash, helpURL: 'https://example.com/expensify-help/doordash'},
-    {key: 'americanAirlines', title: 'American Airlines', icon: mockIcons.AmericanAirlines, helpURL: 'https://example.com/expensify-help/american-airlines'},
-    {key: 'united', title: 'United', icon: mockIcons.United, helpURL: 'https://example.com/expensify-help/united'},
+    {key: 'instacart', title: 'Instacart', icon: mockIcons.Instacart, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Instacart'},
+    {key: 'doordash', title: 'DoorDash', icon: mockIcons.DoorDash, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/DoorDash'},
+    {key: 'americanAirlines', title: 'American Airlines', icon: mockIcons.AmericanAirlines, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/American-Airlines'},
+    {key: 'united', title: 'United', icon: mockIcons.United, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/United-Airlines'},
     {key: 'delta', title: 'Delta', icon: mockIcons.Delta, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#delta-for-business'},
     {key: 'kayak', title: 'KAYAK', icon: mockIcons.Kayak, helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#kayak-for-business'},
 ];

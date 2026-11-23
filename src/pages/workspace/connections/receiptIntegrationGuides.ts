@@ -10,13 +10,12 @@ type ReceiptIntegrationGuide = {
     helpURL: string;
 };
 
-// The example.com destinations are draft-only placeholders approved in https://github.com/Expensify/App/issues/106094.
 const RECEIPT_INTEGRATION_GUIDES = [
     {key: 'lyft', title: 'Lyft', iconName: 'Lyft', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Lyft'},
-    {key: 'instacart', title: 'Instacart', iconName: 'Instacart', helpURL: 'https://example.com/expensify-help/instacart'},
-    {key: 'doordash', title: 'DoorDash', iconName: 'DoorDash', helpURL: 'https://example.com/expensify-help/doordash'},
-    {key: 'americanAirlines', title: 'American Airlines', iconName: 'AmericanAirlines', helpURL: 'https://example.com/expensify-help/american-airlines'},
-    {key: 'united', title: 'United', iconName: 'United', helpURL: 'https://example.com/expensify-help/united'},
+    {key: 'instacart', title: 'Instacart', iconName: 'Instacart', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Instacart'},
+    {key: 'doordash', title: 'DoorDash', iconName: 'DoorDash', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/DoorDash'},
+    {key: 'americanAirlines', title: 'American Airlines', iconName: 'AmericanAirlines', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/American-Airlines'},
+    {key: 'united', title: 'United', iconName: 'United', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/United-Airlines'},
     {
         key: 'delta',
         title: 'Delta',
