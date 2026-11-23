@@ -328,6 +328,7 @@ function DynamicIOURequestStepDistanceManual({
             manualDistance: distanceAsFloat,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserPersonalDetails,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backTo,
             backToReport,
