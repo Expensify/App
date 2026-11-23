@@ -943,7 +943,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
+function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: string | undefined, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -952,12 +952,20 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
-    });
     NetworkStore.setLastShortAuthToken(authToken);
+
+    const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect an ACCOUNT_MISMATCH error
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+            {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
+            {optimisticData, failureData, finallyData},
+        ),
+    );
+
     if (!exitTo) {
-        return;
+        return signInPromise;
     }
 
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
@@ -975,6 +983,8 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
             Log.warn('Unable to return to the last visited path after SAML sign in', {error});
         }
     });
+
+    return signInPromise;
 }
 
 /**
@@ -1743,7 +1753,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
  * @param workEmail the work email to add.
  * @param addWorkEmailTaskReport the onboarding task report to complete once the work email is added, if any.
  */
-function AddWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
+function addWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
     // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
     // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
     const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
@@ -1998,7 +2008,7 @@ export {
     hasStashedSession,
     signUpUser,
     setupNewDotAfterTransitionFromOldDot,
-    AddWorkEmail,
+    addWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,

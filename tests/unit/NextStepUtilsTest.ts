@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ReportNextStepMessageParams} from '@src/languages/TranslationTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -35,6 +35,11 @@ describe('libs/NextStepUtils', () => {
         const strangeAccountID = 50;
         const ownerEmail = 'owner@expensify.com';
         const ownerAccountID = 99;
+        const personalDetailsByLogins: PersonalDetailsByLogin = {
+            [strangeEmail]: {accountID: strangeAccountID, login: strangeEmail},
+            [currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail},
+            [ownerEmail]: {accountID: ownerAccountID, login: ownerEmail},
+        };
         const policyID = '1';
         const policy: Policy = {
             // Important props
@@ -96,18 +101,19 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates and optimistic nextStep once a report has been created', () => {
             test('Correct next steps message', () => {
-                const emptyReport = buildOptimisticEmptyReport(
-                    'fake-empty-report-id-2',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {reportID: 'fake-parent-report-id-3'},
-                    'fake-parent-report-action-id-4',
+                const emptyReport = buildOptimisticEmptyReport({
+                    reportID: 'fake-empty-report-id-2',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {reportID: 'fake-parent-report-id-3'},
+                    parentReportActionID: 'fake-parent-report-action-id-4',
                     policy,
-                    '2025-03-31 13:23:11',
-                    true,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    timeOfCreation: '2025-03-31 13:23:11',
+                    isASAPSubmitBetaEnabled: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins,
+                });
 
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
@@ -917,7 +923,7 @@ describe('libs/NextStepUtils', () => {
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
-        const currentUserPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
+        const currentUserPersonalDetails: PersonalDetails = {accountID: currentUserAccountID, login: currentUserEmail};
         const policyID = 'policy-1';
 
         beforeAll(() => {
@@ -954,8 +960,7 @@ describe('libs/NextStepUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     report,
-                    reportOwnerLogin: currentUserEmail,
-                    reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                    reportOwnerPersonalDetails: currentUserPersonalDetails,
                     reportMetadata: undefined,
                     reportActions: [],
                     transactions: {},
@@ -1005,8 +1010,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1056,8 +1060,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1116,8 +1119,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1172,8 +1174,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1229,8 +1230,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: ownerLogin,
-                reportOwnerPersonalDetailsByLogin: {[ownerLogin]: {accountID: 99, login: ownerLogin}},
+                reportOwnerPersonalDetails: {accountID: 99, login: ownerLogin},
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1286,8 +1286,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1354,8 +1353,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1433,8 +1431,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
