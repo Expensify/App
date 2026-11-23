@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
@@ -55,10 +57,42 @@ type SeedDraftContext = {
 
     /** The cards that a new spend rule can cover, or undefined while the card settings load */
     eligibleCardIDs: string[] | undefined;
+
+    /** Whether the expense default conditions behind their beta can be set */
+    canUseMoreConditions: boolean;
 };
 
+/**
+ * The expense default conditions the editor shows only on the EXPENSE_DEFAULT_CONDITIONS beta, with the match types
+ * that belong to them. A generated rule is free to name any of them, so a seeded draft has to be held to the same
+ * list, or a condition the admin cannot see would be saved with the rule.
+ */
+const BETA_CONDITION_FIELDS = [
+    MERCHANT_RULE_INPUT_IDS.SUBMITTERS_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.AMOUNT_MATCH_TYPE,
+    MERCHANT_RULE_INPUT_IDS.MERCHANT_TYPES_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.REIMBURSABLE_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.DATE_MATCH_TYPE,
+    MERCHANT_RULE_INPUT_IDS.CURRENCIES_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.CARDS_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH,
+    MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE,
+] as const;
+
+function withoutBetaConditions(values: GeneratedRuleValues): GeneratedRuleValues {
+    const draft = {...values};
+    for (const field of BETA_CONDITION_FIELDS) {
+        delete draft[field];
+    }
+    return draft;
+}
+
 /** Seeds the draft of the editor for the generated rule type and opens that editor */
-function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs}: SeedDraftContext) {
+function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs, canUseMoreConditions}: SeedDraftContext) {
     switch (ruleType) {
         case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
             setDraftRequireFieldsRule(getRequireFieldsDraftFromGeneratedValues(values).draft);
@@ -75,7 +109,7 @@ function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRu
         // A category tax default is an expense default that matches on a category, so both open the same editor.
         case CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS:
         case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
-            setDraftMerchantRule(values);
+            setDraftMerchantRule(canUseMoreConditions ? values : withoutBetaConditions(values));
             Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
             break;
         default:
@@ -89,6 +123,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const domainAccountID = useDefaultFundID(policyID);
@@ -144,7 +179,9 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             addBottomSafeAreaPadding
             shouldUseScrollView
             submitFlexEnabled
-            onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs})}
+            onRuleGenerated={(values, generatedRuleType) =>
+                seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs, canUseMoreConditions: isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS)})
+            }
             isCategoryEligible={isCategoryEligible}
             onAgentRuleFallback={offerAgentRule}
         >

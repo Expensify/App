@@ -2223,7 +2223,7 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonPosition: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
         },
 
@@ -2243,6 +2243,12 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             bottom: '100%',
             marginRight: 2 * variables.floatingTabBarHorizontalInset + variables.componentSizeLarge,
+        },
+
+        // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.
+        searchPageFooterFABClearance: {
+            // The button's offset from the edge, its width and a 12px gap before the footer content.
+            paddingRight: variables.floatingActionButtonRightOffset + variables.componentSizeLarge + 12,
         },
 
         floatingGpsButton: {
