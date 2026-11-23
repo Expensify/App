@@ -762,8 +762,11 @@ describe('MoneyRequest', () => {
         const secondSplitParticipantID = '101';
 
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+        const CURRENT_USER_LOGIN = 'test@test.com';
+        const CURRENT_USER_ACCOUNT_ID = 1;
 
         const baseParams = {
+            personalDetailsByLogins: {[CURRENT_USER_LOGIN]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN}},
             isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
@@ -773,12 +776,12 @@ describe('MoneyRequest', () => {
             transactionID: '121',
             personalDetails: {},
             waypoints: {},
-            currentUserLogin: 'test@test.com',
-            currentUserAccountID: 1,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             currentUserPersonalDetails: {
-                accountID: 1,
-                login: 'test@test.com',
-                email: 'test@test.com',
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                login: CURRENT_USER_LOGIN,
+                email: CURRENT_USER_LOGIN,
             },
             backToReport: undefined,
             shouldSkipConfirmation: false,
@@ -808,7 +811,7 @@ describe('MoneyRequest', () => {
             formatPhoneNumber,
             delegateAccountID: undefined,
             participants: getMoneyRequestParticipantOptions({
-                currentUserAccountID: 1,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report: fakeReport,
                 policy: fakePolicy,
                 personalDetails: {},

@@ -8,6 +8,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
@@ -159,6 +160,7 @@ function useDistanceNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     const delegateAccountID = useDelegateAccountID();
@@ -234,6 +236,7 @@ function useDistanceNavigation({
             participants,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             reusableDistanceRoutes,
         });
     };
