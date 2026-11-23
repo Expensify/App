@@ -11,9 +11,11 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Text from '@components/Text';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
-import type {FlatListProps, FlatList, LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {FlatListProps, FlatList, ListRenderItemInfo} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- This type-only import describes the real Gesture Handler module retained by the mock.
 import type * as GestureHandler from 'react-native-gesture-handler';
 import type * as Reanimated from 'react-native-reanimated';
@@ -30,6 +32,7 @@ jest.mock('@components/Attachments/AttachmentCarousel/CarouselItem', () => jest.
 jest.mock('@components/VideoPlayerContexts/FullScreenContextProvider', () => ({useFullScreenState: jest.fn()}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: jest.fn()}));
 jest.mock('@hooks/useResponsiveLayout');
+jest.mock('@hooks/useWindowDimensions');
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('react-native-gesture-handler', () => ({
     ...jest.requireActual<typeof GestureHandler>('react-native-gesture-handler'),
@@ -41,16 +44,8 @@ const AttachmentCarouselView = jest.requireActual<{default: typeof AttachmentCar
 ).default;
 
 const mockScrollToIndex = jest.fn();
-const mockScrollNode = document.createElement('div');
-let mockViewportWidth = 402;
-let mockContentWidth = 1206;
-mockScrollNode.getBoundingClientRect = jest.fn(() => createMock<DOMRect>({width: mockViewportWidth}));
-Object.defineProperty(mockScrollNode, 'scrollWidth', {get: () => mockContentWidth});
-const mockScrollToOffset = jest.fn(({offset}: {offset: number}) => {
-    mockScrollNode.scrollLeft = Math.min(offset, Math.max(0, mockContentWidth - mockViewportWidth));
-});
 const mockScrollRef = Object.assign(jest.fn(), {
-    current: createMock<FlatList<Attachment>>({scrollToIndex: mockScrollToIndex, scrollToOffset: mockScrollToOffset, getScrollableNode: () => mockScrollNode}),
+    current: createMock<FlatList<Attachment>>({scrollToIndex: mockScrollToIndex}),
 });
 let pagerState: AttachmentCarouselPagerStateContextType | null = null;
 const mockFlatList = jest.fn(({data, renderItem}: FlatListProps<Attachment>) => {
@@ -100,9 +95,7 @@ function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
 describe('AttachmentCarouselView web', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockViewportWidth = 402;
-        mockContentWidth = 1206;
-        mockScrollNode.scrollLeft = 0;
+        jest.mocked(useWindowDimensions).mockReturnValue(createMock<ReturnType<typeof useWindowDimensions>>({windowWidth: 402}));
         pagerState = null;
         jest.mocked(canUseTouchScreen).mockReturnValue(true);
         jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false, isFullScreenRef: {current: false}}));
@@ -130,7 +123,6 @@ describe('AttachmentCarouselView web', () => {
             }
 
             // When FlatList reports the second attachment as visible
-            mockScrollNode.scrollLeft = 402;
             act(() => viewability({viewableItems: [{item: attachment, key: 'selected', index: 1, isViewable: true}], changed: []}));
 
             // Then navigation receives the exact item and focus follows attachmentID before source
@@ -170,7 +162,6 @@ describe('AttachmentCarouselView web', () => {
         }
 
         // When viewability selects the attachment with that source
-        mockScrollNode.scrollLeft = 402;
         act(() => viewability({viewableItems: [{item: attachment, key: 'function', index: 1, isViewable: true}], changed: []}));
 
         // Then focus and navigation retain the exact source without treating it as a state updater
@@ -197,7 +188,6 @@ describe('AttachmentCarouselView web', () => {
         }
 
         // When the second item becomes visible, its id also takes precedence over the function source
-        mockScrollNode.scrollLeft = 402;
         act(() => viewability({viewableItems: [{item: second, key: 'second', index: 1, isViewable: true}], changed: []}));
 
         // Then neither state call invokes the source and exact navigation and focus follow the selected id
@@ -233,75 +223,43 @@ describe('AttachmentCarouselView web', () => {
         dismiss.mockRestore();
     });
 
-    it('preserves a later PDF through stale resize samples and restores without another viewability event', () => {
-        // Given a protected PDF between other attachments, selected in portrait
-        let readBack: FrameRequestCallback | undefined;
-        const frame = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-            readBack = callback;
-            return 1;
-        });
+    it.each(['empty', 'multiple', 'unchanged'])('preserves PDF focus after resizing with %s viewability', (sample) => {
+        // Given a focused PDF between other attachments and the callback retained by FlatList
         const attachments = [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}];
-        const {props} = renderCarousel({attachments, page: 1, source: 'protected.pdf'});
+        const {props, rerender} = renderCarousel({attachments, page: 1, source: 'protected.pdf'});
         const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
         if (!viewability) {
             throw new Error('Expected viewability callback');
         }
 
-        // When Safari widens the viewport before cells/content have caught up
-        mockViewportWidth = 874;
-        mockScrollNode.scrollLeft = 332;
-        mockScrollToOffset.mockClear();
-        act(() => {
-            viewability({
-                viewableItems: [
-                    {item: attachments[1], key: 'pdf', index: 1, isViewable: true},
-                    {item: attachments[2], key: 'last', index: 2, isViewable: true},
-                ],
-                changed: [],
-            });
-            viewability({viewableItems: [], changed: []});
-            mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({}));
-        });
+        // When rotation changes width and produces an ambiguous or unchanged viewability sample
+        jest.mocked(useWindowDimensions).mockReturnValue(createMock<ReturnType<typeof useWindowDimensions>>({windowWidth: 874}));
+        rerender(<AttachmentCarouselView {...props} />);
+        expect(mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged).toBe(viewability);
+        const pdfToken = {item: attachments[1], key: 'pdf', index: 1, isViewable: true};
+        const otherToken = {item: attachments[2], key: 'last', index: 2, isViewable: true};
+        let viewableItems = [pdfToken];
+        if (sample === 'empty') {
+            viewableItems = [];
+        } else if (sample === 'multiple') {
+            viewableItems = [pdfToken, otherToken];
+        }
+        act(() => viewability({viewableItems, changed: []}));
 
-        // Then neither transient sample removes PDF focus or navigates
+        // Then no sample dismisses the keyboard, changes the page, or removes the selected PDF's focus
         expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
         expect(props.setPage).not.toHaveBeenCalled();
         expect(props.onNavigate).not.toHaveBeenCalled();
         expect(dismiss).not.toHaveBeenCalled();
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
 
-        // When layout starts restoration before the virtualized content is ready, events cannot retry the scroll
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onLayout?.(createMock<LayoutChangeEvent>({})));
-        mockScrollToOffset.mockClear();
-        mockScrollNode.scrollLeft = 332;
-        act(() => {
-            viewability({viewableItems: [{item: attachments[1], key: 'pdf', index: 1, isViewable: true}], changed: []});
-            mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({}));
-        });
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
-        expect(mockScrollNode.scrollLeft).toBe(332);
-        expect(props.onNavigate).not.toHaveBeenCalled();
-        expect(dismiss).not.toHaveBeenCalled();
-
-        // When the content catches up, a scheduled check restores the page without any list callback
-        mockContentWidth = 874 * attachments.length;
-        expect(readBack).toBeDefined();
-        act(() => readBack?.(0));
-        expect(mockScrollToOffset).toHaveBeenLastCalledWith({offset: 874, animated: false});
-        expect(mockScrollNode.scrollLeft).toBe(874);
-        act(() => viewability({viewableItems: [{item: attachments[2], key: 'stale', index: 2, isViewable: true}], changed: []}));
-        expect(props.onNavigate).not.toHaveBeenCalled();
-
-        // Then a genuine later scroll still navigates, even if FlatList sends no further viewability callback
-        mockScrollNode.scrollLeft = 874 * 2;
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({})));
+        // When a genuine changed-page sample arrives, navigation and keyboard dismissal still work once
+        act(() => viewability({viewableItems: [otherToken], changed: []}));
         expect(props.setPage).toHaveBeenCalledWith(2);
         expect(props.onNavigate).toHaveBeenCalledTimes(1);
         expect(props.onNavigate).toHaveBeenCalledWith(attachments[2]);
+        expect(dismiss).toHaveBeenCalledTimes(1);
         expect(screen.getByText('last.png:true')).toBeOnTheScreen();
-        dismiss.mockRestore();
-        frame.mockRestore();
     });
 
     it.each(['missing selection', 'empty attachments'])('recovers navigation after initial %s becomes valid', (initialState) => {
@@ -323,14 +281,12 @@ describe('AttachmentCarouselView web', () => {
             />,
         );
 
-        // Then restoration does not navigate or remove focus, and subsequent user navigation works
-        expect(mockScrollNode.scrollLeft).toBe(402);
+        // Then the valid selection does not navigate or remove focus, and subsequent user navigation works
         expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
         expect(props.setPage).not.toHaveBeenCalled();
         expect(props.onNavigate).not.toHaveBeenCalled();
         expect(dismiss).not.toHaveBeenCalled();
-        mockScrollNode.scrollLeft = 804;
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({})));
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [{item: attachments[2], key: 'last', index: 2, isViewable: true}], changed: []}));
         expect(props.setPage).toHaveBeenCalledWith(2);
         expect(props.onNavigate).toHaveBeenCalledWith(attachments[2]);
         expect(screen.getByText('last.png:true')).toBeOnTheScreen();
@@ -339,15 +295,15 @@ describe('AttachmentCarouselView web', () => {
     it.each([2, 3])('preserves attachment identity when deleting before selected page %i at unchanged width', (page) => {
         // Given a later selected attachment whose old offset could now display a different item
         const attachments = ['first.png', 'second.png', 'protected.pdf', 'last.png'].map((source) => ({source, attachmentID: source}));
-        mockContentWidth = 402 * attachments.length;
         const selected = attachments.at(page);
+        if (!selected) {
+            throw new Error('Expected a selected attachment');
+        }
         const {props, rerender} = renderCarousel({attachments, page, source: selected?.source, attachmentID: selected?.attachmentID});
         const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const remaining = attachments.slice(1);
 
         // When the parent preserves the selected identity and supplies its new index after deletion
-        mockContentWidth = 402 * remaining.length;
-        mockScrollNode.scrollLeft = Math.min(mockScrollNode.scrollLeft, mockContentWidth - mockViewportWidth);
         rerender(
             <AttachmentCarouselView
                 {...props}
@@ -355,40 +311,37 @@ describe('AttachmentCarouselView web', () => {
                 page={page - 1}
             />,
         );
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({})));
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [{item: selected, key: 'selected', index: page - 1, isViewable: true}], changed: []}));
 
-        // Then the new offset still displays the same attachment, without navigating to its old index's replacement
-        expect(mockScrollNode.scrollLeft).toBe(402 * (page - 1));
+        // Then focus still follows the selected attachment, without treating its new index as navigation
         expect(screen.getByText(`${selected?.attachmentID}:true`)).toBeOnTheScreen();
         expect(props.onNavigate).not.toHaveBeenCalled();
         expect(props.setPage).not.toHaveBeenCalled();
         expect(dismiss).not.toHaveBeenCalled();
 
         // When the user subsequently navigates, paging is no longer blocked by the data change
-        mockScrollNode.scrollLeft = 0;
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({})));
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [{item: remaining[0], key: 'first', index: 0, isViewable: true}], changed: []}));
         expect(props.onNavigate).toHaveBeenCalledWith(remaining[0]);
         expect(props.setPage).toHaveBeenCalledWith(0);
     });
 
-    it('restores fractional viewport widths on repeated layout changes without locking navigation', () => {
-        // Given a non-first selected attachment
-        const {props} = renderCarousel({page: 1, source: 'second.png'});
+    it('retains the existing window-width scroll adjustment without navigating', () => {
+        // Given a later selected attachment and the width-based list adjustment
+        const {props, rerender} = renderCarousel({page: 1, source: 'second.png'});
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        mockScrollToIndex.mockClear();
 
-        // When the list changes width repeatedly, including a subpixel change and a height-only layout
+        // When the viewport changes repeatedly, the current page remains the scroll target
         for (const width of [873.5, 402.25, 402.25, 874]) {
-            mockViewportWidth = width;
-            mockContentWidth = width * 3;
-            act(() => mockFlatList.mock.calls.at(-1)?.[0].onLayout?.(createMock<LayoutChangeEvent>({})));
-            expect(mockScrollNode.scrollLeft).toBeCloseTo(width);
+            jest.mocked(useWindowDimensions).mockReturnValue(createMock<ReturnType<typeof useWindowDimensions>>({windowWidth: width}));
+            rerender(<AttachmentCarouselView {...props} />);
+            expect(mockScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: false});
         }
 
-        // Then layout restoration itself never navigates, and navigation remains usable afterward
+        // Then adjustment itself does not dismiss the keyboard or notify the parent of navigation
         expect(props.onNavigate).not.toHaveBeenCalled();
-        mockScrollNode.scrollLeft = 0;
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onScroll?.(createMock<NativeSyntheticEvent<NativeScrollEvent>>({})));
-        expect(props.onNavigate).toHaveBeenCalledTimes(1);
-        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments[0]);
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(dismiss).not.toHaveBeenCalled();
     });
 
     it('keeps the FlatList callback identity while using the latest navigation handler', () => {
@@ -405,7 +358,6 @@ describe('AttachmentCarouselView web', () => {
             />,
         );
         expect(mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged).toBe(viewability);
-        mockScrollNode.scrollLeft = 402;
         act(() => {
             viewability?.({viewableItems: [{item: props.attachments[1], key: 'second', index: 1, isViewable: true}], changed: []});
             viewability?.({viewableItems: [{item: props.attachments[1], key: 'second', index: 1, isViewable: true}], changed: []});
@@ -445,9 +397,8 @@ describe('AttachmentCarouselView web', () => {
         // Given a local navigation whose page update can commit before the route source update
         const {props, rerender} = renderCarousel();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        mockScrollNode.scrollLeft = 402;
         act(() => viewability?.({viewableItems: [{item: props.attachments[1], key: 'second', index: 1, isViewable: true}], changed: []}));
-        mockScrollToOffset.mockClear();
+        mockScrollToIndex.mockClear();
 
         // When the page commits first, another event must not repeat that navigation
         rerender(
@@ -458,7 +409,7 @@ describe('AttachmentCarouselView web', () => {
         );
         act(() => viewability?.({viewableItems: [{item: props.attachments[1], key: 'second', index: 1, isViewable: true}], changed: []}));
         expect(props.onNavigate).toHaveBeenCalledTimes(1);
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
         expect(screen.getByText('second.png:true')).toBeOnTheScreen();
 
         // Then after the route acknowledges it, an external return can select the original source again
@@ -475,24 +426,30 @@ describe('AttachmentCarouselView web', () => {
         expect(props.onNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('restores a fullscreen resize on exit without waiting for another list callback', () => {
-        // Given a selected later attachment and fullscreen state whose ref is updated only in a passive effect
-        const {props, rerender} = renderCarousel({page: 1, source: 'second.png'});
+    it('uses current fullscreen state through the original retained callback', () => {
+        // Given a retained callback created before fullscreen playback begins
+        const {props, rerender} = renderCarousel();
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const fullscreenRef = {current: true};
         jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: true, isFullScreenRef: fullscreenRef}));
         rerender(<AttachmentCarouselView {...props} />);
 
-        // When the viewport changes during fullscreen and the committed state then exits before its ref catches up
-        mockViewportWidth = 874;
-        mockContentWidth = 2622;
-        act(() => mockFlatList.mock.calls.at(-1)?.[0].onLayout?.(createMock<LayoutChangeEvent>({})));
+        // When FlatList delivers a changed-page sample during fullscreen, it has no paging effects
+        const sample = {viewableItems: [{item: props.attachments[1], key: 'second', index: 1, isViewable: true}], changed: []};
+        act(() => viewability?.(sample));
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(dismiss).not.toHaveBeenCalled();
+
+        // Then after the committed fullscreen state exits, the same callback can navigate again
         jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false, isFullScreenRef: fullscreenRef}));
         rerender(<AttachmentCarouselView {...props} />);
-
-        // Then the exit layout effect restores immediately, without a later list callback or navigation
-        expect(mockScrollNode.scrollLeft).toBe(874);
-        expect(mockScrollToOffset).toHaveBeenLastCalledWith({offset: 874, animated: false});
-        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged).toBe(viewability);
+        act(() => viewability?.(sample));
+        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments[1]);
+        expect(props.setPage).toHaveBeenCalledWith(1);
+        expect(dismiss).toHaveBeenCalledTimes(1);
     });
 
     it('returns before keyboard, page or navigation effects during fullscreen', () => {

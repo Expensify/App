@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useEffect, useInsertionEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useInsertionEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -38,7 +38,6 @@ const viewabilityConfig = {
 };
 
 const MIN_FLING_VELOCITY = 500;
-const LAYOUT_TOLERANCE = 1;
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -89,137 +88,40 @@ function AttachmentCarouselView({
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const {windowWidth} = useWindowDimensions();
 
-    const [listWidth, setListWidth] = useState<number>();
-    const cellWidth = listWidth ?? PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2);
-    const selectionRef = useRef({page, identity: attachmentID ?? source});
-    const restoredWidthRef = useRef<number | undefined>(undefined);
-    const restoreFrameRef = useRef<number | undefined>(undefined);
-    const pagingRef = useRef<{
-        restorePage: (shouldCheckNextFrame?: boolean) => void;
-        updatePage: (info: UpdatePageProps) => void;
-        updatePageFromScroll: () => void;
-    } | null>(null);
+    const cellWidth = PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2);
+    const currentPageRef = useRef(page);
+    const updatePageRef = useRef<((info: UpdatePageProps) => void) | null>(null);
 
-    const getScrollNode = () => {
-        const node: unknown = scrollRef.current?.getScrollableNode();
-        return node instanceof HTMLElement ? node : undefined;
-    };
-
-    const restorePage = (shouldCheckNextFrame = true): void => {
-        const node = getScrollNode();
-        const width = node?.getBoundingClientRect().width;
-        if (!node || !width) {
+    const updatePage = ({viewableItems}: UpdatePageProps) => {
+        // Resize can briefly report zero or several cells; neither sample represents navigation.
+        if (isFullScreen || viewableItems.length !== 1) {
             return;
         }
 
-        setListWidth(width);
-        if (Math.abs(width - cellWidth) > LAYOUT_TOLERANCE) {
-            restoredWidthRef.current = undefined;
-            return;
-        }
-        if (isFullScreen || selectionRef.current.page < 0 || attachments.length === 0 || restoredWidthRef.current === width) {
-            return;
-        }
-
-        // Restore against the new cell width, not FlatList's potentially stale cached item metrics.
-        const offset = Math.min(selectionRef.current.page, attachments.length - 1) * cellWidth;
-        scrollRef.current?.scrollToOffset({offset, animated: false});
-        if (Math.abs(node.scrollLeft - offset) <= LAYOUT_TOLERANCE && node.scrollWidth >= offset + width - LAYOUT_TOLERANCE) {
-            restoredWidthRef.current = width;
-            return;
-        }
-
-        // Safari may apply the scroll after layout. Read it back even if no viewability/scroll event follows.
-        // Layout and content-size callbacks can retry if the virtualized content is not ready in that frame.
-        if (shouldCheckNextFrame && restoreFrameRef.current === undefined) {
-            restoreFrameRef.current = requestAnimationFrame(() => {
-                restoreFrameRef.current = undefined;
-                pagingRef.current?.restorePage(false);
-            });
-        }
-    };
-
-    const getSettledScrollGeometry = () => {
-        if (isFullScreen || selectionRef.current.page < 0 || attachments.length === 0) {
-            return;
-        }
-        const node = getScrollNode();
-        const width = node?.getBoundingClientRect().width;
-        if (!node || !width) {
-            return;
-        }
-        // Read live DOM geometry: RNW's cached layout and scroll metrics can still describe portrait.
-        if (Math.abs(width - cellWidth) > LAYOUT_TOLERANCE || restoredWidthRef.current !== width) {
-            // An unreliable sample must not scroll back over a swipe that is already in progress.
-            return;
-        }
-        return {width, scrollLeft: node.scrollLeft};
-    };
-
-    const selectVisiblePage = (index: number, {width, scrollLeft}: {width: number; scrollLeft: number}) => {
-        const item = attachments.at(index);
-        if (index < 0 || !item) {
-            return;
-        }
-        const visibleWidth = Math.min((index + 1) * cellWidth, scrollLeft + width) - Math.max(index * cellWidth, scrollLeft);
-        if (visibleWidth + LAYOUT_TOLERANCE < (cellWidth * viewabilityConfig.itemVisiblePercentThreshold) / 100) {
-            return;
-        }
-        const identity = item.attachmentID ?? item.source;
-        if (selectionRef.current.page === index && selectionRef.current.identity === identity) {
+        const entry = viewableItems.at(0);
+        const item = entry?.item;
+        if (!item || entry.index == null || entry.index < 0 || entry.index === currentPageRef.current) {
             return;
         }
 
         // Update before notifying the parent so another event in the same frame cannot navigate twice.
-        selectionRef.current = {page: index, identity};
+        currentPageRef.current = entry.index;
         Keyboard.dismiss();
-        setPage(index);
-        setActiveAttachment({identity, source, attachmentID});
+        setPage(entry.index);
+        setActiveAttachment({identity: item.attachmentID ?? item.source, source, attachmentID});
         onNavigate?.(item);
     };
 
-    const updatePage = ({viewableItems}: UpdatePageProps) => {
-        const geometry = getSettledScrollGeometry();
-        const entry = viewableItems.length === 1 ? viewableItems.at(0) : undefined;
-        if (!geometry || entry?.index == null) {
-            return;
-        }
-        selectVisiblePage(entry.index, geometry);
-    };
-
-    const updatePageFromScroll = () => {
-        const geometry = getSettledScrollGeometry();
-        if (!geometry) {
-            return;
-        }
-        // FlatList need not emit another visibility callback after a resize sample was rejected.
-        selectVisiblePage(Math.round(geometry.scrollLeft / cellWidth), geometry);
-    };
-
     useInsertionEffect(() => {
-        // Descendant layout callbacks must see the committed width and handlers, not the previous render.
-        pagingRef.current = {restorePage, updatePage, updatePageFromScroll};
+        // FlatList's retained callback must use the latest committed props, including fullscreen state.
+        updatePageRef.current = updatePage;
     });
     useInsertionEffect(() => {
-        // Parent acknowledgements of local navigation need no restoration, but external page changes do.
-        if (selectionRef.current.page !== page) {
-            restoredWidthRef.current = undefined;
-        }
-        selectionRef.current.page = page;
+        currentPageRef.current = page;
     }, [page]);
-    useInsertionEffect(() => {
-        selectionRef.current.identity = attachmentID ?? source;
-    }, [attachmentID, source]);
-    useInsertionEffect(() => {
-        restoredWidthRef.current = undefined;
-    }, [cellWidth, attachments.length]);
 
     // RNW FlatList requires the same callback for its lifetime; compiler memoization is not that contract.
-    const [paging] = useState(() => ({
-        restorePage: () => pagingRef.current?.restorePage(),
-        updatePage: (info: UpdatePageProps) => pagingRef.current?.updatePage(info),
-        updatePageFromScroll: () => pagingRef.current?.updatePageFromScroll(),
-    }));
+    const [onViewableItemsChanged] = useState(() => (info: UpdatePageProps) => updatePageRef.current?.(info));
 
     /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = (deltaSlide: number) => {
@@ -314,19 +216,16 @@ function AttachmentCarouselView({
         </View>
     );
 
-    useLayoutEffect(() => {
-        paging.restorePage();
-    }, [cellWidth, attachments.length, page, isFullScreen, paging]);
+    // Scroll position is affected when window width is resized, so we readjust it on width changes
+    useEffect(() => {
+        if (page < 0 || attachments.length === 0 || scrollRef.current == null) {
+            return;
+        }
 
-    useEffect(
-        () => () => {
-            if (restoreFrameRef.current === undefined) {
-                return;
-            }
-            cancelAnimationFrame(restoreFrameRef.current);
-        },
-        [],
-    );
+        scrollRef.current.scrollToIndex({index: page, animated: false});
+        // The hook is not supposed to run on page change, so we keep the page out of the dependencies
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cellWidth]);
 
     return (
         <View
@@ -374,10 +273,7 @@ function AttachmentCarouselView({
                                     getItemLayout={getItemLayout}
                                     keyExtractor={extractItemKey}
                                     viewabilityConfig={viewabilityConfig}
-                                    onViewableItemsChanged={paging.updatePage}
-                                    onLayout={paging.restorePage}
-                                    onContentSizeChange={paging.restorePage}
-                                    onScroll={paging.updatePageFromScroll}
+                                    onViewableItemsChanged={onViewableItemsChanged}
                                 />
                             </DeviceAwareGestureDetector>
                         </AttachmentCarouselPagerActionsContext.Provider>
