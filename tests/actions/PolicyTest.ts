@@ -9693,7 +9693,11 @@ describe('actions/Policy', () => {
         const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
         const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policy.id}` as const;
 
+        const TIMEOUT_MS = 10 * 1000;
+
         afterEach(async () => {
+            jest.useRealTimers();
+            NetworkState.setForceOffline(false);
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
         });
@@ -9739,6 +9743,38 @@ describe('actions/Policy', () => {
 
             // Then the flag is cleared, so the Uber card isn't stuck on a loader
             expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('clears the loading flag after the timeout when the request never finishes', async () => {
+            // Given a request that never gets an answer, which is what a read that throws looks like to the flag
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick', 'queueMicrotask']});
+            mockFetch.pause?.();
+
+            // When the receipt partners data is requested and the timeout hasn't passed
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await jest.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+
+            // Then the flag is still set
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the timeout passes
+            await jest.advanceTimersByTimeAsync(1);
+
+            // Then the flag is cleared, so the Uber card isn't stuck on a loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('does not set the loading flag offline', async () => {
+            // Given the user is offline, where a read applies none of its Onyx data
+            await Onyx.set(LOADING_KEY, null);
+            NetworkState.setForceOffline(true);
+
+            // When the receipt partners data is requested
+            Policy.openPolicyReceiptPartnersPage(policy.id);
+            await waitForBatchedUpdates();
+
+            // Then the flag is never set, so it can't be left stuck on with nothing to clear it
+            expect(await getOnyxValue(LOADING_KEY)).toBeUndefined();
         });
     });
 });
