@@ -5871,6 +5871,12 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportField: PolicyReportField): boolean {
+    // The policy title field targets expense reports, but a bill can be renamed like one. Other policy report fields
+    // stay off bills.
+    if (isBillReport(report) && isReportFieldOfTypeTitle(reportField)) {
+        return true;
+    }
+
     return reportField.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !reportField.target);
 }
 

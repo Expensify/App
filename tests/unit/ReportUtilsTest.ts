@@ -220,6 +220,7 @@ import {
     isReportExportedOrPending,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
     isReportManager,
     isReportOutstanding,
     isReportParticipant,
@@ -25956,6 +25957,40 @@ describe('ReportUtils', () => {
 
             // Then the same call with a login that submits elsewhere is disabled, so the forwarder is not dropping it
             expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
+        });
+    });
+
+    describe('isReportFieldTargetMatchingReport', () => {
+        const getField = (fieldID: string): PolicyReportField => ({
+            fieldID,
+            name: 'Field',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: '',
+            deletable: true,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        });
+        const bill: Report = {reportID: '1', type: CONST.REPORT.TYPE.BILL};
+
+        it('matches the title field on a bill, so the approver can rename the bill', () => {
+            // Given the policy title field, which targets expense reports
+
+            // When we check it against a bill
+            // Then it matches, because a bill is renamed like an expense report
+            expect(isReportFieldTargetMatchingReport(bill, getField(CONST.REPORT_FIELD_TITLE_FIELD_ID))).toBe(true);
+        });
+
+        it('does not match other expense report fields on a bill', () => {
+            // Given a custom policy report field for expense reports
+
+            // When we check it against a bill
+            // Then it doesn't match, because bills don't show policy report fields
+            expect(isReportFieldTargetMatchingReport(bill, getField('text_customField'))).toBe(false);
         });
     });
 
