@@ -5,7 +5,7 @@ import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import sharedTrapStack from '@libs/sharedTrapStack';
 
 import {FocusTrap} from 'focus-trap-react';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
@@ -33,6 +33,11 @@ function FocusTrapForModal({
     // removes us *before* onPostDeactivate, so comparing against this tells an ancestor trap (was already there) apart
     // from one that opened on top of us while we were open.
     const trapDepthAtActivateRef = useRef(0);
+    // focus-trap reads its options only when the trap is created, so it reads the latest value through this ref.
+    const shouldDeactivateOnClickOutsideRef = useRef(shouldDeactivateOnClickOutside);
+    useEffect(() => {
+        shouldDeactivateOnClickOutsideRef.current = shouldDeactivateOnClickOutside;
+    }, [shouldDeactivateOnClickOutside]);
 
     const onFocusTrapActive = () => {
         trapDepthAtActivateRef.current = sharedTrapStack.length;
@@ -80,7 +85,7 @@ function FocusTrapForModal({
                 onPostDeactivate: onFocusTrapPostDeactivate,
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
-                clickOutsideDeactivates: shouldDeactivateOnClickOutside,
+                clickOutsideDeactivates: () => shouldDeactivateOnClickOutsideRef.current,
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,

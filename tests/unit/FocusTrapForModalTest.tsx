@@ -326,6 +326,11 @@ describe('FocusTrapForModal — launcher capture', () => {
     });
 });
 
+function isClickOutsideDeactivating(): boolean {
+    const clickOutsideDeactivates = capturedOptions?.clickOutsideDeactivates;
+    return typeof clickOutsideDeactivates === 'function' ? clickOutsideDeactivates(new MouseEvent('click')) : !!clickOutsideDeactivates;
+}
+
 describe('FocusTrapForModal — clicks outside', () => {
     beforeEach(() => {
         capturedOptions = null;
@@ -337,7 +342,7 @@ describe('FocusTrapForModal — clicks outside', () => {
         render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
         // Then a click outside releases focus along with the modal
-        expect(capturedOptions?.clickOutsideDeactivates).toBe(true);
+        expect(isClickOutsideDeactivating()).toBe(true);
     });
 
     it('keeps focus on a click outside a modal that ignores it', () => {
@@ -353,6 +358,33 @@ describe('FocusTrapForModal — clicks outside', () => {
         );
 
         // Then focus stays inside, so Tab can't reach the page behind it
-        expect(capturedOptions?.clickOutsideDeactivates).toBe(false);
+        expect(isClickOutsideDeactivating()).toBe(false);
+    });
+
+    it('releases focus on a click outside once a modal that ignored it stops ignoring it', () => {
+        // Given a running Select all job's status, which keeps focus on a click outside
+        const {rerender} = render(
+            <FocusTrapForModal
+                active
+                shouldDeactivateOnClickOutside={false}
+            >
+                {null}
+            </FocusTrapForModal>,
+        );
+        const optionsAtCreation = capturedOptions;
+
+        // When the job finishes and the modal can be dismissed again
+        rerender(
+            <FocusTrapForModal
+                active
+                shouldDeactivateOnClickOutside
+            >
+                {null}
+            </FocusTrapForModal>,
+        );
+
+        // Then the options the trap was created with release focus, since focus-trap never reads newer options
+        capturedOptions = optionsAtCreation;
+        expect(isClickOutsideDeactivating()).toBe(true);
     });
 });
