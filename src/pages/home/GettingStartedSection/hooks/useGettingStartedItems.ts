@@ -306,18 +306,15 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         // Onboarding reports Intuit Enterprise Suite by its own name, while the workspace connects to it through QBO
         const isIntuitEnterpriseSuite = reportedIntegration === CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE;
         const reportedConnectionName = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.NAME.QBO : reportedIntegration;
-        const connectPageRoute =
-            !isConnectAccountingComplete && isConnectPageConnectionName(reportedConnectionName)
-                ? ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(activePolicyID, reportedConnectionName, isIntuitEnterpriseSuite)
-                : undefined;
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: isConnectAccountingComplete,
-            route: connectPageRoute ? undefined : ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
-            // The Connect page opens over Home, so Back returns to Home instead of the workspace it belongs to
-            onPress: connectPageRoute ? () => Navigation.navigate(connectPageRoute, {skipMatchingFullScreenRoute: true}) : undefined,
+            route:
+                !isConnectAccountingComplete && isConnectPageConnectionName(reportedConnectionName)
+                    ? ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(activePolicyID, reportedConnectionName, isIntuitEnterpriseSuite)
+                    : ROUTES.WORKSPACE_CONNECTIONS.getRoute(activePolicyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
         });
     } else if (policy.areCategoriesEnabled) {
         items.push({

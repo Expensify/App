@@ -664,10 +664,8 @@ describe('GettingStartedSection', () => {
             const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
-            // Then the QuickBooks Online Connect page opens over Home, since the integration is already known
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(TEST_POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO), {
-                skipMatchingFullScreenRoute: true,
-            });
+            // Then the QuickBooks Online Connect page opens, since the integration is already known
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(TEST_POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO));
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {
