@@ -2392,6 +2392,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Płatność wstrzymana, poczekaj na kolejną aktualizację.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twoim workspace. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11721,7 +11722,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 reimbursementRefundedWithoutBankAccount: 'Środki zostały zwrócone. Możesz ponowić płatność.',
                 reimbursementHeld:
                     'Płatność wstrzymana, dopóki nasz partner nie zakończy weryfikacji. Poczekaj na kolejną aktualizację. Porozmawiaj z <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Weryfikacja została zakończona i twoja płatność jest w drodze. Ostateczny kurs walutowy może zmienić kwotę.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Płatność została zwolniona, środki powinny dotrzeć do ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Płatność została zwolniona.',
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',

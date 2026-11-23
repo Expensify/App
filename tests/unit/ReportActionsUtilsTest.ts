@@ -2392,18 +2392,12 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds were returned. You can retry the payment.');
         });
 
-        it.each([
-            [
-                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
-                'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-            ],
-            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'The review is complete and your payment is on its way. The final FX rate may change the amount.'],
-        ] as const)('should show the App copy for %s', (actionName, expectedMessage) => {
-            // Given a Wise hold or release action, which carries no fields
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
                 originalMessage: {},
             };
 
@@ -2411,7 +2405,42 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it uses the approved App copy instead of Auth's English fallback
-            expect(message).toBe(expectedMessage);
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
         });
 
         it.each([

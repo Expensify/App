@@ -2343,6 +2343,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Betaling in de wacht, wacht op een volgende update.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oeps! Het lijkt erop dat je deze indient bij <strong>jezelf</strong>. Het goedkeuren van je eigen rapporten is door je werkruimte <strong>verboden</strong>. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11677,7 +11678,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     `De middelen zijn teruggestort op bankrekening ${bankAccountLastFour}. Je kunt de betaling opnieuw proberen.`,
                 reimbursementRefundedWithoutBankAccount: 'Gelden zijn teruggestort. Je kunt de betaling opnieuw proberen.',
                 reimbursementHeld: 'Betaling in de wacht terwijl onze partner een beoordeling afrondt. Wacht op een volgende update. Chat met <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'De controle is voltooid en je betaling is onderweg. De definitieve wisselkoers kan het bedrag veranderen.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Betaling vrijgegeven, het geld wordt verwacht uiterlijk ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Betaling vrijgegeven.',
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',

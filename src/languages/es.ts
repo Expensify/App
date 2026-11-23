@@ -2334,6 +2334,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Esperando a que el pago cancelado termine de procesarse${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Pago en espera, recibirás otra actualización.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `¡Ups! Parece que estás enviando este informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Envía este informe a otra persona o contacta con tu administrador para cambiar la persona a la que lo envías.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11640,7 +11641,8 @@ ${reportName}`,
                     `Los fondos se devolvieron a la cuenta bancaria ${bankAccountLastFour}. Puedes volver a intentar el pago.`,
                 reimbursementRefundedWithoutBankAccount: 'Los fondos fueron devueltos. Puedes volver a intentar el pago.',
                 reimbursementHeld: 'Pago en espera mientras nuestro socio completa una revisión. Espera otra actualización. Chatea con <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'La revisión se ha completado y tu pago está en camino. La tasa de cambio final puede modificar el importe.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Pago liberado, se espera que los fondos lleguen para el ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Pago liberado.',
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',

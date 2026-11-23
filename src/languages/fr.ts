@@ -2361,6 +2361,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Paiement en attente, attendez une autre mise à jour.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oups ! Il semble que vous soumettiez cette note de frais à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour changer la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11789,7 +11790,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 reimbursementRefundedWithoutBankAccount: 'Les fonds ont été renvoyés. Vous pouvez réessayer le paiement.',
                 reimbursementHeld:
                     'Paiement en attente pendant que notre partenaire termine un examen. Attendez une autre mise à jour. Discutez avec <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'L’examen est terminé et votre paiement est en cours d’acheminement. Le taux de change final peut modifier le montant.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Paiement effectué, les fonds devraient arriver d’ici le ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Paiement effectué.',
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',

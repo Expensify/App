@@ -2256,6 +2256,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `正在等待已取消的付款完成处理${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `付款已暂停，请等待后续更新。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，<strong>禁止</strong>自己审批自己的报销单。请将此报销单提交给其他人，或联系管理员更改你的提交对象。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -11212,7 +11213,8 @@ ${reportName}`,
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `资金已退回到银行账户尾号为 ${bankAccountLastFour}。您可以重试付款。`,
                 reimbursementRefundedWithoutBankAccount: '资金已退回。您可以重试付款。',
                 reimbursementHeld: '在我们的合作伙伴完成审核期间，付款已暂时搁置。请留意后续更新。与 <concierge-link>Concierge</concierge-link> 聊天。',
-                reimbursementReleased: '审核已完成，您的付款正在汇出。最终外汇汇率可能会改变金额。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `付款已发出，预计在 ${expectedDate} 前到账。`,
+                reimbursementReleasedWithoutDate: '付款已释放。',
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
