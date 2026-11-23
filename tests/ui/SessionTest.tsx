@@ -607,7 +607,7 @@ describe('Google sign-in on a domain that requires SAML', () => {
         'continues sign-in with the email Google was refused for',
         async () => {
             mockFetch.mockAPICommand(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, () => ({
-                jsonCode: 418,
+                jsonCode: CONST.JSON_CODE.EXP_ERROR,
                 onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {loginRequiringSAML: SAML_USER_LOGIN}}],
             }));
 
