@@ -244,3 +244,27 @@ describe('getSavedFileAnswers', () => {
         expect(answers).toEqual({proofOfAddress: [toSavedFile('kyc/1/proof.pdf')]});
     });
 });
+
+describe('toSavedFile', () => {
+    it('names a stored file as the user named it', () => {
+        // Given a file the server stored under its account, bank account, upload time and unique ID, followed by the user's file name
+        const savedFileKey = 'kyc/1/23595723-10834395-20261113_143445-6af720053a1ae-loan-agreement-v2.pdf';
+
+        // When the file is put back in the draft
+        const file = toSavedFile(savedFileKey);
+
+        // Then the user's file name is shown, dashes included, and the key still points at the stored file
+        expect(file).toEqual({name: 'loan-agreement-v2.pdf', uri: savedFileKey, savedFileKey});
+    });
+
+    it('keeps the stored name when the key has another shape', () => {
+        // Given a stored file name without the server's prefix
+        const savedFileKey = 'kyc/1/passport.jpg';
+
+        // When the file is put back in the draft
+        const file = toSavedFile(savedFileKey);
+
+        // Then the stored name is shown whole, since there is no prefix to take off
+        expect(file.name).toBe('passport.jpg');
+    });
+});

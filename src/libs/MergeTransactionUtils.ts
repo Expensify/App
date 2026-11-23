@@ -57,6 +57,7 @@ type CommuterExclusionCustomUnitUpdate = {[Key in TupleToUnion<typeof COMMUTER_E
 // Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
 const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
+type DerivedMergeFieldKey = TupleToUnion<typeof DERIVED_MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
     transactionDetails: TransactionDetails;
@@ -71,7 +72,7 @@ type MergeFieldData = {
 };
 
 /** Type for merge transaction values that can be null to clear existing values in Onyx */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, NullishDeep<MergeTransaction[keyof MergeTransaction]> | null>>;
+type MergeTransactionUpdateValues = NullishDeep<MergeTransaction>;
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
@@ -147,7 +148,7 @@ function isEmptyMergeValue(value: unknown) {
  * @param field - The merge field key to get the value for
  * @returns The value of the specified field from the transaction
  */
-function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
+function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: DerivedMergeFieldKey) {
     if (!transactionDetails || !transaction) {
         return '';
     }
@@ -582,6 +583,7 @@ function getDisplayValue(
     localeCompare: LocaleContextProps['localeCompare'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reports?: Array<OnyxEntry<Report>>,
+    accountIDToName?: Record<string, string>,
 ): string {
     const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
@@ -595,7 +597,7 @@ function getDisplayValue(
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
     }
     if (field === 'description') {
-        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue), {accountIDToName}));
     }
     if (field === 'tag') {
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
@@ -648,6 +650,7 @@ function buildMergeFieldsData({
     localeCompare,
     formatPhoneNumber,
     reports,
+    accountIDToName,
 }: {
     conflictFields: MergeFieldKey[];
     targetTransaction: Transaction | undefined;
@@ -662,6 +665,7 @@ function buildMergeFieldsData({
     localeCompare: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reports: Array<OnyxEntry<Report>>;
+    accountIDToName: Record<string, string>;
 }): MergeFieldData[] {
     const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, targetReportOwnerAsAttendee);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
@@ -689,6 +693,7 @@ function buildMergeFieldsData({
                     localeCompare,
                     formatPhoneNumber,
                     reports,
+                    accountIDToName,
                 ),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
@@ -705,6 +710,7 @@ function buildMergeFieldsData({
                     localeCompare,
                     formatPhoneNumber,
                     reports,
+                    accountIDToName,
                 ),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },

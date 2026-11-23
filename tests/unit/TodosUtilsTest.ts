@@ -437,6 +437,35 @@ describe('TodosUtils', () => {
             expect(result.reportsToPay.map((report) => report.reportID)).toEqual(['pay_export_failed']);
         });
 
+        it('excludes a non-reimbursable-only report from the pay bucket before its transactions load', () => {
+            // Given an approved report whose totals show only non-reimbursable spend, and whose transactions haven't been fetched yet
+            const nonReimbursableReport = createMockReport('pay_non_reimbursable_unloaded', {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                total: -100,
+                nonReimbursableTotal: -100,
+                reimbursableTotal: 0,
+            });
+            const policy = createMockPolicy(POLICY_ID, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            // When building the to-do buckets
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([nonReimbursableReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            // Then it is kept out of the pay bucket, so it doesn't drop out of Ready to pay only once the report is opened
+            expect(result.reportsToPay).toEqual([]);
+        });
+
         it('excludes a report whose expenses are all pending card transactions', () => {
             const pendingOverride: Partial<Transaction> = {status: CONST.TRANSACTION.STATUS.PENDING, bank: CONST.EXPENSIFY_CARD.BANK};
             const submitReport = createMockReport('pending_submit', {
@@ -536,6 +565,30 @@ describe('TodosUtils', () => {
                 allPolicies: toPoliciesCollection([policy]),
             });
 
+            expect(result.reportsToSubmit).toEqual([]);
+        });
+
+        it('excludes an empty open report when the owner has the approve-only role on the workspace', () => {
+            // Given an empty open report owned by the current user on a workspace where they have the approve-only role
+            const emptyReport = createMockReport('empty_approve_only', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            // When the to-do buckets are computed
+            const result = createTodosReportsAndTransactions({
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            // Then the report is excluded from the submit bucket because the owner cannot create or submit expenses on that workspace
             expect(result.reportsToSubmit).toEqual([]);
         });
 
@@ -642,6 +695,30 @@ describe('TodosUtils', () => {
             });
 
             expect(result.reports.map((report) => report.reportID)).toEqual(['empty_draft']);
+        });
+
+        it('excludes an empty open report when the owner has the approve-only role on the workspace', () => {
+            // Given an empty open report owned by the current user on a workspace where they have the approve-only role
+            const emptyReport = createMockReport('empty_approve_only', {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            const policy = createMockPolicy(POLICY_ID, {
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            // When the submit to-do bucket is computed
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.SUBMIT, {
+                ...baseParams,
+                allReports: toReportsCollection([emptyReport]),
+                allTransactions: undefined,
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            // Then the report is excluded from the submit bucket because the owner cannot create or submit expenses on that workspace
+            expect(result.reports).toEqual([]);
         });
 
         it('excludes a report from the submit bucket while the transaction collection has not finished loading', () => {

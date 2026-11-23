@@ -38,6 +38,9 @@ type UploadFileProps = {
 
     /** Whether each file's remove button reaches the 44x44 minimum touch target past its icon */
     shouldExtendRemoveTouchArea?: boolean;
+
+    /** Whether a picked file also counts as already added when the name the server stores it under matches, for forms whose saved files come back under that name */
+    shouldCompareNormalizedFileNames?: boolean;
 };
 
 export default UploadFileProps;

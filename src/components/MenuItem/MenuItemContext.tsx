@@ -8,6 +8,9 @@ type MenuItemConfig = {
     /** Whether the row responds to interactions */
     isInteractive: boolean;
 
+    /** Keeps content and trailing spacing consistent with compact root rows, independently of compact popover styling */
+    isCompact: boolean;
+
     /** Whether the row opts into browser selection of explicitly marked values */
     shouldAllowTextSelection: boolean;
 };
@@ -24,6 +27,7 @@ type MenuItemInteraction = {
 const DEFAULT_CONFIG: MenuItemConfig = {
     isDisabled: false,
     isInteractive: false,
+    isCompact: false,
     shouldAllowTextSelection: false,
 };
 

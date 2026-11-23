@@ -156,6 +156,7 @@ function AddPaymentCard() {
                                             <Text style={[styles.mutedTextLabel]}>
                                                 {translate('subscription.paymentCard.security')}{' '}
                                                 <TextLink
+                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_CARD_SECURITY_LINK}
                                                     style={[styles.mutedTextLabel, styles.link]}
                                                     href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
                                                 >

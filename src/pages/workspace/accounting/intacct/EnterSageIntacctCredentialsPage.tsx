@@ -86,6 +86,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                             spellCheck={false}
                             secureTextEntry={formItem === INPUT_IDS.PASSWORD}
                             autoCorrect={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 ))}

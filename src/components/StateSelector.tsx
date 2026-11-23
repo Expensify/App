@@ -2,6 +2,7 @@ import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalState
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -26,11 +27,17 @@ import MenuItemField from './MenuItem/presets/MenuItemField';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type StateSelectorProps = {
+/** A form draft or an address search can hold any text, so check that the value is a state code before translating it. */
+function isStateCode(code: string | undefined): code is State {
+    return !!code && code in COMMON_CONST.STATES;
+}
+
+type StateSelectorProps = ForwardedFSClassProps & {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
-    value?: State | '';
+    /** Current state value. A form draft or an address search can hold any text, and only a state code gets a title. */
+    value?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
@@ -44,7 +51,7 @@ type StateSelectorProps = {
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, forwardedFSClass, ref}: StateSelectorProps) {
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -78,7 +85,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
-    const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
+    const title = isStateCode(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
 
     return (
         <MenuItem.Root
@@ -95,6 +102,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             <MenuItemField.Row
                 name={label || translate('common.state')}
                 value={title}
+                forwardedFSClass={forwardedFSClass}
             >
                 {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 <MenuItem.Chevron />

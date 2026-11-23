@@ -24,7 +24,6 @@ import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSea
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,16 +39,16 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
-import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from '@libs/SearchPinnedColumnsUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
@@ -123,18 +122,20 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
-import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
+import usePinSearchColumn from './hooks/usePinSearchColumn';
+import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import SearchColumnMenu from './SearchColumnMenu';
+import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
+import SortableColumnMenu from './SortableColumnMenu';
 import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
@@ -180,7 +181,7 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
@@ -198,8 +199,8 @@ function Search({
     const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -219,7 +220,8 @@ function Search({
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
     const {isBetaEnabled} = usePermissions();
-    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && canEditSearchColumns(type, shouldReturnTripRooms);
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS);
+    const canEditColumns = canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -469,10 +471,12 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
     const isInPreloadedTab = useIsInPreloadedTab();
+    // Pins only reorder the table, so a query that differs by its pins alone must not send the search again.
+    const searchRequestQuery = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, NO_PINNED_COLUMNS, false));
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
-        if (isInPreloadedTab) {
+        if (isLoadingApp || isInPreloadedTab) {
             return;
         }
 
@@ -547,12 +551,12 @@ function Search({
             shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
-        // We don't need to run the effect on change of isFocused.
+        // We don't need to run the effect on change of isFocused, and searchRequestQuery stands in for queryJSON.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, searchRequestQuery, shouldCalculateTotals, validGroupBy, searchRequestOffset, isLoadingApp]);
 
     useEffect(() => {
-        if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
+        if (isLoadingApp || !shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
             return;
         }
 
@@ -584,6 +588,7 @@ function Search({
         shouldCalculateTotals,
         validGroupBy,
         searchRequestOffset,
+        isLoadingApp,
     ]);
 
     useEffect(() => {
@@ -833,15 +838,6 @@ function Search({
                     }
                 }
 
-                // A single-expense report in the table view opens at the same width as a multi-expense report.
-                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
-                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
-                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
-                    markReportRHPWidth(reportID, 'super-wide');
-                } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
-                }
-
                 // Persist the current search context so prev/next navigation arrows
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
@@ -856,8 +852,12 @@ function Search({
                     reportID,
                     backTo,
                 });
+                // After the new-tab guard, since a new tab never mounts the screen this width is for.
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
+                }
+                if (item.transactions.length > 1) {
+                    markReportRHPWidth(reportID, 'super-wide');
                 }
                 requestAnimationFrame(() => Navigation.navigate(route));
                 return;
@@ -891,8 +891,6 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
-
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
@@ -905,6 +903,7 @@ function Search({
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             if (isTransactionItem) {
                 seedCarouselForOpenedExpense();
             }
@@ -913,7 +912,6 @@ function Search({
         [
             markReportRHPWidth,
             handleSearch,
-            unmarkReportRHPWidth,
             introSelected,
             personalDetails,
             isSelfTourViewed,
@@ -928,7 +926,6 @@ function Search({
             getCurrencyDecimals,
             delegateAccountID,
             fullPolicySnapshotLastModifiedByPolicyID,
-            shouldUseTableViewForSingleExpense,
         ],
     );
 
@@ -1019,7 +1016,12 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const {hidableColumns, hideColumn} = useHideSearchColumn(queryJSON, columnsToShow);
+    const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
+    // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
+    const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
+    // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
+    const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1506,7 +1508,7 @@ function Search({
             },
             [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
                 title: errorTitle,
-                subtitle: translate('errorPage.wrongTypeSubtitle'),
+                subtitle: translate(searchResults.search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle'),
             },
             [CONST.SEARCH.FAILURE_KIND.FAILED]: {
                 title: errorTitle,
@@ -1549,6 +1551,7 @@ function Search({
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
+                    isScreenFocused={isFocused}
                 />
             </View>
         );
@@ -1622,7 +1625,7 @@ function Search({
         <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
-                columns={columnsToShow}
+                columns={orderedColumns}
                 type={type}
                 onSortPress={onSortPress}
                 sortOrder={sortOrder}
@@ -1643,10 +1646,18 @@ function Search({
                 isActionColumnWide={isActionColumnWide}
             >
                 {shouldShowColumnMenu && (
-                    <SearchColumnMenu
-                        hidableColumns={hidableColumns}
-                        hideColumn={hideColumn}
-                    />
+                    <SortableColumnMenu
+                        columnEditing={canEditColumns ? columnEditing : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
+                        itemSentryLabels={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM}
+                    >
+                        {shouldPinColumns && (
+                            <SearchColumnPinItems
+                                pinnedColumns={pinSearchColumn.pinnedColumns}
+                                pinColumn={pinSearchColumn.pinColumn}
+                            />
+                        )}
+                    </SortableColumnMenu>
                 )}
             </SearchTableHeader>
         </View>
@@ -1666,7 +1677,7 @@ function Search({
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
         data: stableSortedData,
-        columns: columnsToShow,
+        columns: orderedColumns,
         onSelectRow,
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,

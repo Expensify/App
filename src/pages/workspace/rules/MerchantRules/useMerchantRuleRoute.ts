@@ -5,7 +5,6 @@ import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/is
 
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 
@@ -43,8 +42,7 @@ type MerchantRuleRoute = {
 function useMerchantRuleRoute(dynamicSuffix: DynamicRouteSuffix, policyID: string, ruleID?: string, staticBackToRoute?: Route): MerchantRuleRoute {
     const route = useRoute();
     // Asking the linking config avoids a list here that could drift as screens are added.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- useRoute is untyped here because this hook is shared by every page of the flow, and the repo's other isDynamicRouteScreen callers narrow the same way
-    const isCreatedFromExpense = isDynamicRouteScreen(route.name as Screen);
+    const isCreatedFromExpense = isDynamicRouteScreen(route.name);
     // Only workspace settings can reach an edit. `ruleID` is absent on dynamic routes, and `undefined !== 'new'`
     // would otherwise read as editing.
     const isEditing = !isCreatedFromExpense && !!ruleID && ruleID !== ROUTES.NEW;

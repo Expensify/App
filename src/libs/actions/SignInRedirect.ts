@@ -1,26 +1,27 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
-import CONFIG from '@src/CONFIG';
 import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestsKeptOnSAMLSignOut} from '@src/types/onyx';
 
-import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
-import {resetSignInFlow} from './HybridApp';
+import {signOutFromOldDotAndRestartSignIn} from './HybridApp';
 import {canPersistRequest, getAllIncludingOngoing as getAllPersistedRequestsIncludingOngoing} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
+let currentIsAgentSession = false;
 let currentSessionAccountID: number | undefined;
 let currentCredentialsValidateCode: string | undefined;
 let lastAuthTokenWrittenAt = 0;
@@ -49,6 +50,7 @@ Onyx.connectWithoutView({
         }
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
+        currentIsAgentSession = isSupportalSessionSelector(session) || isDelegateSessionSelector(session);
         currentSessionAccountID = session?.accountID;
     },
 });
@@ -156,10 +158,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
         // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
         await clearPrefetchOnAppStart();
 
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-            HybridAppModule.signOutFromOldDot();
-        }
+        signOutFromOldDotAndRestartSignIn();
 
         // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
         // so the user can log back in
@@ -186,10 +185,19 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
  * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
+ * @param isStashingSession Whether the outgoing session is stashed to come back after a Supportal session
  */
-function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean, isStashingSession?: boolean): Promise<void> {
+    // Onyx.clear empties SESSION before its promise resolves, so the session type is read first.
+    // A Supportal or Copilot session runs in the agent's own browser, and starting Supportal stashes the agent's session,
+    // so neither clears the agent's experience cookie.
+    // Signing out clears the cookie for every account, matching the backend, so a cookie left from the beta can't route the next user.
+    const shouldClearExperienceCookie = !currentIsAgentSession && !isStashingSession;
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
+        if (shouldClearExperienceCookie) {
+            clearExperienceCookie();
+        }
     });
 }
 

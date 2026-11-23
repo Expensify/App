@@ -4,6 +4,7 @@ import getWiseBusinessOnboardingPrefill, {getMissingPrefill} from '@pages/settin
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const ADDRESS_KEYS = getAddressInputKeys('address');
@@ -12,7 +13,6 @@ const BANK_ACCOUNT_ID = 1;
 const BUSINESS_ACCOUNT_DATA: WiseBusinessAccountData = {
     bankAccountID: BANK_ACCOUNT_ID,
     companyName: 'Boulder Development Inc.',
-    incorporationType: CONST.INCORPORATION_TYPES.LLC,
 };
 
 const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
@@ -34,7 +34,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, PRIVATE_PERSONAL_DETAILS);
 
         // Then the representative comes from the current address, with both street lines on the one street input the form has,
-        // and the business rows use the bank account's own keys, with the LLC as its Wise company type
+        // and the business rows use the bank account's own keys
         expect(prefill).toEqual({
             firstName: 'Alice',
             lastName: 'Nguyen',
@@ -47,7 +47,6 @@ describe('getWiseBusinessOnboardingPrefill', () => {
             [ADDRESS_KEYS.zipCode]: '78704',
             [ADDRESS_KEYS.country]: CONST.COUNTRY.US,
             companyName: 'Boulder Development Inc.',
-            companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
         });
     });
 
@@ -61,35 +60,6 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // Then no detail of the other account reaches the form, only the "I don't have a social security number" link, off
         expect(getMissingPrefill(prefill, {})).toEqual({hasNoSSN: false});
     });
-
-    it.each([
-        [CONST.INCORPORATION_TYPES.LLC, CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY],
-        [CONST.INCORPORATION_TYPES.CORPORATION, CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION],
-        [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP, CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP],
-    ])('picks the Wise company type that matches the incorporation type %s', (incorporationType, companyType) => {
-        // Given a bank account whose incorporation type has one Wise company type
-        const accountData: WiseBusinessAccountData = {...BUSINESS_ACCOUNT_DATA, incorporationType};
-
-        // When the onboarding builds its starting answers
-        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, accountData, undefined);
-
-        // Then the company type starts on that Wise type
-        expect(prefill.companyType).toBe(companyType);
-    });
-
-    it.each([CONST.INCORPORATION_TYPES.PARTNERSHIP, CONST.INCORPORATION_TYPES.COOPERATIVE, CONST.INCORPORATION_TYPES.OTHER, undefined])(
-        'leaves the company type for the admin when the incorporation type is %s',
-        (incorporationType) => {
-            // Given a bank account whose incorporation type has no single Wise company type, or none at all
-            const accountData: WiseBusinessAccountData = {...BUSINESS_ACCOUNT_DATA, incorporationType};
-
-            // When the onboarding builds its starting answers
-            const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, accountData, undefined);
-
-            // Then the company type is not guessed
-            expect(prefill.companyType).toBeUndefined();
-        },
-    );
 
     it('turns country and state names from older addresses into the codes the pickers take', () => {
         // Given an address saved with full names
@@ -115,6 +85,25 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         expect(prefill[ADDRESS_KEYS.country]).toBe(CONST.COUNTRY.US);
     });
 
+    it('turns a state outside the US into the code the picker lists, whether it was saved as the full name or the code', () => {
+        // Given addresses saved the way the address page saves them, with the full state name AddressSearch gives outside the US,
+        // one saved with the code, and one with a name the picker does not list
+        const getStateFor = (state: string, country: Country) =>
+            getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, {addresses: [{street: '1 Main St', city: 'City', state, zip: '1000', country}]})[ADDRESS_KEYS.state];
+
+        // When the onboarding builds its starting answers for each
+        const states = [
+            getStateFor('Ontario', CONST.COUNTRY.CA),
+            getStateFor('new south wales', CONST.COUNTRY.AU),
+            getStateFor('São Paulo', CONST.COUNTRY.BR),
+            getStateFor('NSW', CONST.COUNTRY.AU),
+            getStateFor('State of São Paulo', CONST.COUNTRY.BR),
+        ];
+
+        // Then each listed state starts picked by its code, and the unlisted one is left for the user to pick instead of sending Wise a name
+        expect(states).toEqual(['ON', 'NSW', 'SP', 'NSW', undefined]);
+    });
+
     it('leaves out what is not on file', () => {
         // Given a user with no private details yet and no details of the bank account, such as an admin who shares the account but does not own it
 
@@ -128,9 +117,9 @@ describe('getWiseBusinessOnboardingPrefill', () => {
 
 describe('getMissingPrefill', () => {
     it('keeps what the user typed, even an emptied field', () => {
-        // Given a draft where the user changed the first name and the company type, and cleared the phone number
+        // Given a draft where the user changed the first name and cleared the phone number
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, PRIVATE_PERSONAL_DETAILS);
-        const draft = {firstName: 'Alicia', phoneNumber: '', companyType: CONST.WISE.COMPANY_TYPE.TRUST};
+        const draft = {firstName: 'Alicia', phoneNumber: ''};
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, draft);
@@ -138,7 +127,6 @@ describe('getMissingPrefill', () => {
         // Then the user's answers stay, and only the untouched fields are filled
         expect(missing).not.toHaveProperty('firstName');
         expect(missing).not.toHaveProperty('phoneNumber');
-        expect(missing).not.toHaveProperty('companyType');
         expect(missing).toMatchObject({lastName: 'Nguyen', dateOfBirth: '1985-04-12'});
     });
 

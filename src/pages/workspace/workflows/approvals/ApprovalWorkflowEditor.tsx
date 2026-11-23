@@ -1,8 +1,9 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
@@ -11,17 +12,22 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -32,6 +38,7 @@ import type {ComponentRef, ForwardedRef} from 'react';
 import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -53,6 +60,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -187,22 +195,32 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsCreateApprovalsPage.header')}</Text>
                 )}
 
-                <MenuItemWithTopDescription
-                    title={approvalWorkflow.isDefault ? members : undefined}
-                    accessibilityLabel={members}
-                    titleStyle={styles.textNormalThemeText}
-                    numberOfLinesTitle={4}
-                    description={translate('workflowsExpensesFromPage.title')}
-                    descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
-                    onPress={handleExpensesFromPress}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
-                    errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
-                    brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    shouldShowRightIcon={!approvalWorkflow.isDefault}
-                    interactive={!approvalWorkflow.isDefault}
+                <MenuItemSectionRoot
+                    accessibilityLabel={[members || translate('workflowsExpensesFromPage.title'), approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined]
+                        .filter(Boolean)
+                        .join('. ')}
+                    onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('workflowsExpensesFromPage.title')}>
+                            {approvalWorkflow.isDefault ? <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue> : <UserPills users={memberPills} />}
+                        </MenuItemField.Content>
+                        {!approvalWorkflow.isDefault && (
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        )}
+                    </MenuItem.Row>
+                    {!!approvalWorkflow?.errors?.members && (
+                        <FormHelpMessage
+                            isError
+                            message={translate(approvalWorkflow.errors.members)}
+                            shouldShowRedDotIndicator
+                            style={[styles.alignItemsStart]}
+                        />
+                    )}
+                </MenuItemSectionRoot>
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
@@ -210,6 +228,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     // reaches all of them. With rules each workflow routes through its own rules and the edit stays in this one.
                     const isApproverInMultipleWorkflows =
                         !shouldUseApprovalWorkflowRules && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
+                    const hintText = isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined;
 
                     return (
                         <OfflineWithFeedback
@@ -217,32 +236,63 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             key={`approver-${approver?.email}-${approverIndex}`}
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
-                            <MenuItemWithTopDescription
-                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
-                                titleStyle={styles.textNormalThemeText}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                description={approverDescriptions.at(approverIndex)}
-                                descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
-                                titleComponent={
-                                    approver ? (
-                                        <View style={styles.pr3}>
-                                            <UserPill
-                                                avatar={approver.avatar}
-                                                displayName={approver.displayName}
-                                                email={approver.email}
-                                                style={styles.userPillStandalone}
-                                            />
-                                        </View>
-                                    ) : undefined
-                                }
-                                onPress={() => editApprover(approverIndex)}
-                                shouldShowRightIcon
-                                hintText={isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined}
-                                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={errorText}
-                                shouldRenderErrorAsHTML
+                            <MenuItemSectionRoot
+                                accessibilityLabel={[
+                                    formatPhoneNumber(approver?.displayName ?? '') || approverDescriptions.at(approverIndex),
+                                    errorText ? Parser.htmlToText(errorText) : undefined,
+                                ]
+                                    .filter(Boolean)
+                                    .join('. ')}
+                                onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
-                            />
+                                style={errorText || hintText ? styles.pb0 : undefined}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={approverDescriptions.at(approverIndex) ?? ''}>
+                                        {!!approver && (
+                                            <View style={styles.pr3}>
+                                                <UserPill
+                                                    avatar={approver.avatar}
+                                                    displayName={approver.displayName}
+                                                    email={approver.email}
+                                                    style={styles.userPillStandalone}
+                                                />
+                                            </View>
+                                        )}
+                                    </MenuItemField.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
+                            {(!!errorText || !!hintText) && (
+                                <View style={styles.pb3}>
+                                    {!!errorText && (
+                                        <FormHelpMessage
+                                            message={errorText}
+                                            isError
+                                            shouldShowRedDotIndicator
+                                            shouldRenderMessageAsHTML
+                                            style={[styles.alignItemsStart, styles.mt1, styles.mb0]}
+                                        />
+                                    )}
+                                    {!!hintText && (
+                                        <PressableWithoutFeedback
+                                            onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
+                                            accessible={false}
+                                            tabIndex={-1}
+                                        >
+                                            <FormHelpMessage
+                                                isError={false}
+                                                shouldShowRedDotIndicator={false}
+                                                message={hintText}
+                                                style={styles.menuItemError}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    )}
+                                </View>
+                            )}
                         </OfflineWithFeedback>
                     );
                 })}

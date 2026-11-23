@@ -8,7 +8,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useDismissWiseGlobalReimbursementsBanners from '@hooks/useDismissWiseGlobalReimbursementsBanners';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -47,7 +46,7 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import {getKeptSourceOfFunds, SOURCE_OF_FUNDS_PAGE_KEY} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
-import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
+import getWiseOnboardingForm, {getFieldOverNewFileLimit, getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
 import {getStringList} from './kycRequirementAttributes';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
@@ -71,6 +70,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
+    // A selector, so the check is cached now that only the early return below reads it
+    const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => isBankAccountEligibleForGlobalReimbursements(list?.[bankAccountID]?.accountData, list?.[bankAccountID]?.bankCurrency),
+    });
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -192,10 +195,6 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         setIsPrefillDone(true);
     }
 
-    // Starting onboarding for any account retires both banners for good, and the writes wait for the form so the read is not queued behind them
-    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
-    useDismissWiseGlobalReimbursementsBanners(isNewVisit && isPrefillDone && isEligible);
-
     useEffect(() => {
         if (!isPrefillPending) {
             return;
@@ -213,8 +212,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadRequirements) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [shouldReadRequirements, bankAccountID]);
+    const [hasRequirementsReadStarted, setHasRequirementsReadStarted] = useState(false);
+    if (shouldReadRequirements && businessAccount?.isLoading && !hasRequirementsReadStarted) {
+        setHasRequirementsReadStarted(true);
+    }
+    const isReadingRequirements = shouldReadRequirements && (!hasRequirementsReadStarted || !!businessAccount?.isLoading);
 
     const draftValues = toDynamicFormValues(draft);
     const form = getWiseOnboardingForm(kycRequirements, draftValues);
@@ -252,6 +256,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         saveWiseOnboardingPage(bankAccountID, stepPage, stepAnswers, sensitiveAnswers);
     };
+    // The server drops the files past its cap without an error, so a page asks for fewer before it saves
+    const validatePage = (page: DynamicFormPage, values: DynamicFormValues) => {
+        const fieldKey = getFieldOverNewFileLimit(form, page, values);
+        return fieldKey ? {[fieldKey]: translate('attachmentPicker.tooManyFiles', CONST.WISE.MAX_NEW_FILES_PER_SAVE)} : {};
+    };
     const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
 
     // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page.
@@ -268,10 +277,16 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         Navigation.navigate(buildRoute(unansweredRequirementPageKey), {forceReplace: true});
     }, [unansweredRequirementPageKey, buildRoute]);
 
-    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page
+    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page.
+    // The confirmation page also waits for the read of the requirements, so Confirm cannot skip a requirement page that has not appeared yet.
     const subPage = route.params.subPage;
     const isAfterBusinessPage = !!subPage && subPage !== CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE && subPage !== CONST.WISE.ONBOARDING_STEP.BUSINESS;
-    const isWaitingForRequirements = isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey);
+    const isConfirmationPageReadingRequirements = subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY && isReadingRequirements;
+    const isWaitingForRequirements =
+        isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey || isConfirmationPageReadingRequirements);
+
+    // A save records its step, and the flow names its pages by their URL-safe key
+    const unsavedRoutePageKeys = unsavedPageKeys.map((step) => getRoutePageKey(form, step) ?? step);
 
     if (isWaitingForConnection) {
         return (
@@ -307,12 +322,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={savePage}
+            validatePage={validatePage}
             // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
             shouldDisableNextWhenOffline
             submitError={saveError}
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
             isSavingPages={isSaving}
-            unsavedPageKeys={unsavedPageKeys}
+            unsavedPageKeys={unsavedRoutePageKeys}
             isLoading={isWaitingForRequirements}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}

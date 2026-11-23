@@ -68,6 +68,7 @@ function DynamicFormFlow({
     refreshError,
     unsavedPageKeys,
     isLoading,
+    validatePage,
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
@@ -392,6 +393,7 @@ function DynamicFormFlow({
                     refreshError={refreshError}
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+                    validatePage={validatePage}
                 >
                     {children}
                 </CurrentPage>

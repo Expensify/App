@@ -9,16 +9,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
+import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
+import {getPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
-import {
-    getCustomColumnDefault,
-    getCustomColumns,
-    getRequiredSearchColumns,
-    getValidGroupBy,
-    insertColumnBeforeTotalAmount,
-    isSearchDataLoaded,
-    navigateToSearchWithColumns,
-} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getValidGroupBy, insertColumnBeforeTotalAmount, isSearchDataLoaded, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,10 +86,10 @@ function SearchColumnsPage() {
         !currentSearchResults?.data &&
         !isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
 
-    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
+    const saveColumns = (columnChanges: Partial<SearchAdvancedFiltersForm>) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
-            columns: selectedColumnIds,
+            ...columnChanges,
         };
 
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -108,10 +102,18 @@ function SearchColumnsPage() {
         navigateToSearchWithColumns(queryString, currentSearchKey);
     };
 
-    // Resetting drops the columns from the query so the table goes back to deriving them from the data.
-    const resetColumns = () => {
-        applyChanges([]);
+    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
+        saveColumns({columns: selectedColumnIds});
     };
+
+    // Resetting drops the columns from the query so the table goes back to deriving them from the data. The pins go with them,
+    // since the derived columns aren't known here, and a pin left on a column that's no longer shown would come back with it.
+    const resetColumns = () => {
+        saveColumns({columns: [], leftPinnedColumns: [], rightPinnedColumns: []});
+    };
+
+    const pinnedColumns = getPinnedColumns(currentSearchQueryJSON ?? {});
+    const hasCustomizedColumns = !!currentSearchQueryJSON?.columns?.length || pinnedColumns.left.length > 0 || pinnedColumns.right.length > 0;
 
     if (isSeedPending) {
         return <FullScreenLoadingIndicator />;
@@ -128,7 +130,7 @@ function SearchColumnsPage() {
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
             onReset={resetColumns}
-            shouldShowResetColumns={!!currentSearchQueryJSON?.columns?.length}
+            shouldShowResetColumns={hasCustomizedColumns}
             type={queryType}
         />
     );

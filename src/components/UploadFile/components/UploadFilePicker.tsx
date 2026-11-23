@@ -15,9 +15,9 @@ import React from 'react';
 
 type UploadFilePickerProps = Pick<
     UploadFileProps,
-    'buttonText' | 'acceptedFileTypes' | 'setError' | 'onInputChange' | 'totalFilesSizeLimit' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'
+    'buttonText' | 'acceptedFileTypes' | 'setError' | 'onInputChange' | 'totalFilesSizeLimit' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel' | 'shouldCompareNormalizedFileNames'
 > & {
-    /** Files uploaded so far, which the file limit and the duplicate check count */
+    /** Files uploaded so far, which the file limit and the check for a file with the same name count */
     existingFiles: FileObject[];
 
     /** Gets the files that pass the checks when the button opens the picker */
@@ -26,6 +26,33 @@ type UploadFilePickerProps = Pick<
     /** Draws the control that opens the picker in place of the button. The files that pass the checks go to the `onUpload` given to `openPicker`. */
     children?: (openPicker: (onUpload: (files: FileObject[]) => void) => void) => ReactNode;
 };
+
+/** The name the server stores a file under: lowercased, with every byte outside a-z, 0-9 and `-` replaced by `_`, and the extension kept */
+function getServerFileName(fileName: string): {name: string; extension: string} {
+    const extensionStart = fileName.lastIndexOf('.');
+    const name = extensionStart > 0 ? fileName.slice(0, extensionStart) : fileName;
+    const storedName = Array.from(new TextEncoder().encode(name.toLowerCase()), (byte) => {
+        const character = String.fromCharCode(byte);
+        return /[a-z0-9-]/.test(character) ? character : '_';
+    }).join('');
+    return {name: storedName, extension: extensionStart > 0 ? fileName.slice(extensionStart).toLowerCase() : ''};
+}
+
+/**
+ * A picked file is the same as an uploaded one with the same name, or, when normalized names are compared, with the name the server gives the picked file once it saves it.
+ * A server name with no letter or digit left, such as one written in Japanese, says nothing about the file, so it is not compared.
+ */
+function isSameFile(pickedFile: FileObject, uploadedFile: FileObject, shouldCompareNormalizedFileNames: boolean): boolean {
+    const pickedName = pickedFile.name ?? '';
+    if (pickedName === uploadedFile.name) {
+        return true;
+    }
+    if (!shouldCompareNormalizedFileNames) {
+        return false;
+    }
+    const serverName = getServerFileName(pickedName);
+    return /[a-z0-9]/.test(serverName.name) && `${serverName.name}${serverName.extension}` === uploadedFile.name?.toLowerCase();
+}
 
 /** The button, or the control drawn by `children`, that opens the file picker and checks the picked files against the limits before reporting them */
 function UploadFilePicker({
@@ -39,6 +66,7 @@ function UploadFilePicker({
     fileLimit = 0,
     maxFileSize = 0,
     accessibilityLabel,
+    shouldCompareNormalizedFileNames = false,
     children,
 }: UploadFilePickerProps) {
     const {translate} = useLocalize();
@@ -76,13 +104,12 @@ function UploadFilePicker({
             }
         }
 
-        const uploadedFilesNames = new Set(existingFiles.map((uploadedFile) => uploadedFile.name));
+        const newFilesToUpload = files.filter((file) => !existingFiles.some((uploadedFile) => isSameFile(file, uploadedFile, shouldCompareNormalizedFileNames)));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
-
+        // The error is set before the files go on, so a check of the receiver can replace it
+        setError(newFilesToUpload.length < files.length ? translate('attachmentPicker.fileAlreadyAdded') : '');
         onInputChange(newFilesToUpload);
         upload(newFilesToUpload);
-        setError('');
     };
 
     return (

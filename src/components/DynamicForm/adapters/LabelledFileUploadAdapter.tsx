@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import UploadedFileChip from '@components/UploadFile/components/UploadedFileChip';
 import UploadFilePicker from '@components/UploadFile/components/UploadFilePicker';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -44,7 +45,7 @@ type LabelledFileUploadAdapterProps = Omit<UploadFileSettings, 'buttonText'> &
         /** Called with every entry after each add or remove */
         onInputChange?: (value: DynamicFormListItem[]) => void;
 
-        /** Validation error, shown under each button that has no file yet */
+        /** Validation error, shown under each button that has no file yet, or under the last button when every button has one */
         errorText?: string;
 
         /** The upload buttons, in order */
@@ -56,7 +57,7 @@ type LabelledFileUploadAdapterProps = Omit<UploadFileSettings, 'buttonText'> &
 
 /**
  * Upload buttons, each labelling its files with a kind of document it takes. A button with one kind opens the file picker, and a button with more asks which kind first.
- * Files list under their button. The file limit and the check for a file with the same name count only the button's own files, since one file can prove two documents.
+ * Files list under their button. The file limit counts every file of the field, and the check for a file with the same name only the button's own files, since one file can prove two documents.
  */
 function LabelledFileUploadAdapter({
     value,
@@ -70,6 +71,7 @@ function LabelledFileUploadAdapter({
     fileLimit,
     maxFileSize,
 }: LabelledFileUploadAdapterProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [uploadError, setUploadError] = useState('');
     const [uploadErrorIndex, setUploadErrorIndex] = useState<number>();
@@ -78,10 +80,17 @@ function LabelledFileUploadAdapter({
     useUploadErrorAnnouncement(uploadError, errorText);
 
     const getFiles = (upload: LabelledUpload) => entries.filter((entry) => upload.types.some((type) => type.value === entry.fileType));
+    const hasFileUnderEveryButton = uploads.every((upload) => getFiles(upload).length > 0);
     const getTypeLabel = (fileType: unknown) => uploads.flatMap((upload) => upload.types).find((type) => type.value === fileType)?.label ?? '';
 
-    const addFiles = (fileType: string, newFiles: FileObject[]) => {
+    const addFiles = (index: number, fileType: string, newFiles: FileObject[]) => {
         if (newFiles.length === 0) {
+            return;
+        }
+        // The picker checks the limit against the button's own files, so the field checks it against all of them
+        if (fileLimit && entries.flatMap(getListItemFiles).length + newFiles.length > fileLimit) {
+            setUploadErrorIndex(index);
+            setUploadError(translate('attachmentPicker.tooManyFiles', fileLimit));
             return;
         }
         const typeEntry = entries.find((entry) => entry.fileType === fileType);
@@ -106,7 +115,7 @@ function LabelledFileUploadAdapter({
                 let shownError = '';
                 if (uploadErrorIndex === index && uploadError) {
                     shownError = uploadError;
-                } else if (uploadEntries.length === 0) {
+                } else if (uploadEntries.length === 0 || (hasFileUnderEveryButton && index === uploads.length - 1)) {
                     shownError = errorText;
                 }
                 return (
@@ -126,6 +135,8 @@ function LabelledFileUploadAdapter({
                             fileLimit={fileLimit}
                             acceptedFileTypes={acceptedFileTypes}
                             maxFileSize={maxFileSize}
+                            // Wise sends saved files back under the name the server stores them under
+                            shouldCompareNormalizedFileNames
                         >
                             {(openPicker) => {
                                 const [onlyType] = upload.types;
@@ -134,7 +145,7 @@ function LabelledFileUploadAdapter({
                                         <Button
                                             sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.UPLOAD_BUTTON}
                                             accessibilityLabel={buttonAccessibilityLabel}
-                                            onPress={() => openPicker((files) => addFiles(onlyType.value, files))}
+                                            onPress={() => openPicker((files) => addFiles(index, onlyType.value, files))}
                                         >
                                             <Button.Text>{upload.buttonText}</Button.Text>
                                         </Button>
@@ -145,7 +156,7 @@ function LabelledFileUploadAdapter({
                                         buttonText={upload.buttonText}
                                         accessibilityLabel={buttonAccessibilityLabel}
                                         types={upload.types}
-                                        onSelect={(fileType) => openPicker((files) => addFiles(fileType, files))}
+                                        onSelect={(fileType) => openPicker((files) => addFiles(index, fileType, files))}
                                     />
                                 );
                             }}
