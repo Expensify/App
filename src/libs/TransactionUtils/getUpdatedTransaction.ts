@@ -583,6 +583,18 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID ?? updatedTransaction?.comment?.customUnit?.customUnitRateID);
     }
 
+    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search
+    if (
+        transaction.policyConvertedAmount != null &&
+        (updatedTransaction.amount !== transaction.amount ||
+            updatedTransaction.modifiedAmount !== transaction.modifiedAmount ||
+            updatedTransaction.currency !== transaction.currency ||
+            updatedTransaction.modifiedCurrency !== transaction.modifiedCurrency ||
+            updatedTransaction.reportID !== transaction.reportID)
+    ) {
+        updatedTransaction.policyConvertedAmount = null;
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
