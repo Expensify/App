@@ -42,7 +42,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getLatestStringErrorMessage, getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, hasStringErrorMessage, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -398,7 +398,7 @@ function MoneyRequestReceiptView({
     const hasTransactionReceiptError = Object.values(transactionErrors ?? {}).some((error) => isReceiptError(error));
     // Skip merging parentReportAction errors when the transaction only has a ReceiptError with no server string,
     // so MoneyRequestBuilder's generic error on the IOU action does not hide receipt retry guidance.
-    const shouldOmitParentActionErrors = hasTransactionReceiptError && !getLatestStringErrorMessage(transactionErrors);
+    const shouldOmitParentActionErrors = hasTransactionReceiptError && !hasStringErrorMessage(transactionErrors);
     const errorsWithoutReportCreation = {
         ...transactionErrors,
         ...(shouldOmitParentActionErrors ? {} : parentReportAction?.errors),

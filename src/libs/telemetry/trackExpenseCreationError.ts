@@ -140,7 +140,7 @@ function trackExpenseApiError(context: ApiErrorContext): void {
             level: 'error',
             tags,
             extra,
-            fingerprint: [errorType, command, String(jsonCode), errorUUID ?? message ?? ''],
+            fingerprint: errorUUID ? [errorType, command, String(jsonCode), errorUUID] : [errorType, command, String(jsonCode)],
         });
     } catch (sentryError) {
         Log.warn('[trackExpenseApiError] Failed to track expense API error', {sentryError, originalContext: context});

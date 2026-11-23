@@ -1,19 +1,15 @@
 /**
- * Strips redundant client generic string errors from failureData when the server response already wrote errors for the same transaction or report action, while preserving ReceiptError retry metadata.
+ * Strips redundant client generic string errors from expense creation failureData when the server response already wrote errors for the same transaction or report action, while preserving ReceiptError retry metadata.
  */
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
+import {WRITE_COMMANDS} from './API/types';
+import {hasStringErrorMessage} from './ErrorUtils';
 import {isRecord} from './ObjectUtils';
 
-function hasNonEmptyStringError(errors: unknown): boolean {
-    if (!isRecord(errors)) {
-        return false;
-    }
-
-    return Object.values(errors).some((value) => typeof value === 'string' && value.trim().length > 0);
-}
+const EXPENSE_CREATION_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE]);
 
 function stripStringErrors(record: Record<string, unknown>): Record<string, unknown> {
     if (!isRecord(record.errors)) {
@@ -36,8 +32,12 @@ function stripStringErrors(record: Record<string, unknown>): Record<string, unkn
     return rest;
 }
 
-function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(failureData: Array<OnyxUpdate<TKey>>, responseOnyxData: Array<OnyxUpdate<TKey>> | undefined): Array<OnyxUpdate<TKey>> {
-    if (!responseOnyxData?.length) {
+function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(
+    command: string | undefined,
+    failureData: Array<OnyxUpdate<TKey>>,
+    responseOnyxData: Array<OnyxUpdate<TKey>> | undefined,
+): Array<OnyxUpdate<TKey>> {
+    if (!command || !EXPENSE_CREATION_COMMANDS.has(command) || !responseOnyxData?.length) {
         return failureData;
     }
 
@@ -50,14 +50,14 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(failureData:
             continue;
         }
 
-        if (update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && hasNonEmptyStringError(value.errors)) {
+        if (update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && hasStringErrorMessage(value.errors)) {
             transactionKeys.add(update.key);
             continue;
         }
 
         if (update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
             for (const [actionID, actionValue] of Object.entries(value)) {
-                if (!isRecord(actionValue) || !hasNonEmptyStringError(actionValue.errors)) {
+                if (!isRecord(actionValue) || !hasStringErrorMessage(actionValue.errors)) {
                     continue;
                 }
                 let actionIDs = reportActionTargets.get(update.key);

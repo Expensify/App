@@ -14,6 +14,10 @@ import React from 'react';
 let mockShouldUseNarrowLayout = false;
 
 jest.mock('@components/Icon', () => jest.fn(() => null));
+jest.mock('@components/RenderHTML', () => {
+    const {default: MockText} = jest.requireActual<{default: typeof Text}>('@components/Text');
+    return ({html}: {html: string}) => <MockText testID="mock-render-html">{html}</MockText>;
+});
 jest.mock('@components/Button', () => {
     const {default: MockText} = jest.requireActual<{default: typeof Text}>('@components/Text');
     function MockButton({children}: {children?: React.ReactNode}) {
@@ -144,5 +148,33 @@ describe('DotIndicatorMessage receipt error server reason', () => {
 
         // Then the localized receipt upload failure copy is shown.
         expect(screen.getByText('iou.error.receiptUploadFailedMessage')).toBeOnTheScreen();
+    });
+
+    it('renders HTML server rejection messages through RenderHTML alongside receipt buttons', () => {
+        // Given a receipt error alongside an HTML server rejection message.
+        const htmlServerReason = 'Check <a href="https://expensify.com">policy settings</a>.';
+        const messages = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+                action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+            },
+            serverError: htmlServerReason,
+        };
+
+        // When rendering DotIndicatorMessage with that HTML rejection message.
+        render(
+            <DotIndicatorMessage
+                messages={messages}
+                type="error"
+                onRetryReceiptUpload={jest.fn()}
+            />,
+        );
+
+        // Then RenderHTML renders the markup inside an rbr tag while keeping Try again and Save buttons.
+        expect(screen.getByTestId('mock-render-html')).toHaveTextContent(`<rbr>${htmlServerReason}</rbr>`);
+        expect(screen.getByText('common.tryAgain')).toBeOnTheScreen();
+        expect(screen.getByText('common.save')).toBeOnTheScreen();
     });
 });

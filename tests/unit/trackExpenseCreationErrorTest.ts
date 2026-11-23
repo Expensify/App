@@ -48,7 +48,7 @@ describe('trackExpenseApiError', () => {
         });
     });
 
-    it('falls back to message in the fingerprint when errorUUID is absent', () => {
+    it('omits raw message from the fingerprint when errorUUID is absent', () => {
         // Given a TrackExpense rejection without a server error UUID.
         const message = 'New expenses cannot be added to this report.';
 
@@ -59,7 +59,7 @@ describe('trackExpenseApiError', () => {
             message,
         });
 
-        // Then Sentry fingerprints by the response message and omits the UUID tag.
+        // Then Sentry groups by errorType, command, and jsonCode without splitting on raw message text.
         expect(mockedCaptureMessage).toHaveBeenCalledWith('Expense API Error: TrackExpense returned 666', {
             level: 'error',
             tags: {
@@ -73,7 +73,7 @@ describe('trackExpenseApiError', () => {
                 jsonCode: CONST.JSON_CODE.EXP_ERROR,
                 message,
             },
-            fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.API_ERROR, WRITE_COMMANDS.TRACK_EXPENSE, '666', message],
+            fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.API_ERROR, WRITE_COMMANDS.TRACK_EXPENSE, '666'],
         });
     });
 
@@ -93,7 +93,7 @@ describe('trackExpenseApiError', () => {
         expect(mockedCaptureMessage).toHaveBeenCalledWith(
             'OpenReport Failed: jsonCode 404 (expense thread)',
             expect.objectContaining({
-                fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.OPEN_REPORT_FAILED, WRITE_COMMANDS.OPEN_REPORT, '404', 'Report not found'],
+                fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.OPEN_REPORT_FAILED, WRITE_COMMANDS.OPEN_REPORT, '404'],
             }),
         );
     });

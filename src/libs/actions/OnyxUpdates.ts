@@ -110,7 +110,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     requestData: request.data,
                 });
 
-                const reconciledFailureData = reconcileFailureDataWithServerErrors(request.failureData, response.onyxData);
+                const reconciledFailureData = reconcileFailureDataWithServerErrors(request.command, request.failureData, response.onyxData);
                 return reconciledFailureData.length > 0 ? updateHandler(reconciledFailureData) : Promise.resolve();
             }
             return Promise.resolve();

@@ -1,3 +1,4 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import reconcileFailureDataWithServerErrors from '@libs/reconcileFailureDataWithServerErrors';
 
 import CONST from '@src/CONST';
@@ -29,9 +30,41 @@ describe('reconcileFailureDataWithServerErrors', () => {
         ];
 
         // When reconciling failureData against an empty response onyxData list.
-        const result = reconcileFailureDataWithServerErrors(failureData, []);
+        const result = reconcileFailureDataWithServerErrors(WRITE_COMMANDS.REQUEST_MONEY, failureData, []);
 
         // Then the original failureData reference is preserved.
+        expect(result).toBe(failureData);
+    });
+
+    it('returns failureData unchanged for non-expense commands', () => {
+        // Given a non-expense command whose response contains a report action error.
+        const responseOnyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportActionsKey,
+                value: {
+                    [actionID]: {
+                        errors: {[serverErrorKey]: serverReason},
+                    },
+                },
+            },
+        ];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportActionsKey,
+                value: {
+                    [actionID]: {
+                        errors: {[clientErrorKey]: 'Client fallback error.'},
+                    },
+                },
+            },
+        ];
+
+        // When reconciling failureData for a non-expense command.
+        const result = reconcileFailureDataWithServerErrors(WRITE_COMMANDS.ADD_COMMENT, failureData, responseOnyxData);
+
+        // Then failureData is returned untouched.
         expect(result).toBe(failureData);
     });
 
@@ -76,7 +109,7 @@ describe('reconcileFailureDataWithServerErrors', () => {
         ];
 
         // When reconciling client failureData against the server errors.
-        const result = reconcileFailureDataWithServerErrors(failureData, responseOnyxData);
+        const result = reconcileFailureDataWithServerErrors(WRITE_COMMANDS.REQUEST_MONEY, failureData, responseOnyxData);
 
         // Then generic error strings are omitted while pendingFields rollback stays intact.
         expect(result).toEqual([
@@ -138,7 +171,7 @@ describe('reconcileFailureDataWithServerErrors', () => {
         ];
 
         // When reconciling failureData against the server errors.
-        const result = reconcileFailureDataWithServerErrors(failureData, responseOnyxData);
+        const result = reconcileFailureDataWithServerErrors(WRITE_COMMANDS.TRACK_EXPENSE, failureData, responseOnyxData);
 
         // Then every ReceiptError stays intact so the UI can show the server error alongside retry controls.
         expect(result).toEqual([

@@ -7,7 +7,7 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isReceiptError} from '@libs/ErrorUtils';
+import {hasStringErrorMessage, isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import {
@@ -518,7 +518,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         allErrors = {...allErrors, ...action.errors};
     }
 
-    const hasTransactionStringError = Object.values(errors).some((errorValue) => typeof errorValue === 'string' && errorValue.trim().length > 0);
+    const hasTransactionStringError = hasStringErrorMessage(errors);
 
     // Extract error messages
     for (const errorValue of Object.values(allErrors)) {

@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import truncate from 'lodash/truncate';
 
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
@@ -249,7 +250,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
         const serverReason = getLatestStringErrorMessage(transaction?.errors);
-        RBRMessage = serverReason ? {text: serverReason} : {translationPath: 'iou.error.receiptFailureMessageShort'};
+        RBRMessage = serverReason ? {text: Str.htmlDecode(serverReason)} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {

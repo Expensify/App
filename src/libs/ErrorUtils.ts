@@ -8,11 +8,11 @@ import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 
 import DateUtils from './DateUtils';
 import {translate} from './Localize';
+import {isRecord} from './ObjectUtils';
 
 function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
@@ -264,7 +264,16 @@ function isTranslationKeyError(message: unknown): message is TranslationKeyError
     return (message as Record<string, unknown>)?.translationKey !== undefined;
 }
 
-/** Returns the latest string error with HTML decoded and empty entries ignored from an error map that may also contain ReceiptError entries. */
+function isNonEmptyStringError(error: unknown): error is string {
+    return typeof error === 'string' && error.trim().length > 0;
+}
+
+/** Returns true when an error map contains at least one string error with text. */
+function hasStringErrorMessage(errors: unknown): boolean {
+    return isRecord(errors) && Object.values(errors).some(isNonEmptyStringError);
+}
+
+/** Returns the latest string error with empty entries ignored from an error map that may also contain ReceiptError entries. */
 function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): string | undefined {
     if (!errors) {
         return undefined;
@@ -273,17 +282,14 @@ function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): s
     const latestKey = Object.keys(errors)
         .sort()
         .reverse()
-        .find((key) => {
-            const error = errors[key];
-            return typeof error === 'string' && error.trim().length > 0;
-        });
+        .find((key) => isNonEmptyStringError(errors[key]));
 
     if (!latestKey) {
         return undefined;
     }
 
     const error = errors[latestKey];
-    return typeof error === 'string' ? Str.htmlDecode(error) : undefined;
+    return isNonEmptyStringError(error) ? error : undefined;
 }
 
 export {
@@ -299,6 +305,7 @@ export {
     getLatestErrorMessageField,
     getLatestError,
     getLatestStringErrorMessage,
+    hasStringErrorMessage,
     getMicroSecondOnyxErrorWithTranslationKey,
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
