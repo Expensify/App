@@ -73,7 +73,7 @@ type BusinessBankAccountOption = {
 };
 
 /**
- * Auth only pays a wallet balance out to an open personal US bank account, business accounts are rejected.
+ * Auth rejects a wallet transfer to a bank account that is not open or not personal. The US check matches hasExpensifyPaymentMethod.
  */
 function isWalletTransferBankAccount(bankAccountJSON: BankAccount): boolean {
     const bankAccount = new BankAccountModel(bankAccountJSON);

@@ -676,7 +676,7 @@ describe('PaymentUtils', () => {
                 createBankAccount(5, {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, country: 'GB'}),
             ]);
 
-            // When the wallet transfer destinations are picked, since Auth rejects a transfer to anything but an open personal US account
+            // When the wallet transfer destinations are picked, since Auth rejects accounts that are not open or not personal and hasExpensifyPaymentMethod only counts US ones
             const result = getWalletTransferBankAccounts(bankAccountList);
 
             // Then only the personal account remains, so the business one can't be offered or auto-selected
