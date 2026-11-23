@@ -3,7 +3,6 @@ import {renderHook} from '@testing-library/react-native';
 
 import useAssignCard from '@hooks/useAssignCard';
 import useCardFeeds from '@hooks/useCardFeeds';
-import * as CurrencyList from '@hooks/useCurrencyList';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -447,9 +446,8 @@ describe('useAssignCard', () => {
     });
 
     describe('assignCard function - expired Plaid feed', () => {
-        it('should reconnect with the country stored on the feed, not the one the workspace currency points to', () => {
-            // Given an expired US Plaid feed linked from another workspace into a workspace whose currency is ETB,
-            // which only maps to Ethiopia, a country Plaid does not support
+        it('should go straight to choosing the cardholder instead of reconnecting the feed', () => {
+            // Given a Plaid feed linked from another workspace whose stored expiration has passed
             const otherWorkspaceAccountID = 22222222;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that CompanyCardFeedWithNumber cannot represent.
             const plaidFeedName = 'plaid.ins_109508' as CompanyCardFeedWithNumber;
@@ -466,10 +464,6 @@ describe('useAssignCard', () => {
                 },
             };
             jest.mocked(useCardFeeds).mockReturnValue([plaidFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
-            jest.mocked(usePolicy).mockReturnValue({...mockPolicy, outputCurrency: 'ETB'});
-            jest.spyOn(CurrencyList, 'useCurrencyListState').mockReturnValue({
-                currencyList: {ETB: {symbol: 'Br', name: 'Ethiopian Birr', ISO4217: '230', countries: ['ET']}},
-            });
 
             const {result} = renderHook(() =>
                 useAssignCard({
@@ -479,12 +473,12 @@ describe('useAssignCard', () => {
                 }),
             );
 
-            // When the admin starts assigning a card from that feed, which sends them to reconnect it first
+            // When the admin starts assigning a card from that feed
             result.current.assignCard('Plaid Credit Card 3333', 'Plaid Credit Card 3333');
 
-            // Then the Plaid connection opens with the feed's country, because Plaid rejects a link token request for Ethiopia
-            expect(setAddNewCompanyCardStepAndData).toHaveBeenCalledWith({data: {selectedCountry: CONST.COUNTRY.US}});
-            expect(setAssignCardStepAndData).toHaveBeenCalledWith(expect.objectContaining({currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION}));
+            // Then the flow opens the assignee step without starting a Plaid reconnection
+            expect(setAddNewCompanyCardStepAndData).not.toHaveBeenCalled();
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(expect.objectContaining({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE}));
         });
     });
 });
