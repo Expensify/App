@@ -82,7 +82,7 @@ type CreateTransactionParams = {
     report: OnyxEntry<Report>;
     currentUserAccountID: number;
     currentUserEmail?: string;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
