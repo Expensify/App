@@ -15,6 +15,7 @@ import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useW
 import {
     COLLAPSE_SURFACE,
     getCollapseFadeStyle,
+    getFlatNavigationBarAccountAvatarStyle,
     getFlatNavigationBarLayoutWidthStyle,
     getFlatNavigationBarPeekShadowStyle,
     getFlatNavigationBarVisualWidthStyle,
@@ -279,11 +280,13 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                         isCollapsed={isVisuallyCollapsed}
                                         label={accountLabel}
                                         renderLeftElement={({backgroundColor}) => (
-                                            <AccountNavigationAvatar
-                                                isSelected={isAccountSelected}
-                                                badgeBorderColor={backgroundColor}
-                                                shouldShowStatus={false}
-                                            />
+                                            <Animated.View style={getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)}>
+                                                <AccountNavigationAvatar
+                                                    isSelected={isAccountSelected}
+                                                    badgeBorderColor={backgroundColor}
+                                                    shouldShowStatus={false}
+                                                />
+                                            </Animated.View>
                                         )}
                                         rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
                                         isSelected={isAccountSelected}

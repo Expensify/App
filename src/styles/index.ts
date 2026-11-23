@@ -964,11 +964,8 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // The avatar is wider than a row's icon, so it starts half that difference earlier to stay centered on the icon column
-        // in both widths. It never moves while the bar widens.
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
-            paddingLeft: variables.flatNavigationBarRowPadding - (variables.avatarSizeSmall - variables.iconSizeNormal) / 2,
         },
 
         // The label lines up with the label of the destination row above the subnav.
