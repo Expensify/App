@@ -230,9 +230,7 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then the amount is highlighted like the other amount filters
-            expect(result).toEqual([
-                {start: 16, type: 'mention-user', length: 6}, // convertedAmount:100.50
-            ]);
+            expect(result).toEqual([{start: 16, type: 'mention-user', length: 6}]);
         });
 
         it('should not highlight PURCHASE_AMOUNT filter with invalid amount', () => {
