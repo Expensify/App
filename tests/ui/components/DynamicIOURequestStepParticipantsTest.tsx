@@ -5,7 +5,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -376,7 +376,16 @@ describe('DynamicIOURequestStepParticipants', () => {
             {description: 'an entered amount', amount: 1000, isAmountSet: true, currency: 'USD', shouldUpdateCurrency: false},
             {description: 'an explicitly entered zero', amount: 0, isAmountSet: true, currency: 'USD', shouldUpdateCurrency: false},
             {description: 'an explicitly selected currency', amount: 0, isAmountSet: false, isCurrencySet: true, currency: 'EUR', shouldUpdateCurrency: false},
-        ])('follows recipient currency only for unset amounts: $description', async ({amount, isAmountSet, isCurrencySet, currency, shouldUpdateCurrency}) => {
+            {
+                description: 'an explicitly selected currency after clearing the amount',
+                amount: 0,
+                isAmountSet: false,
+                isCurrencySet: true,
+                shouldClearAmount: true,
+                currency: 'EUR',
+                shouldUpdateCurrency: false,
+            },
+        ])('follows recipient currency only for unset amounts: $description', async ({amount, isAmountSet, isCurrencySet, shouldClearAmount, currency, shouldUpdateCurrency}) => {
             // Given different workspace and Payment currencies, preserve any amount/currency the user already chose.
             const personalPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'GBP'};
             const workspacePolicy = {...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.TEAM), outputCurrency: 'AUD'};
@@ -384,9 +393,19 @@ describe('DynamicIOURequestStepParticipants', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicy.id}`, workspacePolicy);
             await renderFromConfirmation({amount, isAmountSet, currency, merchant: 'Lunch', comment: {comment: 'Keep description'}});
+            if (shouldClearAmount) {
+                act(() => setMoneyRequestAmount(TRANSACTION_ID, 1000, currency));
+                await waitForBatchedUpdates();
+            }
             if (isCurrencySet) {
                 act(() => setMoneyRequestCurrency(TRANSACTION_ID, currency, false, true));
                 await waitForBatchedUpdates();
+            }
+            if (shouldClearAmount) {
+                act(() => clearMoneyRequestAmount(TRANSACTION_ID));
+                await waitForBatchedUpdates();
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+                expect(draft).toMatchObject({amount: 0, isAmountSet: false, isCurrencySet: true, currency});
             }
 
             const selections: Array<{participant: Participant; policy?: Policy; expectedCurrency: string}> = [

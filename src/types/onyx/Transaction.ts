@@ -571,7 +571,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isAmountSet?: boolean;
 
-        /** Whether the user explicitly picked a currency while the amount was still empty */
+        /** Prevents recipient defaults from overriding an explicit currency choice, even after the amount is cleared */
         isCurrencySet?: boolean;
 
         /** Whether the merchant has been explicitly set by the user */

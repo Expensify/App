@@ -317,8 +317,8 @@ describe('AmountField currency change', () => {
         expect(setMoneyRequestAmount).not.toHaveBeenCalled();
     });
 
-    it('keeps the entered amount when the currency changes after the user set one', () => {
-        // Given a scan expense where the user has already entered an amount themselves
+    it.each([false, true])('keeps the entered amount and records the currency choice (scan: %s)', (canEnterScanFieldsManually) => {
+        // Given a Manual or Scan expense where the user has already entered an amount themselves
         mockTransactionSlice = {transactionID: '1', amount: 1000, currency: 'USD', isAmountMissing: false, isAmountSet: true};
         render(
             <ConfirmationFieldsProvider
@@ -326,7 +326,7 @@ describe('AmountField currency change', () => {
                 reportID="2"
                 action={CONST.IOU.ACTION.CREATE}
                 iouType={CONST.IOU.TYPE.SUBMIT}
-                canEnterScanFieldsManually
+                canEnterScanFieldsManually={canEnterScanFieldsManually}
             >
                 <AmountField
                     {...amountFieldProps}
@@ -338,8 +338,37 @@ describe('AmountField currency change', () => {
         // When the user changes the currency
         fireEvent.press(screen.getByText('Pick EUR'));
 
-        // Then the entered amount is saved together with the new currency, since the amount is the user's own
+        // Then the amount is preserved and the currency choice survives even if the user later clears the amount
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
+        expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR', false, true);
+    });
+
+    it('only updates the split draft when changing currency while editing a split bill', () => {
+        // Given an existing split bill whose changes belong to the split draft, not the main draft
+        const transaction = {transactionID: '1', amount: 1000, currency: 'USD'};
+        mockOnyxValues = {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: transaction};
+        mockTransactionSlice = {transactionID: '1', amount: 1000, currency: 'USD', isAmountMissing: false, isAmountSet: true};
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.EDIT}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    amount={1000}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the user explicitly selects a different currency
+        fireEvent.press(screen.getByText('Pick EUR'));
+
+        // Then split recalculation uses the selected currency without writing to the main transaction draft
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', transaction, expect.objectContaining({currency: 'EUR'}), expect.any(Function), expect.any(Function));
+        expect(setMoneyRequestAmount).not.toHaveBeenCalled();
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
     });
 });
