@@ -1183,8 +1183,8 @@ type UpdateMoneyRequestDistanceParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
-    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    /** RNVP of `parentReport` */
+    parentReportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -1601,8 +1601,8 @@ function updateMoneyRequestDistanceRate({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
-    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
-    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    /** RNVP of `parentReport` */
+    parentReportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,

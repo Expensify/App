@@ -1227,6 +1227,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1327,6 +1328,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1451,6 +1453,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1533,6 +1536,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1586,6 +1590,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1681,6 +1686,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When saving the edit without touching the waypoints
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
