@@ -50,10 +50,13 @@ describe('trackExpenseApiError', () => {
 
     it('falls back to message in the fingerprint when errorUUID is absent', () => {
         // Given a TrackExpense rejection without a server error UUID.
+        const message = 'New expenses cannot be added to this report.';
+
+        // When trackExpenseApiError records the rejection.
         trackExpenseApiError({
             command: WRITE_COMMANDS.TRACK_EXPENSE,
             jsonCode: CONST.JSON_CODE.EXP_ERROR,
-            message: 'New expenses cannot be added to this report.',
+            message,
         });
 
         // Then Sentry fingerprints by the response message and omits the UUID tag.
@@ -68,20 +71,23 @@ describe('trackExpenseApiError', () => {
             extra: {
                 command: WRITE_COMMANDS.TRACK_EXPENSE,
                 jsonCode: CONST.JSON_CODE.EXP_ERROR,
-                message: 'New expenses cannot be added to this report.',
+                message,
             },
-            fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.API_ERROR, WRITE_COMMANDS.TRACK_EXPENSE, '666', 'New expenses cannot be added to this report.'],
+            fingerprint: [CONST.TELEMETRY.EXPENSE_ERROR_TYPE.API_ERROR, WRITE_COMMANDS.TRACK_EXPENSE, '666', message],
         });
     });
 
     it('uses neutral expense thread wording for OpenReport failures with a transactionID', () => {
         // Given a failed OpenReport call for an expense thread.
-        trackExpenseApiError({
+        const context = {
             command: WRITE_COMMANDS.OPEN_REPORT,
             jsonCode: 404,
             message: 'Report not found',
             requestData: {transactionID: '12345'},
-        });
+        };
+
+        // When trackExpenseApiError records the OpenReport failure.
+        trackExpenseApiError(context);
 
         // Then Sentry records an expense thread failure without claiming a lost expense.
         expect(mockedCaptureMessage).toHaveBeenCalledWith(
@@ -94,15 +100,19 @@ describe('trackExpenseApiError', () => {
 
     it('ignores unrelated commands and OpenReport calls without a transactionID', () => {
         // Given an OpenReport call without a transactionID and a non-expense command.
-        trackExpenseApiError({
+        const openReportWithoutTransaction = {
             command: WRITE_COMMANDS.OPEN_REPORT,
             jsonCode: 404,
             requestData: {},
-        });
-        trackExpenseApiError({
+        };
+        const addCommentError = {
             command: WRITE_COMMANDS.ADD_COMMENT,
             jsonCode: CONST.JSON_CODE.EXP_ERROR,
-        });
+        };
+
+        // When trackExpenseApiError is called for those events.
+        trackExpenseApiError(openReportWithoutTransaction);
+        trackExpenseApiError(addCommentError);
 
         // Then neither event is reported as an expense API error.
         expect(mockedCaptureMessage).not.toHaveBeenCalled();

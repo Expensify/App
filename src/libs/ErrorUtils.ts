@@ -264,7 +264,7 @@ function isTranslationKeyError(message: unknown): message is TranslationKeyError
     return (message as Record<string, unknown>)?.translationKey !== undefined;
 }
 
-/** Returns the latest non-empty HTML-decoded string error from an error map that may also contain ReceiptError entries. */
+/** Returns the latest string error with HTML decoded and empty entries ignored from an error map that may also contain ReceiptError entries. */
 function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): string | undefined {
     if (!errors) {
         return undefined;

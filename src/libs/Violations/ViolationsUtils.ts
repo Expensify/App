@@ -518,7 +518,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         allErrors = {...allErrors, ...action.errors};
     }
 
-    let hasReceiptUploadError = false;
+    const hasTransactionStringError = Object.values(errors).some((errorValue) => typeof errorValue === 'string' && errorValue.trim().length > 0);
 
     // Extract error messages
     for (const errorValue of Object.values(allErrors)) {
@@ -528,7 +528,11 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            hasReceiptUploadError = true;
+            // Skip the generic receipt copy when the transaction already holds a server error string,
+            // while still showing it when only an unrelated thread action failed.
+            if (!hasTransactionStringError) {
+                uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            }
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
@@ -537,10 +541,6 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
                 uniqueMessages.add(nestedErrorValue);
             }
         }
-    }
-
-    if (hasReceiptUploadError && uniqueMessages.size === 0) {
-        uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
     }
 
     return Array.from(uniqueMessages);

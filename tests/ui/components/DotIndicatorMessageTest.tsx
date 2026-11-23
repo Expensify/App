@@ -124,16 +124,19 @@ describe('DotIndicatorMessage receipt error server reason', () => {
 
     it('falls back to the generic receipt upload error when no server message is attached', () => {
         // Given a standard receipt error without a server rejection reason.
+        const receiptOnlyMessages = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+                action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+            },
+        };
+
+        // When rendering DotIndicatorMessage with only that receipt error.
         render(
             <DotIndicatorMessage
-                messages={{
-                    receiptError: {
-                        error: CONST.IOU.RECEIPT_ERROR,
-                        source: 'file:///receipt.jpg',
-                        filename: 'receipt.jpg',
-                        action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
-                    },
-                }}
+                messages={receiptOnlyMessages}
                 type="error"
                 onRetryReceiptUpload={jest.fn()}
             />,

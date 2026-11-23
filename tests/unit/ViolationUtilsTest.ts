@@ -13,7 +13,7 @@ import ViolationsUtils, {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -5059,6 +5059,37 @@ describe('getRBRMessages', () => {
 
         // Then the generic short receipt failure copy is still returned.
         expect(result).toBe(translateLocal('iou.error.receiptFailureMessageShort'));
+    });
+
+    it('should preserve the generic receipt failure message when an unrelated thread action fails', () => {
+        // Given a scan transaction with only a ReceiptError and an unrelated failed comment in its thread.
+        const commentError = 'Failed to post comment.';
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+        const failedThreadComment = createMock<ReportAction>({
+            errors: {commentError},
+        });
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [failedThreadComment],
+        });
+
+        // Then both the receipt failure message and the failed thread comment message are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${commentError}`);
     });
 });
 

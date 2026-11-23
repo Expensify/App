@@ -42,7 +42,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
+import {getLatestStringErrorMessage, getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -394,9 +394,14 @@ function MoneyRequestReceiptView({
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
+    const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
+    const hasTransactionReceiptError = Object.values(transactionErrors ?? {}).some((error) => isReceiptError(error));
+    // Skip merging parentReportAction errors when the transaction only has a ReceiptError with no server string,
+    // so MoneyRequestBuilder's generic error on the IOU action does not hide receipt retry guidance.
+    const shouldOmitParentActionErrors = hasTransactionReceiptError && !getLatestStringErrorMessage(transactionErrors);
     const errorsWithoutReportCreation = {
-        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
-        ...parentReportAction?.errors,
+        ...transactionErrors,
+        ...(shouldOmitParentActionErrors ? {} : parentReportAction?.errors),
     };
     const reportCreationError = getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {};
     const hasReceiptUploadError = Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error));
