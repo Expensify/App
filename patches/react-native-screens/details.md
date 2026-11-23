@@ -140,3 +140,10 @@
 - Upstream PR/issue: not reported, because it exists only to serve patch 002 and goes away with it.
 - E/App issue: [#104203](https://github.com/Expensify/App/issues/104203)
 - PR introducing patch: [#104727](https://github.com/Expensify/App/pull/104727)
+
+### [react-native-screens+4.28.0+010+no-off-screen-tab-selection-animation.patch](react-native-screens+4.28.0+010+no-off-screen-tab-selection-animation.patch)
+
+- Reason: On iOS, the first mount selects the restored tab through `setSelectedViewController:` before the tab bar is in a window, and UIKit animates that selection change. The animation is set up for the layout the bar has outside the window, which is a bottom bar. On a foldable iPhone the bar moves into the vertical bar column once it is in the window, so the still running animation morphs the liquid glass selection from the bottom bar's less rounded shape into the column's capsule, which shows as a squarer bubble on the selected tab right after launch. The patch selects the tab without animation while the controller's view has no window, the same way UIKit's own `setSelectedIndex:` in `setViewControllers:animated:` already does.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#107266](https://github.com/Expensify/App/issues/107266)
+- PR introducing patch: [#107282](https://github.com/Expensify/App/pull/107282)

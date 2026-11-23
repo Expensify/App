@@ -339,9 +339,9 @@ function isWorkflowApprover(policy: OnyxEntry<Policy>, ownerLogin: string | unde
     return !!userEmail && !!ownerLogin && !isSubmitAndClose(policy) && userEmail === getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, personalDetailsByLogins?: PersonalDetailsByLogin, reportTotal = 0) {
     const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
-    return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
+    return managerEmail ? (getAccountIDsByLogins([managerEmail], personalDetailsByLogins).at(0) ?? -1) : -1;
 }
 
 /**
@@ -379,6 +379,10 @@ function getSubmitToEmail(
     return managerEmail;
 }
 
+function isSubmittingToSelf(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>): boolean {
+    return !!ownerLogin && getSubmitToEmail(policy, expenseReport, ownerLogin, rules) === ownerLogin;
+}
+
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
@@ -387,10 +391,10 @@ function getSubmitToAccountID(
     expenseReport: OnyxEntry<Report>,
     ownerLogin: string | undefined,
     rules: OnyxCollection<Rule>,
-    shouldFallBackWhenManagerIsNotMember = false,
+    personalDetailsByLogins?: PersonalDetailsByLogin,
 ): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
-    return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules);
+    return submitToEmail ? (getAccountIDsByLogins([submitToEmail], personalDetailsByLogins).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
 function getSubmitReportManagerAccountID(
@@ -467,6 +471,7 @@ export {
     isWorkflowApprover,
     getManagerAccountID,
     getSubmitToEmail,
+    isSubmittingToSelf,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
     getForwardsToAccount,
