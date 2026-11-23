@@ -7269,6 +7269,9 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
             },
+            configureSection: {
+                title: 'Configurar',
+            },
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',

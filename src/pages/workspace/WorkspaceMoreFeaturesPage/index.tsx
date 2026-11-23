@@ -456,57 +456,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.spendSection.title')}>
                         <MoreFeatureToggle
-                            icon={illustrations.Car}
-                            title={translate('workspace.moreFeatures.distanceRates.title')}
-                            subtitle={translate('workspace.moreFeatures.distanceRates.subtitle')}
-                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.DISTANCE_RATES_SWITCH}
-                            isActive={policy?.areDistanceRatesEnabled ?? false}
-                            pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
-                            disabled={!canWriteMoreFeatures || isDistanceRatesLockedByCommuterExclusions}
-                            disabledAction={withReadOnlyFallback(promptDisableDistanceRatesForCommuterExclusions)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (!isEnabled && hasHomeAndOfficeCommuterExclusions) {
-                                    promptDisableDistanceRatesForCommuterExclusions();
-                                    return;
-                                }
-                                enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
-                            icon={illustrations.Luggage}
-                            title={translate('workspace.moreFeatures.travel.title')}
-                            subtitle={translate('workspace.moreFeatures.travel.subtitle')}
-                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TRAVEL_SWITCH}
-                            isActive={policy?.isTravelEnabled ?? false}
-                            pendingAction={policy?.pendingFields?.isTravelEnabled}
-                            disabled={!canWriteMoreFeatures || isTravelBillingEnabled}
-                            disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
-                                    return;
-                                }
-                                enablePolicyTravel(policyID, isEnabled);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
                             icon={illustrations.HandCard}
                             title={translate('workspace.moreFeatures.expensifyCard.title')}
                             subtitle={translate('workspace.moreFeatures.expensifyCard.subtitle')}
@@ -554,6 +503,57 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
+                            icon={illustrations.Luggage}
+                            title={translate('workspace.moreFeatures.travel.title')}
+                            subtitle={translate('workspace.moreFeatures.travel.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.TRAVEL_SWITCH}
+                            isActive={policy?.isTravelEnabled ?? false}
+                            pendingAction={policy?.pendingFields?.isTravelEnabled}
+                            disabled={!canWriteMoreFeatures || isTravelBillingEnabled}
+                            disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
+                                    return;
+                                }
+                                enablePolicyTravel(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
+                            icon={illustrations.Car}
+                            title={translate('workspace.moreFeatures.distanceRates.title')}
+                            subtitle={translate('workspace.moreFeatures.distanceRates.subtitle')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MORE_FEATURES.DISTANCE_RATES_SWITCH}
+                            isActive={policy?.areDistanceRatesEnabled ?? false}
+                            pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
+                            disabled={!canWriteMoreFeatures || isDistanceRatesLockedByCommuterExclusions}
+                            disabledAction={withReadOnlyFallback(promptDisableDistanceRatesForCommuterExclusions)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (!isEnabled && hasHomeAndOfficeCommuterExclusions) {
+                                    promptDisableDistanceRatesForCommuterExclusions();
+                                    return;
+                                }
+                                enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
                             }}
                         />
                         <MoreFeatureToggle

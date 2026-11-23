@@ -8,6 +8,7 @@ import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/us
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -315,7 +316,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {workspaceMenuItems.map((item) => {
+                            {workspaceMenuItems.map((item, index) => {
+                                // Items arrive grouped by section, so a title goes above the first visible item of each section and an empty section gets none.
+                                const previousItem = index > 0 ? workspaceMenuItems.at(index - 1) : undefined;
+                                const sectionTitleKey = item.sectionTranslationKey !== previousItem?.sectionTranslationKey ? item.sectionTranslationKey : undefined;
                                 const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
                                 const isItemFocused = getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName));
                                 const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
@@ -326,37 +330,47 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     item.action();
                                 };
                                 return (
-                                    <HighlightableMenuItem
-                                        key={item.translationKey}
-                                        disabled={hasPolicyCreationError || (isExecuting && !isItemFocused)}
-                                        interactive={!hasPolicyCreationError}
-                                        title={translate(item.translationKey)}
-                                        icon={item.icon}
-                                        onPress={onPress}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
-                                        hoveredStyle={hoveredStyle}
-                                        shouldShowBasicTitle={shouldShowBasicTitle}
-                                        titleStyle={titleStyle}
-                                        hoveredTitleStyle={hoveredTitleStyle}
-                                        highlighted={!!item?.highlighted}
-                                        focused={isItemFocused}
-                                        role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
-                                        isBadgeSuccess={item.isBadgeSuccess}
-                                        shouldIconUseAutoWidthStyle
-                                        sentryLabel={item.sentryLabel}
-                                        shouldGreyOutWhenDisabled={hasPolicyCreationError}
-                                        shouldRenderTooltip={isConnectionsItem && shouldShowConnectionsTooltip}
-                                        renderTooltipContent={renderConnectionsTooltip}
-                                        tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
-                                        tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                        onEducationTooltipPress={onPress}
-                                        // The workspace menu is the sidebar, which isn't the navigation-focused screen on wide layouts.
-                                        shouldHideTooltipOnNavigate={false}
-                                        shouldHideOnScroll
-                                        shouldCheckTooltipVisibilityOnFirstDisplay={shouldUseNarrowLayout}
-                                    />
+                                    <React.Fragment key={item.translationKey}>
+                                        {!!sectionTitleKey && (
+                                            <Text
+                                                // ph4 lines the title up with the row icons, which sit 16px into each row
+                                                style={[styles.sectionTitle, styles.ph4, styles.mt5]}
+                                                accessibilityRole={CONST.ROLE.HEADER}
+                                            >
+                                                {translate(sectionTitleKey)}
+                                            </Text>
+                                        )}
+                                        <HighlightableMenuItem
+                                            disabled={hasPolicyCreationError || (isExecuting && !isItemFocused)}
+                                            interactive={!hasPolicyCreationError}
+                                            title={translate(item.translationKey)}
+                                            icon={item.icon}
+                                            onPress={onPress}
+                                            brickRoadIndicator={item.brickRoadIndicator}
+                                            wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
+                                            hoveredStyle={hoveredStyle}
+                                            shouldShowBasicTitle={shouldShowBasicTitle}
+                                            titleStyle={titleStyle}
+                                            hoveredTitleStyle={hoveredTitleStyle}
+                                            highlighted={!!item?.highlighted}
+                                            focused={isItemFocused}
+                                            role={CONST.ROLE.TAB}
+                                            badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
+                                            isBadgeSuccess={item.isBadgeSuccess}
+                                            shouldIconUseAutoWidthStyle
+                                            sentryLabel={item.sentryLabel}
+                                            shouldGreyOutWhenDisabled={hasPolicyCreationError}
+                                            shouldRenderTooltip={isConnectionsItem && shouldShowConnectionsTooltip}
+                                            renderTooltipContent={renderConnectionsTooltip}
+                                            tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                            tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                            onEducationTooltipPress={onPress}
+                                            // The workspace menu is the sidebar, which isn't the navigation-focused screen on wide layouts.
+                                            shouldHideTooltipOnNavigate={false}
+                                            shouldHideOnScroll
+                                            shouldCheckTooltipVisibilityOnFirstDisplay={shouldUseNarrowLayout}
+                                        />
+                                    </React.Fragment>
                                 );
                             })}
                         </View>

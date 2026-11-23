@@ -112,6 +112,8 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.map((item) => item.translationKey)).toEqual(['workspace.common.profile', 'workspace.common.members', 'workspace.common.rooms']);
+        // Members and Rooms keep their Manage section even though the protected sections are hidden
+        expect(items.map((item) => item.sectionTranslationKey)).toEqual([undefined, 'workspace.moreFeatures.manageSection.title', 'workspace.moreFeatures.manageSection.title']);
     });
 
     it('highlights the most recently enabled feature', () => {
@@ -426,7 +428,34 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('preserves the complete enabled Workspace menu order and presentation data', () => {
+    it('shows Categories near the top of a minimal Track workspace and leaves out the empty sections', () => {
+        // Given an admin of a workspace created for tracking, where Categories is the only optional feature enabled
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), type: CONST.POLICY.TYPE.TEAM, areCategoriesEnabled: true});
+
+        // When the Workspace menu is built
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        // Then Categories sits in Organize right under Reports, Rooms and Agents stay visible, and no row belongs to Spend or Earn
+        expect(items.map((item) => [item.translationKey, item.sectionTranslationKey])).toEqual([
+            ['workspace.common.profile', undefined],
+            ['common.reports', 'workspace.moreFeatures.organizeSection.title'],
+            ['workspace.common.categories', 'workspace.moreFeatures.organizeSection.title'],
+            ['workspace.common.connections', 'workspace.moreFeatures.organizeSection.title'],
+            ['workspace.common.members', 'workspace.moreFeatures.manageSection.title'],
+            ['agentsPage.title', 'workspace.moreFeatures.manageSection.title'],
+            ['workspace.common.rooms', 'workspace.moreFeatures.manageSection.title'],
+            ['workspace.common.moreFeatures', 'workspace.moreFeatures.configureSection.title'],
+        ]);
+    });
+
+    it('groups the complete enabled Workspace menu into sections and preserves its presentation data', () => {
+        // Given an admin of a workspace with every feature enabled
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
             areConnectionsEnabled: true,
@@ -455,6 +484,7 @@ describe('getWorkspaceMenuItems', () => {
         });
         const convertToDisplayString = jest.fn(() => '$1.23');
 
+        // When the Workspace menu is built
         const items = getWorkspaceMenuItems({
             policy,
             policyID: policy.id,
@@ -464,23 +494,24 @@ describe('getWorkspaceMenuItems', () => {
             convertToDisplayString,
         });
 
+        // Then the rows follow the Overview, Organize, Manage, Spend, Earn and Configure grouping, keeping their routes and screens
         expect(items.map((item) => item.translationKey)).toEqual([
             'workspace.common.profile',
-            'workspace.common.members',
-            'agentsPage.title',
-            'workspace.common.rooms',
             'common.reports',
-            'workspace.common.connections',
             'workspace.common.categories',
             'workspace.common.tags',
+            'workspace.common.connections',
             'workspace.common.taxes',
             'workspace.common.vendors',
+            'workspace.common.members',
             'workspace.common.workflows',
             'workspace.common.rules',
-            'workspace.common.distanceRates',
-            'workspace.common.travel',
+            'agentsPage.title',
+            'workspace.common.rooms',
             'workspace.common.expensifyCard',
             'workspace.common.companyCards',
+            'workspace.common.travel',
+            'workspace.common.distanceRates',
             'common.perDiem',
             'iou.time',
             'workspace.common.invoices',
@@ -488,21 +519,21 @@ describe('getWorkspaceMenuItems', () => {
         ]);
         expect(items.map((item) => item.getRoute())).toEqual([
             ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id),
-            ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
-            ROUTES.WORKSPACE_AGENTS.getRoute(policy.id),
-            ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
             ROUTES.WORKSPACE_REPORTS.getRoute(policy.id),
-            ROUTES.WORKSPACE_CONNECTIONS.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
+            ROUTES.WORKSPACE_CONNECTIONS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAXES.getRoute(policy.id),
             ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
+            ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
             ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
             ROUTES.WORKSPACE_RULES.getRoute(policy.id),
-            ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policy.id),
-            ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id),
+            ROUTES.WORKSPACE_AGENTS.getRoute(policy.id),
+            ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
             ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id),
             ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id),
+            ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id),
+            ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policy.id),
             ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id),
             ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policy.id),
             ROUTES.WORKSPACE_INVOICES.getRoute(policy.id),
@@ -510,25 +541,47 @@ describe('getWorkspaceMenuItems', () => {
         ]);
         expect(items.map((item) => item.screenName)).toEqual([
             SCREENS.WORKSPACE.PROFILE,
-            SCREENS.WORKSPACE.MEMBERS,
-            SCREENS.WORKSPACE.AGENTS,
-            SCREENS.WORKSPACE.ROOMS,
             SCREENS.WORKSPACE.REPORTS,
-            SCREENS.WORKSPACE.CONNECTIONS,
             SCREENS.WORKSPACE.CATEGORIES,
             SCREENS.WORKSPACE.TAGS,
+            SCREENS.WORKSPACE.CONNECTIONS,
             SCREENS.WORKSPACE.TAXES,
             SCREENS.WORKSPACE.VENDORS,
+            SCREENS.WORKSPACE.MEMBERS,
             SCREENS.WORKSPACE.WORKFLOWS,
             SCREENS.WORKSPACE.RULES,
-            SCREENS.WORKSPACE.DISTANCE_RATES,
-            SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.WORKSPACE.AGENTS,
+            SCREENS.WORKSPACE.ROOMS,
             SCREENS.WORKSPACE.EXPENSIFY_CARD,
             SCREENS.WORKSPACE.COMPANY_CARDS,
+            SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.WORKSPACE.DISTANCE_RATES,
             SCREENS.WORKSPACE.PER_DIEM,
             SCREENS.WORKSPACE.TIME_TRACKING,
             SCREENS.WORKSPACE.INVOICES,
             SCREENS.WORKSPACE.MORE_FEATURES,
+        ]);
+        expect(items.map((item) => item.sectionTranslationKey)).toEqual([
+            undefined,
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.organizeSection.title',
+            'workspace.moreFeatures.manageSection.title',
+            'workspace.moreFeatures.manageSection.title',
+            'workspace.moreFeatures.manageSection.title',
+            'workspace.moreFeatures.manageSection.title',
+            'workspace.moreFeatures.manageSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.spendSection.title',
+            'workspace.moreFeatures.earnSection.title',
+            'workspace.moreFeatures.configureSection.title',
         ]);
         expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.icon).toBe(icons.Bolt);
         expect(items.find((item) => item.translationKey === 'workspace.common.invoices')?.badgeText).toBe('$1.23');

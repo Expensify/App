@@ -7023,6 +7023,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '整理',
                 subtitle: '分组并分析支出，记录每一笔已缴税款。',
             },
+            configureSection: {
+                title: '配置',
+            },
             distanceRates: {
                 title: '距离费率',
                 subtitle: '添加、更新并执行费率。',

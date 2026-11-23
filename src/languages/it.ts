@@ -7289,6 +7289,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Organizza',
                 subtitle: 'Raggruppa e analizza le spese, registra ogni imposta pagata.',
             },
+            configureSection: {
+                title: 'Configura',
+            },
             distanceRates: {
                 title: 'Tariffe chilometriche',
                 subtitle: 'Aggiungi, aggiorna e applica le tariffe.',

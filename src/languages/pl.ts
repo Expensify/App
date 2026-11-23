@@ -7321,6 +7321,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Organizuj',
                 subtitle: 'Grupuj i analizuj wydatki, zapisuj każdy zapłacony podatek.',
             },
+            configureSection: {
+                title: 'Konfiguruj',
+            },
             distanceRates: {
                 title: 'Stawki za dystans',
                 subtitle: 'Dodawaj, aktualizuj i egzekwuj stawki.',

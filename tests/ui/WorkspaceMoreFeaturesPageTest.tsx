@@ -164,6 +164,36 @@ describe('WorkspaceMoreFeaturesPage', () => {
         jest.clearAllMocks();
     });
 
+    it('lists the Spend features in the same order as the Workspace menu', async () => {
+        // Given an admin of a workspace
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+        });
+
+        // When the More features page renders
+        renderPage({policyID: POLICY_ID});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Spend toggles follow the Workspace menu order, so a feature sits in the same place on both pages
+        const spendTitles = [
+            'workspace.moreFeatures.expensifyCard.title',
+            'workspace.moreFeatures.companyCards.title',
+            'workspace.moreFeatures.travel.title',
+            'workspace.moreFeatures.distanceRates.title',
+            'workspace.moreFeatures.perDiem.title',
+            'workspace.moreFeatures.timeTracking.title',
+        ] as const;
+        const translatedSpendTitles = new Set<string>(spendTitles.map((titleKey) => TestHelper.translateLocal(titleKey)));
+        await waitFor(() => {
+            const renderedSpendTitles = screen
+                .getAllByText(/./)
+                .map((node) => node.props.children as unknown)
+                .filter((text): text is string => typeof text === 'string' && translatedSpendTitles.has(text));
+            expect(renderedSpendTitles).toEqual(spendTitles.map((titleKey) => TestHelper.translateLocal(titleKey)));
+        });
+    });
+
     describe('Distance rates toggle', () => {
         it('locks Distance rates and explains why while home and office commuter exclusions are enabled', async () => {
             await TestHelper.signInWithTestUser();

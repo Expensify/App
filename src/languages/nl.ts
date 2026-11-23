@@ -7281,6 +7281,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Organiseren',
                 subtitle: 'Groepeer en analyseer uitgaven, leg elke betaalde belasting vast.',
             },
+            configureSection: {
+                title: 'Configureren',
+            },
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
