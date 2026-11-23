@@ -5627,6 +5627,9 @@ ${amount} per ${merchant} - ${date}`,
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {

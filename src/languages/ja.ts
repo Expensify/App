@@ -5579,6 +5579,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
