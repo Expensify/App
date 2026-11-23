@@ -195,7 +195,7 @@ describe('DynamicWorkspaceInviteMessageRolePage', () => {
         // Given a direct deep link where no opener screen exists in the navigation stack
         const cardInviteBackPath = ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute({
             policyID: policy.id,
-            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}123`,
             cardID: '1234',
         });
         jest.spyOn(useDynamicBackPathModule, 'default').mockReturnValue(cardInviteBackPath);
