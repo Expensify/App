@@ -1,4 +1,4 @@
-import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getDetailsChartSpec, getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,5 +37,38 @@ describe('Insights dashboard charts', () => {
 
         // Then Top tags requires a group workspace with tags enabled in that scope
         expect(charts.some(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS)).toBe(shouldShowTags);
+    });
+
+    it('points a Details panel chart at the violation stage in its URL', () => {
+        // Given a Details panel URL for Top violations with the approved stage picked
+        const graphKey = CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS;
+
+        // When resolving the chart the panel shows
+        const chart = getDetailsChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, graphKey, CONST.INSIGHTS.VIOLATION_STAGE.APPROVED);
+
+        // Then the panel counts the approvers' violations by approval date, as the chart did when clicked
+        expect(chart?.graphKey).toBe(graphKey);
+        expect(chart?.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+        expect(chart?.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    });
+
+    it('keeps a Details panel chart as declared when its URL has no valid stage', () => {
+        // Given a Details panel URL for Top violations with a stage that doesn't exist
+        const declared = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS);
+
+        // When resolving the chart the panel shows
+        const chart = getDetailsChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS, 'unknown');
+
+        // Then the panel falls back to the chart's default, the submitters' stage
+        expect(chart).toBe(declared);
+    });
+
+    it("returns no Details panel chart for a graph that isn't on the dashboard", () => {
+        // Given a Details panel URL naming a Spend graph under the Compliance dashboard
+        // When resolving the chart the panel shows
+        const chart = getDetailsChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_MERCHANTS, undefined);
+
+        // Then there is none, so the panel shows the not found page
+        expect(chart).toBeUndefined();
     });
 });

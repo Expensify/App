@@ -427,6 +427,19 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
 }
 
+/** Returns the chart a Details panel's URL names, pointed at the violation stage the user picked. */
+function getDetailsChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: string | undefined): InsightsChartSpec | undefined {
+    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
+    if (!chart) {
+        return undefined;
+    }
+    return applyViolationStage(
+        chart,
+        Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage),
+    );
+}
+
 /** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
 function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsViolationStages): InsightsViolationStage | undefined {
     if (!chart.hasViolationStageControl) {
@@ -438,6 +451,7 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
 export {
     applyViolationStage,
     getAccessibleDashboards,
+    getDetailsChartSpec,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
