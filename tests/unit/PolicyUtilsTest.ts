@@ -7503,6 +7503,65 @@ describe('PolicyUtils', () => {
                 });
             });
 
+            it('uses the Digits vendors when Digits and Business Central are both configured', () => {
+                // Given a workspace configured with both Business Central and Digits, whose list also has a vendor Digits sent without an ID
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = createMock<Connections>({
+                    ...policy.connections,
+                    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                        config: {isConfigured: true},
+                        data: {
+                            vendors: [
+                                {id: '{"issuer":"digits","id":"v-1"}', name: 'Digits vendor', roles: ['EntityVendorRole']},
+                                {id: '{"issuer":"digits","id":"v-2"}', name: 'Digits vendor without activity', roles: []},
+                                {id: '', name: 'Digits vendor without ID', roles: ['EntityVendorRole']},
+                            ],
+                        },
+                    },
+                });
+
+                // When resolving the vendor source without the vendorMatching beta
+                const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+                // Then Digits is the source, so the vendor field never shows the beta-gated Business Central list,
+                // and every Digits vendor with an ID can be picked, including one without ledger activity yet
+                expect(isVendorFeatureAvailable).toBe(true);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DIGITS);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['{"issuer":"digits","id":"v-1"}', '{"issuer":"digits","id":"v-2"}']);
+            });
+
+            it('treats the Digits vendor list as loaded only once a sync saves it, even when it is empty', () => {
+                // Given configured Digits workspaces before the first sync and after a sync that found no vendors
+                const policyBeforeSync = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {config: {isConfigured: true}, data: {}}})});
+                const policyAfterSync = createMock<Policy>({
+                    connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {config: {isConfigured: true}, data: {vendors: []}}}),
+                });
+
+                // When checking whether each vendor list has loaded
+                const isLoadedBeforeSync = isMatchingVendorListLoaded(policyBeforeSync);
+                const isLoadedAfterSync = isMatchingVendorListLoaded(policyAfterSync);
+
+                // Then only the synced list counts as loaded, so a vendor saved on an expense isn't flagged as inactive
+                // while the list is still on its way
+                expect(isLoadedBeforeSync).toBe(false);
+                expect(isLoadedAfterSync).toBe(true);
+            });
+
+            it('uses the Digits empty state when the synced list has no vendors', () => {
+                // Given a configured Digits workspace whose synced vendor list is empty
+                const translate = TestHelper.translateLocal;
+                const policy = createMock<Policy>({connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {config: {isConfigured: true}, data: {vendors: []}}})});
+
+                // When the vendor picker asks for its empty state
+                const emptyState = getVendorEmptyState(policy, translate);
+
+                // Then it points the admin to Digits, where the vendors have to be added
+                expect(emptyState).toEqual({
+                    title: translate('workspace.common.noVendorsFound'),
+                    subtitle: translate('workspace.digits.noVendorsFoundDescription'),
+                });
+            });
+
             it('uses the Business Central empty state when the synced list has no vendors', () => {
                 const translate = TestHelper.translateLocal;
                 expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
@@ -7648,6 +7707,18 @@ describe('PolicyUtils', () => {
                 // When the default vendor picker reads the Digits vendors
                 // Then the list is empty, so the picker shows its empty state
                 expect(getDigitsVendors(policy)).toEqual([]);
+            });
+
+            it('still names a Digits vendor on a past expense after the connection stops being configured', () => {
+                // Given a Digits connection that is no longer configured, but still has the vendor an expense was coded to
+                const vendors: DigitsVendor[] = [{id: '{"issuer":"digits","id":"v-1"}', name: 'Acme Supplies', roles: ['EntityVendorRole']}];
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {digits: {config: {isConfigured: false}, data: {vendors}}}});
+
+                // When the expense shows its vendor
+                const vendorName = getVendorDisplayName(policy, {externalID: '{"issuer":"digits","id":"v-1"}', wasManuallySet: true});
+
+                // Then it shows the Digits vendor name instead of the raw Digits ID
+                expect(vendorName).toBe('Acme Supplies');
             });
         });
 
@@ -8194,6 +8265,25 @@ describe('PolicyUtils', () => {
                 const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
 
                 // Then only a configured connection enables Zoho Books vendor matching, because Zoho Books is GA and needs no beta
+                expect(isVendorFeatureAvailableWithBeta).toBe(expected);
+                expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
+            });
+
+            it.each([
+                {name: 'configured connection', connection: {config: {isConfigured: true}}, expected: true},
+                {name: 'unconfigured connection', connection: {config: {isConfigured: false}}, expected: false},
+                {name: 'missing configuration flag', connection: {config: {}}, expected: false},
+                {name: 'missing configuration', connection: {}, expected: false},
+                {name: 'missing connection', connection: undefined, expected: false},
+            ])('checks Digits vendor matching for $name independently of the beta', ({connection, expected}) => {
+                // Given a Digits workspace whose connection may not be ready for vendor matching
+                const policy = createMock<Policy>({connections: {[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: connection}});
+
+                // When checking availability with and without beta enrollment
+                const isVendorFeatureAvailableWithBeta = hasVendorFeature(policy, true);
+                const isVendorFeatureAvailableWithoutBeta = hasVendorFeature(policy, false);
+
+                // Then only a configured connection enables Digits vendor matching, because Digits vendor matching is GA and needs no beta
                 expect(isVendorFeatureAvailableWithBeta).toBe(expected);
                 expect(isVendorFeatureAvailableWithoutBeta).toBe(expected);
             });
@@ -9236,6 +9326,29 @@ describe('PolicyUtils', () => {
 
                 // Then it's the Zoho Books export default vendor, which unmatched expenses fall back to
                 expect(defaultVendorID).toBe('zoho_books_vendor_1');
+            });
+
+            it('resolves Digits default vendor', () => {
+                // Given a configured Digits workspace with a default company card vendor
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                            config: {
+                                isConfigured: true,
+                                export: {
+                                    defaultVendorID: '{"issuer":"digits","id":"v-1"}',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                // When resolving the default vendor for the active vendor matching integration
+                const defaultVendorID = getDefaultVendorID(policy);
+
+                // Then it's the Digits export default vendor, which unmatched expenses fall back to
+                expect(defaultVendorID).toBe('{"issuer":"digits","id":"v-1"}');
             });
 
             it('resolves Business Central default vendor', () => {
