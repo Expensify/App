@@ -78,7 +78,7 @@ Use these best practices to ensure predictable results:
 **Use specific merchant names**
 
 - Start with **Exactly matches** for common vendors (e.g., "Uber", "Slack") to avoid false matches.
-- Use **contains** carefully, since broad terms can match unintended merchants.
+- Use **Contains** carefully, since broad terms can match unintended merchants.
 
 **Test Merchant Rules before rollout**
 
