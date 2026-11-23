@@ -12,6 +12,7 @@ import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useTransactionsByID from '@hooks/useTransactionsByID';
@@ -104,6 +105,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -137,6 +139,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 delegateAccountID,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -170,6 +173,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -183,18 +187,18 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             return;
         }
 
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            managedCardTransactionID,
+        });
         selectReport(
             {
                 value: optimisticReport.reportID,
@@ -249,6 +253,9 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
+            createReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_REMOVE_FROM_REPORT}
         />
     );
 }

@@ -1,5 +1,6 @@
 import type {ComposerRef} from '@components/Composer/types';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
@@ -48,8 +49,10 @@ function useEditMessage({
     const actionOwnerReportID = originalReportID ?? reportID;
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
-    // Only the rooms mentioned in the original message are needed to tell whether the edit changed it.
-    const reportIDToName = useMentionedReportIDToNameMap(getReportActionHtml(reportAction));
+    // Only the rooms and users mentioned in the original message are needed to tell whether the edit changed it.
+    const originalHtml = getReportActionHtml(reportAction);
+    const reportIDToName = useMentionedReportIDToNameMap(originalHtml);
+    const accountIDToName = useMentionedAccountIDToNameMap(originalHtml);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -108,6 +111,7 @@ function useEditMessage({
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
+            accountIDToName,
         );
         deleteDraft();
     }

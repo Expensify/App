@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -39,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isActionLoadingSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -68,6 +70,8 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // The button keeps loading while an action on the report is in flight, such as a payment held until the backend answers, so it can't be paid twice
+    const [isPaymentInFlight] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {selector: isActionLoadingSelector});
 
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
@@ -121,6 +125,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
 
     const refreshSearch = () => {
         // Read at payment time, since the Wise quote can be confirmed after the network state changes
@@ -149,6 +154,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID,
                 onConfirm: () => startAnimation(),
             });
@@ -198,6 +204,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             return;
         }
 
+        if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport], policy, {onPaid: startAnimation});
+            }
+            return;
+        }
+
         payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -230,6 +243,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     return (
         <AnimatedSettlementButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.PAY}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
@@ -246,7 +260,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={!isOffline && !canAllowSettlement}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile || !!isPaymentInFlight}
         />
     );
 }

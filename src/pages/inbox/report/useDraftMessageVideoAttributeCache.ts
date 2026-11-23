@@ -30,19 +30,18 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    // Only the names the edited message mentions are needed, and only while editing
     const editingReportActionHtml = isEditing ? getReportActionHtml(editingReportAction) : undefined;
     const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHtml);
     const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHtml);
 
     useEffect(() => {
-        if (!isEditing) {
+        if (editingReportActionHtml === undefined) {
             return;
         }
 
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(editingReportAction), {
+        const originalMessage = Parser.htmlToMarkdown(editingReportActionHtml, {
             reportIDToName,
             accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
@@ -55,7 +54,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, editingReportActionHtml, isEditInProgressRef, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }

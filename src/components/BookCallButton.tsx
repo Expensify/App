@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {openExternalLink} from '@libs/actions/Link';
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +44,7 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
     const label = translate('videoChatButtonAndMenu.tooltip');
 
     const commonProps = {
-        onPress: callFunctionIfActionIsAllowed(() => openExternalLink(calendarLink), false, session),
+        onPress: callIfAuthenticated(() => openExternalLink(calendarLink), session),
         sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
         accessibilityLabel: label,
         isNested,

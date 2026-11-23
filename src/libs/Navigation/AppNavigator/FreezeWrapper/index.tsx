@@ -19,9 +19,12 @@ import getIsScreenBlurred from './getIsScreenBlurred';
 type FreezeWrapperProps = ChildrenProps & {
     /** When true, freeze when rendered as a tab in the background (not the active tab). Use for split navigators inside Tab.Navigator. */
     freezeWhenInTabBackground?: boolean;
+
+    /** When true, keep rendering even while blurred, e.g. a tab preloaded at idle whose first content is not on screen yet, so its build finishes before the reveal. */
+    shouldStayUnfrozen?: boolean;
 };
 
-function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapperProps) {
+function FreezeWrapper({children, freezeWhenInTabBackground = true, shouldStayUnfrozen = false}: FreezeWrapperProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
     const [isAnyModalOpen] = useOnyx(ONYXKEYS.MODAL, {
@@ -41,14 +44,25 @@ function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapp
         return () => unsubscribe();
     }, [currentRoute.key, freezeWhenInTabBackground, navigation]);
 
+    // No navigation event has to follow the moment a screen stops staying unfrozen, e.g. a preloaded tab that finished
+    // building while the user stays put, so re-read whether it is in the background right then.
+    const [prevShouldStayUnfrozen, setPrevShouldStayUnfrozen] = useState(shouldStayUnfrozen);
+    if (prevShouldStayUnfrozen !== shouldStayUnfrozen) {
+        setPrevShouldStayUnfrozen(shouldStayUnfrozen);
+        const state = navigation.getState();
+        if (!shouldStayUnfrozen && state) {
+            setIsScreenBlurred(getIsScreenBlurred(state, currentRoute.key, {freezeWhenInTabBackground}));
+        }
+    }
+
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
     useLayoutEffect(() => {
         if (isScreenBlurred && isAnyModalOpen) {
             return;
         }
-        setFreezed(isScreenBlurred);
-    }, [isAnyModalOpen, isScreenBlurred]);
+        setFreezed(isScreenBlurred && !shouldStayUnfrozen);
+    }, [isAnyModalOpen, isScreenBlurred, shouldStayUnfrozen]);
 
     // A theme change made while the screen is frozen can fail to reach deep theme consumers, which keep stale colors after unfreezing.
     // Providing the theme again inside Freeze makes React propagate the new value to every consumer below once the tree unfreezes.

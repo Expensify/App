@@ -66,7 +66,7 @@ import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, 
 
 import variables from '@styles/variables';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,7 +178,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             parentReport,
         );
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, effectivePolicy, true) ?? {};
     let transactionDetailsAmount;
     // `initSplitExpense` computes the total against the fallback rate for self-DM splits
     // where the original rate was deleted from the workspace, and stores it on the draft.
@@ -228,8 +228,10 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
-    const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
-    const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
+    // The SELECTED_TAB collection is typed with the IOU request tabs, but this page stores a split tab in it.
+    const selectedSplitTab: string | undefined = selectedTab;
+    const isPercentageMode = selectedSplitTab === CONST.TAB.SPLIT.PERCENTAGE;
+    const isDateMode = selectedSplitTab === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, transactionID);
     const isDraftSelfDMContext = isSelfDM(draftTransactionReport);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
@@ -491,11 +493,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(item.created, dateFnsLocale);
         previewHeaderText.unshift({text: date}, dotSeparator);
 
         if (isApproved) {
@@ -561,7 +559,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onAddSplitExpense, false, session)}
+                    onPress={callIfAuthenticated(onAddSplitExpense, session)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
                 >
@@ -576,7 +574,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 </MenuItem.Root>
                 {isInitialSplit && (
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(onMakeSplitsEven, false, session)}
+                        onPress={callIfAuthenticated(onMakeSplitsEven, session)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                     >
@@ -606,6 +604,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const headerDateContent = (
         <View style={styles.pb3}>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SPLIT_DATES_FIELD}
                 name={translate('iou.splitDates')}
                 value={splitDatesTitle}
                 numberOfLinesValue={2}

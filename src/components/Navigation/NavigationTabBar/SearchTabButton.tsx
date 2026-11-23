@@ -4,15 +4,19 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
+
 import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 import useSearchTabNavigation from './useSearchTabNavigation';
+import useSignedInLinkRoute from './useSignedInLinkRoute';
+import useStoredSearchTabRoute from './useStoredSearchTabRoute';
 
 type SearchTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -25,16 +29,24 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const searchTabRoute = getSignedInLinkRoute(useStoredSearchTabRoute());
+
+    // The wide button gets no hover out when it goes away while hovered, on a switch to the narrow layout or an unmount.
+    useEffect(() => () => setIsSearchTabHovered(false), [isWideLayout]);
 
     if (isWideLayout) {
         return (
             <PressableWithFeedback
                 onPress={navigateToSearch}
+                linkRoute={searchTabRoute}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                onHoverIn={() => setIsSearchTabHovered(true)}
+                onHoverOut={() => setIsSearchTabHovered(false)}
             >
                 {({hovered}) => (
                     <TabBarItem
@@ -51,6 +63,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     return (
         <PressableWithFeedback
             onPress={navigateToSearch}
+            linkRoute={searchTabRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}

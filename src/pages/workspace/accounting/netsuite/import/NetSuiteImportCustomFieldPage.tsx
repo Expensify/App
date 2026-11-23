@@ -57,6 +57,7 @@ function HelpLinkComponent({importCustomField, styles, translate, alignmentStyle
     return (
         <Text style={[styles.mb3, styles.flex1, alignmentStyle]}>
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOM_FIELD_HELP_LINK}
                 href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
                 style={[styles.link, alignmentStyle]}
             >
@@ -135,6 +136,7 @@ function NetSuiteImportCustomFieldPage({
                             pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_RECORD_ROW}
                                 name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
                                 value={'listName' in record ? record.listName : record.segmentName}
@@ -153,6 +155,11 @@ function NetSuiteImportCustomFieldPage({
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={
+                        importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS
+                            ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_SEGMENTS
+                            : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ADD_CUSTOM_FIELD.CUSTOM_LISTS
+                    }
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}

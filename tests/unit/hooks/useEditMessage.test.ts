@@ -213,7 +213,8 @@ describe('useEditMessage', () => {
     });
 
     it('does not re-render when an unrelated report or personal details change', async () => {
-        // Given an edit of a message that mentions no rooms
+        // Given an edit of a message that mentions no rooms or users, with personal details already loaded
+        await TestHelper.setPersonalDetails('loaded@test.com', 4);
         let renderCount = 0;
         const report = LHNTestUtils.getFakeReport();
         const props: HookProps = {

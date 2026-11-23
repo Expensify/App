@@ -41,13 +41,17 @@ function AgentsPage() {
     const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable();
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
 
     useDocumentTitle(translate('agentsPage.title'));
     useEffect(() => openAgentsPage(), []);
 
     const newAgentButton = hasAgents ? (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.NEW_AGENT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
         >
@@ -59,6 +63,7 @@ function AgentsPage() {
         {
             icon: icons.Plus,
             buttonText: translate('agentsPage.newAgent'),
+            sentryLabel: CONST.SENTRY_LABEL.AGENTS.EMPTY_STATE_NEW_AGENT,
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
         },
@@ -68,6 +73,7 @@ function AgentsPage() {
         {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.AGENTS.BULK_ACTIONS_DELETE,
             icon: icons.Trashcan,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
@@ -76,6 +82,7 @@ function AgentsPage() {
 
     const headerButtons = shouldShowBulkActionsButton ? (
         <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+            sentryLabel={CONST.SENTRY_LABEL.AGENTS.BULK_ACTIONS}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             shouldAlwaysShowDropdownMenu
             customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
@@ -140,7 +147,9 @@ function AgentsPage() {
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
+                columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.AGENTS}
                 emptyStateButtons={emptyStateButtons}
+                bulkActionOptions={bulkActionsButtonOptions}
             />
         </ScreenWrapper>
     );

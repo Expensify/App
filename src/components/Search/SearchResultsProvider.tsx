@@ -1,3 +1,4 @@
+import useStableObjectReference from '@hooks/useStableObjectReference';
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
 import {getFooterSelectionFromQuery} from '@libs/SearchQueryUtils';
@@ -18,7 +19,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext, SearchShouldUseLiveDataContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -51,26 +52,28 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // applied while the live totals are summed.
     const {footerTotal} = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal, snapshotSearchResults?.search);
+    // Writes outside the to-do list rebuild its data with the same entries, so keep the old object and rows don't rebuild.
+    const liveTodoSearchData = useStableObjectReference(liveTodoData?.data);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
     // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
     let currentSearchResults;
     if (shouldUseLiveData) {
-        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}};
+        const liveData = liveTodoSearchData ?? {};
         const searchInfo: SearchResultsInfo = {
             ...(snapshotSearchResults?.search ?? defaultSearchInfo),
-            count: liveData.metadata.count,
-            total: liveData.metadata.total,
-            currency: liveData.metadata.currency,
-            reportCount: liveData.metadata.reportCount,
+            count: liveTodoData?.metadata.count ?? 0,
+            total: liveTodoData?.metadata.total ?? 0,
+            currency: liveTodoData?.metadata.currency,
+            reportCount: liveTodoData?.metadata.reportCount,
         };
-        const hasResults = Object.keys(liveData.data).length > 0;
+        const hasResults = Object.keys(liveData).length > 0;
         // For to-do searches, always return a valid SearchResults object (even with empty data)
         // This ensures we show the empty state instead of loading/blocking views
         // isLoading forced off: the shared flag survives a reload and would strand the skeletons
         currentSearchResults = {
             search: {...searchInfo, isLoading: false, hasResults},
-            data: liveData.data,
+            data: liveData,
         };
     } else {
         currentSearchResults = snapshotSearchResults ?? undefined;
@@ -110,9 +113,11 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     };
 
     return (
-        <SearchResultsContext value={resultsValue}>
-            <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
-        </SearchResultsContext>
+        <SearchShouldUseLiveDataContext value={shouldUseLiveData}>
+            <SearchResultsContext value={resultsValue}>
+                <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
+            </SearchResultsContext>
+        </SearchShouldUseLiveDataContext>
     );
 }
 
