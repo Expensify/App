@@ -583,8 +583,7 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID ?? updatedTransaction?.comment?.customUnit?.customUnitRateID);
     }
 
-    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search.
-    // It is cleared even when this transaction has none, because the Search snapshot can still hold a value from an earlier search.
+    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search
     if (
         updatedTransaction.amount !== transaction.amount ||
         updatedTransaction.modifiedAmount !== transaction.modifiedAmount ||
