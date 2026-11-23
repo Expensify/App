@@ -581,7 +581,16 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} 日`,
             other: (count: number) => `${formattedCount ?? count} 日`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 時間`,
+            other: (count: number) => `${formattedCount ?? count} 時間`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 分`,
+            other: (count: number) => `${formattedCount ?? count} 分`,
+        }),
         amount: '金額',
+        submitter: '申請者',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -691,6 +700,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
+        notValid: '無効なリンクです。',
+        sessionMismatch: 'クリックされたリンクは現在のセッションでは有効ではありません。',
+        switchAccount: {
+            title: 'アカウントを切り替えますか？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `現在は ${currentEmail} としてサインインしています。この操作を行うと、代わりに ${newEmail} としてサインインします。`,
+            confirm: 'アカウントを切り替える',
+            staySignedIn: 'アカウントを切り替えないでください',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1281,6 +1299,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        generatingAIInsights: 'AI インサイトを生成しています…',
+        generatingAIInsightsSubtitle: '1 分もかからないはずです',
+        readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
+        comparingWithYourAverage: '平均と比較',
+        lookingForAnythingUnusual: '異常な点がないか確認しています',
+        writingYourInsights: 'インサイトの記入',
         violationStage: {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
@@ -2989,16 +3013,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: '会社情報を入力',
                 legalName: '正式な会社名',
-                companyType: '会社の種類',
-                companyTypeLimitedLiabilityCompany: '有限責任会社（LLC）',
-                companyTypeForProfitCorporation: '営利法人',
-                companyTypeNonProfitCorporation: '非営利法人',
-                companyTypeSoleProprietorship: '個人事業主',
-                companyTypeGeneralPartnership: 'ジェネラル・パートナーシップ',
-                companyTypeLimitedPartnership: 'リミテッド・パートナーシップ',
-                companyTypeLimitedLiabilityPartnership: '有限責任パートナーシップ（LLP）',
-                companyTypeTrust: '信託',
-                companyTypeOther: 'その他',
                 companyRole: '会社でのあなたの役割',
                 companyRoleOwner: 'オーナー',
                 companyRoleDirector: '取締役',
@@ -3251,8 +3265,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: '提供した情報が真実かつ正確であることを証明します。',
                 expensifyTerms: `Expensifyの<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 expensifyTermsAccessibilityLabel: 'Expensifyの利用規約およびプライバシーポリシーに同意します。',
-                wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
-                wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
+                wiseTerms: `「確認」をクリックすると、Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>に同意し、Wiseの<a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">電子通信ポリシー</a>に記載されているとおり電子記録の受け取りに同意し、<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。`,
+                wiseTermsAccessibilityLabel:
+                    '「確認」をクリックすると、Wiseの利用規約に同意し、Wiseの電子通信ポリシーに記載されているとおり電子記録の受け取りに同意し、プライバシーポリシーに同意したものとみなされます。',
                 error: '続行するにはすべての規約に同意してください。',
             },
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
@@ -3265,13 +3280,21 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
             rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
-        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
+        wiseSetupRow: {
+            inProgress: {message: 'グローバル払い戻しの設定が進行中です。', link: '続行。'},
+            inReview: {message: 'グローバル払い戻しの設定を審査中です。', link: 'ステータスを確認。'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',
             getStarted: '使い始める',
             headerTitle: 'グローバル払い戻し',
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
+            payingMultipleReportsSubtitle: '会社と従業員の銀行口座が異なる通貨を使用しているため、これらのレポートはいずれも支払えませんでした。',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `x${lastFour}で支払う` : '銀行口座で支払う'),
+            description: 'これらのレポートはグローバル払い戻しが必要なため、銀行口座で支払われませんでした。以下から手続きを開始してください。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
         wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',
@@ -7119,9 +7142,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            visibleTo: '表示対象',
+            membersCount: ({count}: {count: number}) => ({
+                one: 'メンバー 1 人',
+                other: `${count}名のメンバー`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `${categoryName} へのアクセス権を削除できません`,
+                bulkRemoveAccessTitle: 'これらのカテゴリへのアクセス権は削除できません',
                 description: ({count}: {count: number}) => ({
                     one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
                     other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
@@ -8394,6 +8425,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             startDate: '開始日',
             endDate: '終了日',
             autoGeneratedRateTooltip: 'このレートは自動生成されています。',
+            taxReclaimableOnAmount: (amount: string) => `還付対象の税金 ${amount}`,
             automaticRates: '自動レート',
             autoUpdateGovernmentRate: '政府レートを自動更新',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8479,6 +8511,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             timezoneInputLabel: 'タイムゾーン',
             timezoneInputHelpText: '自動レポート送信には、お客様のタイムゾーンが使用されます',
             timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
+            directReimbursementCurrencyTitle: '直接払い戻しではこの通貨を利用できません',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `このワークスペースは Expensify を通じてメンバーに直接払い戻しを行いますが、${currency} では利用できません。${currency} を使用するには、ワークフローで支払をオフにしてから再度オンにし、Expensify 外で支払が行われるようにしてください。`,
+            goToWorkflows: 'ワークフローに移動',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -9089,6 +9125,36 @@ ${reportName}`,
                 confirmErrorConditionAndDefault: '少なくとも 1 つの条件を追加し、少なくとも 1 つのデフォルトを適用してください',
                 createRuleFromExpenseAction: 'ルールを作成',
                 createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: '航空会社',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: '酒類・バー',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon と書店',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: '自動車',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'レンタカー',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: '外食',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: '燃料およびガス',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: '政府・非営利団体',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: '食料品',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'ジム・フィットネス',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: '医療',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'ホテル',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'インターネットと電話',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: '事務用品',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: '駐車料金と通行料金',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: '専門サービス',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: '小売',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: '発送と配送',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'ソフトウェア',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: '交通機関・ライドシェア',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: '旅行代理店',
+                },
+                dateMatchTypeOn: 'オン',
+                dateMatchTypeBefore: '前日',
+                dateMatchTypeAfter: '後',
+                hasOrDoesNotHave: 'あり / なし',
+                amountMatchTypeEqualTo: '等しい',
+                amountMatchTypeGreaterThan: 'より大きい',
+                amountMatchTypeLessThan: '次の値より小さい',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -9424,6 +9490,16 @@ ${reportName}`,
                 tagIs: (tag: string) => `タグは「${tag}」です`,
                 merchantContains: (merchant: string) => `支払先に「${merchant}」が含まれます`,
                 merchantExactlyMatches: (merchant: string) => `支払先が「${merchant}」と完全に一致します`,
+                currencyIs: (currency: string) => `通貨は「${currency}」です`,
+                cardIs: (card: string) => `カードは「${card}」です`,
+                taxRateIs: (taxRate: string) => `税率は「${taxRate}」です`,
+                submitterIs: (submitter: string) => `申請者は「${submitter}」です`,
+                reimbursableIs: (reimbursable: string) => `「精算対象」は「${reimbursable}」です`,
+                billableIs: (billable: string) => `請求可能: 「${billable}」`,
+                dateIs: (comparison: string) => `日付は${comparison}です`,
+                amountIs: (comparison: string) => `金額が${comparison}です`,
+                hasValue: (value: string) => `「${value}」を含む`,
+                doesNotHaveValue: (value: string) => `「${value}」を含みません`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {
@@ -10184,11 +10260,11 @@ ${reportName}`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `${customUnitName}レート「${rateName}」を追加しました`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `${customUnitName} の ${updatedField}「${customUnitRateName}」のレートを「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `距離レート「${customUnitRateName}」の税率を「${oldValue}（${oldTaxPercentage}）」から「${newValue}（${newTaxPercentage}）」に変更しました`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `距離レート「${customUnitRateName}」の税率を「${oldTaxRate}」から「${newTaxRate}」に変更しました`;
             }
-            return `距離レート「${customUnitRateName}」に税率「${newValue}（${newTaxPercentage}）」を追加しました`;
+            return `税率「${newTaxRate}」を距離単価「${customUnitRateName}」に追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10823,6 +10899,10 @@ ${reportName}`,
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
+            tooManyKeywords: `検索キーワードが多すぎます。キーワードを${CONST.SEARCH.MAX_KEYWORD_TOKENS}個以下にして、もう一度お試しください。`,
+            unsupportedGrouping: 'この検索ではグループ化やグラフ表示は使用できません。グループ化を解除し、テーブル表示を使用してください。',
+            invalidReportID: '有効なレポートIDを入力してください。未報告の経費を検索するには、status:unreported を使用してください。',
+            unsupportedFilter: 'この検索では "is:" フィルターは使用できません。未報告の経費を検索するには、status:unreported を使用してください。',
             emptyResults: {
                 title: '表示するものはありません',
                 subtitle: `検索条件を調整するか、＋ボタンを使って作成してみてください。`,
@@ -10882,6 +10962,9 @@ ${reportName}`,
             openMenu: ({columnName}: {columnName: string}) => `${columnName}列のオプション`,
             sortAscending: '昇順で並べ替え',
             sortDescending: '降順で並べ替え',
+            pinLeft: '左に固定',
+            pinRight: '右に固定',
+            unpin: '固定を解除',
             hideColumn: '列を非表示',
             resetColumnSizes: '列幅をリセット',
         },
@@ -13110,6 +13193,7 @@ ${reportName}`,
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
         toMarkAsDone: '完了としてマークする',
         receivedPayment: '支払いを受け取りました',
+        markedAsManuallyExported: (label: string) => `このレポートを ${label} へ手動でエクスポート済みとしてマークしました`,
     },
 };
 export default translations;

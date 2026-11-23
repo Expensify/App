@@ -165,6 +165,14 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns the account data only when it belongs to a bank account.
+ * Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account.
+ */
+function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
+    return accountData && 'type' in accountData ? accountData : undefined;
+}
+
+/**
  * Returns whether a payment method's bank currency matches the given currency.
  * When no currency is provided, all methods are considered a match.
  */
@@ -355,10 +363,20 @@ function getActivePaymentType(
     };
 }
 
+/**
+ * Only Mark as paid can be queued offline. Other payment types may need KYC or bank account setup, and paying all
+ * matching reports needs the server to resolve which reports the search query matches.
+ */
+function canPayOffline(paymentType: string | undefined, areAllMatchingItemsSelected: boolean): boolean {
+    return paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !areAllMatchingItemsSelected;
+}
+
 export {
+    canPayOffline,
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBankAccountData,
     getBusinessBankAccountOptions,
     matchesCurrency,
     calculateWalletTransferBalanceFee,

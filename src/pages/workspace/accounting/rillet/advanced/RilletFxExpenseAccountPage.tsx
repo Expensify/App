@@ -1,13 +1,9 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletFxExpenseAccount} from '@libs/actions/connections/Rillet';
@@ -15,10 +11,9 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import FxExpenseAccountSelectPage from '@pages/workspace/accounting/common/FxExpenseAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +24,6 @@ import {View} from 'react-native';
 function RilletFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
@@ -58,7 +52,6 @@ function RilletFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(expenseAccountOptions, saveSelectedAccount);
-    const {filteredData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const headerContent = (
         <View>
@@ -66,42 +59,27 @@ function RilletFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
         </View>
     );
 
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.rillet.noAccountsFound')}
-            subtitle={translate('workspace.rillet.noAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
     return (
-        <SelectionScreen
+        <FxExpenseAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!syncReimbursedReports || !canConfigureCurrencyConversionFees}
             displayName="RilletFxExpenseAccountPage"
             title="workspace.rillet.fxExpenseAccount.label"
-            data={filteredData}
-            textInputOptions={textInputOptions}
-            headerContent={headerContent}
-            listEmptyContent={listEmptyContent}
-            shouldShowListEmptyContent={!textInputOptions.value}
+            data={searchableList}
+            emptyStateTitle={translate('workspace.rillet.noAccountsFound')}
+            emptyStateSubtitle={translate('workspace.rillet.noAccountsFoundDescription')}
             onSelectRow={selectAccount}
-            shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.pendingFields)}
             errors={getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE)}
             confirmButtonOptions={confirmButtonOptions}
-        />
+        >
+            {headerContent}
+        </FxExpenseAccountSelectPage>
     );
 }
 

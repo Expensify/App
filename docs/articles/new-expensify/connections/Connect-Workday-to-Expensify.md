@@ -28,6 +28,8 @@ To connect Workday, you must:
 
 Workday syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting Workday.
 
+To prepare access in Workday before you connect, follow the [ISU setup guide](https://expensify.integrations.guide/articles/5699428) or the [OAuth setup guide](https://expensify.integrations.guide/articles/9891389). The [permissions guide](https://expensify.integrations.guide/articles/9176420) lists the Workday permissions the connection needs.
+
 ---
 
 ## How to connect Workday to Expensify

@@ -5,7 +5,7 @@ import Config from 'react-native-config';
 
 import type Environment from './getEnvironment/types';
 
-import getEnvironment from './getEnvironment';
+import getEnvironment, {getCachedEnvironment} from './getEnvironment';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
@@ -54,6 +54,13 @@ function getEnvironmentURL(): Promise<string> {
 }
 
 /**
+ * Get the URL of the environment we are in synchronously
+ */
+function getCachedEnvironmentURL(): string {
+    return ENVIRONMENT_URLS[getCachedEnvironment()];
+}
+
+/**
  * Given the environment get the corresponding oldDot URL
  */
 function getOldDotURLFromEnvironment(environment: Environment): string {
@@ -67,4 +74,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};
+export {isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getCachedEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};
