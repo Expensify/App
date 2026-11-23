@@ -1,11 +1,11 @@
 import {createContext} from 'react';
 
 type ScreenWrapperTopInsetHeaderContextType = {
-    /** Whether the screen left the top inset out of its padding because a header placed itself in the inset */
-    isHeaderInTopInset: boolean;
+    /** The header placed in the top inset, which the screen left out of its padding: the first header that asked for it */
+    topInsetHeaderID: string | undefined;
 
-    /** Lets a header place itself in the top inset; the returned function undoes it */
-    registerTopInsetHeader: () => () => void;
+    /** Lets a header ask to place itself in the top inset; the returned function withdraws the request */
+    registerTopInsetHeader: (headerID: string) => () => void;
 };
 
 /**

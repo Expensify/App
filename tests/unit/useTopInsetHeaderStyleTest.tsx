@@ -1,54 +1,122 @@
-import {renderHook} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import ScreenWrapperTopInsetHeaderContext from '@components/ScreenWrapper/ScreenWrapperTopInsetHeaderContext';
-import type {ScreenWrapperTopInsetHeaderContextType} from '@components/ScreenWrapper/ScreenWrapperTopInsetHeaderContext';
+import useTopInsetHeaderContextValue from '@components/ScreenWrapper/useTopInsetHeaderContextValue';
 
 import type StatusRingHeaderLayout from '@hooks/useStatusRingHeaderLayout/types';
 import useTopInsetHeaderStyle from '@hooks/useTopInsetHeaderStyle';
 
 import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {View} from 'react-native';
 
 let mockStatusRingHeaderLayout: StatusRingHeaderLayout | undefined;
 
 jest.mock('@hooks/useStatusRingHeaderLayout', () => () => mockStatusRingHeaderLayout);
 
-function renderInScreen(context: ScreenWrapperTopInsetHeaderContextType, headerStyle: Parameters<typeof useTopInsetHeaderStyle>[0]) {
-    return renderHook(() => useTopInsetHeaderStyle(headerStyle), {
-        wrapper: ({children}: {children: ReactNode}) => <ScreenWrapperTopInsetHeaderContext.Provider value={context}>{children}</ScreenWrapperTopInsetHeaderContext.Provider>,
-    });
+/** Shows whether the screen left the top inset to a header, so the tests can read it from the rendered output */
+function TestScreen({children}: {children: ReactNode}) {
+    const {isHeaderInTopInset, topInsetHeaderContextValue} = useTopInsetHeaderContextValue(true);
+    return (
+        <ScreenWrapperTopInsetHeaderContext.Provider value={topInsetHeaderContextValue}>
+            {isHeaderInTopInset && <View testID="headerInTopInset" />}
+            {children}
+        </ScreenWrapperTopInsetHeaderContext.Provider>
+    );
+}
+
+function TestHeader({name, headerStyle}: {name: string; headerStyle?: StyleProp<ViewStyle>}) {
+    const topInsetHeaderStyle = useTopInsetHeaderStyle(headerStyle);
+    return (
+        <View
+            testID={name}
+            style={topInsetHeaderStyle}
+        />
+    );
+}
+
+function isScreenHeaderInTopInset() {
+    return !!screen.queryByTestId('headerInTopInset');
+}
+
+function getHeaderStyle(name: string): unknown {
+    return screen.getByTestId(name).props.style;
 }
 
 describe('useTopInsetHeaderStyle', () => {
     it('moves the header into the top inset and adds the room for the status ring to its own padding', () => {
-        // Given the iPhone Duo open in portrait, and a screen that leaves the top inset to its header
+        // Given the iPhone Duo open in portrait
         mockStatusRingHeaderLayout = {topOffset: 14, bottomOffset: 4, left: 0, right: 128, height: 82};
-        const unregister = jest.fn();
-        const context = {isHeaderInTopInset: true, registerTopInsetHeader: jest.fn(() => unregister)};
 
-        // When a header with its own side padding renders on that screen and later goes away
-        const {result, unmount} = renderInScreen(context, {paddingLeft: 20, paddingRight: 12});
-        const style = result.current;
-        unmount();
+        // When a header with its own side padding renders on a screen
+        const {rerender} = render(
+            <TestScreen>
+                <TestHeader
+                    name="main"
+                    headerStyle={{paddingLeft: 20, paddingRight: 12}}
+                />
+            </TestScreen>,
+        );
 
-        // Then the header asks the screen for the inset once, keeps its left padding, gets the ring's room on top of its
-        // right padding, and gives the inset back when it goes away
-        expect(context.registerTopInsetHeader).toHaveBeenCalledTimes(1);
-        expect(style).toEqual({paddingTop: 14, paddingBottom: 4, minHeight: 82, paddingRight: 140});
-        expect(unregister).toHaveBeenCalledTimes(1);
+        // Then the screen leaves the top inset to the header, which keeps its left padding and gets the ring's room on top
+        // of its right padding
+        expect(isScreenHeaderInTopInset()).toBe(true);
+        expect(getHeaderStyle('main')).toEqual({paddingTop: 14, paddingBottom: 4, minHeight: 82, paddingRight: 140});
+
+        // When the header goes away
+        rerender(<TestScreen>{null}</TestScreen>);
+
+        // Then the screen takes the top inset back into its padding
+        expect(isScreenHeaderInTopInset()).toBe(false);
+    });
+
+    it('keeps a header further down the screen below the top inset', () => {
+        // Given the iPhone Duo open in portrait, and a screen with its header at the top and a second header below it,
+        // like the advanced filters header with the date filter's header under it
+        mockStatusRingHeaderLayout = {topOffset: 14, bottomOffset: 4, left: 0, right: 128, height: 82};
+
+        // When both headers render
+        const {rerender} = render(
+            <TestScreen>
+                <TestHeader name="main" />
+                <TestHeader name="sub" />
+            </TestScreen>,
+        );
+
+        // Then only the header at the top goes into the inset, so the second one keeps its own height
+        expect(getHeaderStyle('main')).toEqual({paddingTop: 14, paddingBottom: 4, minHeight: 82, paddingRight: 128});
+        expect(getHeaderStyle('sub')).toBeUndefined();
+
+        // When the header at the top goes away and the second one stays
+        rerender(
+            <TestScreen>
+                <TestHeader name="sub" />
+            </TestScreen>,
+        );
+
+        // Then the remaining header is now the top of the screen and takes the inset over
+        expect(getHeaderStyle('sub')).toEqual({paddingTop: 14, paddingBottom: 4, minHeight: 82, paddingRight: 128});
+        expect(isScreenHeaderInTopInset()).toBe(true);
     });
 
     it('leaves the header below the top inset on devices without a status ring', () => {
         // Given a device whose status bar takes the whole top inset
         mockStatusRingHeaderLayout = undefined;
-        const context = {isHeaderInTopInset: false, registerTopInsetHeader: jest.fn(() => () => {})};
 
         // When a header renders on a screen
-        const {result} = renderInScreen(context, {paddingLeft: 20});
+        render(
+            <TestScreen>
+                <TestHeader
+                    name="main"
+                    headerStyle={{paddingLeft: 20}}
+                />
+            </TestScreen>,
+        );
 
         // Then the screen keeps its top padding and the header keeps its own style
-        expect(context.registerTopInsetHeader).not.toHaveBeenCalled();
-        expect(result.current).toBeUndefined();
+        expect(isScreenHeaderInTopInset()).toBe(false);
+        expect(getHeaderStyle('main')).toBeUndefined();
     });
 });

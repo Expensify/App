@@ -53,6 +53,7 @@ import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicato
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 import ScreenWrapperTopInsetHeaderContext from './ScreenWrapperTopInsetHeaderContext';
+import useTopInsetHeaderContextValue from './useTopInsetHeaderContextValue';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -147,14 +148,7 @@ function ScreenWrapper({
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     // A header that places itself in the top inset (see useTopInsetHeaderStyle) takes the top inset over from the screen.
-    const [topInsetHeaderCount, setTopInsetHeaderCount] = useState(0);
-    // Kept in state so it never changes identity, otherwise a header's layout effect would register again on every render.
-    const [registerTopInsetHeader] = useState(() => () => {
-        setTopInsetHeaderCount((count) => count + 1);
-        return () => setTopInsetHeaderCount((count) => count - 1);
-    });
-    const isHeaderInTopInset = includePaddingTop && topInsetHeaderCount > 0;
-    const topInsetHeaderContextValue = {isHeaderInTopInset, registerTopInsetHeader};
+    const {isHeaderInTopInset, topInsetHeaderContextValue} = useTopInsetHeaderContextValue(includePaddingTop);
     const isMaxHeightEnabled = restContainerProps.shouldEnableMaxHeight ?? false;
     const statusContextValue = {
         didScreenTransitionEnd,
