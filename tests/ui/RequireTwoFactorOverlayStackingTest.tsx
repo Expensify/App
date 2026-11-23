@@ -11,6 +11,8 @@ import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthen
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {Platform, StyleSheet} from 'react-native';
 
@@ -28,11 +30,13 @@ let mockShouldUseNarrowLayout = true;
 let testToolsStackMountCount = 0;
 const mockSafeAreaPaddingBottom = 34;
 
+type RenderedNode = {parent?: RenderedNode | null; props?: {style?: StyleProp<ViewStyle>}};
+
 /** The pinned banner no longer sits in the column, so the gap lives on an ancestor of the buttons. */
-function paddingBottomAbove(start: {parent: unknown}): number | undefined {
-    let current: unknown = start.parent;
+function paddingBottomAbove(start: RenderedNode): number | undefined {
+    let current = start.parent;
     while (current && typeof current === 'object' && 'props' in current) {
-        const props: unknown = current.props;
+        const props = current.props;
         const style: unknown = StyleSheet.flatten(props && typeof props === 'object' && 'style' in props ? props.style : undefined);
         if (style && typeof style === 'object' && 'paddingBottom' in style && typeof style.paddingBottom === 'number') {
             return style.paddingBottom;
