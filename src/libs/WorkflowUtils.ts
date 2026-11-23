@@ -2498,9 +2498,11 @@ function convertApprovalWorkflowRulesToWorkflows({
 
     const firstWorkflow = sortedApprovalWorkflows.at(0);
     if (firstWorkflow && !firstWorkflow.isDefault) {
+        // Rules only route the reports of the members they list, so a default workflow without members can't be saved as rules,
+        // which is how forks are removed. Its forks route no reports either, and they show up once members join it.
         sortedApprovalWorkflows.unshift({
             members: [],
-            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy, shouldFindForks: true}),
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail, policy}),
             isDefault: true,
         });
     }

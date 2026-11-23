@@ -3231,6 +3231,28 @@ describe('WorkflowUtils', () => {
                 approver: defaultApprover,
             });
 
+            it('Should not fork the default workflow while it has no members', () => {
+                // Given the default approver, 1@example.com, sends reports over 1,000.00 to 3@example.com, skipping 2@example.com, and
+                // every member submits to 4@example.com, so nobody is in the default workflow
+                const employees: PolicyEmployeeList = {
+                    '1@example.com': {email: '1@example.com', submitsTo: '4@example.com', forwardsTo: '2@example.com', approvalLimit: 100000, overLimitForwardsTo: '3@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '4@example.com', forwardsTo: '3@example.com'},
+                    '3@example.com': {email: '3@example.com', submitsTo: '4@example.com'},
+                    '4@example.com': {email: '4@example.com', submitsTo: '4@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                // When the workflows are built from rules
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: {}});
+
+                // Then the default workflow starts at the default approver without forks, since removing them saves it as rules,
+                // which can't route reports for a workflow without members
+                const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+                expect(defaultWorkflow?.members).toEqual([]);
+                expect(defaultWorkflow?.approvers.at(0)?.email).toBe('1@example.com');
+                expect(hasApprovalWorkflowForks(defaultWorkflow ?? {approvers: []})).toBe(false);
+            });
+
             it('Should show a member who submits to a non-member under that approver, flagged', () => {
                 // Given a member no rule covers, whose submitsTo points at someone no longer on the workspace
                 const employees: PolicyEmployeeList = {
