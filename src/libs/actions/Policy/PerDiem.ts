@@ -527,7 +527,22 @@ function fetchPerDiemRates(policyID: string | undefined) {
     const parameters = {
         policyID,
     };
-    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_PER_DIEM_RATES,
+                value: true,
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_PER_DIEM_RATES,
+                value: false,
+            },
+        ],
+    });
 }
 
 export {

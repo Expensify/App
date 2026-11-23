@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePrevious from '@hooks/usePrevious';
 import useRequestStepWorkspaceList from '@hooks/useRequestStepWorkspaceList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -52,6 +53,9 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
     const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+    const [isLoadingPerDiemRates] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_PER_DIEM_RATES);
+    const wasLoadingPerDiemRates = usePrevious(isLoadingPerDiemRates);
+    const wasOffline = usePrevious(isOffline);
     // Picking a row only marks it and the footer button moves on, so a workspace that starts out selected can be kept
     // without having to tap it again.
     const [markedPolicyID, setMarkedPolicyID] = useState<string>();
@@ -126,6 +130,23 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
         return () => cancelAnimationFrame(frame);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
+
+    useEffect(() => {
+        if (!pendingPolicyID || getPerDiemCustomUnit(pendingPolicy)) {
+            return;
+        }
+        // The fetch was dropped while offline, so ask again once back online rather than leave the loader up.
+        if (wasOffline && !isOffline) {
+            fetchPerDiemRates(pendingPolicyID);
+            return;
+        }
+        // The fetch finished without giving the workspace a per diem unit, e.g. it failed, so go back to the list and
+        // let the user pick the workspace again instead of waiting on a loader that never ends.
+        if (wasLoadingPerDiemRates && isLoadingPerDiemRates === false) {
+            setPendingPolicyID(undefined);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingPerDiemRates, isOffline]);
 
     if (pendingPolicyID) {
         if (isOffline) {

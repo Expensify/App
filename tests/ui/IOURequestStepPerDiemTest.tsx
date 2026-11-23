@@ -28,6 +28,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -180,7 +181,7 @@ describe('IOURequestStepPerDiem', () => {
     it('replaces the placeholder custom unit of a draft started before the rates loaded', async () => {
         // Given a per diem draft from a workspace chat that still carries the placeholder custom unit
         const transaction = createDraft({comment: {customUnit: {customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}}});
-        const report = {reportID: REPORT_ID, policyID: POLICY_ID} as Report;
+        const report = {...createRandomReport(1), reportID: REPORT_ID, policyID: POLICY_ID};
 
         // When the per diem tab opens
         renderPage({transaction, report, iouType: CONST.IOU.TYPE.SUBMIT});
@@ -227,7 +228,7 @@ describe('IOURequestStepPerDiem', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, createPerDiemPolicy(OTHER_POLICY_ID));
         });
-        const report = {reportID: REPORT_ID, policyID: POLICY_ID} as Report;
+        const report = {...createRandomReport(1), reportID: REPORT_ID, policyID: POLICY_ID};
         const customUnit = {customUnitID: CUSTOM_UNIT_ID, name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL};
         const transaction = createDraft({comment: {customUnit}, participants: [{policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}]});
         const {rerender} = renderPage({transaction, report, iouType: CONST.IOU.TYPE.SUBMIT});
