@@ -27,7 +27,6 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
 import useRelatedReportActions from '@hooks/useRelatedReportActions';
@@ -47,6 +46,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
@@ -169,9 +169,6 @@ function MoneyRequestReceiptView({
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
-    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
-    const [chatReportOwnerPersonalDetail] = usePersonalDetail(chatReport?.ownerAccountID);
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -530,9 +527,9 @@ function MoneyRequestReceiptView({
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    chatReportOwnerPersonalDetail,
+                    getPersonalDetail(chatReport.ownerAccountID),
                     currentUserPersonalDetail,
-                    conciergePersonalDetail,
+                    getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE),
                     true,
                     true,
                 );
@@ -603,9 +600,9 @@ function MoneyRequestReceiptView({
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
-                reportOwnerPersonalDetail,
+                getPersonalDetail(report.ownerAccountID),
                 currentUserPersonalDetail,
-                conciergePersonalDetail,
+                getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE),
                 true,
                 true,
             );

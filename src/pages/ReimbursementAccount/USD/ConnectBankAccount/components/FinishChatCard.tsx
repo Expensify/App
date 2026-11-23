@@ -7,11 +7,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -49,7 +49,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, ba
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
@@ -67,7 +66,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, ba
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            conciergePersonalDetails,
+            conciergePersonalDetails: getAllPersonalDetails(),
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });

@@ -2,11 +2,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getSelectableRoles} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -165,7 +165,6 @@ function WorkspaceMemberRoleList({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
 
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
@@ -206,7 +205,7 @@ function WorkspaceMemberRoleList({
                             currentUserAccountID,
                             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                            conciergePersonalDetails,
+                            conciergePersonalDetails: getAllPersonalDetails(),
                             shouldDismissModal: false,
                             delegateAccountID,
                         });

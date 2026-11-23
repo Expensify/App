@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
@@ -49,8 +50,6 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
-    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
@@ -78,9 +77,9 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     currentUserAccountID,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    reportOwnerPersonalDetail,
+                    reportOwnerPersonalDetail: getPersonalDetail(report?.ownerAccountID),
                     currentUserPersonalDetail,
-                    conciergePersonalDetail,
+                    conciergePersonalDetail: getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE),
                     optimisticPersonalDetails,
                 })
             }

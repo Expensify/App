@@ -7,13 +7,13 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 
@@ -37,7 +37,6 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
 
     if (shouldHideHelpButton) {
@@ -65,7 +64,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         currentUserAccountID,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
-                        conciergePersonalDetails,
+                        conciergePersonalDetails: getAllPersonalDetails(),
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
                         sourcePolicyID,
                         delegateAccountID,

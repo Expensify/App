@@ -1,11 +1,11 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -17,7 +17,6 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 function useOpenConciergeAnywhere() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
@@ -26,7 +25,15 @@ function useOpenConciergeAnywhere() {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openConciergeAnywhere = (_options?: {forceConcierge?: boolean; reportID?: string}) => {
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, delegateAccountID});
+        navigateToConciergeChat({
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails: getAllPersonalDetails(),
+            delegateAccountID,
+        });
     };
 
     return {openConciergeAnywhere, isInSidePanel: false};

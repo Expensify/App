@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedIsEmptyReport} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,6 +23,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getViolatingReportIDForRBRInLHN, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import DebugDetails from '@pages/Debug/DebugDetails';
@@ -94,8 +94,6 @@ function DebugReportPage({
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
-    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
@@ -207,9 +205,9 @@ function DebugReportPage({
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    reportOwnerPersonalDetail,
+                    getPersonalDetail(report?.ownerAccountID),
                     currentUserPersonalDetail,
-                    conciergePersonalDetail,
+                    getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE),
                     true,
                     true,
                 );

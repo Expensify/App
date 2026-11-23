@@ -13,11 +13,11 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 import {requestEmailUnblock} from '@userActions/User';
@@ -45,7 +45,6 @@ function EmailIssuePage() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const isUnblockingEmail = !!account?.isUnblockingEmail;
@@ -131,7 +130,7 @@ function EmailIssuePage() {
                             currentUserAccountID,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
-                            conciergePersonalDetails,
+                            conciergePersonalDetails: getAllPersonalDetails(),
                             shouldDismissModal: false,
                             delegateAccountID,
                         });

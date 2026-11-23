@@ -9,11 +9,11 @@ import UploadFile from '@components/UploadFile';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getRequiredKYBDocuments} from '@libs/BankAccountUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {uploadUserKYBDocs} from '@userActions/BankAccounts';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
@@ -57,7 +57,6 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
@@ -73,7 +72,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            conciergePersonalDetails,
+            conciergePersonalDetails: getAllPersonalDetails(),
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });

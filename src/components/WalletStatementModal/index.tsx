@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +28,6 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const statementPageOrigin = new URL(statementPageURL).origin;
@@ -50,7 +50,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
             session?.accountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            conciergePersonalDetails,
+            getAllPersonalDetails(),
             delegateAccountID,
             type,
             url,

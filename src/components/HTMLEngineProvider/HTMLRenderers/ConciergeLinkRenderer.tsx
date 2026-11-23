@@ -5,8 +5,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
 
@@ -39,7 +40,6 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
-    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {onPress: onPressFromProps} = useRendererProps<ConciergeLinkRenderersProps, 'concierge-link'>('concierge-link') ?? {};
     const delegateAccountID = useDelegateAccountID();
@@ -55,7 +55,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            conciergePersonalDetails,
+            conciergePersonalDetails: getAllPersonalDetails(),
             shouldDismissModal: false,
             delegateAccountID,
         });
