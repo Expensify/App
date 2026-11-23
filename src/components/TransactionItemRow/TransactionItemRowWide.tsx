@@ -603,6 +603,15 @@ function TransactionItemRowWide({
                         <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID)]}
+                    >
+                        <TextCell text={transactionItem.transactionID} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 return (
                     <View
