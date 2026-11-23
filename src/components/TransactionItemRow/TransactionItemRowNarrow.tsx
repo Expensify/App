@@ -52,6 +52,7 @@ type TransactionItemRowNarrowProps = DistributedPick<
     | 'shouldShowBottomBorder'
     | 'onArrowRightPress'
     | 'shouldShowArrowRightOnNarrowLayout'
+    | 'narrowSubtitle'
     | 'checkboxSentryLabel'
 > &
     TransactionItemRowNarrowComputedData &
@@ -79,6 +80,7 @@ function TransactionItemRowNarrow({
     shouldShowBottomBorder,
     onArrowRightPress,
     shouldShowArrowRightOnNarrowLayout,
+    narrowSubtitle,
     checkboxSentryLabel,
     shouldDeferRBR = true,
     bgActiveStyles,
@@ -154,18 +156,22 @@ function TransactionItemRowNarrow({
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                            <DateCell
-                                date={createdAt}
-                                showTooltip={shouldShowTooltip}
-                                isLargeScreenWidth={false}
-                                suffixText={categoryForDisplay}
-                            />
-                            {!isTransactionScanning && (
-                                <TypeCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout
-                                />
+                            {narrowSubtitle ?? (
+                                <>
+                                    <DateCell
+                                        date={createdAt}
+                                        showTooltip={shouldShowTooltip}
+                                        isLargeScreenWidth={false}
+                                        suffixText={categoryForDisplay}
+                                    />
+                                    {!isTransactionScanning && (
+                                        <TypeCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout
+                                        />
+                                    )}
+                                </>
                             )}
                         </View>
                     </View>

@@ -9,6 +9,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
@@ -130,6 +131,10 @@ type TransactionItemRowProps = CheckboxSentryLabelProps & {
     onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
+
+    /** Shown beneath the merchant on the narrow layout, in place of the date and type */
+    narrowSubtitle?: ReactNode;
+
     reportActions?: ReportAction[];
     /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
      * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
