@@ -174,6 +174,7 @@ function AnnualSavingsInfo() {
 
 function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: SubscriptionPlanSettingsProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {values} = useLayoutSpacing();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, dateFnsLocale} = useLocalize();
@@ -218,6 +219,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
     // A secret code stays off the card, but the customer still sees the discount it gives them.
     const discountMessage = promoDiscountValue !== undefined ? getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles) : undefined;
+    const showPlanBadges = cardView.showExpensifyCodeBadge || cardView.showTaxExemptBadge;
+    const showPlanStatus = showPlanBadges || !!discountMessage;
 
     const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
@@ -298,10 +301,10 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [];
 
-    if (cardView.expensifyCodeMenu !== 'hidden') {
+    if (cardView.expensifyCodeMenu === 'add') {
         overflowMenu.push({
             icon: icons.Tag,
-            text: translate(cardView.expensifyCodeMenu === 'edit' ? 'subscription.subscriptionSettings.editExpensifyCode' : 'subscription.subscriptionSettings.addExpensifyCode'),
+            text: translate('subscription.subscriptionSettings.addExpensifyCode'),
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE,
             onSelected: navigateToExpensifyCode,
         });
@@ -322,7 +325,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     return (
         <View testID="SubscriptionPlanSettings">
-            <View style={[{paddingTop: values.cardPadding, paddingHorizontal: menuItemHorizontalPadding}, styles.pb2]}>
+            <View style={[{paddingTop: values.cardPadding, paddingHorizontal: menuItemHorizontalPadding}, !showPlanStatus && styles.pb2]}>
                 <View>
                     <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.plan')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -351,23 +354,37 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </View>
                 </View>
-                {(cardView.showExpensifyCodeBadge || cardView.showTaxExemptBadge) && (
-                    <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.mt2]}>
-                        {cardView.showExpensifyCodeBadge && (
-                            <Badge
-                                text={translate('subscription.subscriptionSettings.expensifyCodeApplied')}
-                                icon={icons.Tag}
-                            />
+                {showPlanStatus && (
+                    <View style={styles.mb3}>
+                        {showPlanBadges && (
+                            <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.mt2]}>
+                                {cardView.showExpensifyCodeBadge && !!privatePromoCode && (
+                                    <Badge
+                                        text={translate('subscription.subscriptionSettings.expensifyCodeApplied', privatePromoCode)}
+                                        icon={icons.Tag}
+                                        badgeStyles={styles.ml0}
+                                    />
+                                )}
+                                {cardView.showTaxExemptBadge && (
+                                    <Badge
+                                        text={translate('subscription.details.taxExemptEnabled')}
+                                        icon={icons.Coins}
+                                        badgeStyles={styles.ml0}
+                                    />
+                                )}
+                            </View>
                         )}
-                        {cardView.showTaxExemptBadge && (
-                            <Badge
-                                text={translate('subscription.details.taxExemptEnabled')}
-                                icon={icons.Coins}
-                            />
+                        {!!discountMessage && (
+                            <Text
+                                variant="micro"
+                                color={theme.textSupporting}
+                                style={styles.mt2}
+                            >
+                                {discountMessage}
+                            </Text>
                         )}
                     </View>
                 )}
-                {!!discountMessage && <Text style={[styles.textLabelSupporting, styles.mt2]}>{discountMessage}</Text>}
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root

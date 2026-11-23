@@ -12766,7 +12766,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `${count} Mitglieder`,
             }),
             sizeNotSet: `<muted-text>Wenn Sie Ihre Abonnementgröße jetzt nicht festlegen, legen wir sie automatisch basierend auf der Anzahl der aktiven Mitglieder in Ihrem ersten Monat fest. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text>`,
-            expensifyCodeApplied: 'Expensify-Code angewendet',
+            expensifyCodeApplied: (code: string) => `${code} angewendet`,
             addExpensifyCode: 'Expensify-Code hinzufügen',
             editExpensifyCode: 'Expensify-Code bearbeiten',
             saveWithAnnualSubscription: 'Sparen Sie mit einem Jahresabonnement',

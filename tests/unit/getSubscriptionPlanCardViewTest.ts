@@ -122,7 +122,7 @@ describe('getSubscriptionPlanCardView', () => {
         expect(view.showAnnualSavingsInfo).toBe(false);
     });
 
-    it('offers Add with no code and Edit when a visible code is applied', () => {
+    it('offers Add with no code and hides the code menu once a code is applied', () => {
         // Given annual Control plans with no code, a visible code, and a secret code
         const base = {
             subscriptionPlan: controlPlan,
@@ -138,11 +138,11 @@ describe('getSubscriptionPlanCardView', () => {
         const visibleCode = getSubscriptionPlanCardView({...base, promoCode: 'SAVE20', isSecretPromoCode: false, isTaxExempt: true});
         const secretCode = getSubscriptionPlanCardView({...base, promoCode: 'SECRET', isSecretPromoCode: true, isTaxExempt: false});
 
-        // Then a visible code offers Edit, because the discount sentence is on the card and the code stays hidden
+        // Then Add is offered only with no code, because an applied code cannot be replaced and a secret code stays hidden
         expect(noCode.expensifyCodeMenu).toBe('add');
         expect(noCode.showExpensifyCodeBadge).toBe(false);
 
-        expect(visibleCode.expensifyCodeMenu).toBe('edit');
+        expect(visibleCode.expensifyCodeMenu).toBe('hidden');
         expect(visibleCode.showExpensifyCodeBadge).toBe(true);
         expect(visibleCode.showTaxExemptBadge).toBe(true);
         expect(visibleCode.includeRequestTaxExempt).toBe(true);

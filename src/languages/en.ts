@@ -13110,7 +13110,7 @@ const translations = {
                 other: `${count} members`,
             }),
             sizeNotSet: `<muted-text-label>If you don't set your subscription size now, we'll set it automatically based on your first month's active member count. <a href="${CONST.PRICING}">Learn more</a></muted-text-label>`,
-            expensifyCodeApplied: 'Expensify code applied',
+            expensifyCodeApplied: (code: string) => `${code} applied`,
             addExpensifyCode: 'Add Expensify code',
             editExpensifyCode: 'Edit Expensify code',
             saveWithAnnualSubscription: 'Save with an annual subscription',

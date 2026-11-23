@@ -5,7 +5,7 @@ import type {SubscriptionType} from '@src/CONST';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
-type ExpensifyCodeMenu = 'add' | 'edit' | 'hidden';
+type ExpensifyCodeMenu = 'add' | 'hidden';
 
 type SubscriptionTypeLabel = 'annual' | 'payPerUse';
 
@@ -80,12 +80,9 @@ function getSubscriptionPlanCardView({
     const showAnnualControls = showSettings && isAnnual && !isNewCollect;
     const hasVisiblePromoCode = !!promoCode && !isSecretPromoCode;
     const showAnnualSavings = showSettings && subscriptionType === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !isNewCollect;
-    let expensifyCodeMenu: ExpensifyCodeMenu = 'add';
-    if (!showSettings || !canEditInApp || isSecretPromoCode) {
-        expensifyCodeMenu = 'hidden';
-    } else if (promoCode) {
-        expensifyCodeMenu = 'edit';
-    }
+    // An applied code cannot be replaced from the card. Classic does not let a customer swap codes after one is applied.
+    const hasAppliedCode = !!promoCode || isSecretPromoCode;
+    const expensifyCodeMenu: ExpensifyCodeMenu = !showSettings || !canEditInApp || hasAppliedCode ? 'hidden' : 'add';
 
     return {
         showSettings,
