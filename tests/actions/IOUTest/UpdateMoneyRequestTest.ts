@@ -8,6 +8,7 @@ import {
     updateMoneyRequestDate,
     updateMoneyRequestDescription,
     updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
     updateMoneyRequestMerchant,
     updateMoneyRequestReimbursable,
     updateMoneyRequestTag,
@@ -3547,6 +3548,128 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             );
 
             writeSpy.mockRestore();
+        });
+
+        describe('distance expenses', () => {
+            const rate2025 = 'formulaTitleRate2025';
+            const alternateRate2025 = 'formulaTitleAlternateRate2025';
+            const rate2026 = 'formulaTitleRate2026';
+            const mileageRate = (customUnitRateID: string, rate: number, startDate: string, endDate: string) => ({
+                currency: CONST.CURRENCY.USD,
+                customUnitRateID,
+                enabled: true,
+                name: customUnitRateID,
+                rate,
+                startDate,
+                endDate,
+            });
+            const distancePolicy: Policy = {
+                ...policy,
+                customUnits: {
+                    formulaTitleUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'formulaTitleUnit',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [rate2025]: mileageRate(rate2025, 65.5, '2025-01-01', '2025-12-31'),
+                            [alternateRate2025]: mileageRate(alternateRate2025, 50, '2025-01-01', '2025-12-31'),
+                            [rate2026]: mileageRate(rate2026, 70, '2026-01-01', '2026-12-31'),
+                        },
+                    },
+                },
+            };
+            const distanceTransaction: Transaction = {
+                ...transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitRateID: rate2025,
+                    },
+                },
+            };
+            const distanceParams = {
+                ...sharedParams,
+                transaction: distanceTransaction,
+                policy: distancePolicy,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+            };
+
+            beforeEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, distancePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, distanceTransaction);
+                await waitForBatchedUpdates();
+            });
+
+            it.each([
+                {
+                    name: 'updateMoneyRequestDistance',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE,
+                    expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                    update: () =>
+                        updateMoneyRequestDistance({
+                            ...distanceParams,
+                            distance: 20,
+                            recentWaypoints: [],
+                            policyTagList: {},
+                            transactionBackup: undefined,
+                            violations: undefined,
+                        }),
+                },
+                {
+                    name: 'updateMoneyRequestDistanceRate',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                    expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                    update: () =>
+                        updateMoneyRequestDistanceRate({
+                            ...distanceParams,
+                            rateID: alternateRate2025,
+                            policyTagList: {},
+                        }),
+                },
+                {
+                    name: 'updateMoneyRequestDate, when the new date selects a different mileage rate,',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                    expectedReportName: 'Trip from Jun 15 to Jun 15, 2026',
+                    update: () =>
+                        updateMoneyRequestDate({
+                            ...distanceParams,
+                            transactions: {},
+                            transactionViolations: {},
+                            value: '2026-06-15',
+                            policyTags: {},
+                            isOffline: false,
+                        }),
+                },
+            ])('$name recalculates the formula title from the passed parent report RNVP', ({command, expectedReportName, update}) => {
+                // Given a distance expense on a report whose RNVP marks its title as a formula, but only the caller has the RNVP and Onyx doesn't,
+                // so the title can only be recalculated if the wrapper passes the entry on
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+                // When the distance, the rate, or a date that switches the rate is edited
+                update();
+
+                // Then the optimistic report update carries the recalculated title
+                expect(writeSpy).toHaveBeenCalledWith(
+                    command,
+                    expect.anything(),
+                    expect.objectContaining({
+                        optimisticData: expect.arrayContaining([
+                            expect.objectContaining({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+                                value: expect.objectContaining({reportName: expectedReportName}),
+                            }),
+                        ]),
+                    }),
+                );
+
+                writeSpy.mockRestore();
+            });
         });
     });
 });

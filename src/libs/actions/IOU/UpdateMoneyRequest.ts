@@ -309,6 +309,7 @@ function updateMoneyRequestDate({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            parentReportNameValuePairs,
         });
         return;
     }
@@ -1182,6 +1183,8 @@ type UpdateMoneyRequestDistanceParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
+    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -1214,6 +1217,7 @@ function updateMoneyRequestDistance({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    parentReportNameValuePairs,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -1266,6 +1270,7 @@ function updateMoneyRequestDistance({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            iouReportNameValuePairs: parentReportNameValuePairs,
         });
     }
     const {params, onyxData} = data;
@@ -1564,6 +1569,7 @@ function updateMoneyRequestDistanceRate({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    parentReportNameValuePairs,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -1595,6 +1601,8 @@ function updateMoneyRequestDistanceRate({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
+    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1665,6 +1673,7 @@ function updateMoneyRequestDistanceRate({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            iouReportNameValuePairs: parentReportNameValuePairs,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);

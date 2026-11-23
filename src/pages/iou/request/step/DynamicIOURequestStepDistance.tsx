@@ -110,6 +110,7 @@ function DynamicIOURequestStepDistance({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const iouReportOwnerLoginSelector = personalDetailsLoginSelector(parentReport?.ownerAccountID);
     const [iouReportOwnerLogin] = useAllPersonalDetails(iouReportOwnerLoginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -606,6 +607,7 @@ function DynamicIOURequestStepDistance({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,
+                    parentReportNameValuePairs,
                 });
             }
             transactionWasSaved.current = true;
@@ -736,6 +738,7 @@ function DynamicIOURequestStepDistance({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            parentReportNameValuePairs,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
