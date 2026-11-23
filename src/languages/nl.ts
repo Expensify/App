@@ -3658,8 +3658,8 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsApprovalForkPage: {
         title: 'Goedkeuringsvertakking',
         description: () => ({
-            one: 'Deze workflow heeft uit Expensify Classic een vertakking in de goedkeuringsworkflow overgenomen die afwijkt van de ingestelde workflow.',
-            other: 'Deze workflow heeft uit Expensify Classic vertakkingen in de goedkeuringsworkflow overgenomen die afwijken van de ingestelde workflow.',
+            one: 'Deze workflow heeft een vertakking in de goedkeuringsworkflow uit Expensify Classic overgenomen die afwijkt van de geconfigureerde workflow.',
+            other: 'Deze workflow heeft vertakkingen in de goedkeuringsworkflow uit Expensify Classic overgenomen die afwijken van de geconfigureerde workflow.',
         }),
         forkNumber: ({number}: {number: number}) => `Vertakking ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> keurt rapporten goed in deze workflow.`,
@@ -3670,13 +3670,11 @@ ${amount} voor ${merchant} - ${date}`,
                 ? `<strong>${approver}</strong> keurt rapporten van <strong>${sender}</strong> ${range} goed.`
                 : `<strong>${approver}</strong> keurt rapporten van <strong>${sender}</strong> goed.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
-            range
-                ? `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten ${range}.`
-                : `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten.`,
+            range ? `<strong>${approver}</strong> keurt de rapporten ${range} definitief goed.` : `<strong>${approver}</strong> keurt de rapporten definitief goed.`,
         finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten van <strong>${sender}</strong> ${range}.`
-                : `<strong>${approver}</strong> geeft de definitieve goedkeuring voor de rapporten van <strong>${sender}</strong>.`,
+                ? `<strong>${approver}</strong> keurt de rapporten van <strong>${sender}</strong> ${range} definitief goed.`
+                : `<strong>${approver}</strong> keurt de rapporten van <strong>${sender}</strong> definitief goed.`,
         underAmount: ({amount}: {amount: string}) => `onder ${amount}`,
         overAmount: ({amount}: {amount: string}) => `boven ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tussen ${lowerAmount} en ${upperAmount}`,

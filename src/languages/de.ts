@@ -3567,7 +3567,7 @@ ${amount} für ${merchant} – ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `Wenn der Bericht über ${amount} liegt`,
         finalApprover: 'Letzte*r Genehmigende*r',
-        approvalForkTooltip: 'Mit diesem Workflow gibt es ein Problem. Zum Anzeigen klicken.',
+        approvalForkTooltip: 'Mit diesem Workflow liegt ein Problem vor. Klicken Sie, um es anzuzeigen.',
         manager: 'Manager',
         submitFrequency: 'Einreichungshäufigkeit',
         submitOn: 'Einreichen am',
@@ -3673,24 +3673,22 @@ ${amount} für ${merchant} – ${date}`,
     workflowsApprovalForkPage: {
         title: 'Genehmigungsverzweigung',
         description: () => ({
-            one: 'Dieser Workflow hat aus Expensify Classic eine Verzweigung im Genehmigungsworkflow übernommen, die vom konfigurierten Workflow abweicht.',
-            other: 'Dieser Workflow hat aus Expensify Classic Verzweigungen im Genehmigungsworkflow übernommen, die vom konfigurierten Workflow abweichen.',
+            one: 'Dieser Workflow hat eine Verzweigung im Genehmigungsworkflow aus Expensify Classic übernommen, die sich vom konfigurierten Workflow unterscheidet.',
+            other: 'Dieser Workflow hat Verzweigungen im Genehmigungsworkflow aus Expensify Classic übernommen, die sich vom konfigurierten Workflow unterscheiden.',
         }),
         forkNumber: ({number}: {number: number}) => `Verzweigung ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> genehmigt Berichte in diesem Workflow.`,
-        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> genehmigt Berichte über ${amount} in diesem Workflow.`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> genehmigt in diesem Workflow Berichte über ${amount}.`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
                 ? `<strong>${approver}</strong> genehmigt Berichte von <strong>${sender}</strong> ${range}.`
                 : `<strong>${approver}</strong> genehmigt Berichte von <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
-            range
-                ? `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte ${range}.`
-                : `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte.`,
+            range ? `<strong>${approver}</strong> genehmigt die Berichte ${range} endgültig.` : `<strong>${approver}</strong> genehmigt die Berichte endgültig.`,
         finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte von <strong>${sender}</strong> ${range}.`
-                : `<strong>${approver}</strong> erteilt die endgültige Genehmigung für die Berichte von <strong>${sender}</strong>.`,
+                ? `<strong>${approver}</strong> genehmigt die Berichte von <strong>${sender}</strong> ${range} endgültig.`
+                : `<strong>${approver}</strong> genehmigt die Berichte von <strong>${sender}</strong> endgültig.`,
         underAmount: ({amount}: {amount: string}) => `unter ${amount}`,
         overAmount: ({amount}: {amount: string}) => `über ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `zwischen ${lowerAmount} und ${upperAmount}`,

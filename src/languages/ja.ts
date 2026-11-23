@@ -3616,28 +3616,28 @@ ${date} の ${merchant} への ${amount}`,
         enterAmountError: '有効な金額を入力してください',
     },
     workflowsApprovalForkPage: {
-        title: '承認の分岐',
+        title: '承認分岐',
         description: () => ({
-            one: 'このワークフローは、設定されたワークフローとは異なる承認ワークフローの分岐をExpensify Classicから引き継いでいます。',
-            other: 'このワークフローは、設定されたワークフローとは異なる承認ワークフローの分岐をExpensify Classicから引き継いでいます。',
+            one: 'このワークフローは、設定されているワークフローと異なる、Expensify Classic から承認ワークフロー内の分岐を継承しています。',
+            other: 'このワークフローには、設定されているワークフローと異なる、Expensify Classic から引き継がれた承認ワークフロー内の分岐があります。',
         }),
         forkNumber: ({number}: {number: number}) => `分岐 ${number}`,
-        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong>はこのワークフローでレポートを承認します。`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> はこのワークフローでレポートを承認します。`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
-            `<strong>${approver}</strong>はこのワークフローで${amount}を超えるレポートを承認します。`,
+            `このワークフローでは、<strong>${approver}</strong> が ${amount} を超えるレポートを承認します。`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong>は<strong>${sender}</strong>からの${range}のレポートを承認します。`
-                : `<strong>${approver}</strong>は<strong>${sender}</strong>からのレポートを承認します。`,
+                ? `<strong>${approver}</strong> は、<strong>${sender}</strong> からの ${range} のレポートを承認します。`
+                : `<strong>${approver}</strong> は、<strong>${sender}</strong> からのレポートを承認します。`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
-            range ? `<strong>${approver}</strong>が${range}のレポートを最終承認します。` : `<strong>${approver}</strong>がレポートを最終承認します。`,
+            range ? `<strong>${approver}</strong> が ${range} のレポートを最終承認します。` : `<strong>${approver}</strong> がレポートを最終承認します。`,
         finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong>が<strong>${sender}</strong>からの${range}のレポートを最終承認します。`
-                : `<strong>${approver}</strong>が<strong>${sender}</strong>からのレポートを最終承認します。`,
-        underAmount: ({amount}: {amount: string}) => `${amount}未満`,
-        overAmount: ({amount}: {amount: string}) => `${amount}超`,
-        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount}〜${upperAmount}`,
+                ? `<strong>${approver}</strong> は、<strong>${sender}</strong> からの ${range} のレポートを最終承認します。`
+                : `<strong>${approver}</strong> は、<strong>${sender}</strong> からのレポートを最終承認します。`,
+        underAmount: ({amount}: {amount: string}) => `${amount} 未満`,
+        overAmount: ({amount}: {amount: string}) => `${amount} を超過`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `${lowerAmount} と ${upperAmount} の間`,
         removeFork: '分岐を削除',
         removeForks: '分岐を削除',
     },

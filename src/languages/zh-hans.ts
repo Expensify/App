@@ -3430,7 +3430,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `来自 ${provider}`,
         ifReportIsOver: ({amount}: {amount: string}) => `如果报表超过 ${amount}`,
         finalApprover: '最终审批人',
-        approvalForkTooltip: '此流程存在问题。点击查看。',
+        approvalForkTooltip: '此工作流程出现问题。点击查看。',
         manager: '经理',
         submitFrequency: '提交频率',
         submitOn: '提交于',
@@ -3522,23 +3522,23 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     workflowsApprovalForkPage: {
         title: '审批分支',
         description: () => ({
-            one: '此流程从 Expensify Classic 继承了审批流程中的分支，与已配置的流程不同。',
-            other: '此流程从 Expensify Classic 继承了审批流程中的分支，与已配置的流程不同。',
+            one: '此工作流从 Expensify Classic 继承了一个与当前配置的审批工作流不同的分支。',
+            other: '此工作流从 Expensify Classic 继承的审批流程分支与当前配置的工作流不一致。',
         }),
         forkNumber: ({number}: {number: number}) => `分支 ${number}`,
-        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> 在此流程中审批报表。`,
-        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `<strong>${approver}</strong> 在此流程中审批超过 ${amount} 的报表。`,
+        approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> 在此工作流程中审批报表。`,
+        approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) => `在此工作流程中，<strong>${approver}</strong> 审批超过 ${amount} 的报表。`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
-            range ? `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的${range}报表。` : `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的报表。`,
+            range ? `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的${range}的报表。` : `<strong>${approver}</strong> 审批来自 <strong>${sender}</strong> 的报表。`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
-            range ? `<strong>${approver}</strong> 对${range}报表进行最终审批。` : `<strong>${approver}</strong> 对报表进行最终审批。`,
+            range ? `<strong>${approver}</strong> 最终审批${range}的报表。` : `<strong>${approver}</strong> 最终审批这些报表。`,
         finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong> 对来自 <strong>${sender}</strong> 的${range}报表进行最终审批。`
-                : `<strong>${approver}</strong> 对来自 <strong>${sender}</strong> 的报表进行最终审批。`,
-        underAmount: ({amount}: {amount: string}) => `低于 ${amount} 的`,
-        overAmount: ({amount}: {amount: string}) => `超过 ${amount} 的`,
-        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `介于 ${lowerAmount} 和 ${upperAmount} 之间的`,
+                ? `<strong>${approver}</strong> 最终审批来自 <strong>${sender}</strong> 的${range}的报表。`
+                : `<strong>${approver}</strong> 最终审批来自 <strong>${sender}</strong> 的报表。`,
+        underAmount: ({amount}: {amount: string}) => `低于 ${amount}`,
+        overAmount: ({amount}: {amount: string}) => `超过 ${amount}`,
+        betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `介于 ${lowerAmount} 和 ${upperAmount} 之间`,
         removeFork: '移除分支',
         removeForks: '移除分支',
     },

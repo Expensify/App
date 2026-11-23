@@ -3658,22 +3658,22 @@ ${amount} per ${merchant} - ${date}`,
     workflowsApprovalForkPage: {
         title: 'Biforcazione di approvazione',
         description: () => ({
-            one: 'Questo flusso di lavoro ha ereditato da Expensify Classic una biforcazione nel flusso di approvazione diversa dal flusso di lavoro configurato.',
-            other: 'Questo flusso di lavoro ha ereditato da Expensify Classic delle biforcazioni nel flusso di approvazione diverse dal flusso di lavoro configurato.',
+            one: 'Questo flusso di lavoro ha ereditato una biforcazione nel flusso di approvazione da Expensify Classic che è diversa dal flusso di lavoro configurato.',
+            other: 'Questo flusso di lavoro ha ereditato delle biforcazioni nel flusso di approvazione da Expensify Classic che differiscono dal flusso di lavoro configurato.',
         }),
         forkNumber: ({number}: {number: number}) => `Biforcazione ${number}`,
         approvesReportsInWorkflow: ({approver}: {approver: string}) => `<strong>${approver}</strong> approva i report in questo flusso di lavoro.`,
         approvesReportsOverAmountInWorkflow: ({approver, amount}: {approver: string; amount: string}) =>
-            `<strong>${approver}</strong> approva i report oltre ${amount} in questo flusso di lavoro.`,
+            `<strong>${approver}</strong> approva i report superiori a ${amount} in questo flusso di lavoro.`,
         approvesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range ? `<strong>${approver}</strong> approva i report di <strong>${sender}</strong> ${range}.` : `<strong>${approver}</strong> approva i report di <strong>${sender}</strong>.`,
         finalApprovesReports: ({approver, range}: {approver: string; range?: string}) =>
-            range ? `<strong>${approver}</strong> dà l’approvazione finale ai report ${range}.` : `<strong>${approver}</strong> dà l’approvazione finale ai report.`,
+            range ? `<strong>${approver}</strong> approva definitivamente i report ${range}.` : `<strong>${approver}</strong> approva definitivamente i report.`,
         finalApprovesReportsFrom: ({approver, sender, range}: {approver: string; sender: string; range?: string}) =>
             range
-                ? `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong> ${range}.`
-                : `<strong>${approver}</strong> dà l’approvazione finale ai report di <strong>${sender}</strong>.`,
-        underAmount: ({amount}: {amount: string}) => `sotto ${amount}`,
+                ? `<strong>${approver}</strong> approva definitivamente i report di <strong>${sender}</strong> ${range}.`
+                : `<strong>${approver}</strong> approva definitivamente i report di <strong>${sender}</strong>.`,
+        underAmount: ({amount}: {amount: string}) => `inferiori a ${amount}`,
         overAmount: ({amount}: {amount: string}) => `oltre ${amount}`,
         betweenAmounts: ({lowerAmount, upperAmount}: {lowerAmount: string; upperAmount: string}) => `tra ${lowerAmount} e ${upperAmount}`,
         removeFork: 'Rimuovi biforcazione',
