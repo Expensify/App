@@ -10447,6 +10447,7 @@ const CONST = {
             },
         },
         UPDATE_OPERATION_TYPE: {
+            BOOKING_CREATED: 'BOOKING_CREATED',
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
             TICKET_REFUNDED: 'TICKET_REFUNDED',
