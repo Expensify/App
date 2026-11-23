@@ -79,6 +79,8 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                                         params: liveSearchTabParams,
                                         state: {
                                             key: liveSearchNavigatorStateKey,
+                                            // A mounted navigator has a full state, which is no longer stale
+                                            ...(liveSearchNavigatorStateKey ? {stale: false} : {}),
                                             routes: [
                                                 {name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}},
                                                 ...(liveScreenOverSearchPage ? [{name: liveScreenOverSearchPage}] : []),
@@ -186,7 +188,7 @@ describe('FlatNavTabPressListeners', () => {
                 CONST.SEARCH.SEARCH_KEYS.REPORTS,
                 LAST_REPORTS_QUERY,
                 expect.any(Function),
-                'search-state-key',
+                expect.objectContaining({key: 'search-state-key'}),
                 tabStateKeyToFocusSearchIn,
             );
             expect(navigateToSpendTab).not.toHaveBeenCalled();

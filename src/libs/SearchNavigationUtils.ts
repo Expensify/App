@@ -3,9 +3,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {SearchFilters} from '@src/types/onyx';
 
+import type {NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {TabActions} from '@react-navigation/native';
+import {CommonActions, TabActions} from '@react-navigation/native';
 
 import type {FlatNavItem, FlatNavSection} from './Navigation/FlatNav/types';
 import type {SearchKey} from './SearchKeyUtils';
@@ -46,21 +47,27 @@ function showSpendTabSearchOnMountedSearchPage(
     searchKey: SpendTabSearchKey,
     lastSearchQuery: string | undefined,
     clearSelectedTransactions: () => void,
-    searchNavigatorStateKey: string,
+    searchNavigatorState: NavigationState,
     tabNavigatorStateKeyToFocusSearchIn: string | undefined,
 ) {
     clearSelectedTransactions();
     setSearchContext(false);
-    navigationRef.dispatch({
-        type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-        payload: {
-            params: {q: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey), searchKey)), name: undefined, rawQuery: undefined, searchKey},
-        },
-        target: searchNavigatorStateKey,
-    });
-    if (tabNavigatorStateKeyToFocusSearchIn) {
-        navigationRef.dispatch({...TabActions.jumpTo(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR), target: tabNavigatorStateKeyToFocusSearchIn});
+    const params = {q: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey), searchKey)), name: undefined, rawQuery: undefined, searchKey};
+    if (!tabNavigatorStateKeyToFocusSearchIn) {
+        navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params}, target: searchNavigatorState.key});
+        return;
     }
+    // From another tab the new search replaces the one Search had instead of adding a step to its params history. Such
+    // a step would take a Back of its own on Android, which on an unchanged search appears to do nothing. The routes
+    // keep their keys, so the page stays mounted.
+    navigationRef.dispatch({
+        ...CommonActions.reset({
+            ...searchNavigatorState,
+            routes: searchNavigatorState.routes.map((route, index) => (index === searchNavigatorState.index ? {...route, params: {...route.params, ...params}} : route)),
+        }),
+        target: searchNavigatorState.key,
+    });
+    navigationRef.dispatch({...TabActions.jumpTo(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR), target: tabNavigatorStateKeyToFocusSearchIn});
 }
 
 /** Opens a search as it was last seen, such as a saved search. */

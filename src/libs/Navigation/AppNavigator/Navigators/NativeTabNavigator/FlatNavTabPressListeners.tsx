@@ -66,11 +66,11 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
         // mounted yet, or one with another screen on top, is opened through the search route.
         const searchNavigatorState = searchTabRoute?.state;
         const isSearchPageOnTop = searchNavigatorState?.routes.at(searchNavigatorState.index ?? -1)?.name === SCREENS.SEARCH.ROOT;
-        const searchNavigatorStateKey = isSearchPageOnTop ? searchNavigatorState?.key : undefined;
+        const mountedSearchNavigatorState = isSearchPageOnTop && searchNavigatorState?.stale === false ? searchNavigatorState : undefined;
         openSearchFromTabBar(
             () =>
-                searchNavigatorStateKey
-                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, searchNavigatorStateKey, isSearchFocused ? undefined : state.key)
+                mountedSearchNavigatorState
+                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, mountedSearchNavigatorState, isSearchFocused ? undefined : state.key)
                     : navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions),
             isSearchFocused,
             session,

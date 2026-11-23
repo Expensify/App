@@ -461,6 +461,32 @@ describe('NativeBottomTabView', () => {
         expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
     });
 
+    it('takes a press on iOS in JS while the tab a hidden route is drawn in shows a sibling of it', () => {
+        // Given Spend first drawn in More on iOS, as after a cold start on a saved search, and then Workspaces focused in
+        // More, so More draws Workspaces over Spend
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+        expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBe('More');
+        screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+
+        // When the native tabs are configured
+        // Then Expenses does not show the view of More, which would show Workspaces under Expenses, and native does not
+        // select it, so the press goes to JS through the tap interception instead
+        expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBeUndefined();
+        expect(mockLatestScreenProps.get('Expenses')?.preventNativeSelection).toBe(true);
+        expect(mockLatestScreenProps.get('Expenses')?.interceptsPreventedSelectionTaps).toBe(true);
+
+        // When the user taps Expenses
+        pressPreventedTab('Expenses');
+
+        // Then the bar selects Expenses at once, which shows its own placeholder until JS opens the search, and the
+        // press reaches the Expenses listener in the next task
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
+        expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBeUndefined();
+        runPendingTabPress();
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Expenses-key'});
+    });
+
     it.each([
         {tabs: 'flat nav tabs', renderTabs: () => renderFlatNav('Inbox'), screenKey: 'More', expected: true},
         {

@@ -16,7 +16,10 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {SearchFilters} from '@src/types/onyx';
+
+import type {NavigationState} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -279,13 +282,22 @@ describe('SearchNavigationUtils', () => {
 
     describe('showSpendTabSearchOnMountedSearchPage', () => {
         const LAST_REPORTS_QUERY = 'type:expense-report sortBy:date sortOrder:desc status:drafts';
+        const searchRootRoute = {key: 'search-root-key', name: SCREENS.SEARCH.ROOT, params: {q: REPORTS_QUERY, name: 'Saved', searchKey: SEARCH_KEYS.REPORTS}};
+        const searchNavigatorState: NavigationState = {
+            key: 'search-state-key',
+            index: 0,
+            routeNames: [SCREENS.SEARCH.ROOT],
+            routes: [searchRootRoute],
+            stale: false,
+            type: 'stack',
+        };
 
         it('hands the mounted Search page the last Reports query as params, with no route opened', () => {
             // Given a mounted Search navigator, the query the user last left Reports with, and Search focused
             const clearSelection = jest.fn();
 
             // When the Reports search is shown on the mounted page
-            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.REPORTS, LAST_REPORTS_QUERY, clearSelection, 'search-state-key', undefined);
+            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.REPORTS, LAST_REPORTS_QUERY, clearSelection, searchNavigatorState, undefined);
 
             // Then the Search navigator alone gets the new params, the way the type tabs of the page change its search,
             // so the page stays mounted. The name of a saved search and a raw query do not carry over to the new search.
@@ -307,16 +319,20 @@ describe('SearchNavigationUtils', () => {
         it('focuses the Search tab after changing its search when the press came from another tab', () => {
             // Given a mounted Search navigator while another tab is focused, and no query left for Expenses
             // When the Expenses search is shown on the mounted page with the tab navigator to focus Search in
-            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.EXPENSES, undefined, jest.fn(), 'search-state-key', 'tab-state-key');
+            showSpendTabSearchOnMountedSearchPage(SEARCH_KEYS.EXPENSES, undefined, jest.fn(), searchNavigatorState, 'tab-state-key');
 
-            // Then the page first takes the default Expenses search and the tab navigator then jumps to the Search tab
-            // as it is, so Search is shown on the new search without a second page being pushed
-            const pushParams = mockNavigationRefDispatch.mock.calls.at(0)?.at(0);
+            // Then the page first takes the default Expenses search in place of the search it had, with no step added
+            // to its params history, so Android Back from Search returns to the tab the press came from. The route
+            // keeps its key, so the page stays mounted. The tab navigator then jumps to the Search tab as it is.
+            const reset = mockNavigationRefDispatch.mock.calls.at(0)?.at(0);
             const jumpTo = mockNavigationRefDispatch.mock.calls.at(1)?.at(0);
-            expect(pushParams).toEqual(
+            expect(reset).toEqual(
                 expect.objectContaining({
-                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-                    payload: {params: expect.objectContaining({q: EXPENSES_QUERY, searchKey: SEARCH_KEYS.EXPENSES})},
+                    type: 'RESET',
+                    payload: expect.objectContaining({
+                        key: 'search-state-key',
+                        routes: [{...searchRootRoute, params: {q: EXPENSES_QUERY, name: undefined, rawQuery: undefined, searchKey: SEARCH_KEYS.EXPENSES}}],
+                    }),
                     target: 'search-state-key',
                 }),
             );
