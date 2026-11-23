@@ -120,7 +120,7 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     });
 };
 
-const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
+const dismissKeyboardAndExecute = (cb: () => void | Promise<void>): Promise<void> => {
     // This fixes a bug specific to native apps on Android < 16
     // For web it just executes callback
     // https://github.com/Expensify/App/issues/70692
@@ -130,6 +130,8 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     return Promise.resolve().then(cb);
 };
 
-const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
+const isKeyboardVisible = () => isVisible;
+
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange, isKeyboardVisible};
 
 export default utils;

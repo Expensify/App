@@ -1,4 +1,4 @@
-import {isReportActionFromCurrentUser, isReportActionUnread, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionFromCurrentUser, isReportActionUnread, shouldHideNewMarker} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -210,17 +210,21 @@ const getUnreadMarkerReportAction = ({
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
         const reportAction = visibleReportActions.at(index);
 
-        if (!isReversed && reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+        if (
+            !reportAction ||
+            (!isReversed && reportAction.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) ||
+            (!activeManuallyMarkedUnreadReportActionID && !canReportActionTriggerUnreadMarker(reportAction, currentUserAccountID))
+        ) {
             continue;
         }
 
         let nextAction: OnyxTypes.ReportAction | undefined;
-        if (isReversed) {
-            nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
-        } else {
-            nextAction = visibleReportActions.at(index + 1);
-            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                nextAction = visibleReportActions.at(index + 2);
+        // Informational messages must not hide a real unread message beside them.
+        for (let nextIndex = index + step; isReversed ? nextIndex >= endIndex : nextIndex < endIndex; nextIndex += step) {
+            const candidate = visibleReportActions.at(nextIndex);
+            if (candidate && (isReversed || candidate.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(candidate, currentUserAccountID)) {
+                nextAction = candidate;
+                break;
             }
         }
 

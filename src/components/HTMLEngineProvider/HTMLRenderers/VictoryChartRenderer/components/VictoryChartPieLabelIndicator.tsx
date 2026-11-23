@@ -1,10 +1,10 @@
 import type {ResolvedPieLabel} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-import type {Color} from '@shopify/react-native-skia';
+import type {Color} from 'react-native-skia';
 import type {PieSliceData} from 'victory-native';
 
-import {Path, Skia} from '@shopify/react-native-skia';
 import React from 'react';
+import {Path, Skia} from 'react-native-skia';
 
 type VictoryChartPieLabelIndicatorProps = {
     slice: PieSliceData;
@@ -54,13 +54,11 @@ function VictoryChartPieLabelIndicator({
             ? {x: slice.center.x + (closestX * innerRadius) / closestDistance, y: slice.center.y + (closestY * innerRadius) / closestDistance}
             : undefined;
 
-    const path = Skia.Path.Make();
-    path.moveTo(x1, y1);
+    const builder = Skia.PathBuilder.Make().moveTo(x1, y1);
     if (bulgePoint) {
-        path.lineTo(bulgePoint.x, bulgePoint.y);
+        builder.lineTo(bulgePoint.x, bulgePoint.y);
     }
-    path.lineTo(bendX, resolvedLabel.y);
-    path.lineTo(resolvedLabel.x, resolvedLabel.y);
+    const path = builder.lineTo(bendX, resolvedLabel.y).lineTo(resolvedLabel.x, resolvedLabel.y).detach();
 
     return (
         <Path

@@ -1,16 +1,15 @@
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
-
 import useLocalize from '@hooks/useLocalize';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
 import lodashSortBy from 'lodash/sortBy';
-import {use} from 'react';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
@@ -19,11 +18,14 @@ function useSortedIcons(icons: Icon[], sort?: SortingOption | SortingOption[]): 
     const {localeCompare} = useLocalize();
     const sortBy: SortingOption[] = sort === undefined ? [] : [sort].flat();
 
+    const shouldSortByName = sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME);
+    // Only a name sort reads personal details, and only for the accounts in the stack
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(shouldSortByName ? icons.map((icon) => Number(icon.id) || undefined) : undefined));
+
     let sortedIcons = icons;
-    if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-        // Read personal details only for a name sort, so other stacks don't re-render on every personal details change.
+    if (shouldSortByName) {
         // `sortIconsByName` sorts in place, so sort a copy and leave the given array as it was
-        sortedIcons = sortIconsByName([...icons], use(PersonalDetailsContext) ?? undefined, localeCompare);
+        sortedIcons = sortIconsByName([...icons], personalDetails, localeCompare);
     } else if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
         sortedIcons = lodashSortBy(icons, (icon) => icon.id);
     }

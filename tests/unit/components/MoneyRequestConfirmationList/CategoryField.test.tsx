@@ -1,8 +1,8 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import type {DropdownFieldHandle} from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
-import type {ExpenseFieldDropdownHandle} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,10 +33,6 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
-// Only the anchored dropdowns beta, so the tests that render the plain menu row keep every other beta off.
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
 
 let mockIsFocused = true;
 // Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.
@@ -64,10 +60,10 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 const mockOpenDropdown = jest.fn();
 let mockShouldOpenInDropdown: boolean | undefined;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
+jest.mock('@components/DropdownField', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
-    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<ExpenseFieldDropdownHandle>}) => {
+    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<DropdownFieldHandle>}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
         return (

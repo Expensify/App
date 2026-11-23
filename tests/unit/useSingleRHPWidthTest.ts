@@ -27,9 +27,6 @@ jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: mockWindowWid
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isExtraLargeScreenWidth: false}));
 jest.mock('@hooks/useSidePanelState', () => () => ({shouldHideSidePanel: true}));
 
-let mockIsResizableRHPEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));
-
 describe('useSingleRHPWidth', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -37,7 +34,6 @@ describe('useSingleRHPWidth', () => {
 
     beforeEach(async () => {
         mockWindowWidth = WIDE_WINDOW_WIDTH;
-        mockIsResizableRHPEnabled = true;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -48,7 +44,7 @@ describe('useSingleRHPWidth', () => {
         const {result} = renderHook(() => useSingleRHPWidth());
         await waitForBatchedUpdates();
 
-        // Then it is the default RHP width, so the beta changes nothing until a drag
+        // Then it is the default RHP width, because only a saved width moves the card off it
         expect(result.current.width).toBe(variables.rhpWidth);
     });
 
@@ -76,35 +72,5 @@ describe('useSingleRHPWidth', () => {
 
         // Then the card returns to the width the user dragged to, because the clamp never overwrote what was saved
         expect(result.current.width).toBe(savedWidth);
-    });
-
-    it('ignores a saved width once the beta is off', async () => {
-        // Given a saved width left behind by a user whose beta was then turned off without clearing it
-        const savedWidth = getSingleRHPWidthBounds(WIDE_WINDOW_WIDTH, 0).max;
-        mockIsResizableRHPEnabled = false;
-        const {result} = renderHook(() => useSingleRHPWidth());
-
-        // When the width is read
-        await act(async () => {
-            setPaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, savedWidth);
-            await waitForBatchedUpdates();
-        });
-
-        // Then it is the default width, because without the beta there is no handle to drag the card back
-        expect(result.current.width).toBe(variables.rhpWidth);
-    });
-
-    it('keeps the default width in a window too narrow for it once the beta is off', async () => {
-        // Given a user without the beta in a window whose resize bounds fall below the default width
-        mockIsResizableRHPEnabled = false;
-        mockWindowWidth = 805;
-        expect(getSingleRHPWidthBounds(mockWindowWidth, 0).max).toBeLessThan(variables.rhpWidth);
-
-        // When the width is read
-        const {result} = renderHook(() => useSingleRHPWidth());
-        await waitForBatchedUpdates();
-
-        // Then it is still the default width, because the resize bounds belong to the beta and must not change the RHP for everyone else
-        expect(result.current.width).toBe(variables.rhpWidth);
     });
 });

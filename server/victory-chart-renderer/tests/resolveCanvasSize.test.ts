@@ -27,6 +27,15 @@ describe('resolveCanvasSize', () => {
 
             expect(resolveCanvasSize(tnode)).toEqual({width: 600, height: 400});
         });
+
+        test('accepts dimensions at the 4096 limit', () => {
+            // Given a chart exactly at the maximum allowed size
+            const tnode = makeChartNode({width: '4096', height: '4096'});
+
+            // When the canvas size is resolved
+            // Then the limit itself is still rendered, so only larger charts are rejected
+            expect(resolveCanvasSize(tnode)).toEqual({width: 4096, height: 4096});
+        });
     });
 
     describe('validation errors', () => {
@@ -52,6 +61,19 @@ describe('resolveCanvasSize', () => {
             const tnode = makeChartNode({width: '0', height: '400'});
 
             expect(() => resolveCanvasSize(tnode)).toThrow('width and height must be positive numbers');
+        });
+
+        test.each<{label: string; attributes: TNode['attributes']}>([
+            {label: 'width', attributes: {width: '4097', height: '430'}},
+            {label: 'height', attributes: {width: '680', height: '16000'}},
+            {label: 'width written as an exponent', attributes: {width: '1e9', height: '430'}},
+        ])('throws when $label exceeds the maximum', ({attributes}) => {
+            // Given a chart whose size would make the renderer allocate a huge surface
+            const tnode = makeChartNode(attributes);
+
+            // When the canvas size is resolved
+            // Then it is rejected before any surface is allocated
+            expect(() => resolveCanvasSize(tnode)).toThrow('width and height must not exceed 4096');
         });
 
         test('throws when only width is provided', () => {

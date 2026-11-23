@@ -1,7 +1,12 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
+import ReceiptScanningLine from '@components/ReceiptScanningLine';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TranslatedReceiptCard from '@components/TranslatedReceiptCard';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -13,13 +18,16 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReceiptTranslation from '@hooks/useReceiptTranslation';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {showOriginalReceipt} from '@libs/actions/ReceiptTranslation';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -39,6 +47,7 @@ import {
     hasReceiptSource,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -63,6 +72,20 @@ import {View} from 'react-native';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
+/** Each press turns the PDF a quarter turn counter-clockwise. */
+function getNextPdfRotation(rotation: RotationDegrees): RotationDegrees {
+    switch (rotation) {
+        case 0:
+            return 270;
+        case 270:
+            return 180;
+        case 180:
+            return 90;
+        default:
+            return 0;
+    }
+}
+
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
@@ -70,7 +93,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Translate', 'ArrowsLeftRight']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -135,7 +158,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const odometerFile = typeof odometerImage !== 'string' ? odometerImage : undefined;
     const odometerFilename = odometerFile?.name ?? (typeof odometerImage === 'string' ? odometerImage.split('/').pop() : undefined);
     const odometerUriExtension = odometerFilename?.split('.').pop()?.toLowerCase();
-    const odometerFileType = (odometerFile as Partial<File>)?.type ?? (odometerUriExtension ? `image/${odometerUriExtension}` : CONST.IMAGE_FILE_FORMAT.JPEG);
+    const odometerFileType = odometerFile?.type ?? (odometerUriExtension ? `image/${odometerUriExtension}` : CONST.IMAGE_FILE_FORMAT.JPEG);
     const [odometerImageSource, setOdometerImageSource] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -171,6 +194,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptSource = isDraftTransaction ? ReceiptStorage.resolve(transactionDraft?.receipt?.source) : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
+    const [loadedScanningImageUri, setLoadedScanningImageUri] = useState<string>();
 
     const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
     const receiptFieldParams = {
@@ -208,6 +232,19 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [isCropSaving, setIsCropSaving] = useState(false);
     const [cropRect, setCropRect] = useState<CropRect | null>(null);
     const styles = useThemeStyles();
+    const {canTranslate, isTranslateDisabled, isTranslating, translatedReceiptRows, startTranslation, showOriginal} = useReceiptTranslation(transaction);
+    const shouldShowTranslateButton = canTranslate && !isDraftTransaction && !isOdometerImage && !isReceiptScanBlockingEdit(transaction);
+
+    // Every visit starts on the original receipt
+    useEffect(
+        () => () => {
+            if (!transaction?.transactionID) {
+                return;
+            }
+            showOriginalReceipt(transaction.transactionID);
+        },
+        [transaction?.transactionID],
+    );
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -338,7 +375,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
-    const applyDurableReceipt = (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+    const applyDurableReceipt = (imageUri: string, filename: string, file: File | CustomRNImageManipulatorResult, isSameReceipt?: boolean) => {
         if (!transaction?.transactionID) {
             return Promise.resolve();
         }
@@ -349,7 +386,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 return imageUri;
             })
             .then((durableUri) => {
-                const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
+                // Native image manipulation returns a plain result that points at a file URI, so only a web `File` can be copied into a new `File`.
+                const durableFile =
+                    file instanceof File
+                        ? Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri})
+                        : {...file, uri: durableUri, source: durableUri};
                 if (isOdometerImage) {
                     setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
@@ -375,12 +416,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     };
 
     const rotateReceipt = () => {
-        if (!transaction?.transactionID || !sourceUri || !isImage) {
+        if (!transaction?.transactionID || typeof sourceUri !== 'string' || !sourceUri || !isImage) {
             return;
         }
 
         setIsRotating(true);
-        cropOrRotateImage(sourceUri as string, [{rotate: -90}], {
+        cropOrRotateImage(sourceUri, [{rotate: -90}], {
             compress: 1,
             name: fileName,
             type: fileType,
@@ -397,7 +438,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return Promise.resolve();
                 }
 
-                const file = rotatedImage as File;
+                const file = rotatedImage;
                 const rotatedFilename = file.name ?? receiptFilename;
 
                 return applyDurableReceipt(imageUriResult, rotatedFilename, file, true).then(() => {
@@ -432,14 +473,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     };
 
     const saveCrop = () => {
-        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
+        if (!transaction?.transactionID || typeof sourceUri !== 'string' || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
             exitCropMode();
             return;
         }
 
         setIsCropSaving(true);
         cropOrRotateImage(
-            sourceUri as string,
+            sourceUri,
             [
                 {
                     crop: {
@@ -468,7 +509,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return Promise.resolve();
                 }
 
-                const file = croppedImage as File;
+                const file = croppedImage;
                 const croppedFilename = file.name ?? receiptFilename;
 
                 return applyDurableReceipt(imageUriResult, croppedFilename, file, true).then(() => {
@@ -526,6 +567,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return menuItems;
     };
 
+    const displayedImageUri = sourceUri || source;
+    const shouldShowScanningLine = isTranslating && !isPDF && typeof displayedImageUri === 'string' && !!displayedImageUri;
+    const isWaitingForScanningImage = shouldShowScanningLine && loadedScanningImageUri !== displayedImageUri;
+
     let footerActionButtons;
     if (isCropping) {
         footerActionButtons = (
@@ -551,11 +596,43 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 </Button>
             </View>
         );
-    } else if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage) {
+    } else if (isTranslating) {
+        footerActionButtons = (
+            // The receipt area already shows a spinner until the image loads, so this one stays hidden but keeps its space to avoid a layout jump
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter, isWaitingForScanningImage && styles.opacity0]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />
+            </View>
+        );
+    } else if (translatedReceiptRows) {
+        footerActionButtons = (
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter]}>
+                <Text
+                    variant="label"
+                    style={[styles.textSupporting, styles.textAlignCenter, styles.mb4]}
+                >
+                    {translate('receipt.translationDisclaimer')}
+                </Text>
+                <Button
+                    onPress={showOriginal}
+                    style={styles.transactionReceiptButton}
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.VIEW_ORIGINAL_RECEIPT}
+                >
+                    <Button.Icon src={expensifyIcons.ArrowsLeftRight} />
+                    <Button.Text>{translate('receipt.viewOriginal')}</Button.Text>
+                </Button>
+            </View>
+        );
+    } else if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage && !shouldShowTranslateButton) {
         footerActionButtons = null;
     } else {
         footerActionButtons = (
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+            <ScrollView
+                style={styles.flexGrow0}
+                contentContainerStyle={[styles.flexGrow1, styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE}
@@ -581,11 +658,22 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 {isPDF && !isNative && (
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.ROTATE_PDF}
-                        onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
+                        onPress={() => setPdfRotation(getNextPdfRotation)}
                         style={styles.transactionReceiptButton}
                     >
                         <Button.Icon src={expensifyIcons.Rotate} />
                         <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
+                )}
+                {shouldShowTranslateButton && (
+                    <Button
+                        onPress={startTranslation}
+                        isDisabled={isTranslateDisabled}
+                        style={styles.transactionReceiptButton}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.TRANSLATE_RECEIPT}
+                    >
+                        <Button.Icon src={expensifyIcons.Translate} />
+                        <Button.Text>{translate('receipt.translate')}</Button.Text>
                     </Button>
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
@@ -615,17 +703,27 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         <Button.Text>{translate('common.replace')}</Button.Text>
                     </Button>
                 )}
-            </View>
+            </ScrollView>
         );
     }
 
     let customAttachmentContent;
-    if (!isCropping || (!sourceUri && !source)) {
+    if (translatedReceiptRows && !isCropping) {
+        customAttachmentContent = <TranslatedReceiptCard rows={translatedReceiptRows} />;
+    } else if (shouldShowScanningLine) {
+        customAttachmentContent = (
+            <ReceiptScanningLine
+                imageUri={displayedImageUri}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
+                onLoad={() => setLoadedScanningImageUri(displayedImageUri)}
+            />
+        );
+    } else if (!isCropping || typeof displayedImageUri !== 'string' || !displayedImageUri) {
         customAttachmentContent = null;
     } else {
         customAttachmentContent = (
             <ReceiptCropView
-                imageUri={(sourceUri || source) as string}
+                imageUri={displayedImageUri}
                 onCropChange={handleCropChange}
                 isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
