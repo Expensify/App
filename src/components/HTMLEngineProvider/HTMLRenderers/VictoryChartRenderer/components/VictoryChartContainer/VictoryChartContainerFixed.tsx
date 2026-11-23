@@ -1,7 +1,7 @@
 import {CHART_TYPE, POLAR_CONTAINER_HEIGHT_RATIO} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {VictoryChartLayoutScaleProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
+import {useVictoryChartContext, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
 
 import useTheme from '@hooks/useTheme';
 
@@ -52,15 +52,24 @@ function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChar
 
     contentStyle.push(chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden'});
 
-    if (layoutKind === 'scaled' && scaledScale !== undefined && scaledScale < 1) {
-        contentStyle.push({transform: [{scale: scaledScale}], transformOrigin: 'top left'});
+    // A chart wider than its column is rendered at the fitted size, with every pixel value of its config scaled,
+    // instead of being drawn at the design size and shrunk with a CSS transform. Skia sizes its canvas from the
+    // layout size, which a transform does not change, so the browser would resample the drawing and blur its text.
+    const fittedScale = layoutKind === 'scaled' && scaledScale !== undefined && scaledScale < 1 ? scaledScale : 1;
+
+    if (fittedScale < 1 && scaledDesignWidth !== undefined && scaledDesignHeight !== undefined) {
+        contentStyle.push({
+            width: scaledDesignWidth * fittedScale,
+            height: scaledDesignHeight * fittedScale,
+            borderRadius: typeof borderRadius === 'number' ? scalePixels(borderRadius, fittedScale) : borderRadius,
+        });
     }
 
     return (
         <View style={containerStyle}>
-            <VictoryChartLayoutScaleProvider scale={scaledScale ?? 1}>
+            <VictoryChartScaledProvider scale={fittedScale}>
                 <View style={contentStyle}>{children}</View>
-            </VictoryChartLayoutScaleProvider>
+            </VictoryChartScaledProvider>
         </View>
     );
 }
