@@ -58,6 +58,7 @@ function renderDateField() {
                         shouldDisplayFieldError={false}
                         didConfirm={false}
                         isReadOnly={false}
+                        fieldError={undefined}
                         formError=""
                         transactionID={TRANSACTION_ID}
                         action={CONST.IOU.ACTION.CREATE}

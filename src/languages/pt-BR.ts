@@ -702,6 +702,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
+        notValid: 'Link inválido.',
+        sessionMismatch: 'O link em que você clicou não é válido para a sua sessão atual.',
+        switchAccount: {
+            title: 'Trocar de conta?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Você está conectado como ${currentEmail}. Esta ação fará com que você entre como ${newEmail} em vez disso.`,
+            confirm: 'Alterar contas',
+            staySignedIn: 'Não trocar de conta',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -13372,6 +13381,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
         toMarkAsDone: 'marcar como concluída',
         receivedPayment: 'pagamento recebido',
+        markedAsManuallyExported: (label: string) => `marcou este relatório como exportado manualmente para ${label}`,
     },
 };
 export default translations;

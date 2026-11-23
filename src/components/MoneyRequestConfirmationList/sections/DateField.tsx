@@ -16,12 +16,13 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {hasAnyManuallyEnteredScanField, isPartiallyEnteredScanExpense} from '@libs/TransactionUtils';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
@@ -41,7 +42,13 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
+
+    /** The date entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
+    fieldError: TranslationPaths | undefined;
+
+    /** The form error, read only for the entry this field could not make sense of, which no other field knows about */
     formError: string;
+
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -49,9 +56,9 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, onDateValidationErrorChange} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs, onDateValidationErrorChange} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,16 +87,14 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // Opening the calendar blurs the input, so the open picker stands in for focus here. The hint goes once the user
     // takes the field over, by opening the picker or by entering any of the three fields.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
     // A date the field cannot read is never handed over, so nothing about the transaction says the user has started
     // filling this one in. The field reporting an error of its own is the only sign those digits are on screen.
     const [hasUnusableDateEntry, setHasUnusableDateEntry] = useState(false);
     const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasUnusableDateEntry && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
-
-    // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
-    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually, isPolicyExpenseChat) ? !dateState?.isCreatedSet : createdMissing;
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
+    const inlineDateErrorText = fieldError ? translate(fieldError) : '';
 
     // The field holds back an entry it cannot read as a date, so it is the only thing that knows one is there. Pressing
     // Create is what raises it, which is why the message is shown from the form error rather than as the user types.
@@ -142,7 +147,10 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     if (!isReadOnly) {
         return (
             // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
-            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
+            <View
+                ref={fieldViewRefs?.date}
+                style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}
+            >
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}

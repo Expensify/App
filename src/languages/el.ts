@@ -704,6 +704,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
+        notValid: 'Μη έγκυρος σύνδεσμος.',
+        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
+        switchAccount: {
+            title: 'Αλλαγή λογαριασμών;',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
+            confirm: 'Αλλαγή λογαριασμών',
+            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -13694,6 +13703,7 @@ ${reportName}`,
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
         toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
         receivedPayment: 'λάβατε πληρωμή',
+        markedAsManuallyExported: (label: string) => `σήμανε αυτήν την αναφορά ως μη αυτόματα εξαχθείσα σε ${label}`,
     },
 };
 export default translations;

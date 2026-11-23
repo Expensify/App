@@ -703,6 +703,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -13372,6 +13381,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
         toMarkAsDone: 'markeren als voltooid',
         receivedPayment: 'betaling ontvangen',
+        markedAsManuallyExported: (label: string) => `heeft dit rapport gemarkeerd als handmatig geëxporteerd naar ${label}`,
     },
 };
 export default translations;

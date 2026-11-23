@@ -15,6 +15,8 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import type {ValidationResult} from './hooks/useConfirmationValidation';
+
 type BuildConfirmActionParams = {
     /** IOU type being confirmed (submit / split / track / pay / invoice) */
     iouType: IOUType;
@@ -34,11 +36,17 @@ type BuildConfirmActionParams = {
     /** Whether the current user is a delegate without permission to pay */
     isDelegateAccessRestricted: boolean;
 
-    /** Pure validator that returns the first failing translation key, or null on success */
-    validate: (paymentType?: PaymentMethodType) => {errorKey: TranslationPaths; shouldSetDidConfirmSplit?: boolean} | {errorKey: null} | null;
+    /** Returns the first check that blocks confirming, `{errorKey: null}` when none does, or null when validation can't run yet */
+    validate: (paymentType?: PaymentMethodType) => ValidationResult | null;
 
-    /** Setter for the form-level error key */
-    setFormError: (error: TranslationPaths | '') => void;
+    /** Sets the form error for a check that blocks confirming */
+    setConfirmError: (error: TranslationPaths) => void;
+
+    /** Drops the form error the last confirm set, since validation checks it again on the next confirm */
+    clearConfirmError: () => void;
+
+    /** Shows the errors of the amount, date and merchant fields, which render on the fields rather than in the form error */
+    revealFieldErrors: () => void;
 
     /** Setter for the "user already confirmed split" flag */
     setDidConfirmSplit: (value: boolean) => void;
@@ -56,10 +64,10 @@ type BuildConfirmActionParams = {
 /**
  * Owns the click-confirm action for the Money Request confirmation flow.
  *
- * Validation always runs first and its result drives form-error state. Past it there are three
- * branches: (1) invoice-without-company-info routes to the company info step; (2) non-PAY types
- * invoke `onConfirm`; (3) PAY types run delegate-access gating and invoke `onSendMoney` with the
- * chosen payment method.
+ * Validation always runs first. A field error is revealed on its field, dropping a form error an earlier confirm
+ * set, and any other failure becomes the form error. Past validation there are three branches: (1) invoice-without-company-info routes to the
+ * company info step; (2) non-PAY types invoke `onConfirm`; (3) PAY types run delegate-access gating and
+ * invoke `onSendMoney` with the chosen payment method.
  */
 function buildConfirmAction({
     iouType,
@@ -69,7 +77,9 @@ function buildConfirmAction({
     formError,
     isDelegateAccessRestricted,
     validate,
-    setFormError,
+    setConfirmError,
+    clearConfirmError,
+    revealFieldErrors,
     setDidConfirmSplit,
     showDelegateNoAccessModal,
     onConfirm,
@@ -81,11 +91,17 @@ function buildConfirmAction({
             return;
         }
 
+        if ('isFieldError' in result) {
+            clearConfirmError();
+            revealFieldErrors();
+            return;
+        }
+
         if (result.errorKey) {
             if (result.shouldSetDidConfirmSplit) {
                 setDidConfirmSplit(true);
             }
-            setFormError(result.errorKey);
+            setConfirmError(result.errorKey);
             return;
         }
 

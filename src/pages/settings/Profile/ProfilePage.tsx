@@ -396,7 +396,7 @@ function ProfilePage() {
                                             {detail.title ? (
                                                 <>
                                                     <MenuItem.FieldName>{detail.description}</MenuItem.FieldName>
-                                                    <MenuItem.FieldValue>{detail.title}</MenuItem.FieldValue>
+                                                    <MenuItem.FieldValue forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{detail.title}</MenuItem.FieldValue>
                                                 </>
                                             ) : (
                                                 <MenuItem.FieldNamePlaceholder>{detail.description}</MenuItem.FieldNamePlaceholder>

@@ -703,6 +703,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
         signIn: 'Veuillez vous reconnecter.',
+        notValid: 'Lien invalide.',
+        sessionMismatch: 'Le lien sur lequel vous avez cliqué n’est pas valide pour votre session actuelle.',
+        switchAccount: {
+            title: 'Changer de compte ?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Vous êtes connecté en tant que ${currentEmail}. Cette action vous connectera plutôt en tant que ${newEmail}.`,
+            confirm: 'Changer de compte',
+            staySignedIn: 'Ne changez pas de compte',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -13493,6 +13502,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
         toMarkAsDone: 'marquer comme terminé',
         receivedPayment: 'paiement reçu',
+        markedAsManuallyExported: (label: string) => `a marqué cette note de frais comme exportée manuellement vers ${label}`,
     },
 };
 export default translations;

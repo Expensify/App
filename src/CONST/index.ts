@@ -3484,6 +3484,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        ACCOUNT_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -10677,6 +10678,24 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+            WORKSPACE_CATEGORIES: 'workspaceCategories',
+            WORKSPACE_FLAG_FOR_REVIEW: 'workspaceFlagForReview',
+            WORKSPACE_REQUIRE_FIELDS: 'workspaceRequireFields',
+            WORKSPACE_DISTANCE_RATES: 'workspaceDistanceRates',
+            WORKSPACE_EXPENSE_DEFAULTS: 'workspaceExpenseDefaults',
+            WORKSPACE_LIST: 'workspaceList',
+            WORKSPACE_PER_DIEM: 'workspacePerDiem',
+            WORKSPACE_ROOMS: 'workspaceRooms',
+            WORKSPACE_SPEND_RULES: 'workspaceSpendRules',
+            WORKSPACE_TAGS: 'workspaceTags',
+            WORKSPACE_VENDORS: 'workspaceVendors',
+            AGENTS: 'agents',
+            WORKSPACE_AGENTS: 'workspaceAgents',
+            DOMAIN_ADMINS: 'domainAdmins',
+            DOMAIN_GROUPS: 'domainGroups',
+            DOMAIN_LIST: 'domainList',
+            DOMAIN_MEMBERS: 'domainMembers',
+            PERSONAL_EXPENSE_RULES: 'personalExpenseRules',
 
             /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',

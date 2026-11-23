@@ -5,6 +5,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDateSegmentInput from '@hooks/useDateSegmentInput';
+import useInputFSClass from '@hooks/useInputFSClass';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
@@ -86,6 +87,8 @@ function DatePicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {setInputValidationError} = useContext(FormContext);
+    // The calendar renders in a popover outside the form, so it doesn't inherit the form's mask. It takes the class the input picks for itself instead.
+    const calendarFSClass = useInputFSClass(forwardedFSClass, {autoComplete});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     // The field is drawn as focused by its own input, which is only one of the segments, so the other two report it here
@@ -540,7 +543,7 @@ function DatePicker({
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
-                forwardedFSClass={forwardedFSClass}
+                forwardedFSClass={calendarFSClass}
                 shouldCloseWhenBrowserNavigationChanged
                 anchorRef={anchorRef}
                 withoutOverlay={shouldAllowTyping}
