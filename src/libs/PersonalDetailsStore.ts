@@ -1,4 +1,4 @@
-/** Personal details for non-React callers, and the one place the coming Onyx-collection reshape has to land */
+/** Personal details for handlers and non-React callers, read at call time, and the one place the coming Onyx-collection reshape has to land */
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
@@ -24,7 +24,7 @@ function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<str
     return mapping;
 }
 
-// Only sanctioned connectWithoutView for personal details, don't add another: React uses @hooks/usePersonalDetails, everything else uses this store
+// Only sanctioned connectWithoutView for personal details, don't add another: render reads use @hooks/usePersonalDetails, handlers and non-React code read this store at call time
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
