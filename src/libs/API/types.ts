@@ -596,6 +596,7 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT: 'UpdateDualEntryCardProgramAccount',
     UPDATE_DUALENTRY_AUTO_SYNC: 'UpdateDualEntryAutoSync',
     UPDATE_DUALENTRY_ACCOUNTING_METHOD: 'UpdateDualEntryAccountingMethod',
+    UPDATE_DUALENTRY_AUTO_CREATE_VENDOR: 'UpdateDualEntryAutoCreateVendor',
     UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS: 'UpdateDualEntrySyncReimbursedReports',
     UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT: 'UpdateDualEntryBillPaymentAccount',
     UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT: 'UpdateDualEntryFxExpenseAccount',
@@ -1413,6 +1414,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateDualEntryCardProgramAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_SYNC]: Parameters.UpdateDualEntryAutoSyncParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD]: Parameters.UpdateDualEntryAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_AUTO_CREATE_VENDOR]: Parameters.UpdateDualEntryAutoCreateVendorParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateDualEntrySyncReimbursedReportsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDualEntryBillPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT]: Parameters.UpdateDualEntryFxExpenseAccountParams;

@@ -2152,6 +2152,9 @@ type DualEntryExport = {
 
     /** Accounting method used during export. */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Whether missing submitter vendors are automatically created in DualEntry during export. */
+    autoCreateVendor: boolean;
 };
 
 /** Offline feedback key for card program account */

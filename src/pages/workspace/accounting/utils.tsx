@@ -615,6 +615,7 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD,
+                    CONST.DUALENTRY_CONFIG.AUTO_CREATE_VENDOR,
                     CONST.DUALENTRY_CONFIG.AUTO_SYNC,
                     CONST.DUALENTRY_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID,

@@ -80,6 +80,7 @@ export type {default as UpdateDualEntryExportToMultipleAccountsParams} from './U
 export type {default as UpdateDualEntryCardProgramAccountParams} from './UpdateDualEntryCardProgramAccountParams';
 export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAutoSyncParams';
 export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
+export type {default as UpdateDualEntryAutoCreateVendorParams} from './UpdateDualEntryAutoCreateVendorParams';
 export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
 export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateDualEntryBillPaymentAccountParams';
 export type {default as UpdateDualEntryFxExpenseAccountParams} from './UpdateDualEntryFxExpenseAccountParams';
