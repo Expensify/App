@@ -1338,6 +1338,9 @@ type TabNavigatorParamList = {
               dashboardID: string;
           }
         | undefined;
+    [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.REPORTS]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.MORE]: undefined;
 };
 
 type SharedScreensParamList = {

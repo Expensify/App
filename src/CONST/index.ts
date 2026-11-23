@@ -57,6 +57,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const UBER_REVOKE_URL = 'https://business.uber.com/revoke';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
@@ -417,6 +418,8 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
+    PENDING_RHP_WIDTH_WINDOW: 2000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -809,6 +812,7 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    UBER_REVOKE_URL,
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
@@ -851,6 +855,8 @@ const CONST = {
         // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
         // for, so English output is unchanged, while other languages stop being forced into the US component order.
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
+        SECONDS_PER_MINUTE: 60,
+        SECONDS_PER_HOUR: 60 * 60,
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -1649,6 +1655,7 @@ const CONST = {
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
         MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
+        EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1912,6 +1919,7 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
         EUR: 'EUR',
+        SGD: 'SGD',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
     // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
@@ -1919,6 +1927,11 @@ const CONST = {
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
+    },
+    // The server only lets a workspace with Direct reimbursement switch to these currencies. The list copies the server's own
+    // direct reimbursement list, which also includes SGD, so it is kept apart from DIRECT_REIMBURSEMENT_CURRENCIES above.
+    get CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE() {
+        return [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD];
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
@@ -2913,6 +2926,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        CONTEXT_NEWDOT_SCREEN: 'NewDot Screen',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
         BREADCRUMB_CATEGORY_MFA: 'mfa',
@@ -3030,6 +3044,7 @@ const CONST = {
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
+        SPAN_OPEN_CATEGORY_VISIBLE_TO: 'ManualOpenCategoryVisibleTo',
         SPAN_OPEN_CATEGORY_PICKER: 'ManualOpenCategoryPicker',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
@@ -3152,6 +3167,8 @@ const CONST = {
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
         ATTRIBUTE_REQUEST_ID: 'request_id',
+        ATTRIBUTE_SEARCH_SNAPSHOT_COUNT: 'search_snapshot_count',
+        ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES: 'search_snapshot_entries',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -3463,6 +3480,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        ACCOUNT_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -5649,7 +5667,6 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
-            GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
@@ -7596,6 +7613,7 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    TAB_BAR_LABEL_BOLD_PLACEHOLDER: 'tab-bar-label-bold-placeholder',
     COPYABLE_TEXT_ELEMENT: 'copyable-text',
     COPYABLE_ROW_ELEMENT: 'copyable-row',
     COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
@@ -7925,6 +7943,7 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            JUMP_TO: 'JUMP_TO',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
             POP: 'POP',
@@ -8464,6 +8483,13 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        // Keep in sync with FilterUtils::MAX_KEYWORD_TOKENS in Auth.
+        MAX_KEYWORD_TOKENS: 50,
+        QUERY_ERROR_UUID: {
+            TOO_MANY_KEYWORDS: '0e6765b2-f874-4750-b437-0a9b02ecf1d7',
+            INVALID_REPORT_ID: '4a98efa5-a7f8-4413-9b52-8dbee6aaa651',
+            UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
+        },
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
@@ -8601,7 +8627,6 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
-            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
             WORKFLOW_STAGE: 'workflow-stage',
@@ -8964,8 +8989,8 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
-                // Search never lists violation groups, so they get only the columns every group has
                 VIOLATION: {
+                    VIOLATION: this.TABLE_COLUMNS.GROUP_VIOLATION,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
@@ -9039,7 +9064,7 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION: [this.TABLE_COLUMNS.GROUP_VIOLATION, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
@@ -9100,6 +9125,11 @@ const CONST = {
             START: 'start',
             CENTER: 'center',
             END: 'end',
+        },
+        /** The edge of the Spend table a pinned column is moved to. */
+        PINNED_COLUMN_SIDE: {
+            LEFT: 'left',
+            RIGHT: 'right',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -9182,6 +9212,7 @@ const CONST = {
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
             GROUP_APPROVER: 'groupApprover',
+            GROUP_VIOLATION: 'groupViolation',
             START_DATE: 'startDate',
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
@@ -9207,6 +9238,8 @@ const CONST = {
             VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+            RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
             LIMIT: 'limit',
             COMPARE: 'compare',
             TAG_LEVEL: 'tagLevel',
@@ -9409,6 +9442,8 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             APPROVER: 'approver',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'left-pinned-columns',
+            RIGHT_PINNED_COLUMNS: 'right-pinned-columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
             FOOTER_TOTAL: 'footer-total',
@@ -9487,6 +9522,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
                 [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
+                [this.TABLE_COLUMNS.GROUP_VIOLATION]: 'group-violation',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
@@ -10054,6 +10090,35 @@ const CONST = {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
         },
+        /**
+         * The merchant categories a rule can match on.
+         *
+         * These are the rules engine's own vocabulary, which is not the same as the `mccGroup` groups the
+         * merchant type defaults use. The two taxonomies overlap only on `airlines` and `groceries`.
+         */
+        MERCHANT_TYPE: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
@@ -10609,6 +10674,24 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+            WORKSPACE_CATEGORIES: 'workspaceCategories',
+            WORKSPACE_FLAG_FOR_REVIEW: 'workspaceFlagForReview',
+            WORKSPACE_REQUIRE_FIELDS: 'workspaceRequireFields',
+            WORKSPACE_DISTANCE_RATES: 'workspaceDistanceRates',
+            WORKSPACE_EXPENSE_DEFAULTS: 'workspaceExpenseDefaults',
+            WORKSPACE_LIST: 'workspaceList',
+            WORKSPACE_PER_DIEM: 'workspacePerDiem',
+            WORKSPACE_ROOMS: 'workspaceRooms',
+            WORKSPACE_SPEND_RULES: 'workspaceSpendRules',
+            WORKSPACE_TAGS: 'workspaceTags',
+            WORKSPACE_VENDORS: 'workspaceVendors',
+            AGENTS: 'agents',
+            WORKSPACE_AGENTS: 'workspaceAgents',
+            DOMAIN_ADMINS: 'domainAdmins',
+            DOMAIN_GROUPS: 'domainGroups',
+            DOMAIN_LIST: 'domainList',
+            DOMAIN_MEMBERS: 'domainMembers',
+            PERSONAL_EXPENSE_RULES: 'personalExpenseRules',
 
             /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',

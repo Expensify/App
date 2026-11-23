@@ -706,7 +706,7 @@ function MoneyRequestView({
                 event?.stopPropagation();
                 openExternalLink(`${CONST.GOOGLE_SEARCH_URL}${encodeURIComponent(originalMerchantForGoogleSearch)}`);
             }}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.alignSelfStart]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
         >
             <Text style={styles.textLabelSupporting}>
                 {translate('common.googleThisMerchant', {
@@ -1412,31 +1412,59 @@ function MoneyRequestView({
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
-                        <MenuItemWithTopDescription
+                        <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
-                            description={translate('common.merchant')}
-                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
-                            title={updatedMerchantTitle}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('merchant')}
-                            errorTextStyle={styles.userSelectNone}
-                            numberOfLinesTitle={0}
-                            copyValue={merchantCopyValue}
-                            copyable={!canEditMerchant && !!merchantCopyValue}
-                            isTitleSelectable={!!merchantCopyValue}
-                        />
+                            shouldAllowTextSelection={!!merchantCopyValue}
+                            shouldBeAccessible={canEditMerchant || !shouldShowGoogleMerchantSearchLink}
+                            style={styles.taskDescriptionMenuItem}
+                            onPress={
+                                canEditMerchant
+                                    ? callIfAuthenticated(() => {
+                                          Navigation.navigate(
+                                              createDynamicRoute(
+                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                                                      CONST.IOU.ACTION.EDIT,
+                                                      iouType,
+                                                      transaction.transactionID,
+                                                      transactionThreadReport?.reportID,
+                                                  ),
+                                              ),
+                                          );
+                                      }, session)
+                                    : undefined
+                            }
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    {updatedMerchantTitle ? (
+                                        <>
+                                            <MenuItem.FieldName>{translate('common.merchant')}</MenuItem.FieldName>
+                                            <MenuItem.FieldValue
+                                                numberOfLines={0}
+                                                isSelectable={!!merchantCopyValue}
+                                                style={styles.flex1}
+                                            >
+                                                {updatedMerchantTitle}
+                                            </MenuItem.FieldValue>
+                                        </>
+                                    ) : (
+                                        <MenuItem.FieldNamePlaceholder>{translate('common.merchant')}</MenuItem.FieldNamePlaceholder>
+                                    )}
+                                    {shouldShowGoogleMerchantSearchLink && renderGoogleMerchantSearchLink()}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    {!!getErrorForField('merchant') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                    {canEditMerchant && <MenuItem.Chevron />}
+                                    {!canEditMerchant && !!merchantCopyValue && <MenuItem.Copy value={merchantCopyValue} />}
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                            {!!getErrorForField('merchant') && (
+                                <MenuItem.HelpText
+                                    isError
+                                    message={getErrorForField('merchant')}
+                                />
+                            )}
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
