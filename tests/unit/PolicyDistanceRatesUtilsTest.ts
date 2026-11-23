@@ -573,6 +573,7 @@ describe('PolicyDistanceRatesUtils', () => {
             // Given a country with a fixed note, before its rate has loaded
             // When we build the note
             // Then the note is shown without waiting for the rate
+            expect(hasGovernmentRateNote('NO')).toBe(true);
             expect(getGovernmentRateNote(translateLocal, 'NO', undefined, undefined)).toBe(translateLocal('workspace.distanceRates.addRatePage.governmentRateNotes.NO'));
         });
 
@@ -580,6 +581,8 @@ describe('PolicyDistanceRatesUtils', () => {
             // Given Belgium and Sweden, whose notes quote the published rate
             // When we build the notes before and after the rate loads
             // Then they wait for the rate, then show its start date and its amount per Swedish mil
+            expect(hasGovernmentRateNote('BE')).toBe(true);
+            expect(hasGovernmentRateNote('SE')).toBe(true);
             expect(getGovernmentRateNote(translateLocal, 'BE', undefined, undefined)).toBeUndefined();
             expect(getGovernmentRateNote(translateLocal, 'SE', undefined, undefined)).toBeUndefined();
             expect(getGovernmentRateNote(translateLocal, 'BE', belgiumRate, undefined)).toBe(
@@ -594,7 +597,6 @@ describe('PolicyDistanceRatesUtils', () => {
             // Then there is none, so no loading line is shown either
             expect(hasGovernmentRateNote('US')).toBe(false);
             expect(getGovernmentRateNote(translateLocal, 'US', undefined, undefined)).toBeUndefined();
-            expect(hasGovernmentRateNote('SE')).toBe(true);
         });
     });
 });
