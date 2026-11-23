@@ -8773,6 +8773,11 @@ const CONST = {
                     search: true,
                     reportView: false,
                 },
+                TRANSACTION_ID: {
+                    column: this.TABLE_COLUMNS.TRANSACTION_ID,
+                    search: true,
+                    reportView: false,
+                },
                 REIMBURSABLE: {
                     column: this.TABLE_COLUMNS.REIMBURSABLE,
                     search: true,
