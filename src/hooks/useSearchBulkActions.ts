@@ -66,6 +66,7 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
+import {canPayOffline} from '@libs/PaymentUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -1759,7 +1760,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
-            if (isOffline) {
+            if (isOffline && !canPayOffline(paymentMethod, areAllMatchingItemsSelected)) {
                 // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
                 // so defer it until the popover transition completes (matching the delegate/locked-account guards).
                 deferModalPresentationAfterPopoverDismiss(() => showOfflineModal());
@@ -2128,16 +2129,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
             const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
-            for (const report of quotedReports) {
-                // Search results don't hold the quote, which the server merges into the report in Onyx
-                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
-            }
+            const getQuotes = () => {
+                for (const report of quotedReports) {
+                    // Search results don't hold the quote, which the server merges into the report in Onyx
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                }
+            };
+            getQuotes();
             const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({
                     reports,
                     quotedReportIDs,
+                    getNewQuotes: getQuotes,
                     onConfirm: (wiseQuoteIDsByReportID) => {
                         payExpenseReports(wiseQuoteIDsByReportID);
                         playSound(SOUNDS.SUCCESS);
@@ -3884,6 +3889,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment: stableOnBulkPaySelected,
+        showOfflineModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,

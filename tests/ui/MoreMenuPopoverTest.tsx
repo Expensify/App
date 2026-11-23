@@ -6,9 +6,10 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {FLAT_NAV_SECTION_DEFINITIONS} from '@libs/Navigation/FlatNav/FlatNavUtils';
-import type {FlatNavSection} from '@libs/Navigation/FlatNav/types';
+import type {FlatNavSavedSearchItem, FlatNavSection} from '@libs/Navigation/FlatNav/types';
 import useFlatNavSections from '@libs/Navigation/FlatNav/useFlatNavSections';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,11 +33,24 @@ jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateTo
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => ({indicatorColor: '#ff0000', status: 'hasPolicyErrors'}));
 jest.mock('@libs/telemetry/startTabNavigationSpans', () => ({startNavigateToReportsTabSpans: jest.fn()}));
 
+/** The More menu lists a section only when it has a search to open, and any item that can be opened will do here. */
+const SAVED_SEARCH_ITEM: FlatNavSavedSearchItem = {
+    type: FLAT_NAV.ITEM_TYPE.SAVED_SEARCH,
+    key: savedSearchIDToSearchKey('1'),
+    sectionID: FLAT_NAV.SECTION.SAVED,
+    savedSearchID: '1',
+    name: 'Saved 1',
+    title: 'Saved 1',
+    query: 'type:expense',
+    iconName: 'Bookmark',
+    isDisabled: false,
+};
+
 const SECTIONS: FlatNavSection[] = FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => definition.id !== FLAT_NAV.SECTION.TRAVEL).map(({id, translationPath, iconName}) => ({
     id,
     translationPath,
     iconName,
-    items: [],
+    items: [SAVED_SEARCH_ITEM],
     badgeText: id === FLAT_NAV.SECTION.ACCOUNTING ? '3' : undefined,
 }));
 
@@ -76,13 +90,14 @@ describe('MoreMenuPopover', () => {
         // When the menu is shown
         // Then every row navigates only once the sheet has closed, so no screen moves under the closing sheet
         expect(getMenuItems().every((item) => item.shouldCallAfterModalHide)).toBe(true);
-        // And only Accounting is highlighted, since that is where the user is, and it carries its todo badge
+        // And only Accounting is highlighted, since that is where the user is, and it carries its todo badge in green
         expect(
             getMenuItems()
                 .filter((item) => item.isSelected)
                 .map((item) => item.key),
         ).toEqual([MORE_MENU.ITEM.ACCOUNTING]);
         expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).badgeText).toBe('3');
+        expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).isBadgeSuccess).toBe(true);
         // And Workspaces shows the dot the More item shows in the bar
         expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).shouldShowRightComponent).toBe(true);
     });
