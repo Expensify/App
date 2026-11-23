@@ -105,6 +105,11 @@ function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashbo
     return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
 }
 
+/** Builds the query used to request and read a chart snapshot. */
+function buildChartSnapshotQueryJSON(dashboard: InsightsDashboardID, chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): Readonly<SearchQueryJSON> | undefined {
+    return withInsightsSnapshotHash(buildDashboardQuery(applyInsightsFilters(chart, filters, compare), dashboard), chart.graphKey);
+}
+
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
@@ -223,9 +228,7 @@ function buildSnapshotHashEntry(
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = (
-        averageQueryJSON ?? withInsightsSnapshotHash(buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard), chart.graphKey)
-    )?.hash;
+    const averageSnapshotHash = (averageQueryJSON ?? buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -265,14 +268,12 @@ function buildInsightsJsonQuery(
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const buildChartQuery = (declaredChart: InsightsChartSpec): InsightsChartQuery => {
         const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
-        const buildChartSnapshotQuery = (compare?: SearchCompareMode) =>
-            withInsightsSnapshotHash(buildDashboardQuery(applyInsightsFilters(chart, filters, compare), dashboard), chart.graphKey);
         return {
             chart,
-            queryJSON: buildChartSnapshotQuery(),
-            previousPeriodQueryJSON: buildChartSnapshotQuery(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD),
+            queryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters),
+            previousPeriodQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD),
             ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {
-                averageQueryJSON: buildChartSnapshotQuery(CONST.SEARCH.COMPARE.AVERAGE),
+                averageQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE),
             }),
         };
     };

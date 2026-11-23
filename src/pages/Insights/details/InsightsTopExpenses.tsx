@@ -47,6 +47,7 @@ type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
     queryJSON: Readonly<SearchQueryJSON>;
 
+    /** Omit to hide View all when the expenses cannot be opened with the same scope. */
     viewAllQuery?: SearchQueryString;
     onRetry: () => void;
 };
