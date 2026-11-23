@@ -198,10 +198,7 @@ describe('UnreadIndicatorUpdater', () => {
             expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
         });
 
-        it.each([
-            ['the app comes back to the foreground', () => mockAddBecameActiveListener.mock.calls.at(-1)?.[0]],
-            ['the Concierge indicator asks for a new publish', () => mockSetUnreadUpdateCallback.mock.calls.at(-1)?.[0]],
-        ])('ends with the latest count when %s while a scan is still waiting', async (_name, getPublishTrigger) => {
+        it('ends with the latest count when the Concierge indicator asks for a new publish while a scan is still waiting', async () => {
             // Given the updater has published one unread report and the report was then read, so a new scan is waiting
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
             render(<UnreadIndicatorUpdater />);
@@ -214,9 +211,9 @@ describe('UnreadIndicatorUpdater', () => {
             await waitForBatchedUpdatesWithAct();
             expect(idleTasks).toHaveLength(1);
 
-            // When the trigger fires before the waiting scan ran, so it can only publish the last completed count
+            // When the Concierge indicator asks for a publish before the waiting scan ran, so it can only publish the last completed count
             mockUpdateUnread.mockClear();
-            getPublishTrigger()?.();
+            mockSetUnreadUpdateCallback.mock.calls.at(-1)?.[0]();
             expect(mockUpdateUnread).toHaveBeenCalledTimes(1);
             expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
 

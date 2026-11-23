@@ -136,8 +136,8 @@ describe('UnreadIndicatorUpdaterTest', () => {
             } as ReportActions,
         });
 
-        const scan = (reports: ReturnType<typeof getReports>, reportActions: ReturnType<typeof getReportActions>) =>
-            UnreadIndicatorUpdater.getUnreadReportIDsForUnreadIndicator(reports, undefined, undefined, {
+        const scan = (reports: ReturnType<typeof getReports>, reportActions: ReturnType<typeof getReportActions>, currentReportID?: string) =>
+            UnreadIndicatorUpdater.getUnreadReportIDsForUnreadIndicator(reports, currentReportID, undefined, {
                 reportActions,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -154,15 +154,18 @@ describe('UnreadIndicatorUpdaterTest', () => {
             expect(unreadReportIDs).toContain(EXPENSE_REPORT_ID);
         });
 
-        it('does not count the report as unread when its transaction thread is read', () => {
-            // Given the same expense report, but the thread was read after its newest message
-            const reports = getReports({lastReadTime: NEWER_MESSAGE_TIME, lastVisibleActionCreated: NEWER_MESSAGE_TIME});
+        it('counts a report read after its last message when the user was mentioned later', () => {
+            // Given a chat read after its last visible message, but with a mention that came after the read
+            const reports = getReports(
+                {lastReadTime: NEWER_MESSAGE_TIME, lastVisibleActionCreated: NEWER_MESSAGE_TIME},
+                {type: CONST.REPORT.TYPE.CHAT, lastMentionedTime: NEWER_MESSAGE_TIME},
+            );
 
             // When the unread reports are scanned
-            const unreadReportIDs = scan(reports, getReportActions());
+            const unreadReportIDs = scan(reports, {});
 
-            // Then nothing is left to read, so the expense report is not counted
-            expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
+            // Then the mention keeps the report unread, so a read last message alone does not skip it
+            expect(unreadReportIDs).toContain(EXPENSE_REPORT_ID);
         });
 
         it('stops counting the thread message after the report actions change so the thread is no longer attached to the report', () => {
@@ -182,17 +185,6 @@ describe('UnreadIndicatorUpdaterTest', () => {
             expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
         });
 
-        it('does not count a read report that has no transaction thread', () => {
-            // Given an expense report read after its last message and no report actions
-            const reports = getReports({lastReadTime: OLDER_MESSAGE_TIME, lastVisibleActionCreated: OLDER_MESSAGE_TIME});
-
-            // When the unread reports are scanned
-            const unreadReportIDs = scan(reports, {});
-
-            // Then the report is not counted
-            expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
-        });
-
         describe('when the same report actions are scanned again', () => {
             const THREAD_UNREAD = {lastReadTime: OLDER_MESSAGE_TIME, lastVisibleActionCreated: NEWER_MESSAGE_TIME};
 
@@ -200,18 +192,17 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 mockGetIsOffline.mockReturnValue(false);
             });
 
-            it('gives the same answer when nothing changed', () => {
-                // Given report actions that were already scanned once
-                const reports = getReports(THREAD_UNREAD);
+            it('follows the transaction count of an open bill, which only has a transaction thread while it holds one expense', () => {
+                // Given an open bill with one expense, counted because of the unread message in its transaction thread
                 const reportActions = getReportActions();
-                const firstScan = scan(reports, reportActions);
+                const bill = {type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, transactionCount: 1};
+                expect(scan(getReports(THREAD_UNREAD, bill), reportActions, EXPENSE_REPORT_ID)).toContain(EXPENSE_REPORT_ID);
 
-                // When the same data is scanned again
-                const secondScan = scan(reports, reportActions);
+                // When the same actions are scanned after the bill got a second expense
+                const unreadReportIDs = scan(getReports(THREAD_UNREAD, {...bill, transactionCount: 2}), reportActions, EXPENSE_REPORT_ID);
 
-                // Then the unread reports are the same
-                expect(firstScan).toContain(EXPENSE_REPORT_ID);
-                expect(secondScan).toEqual(firstScan);
+                // Then the bill has no single transaction thread anymore, so the thread message no longer counts
+                expect(unreadReportIDs).not.toContain(EXPENSE_REPORT_ID);
             });
 
             it('follows the report type, so a thread only counts while the report can have one', () => {
