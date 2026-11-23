@@ -456,6 +456,56 @@ describe('actions/Policy/PerDiem', () => {
         expect(restoredRate?.errorFields?.lunch).toBeFalsy();
     });
 
+    it.each([false, true])('preserves the earlier destination deletion outcome when a later delete-all fails (first succeeds: %s)', async (doesFirstDeletionSucceed) => {
+        // Given an online destination deletion whose response is held while another destination remains available.
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        await waitForBatchedUpdates();
+        let responseCount = 0;
+        mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, () => ({jsonCode: responseCount++ === 0 && doesFirstDeletionSucceed ? 200 : 400}));
+        mockFetch.pause();
+        const writeSpy = jest.spyOn(API, 'write');
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {destination: 'Destination Two', subRateName: 'Breakfast', rate: 2000, currency: 'USD', rateID: unchangedRateID, subRateID: 'breakfast-two'},
+        ]);
+        await waitForBatchedUpdates();
+        expect(mockFetch).toHaveBeenCalled();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // When all remaining rows are deleted before the first request finishes, and delete-all then fails.
+        deleteWorkspacePerDiemRates(
+            'policy',
+            policy?.customUnits?.[customUnitID],
+            (currentRate.subRates ?? []).map((subrate) => ({
+                destination: 'Destination One',
+                subRateName: subrate.name,
+                rate: subrate.rate,
+                currency: 'USD',
+                rateID,
+                subRateID: subrate.id,
+            })),
+        );
+        expect(writeSpy).toHaveBeenNthCalledWith(2, WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, {policyID: 'policy', customUnitID, deleteAllRates: true}, expect.any(Object));
+        await waitForBatchedUpdates();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then only its own request decides whether the earlier destination is restored, with its original failure error.
+        expect(responseCount).toBe(2);
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const rates = policy?.customUnits?.[customUnitID]?.rates;
+        expect(rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(rates?.[rateID]?.errorFields?.breakfast).toBeTruthy();
+        const earlierRate = rates?.[unchangedRateID];
+        if (doesFirstDeletionSucceed) {
+            expect(earlierRate).toBeFalsy();
+        } else {
+            expect(earlierRate?.subRates).toEqual(customUnit.rates[unchangedRateID].subRates);
+            expect(earlierRate?.pendingAction).toBeFalsy();
+            expect(earlierRate?.errorFields?.['breakfast-two']).toBeTruthy();
+        }
+    });
+
     it.each([true, false])('does not restore an earlier deleted subrate when the next deletion succeeds: %s', async (doesSecondDeletionSucceed) => {
         // Given three sibling subrates, so two deletions can be queued independently while offline.
         const unit = {...customUnit, rates: {...customUnit.rates, [rateID]: {...currentRate, subRates: [...(currentRate.subRates ?? []), {id: 'dinner', name: 'Dinner', rate: 2500}]}}};

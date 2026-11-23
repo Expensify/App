@@ -337,14 +337,15 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
 
         const firstSelectedSubRate = subRatesToBeDeleted.at(0);
         const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
-        // Restore every rate on failure, but attach one row error to avoid duplicating the same error across the full selection.
+        // Earlier deletions own their rollback; touching those rates here could remove a rate their failed request just restored.
+        // Attach one row error to avoid duplicating the same error across the full selection.
         failureRates = Object.fromEntries(
-            Object.entries(customUnit.rates).map(([rateID, rate]) => [
-                rateID,
-                rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-                    ? null
-                    : {...rate, subRates: rate.subRates?.filter((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), pendingAction: null},
-            ]),
+            Object.entries(customUnit.rates)
+                .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([rateID, rate]) => [
+                    rateID,
+                    {...rate, subRates: rate.subRates?.filter((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), pendingAction: null},
+                ]),
         );
         if (firstSelectedSubRate && firstSelectedRate) {
             failureRates[firstSelectedSubRate.rateID] = {
