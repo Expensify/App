@@ -35,6 +35,7 @@ function PatriotActLink({containerStyles}: PatriotActLinkProps) {
             <TextLink
                 style={[styles.textMicro, styles.ml2]}
                 href={CONST.HELP_LINK_URL}
+                sentryLabel={CONST.SENTRY_LABEL.PATRIOT_ACT_LINK.HELP_LINK}
             >
                 {translate('additionalDetailsStep.helpLink')}
             </TextLink>
