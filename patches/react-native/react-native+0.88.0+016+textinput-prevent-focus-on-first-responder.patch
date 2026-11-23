@@ -240,3 +240,29 @@ index aea22a1..e6ed49c 100644
 +   */
 +  preventFocusOnFirstResponderOnce: () => void;
  }
+diff --git a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+index dfbab6d..b278229 100644
+--- a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
++++ b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+@@ -558,6 +558,10 @@ type TextInputBaseProps = Readonly<{
+    * The default value is `false`.
+    */
+   multiline?: boolean | undefined;
++  /**
++   * If true, the text input will not restore focus when the input becomes first responder.
++   */
++  preventFocusOnFirstResponder?: boolean | undefined;
+   /**
+    * Callback that is called when the text input is blurred.
+    */
+@@ -784,6 +788,10 @@ declare class _TextInputInstance extends ReactNativeElement {
+    * Sets the start and end positions of text selection.
+    */
+   setSelection(start: number, end: number): void;
++  /**
++   * Prevents the text input once from restoring focus when the input becomes first responder.
++   */
++  preventFocusOnFirstResponderOnce(): void;
+ }
+ export type TextInputInstance = _TextInputInstance;
+ /**

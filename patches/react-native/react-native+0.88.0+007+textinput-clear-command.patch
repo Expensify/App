@@ -304,3 +304,18 @@ index 21bb5c6..8eec1d6 100644
    /**
     * Callback that is called when the text input's text changes.
     */
+diff --git a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+index 677bed8..80a1f24 100644
+--- a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
++++ b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+@@ -552,6 +552,10 @@ type TextInputBaseProps = Readonly<{
+    * Callback that is called when the text input is blurred.
+    */
+   onBlur?: ((e: TextInputBlurEvent) => unknown) | undefined;
++  /**
++   * Callback that is called when the text input was cleared using the native clear command.
++   */
++  onClear?: ((e: TextInputChangeEvent) => unknown) | undefined;
+   /**
+    * Callback that is called when the text input's text changes.
+    */

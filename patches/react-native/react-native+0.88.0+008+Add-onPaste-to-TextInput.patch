@@ -670,3 +670,35 @@ index 8eec1d6..aea22a1 100644
    /**
     * The string that will be rendered before text input has been entered
     */
+diff --git a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+index 80a1f24..dfbab6d 100644
+--- a/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
++++ b/node_modules/react-native/types_generated/Libraries/Components/TextInput/TextInput.flow.d.ts
+@@ -100,6 +100,16 @@ type TextInputSubmitEditingEventData = Readonly<Omit<TargetEvent, "eventCount" |
+  */
+ export type TextInputSubmitEditingEvent = NativeSyntheticEvent<TextInputSubmitEditingEventData>;
+ export type TextInputEditingEvent = NativeSyntheticEvent<TextInputEndEditingEventData>;
++/**
++ * @see TextInputProps.onPaste
++ */
++export type PasteEvent = NativeSyntheticEvent<Readonly<{
++  target: number;
++  items: Array<{
++    type: string;
++    data: string;
++  }>;
++}>>;
+ type DataDetectorTypesType = "phoneNumber" | "link" | "address" | "calendarEvent" | "trackingNumber" | "flightNumber" | "lookupSuggestion" | "none" | "all";
+ export type KeyboardType = "default" | "email-address" | "numeric" | "phone-pad" | "number-pad" | "decimal-pad" | "url";
+ export type KeyboardTypeIOS = "ascii-capable" | "numbers-and-punctuation" | "name-phone-pad" | "twitter" | "web-search" | "ascii-capable-number-pad";
+@@ -589,6 +599,10 @@ type TextInputBaseProps = Readonly<{
+    * Fires before `onChange` callbacks.
+    */
+   onKeyPress?: ((e: TextInputKeyPressEvent) => unknown) | undefined;
++  /**
++   * Invoked when the user performs the paste action.
++   */
++  onPaste?: ((e: PasteEvent) => unknown) | undefined;
+   /**
+    * Called when a single tap gesture is detected.
+    */
