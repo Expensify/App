@@ -245,7 +245,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
         translationKey: 'common.transactionID',
-        isColumnSortable: false,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
