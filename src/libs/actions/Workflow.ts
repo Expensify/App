@@ -591,9 +591,11 @@ function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}
     }
     const listedSubmitterEmails = new Set(Object.values(existingRules).flatMap(extractSubmitterEmails));
     const unlistedAddedMemberEmails = addedMemberEmails.filter((email) => !listedSubmitterEmails.has(email));
-    let rulesAfterImport = Object.fromEntries(
-        Object.entries(existingRules).map(([ruleID, rule]) => [ruleID, rule.isDefaultApprovalWorkflow ? addMembersToRule(rule, unlistedAddedMemberEmails) : rule]),
-    );
+    const defaultWorkflowRules = getDefaultWorkflowRules(existingRules, defaultApprover);
+    let rulesAfterImport = {
+        ...existingRules,
+        ...Object.fromEntries(Object.entries(defaultWorkflowRules).map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, unlistedAddedMemberEmails)])),
+    };
 
     // Members listing the same approvers share a workflow
     const workflowsByApprovers = new Map<string, ApprovalWorkflow>();

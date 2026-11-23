@@ -2278,6 +2278,39 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
+        it('lists the added members in only one default workflow when the rules declare two', async () => {
+            mockFetch.pause();
+
+            // Given rules declaring two default workflows, one approved by the default approver (owner) and one by
+            // employee1, as rules saved before the backend refused a second default can
+            const policy = buildPolicy([ownerEmail, employee2Email, employee3Email]);
+            await createForwardApproveRules(policyID, [employee2Email], ownerEmail, 'ownerDefault', true);
+            await createForwardApproveRules(policyID, [employee3Email], employee1Email, 'otherDefault', true);
+            await setUpPolicy(policy);
+
+            // When an import adds a member without listing approvers for them, and moves employee3 to employee4
+            const addedMemberEmail = 'added@gmail.com';
+            importApprovalWorkflowRules({
+                policy,
+                rules: await getRulesCollection(),
+                members: [{email: employee3Email, approvers: [{email: employee4Email}]}],
+                addedMemberEmails: [addedMemberEmail],
+            });
+            await waitForBatchedUpdates();
+
+            // Then the added member stays out of the default workflow the backend did not list them in, so taking
+            // employee3 out of it leaves it empty
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules.some((rule) => extractSubmitterEmails(rule).includes(addedMemberEmail))).toBe(false);
+            const collection = await getRulesCollection();
+            for (const ruleID of ['otherDefault1', 'otherDefault2']) {
+                expect(collection?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('makes a workflow with every member in it the default workflow', async () => {
             mockFetch.pause();
 
