@@ -106,7 +106,12 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
 
     // A default workflow's first approver is the policy's default approver, which only needs sending when it changes
     const newDefaultApprover = approvalWorkflow.isDefault && firstApprover !== previousDefaultApprover ? firstApprover : undefined;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+        previousEmployeeList,
+        approvalWorkflow,
+        type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE,
+        defaultApprover: previousDefaultApprover,
+    });
 
     // If there are no changes to the employees list or the default approver, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
@@ -704,7 +709,10 @@ function removeApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}
         return;
     }
 
-    const approvers = currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex);
+    const approvers = lodashDropRightWhile(
+        currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex),
+        (approver) => !approver,
+    );
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
         // An approver after the removed one may only have repeated them
         approvers: approvers.map(

@@ -1,4 +1,4 @@
-import {getTitleFieldFromRNVP, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
+import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,25 +35,6 @@ describe('ReportTitleUtils', () => {
             expensify_text_title: {
                 defaultValue: 'Report {report:total}',
             },
-        });
-    });
-
-    describe('getTitleFieldFromRNVP', () => {
-        const mockReportID = '12345';
-        const mockTitleField = {
-            defaultValue: 'Report {report:total}',
-        };
-
-        it('should return title field when RNVP exists with title field', () => {
-            const result = getTitleFieldFromRNVP(mockReportID);
-
-            expect(result).toEqual(mockTitleField);
-        });
-
-        it('should return undefined when RNVP is undefined', () => {
-            const result = getTitleFieldFromRNVP('55555');
-
-            expect(result).toBeUndefined();
         });
     });
 

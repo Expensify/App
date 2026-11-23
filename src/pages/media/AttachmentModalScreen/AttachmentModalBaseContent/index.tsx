@@ -7,6 +7,7 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
+import FSClassView from '@components/FSClassView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -18,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -291,7 +293,11 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
+            {/* The modal renders outside the chat's masked views, so attachments opened from a masked chat take its class here */}
+            <FSClassView
+                style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}
+                forwardedFSClass={isEmptyObject(report) ? undefined : FS.getChatFSClass(report)}
+            >
                 {isLoading && (
                     <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                         <ActivityIndicator
@@ -312,7 +318,7 @@ function AttachmentModalBaseContent({
                     />
                 )}
                 {shouldDisplayContent && (customAttachmentContent ?? Content)}
-            </View>
+            </FSClassView>
             {!!footerActionButtons && (
                 <LayoutAnimationConfig skipEntering>
                     <Animated.View

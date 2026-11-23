@@ -3,6 +3,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
@@ -22,7 +23,6 @@ import {
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
-import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 
 import CONST from '@src/CONST';
@@ -80,6 +80,7 @@ function usePerDiemSubmission({
 
     const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportTransactions = useReportTransactions(report?.reportID);
     const {transactionViolations} = useSubmissionViolations();
 
@@ -91,7 +92,6 @@ function usePerDiemSubmission({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
 
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     const perDiemParticipant = selectedParticipants.at(0);
@@ -227,6 +227,7 @@ function usePerDiemSubmission({
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             },
             policyTags: perDiemExpensePolicyTags ?? {},
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -244,9 +245,6 @@ function usePerDiemSubmission({
 
         const targetReportID = backToReport ?? activeReportID;
 
-        // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
-        const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
-
         if (result) {
             cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: shouldHandleNavigation});
         }
@@ -256,7 +254,7 @@ function usePerDiemSubmission({
                 transactionID: result.transactionID,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 hasMultipleTransactions: reportTransactions.length > 0,
-                shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
+                shouldFlagNewTransactionForChatPreview: shouldHandleNavigation && targetReportID === chatReportID,
                 shouldNavigate: shouldHandleNavigation,
                 isLookingAroundUser,
                 isSelfDMDestination,

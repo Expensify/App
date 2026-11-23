@@ -1,14 +1,8 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-
-import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
-    personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
@@ -16,7 +10,6 @@ import {
 } from '@selectors/PersonalDetails';
 
 import createMock from '../utils/createMock';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -42,58 +35,6 @@ describe('PersonalDetailsSelector', () => {
         it('should return undefined if the personalDetailsList is undefined', () => {
             const result = personalDetailsSelector(accountID)(undefined);
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('personalDetailsDisplayNameSelector', () => {
-        it('should return the display name for the given accountID', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should return concierge display name for concierge accountID', () => {
-            const conciergeDetails = {
-                accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                displayName: 'Some Other Name',
-                login: 'concierge@expensify.com',
-            };
-            const list = createMock<PersonalDetailsList>({
-                [CONST.ACCOUNT_ID.CONCIERGE]: conciergeDetails,
-            });
-
-            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal, formatPhoneNumber)(list);
-            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
-        });
-
-        it('should return login when displayName is missing', () => {
-            const personalDetailsWithLoginOnly = {
-                accountID,
-                login: 'fallback@user.com',
-            };
-            const list = createMock<PersonalDetailsList>({
-                [accountID]: personalDetailsWithLoginOnly,
-            });
-
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(list);
-            expect(result).toBe('fallback@user.com');
-        });
-
-        it('should return default display name if the accountID is not in the list', () => {
-            const result = personalDetailsDisplayNameSelector(999, translateLocal, formatPhoneNumber)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should return default display name if the personalDetailsList is undefined', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(undefined);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should resolve the hidden fallback through the provided translate function', () => {
-            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
-
-            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker, formatPhoneNumber)(personalDetailsList);
-
-            expect(result).toBe('HiddenMarker');
         });
     });
 

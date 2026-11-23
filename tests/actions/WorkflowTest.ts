@@ -228,6 +228,23 @@ describe('actions/Workflow', () => {
             ]);
             expect(approvalWorkflow?.errors).toBeUndefined();
         });
+
+        it('should not leave the place of a cleared approver at the end once the approver after them is removed', async () => {
+            // Given a workflow whose first approver was cleared, leaving only the approver after them
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                approvers: [undefined, {email: 'approver2@example.com', displayName: 'Approver 2'}],
+            };
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+
+            // When that approver is removed too
+            removeApprovalWorkflowApprover({approverIndex: 1, currentApprovalWorkflow});
+            await waitForBatchedUpdates();
+
+            // Then no approver is left, so the editor asks for a first approver instead of showing an empty approver before an additional one
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.approvers).toHaveLength(0);
+        });
     });
 
     describe('validateApprovalWorkflow', () => {

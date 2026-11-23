@@ -17,7 +17,7 @@ import {DeviceEventEmitter, Dimensions} from 'react-native';
 
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
-type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HostInstance}>;
 
 /**
  * A component used to wrap an element intended for displaying a tooltip.
@@ -219,6 +219,10 @@ function BaseEducationalTooltip({
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
+                        // A numeric native tag can't be measured
+                        if (typeof target === 'number') {
+                            return;
+                        }
                         tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
 

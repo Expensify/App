@@ -1,4 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -15,7 +14,6 @@ import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
@@ -29,7 +27,7 @@ import SuccessStep from './steps/SuccessStep';
 
 function AddPersonalNewCardPage() {
     const styles = useThemeStyles();
-    const [addNewPersonalCardFeed, addNewPersonalCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
+    const [addNewPersonalCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -42,17 +40,12 @@ function AddPersonalNewCardPage() {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const isAddCardFeedLoading = isLoadingOnyxValue(addNewPersonalCardFeedMetadata);
 
     useEffect(() => {
         return () => {
             clearAddNewPersonalCardFlow();
         };
     }, []);
-
-    if (isAddCardFeedLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     let CurrentStep: React.JSX.Element;
     switch (currentStep) {
