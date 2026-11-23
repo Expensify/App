@@ -18,7 +18,7 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
@@ -1574,6 +1574,24 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('links several Digits card transactions to their Digits ledger', () => {
+            // Given a Digits export that created a ledger transaction for each of two company card expenses
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.DIGITS, [
+                'https://my.digits.com/@acme/transactions/ledger/txn-1',
+                'https://my.digits.com/@acme/transactions/ledger/txn-2',
+            ]);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the company card link opens the company's Digits ledger instead of falling back to QuickBooks Online
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.DIGITS}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://my.digits.com/@acme/transactions/ledger'},
+            ]);
+        });
+
         it('does not link Business Central export record IDs', () => {
             // Given an export with one out-of-pocket record and multiple company card records stored as IDs
             const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);
@@ -2374,18 +2392,12 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds were returned. You can retry the payment.');
         });
 
-        it.each([
-            [
-                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
-                'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-            ],
-            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'The review is complete and your payment is on its way. The final FX rate may change the amount.'],
-        ] as const)('should show the App copy for %s', (actionName, expectedMessage) => {
-            // Given a Wise hold or release action, which carries no fields
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
                 originalMessage: {},
             };
 
@@ -2393,7 +2405,42 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it uses the approved App copy instead of Auth's English fallback
-            expect(message).toBe(expectedMessage);
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
         });
 
         it.each([
@@ -3568,6 +3615,132 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
+            const reportID = `newDotReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
+            const reportID = `newDotMarkedReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
+            expect(actual).toBe(isVisible);
+        });
+
+        it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            const reportID = 'paidInvoiceWithPaySibling';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUReportID: reportID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When the action's visibility is checked for the invoice
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true, undefined, reportID);
+
+            // Then it stays hidden, because the IOU PAY action already shows the payment
+            expect(actual).toBe(false);
+        });
+
+        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
+            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
+            const reportID = 'invoiceFromActionReportID';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
+            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked without a reportID
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
+
+            // Then it shows, because the action's own reportID tells that it belongs to an invoice
+            expect(actual).toBe(true);
+        });
+
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
             // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
             const reportID = 'reportWithPaySibling';
@@ -3804,6 +3977,86 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', () => {
+            // Given a policy chat where the current user has the approve-only role
+            const reportID = '9001';
+            const policyID = 'policy_approve_only';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Approve Only Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is hidden because approve-only members cannot create policy rooms
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for an actionable report mention whisper when the user can create rooms on the policy', () => {
+            // Given a policy chat where the current user has the member role
+            const reportID = '9002';
+            const policyID = 'policy_member';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Member Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);
         });
     });
@@ -6812,6 +7065,54 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
+
+        it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
+            // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: '',
+                    newValue: 'id_STANDARD_VAT_(20%)',
+                    oldTaxPercentage: '',
+                    newTaxPercentage: '20%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the percentage is shown once
+            expect(actual).toBe('added the tax rate "id_STANDARD_VAT_(20%)" to the distance rate "Default Rate"');
+        });
+
+        it('should not repeat the percentage when the previous tax rate of a rate already ends with it', () => {
+            // Given a rate moved from a tax rate whose code ends with its percentage to one whose code doesn't
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'id_STANDARD_VAT_(20%)',
+                    newValue: 'id_TAX_RATE_1',
+                    oldTaxPercentage: '20%',
+                    newTaxPercentage: '5%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the previous tax rate shows its percentage once, and the new one still gets its percentage added
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "id_TAX_RATE_1 (5%)" (previously "id_STANDARD_VAT_(20%)")');
+        });
     });
 
     describe('getWorkspaceCustomUnitUpdatedMessage', () => {
@@ -7801,6 +8102,29 @@ describe('ReportActionsUtils', () => {
 
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
         });
     });
 

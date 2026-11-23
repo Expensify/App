@@ -646,8 +646,8 @@ function useSelectedTransactionsActions({
 
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
             // The paginated `reportActions` prop can miss the latest workflow actions, so the check gets the report's combined history instead:
-            // ownership still fails closed on unreported and IOU reports while expense reports check the submitter, and a forward since the
-            // last submit is not missed.
+            // ownership fails closed on IOU reports, unreported expenses fall back to the card holder for managed cards, expense reports check
+            // the submitter, and a forward since the last submit is not missed.
             if (!action) {
                 return (
                     !!report &&

@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
@@ -97,23 +98,22 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                     </View>
                 </View>
                 {!!report?.managerID && (
-                    <MenuItem
-                        label={translate('task.assignee')}
+                    <MenuItem.Root
                         accessibilityLabel={`${translate('task.assignee')}, ${assigneeDisplayName}`}
-                        titleComponent={
-                            <UserPill
-                                avatar={supportRepPersonalDetails?.avatar}
-                                displayName={assigneeDisplayName}
-                                accountID={report.managerID}
-                                email={supportRepPersonalDetails?.login}
-                                style={styles.userPillStandalone}
-                            />
-                        }
-                        shouldShowRightIcon={false}
-                        wrapperStyle={[styles.pv2]}
-                        shouldGreyOutWhenDisabled={false}
-                        interactive={false}
-                    />
+                        style={styles.pv2}
+                    >
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('task.assignee')}>
+                                <UserPill
+                                    avatar={supportRepPersonalDetails?.avatar}
+                                    displayName={assigneeDisplayName}
+                                    accountID={report.managerID}
+                                    email={supportRepPersonalDetails?.login}
+                                    style={styles.userPillStandalone}
+                                />
+                            </MenuItemField.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
             </>
         </OfflineWithFeedback>

@@ -212,7 +212,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -384,6 +385,7 @@ type SearchTextFilterKeys =
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
@@ -417,8 +419,12 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -440,9 +446,19 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    /** Columns moved to the table's start, in the order they were pinned. They change only how the table is laid out, so they never change the search's hash. */
+    leftPinnedColumns?: SearchColumnType | SearchColumnType[];
+    /** Columns moved to the table's end, in the order they were pinned. */
+    rightPinnedColumns?: SearchColumnType | SearchColumnType[];
     groupColumns?: SearchColumnType[];
     limit?: number;
     compare?: SearchCompareMode;
+
+    /** 1-based position; omitted queries retain full-tag grouping and text matching. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for an exact level-aware tag filter; empty selects independent tags. */
+    tagParent?: string;
 };
 
 type SearchQueryJSON = {

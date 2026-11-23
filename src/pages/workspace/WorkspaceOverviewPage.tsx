@@ -712,12 +712,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     )}
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingFields?.outputCurrency}
-                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
+                        errors={getLatestErrorField(policy ?? {}, 'outputCurrency')}
                         onClose={() => {
                             if (!policyID) {
                                 return;
                             }
-                            clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS);
+                            clearPolicyErrorField(policyID, 'outputCurrency');
                         }}
                         errorRowStyles={[styles.mt2]}
                     >
