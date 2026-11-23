@@ -3399,12 +3399,17 @@ function getReportActionBefore(sortedReportActions: ReportAction[], reportAction
  */
 function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
+
+    // A read action can't be the first unread one, so only an unread action needs the sorted list to find the action before it.
+    if (!isReportActionUnread(reportAction, lastReadTime)) {
+        return false;
+    }
     const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
     const {isFound, previousReportAction} = getReportActionBefore(sortedReportActions, reportAction.reportActionID);
     if (!isFound) {
         return false;
     }
-    return isReportActionUnread(reportAction, lastReadTime) && (!previousReportAction || !isReportActionUnread(previousReportAction, lastReadTime));
+    return !previousReportAction || !isReportActionUnread(previousReportAction, lastReadTime);
 }
 
 /**
