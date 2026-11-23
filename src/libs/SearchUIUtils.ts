@@ -281,6 +281,7 @@ import {
     isOdometerDistanceRequest,
     isOnHold,
     isScanning,
+    isUnreportedTransactionOwnedByCurrentUser,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
@@ -2737,7 +2738,12 @@ function createAndOpenSearchTransactionThread({
     const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
     const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
     const ownSelfDMAction = isUnreportedTransaction ? getIOUActionForReportID(findSelfDMReportID(), item.transactionID) : undefined;
-    const isOwnExpense = (ownSelfDMAction ?? item.reportAction)?.actorAccountID === currentUserAccountID;
+    const ownerAction = ownSelfDMAction ?? item.reportAction;
+
+    // A legacy unreported expense can have no IOU action at all. With no action and no report, `from` holds only the card holder.
+    const isOwnExpense = ownerAction
+        ? ownerAction.actorAccountID === currentUserAccountID
+        : isUnreportedTransaction && isUnreportedTransactionOwnedByCurrentUser(item, item.from?.accountID === currentUserAccountID);
     const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
     const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
@@ -2785,6 +2791,7 @@ function createAndOpenSearchTransactionThread({
             hasCompletedGuidedSetupFlow,
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
             selfDMReportID,
+            isOwnedByCurrentUser: isOwnExpense,
         });
     }
 

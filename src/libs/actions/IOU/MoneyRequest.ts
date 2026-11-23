@@ -1,4 +1,5 @@
 import type {LocalizedTranslate, LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -106,6 +107,7 @@ type CreateTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -157,6 +159,7 @@ function createTransaction({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
@@ -269,6 +272,7 @@ function createTransaction({
                 formatPhoneNumber,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins,
             });
         }
     }

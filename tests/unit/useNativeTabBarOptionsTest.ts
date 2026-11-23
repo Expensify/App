@@ -11,6 +11,8 @@ import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_B
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
+import {Platform} from 'react-native';
+
 const mockGetTabBarIcon = jest.mocked(getTabBarIcon);
 
 const PARAMS: NativeTabBarOptionsParams = {
@@ -94,5 +96,45 @@ describe.each([
         // Then it draws the glyph of its slot and the dot it was given, and names itself for VoiceOver or Material
         expect(params).toMatchObject({name: glyphName, dotColor: FLAT_NAV_PARAMS.dotColors[routeName]});
         expect(options[labelOption]).toBe(label);
+    });
+});
+
+describe('iOS useNativeTabBarOptions labels', () => {
+    beforeEach(() => {
+        mockGetTabBarIcon.mockClear();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('draws the labels into the icons on iOS 26', () => {
+        // Given iOS 26, whose bar ignores the title colors
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue('26.0');
+        const {result} = renderHook(() => useIOSNativeTabBarOptions(PARAMS));
+
+        // When the Inbox tab options are built
+        const options = result.current.getTabOptions(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const getParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
+
+        // Then the label is drawn into the icon and UIKit gets no title of its own
+        expect(result.current.screenOptions.tabBarLabel).toBe('');
+        expect(options.tabBarLabel).toBeUndefined();
+        expect(getParams?.(false).label?.text).toBe('Inbox');
+    });
+
+    it('lets UIKit lay out the labels on iOS 18 and below', () => {
+        // Given iOS 16, whose classic bar squeezes wide tab images into a small slot in landscape
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.7');
+        const {result} = renderHook(() => useIOSNativeTabBarOptions(PARAMS));
+
+        // When the Inbox tab options are built
+        const options = result.current.getTabOptions(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const getParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
+
+        // Then UIKit gets the real title and the icon holds only the glyph, so the label keeps its size
+        expect(result.current.screenOptions.tabBarLabel).toBeUndefined();
+        expect(options.tabBarLabel).toBe('Inbox');
+        expect(getParams?.(false).label).toBeUndefined();
     });
 });
