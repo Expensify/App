@@ -4,5 +4,7 @@
         "tsBuildInfoFile": "./tsconfig.ts7.tsbuildinfo",
         "types": ["react-native", "react-native-web", "node"]
     },
-    "include": ["src", "tests", "scripts", "../../src/types"]
+    "include": ["src", "tests", "scripts", "../../src/types"],
+    // The renderer runs on a server with web types, so it must not load the native globals.
+    "exclude": ["node_modules", "../../src/types/native"]
 }

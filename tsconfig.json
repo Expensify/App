@@ -35,8 +35,9 @@
         }
     },
     "files": [],
-    // Order matters for editors: a file that appears in more than one project (all of `src` is in
-    // both the app and Jest programs) resolves to the first project here that lists it.
+    // Order matters for editors and type-aware lint: a file that appears in more than one project
+    // (all of `src` is in both the web and native programs) resolves to the first project here that
+    // lists it, so shared files get the web types and `.native` / `.ios` / `.android` files the native ones.
     "references": [
         {"path": "./tsconfig.app.web.json"},
         {"path": "./tsconfig.app.native.json"},
