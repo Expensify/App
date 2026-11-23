@@ -11,7 +11,7 @@ function HeaderAvatarWithDisplayName(props: AvatarWithDisplayNameProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.pr2]}>
+        <View style={[styles.flex1, styles.pr3]}>
             <AvatarWithDisplayName {...props} />
         </View>
     );

@@ -20,7 +20,7 @@ function HeaderTitle({title, subtitle, titleStyles, subtitleLink}: HeaderTitlePr
         <HeaderTitleComponent
             dialogLabel={title}
             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-            style={styles.pr2}
+            style={styles.pr3}
         >
             {!!title && (
                 <HeaderTitleComponent.Text
