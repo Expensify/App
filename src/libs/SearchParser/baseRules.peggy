@@ -21,6 +21,7 @@ amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
 reportID = ("reportid"i / "report-id"i) { return "reportID"; }
+transactionID = ("transactionid"i / "transaction-id"i) { return "transactionID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
