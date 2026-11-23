@@ -7,6 +7,7 @@ import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
+import {Keyboard} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import type PopoverWithMeasuredContentProps from './PopoverWithMeasuredContent/types';
@@ -118,7 +119,11 @@ function AnchoredSelectionListPopover({
                 {shouldShowHeader && (
                     <SelectionListPopoverHeader
                         title={title}
-                        onBackButtonPress={onClose}
+                        onBackButtonPress={() => {
+                            // The keyboard would otherwise stay up until the search input unmounts at the end of the sheet's closing animation
+                            Keyboard.dismiss();
+                            onClose();
+                        }}
                         backButtonSentryLabel={backButtonSentryLabel}
                     >
                         {headerActions}

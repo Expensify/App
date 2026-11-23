@@ -2077,6 +2077,12 @@ const translations = {
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             payAll: 'Pay all',
+            fxRateExpiredTitle: 'FX rate expired',
+            fxRatesExpiredTitle: 'FX rates expired',
+            fxRateExpiredPrompt: 'Review the latest rate before you pay.',
+            fxRatesExpiredPrompt: 'Review the latest rates before you pay.',
+            getLatestRate: 'Get latest rate',
+            getLatestRates: 'Get latest rates',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
                 other: `${count} reports`,
@@ -3388,8 +3394,8 @@ const translations = {
             },
         },
         wiseSetupRow: {
-            inProgress: {message: 'Global reimbursements setup in progress.', link: 'Continue.'},
-            inReview: {message: 'Global reimbursements setup in review.', link: 'Check status.'},
+            inProgress: {message: 'Global reimbursements setup in progress.'},
+            inReview: {message: 'Global reimbursements setup in review.', action: 'Check status'},
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',

@@ -1932,6 +1932,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
+            fxRateExpiredTitle: 'Taux de change expiré',
+            fxRatesExpiredTitle: 'Taux de change expirés',
+            fxRateExpiredPrompt: 'Vérifiez le taux le plus récent avant de payer.',
+            fxRatesExpiredPrompt: 'Vérifiez les taux les plus récents avant de payer.',
+            getLatestRate: 'Obtenir le dernier taux',
+            getLatestRates: 'Obtenir les derniers taux',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
@@ -3326,8 +3332,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configuration des remboursements globaux en cours.', link: 'Continuer.'},
-            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', link: 'Vérifier le statut.'},
+            inProgress: {message: 'Configuration des remboursements globaux en cours.'},
+            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', action: 'Vérifier le statut'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',

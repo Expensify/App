@@ -1911,6 +1911,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importe cargado',
             employeeReceived: 'El empleado recibió',
             payAll: 'Pagar todo',
+            fxRateExpiredTitle: 'Tipo de cambio caducado',
+            fxRatesExpiredTitle: 'Tipos de cambio caducados',
+            fxRateExpiredPrompt: 'Revisa el tipo de cambio más reciente antes de pagar.',
+            fxRatesExpiredPrompt: 'Revisa los tipos de cambio más recientes antes de pagar.',
+            getLatestRate: 'Obtener el tipo de cambio más reciente',
+            getLatestRates: 'Obtener los tipos de cambio más recientes',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 informe',
                 other: `${count} informes`,
@@ -3298,8 +3304,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configuración de reembolsos globales en curso.', link: 'Continuar.'},
-            inReview: {message: 'Configuración de reembolsos globales en revisión.', link: 'Ver estado.'},
+            inProgress: {message: 'Configuración de reembolsos globales en curso.'},
+            inReview: {message: 'Configuración de reembolsos globales en revisión.', action: 'Ver estado'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',

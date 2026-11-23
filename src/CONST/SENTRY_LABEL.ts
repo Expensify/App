@@ -19,6 +19,9 @@ const SENTRY_LABEL = {
     },
     DYNAMIC_FORM: {
         TABS_ITEM: 'DynamicForm-TabsItem',
+        CHOICE_FIELD: 'DynamicForm-ChoiceField',
+        CHOICE_FIELD_BACK: 'DynamicForm-ChoiceFieldBack',
+        CHOICE_FIELD_APPLY: 'DynamicForm-ChoiceFieldApply',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
         FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',

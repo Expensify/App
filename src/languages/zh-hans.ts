@@ -1846,6 +1846,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '扣款金额',
             employeeReceived: '员工已收到',
             payAll: '全部支付',
+            fxRateExpiredTitle: '汇率已过期',
+            fxRatesExpiredTitle: '汇率已过期',
+            fxRateExpiredPrompt: '请在付款前查看最新汇率。',
+            fxRatesExpiredPrompt: '请在付款前查看最新汇率。',
+            getLatestRate: '获取最新汇率',
+            getLatestRates: '获取最新汇率',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',
                 other: `${count} 份报告`,
@@ -3192,8 +3198,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
         wiseSetupRow: {
-            inProgress: {message: '全球报销设置进行中。', link: '继续。'},
-            inReview: {message: '全球报销设置正在审核中。', link: '查看状态。'},
+            inProgress: {message: '全球报销设置进行中。'},
+            inReview: {message: '全球报销设置正在审核中。', action: '查看状态'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',

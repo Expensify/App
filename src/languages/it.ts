@@ -1921,6 +1921,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importo addebitato',
             employeeReceived: 'Il dipendente ha ricevuto',
             payAll: 'Paga tutto',
+            fxRateExpiredTitle: 'Tasso di cambio scaduto',
+            fxRatesExpiredTitle: 'Tassi di cambio scaduti',
+            fxRateExpiredPrompt: 'Controlla il tasso più recente prima di pagare.',
+            fxRatesExpiredPrompt: 'Controlla i tassi più recenti prima di pagare.',
+            getLatestRate: 'Ottieni il tasso più recente',
+            getLatestRates: 'Ottieni i tassi più recenti',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 resoconto',
                 other: `${count} resoconti`,
@@ -3308,8 +3314,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configurazione dei rimborsi globali in corso.', link: 'Continua.'},
-            inReview: {message: 'Configurazione dei rimborsi globali in revisione.', link: 'Controlla lo stato.'},
+            inProgress: {message: 'Configurazione dei rimborsi globali in corso.'},
+            inReview: {message: 'Configurazione dei rimborsi globali in revisione.', action: 'Controlla lo stato'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',

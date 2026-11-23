@@ -1901,6 +1901,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '引き落とし額',
             employeeReceived: '従業員の受取額',
             payAll: 'すべて支払う',
+            fxRateExpiredTitle: '為替レートの期限切れ',
+            fxRatesExpiredTitle: '為替レートの期限切れ',
+            fxRateExpiredPrompt: '支払う前に最新のレートを確認してください。',
+            fxRatesExpiredPrompt: '支払う前に最新のレートを確認してください。',
+            getLatestRate: '最新のレートを取得',
+            getLatestRates: '最新のレートを取得',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 件のレポート',
                 other: `${count} 件のレポート`,
@@ -3281,8 +3287,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'グローバル払い戻しの設定が進行中です。', link: '続行。'},
-            inReview: {message: 'グローバル払い戻しの設定を審査中です。', link: 'ステータスを確認。'},
+            inProgress: {message: 'グローバル払い戻しの設定が進行中です。'},
+            inReview: {message: 'グローバル払い戻しの設定を審査中です。', action: 'ステータスを確認'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',

@@ -1978,6 +1978,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Χρεωμένο ποσό',
             employeeReceived: 'Ο υπάλληλος έλαβε',
             payAll: 'Πληρωμή όλων',
+            fxRateExpiredTitle: 'Η συναλλαγματική ισοτιμία έληξε',
+            fxRatesExpiredTitle: 'Οι συναλλαγματικές ισοτιμίες έληξαν',
+            fxRateExpiredPrompt: 'Ελέγξτε την πιο πρόσφατη ισοτιμία πριν πληρώσετε.',
+            fxRatesExpiredPrompt: 'Ελέγξτε τις πιο πρόσφατες ισοτιμίες πριν πληρώσετε.',
+            getLatestRate: 'Λήψη πιο πρόσφατης ισοτιμίας',
+            getLatestRates: 'Λήψη πιο πρόσφατων ισοτιμιών',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 αναφορά',
                 other: `${count} αναφορές`,
@@ -3381,8 +3387,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         wiseSetupRow: {
-            inProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', link: 'Συνέχεια.'},
-            inReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', link: 'Έλεγχος κατάστασης.'},
+            inProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.'},
+            inReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', action: 'Έλεγχος κατάστασης'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
