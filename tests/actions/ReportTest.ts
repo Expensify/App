@@ -6492,6 +6492,10 @@ describe('actions/Report', () => {
     });
 
     describe('buildOptimisticChangePolicyData', () => {
+        const getPolicyOwnerPersonalDetailsByLogins = (destinationPolicy: OnyxTypes.Policy): PersonalDetailsByLogin => ({
+            [destinationPolicy.owner]: {accountID: destinationPolicy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, login: destinationPolicy.owner},
+        });
+
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -6516,7 +6520,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6527,7 +6531,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
         });
 
@@ -6556,7 +6560,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6588,7 +6592,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6638,7 +6642,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Find the transaction optimistic data
@@ -6707,7 +6711,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6760,7 +6764,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6826,7 +6830,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6895,7 +6899,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6981,7 +6985,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;

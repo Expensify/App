@@ -95,6 +95,7 @@ import {
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
     getSubmitToEmail,
+    isSubmittingToSelf,
     getTagApproverRule,
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
@@ -2864,7 +2865,7 @@ describe('PolicyUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
                 });
                 it('should return the policy approver/owner if the policy use the optional workflow', () => {
                     const policy: Policy = {
@@ -2879,7 +2880,7 @@ describe('PolicyUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
                 });
                 it('should return the employee submitsTo if the policy use the advance workflow', () => {
                     const policy: Policy = {
@@ -2895,7 +2896,7 @@ describe('PolicyUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
                 });
             });
             describe('Has category/tag approver', () => {
@@ -2929,7 +2930,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     };
                     await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(categoryApprover1AccountID);
                 });
                 it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
                     const policy: Policy = {
@@ -2955,7 +2956,7 @@ describe('PolicyUtils', () => {
                     };
 
                     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(adminAccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined, personalDetailsByLogins)).toBe(adminAccountID);
                 });
                 it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                     const policy: Policy = {
@@ -2989,7 +2990,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     };
                     await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(categoryApprover2AccountID);
                 });
                 it('should return the first rule approver who is not the current submitter', async () => {
                     const policy: Policy = {
@@ -3037,7 +3038,7 @@ describe('PolicyUtils', () => {
                     };
                     await Onyx.multiSet({...transactionData});
 
-                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(tagApprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined, personalDetailsByLogins)).toBe(tagApprover1AccountID);
                 });
                 describe('Has no transaction match with the category approver rule', () => {
                     it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -3074,7 +3075,7 @@ describe('PolicyUtils', () => {
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                         };
                         await Onyx.multiSet({...transactionData});
-                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover1AccountID);
+                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(tagApprover1AccountID);
                     });
                     it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                         const policy: Policy = {
@@ -3110,7 +3111,7 @@ describe('PolicyUtils', () => {
                             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                         };
                         await Onyx.multiSet({...transactionData});
-                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover2AccountID);
+                        expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(tagApprover2AccountID);
                     });
                 });
             });
@@ -3187,6 +3188,91 @@ describe('PolicyUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
                 expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
+            });
+        });
+
+        describe('isSubmittingToSelf', () => {
+            it('should return true if the owner submits to themselves in the advanced workflow', () => {
+                // Given an advanced workflow policy where the employee submits to themselves
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList: {
+                        [employeeEmail]: {
+                            email: employeeEmail,
+                            submitsTo: employeeEmail,
+                        },
+                    },
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                // When checking whether the employee's report is submitted to self
+                // Then it should be true because the submit-to email is the owner's login
+                expect(isSubmittingToSelf(policy, expenseReport, employeeEmail, undefined)).toBe(true);
+            });
+
+            it('should return true if the owner is the default approver in the basic workflow', () => {
+                // Given a basic workflow policy where the report owner is the policy approver
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: adminEmail,
+                    owner: adminEmail,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: adminAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                // When checking whether the admin's report is submitted to self
+                // Then it should be true because the default approver is the owner
+                expect(isSubmittingToSelf(policy, expenseReport, adminEmail, undefined)).toBe(true);
+            });
+
+            it('should return false if the owner submits to someone else', () => {
+                // Given an advanced workflow policy where the employee submits to the admin
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    ownerAccountID: employeeAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                // When checking whether the employee's report is submitted to self
+                // Then it should be false because the report is submitted to the admin
+                expect(isSubmittingToSelf(policy, expenseReport, employeeEmail, undefined)).toBe(false);
+            });
+
+            it('should return false if the owner login is missing', () => {
+                // Given a policy with no approver and no owner, so the submit-to email resolves to an empty string
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: undefined,
+                    owner: '',
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                // When checking with an empty or undefined owner login
+                // Then it should be false because an unresolved owner can't be submitting to self, even when both values are empty
+                expect(isSubmittingToSelf(policy, expenseReport, '', undefined)).toBe(false);
+                expect(isSubmittingToSelf(policy, expenseReport, undefined, undefined)).toBe(false);
             });
         });
 
