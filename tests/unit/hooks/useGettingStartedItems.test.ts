@@ -397,9 +397,12 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            // Then the step opens the QuickBooks Online Connect page instead of the integration list
+            // Then the step opens the QuickBooks Online Connect page instead of the integration list, keeping Home underneath so Back returns to it
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.route).toBe(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO));
+            connectItem?.onPress?.();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO), {skipMatchingFullScreenRoute: true});
+            navigateSpy.mockRestore();
         });
 
         it('should navigate to the Intuit Enterprise Suite Connect page when the user picked it in onboarding', async () => {
@@ -410,9 +413,12 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            // Then the step opens the QBO Connect page in its Intuit Enterprise Suite variant
+            // Then the step opens the QBO Connect page in its Intuit Enterprise Suite variant, keeping Home underneath so Back returns to it
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.route).toBe(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO, true));
+            connectItem?.onPress?.();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(POLICY_ID, CONST.POLICY.CONNECTIONS.NAME.QBO, true), {skipMatchingFullScreenRoute: true});
+            navigateSpy.mockRestore();
         });
 
         it('should navigate to workspace accounting route when the integration has no Connect page', async () => {
