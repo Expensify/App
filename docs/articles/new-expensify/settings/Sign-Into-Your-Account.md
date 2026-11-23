@@ -17,7 +17,7 @@ To get started, open [new.expensify.com](https://new.expensify.com/) in your web
 
 Then follow the instructions for your sign-in method below.
 
-![Expensify sign in page with Phone or email field highlighted ({{site.url}}/assets/images/sign-in.png){:width="100%"}
+![Expensify sign in page with Phone or email field highlighted]({{site.url}}/assets/images/sign-in.png){:width="100%"}
 
 ## How to sign in with an email security code
 
