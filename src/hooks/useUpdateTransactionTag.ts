@@ -4,6 +4,7 @@ import {setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTag} from '@libs/TransactionUtils';
@@ -16,7 +17,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -25,7 +25,6 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import {usePersonalDetail} from './usePersonalDetails';
 
 type UseUpdateTransactionTagParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
@@ -86,7 +85,6 @@ function useUpdateTransactionTag({
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
@@ -121,7 +119,7 @@ function useUpdateTransactionTag({
                 transaction,
                 transactionThreadReport: report,
                 parentReport,
-                iouReportOwnerLogin,
+                iouReportOwnerLogin: getPersonalDetail(parentReport?.ownerAccountID)?.login,
                 tag: updatedTag,
                 tagListIndex,
                 policy,

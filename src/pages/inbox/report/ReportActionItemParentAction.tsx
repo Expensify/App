@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
@@ -65,7 +66,6 @@ function ReportActionItemParentAction({
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
-    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         selector: (transaction: OnyxEntry<Transaction>) => {
@@ -101,7 +101,7 @@ function ReportActionItemParentAction({
             introSelected,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            reportOwnerPersonalDetail,
+            getPersonalDetail(report?.ownerAccountID),
             currentUserPersonalDetail,
             conciergePersonalDetail,
             undefined,

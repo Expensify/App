@@ -3,6 +3,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxValue} from '@libs/TransactionUtils';
 
@@ -14,7 +15,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -22,7 +22,6 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import {usePersonalDetail} from './usePersonalDetails';
 
 type UseUpdateTransactionTaxRateParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
@@ -69,7 +68,6 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
@@ -82,7 +80,7 @@ function useUpdateTransactionTaxRate({transactionID, transaction, report, policy
             transactionID,
             transactionThreadReport: report,
             parentReport,
-            iouReportOwnerLogin,
+            iouReportOwnerLogin: getPersonalDetail(parentReport?.ownerAccountID)?.login,
             taxCode: '',
             taxValue: '',
             taxAmount: 0,

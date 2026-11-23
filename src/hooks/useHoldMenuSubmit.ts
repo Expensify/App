@@ -3,6 +3,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
@@ -17,7 +18,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 
 import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -29,7 +29,6 @@ import usePayViaABA from './usePayViaABA';
 import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
-import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useReportTransactions from './useReportTransactions';
 
@@ -62,7 +61,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {isBetaEnabled} = usePermissions();
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -122,7 +120,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    ownerLogin,
+                    ownerLogin: getPersonalDetail(moneyRequestReport?.ownerAccountID)?.login,
                     full,
                     onApproved: animationCallback,
                     expenseReportPolicy: policy,

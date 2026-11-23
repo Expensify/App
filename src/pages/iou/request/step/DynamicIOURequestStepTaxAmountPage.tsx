@@ -7,7 +7,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
@@ -17,6 +16,7 @@ import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest'
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
 
@@ -34,7 +34,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useRef} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -75,7 +74,6 @@ function DynamicIOURequestStepTaxAmountPage({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -144,7 +142,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 transaction: currentTransaction,
                 transactionThreadReport: report,
                 parentReport,
-                iouReportOwnerLogin,
+                iouReportOwnerLogin: getPersonalDetail(parentReport?.ownerAccountID)?.login,
                 taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
                 policyTagList: policyTags,

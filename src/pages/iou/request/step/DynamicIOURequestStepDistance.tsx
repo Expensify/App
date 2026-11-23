@@ -46,6 +46,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
@@ -55,7 +56,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -110,8 +110,6 @@ function DynamicIOURequestStepDistance({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const iouReportOwnerLoginSelector = personalDetailsLoginSelector(parentReport?.ownerAccountID);
-    const [iouReportOwnerLogin] = useAllPersonalDetails(iouReportOwnerLoginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -583,7 +581,7 @@ function DynamicIOURequestStepDistance({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
-                    iouReportOwnerLogin,
+                    iouReportOwnerLogin: getPersonalDetail(parentReport?.ownerAccountID)?.login,
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
@@ -713,7 +711,7 @@ function DynamicIOURequestStepDistance({
             transaction,
             transactionThreadReport: report,
             parentReport,
-            iouReportOwnerLogin,
+            iouReportOwnerLogin: getPersonalDetail(parentReport?.ownerAccountID)?.login,
             waypoints,
             ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
