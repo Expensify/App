@@ -141,6 +141,7 @@ columnsValues
   / bankAccountColumn
   / reportId
   / base62ReportId
+  / transactionId
   / exportedToColumnValue
   / exchangeRate
   / reimbursableTotal
@@ -178,6 +179,7 @@ withdrawalId            = "withdrawal-id"i &wordBoundary            { return "wi
 bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
+transactionId           = "transaction-id"i &wordBoundary           { return "transactionID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }
 exportedToKeyEnd = wordBoundary / _ (":" / "=")
 exportedTo
