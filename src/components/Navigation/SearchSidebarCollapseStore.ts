@@ -35,10 +35,6 @@ const fadeTransitionStyle: ViewStyle =
 // Collapsed, a flat navigation bar row shows only its icon: the row's inset and padding on each side around the icon.
 const FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH = 2 * (variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding) + variables.iconSizeNormal;
 
-// The account avatar's box is wider than a row's icon, so collapsed it would sit right of the icon column.
-// Sliding it by half that difference lines it up, and a transform animates where a padding change would jump.
-const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
-
 let peekingSurface: CollapseSurface | null = null;
 
 const listeners = new Set<() => void>();
@@ -177,17 +173,12 @@ function getFlatNavigationBarPeekShadowStyle(isPeeking: boolean): ViewStyle {
     return {...fadeTransitionStyle, opacity: isPeeking ? 1 : 0};
 }
 
-function getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed: boolean): ViewStyle {
-    return {...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]};
-}
-
 export {
     COLLAPSE_SURFACE,
     FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH,
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     layoutTransitionStyle,
     getCollapseFadeStyle,
-    getFlatNavigationBarAccountAvatarStyle,
     getFlatNavigationBarLayoutWidth,
     getFlatNavigationBarLayoutWidthStyle,
     getFlatNavigationBarPeekShadowStyle,
