@@ -114,6 +114,24 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
+/**
+ * Conditions kept out of the editor while their deploy blockers are open, so a rule cannot be built on one.
+ * A condition is dropped from this list once its fix lands, rather than the whole list being removed at once.
+ * TODO: clear this list and remove it once every blocker on https://github.com/Expensify/App/issues/102278 is closed.
+ */
+const HIDDEN_CONDITION_KEYS = new Set([
+    'submittersToMatch',
+    'amountToMatch',
+    'merchantTypesToMatch',
+    'reimbursableToMatch',
+    'billableToMatch',
+    'dateToMatch',
+    'currenciesToMatch',
+    'cardsToMatch',
+    'taxRatesToMatch',
+    'hasToMatch',
+]);
+
 const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string | undefined => {
     if (value === undefined) {
         return undefined;
@@ -837,7 +855,7 @@ function ExpenseDefaultRulePageBase({
                         </Text>
                     </>
                 )}
-                {section.items.filter((item): item is SectionItemType => !!item).map(renderSectionItem)}
+                {section.items.filter((item): item is SectionItemType => !!item && !HIDDEN_CONDITION_KEYS.has(item.key)).map(renderSectionItem)}
             </View>
         ));
 
