@@ -2196,13 +2196,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
-                // With a Wise quote to confirm, the skipped reports are listed once the expense reports are paid
-                if (!shouldConfirmWiseQuotes && bankPaySkippedReportsByID.size > 0) {
-                    showBankPaySkippedReports(bankPaySkippedReports);
-                }
             }
 
+            // With a Wise quote to confirm, the skipped reports are listed once the expense reports are paid
             if (!shouldConfirmWiseQuotes) {
+                // The global reimbursements flow only names its own reports, so the reports skipped here still need listing when nothing else was paid
+                if (bankPaySkippedReportsByID.size > 0 && (paidReportCount > 0 || reportNamesNeedingGlobalReimbursements.size > 0)) {
+                    showBankPaySkippedReports(bankPaySkippedReports);
+                }
                 return;
             }
 
