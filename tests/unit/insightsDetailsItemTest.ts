@@ -54,16 +54,16 @@ describe('insightsDetailsItem', () => {
     });
 
     it('trims a period to the date range on the date the chart counts by', () => {
-        // Given a March group on a Compliance chart counting violations by submission date, whose range starts March 4
+        // Given March clicked on a Compliance chart counting by submission date, whose Date range runs from February 20 to March 20
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
         const item = {groupedBy: CONST.SEARCH.GROUP_BY.MONTH, year: 2026, month: 3} as GroupedItem;
-        const queryJSON = buildSearchQueryJSON('type:expense any-submission>=2026-03-04 any-submission<=2026-03-31');
+        const queryJSON = buildSearchQueryJSON('type:expense any-submission>=2026-02-20 any-submission<=2026-03-20');
 
         // When the Details panel's URL params are built for it
         const itemParams = queryJSON && getInsightsDetailsItemParams(item, queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION);
 
-        // Then the keys start on the range's first day, since the range limits the submission date, not the expense date
-        expect(itemParams).toEqual({itemKey: '2026-03-04', periodEnd: '2026-03-31'});
+        // Then the period is the part of March inside the submission date range
+        expect(itemParams).toEqual({itemKey: '2026-03-01', periodEnd: '2026-03-20'});
     });
 
     it('names an approver group by their account ID and a violation group by its name', () => {

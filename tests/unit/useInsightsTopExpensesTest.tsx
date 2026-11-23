@@ -79,6 +79,21 @@ function buildSnapshotData(expenseCount: number, pendingDeleteID?: number): Sear
     return data as SearchResults['data'];
 }
 
+/** Returns the report actions of the expense report holding expense `transactionID`, submitted with the given violations on it. */
+function buildSubmittedViolations(transactionID: string, violationNames: string[]) {
+    return {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionID}`]: {
+            submitted: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                reportActionID: `submitted_${transactionID}`,
+                created: '2026-02-02 10:00:00',
+                message: [],
+                originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {[transactionID]: violationNames.map((name) => ({name}))}}},
+            },
+        },
+    };
+}
+
 /** Returns the `search` metadata a response for the Top expenses query stores. */
 function buildSearchMetadata(responseJsonCode?: number) {
     return {
@@ -266,6 +281,29 @@ describe('useInsightsTopExpenses', () => {
             // Then the expenses come without violations, so their rows keep the expense's details
             expect(result.current.expenses).toHaveLength(2);
             expect(result.current.violationsByTransactionID).toBeUndefined();
+        });
+
+        it("lists each expense's submitted violations, the panel's violation first", async () => {
+            // Given a Receipt required panel, and expenses whose reports were submitted with violations
+            const violationQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${CONST.VIOLATIONS.RECEIPT_REQUIRED}`;
+            const violationQueryJSON = buildTopExpensesQueryJSON(violationQuery);
+            const data = {
+                ...buildSnapshotData(2),
+                ...buildSubmittedViolations('1', [CONST.VIOLATIONS.OVER_LIMIT]),
+                ...buildSubmittedViolations('2', [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.RECEIPT_REQUIRED, CONST.VIOLATIONS.MISSING_CATEGORY]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${violationQueryJSON?.hash}`, {
+                data,
+                search: {...buildSearchMetadata(), hash: violationQueryJSON?.hash},
+            });
+
+            // When the panel renders
+            const {result} = renderTopExpenses(violationQuery);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Receipt required leads the expense that has it, followed by the rest alphabetically, and the other expense lists only its own
+            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
+            expect(result.current.violationsByTransactionID?.['2']).toEqual(['Receipt required', 'Missing category', 'Over limit']);
         });
 
         it('is stale when the request got no response', async () => {

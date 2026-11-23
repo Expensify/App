@@ -38,7 +38,9 @@ describe('Insights dashboard charts', () => {
         // Then Top tags requires a group workspace with tags enabled in that scope
         expect(charts.some(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS)).toBe(shouldShowTags);
     });
+});
 
+describe('getChartSpec', () => {
     it('points a chart with a violation stage control at the given stage', () => {
         // Given Top violations, which counts the submitters' violations until a stage is picked
         const graphKey = CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS;
