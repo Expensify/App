@@ -39,8 +39,9 @@ import {
     isMapBasedDistanceRequest,
     isOnHold,
     isScanning,
-    removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils/duplicates';
+import getTransactionRevertValues from '@libs/TransactionUtils/getTransactionRevertValues';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
 import {trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
@@ -117,6 +118,10 @@ type SearchSnapshotUpdateParams = {
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
+function getEditRevertValues(transaction: OnyxEntry<OnyxTypes.Transaction>, optimisticTransaction: OnyxEntry<NullishDeep<OnyxTypes.Transaction>>) {
+    return getTransactionRevertValues(transaction, {...optimisticTransaction, receipt: undefined});
+}
+
 /**
  * Builds Onyx writes for the Search snapshot.
  * Search result rows render from snapshot data, so TRANSACTION writes alone do not refresh the list.
@@ -153,7 +158,7 @@ function getSearchSnapshotUpdates({
     successSnapshotData[transactionKey] = {pendingFields: clearedPendingFields};
 
     const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-    failureSnapshotData[transactionKey] = {...transaction, pendingFields: clearedPendingFields};
+    failureSnapshotData[transactionKey] = {...getEditRevertValues(transaction, updatedTransaction), pendingFields: clearedPendingFields};
     if (currentTransactionViolations !== undefined) {
         failureSnapshotData[violationsKey] = currentTransactionViolations;
     }
@@ -2152,17 +2157,21 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         value: {pendingAction: null, ...(isTotalIndeterminate && {pendingFields: {total: iouReport?.pendingFields?.total ?? null}})},
     });
 
+    const optimisticTransaction = {
+        ...updatedTransaction,
+        // Clear the stale page count until the regenerated receipt arrives.
+        ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
+        reportID: newTransactionReportID ?? updatedTransaction?.reportID,
+    };
+
     // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...updatedTransaction,
-            // Clear the stale page count until the regenerated receipt arrives.
-            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
+            ...optimisticTransaction,
             pendingFields,
             errorFields: null,
-            reportID: newTransactionReportID ?? updatedTransaction?.reportID,
         },
     });
 
@@ -2294,11 +2303,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...transaction,
+            ...getEditRevertValues(transaction, optimisticTransaction),
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
-            reportID: transaction?.reportID,
         },
     });
 
@@ -2703,14 +2711,18 @@ function getUpdateTrackExpenseParams(
         });
     }
 
+    const optimisticTransaction = {
+        ...updatedTransaction,
+        ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
+    };
+
     // Step 4: Update the report preview message (and report header) so LHN amount tracked is correct.
     // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...updatedTransaction,
-            ...(shouldClearReceiptPageCount && updatedTransaction?.receipt ? {receipt: {...updatedTransaction.receipt, pageCount: null}} : {}),
+            ...optimisticTransaction,
             pendingFields,
             errorFields: null,
         },
@@ -2767,7 +2779,7 @@ function getUpdateTrackExpenseParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...transaction,
+            ...getEditRevertValues(transaction, optimisticTransaction),
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,

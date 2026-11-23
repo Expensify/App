@@ -240,6 +240,16 @@ function logReceiptGaveUp({
     });
 }
 
+/** A superseded upload is intentionally never sent, rather than stuck in the queue. */
+function logReceiptSuperseded({receiptTraceId, transactionID, command}: {receiptTraceId: string | undefined; transactionID: string | undefined; command: string}) {
+    Log.info(`${RECEIPT_LOG_PREFIX} superseded`, true, {
+        event: 'superseded',
+        receiptTraceId,
+        transactionID,
+        command,
+    });
+}
+
 function logReceiptStatFailed(code: string | undefined) {
     Log.info(`${RECEIPT_LOG_PREFIX} stat failed`, false, {
         event: 'statFailed',
@@ -395,6 +405,7 @@ export {
     logReceiptEnqueued,
     logReceiptDropped,
     logReceiptGaveUp,
+    logReceiptSuperseded,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
     logCameraCaptureFailed,

@@ -46,6 +46,7 @@ import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboard
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import {Linking, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
 import SearchResetFiltersButton from './SearchResetFiltersButton';
@@ -59,6 +60,9 @@ type EmptySearchViewProps = {
     violationSnapshotStartedAt?: string;
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether the Search screen is focused. While hidden, the tab ignores draft writes. */
+    isScreenFocused?: boolean;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -80,9 +84,9 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle, isScreenFocused = true}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const typeMenuSections = useSearchTypeMenuSections();
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -151,7 +155,6 @@ function EmptySearchViewContent({
     const {getCurrencyDecimals} = useCurrencyListActions();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
@@ -174,17 +177,16 @@ function EmptySearchViewContent({
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
@@ -199,9 +201,15 @@ function EmptySearchViewContent({
         onCreateReport: handleCreateWorkspaceReport,
     });
 
+    // Read the drafts on press, since a subscription would re-render this hidden tab when Create expense writes its draft.
+    const startMoneyRequestWithCurrentDrafts = async (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
+        const drafts = await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+        startMoneyRequest(iouType, generateReportID(), validTransactionDraftIDsSelector(drafts));
+    };
+
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
+            startMoneyRequestWithCurrentDrafts(iouType);
         }, session);
     };
 

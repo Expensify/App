@@ -17,6 +17,7 @@
 
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
+#include "JHybridShareActionHandlerSpec.hpp"
 #include "JHybridVerticalBarModuleSpec.hpp"
 #include "JFunc_void.hpp"
 #include "JFunc_void_VerticalBarEdge.hpp"
@@ -54,6 +55,14 @@ struct JHybridVerticalBarModuleSpecImpl: public jni::JavaClass<JHybridVerticalBa
     return javaPart->getJHybridVerticalBarModuleSpec();
   }
 };
+struct JHybridShareActionHandlerSpecImpl: public jni::JavaClass<JHybridShareActionHandlerSpecImpl, JHybridShareActionHandlerSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridShareActionHandler;";
+  static std::shared_ptr<JHybridShareActionHandlerSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridShareActionHandlerSpecImpl::javaobject()>();
+    jni::local_ref<JHybridShareActionHandlerSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridShareActionHandlerSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
@@ -62,6 +71,7 @@ void registerAllNatives() {
   // Register native JNI methods
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridShareActionHandlerSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridVerticalBarModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JFunc_void_cxx::registerNatives();
   margelo::nitro::utils::JFunc_void_VerticalBarEdge_cxx::registerNatives();
@@ -83,6 +93,12 @@ void registerAllNatives() {
     "VerticalBarModule",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridVerticalBarModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "ShareActionHandler",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridShareActionHandlerSpecImpl::create();
     }
   );
 }
