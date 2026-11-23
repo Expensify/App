@@ -5,6 +5,7 @@ import type {FlatNavSavedSearchItem, FlatNavSection, FlatNavSectionID} from '@li
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import getFlatNavTabBarSlot from '@libs/Navigation/FlatNavTabBar/getFlatNavTabBarSlot';
 import getMoreMenuItems from '@libs/Navigation/MoreMenu/getMoreMenuItems';
+import getMoreTabItemID from '@libs/Navigation/MoreMenu/getMoreTabItemID';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
@@ -66,6 +67,23 @@ describe('flat nav tab bar slot and More menu', () => {
 
         // Then More is highlighted only with exactly one active entry when both are given the section of a visible search, so
         // a saved search while the Saved section is hidden never highlights More with nothing active in its menu
+        expect(mismatches).toEqual([]);
+    });
+
+    it.each(VISIBILITY_CASES)('should show a More entry in the More item exactly while More is highlighted, with %s', (_description, sections) => {
+        // Given every focused tab and every search the Search page can hold, with the section read from the visible sections
+        const cases = FOCUSED_ROUTES.flatMap((focusedTabRouteName) =>
+            SEARCH_KEYS.map((searchKey) => {
+                const isSearchFocused = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+                return {focusedTabRouteName, searchKey, activeFlatNavSectionID: isSearchFocused ? getActiveFlatNavItem(sections, searchKey)?.sectionID : undefined};
+            }),
+        );
+
+        // When the slot and the More item are built from the same focus
+        const mismatches = cases.filter((focus) => (getFlatNavTabBarSlot(focus) === FLAT_NAV_TAB_BAR_SLOT.MORE) !== !!getMoreTabItemID(focus));
+
+        // Then the More item shows an entry's glyph only while it is highlighted, so it never keeps a glyph after the user
+        // leaves for an item of its own, and never shows the plain chevron while highlighted
         expect(mismatches).toEqual([]);
     });
 

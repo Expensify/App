@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
+import getMoreTabItemID from '@libs/Navigation/MoreMenu/getMoreTabItemID';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -114,6 +115,12 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
+    // The More menu entry the More item shows is read from the navigator's current state, like the search key, so its
+    // glyph changes in the same commit as the focused tab.
+    const getMoreTabItemIDFromState = (navigation: {getState: () => NavigationState}) => {
+        const tabState = navigation.getState();
+        return getMoreTabItemID({focusedTabRouteName: getActiveTabRoute(tabState)?.name, activeFlatNavSectionID: getSearchSectionID(resolveSearchSectionID, tabState)});
+    };
     // A tab with no label has no bar item and draws no icon. It shows under the item of its flat nav slot, or, with no
     // slot, under the first item with no item shown as selected.
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
@@ -122,7 +129,7 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
         route.name in tabLabels
             ? {
                   ...screenOptions,
-                  ...getTabOptions(route.name),
+                  ...getTabOptions(route.name, route.name === SCREENS.NATIVE_TAB_ITEM.MORE ? getMoreTabItemIDFromState(navigation) : undefined),
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
                   tabBarItemHiddenRouteName: getFlatNavTabHiddenRouteName(route.name),
               }

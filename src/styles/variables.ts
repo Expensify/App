@@ -142,6 +142,8 @@ export default {
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
     nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the smaller glyph drawn beside it in a native tab bar icon, such as the chevron of the More item. */
+    nativeTabIconAccessoryGap: 4,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */

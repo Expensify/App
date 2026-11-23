@@ -3,10 +3,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getNativeTabGlyphName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
+import getNativeTabIconGlyphs from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getNativeTabIconGlyphs';
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/getMoreTabItemID';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -54,7 +55,8 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
     const shouldDrawLabels = Number.parseInt(String(Platform.Version), 10) >= LIQUID_GLASS_IOS_VERSION;
     // A column has the height for a stacked tab whatever the orientation.
     const isInline = isInLandscapeMode && !isTabBarVertical;
-    const tabIconLayout = isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
+    // The classic bar would squeeze an icon widened by the More chevron, so the chevron goes over the glyph's corner there.
+    const tabIconLayout: TabIconLayout = {...(isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT), ...(!shouldDrawLabels && {accessoryPlacement: 'corner'})};
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
     // In landscape the label shares the item's width with the glyph's box beside it and the space after it.
@@ -82,28 +84,33 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabRouteName): NativeBottomTabNavigationOptions => ({
-        ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
-        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
-            name: getNativeTabGlyphName(name),
-            color: isSelected ? theme.iconMenu : theme.icon,
-            dotColor: dotColors[name],
-            // A column is too narrow for the labels, so it shows the icons alone.
-            label:
-                shouldDrawLabels && !isTabBarVertical
-                    ? {
-                          text: tabLabels[name],
-                          color: isSelected ? theme.text : theme.textSupporting,
-                          isBold: isSelected,
-                          fontSize: fontScale.micro,
-                          gap: variables.nativeTabIconLabelGap,
-                          maxWidth: labelMaxWidth,
-                      }
-                    : undefined,
-        })),
-        // On iOS 26 the label is drawn into the icon, so VoiceOver reads it from here.
-        tabBarAccessibilityLabel: tabLabels[name],
-    });
+    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => {
+        const {name: glyphName, accessoryName} = getNativeTabIconGlyphs(name, moreTabItemID);
+        return {
+            ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
+            tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
+                name: glyphName,
+                color: isSelected ? theme.iconMenu : theme.icon,
+                dotColor: dotColors[name],
+                // The chevron keeps the inactive color in both states, as in the design.
+                accessory: accessoryName ? {name: accessoryName, color: theme.icon} : undefined,
+                // A column is too narrow for the labels, so it shows the icons alone.
+                label:
+                    shouldDrawLabels && !isTabBarVertical
+                        ? {
+                              text: tabLabels[name],
+                              color: isSelected ? theme.text : theme.textSupporting,
+                              isBold: isSelected,
+                              fontSize: fontScale.micro,
+                              gap: variables.nativeTabIconLabelGap,
+                              maxWidth: labelMaxWidth,
+                          }
+                        : undefined,
+            })),
+            // On iOS 26 the label is drawn into the icon, so VoiceOver reads it from here.
+            tabBarAccessibilityLabel: tabLabels[name],
+        };
+    };
 
     return {screenOptions, getTabOptions};
 }

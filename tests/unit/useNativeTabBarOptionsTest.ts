@@ -7,6 +7,7 @@ import useAndroidNativeTabBarOptions from '@libs/Navigation/AppNavigator/Navigat
 import useIOSNativeTabBarOptions from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions/index.ios';
 import type NativeTabBarOptionsParams from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions/types';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
+import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -95,7 +96,47 @@ describe.each([
 
         // Then it draws the glyph of its slot and the dot it was given, and names itself for VoiceOver or Material
         expect(params).toMatchObject({name: glyphName, dotColor: FLAT_NAV_PARAMS.dotColors[routeName]});
+        expect(params?.accessory).toBeUndefined();
         expect(options[labelOption]).toBe(label);
+    });
+
+    it.each([
+        [MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.ACCOUNTING],
+        [MORE_MENU.ITEM.SAVED, MORE_MENU.ITEM.SAVED],
+        [MORE_MENU.ITEM.INSIGHTS, SCREENS.INSIGHTS],
+        [MORE_MENU.ITEM.WORKSPACES, NAVIGATORS.WORKSPACE_NAVIGATOR],
+    ] as const)('draws the More item with the %s glyph and the More chevron', (moreTabItemID, glyphName) => {
+        // Given the flat nav bar while the user is on a page picked from the More menu
+        const {result} = renderHook(() => ({options: useNativeTabBarOptions(FLAT_NAV_PARAMS), theme: useTheme()}));
+
+        // When the More item options are built
+        const options = result.current.options.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, moreTabItemID);
+        const getParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
+
+        // Then it draws the glyph of that page with the chevron in the inactive color in both states, as in the design,
+        // and keeps the More label and the Workspaces dot, since the item still opens the More menu
+        for (const isSelected of [false, true]) {
+            expect(getParams?.(isSelected)).toMatchObject({
+                name: glyphName,
+                color: isSelected ? result.current.theme.iconMenu : result.current.theme.icon,
+                dotColor: FLAT_NAV_PARAMS.dotColors[SCREENS.NATIVE_TAB_ITEM.MORE],
+                accessory: {name: FLAT_NAV_TAB_BAR_SLOT.MORE, color: result.current.theme.icon},
+            });
+        }
+        expect(options[labelOption]).toBe('More');
+    });
+
+    it('ignores the More menu entry for every item but More', () => {
+        // Given the flat nav bar
+        const {result} = renderHook(() => useNativeTabBarOptions(FLAT_NAV_PARAMS));
+
+        // When the Expenses item options are built with a More menu entry
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.EXPENSES, MORE_MENU.ITEM.WORKSPACES);
+        const params = mockGetTabBarIcon.mock.calls.at(-1)?.[1]?.(false);
+
+        // Then it keeps the glyph of its own slot, so only the More item ever changes its glyph
+        expect(params).toMatchObject({name: FLAT_NAV_TAB_BAR_SLOT.EXPENSES});
+        expect(params?.accessory).toBeUndefined();
     });
 });
 
@@ -136,5 +177,22 @@ describe('iOS useNativeTabBarOptions labels', () => {
         expect(result.current.screenOptions.tabBarLabel).toBeUndefined();
         expect(options.tabBarLabel).toBe('Inbox');
         expect(getParams?.(false).label).toBeUndefined();
+    });
+
+    it.each([
+        ['26.0', undefined],
+        ['16.7', 'corner'],
+    ])('places the More chevron for iOS %s', (version, expectedPlacement) => {
+        // Given the flat nav bar on an iOS version with or without the liquid glass bar
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue(version);
+        const {result} = renderHook(() => useIOSNativeTabBarOptions(FLAT_NAV_PARAMS));
+
+        // When the More item options are built while the user is on Workspaces
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, MORE_MENU.ITEM.WORKSPACES);
+        const layout = mockGetTabBarIcon.mock.calls.at(-1)?.[0];
+
+        // Then the liquid glass bar gets the chevron beside the glyph, as in the design, and the classic bar gets it over
+        // the glyph's corner, since the classic bar squeezes a wider icon
+        expect(layout?.accessoryPlacement).toBe(expectedPlacement);
     });
 });
