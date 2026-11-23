@@ -13,6 +13,7 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {onServerDataReady} from '@libs/actions/Welcome';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
@@ -2504,6 +2505,32 @@ describe('actions/Report', () => {
         await Onyx.update(request?.failureData ?? []);
         const failedReplyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
         expect(failedReplyActions?.[answerID]).toBeFalsy();
+    });
+
+    it('starts the thinking indicator in the new thread when an Insights question has no cached answer', () => {
+        // Given an online user with an Insights question that still needs a live answer.
+        const report = {...createRandomReport(1, undefined), reportID: '100'};
+        const replyReportID = '9003';
+
+        // When Explain opens a fresh Concierge thread.
+        Report.addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors: [],
+            text: 'Explain this insight',
+            sidePanelContext: {insightsScope: {searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND, policyIDs: [], date: {preset: 'this-month'}, groupCurrency: CONST.CURRENCY.USD}},
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: report.reportID,
+            conciergeThreadReportID: replyReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+
+        // Then thinking starts immediately in the new thread, not the parent chat.
+        expect(AgentZeroOptimisticStore.getEntry(replyReportID, CONST.ACCOUNT_ID.CONCIERGE)?.count).toBe(1);
+        expect(AgentZeroOptimisticStore.getEntry(report.reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        AgentZeroOptimisticStore.clear(replyReportID, CONST.ACCOUNT_ID.CONCIERGE);
     });
 
     it('should post several attachments as one action when Concierge answers in a thread', async () => {

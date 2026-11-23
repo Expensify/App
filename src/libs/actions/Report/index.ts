@@ -8,6 +8,7 @@ import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRo
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {waitForWrites} from '@libs/API';
 import * as API from '@libs/API';
@@ -1387,6 +1388,9 @@ function addActions({
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
+        if (isConciergeChat && sidePanelContext?.insightsScope && !resolvedPregeneratedResponseParams && !isOfflineNetwork()) {
+            AgentZeroOptimisticStore.increment(conciergeThreadReportID, CONST.ACCOUNT_ID.CONCIERGE, null);
+        }
         Onyx.update(conciergeThreadOnyxData).then(() => {
             if (!shouldNavigateToConciergeThread) {
                 return;

@@ -10,10 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {InsightsScope} from '@src/types/onyx';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useInsightsExplanation from './useInsightsExplanation';
+
+const REPEAT_PRESS_WINDOW_MS = 500;
 
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
@@ -27,41 +29,23 @@ type InsightsExplainButtonProps = {
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButtonContent({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const {askConcierge, shouldShowAskConcierge, conciergeTargetReportID} = useAskConcierge({forceConcierge: true});
     const getPreloadedAnswer = useInsightsExplanation(explainPrompt, insightsScope, conciergeTargetReportID, shouldShowAskConcierge);
-    const [isLoading, setIsLoading] = useState(false);
-    const isMounted = useRef(true);
-
-    useEffect(() => {
-        isMounted.current = true;
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
+    const lastPressedAt = useRef<number | undefined>(undefined);
 
     const explainInsight = () => {
-        if (isLoading) {
+        const now = Date.now();
+        // A double tap should not create two threads while the first is opening.
+        if (lastPressedAt.current !== undefined && now - lastPressedAt.current < REPEAT_PRESS_WINDOW_MS) {
             return;
         }
-        const answer = getPreloadedAnswer();
-        if (typeof answer === 'string' || !answer) {
-            askConcierge(explainPrompt, {insightsScope}, answer);
-            return;
-        }
-        setIsLoading(true);
-        answer.then((response) => {
-            // Filter changes remount this button, so a previous click must not post into the new context.
-            if (!isMounted.current) {
-                return;
-            }
-            setIsLoading(false);
-            askConcierge(explainPrompt, {insightsScope}, response);
-        });
+        lastPressedAt.current = now;
+        askConcierge(explainPrompt, {insightsScope}, getPreloadedAnswer());
     };
 
     if (!shouldShowAskConcierge) {
@@ -77,7 +61,6 @@ function InsightsExplainButtonContent({explainPrompt, insightsScope, children}: 
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={explainInsight}
-                    isLoading={isLoading}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
                     accessibilityLabel={translate('insightsPage.explain')}
                     innerStyles={styles.bgTransparent}
@@ -92,15 +75,6 @@ function InsightsExplainButtonContent({explainPrompt, insightsScope, children}: 
                 </Button>
             </View>
         </Tooltip>
-    );
-}
-
-function InsightsExplainButton(props: InsightsExplainButtonProps) {
-    return (
-        <InsightsExplainButtonContent
-            key={JSON.stringify([props.explainPrompt, props.insightsScope])}
-            {...props}
-        />
     );
 }
 

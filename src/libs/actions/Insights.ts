@@ -3,7 +3,6 @@ import type {SearchQueryString} from '@components/Search/types';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getCachedInsightsExplanation} from '@libs/InsightsExplanationUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -15,8 +14,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-// Remounts and early clicks share generation, but completed answers stay only in the evictable Onyx cache.
-const pendingExplanations = new Map<string, Promise<string | undefined>>();
+// Remounts share generation, but completed answers stay only in the evictable Onyx cache.
+const pendingExplanations = new Map<string, Promise<void>>();
 
 function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
@@ -82,33 +81,17 @@ function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStri
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-function preloadInsightsExplanation(jsonQuery: string, hash: number): Promise<string | undefined> {
+function preloadInsightsExplanation(jsonQuery: string, hash: number): Promise<void> {
     const pending = pendingExplanations.get(jsonQuery);
     if (pending) {
         return pending;
     }
     const request = waitForWrites(READ_COMMANDS.GET_INSIGHTS_EXPLANATION)
-        // The click needs the same response as the preload, rather than starting another generation.
-        .then(() =>
-            makeRequestWithSideEffects<typeof READ_COMMANDS.GET_INSIGHTS_EXPLANATION, `${typeof ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${string}`>(READ_COMMANDS.GET_INSIGHTS_EXPLANATION, {
-                jsonQuery,
-                hash,
-            }),
-        )
-        .then((result) => {
-            if (result?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return undefined;
-            }
-            const update = result.onyxData?.find((item) => item.key === `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hash}`);
-            const entry = update?.onyxMethod === Onyx.METHOD.SET ? update.value : undefined;
-            if (!entry?.jsonQuery || !entry.response || !entry.createdAt) {
-                return undefined;
-            }
-            return getCachedInsightsExplanation({jsonQuery: entry.jsonQuery, response: entry.response, createdAt: entry.createdAt}, jsonQuery);
+        .then(async () => {
+            await makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS_EXPLANATION, {jsonQuery, hash});
         })
         .catch((error: unknown) => {
             Log.hmmm('[Insights] explanation preload failed', {error: String(error)});
-            return undefined;
         })
         .finally(() => pendingExplanations.delete(jsonQuery));
     pendingExplanations.set(jsonQuery, request);
