@@ -2494,6 +2494,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            hideEnvironmentBadge: '隐藏环境徽章',
             betaOverrides: 'Beta 覆盖',
             betaOverridesDescription:
                 '覆盖仅适用于此设备，且仅影响前端检查。仅当 Beta 与你账户中的 Beta 不同时，才会保留覆盖，因此切换回原值会移除该覆盖。“重置所有覆盖”会恢复你账户中的值。部分 Beta 同时受后端控制，因此仍可能在请求层面失败。',
