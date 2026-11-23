@@ -583,14 +583,14 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID ?? updatedTransaction?.comment?.customUnit?.customUnitRateID);
     }
 
-    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search
+    // Only Search returns the workspace amount, so an edit that changes the amount, currency or report clears it until the next search.
+    // It is cleared even when this transaction has none, because the Search snapshot can still hold a value from an earlier search.
     if (
-        transaction.policyConvertedAmount != null &&
-        (updatedTransaction.amount !== transaction.amount ||
-            updatedTransaction.modifiedAmount !== transaction.modifiedAmount ||
-            updatedTransaction.currency !== transaction.currency ||
-            updatedTransaction.modifiedCurrency !== transaction.modifiedCurrency ||
-            updatedTransaction.reportID !== transaction.reportID)
+        updatedTransaction.amount !== transaction.amount ||
+        updatedTransaction.modifiedAmount !== transaction.modifiedAmount ||
+        updatedTransaction.currency !== transaction.currency ||
+        updatedTransaction.modifiedCurrency !== transaction.modifiedCurrency ||
+        updatedTransaction.reportID !== transaction.reportID
     ) {
         updatedTransaction.policyConvertedAmount = null;
     }
