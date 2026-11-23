@@ -1,13 +1,9 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDualEntryErrorField, updateDualEntryFxExpenseAccount} from '@libs/actions/connections/DualEntry';
@@ -15,10 +11,9 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import FxExpenseAccountSelectPage from '@pages/workspace/accounting/common/FxExpenseAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +24,6 @@ import {View} from 'react-native';
 function DualEntryFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualEntry?.config;
@@ -57,7 +51,6 @@ function DualEntryFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(expenseAccountOptions, saveSelectedAccount);
-    const {filteredData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const headerContent = (
         <View>
@@ -65,42 +58,27 @@ function DualEntryFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
         </View>
     );
 
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualEntry.noAccountsFound')}
-            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
     return (
-        <SelectionScreen
+        <FxExpenseAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!syncReimbursedReports || !canConfigureCurrencyConversionFees}
             displayName="DualEntryFxExpenseAccountPage"
             title="workspace.dualEntry.fxExpenseAccount.label"
-            data={filteredData}
-            textInputOptions={textInputOptions}
-            headerContent={headerContent}
-            listEmptyContent={listEmptyContent}
-            shouldShowListEmptyContent={!textInputOptions.value}
+            data={searchableList}
+            emptyStateTitle={translate('workspace.dualEntry.noAccountsFound')}
+            emptyStateSubtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             onSelectRow={selectAccount}
-            shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
             pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID], dualentryConfig?.pendingFields)}
             errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID)}
             confirmButtonOptions={confirmButtonOptions}
-        />
+        >
+            {headerContent}
+        </FxExpenseAccountSelectPage>
     );
 }
 

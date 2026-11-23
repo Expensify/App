@@ -1,7 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
-import useKeyboardState from '@hooks/useKeyboardState';
 import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePermissions from '@hooks/usePermissions';
@@ -262,8 +261,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const listRef = useRef<FlashListRef<DataType>>(null);
     // Keeps the table search input visible above the keyboard when it is focused inside the
     // scrolling list (native only; the web variant of the hook is a no-op).
-    const {isKeyboardShown} = useKeyboardState();
-    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
+    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef);
 
     const [tableWidth, setTableWidth] = useState(0);
 

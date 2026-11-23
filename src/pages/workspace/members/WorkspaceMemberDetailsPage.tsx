@@ -25,6 +25,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
@@ -90,7 +91,7 @@ import variables from '@styles/variables';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
-import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +104,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import {policyCategoriesVisibilitySelector} from '@selectors/PolicyCategories';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
@@ -155,6 +156,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSupportalSession = useIsSupportalSession();
     const preferredPolicy = usePreferredPolicy();
     const [isLeaveFlowActive, setIsLeaveFlowActive] = useState(false);
+    const isAnonymousUser = useIsAnonymousUser();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
@@ -203,12 +205,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
     let categoryVisibilityTitle = '';
-    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility) {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategoriesVisibility);
+    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility && enabledCategoriesCount) {
         const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategoriesVisibility, accountID).length;
         categoryVisibilityTitle =
-            visibleCategoriesCount === getEnabledCategoriesCount(policyCategoriesVisibility)
-                ? translate('workspace.people.allCategories')
-                : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+            visibleCategoriesCount === enabledCategoriesCount ? translate('workspace.people.allCategories') : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
     }
     const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
@@ -219,7 +220,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
 
     // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
-    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
+    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUser;
     const messageAction = PromotedActions.message({
         reportID: isSelectedMemberCurrentUser ? selfDMReportID : memberChatReportID,
         accountID,
@@ -482,7 +483,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         <AccessOrNotFoundWrapper
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
-            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            policyFeatureAccess={shouldShowLeave ? CONST.POLICY.POLICY_FEATURE_ACCESS.READ : CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -694,7 +695,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            {!isAnonymousUserSession() && (
+                            {!isAnonymousUser && (
                                 <View style={styles.mb5}>
                                     <MenuItemNavigation
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_CHAT_HISTORY}

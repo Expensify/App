@@ -78,16 +78,18 @@ describe('CategoryPickerModal', () => {
         mockIsTablet = false;
     });
 
-    type SheetProps = {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean};
+    type SheetProps = {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean; shouldShowHeader?: boolean};
 
-    const getSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: SheetProps) => (
+    const getSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false, shouldShowHeader}: SheetProps) => (
         <CategoryPickerModal
             isVisible
             onClose={onClose}
             policyID={POLICY_ID}
             anchorPosition={{horizontal: 0, vertical: 0}}
             onAddCategory={onAddCategory}
+            addCategorySentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             shouldFitContentHeight={shouldFitContentHeight}
+            shouldShowHeader={shouldShowHeader}
         />
     );
 
@@ -146,6 +148,16 @@ describe('CategoryPickerModal', () => {
         expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
         expect(screen.queryByLabelText('common.back')).toBeNull();
         expect(screen.queryByText('common.category')).toBeNull();
+    });
+
+    it('shows the header without an add button when the caller asks for it', () => {
+        // Given a caller that heads its list with the field name, like the bulk edit form, for a user who cannot add categories
+        // When the pop-over opens
+        renderSheet({shouldShowHeader: true});
+
+        // Then the header names the field, and adding a category is still offered only to users who can
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
+        expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
     });
 
     it('creates the searched-for category and then closes when the create row is tapped', () => {

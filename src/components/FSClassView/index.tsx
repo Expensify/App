@@ -1,6 +1,6 @@
 import type {FSClass} from '@libs/Fullstory/types';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {ViewProps} from 'react-native';
 
 import React from 'react';
@@ -13,7 +13,7 @@ type FSClassViewProps = ViewProps & {
     forwardedFSClass?: FSClass;
 
     /** Reference to the underlying view */
-    ref?: Ref<View>;
+    ref?: Ref<ComponentRef<typeof View>>;
 };
 
 /**

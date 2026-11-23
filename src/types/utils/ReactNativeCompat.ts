@@ -4,7 +4,7 @@
  * The FlatList generic is phantom under the Strict API: VirtualizedListProps is not generic there (`Item = any`),
  * so `T` is ignored and `viewableItems[].item` widens from `unknown` to `any` after the flip.
  */
-import type {BackHandler, FlatListProps, TextInputProps} from 'react-native';
+import type {BackHandler, FlatListProps, TextInputProps, ViewProps} from 'react-native';
 
 type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
 
@@ -19,4 +19,12 @@ type TextInputScrollEvent = Parameters<NonNullable<TextInputProps['onScroll']>>[
 /** Only reachable through `react-native/Libraries/Utilities/BackHandler`, which the Strict API blocks */
 type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventListener>[1]>[0];
 
-export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewToken};
+/**
+ * The key down and click events a View or Pressable receives.
+ * Handlers read the key, modifiers and pointer position from `nativeEvent`.
+ */
+type ViewKeyDownEvent = Parameters<NonNullable<ViewProps['onKeyDown']>>[0];
+
+type ViewClickEvent = Parameters<NonNullable<ViewProps['onClick']>>[0];
+
+export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewClickEvent, ViewKeyDownEvent, ViewToken};

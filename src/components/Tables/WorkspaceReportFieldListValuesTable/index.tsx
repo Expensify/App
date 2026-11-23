@@ -9,6 +9,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -65,7 +67,7 @@ export default function WorkspaceReportFieldListValuesTable({
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {
@@ -132,4 +134,4 @@ export default function WorkspaceReportFieldListValuesTable({
     );
 }
 
-export type {ReportFieldListValueColumnKey, ReportFieldListValueRowData};
+export type {ReportFieldListValueRowData};

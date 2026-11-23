@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -49,7 +50,7 @@ jest.mock('@userActions/Session', () => ({
     clearSignInData: jest.fn(),
     setAccountError: jest.fn(),
     setIsAuthenticatingWithShortLivedToken: jest.fn(),
-    signInWithShortLivedAuthToken: jest.fn(),
+    signInWithShortLivedAuthToken: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedOpenAuthSessionAsync = jest.mocked(openAuthSessionAsync);
@@ -148,6 +149,23 @@ describe('SAMLSignInPage', () => {
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
     });
 
+    it('logs why the in-app browser closed without signing in', async () => {
+        // Given an in-app browser that iOS closes with its reason
+        const logSpy = jest.spyOn(Log, 'hmmm');
+        const cancelledResult = {type: WebBrowserResultType.CANCEL, error: 'The operation couldn’t be completed. (com.apple.AuthenticationServices.WebAuthenticationSession error 1.)'};
+        mockedOpenAuthSessionAsync.mockResolvedValue(cancelledResult);
+
+        // When the page opens it
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the log keeps the reason, so a person cancelling can be told apart from iOS closing the sheet
+        expect(logSpy).toHaveBeenCalledWith(
+            'SAMLSignInPage - Auth session closed without a successful result',
+            expect.objectContaining({type: WebBrowserResultType.CANCEL, error: cancelledResult.error}),
+        );
+    });
+
     it('does not try to close the in-app browser on Android', async () => {
         // Given an in-app browser on Android that opened and never returned a result
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
@@ -172,7 +190,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
         expect(clearSignInData).not.toHaveBeenCalled();
     });
 
@@ -184,7 +202,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
     it('waits until the app is active to sign in with a token that came back while it was in the background', async () => {
         // Given the token comes back from an authenticator app before iOS marks the app active again
@@ -211,7 +229,7 @@ describe('SAMLSignInPage', () => {
 
         // Then it signs in once with the token it kept
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledTimes(1);
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
 
         currentStateSpy.mockRestore();
         addEventListenerSpy.mockRestore();

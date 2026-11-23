@@ -18,7 +18,7 @@ type CapturedPopupProps = {
 };
 
 const mockCapturedPopupProps: {current: CapturedPopupProps | undefined} = {current: undefined};
-const mockCapturedSkeletonProps: {current: {height?: number} | undefined} = {current: undefined};
+const mockCapturedSkeletonProps: {current: {width?: number; height?: number} | undefined} = {current: undefined};
 
 type MockFilterPopupButtonProps = {
     PopoverComponent: (props: {closeOverlay: () => void; isExpanded: boolean}) => React.ReactNode;
@@ -62,7 +62,7 @@ jest.mock('@components/Button', () => {
 });
 jest.mock('@components/Search/SearchPageFooterSkeleton', () => ({
     __esModule: true,
-    default: (props: {height?: number}) => {
+    default: (props: {width?: number; height?: number}) => {
         mockCapturedSkeletonProps.current = props;
         return null;
     },
@@ -203,12 +203,12 @@ describe('SearchPageFooter', () => {
         expect(trigger.getByText('USD-192000')).toBeOnTheScreen();
     });
 
-    it('stands the skeleton in at the height the real total was measured at, so the row does not grow', () => {
+    it('stands the skeleton in at the size the real total was measured at, so the total keeps its line and the row does not grow', () => {
+        // Given a footer whose real total was laid out, which reports the size the skeleton has to match
         const {rerender} = render(<SearchPageFooter {...defaultProps} />);
-
-        // The layout pass the real total goes through is what reports the height the skeleton has to match.
         fireEvent(screen.getByTestId('searchPageFooterTotal'), 'layout', {nativeEvent: {layout: {width: 87, height: 16, x: 0, y: 0}}});
 
+        // When the total starts reloading
         rerender(
             <SearchPageFooter
                 {...defaultProps}
@@ -216,6 +216,8 @@ describe('SearchPageFooter', () => {
             />,
         );
 
+        // Then the skeleton takes the total's width and height, so a long total does not move between one line and two
+        expect(mockCapturedSkeletonProps.current?.width).toBe(87);
         expect(mockCapturedSkeletonProps.current?.height).toBe(16);
     });
 

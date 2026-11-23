@@ -208,14 +208,17 @@ describe('WorkspaceMemberDetailsPage', () => {
             jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         });
 
-        it('offers Leave instead of Remove on the signed-in nonowner’s details', async () => {
-            // Given the signed-in nonowner Editor's own details
+        it.each([CONST.POLICY.ROLE.EDITOR, CONST.POLICY.ROLE.USER])('offers Leave instead of Remove on the signed-in nonowner’s details as %s', async (role) => {
+            // Given the signed-in nonowner's own details, without requiring roster-management access
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {role, employeeList: {[selfEmail]: {role}}});
+            });
             const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
             await waitForBatchedUpdatesWithAct();
             expect(await screen.findByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeDisabled();
             expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
 
-            // When the Editor presses Leave
+            // When the member presses Leave
             fireEvent.press(screen.getByText(TestHelper.translateLocal('common.leaveWorkspace')));
             await waitForBatchedUpdatesWithAct();
 
@@ -267,6 +270,26 @@ describe('WorkspaceMemberDetailsPage', () => {
             // Then the existing removal path is used, never workspace departure
             expect(MemberActions.removeMembers).toHaveBeenCalled();
             expect(PolicyActions.leaveWorkspace).not.toHaveBeenCalled();
+            unmount();
+        });
+
+        it('does not allow a read-only member to open another member’s workspace details', async () => {
+            // Given a member without roster-management access
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.USER}},
+                });
+            });
+
+            // When another member's workspace details are opened directly
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither the details screen nor its departure or removal actions are accessible
+            expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('common.leaveWorkspace'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeWorkspaceMemberButtonTitle'))).not.toBeOnTheScreen();
             unmount();
         });
     });

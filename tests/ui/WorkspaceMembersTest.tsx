@@ -18,6 +18,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as Modal from '@libs/actions/Modal';
 import * as Member from '@libs/actions/Policy/Member';
 import * as Policy from '@libs/actions/Policy/Policy';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -28,7 +29,7 @@ import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {OfficeLocation} from '@src/types/onyx/Policy';
 
@@ -333,6 +334,31 @@ describe('WorkspaceMembers', () => {
             expect(screen.queryByText(TestHelper.translateLocal('workspace.invite.member'))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal('spreadsheet.importSpreadsheet'))).not.toBeOnTheScreen();
             expect(screen.queryByText(TestHelper.translateLocal('spreadsheet.downloadCSV'))).not.toBeOnTheScreen();
+            unmount();
+        });
+
+        it('opens workspace details only for a read-only member’s own row', async () => {
+            // Given a member who can read the roster but cannot manage other members
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[selfEmail]: {role: CONST.POLICY.ROLE.USER}},
+                });
+            });
+            jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback) => callback());
+            const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the member opens their own row
+            fireEvent.press(screen.getByLabelText(new RegExp(`^Self User, ${selfEmail}`)));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then self details are reachable, while another member still opens the generic profile
+            expect(navigate).toHaveBeenLastCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, selfAccountID));
+            fireEvent.press(screen.getByLabelText(new RegExp(`^${USER_OPTION}, ${userEmail}`)));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigate).toHaveBeenLastCalledWith(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(userAccountID, userEmail)));
             unmount();
         });
     });
@@ -875,7 +901,8 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Approver column', () => {
-        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
+        // The heading opens the column menu, which is named after the column.
+        const approverHeaderLabel = () => TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: TestHelper.translateLocal('workflowsPage.approver')});
 
         it("shows each member's first approver, including the admin who approves themselves", async () => {
             // Given a policy with approvals on and every member (including the admin) submitting to the admin:

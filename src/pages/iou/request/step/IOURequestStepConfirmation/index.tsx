@@ -52,7 +52,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isPartiallyEnteredScanExpense,
     isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
@@ -82,7 +81,6 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -94,7 +92,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+import type {IOURequestStepConfirmationProps} from './types';
 import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
@@ -160,7 +158,8 @@ function IOURequestStepConfirmationContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
-    const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
+    // Only the confirmation step route has this param. Checking `route.name` would not narrow `params`, because the route type covers both screens.
+    const participantsAutoAssignedFromRoute = 'participantsAutoAssigned' in params ? params.participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -369,8 +368,8 @@ function IOURequestStepConfirmationContent({
         }
     }
 
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
+    // While the next receipt loads the pager still shows the previous one, so filter by the one shown.
+    const siblingTransactions = transactions.filter((item) => item.transactionID !== transaction?.transactionID);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -573,10 +572,11 @@ function IOURequestStepConfirmationContent({
      */
     const setReceiptOnDrop = (files: FileObject[]) => {
         const file = files.at(0);
-        if (!file) {
+        // Dropped files come from the browser, so they are always Files.
+        if (!(file instanceof File)) {
             return;
         }
-        const source = URL.createObjectURL(file as Blob);
+        const source = URL.createObjectURL(file);
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
     };
 
@@ -653,7 +653,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         shouldShowSmartScanFields,
         canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         onSwitchToTransaction: setCurrentTransactionID,
         action,
         isConfirmed,

@@ -84,6 +84,7 @@ import {
     isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
+    isPolicyOwner,
     canLeaveWorkspace,
     isSubmitPolicy,
     PAYER_ROLES,
@@ -408,7 +409,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     /** Opens the member details page */
     const openMemberDetails = (accountID: number, login?: string) => {
-        if (!canWriteMembers || !canManageMembers) {
+        const isNonownerSelf = accountID === currentUserPersonalDetails.accountID && !isPolicyOwner(policy, accountID);
+        if ((!canWriteMembers && !isNonownerSelf) || !canManageMembers) {
             // Pass the login so ProfilePage can render a fallback identity for members whose personal details
             // aren't loaded (their accountID is generated and can't be resolved from a spinner otherwise).
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, login)));
@@ -573,6 +575,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowHRSyncLink && '. '}
                         {shouldShowHRSyncLink && (
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CONFIGURE_HR_SYNC_LINK}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
                             >
                                 {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}

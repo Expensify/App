@@ -342,6 +342,10 @@ function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: str
     return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
 }
 
+function canCreateRoomsOnPolicy(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
+    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ROOMS);
+}
+
 /** Whether the submitter's role lets them submit their own report. Non-group policies always allow it. */
 function canSubmitOwnReportOnPolicy(policy: OnyxInputOrEntry<Policy>, submitterLogin?: string): boolean {
     return !isGroupPolicy(policy) || canCreateExpensesOnPolicy(policy, submitterLogin);
@@ -434,6 +438,7 @@ export {
     canRolePay,
     canRoleCreateExpenses,
     canCreateExpensesOnPolicy,
+    canCreateRoomsOnPolicy,
     canSubmitOwnReportOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,

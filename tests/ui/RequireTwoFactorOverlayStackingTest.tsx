@@ -9,8 +9,10 @@ import TestToolsModalNavigator from '@libs/Navigation/AppNavigator/Navigators/Te
 
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
-import {Platform} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 
 type Visibility = {
     isRequire2FAOverlayVisible: boolean;
@@ -24,6 +26,21 @@ let mockVisibility: Visibility = {
 let mockIsOffline = true;
 let mockShouldUseNarrowLayout = true;
 let testToolsStackMountCount = 0;
+const mockSafeAreaPaddingBottom = 34;
+
+/** The pinned banner no longer sits in the column, so the gap lives on an ancestor of the buttons. */
+function paddingBottomAbove(start: {parent: unknown}): number | undefined {
+    let current: unknown = start.parent;
+    while (current && typeof current === 'object' && 'props' in current) {
+        const props: unknown = current.props;
+        const style: unknown = StyleSheet.flatten(props && typeof props === 'object' && 'style' in props ? props.style : undefined);
+        if (style && typeof style === 'object' && 'paddingBottom' in style && typeof style.paddingBottom === 'number') {
+            return style.paddingBottom;
+        }
+        current = 'parent' in current ? current.parent : null;
+    }
+    return undefined;
+}
 
 jest.mock('@hooks/useRequire2FAOverlayVisibility', () => ({
     __esModule: true,
@@ -38,7 +55,13 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/useBottomSafeSafeAreaPaddingStyle', () => ({
     __esModule: true,
-    default: () => ({paddingBottom: 34}),
+    default: ({additionalPaddingBottom = 0, addBottomSafeAreaPadding = false}: {additionalPaddingBottom?: number; addBottomSafeAreaPadding?: boolean} = {}) => {
+        if (additionalPaddingBottom === 0 && !addBottomSafeAreaPadding) {
+            return undefined;
+        }
+        const safeAreaPaddingBottom = addBottomSafeAreaPadding ? mockSafeAreaPaddingBottom : 0;
+        return {paddingBottom: safeAreaPaddingBottom + additionalPaddingBottom};
+    },
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -78,6 +101,12 @@ jest.mock('@hooks/useThemeStyles', () => ({
                 get: (_target, prop) => {
                     if (prop === 'getTestToolsNavigatorOuterView' || prop === 'getTestToolsNavigatorInnerView') {
                         return () => ({});
+                    }
+                    if (prop === 'stickToBottom') {
+                        return {position: 'absolute', bottom: 0, left: 0, right: 0};
+                    }
+                    if (prop === 'zIndex1') {
+                        return {zIndex: 1};
                     }
                     return {};
                 },
@@ -275,7 +304,7 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
     it('shows the offline banner inside the overlay on a narrow screen and opens test tools from a four-finger tap', () => {
         // Given required 2FA is visible on a phone and the user is offline. The overlay covers the ScreenWrapper banner and its four-finger handler.
 
-        // When the overlay renders its own banner in the column, and the user taps with four fingers.
+        // When the overlay renders its own pinned banner, and the user taps with four fingers.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
         // Then the banner is visible without covering the buttons, and the overlay itself handles the four-finger tap.
@@ -293,16 +322,19 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         expect(screen.getByTestId('enable-2fa-enter-shortcut')).toBeOnTheScreen();
     });
 
-    it('hides the offline banner on a wide layout', () => {
-        // Given required 2FA is visible on a wide screen, where ScreenWrapper does not show an offline indicator.
+    it('pins the offline banner to the bottom of a wide layout', () => {
+        // Given required 2FA is visible on a wide screen, such as a landscape browser window. The overlay covers the sidebar and page indicators, and web clips a row that spills past the overlay.
         mockShouldUseNarrowLayout = false;
 
         // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
-        // Then it does not add a full-width banner of its own.
-        expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
-        expect(screen.queryByTestId('RequireTwoFactorOfflineBanner')).toBeNull();
+        // Then the row is pinned inside the overlay, and the content keeps a gap so the buttons stay above it.
+        const overlay = screen.getByTestId('RequireTwoFactorAuthenticationOverlay');
+        const banner = within(overlay).getByTestId('RequireTwoFactorOfflineBanner');
+        expect(banner).toHaveStyle({position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1});
+        expect(within(overlay).getByText('You appear to be offline.')).toBeOnTheScreen();
+        expect(paddingBottomAbove(screen.getByText('initialSettingsPage.signOut'))).toBe(mockSafeAreaPaddingBottom + CONST.OFFLINE_INDICATOR_HEIGHT);
     });
 
     it('hides the banner when the overlay is not showing', () => {
@@ -327,9 +359,10 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
-        // Then the extra banner stays hidden, because there is no offline state to show.
+        // Then the extra banner stays hidden, and the content does not keep a gap for it.
         expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
         expect(screen.queryByText('You appear to be offline.')).toBeNull();
+        expect(paddingBottomAbove(screen.getByText('initialSettingsPage.signOut'))).toBeUndefined();
     });
 
     it('turns the web focus trap off while test tools are focused', () => {

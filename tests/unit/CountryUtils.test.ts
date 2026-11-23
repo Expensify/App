@@ -1,5 +1,6 @@
 import {getCountryCode, normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 describe('CountryUtils', () => {
@@ -184,6 +185,13 @@ describe('CountryUtils', () => {
             expect(resolveStateCode('TX')).toBe('TX');
             expect(resolveStateCode('')).toBe('');
             expect(resolveStateCode('Ontario')).toBe('Ontario');
+        });
+
+        it('turns a full name into its code from the state list it is given', () => {
+            // Given the Australian state list and a stored address that names its state in full
+            // When the state is resolved against that list
+            // Then the picker gets the code it lists that state by
+            expect(resolveStateCode('new south wales', STATES_BY_COUNTRY.AU)).toBe('NSW');
         });
     });
 });
