@@ -557,7 +557,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
         groupExchangeRate?: number;
 
-        /** The transaction amount converted to its workspace's output currency, stored with the same sign as `amount`. Only sent in search results */
+        /** The transaction amount converted to its workspace's output currency, stored with the same sign as `amount`. Only sent in search results, and null after an edit changes the amount, currency or report until the next search */
         policyConvertedAmount?: number | null;
 
         /** The currency of `policyConvertedAmount`, which is the transaction's own currency when it has no workspace. Only sent in search results */
