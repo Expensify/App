@@ -8,7 +8,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
@@ -86,7 +87,7 @@ function SubmitActionButtonContent() {
     const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
+    const [submitterPersonalDetails] = usePersonalDetail(iouReport?.ownerAccountID);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -123,7 +124,7 @@ function SubmitActionButtonContent() {
         violationsCollection: filteredTransactionViolations,
     });
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules, submitterPersonalDetailsByLogin);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules, submitterPersonalDetails);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         iouReport?.reportID,
         filteredTransactionViolations,

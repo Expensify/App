@@ -581,7 +581,16 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} dia`,
             other: (count: number) => `${formattedCount ?? count} dias`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} hora`,
+            other: (count: number) => `${formattedCount ?? count} horas`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuto`,
+            other: (count: number) => `${formattedCount ?? count} minutos`,
+        }),
         amount: 'Valor',
+        submitter: 'Remetente',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -688,6 +697,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
+        notValid: 'Link inválido.',
+        sessionMismatch: 'O link em que você clicou não é válido para a sua sessão atual.',
+        switchAccount: {
+            title: 'Trocar de conta?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Você está conectado como ${currentEmail}. Esta ação fará com que você entre como ${newEmail} em vez disso.`,
+            confirm: 'Alterar contas',
+            staySignedIn: 'Não trocar de conta',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1295,6 +1313,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Maior prazo para pagar',
         share: 'Participação',
         averageDays: 'Média de dias',
+        generatingAIInsights: 'Gerando insights de IA...',
+        generatingAIInsightsSubtitle: 'Isso não deve levar mais de um minuto',
+        readingChart: (chartTitle: string) => `Lendo ${chartTitle}`,
+        comparingWithYourAverage: 'Comparando com a sua média',
+        lookingForAnythingUnusual: 'Procurando algo incomum',
+        writingYourInsights: 'Escrevendo seus insights',
         violationStage: {
             label: 'Violações de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
@@ -3303,6 +3327,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Começar',
             headerTitle: 'Reembolsos globais',
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
+            payingMultipleReportsSubtitle: 'Nenhum desses relatórios pôde ser pago porque as contas bancárias da empresa e do funcionário usam moedas diferentes.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
+            description: 'Esses relatórios não foram pagos com a conta bancária porque exigem reembolsos globais. Comece o processo abaixo.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
         wiseMoreInfoNeeded: 'Mais informações necessárias para ativar reembolsos globais',
@@ -7218,9 +7247,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            visibleTo: 'Visível para',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membros`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Não é possível remover o acesso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'Não é possível remover o acesso a essas categorias',
                 description: ({count}: {count: number}) => ({
                     one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
                     other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
@@ -8509,6 +8546,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             startDate: 'Data de início',
             endDate: 'Data de término',
             autoGeneratedRateTooltip: 'Essa tarifa é gerada automaticamente.',
+            taxReclaimableOnAmount: (amount: string) => `Imposto recuperável em ${amount}`,
             automaticRates: 'Tarifas automáticas',
             autoUpdateGovernmentRate: 'Atualizar automaticamente taxas governamentais',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8595,6 +8633,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             timezoneInputLabel: 'Fuso horário',
             timezoneInputHelpText: 'Seu fuso horário é usado para o envio automático de relatórios',
             timezoneErrorMessage: 'Não foi possível alterar o fuso horário. Tente novamente ou entre em contato com o suporte.',
+            directReimbursementCurrencyTitle: 'Moeda indisponível com reembolso direto',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espaço de trabalho reembolsa os membros diretamente pelo Expensify, o que não está disponível em ${currency}. Para usar ${currency}, acesse Fluxos de trabalho e desative e reative Pagamentos, para que os pagamentos sejam feitos fora do Expensify.`,
+            goToWorkflows: 'Ir para fluxos de trabalho',
         },
         officeLocations: {
             title: 'Locais do escritório',
@@ -9213,6 +9255,36 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 confirmErrorConditionAndDefault: 'Adicione pelo menos uma condição e aplique pelo menos um padrão',
                 createRuleFromExpenseAction: 'Criar regra',
                 createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Companhias aéreas',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Álcool e bares',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon e livrarias',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Automotivo',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Aluguel de carros',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Refeições',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Combustível e gás',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Governo e organizações sem fins lucrativos',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Compras de mercado',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Academias e condicionamento físico',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Saúde',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotéis',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet e telefone',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Materiais de escritório',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Estacionamento e pedágios',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Serviços profissionais',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Varejo',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Envio e entrega',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Software',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Transporte público e viagem por aplicativo',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Agências de viagem',
+                },
+                dateMatchTypeOn: 'Ativado',
+                dateMatchTypeBefore: 'Antes',
+                dateMatchTypeAfter: 'Depois',
+                hasOrDoesNotHave: 'Tem/Não tem',
+                amountMatchTypeEqualTo: 'Igual a',
+                amountMatchTypeGreaterThan: 'Maior que',
+                amountMatchTypeLessThan: 'Menor que',
             },
             categoryRules: {
                 title: 'Regras de categoria',
@@ -9551,6 +9623,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 tagIs: (tag: string) => `A tag é "${tag}"`,
                 merchantContains: (merchant: string) => `Comerciante contém "${merchant}"`,
                 merchantExactlyMatches: (merchant: string) => `O estabelecimento corresponde exatamente a "${merchant}"`,
+                currencyIs: (currency: string) => `A moeda é "${currency}"`,
+                cardIs: (card: string) => `Cartão é "${card}"`,
+                taxRateIs: (taxRate: string) => `A alíquota de imposto é "${taxRate}"`,
+                submitterIs: (submitter: string) => `Quem enviou é "${submitter}"`,
+                reimbursableIs: (reimbursable: string) => `Reembolsável é "${reimbursable}"`,
+                billableIs: (billable: string) => `Faturável é "${billable}"`,
+                dateIs: (comparison: string) => `A data é ${comparison}`,
+                amountIs: (comparison: string) => `O valor é ${comparison}`,
+                hasValue: (value: string) => `Tem "${value}"`,
+                doesNotHaveValue: (value: string) => `Não tem “${value}”`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
             requireFieldsTable: {
@@ -10339,11 +10421,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou a taxa de ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `alterou a alíquota de imposto na tarifa de distância "${customUnitRateName}" para "${newValue} (${newTaxPercentage})" (anteriormente "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `alterou a taxa de imposto na taxa de distância "${customUnitRateName}" para "${newTaxRate}" (antes "${oldTaxRate}")`;
             }
-            return `adicionou a alíquota de imposto "${newValue} (${newTaxPercentage})" à tarifa de distância "${customUnitRateName}"`;
+            return `adicionou a alíquota de imposto "${newTaxRate}" à tarifa de distância "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10981,6 +11063,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
+            tooManyKeywords: `Sua pesquisa tem palavras-chave demais. Use no máximo ${CONST.SEARCH.MAX_KEYWORD_TOKENS} palavras-chave e tente novamente.`,
+            unsupportedGrouping: 'Esta pesquisa não permite agrupamentos nem visualizações em gráfico. Remova o agrupamento e use a visualização em tabela.',
+            invalidReportID: 'Insira um ID de relatório válido. Para encontrar despesas não relatadas, use status:unreported.',
+            unsupportedFilter: 'O filtro "is:" não é compatível com esta pesquisa. Para encontrar despesas não relatadas, use status:unreported.',
             emptyResults: {
                 title: 'Nada para mostrar',
                 subtitle: `Tente ajustar seus critérios de pesquisa ou criar algo com o botão +.`,
@@ -11040,6 +11126,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             openMenu: ({columnName}: {columnName: string}) => `Opções da coluna ${columnName}`,
             sortAscending: 'Classificar em ordem crescente',
             sortDescending: 'Classificar em ordem decrescente',
+            pinLeft: 'Fixar à esquerda',
+            pinRight: 'Fixar à direita',
+            unpin: 'Desafixar',
             hideColumn: 'Ocultar coluna',
             resetColumnSizes: 'Redefinir largura das colunas',
         },
@@ -13287,6 +13376,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
         toMarkAsDone: 'marcar como concluída',
         receivedPayment: 'pagamento recebido',
+        markedAsManuallyExported: (label: string) => `marcou este relatório como exportado manualmente para ${label}`,
     },
 };
 export default translations;

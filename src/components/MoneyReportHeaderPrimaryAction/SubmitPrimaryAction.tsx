@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -42,7 +42,6 @@ import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import type {ValueOf} from 'type-fest';
 
@@ -97,7 +96,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {selector: getArchiveReason});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [submitterPersonalDetails] = usePersonalDetail(moneyRequestReport?.ownerAccountID);
+    const submitterLogin = submitterPersonalDetails?.login;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -110,7 +110,6 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
-    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
@@ -132,7 +131,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const {showConfirmModal} = useConfirmModal();
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetailsByLogin);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetails);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
         violations,

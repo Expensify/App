@@ -128,6 +128,13 @@
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
 - PR introducing patch: [#106500](https://github.com/Expensify/App/pull/106500)
 
+### [react-native-screens+4.28.0+010+no-off-screen-tab-selection-animation.patch](react-native-screens+4.28.0+010+no-off-screen-tab-selection-animation.patch)
+
+- Reason: On iOS, the first mount selects the restored tab through `setSelectedViewController:` before the tab bar is in a window, and UIKit animates that selection change. The animation is set up for the layout the bar has outside the window, which is a bottom bar. On a foldable iPhone the bar moves into the vertical bar column once it is in the window, so the still running animation morphs the liquid glass selection from the bottom bar's less rounded shape into the column's capsule, which shows as a squarer bubble on the selected tab right after launch. The patch selects the tab without animation while the controller's view has no window, the same way UIKit's own `setSelectedIndex:` in `setViewControllers:animated:` already does.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#107266](https://github.com/Expensify/App/issues/107266)
+- PR introducing patch: [#107282](https://github.com/Expensify/App/pull/107282)
+
 ### [react-native-screens+4.28.0+010+tab-bar-item-order.patch](react-native-screens+4.28.0+010+tab-bar-item-order.patch)
 
 - Reason: Android only. Adds a `tabBarItemOrder` prop to the tabs host: the screen keys in the order their items take in the tab bar. With the flat navigation beta, Expenses and Reports are two items over the one Search screen, and native shows the content of a tab only under its own item, so the tab that holds Search has to take the place of the item to highlight. Moving the tab in React replaces its fragment, which remounts Search. With this prop the React children keep their order, so no view is moved or recreated: the menu items are added in that order and, only when an order is given, the selected one is checked again after the menu is rebuilt. `TabsHostA11yCoordinator` paired tabs with menu items by index, so it now matches them by menu item id. An empty or missing order keeps the order of the children, which is what every host gets without the beta. iOS does not use the order, see patch 012.

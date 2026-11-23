@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -52,6 +53,7 @@ import type {
     ReusableDistanceRoute,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -70,6 +72,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
@@ -117,8 +120,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    moneyRequestReportTransactions: Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: ReusableDistanceRoute[];
@@ -180,6 +183,7 @@ function handleMoneyRequestStepDistanceNavigation({
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backTo,
     backToReport,
@@ -227,8 +231,8 @@ function handleMoneyRequestStepDistanceNavigation({
     participantsPolicyTags,
     isOffline = false,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
-    moneyRequestReportTransactions,
     reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
@@ -348,6 +352,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             },
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
+                            currentUserPersonalDetails,
                             introSelected,
                             conciergeChat,
                             quickAction,
@@ -399,7 +404,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     const distanceRequestPlan = planDistanceRequest({
                         isVendorMatchingBetaEnabled,
                         report,
-                        moneyRequestReportTransactions,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -451,6 +455,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         getCurrencyDecimals,
                         participantsPolicyTags,
                         rules,
+                        personalDetailsByLogins,
                         reusableDistanceRoutes,
                     });
                     commitDistanceRequest(distanceRequestPlan);
