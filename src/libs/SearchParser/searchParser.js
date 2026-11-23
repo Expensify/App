@@ -3220,15 +3220,15 @@ function peg$parse(input, options) {
   function peg$parseconvertedAmount() {
     var s0, s1;
 
-    s0 = input.substr(peg$currPos, 15);
-    if (s0.toLowerCase() === peg$c94) {
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 15);
+    if (s1.toLowerCase() === peg$c94) {
       peg$currPos += 15;
     } else {
-      s0 = peg$FAILED;
+      s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e99); }
     }
-    if (s0 === peg$FAILED) {
-      s0 = peg$currPos;
+    if (s1 === peg$FAILED) {
       s1 = input.substr(peg$currPos, 16);
       if (s1.toLowerCase() === peg$c95) {
         peg$currPos += 16;
@@ -3236,12 +3236,12 @@ function peg$parse(input, options) {
         s1 = peg$FAILED;
         if (peg$silentFails === 0) { peg$fail(peg$e100); }
       }
-      if (s1 !== peg$FAILED) {
-        peg$savedPos = s0;
-        s1 = peg$f74();
-      }
-      s0 = s1;
     }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f74();
+    }
+    s0 = s1;
 
     return s0;
   }
