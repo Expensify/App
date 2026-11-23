@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import INSIGHTS_DASHBOARD_SPECS, {getDetailsChartSpec} from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getChartSpec} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
@@ -45,7 +45,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const dashboardSpec = dashboardID ? INSIGHTS_DASHBOARD_SPECS[dashboardID] : undefined;
-    const chartSpec = dashboardID ? getDetailsChartSpec(dashboardID, graphKey, stage) : undefined;
+    const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, stage) : undefined;
     const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
     const memberAccountID = isMemberItem ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);

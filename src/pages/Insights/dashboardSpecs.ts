@@ -145,7 +145,7 @@ type InsightsDashboardSpec = {
     supportsDrillIn?: boolean;
 
     /** Whether a pressed point opens the Details panel */
-    hasDetailsPanel?: boolean;
+    hasDetailsPanel: boolean;
 
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
@@ -218,6 +218,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
         supportsDrillIn: false,
+        hasDetailsPanel: false,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
@@ -427,8 +428,8 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
 }
 
-/** Returns the chart a Details panel's URL names, pointed at the violation stage the user picked. */
-function getDetailsChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: string | undefined): InsightsChartSpec | undefined {
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. An unknown stage keeps the chart as declared. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: string | undefined): InsightsChartSpec | undefined {
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
     if (!chart) {
@@ -451,7 +452,7 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
 export {
     applyViolationStage,
     getAccessibleDashboards,
-    getDetailsChartSpec,
+    getChartSpec,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
