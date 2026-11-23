@@ -305,7 +305,7 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
-    // Billable, card, tax rate and has are held back while their deploy blockers are open.
+    // Tax rate and has are held back until the backend fixes for their deploy blockers deploy.
     const canUseMoreConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
@@ -572,7 +572,7 @@ function ExpenseDefaultRulePageBase({
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
-                canUseMoreConditions && (isBillableEnabled || form?.billableToMatch !== undefined)
+                isBillableEnabled || form?.billableToMatch !== undefined
                     ? {
                           key: 'billableToMatch',
                           description: translate('common.billable'),
@@ -596,7 +596,7 @@ function ExpenseDefaultRulePageBase({
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Cash,
                 },
-                canUseMoreConditions && (areCardsEnabled || cardsToMatch.length > 0)
+                areCardsEnabled || cardsToMatch.length > 0
                     ? {
                           key: 'cardsToMatch',
                           description: translate('common.card'),

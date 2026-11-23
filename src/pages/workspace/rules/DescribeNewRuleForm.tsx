@@ -67,13 +67,7 @@ type SeedDraftContext = {
  * that belong to them. A generated rule is free to name any of them, so a seeded draft has to be held to the same
  * list, or a condition the admin cannot see would be saved with the rule.
  */
-const BETA_CONDITION_FIELDS = [
-    MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
-    MERCHANT_RULE_INPUT_IDS.CARDS_TO_MATCH,
-    MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH,
-    MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH,
-    MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE,
-] as const;
+const BETA_CONDITION_FIELDS = [MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH, MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH, MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE] as const;
 
 function withoutBetaConditions(values: GeneratedRuleValues): GeneratedRuleValues {
     const draft = {...values};
