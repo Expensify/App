@@ -748,6 +748,24 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.policyConvertedAmount).toBeNull();
         });
 
+        it('should clear the workspace amount when the amount is edited on a transaction without one', () => {
+            // Given an expense whose stored copy has no workspace amount, while the Search snapshot still holds one from an earlier search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the update still clears it, so the snapshot does not keep showing the old workspace amount
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
         it('should keep the workspace amount from Search when the amount does not change', () => {
             // Given a searched expense whose workspace amount came from Search
             const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
