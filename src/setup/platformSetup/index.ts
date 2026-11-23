@@ -6,7 +6,7 @@ import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
 
-import type {RootTag} from 'react-native';
+import type {AppRegistry as WebAppRegistry} from 'react-native-web';
 
 import {AppRegistry} from 'react-native';
 
@@ -72,10 +72,8 @@ export default function () {
     // Initialize Cache API
     CacheAPI.init();
 
-    AppRegistry.runApplication(Config.APP_NAME, {
-        initialProps: {},
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- react-native-web renders into this DOM node, which React Native's types describe as a native root tag
-        rootTag: document.getElementById('root') as unknown as RootTag,
+    (AppRegistry.runApplication as WebAppRegistry['runApplication'])(Config.APP_NAME, {
+        rootTag: document.getElementById('root'),
     });
 
     // When app loads, get current version (production only)
