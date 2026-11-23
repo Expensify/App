@@ -111,8 +111,8 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .slice(0, queryJSON.limit);
 
-    const violationHasValues = getPositiveHasFilterValues(queryJSON);
-    if (!hasValuesIncludeViolationFilter(violationHasValues)) {
+    const hasFilterValues = getPositiveHasFilterValues(queryJSON);
+    if (!hasValuesIncludeViolationFilter(hasFilterValues)) {
         return {expenses, violationsByTransactionID: undefined, queryJSON, state, retry};
     }
 
@@ -121,7 +121,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     const violationsByTransactionID = Object.fromEntries(
         expenses.map((expense) => {
             const reportActions = Object.values(snapshot.data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expense.reportID}`] ?? {});
-            const names = getViolationNamesForTransaction(reportActions, expense.transactionID, violationHasValues);
+            const names = getViolationNamesForTransaction(reportActions, expense.transactionID, hasFilterValues);
             const otherLabels = [...names]
                 .filter((name) => name !== itemViolation)
                 .map((name) => getViolationDisplayName(name, translate))
