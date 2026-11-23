@@ -85,9 +85,9 @@ If the value re-runs an effect, directly or through a callback in a dependency a
 ## Choosing between `useOnyx` and `useOnyxState`
 Use `useOnyx` (from `@hooks/useOnyx`) to read a single key. Use `useOnyxState` (from `@hooks/useOnyxState`) when a component needs a small result derived from multiple keys. Reviewers check this with [ONYX-2](../../.claude/skills/app-coding-standards/rules/onyx-2-use-onyx-vs-use-onyx-state.md).
 
-`useOnyxState` runs one selector over a read-only view of the store, records which keys it read, and re-renders only when the output changes. The output is compared by reference first and then with deep equality; pass `selectorEquality` to compare it another way. Reading `report_1` subscribes to that member only, while reading the `report_` root subscribes to every member.
+`useOnyxState` runs one selector over a read-only view of the store, records which keys it read, and re-renders only when the output changes. An output the selector returns exactly as it read it from `state`, such as a record or a collection, is compared by reference only. An object the selector builds is compared by reference first and then with deep equality. Pass `selectorEquality` to compare it another way. Reading `report_1` subscribes to that member only, while reading the `report_` root subscribes to every member.
 
-Inside a `SearchScopeProvider`, a read of a key in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` comes from the current Search snapshot instead, so the selector depends on the whole snapshot and re-runs on every write to it, whichever member it read.
+Inside a `SearchScopeProvider`, a read of a key in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` comes from the current Search snapshot instead, so the selector depends on the whole snapshot and re-runs on every write to it, whichever member it read. A value that must be the same on every screen, such as one that replaces an Onyx derived value, passes `shouldUseLiveData: true` to read every key live inside Search too.
 
 ### - Single-key reads MUST use `useOnyx`
 A selector over one key is what `useOnyx` already does, and its `selector` option narrows the value the same way. `useOnyxState` adds a dependency recorder and a store proxy for no gain, and drops the loading status `useOnyx` returns.

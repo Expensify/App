@@ -154,7 +154,6 @@ Increase confidence (not required):
 **DO NOT flag if:**
 
 - The code is under `tests/`.
-- A: the selector reads `previousState`, which `useOnyx` has no equivalent for.
 - B: every `useOnyx` call already narrows to a small value with its selector.
 - C: the records must reach the component whole and no child can read them by ID.
 - E: the selector needs the whole collection, for example to count or search all members.
