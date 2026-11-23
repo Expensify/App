@@ -16,6 +16,9 @@ import type NativeTabBarOptionsParams from './types';
 /** Material's bar sits above the system gesture inset, so the floating buttons clear both. */
 const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativeTabBarFloatingButtonsBottom + bottomInset;
 
+/** Distance from the bottom of the window to the top edge of the bar. */
+const getTabBarTop = (bottomInset: number) => variables.androidNativeTabBarHeight + bottomInset;
+
 /**
  * Material draws each icon in its icon slot, with a label of its own. The status dot is drawn into the icon rather than
  * as a Material badge, because RNScreens paints every badge in the badge color of the selected tab. The More chevron
@@ -63,4 +66,4 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
 }
 
 export default useNativeTabBarOptions;
-export {getFloatingButtonsBottom};
+export {getFloatingButtonsBottom, getTabBarTop};

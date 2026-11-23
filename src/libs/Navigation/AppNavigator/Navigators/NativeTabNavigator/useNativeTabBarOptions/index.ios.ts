@@ -25,6 +25,9 @@ const LIQUID_GLASS_IOS_VERSION = 26;
 /** UITabBar sits above the home indicator inset, so the floating buttons clear both. */
 const getFloatingButtonsBottom = (bottomInset: number) => variables.iosNativeTabBarFloatingButtonsBottom + bottomInset;
 
+/** Distance from the bottom of the window to the top edge of the bar, which the floating buttons rest on. */
+const getTabBarTop = getFloatingButtonsBottom;
+
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,
     iconBoxSize: variables.nativeTabIconBoxIOS,
@@ -118,4 +121,4 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
 }
 
 export default useNativeTabBarOptions;
-export {getFloatingButtonsBottom};
+export {getFloatingButtonsBottom, getTabBarTop};

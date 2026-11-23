@@ -16,5 +16,7 @@ const useNativeTabBarOptions: UseNativeTabBarOptions = () => ({screenOptions: {}
 
 const getFloatingButtonsBottom = (bottomInset: number) => bottomInset;
 
+const getTabBarTop = (bottomInset: number) => bottomInset;
+
 export default useNativeTabBarOptions;
-export {getFloatingButtonsBottom};
+export {getFloatingButtonsBottom, getTabBarTop};

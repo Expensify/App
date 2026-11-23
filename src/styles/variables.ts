@@ -148,6 +148,8 @@ export default {
     nativeTabIconPillEdgeAccessorySize: 10,
     /** Space between a glyph drawn at the right edge of the selected pill and that edge. */
     nativeTabIconPillEdgeAccessoryInset: 6,
+    /** Space between the More menu card and the top of the native tab bar. */
+    moreMenuCardGap: 8,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** UIKit puts this much more space before a landscape tab's icon than after it, so the icon adds it after its label to even out the selected pill. */
