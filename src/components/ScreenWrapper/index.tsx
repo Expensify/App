@@ -61,6 +61,9 @@ type ScreenWrapperChildrenProps = {
         paddingBottom?: ViewStyle['paddingBottom'];
     };
     didScreenTransitionEnd: boolean;
+
+    /** Whether a header placed itself in the top inset, so the screen left the top inset out of its padding */
+    isHeaderInTopInset: boolean;
 };
 
 type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
@@ -287,7 +290,7 @@ function ScreenWrapper({
         }, [navigation]),
     );
 
-    const ChildrenContent = typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) : children;
+    const ChildrenContent = typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd, isHeaderInTopInset}) : children;
 
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>

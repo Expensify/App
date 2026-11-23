@@ -4,10 +4,8 @@ import {setIsSearchRouterOpenOrOpening, useSearchRouterActions, useSearchRouterS
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useStatusRingHeaderLayout from '@hooks/useStatusRingHeaderLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -40,8 +38,6 @@ function SearchRouterPage() {
     const {paddingTop} = useSafeAreaPaddings();
     const {bottom} = useSafeAreaInsets();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const statusRingHeaderLayout = useStatusRingHeaderLayout();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -54,20 +50,6 @@ function SearchRouterPage() {
     }, []);
 
     const shouldConstrainForOfflineKeyboard = isOffline && isKeyboardActive;
-    // Where the router's header sits in the top inset next to the status ring, the screen drops its top padding and the
-    // router starts at the top of the window, so there is no padding above it to leave out (see useTopInsetHeaderStyle).
-    const isHeaderInTopInset = shouldUseNarrowLayout && !!statusRingHeaderLayout;
-    // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
-    // list already handle bottom safe-area and offline-indicator spacing.
-    // Clamp to zero so transient dimensions during animation never produce a negative height.
-    const availableHeight = getAvailableHeight({
-        isKeyboardOverlapping: shouldConstrainForOfflineKeyboard,
-        keyboardHeight,
-        keyboardActiveHeight,
-        bottomInset: bottom,
-        windowHeight,
-        paddingTop: isHeaderInTopInset ? 0 : paddingTop,
-    });
 
     return (
         <ScreenWrapper
@@ -77,13 +59,31 @@ function SearchRouterPage() {
             includePaddingTop
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, availableHeight !== undefined && StyleUtils.getMaximumHeight(availableHeight)]}>
-                <SearchRouter
-                    onRouterClose={closeSearchRouter}
-                    shouldHideInputCaret={false}
-                    isSearchRouterDisplayed={isSearchRouterDisplayed}
-                />
-            </View>
+            {({isHeaderInTopInset}) => {
+                // Keep the router between the top safe area and the keyboard; ScreenWrapper and the
+                // list already handle bottom safe-area and offline-indicator spacing.
+                // Clamp to zero so transient dimensions during animation never produce a negative height.
+                const availableHeight = getAvailableHeight({
+                    isKeyboardOverlapping: shouldConstrainForOfflineKeyboard,
+                    keyboardHeight,
+                    keyboardActiveHeight,
+                    bottomInset: bottom,
+                    windowHeight,
+                    // Where the router's header sits in the top inset, the screen has no top padding and the router starts
+                    // at the top of the window.
+                    paddingTop: isHeaderInTopInset ? 0 : paddingTop,
+                });
+
+                return (
+                    <View style={[styles.flex1, availableHeight !== undefined && StyleUtils.getMaximumHeight(availableHeight)]}>
+                        <SearchRouter
+                            onRouterClose={closeSearchRouter}
+                            shouldHideInputCaret={false}
+                            isSearchRouterDisplayed={isSearchRouterDisplayed}
+                        />
+                    </View>
+                );
+            }}
         </ScreenWrapper>
     );
 }
