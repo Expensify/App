@@ -61,6 +61,7 @@ exports[`Column availability single source of truth the derived picker lists mat
   "originalamount",
   "reportID",
   "base62ReportID",
+  "transactionID",
   "reimbursable",
   "billable",
   "held",
