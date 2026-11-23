@@ -5,6 +5,7 @@ import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 import type {ExpoImageStyle} from '@components/Image/types';
+import {getImageLoadSource} from '@components/ImageLoadEventContext';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -229,15 +230,19 @@ function ReceiptImage({
         );
     }
 
+    const imageSource = typeof source === 'string' ? {uri: source} : source;
+
     return (
         <DeferredImageWithLoading
+            // Remount on a new source so the next receipt in the same pane doesn't inherit the old load state
+            key={getImageLoadSource(imageSource)}
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
                 }
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
-            source={typeof source === 'string' ? {uri: source} : source}
+            source={imageSource}
             style={[style, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
