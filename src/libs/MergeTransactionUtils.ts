@@ -57,6 +57,7 @@ type CommuterExclusionCustomUnitUpdate = {[Key in TupleToUnion<typeof COMMUTER_E
 // Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
 const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
+type DerivedMergeFieldKey = TupleToUnion<typeof DERIVED_MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
     transactionDetails: TransactionDetails;
@@ -147,7 +148,7 @@ function isEmptyMergeValue(value: unknown) {
  * @param field - The merge field key to get the value for
  * @returns The value of the specified field from the transaction
  */
-function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: TupleToUnion<typeof DERIVED_MERGE_FIELDS>) {
+function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: DerivedMergeFieldKey) {
     if (!transactionDetails || !transaction) {
         return '';
     }
