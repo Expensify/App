@@ -247,17 +247,17 @@ describe('ReportField', () => {
         });
     });
 
-    it('preserves the report default and interaction when submitting a tracked expense', async () => {
-        // Given reports which are not valid creation destinations but remain usable by the submit flow
+    it('shows New report while keeping report selection interactive when submitting a tracked expense', async () => {
+        // Given open reports that the builder cannot select automatically
         await addNonReimbursableExpense(outstandingReport);
         await addNonReimbursableExpense(otherOutstandingReport);
 
-        // When submitting rather than creating the expense
+        // When submitting a tracked expense
         renderReportRow({action: CONST.IOU.ACTION.SUBMIT});
 
-        // Then creation-only restrictions do not change the existing field
+        // Then the default matches the builder while explicit report selection remains available
         await waitFor(() => {
-            expect(mockReportName).toBe(outstandingReport.reportName);
+            expect(mockReportName).toBe('iou.newReport');
             expect(mockIsInteractive).toBe(true);
         });
     });

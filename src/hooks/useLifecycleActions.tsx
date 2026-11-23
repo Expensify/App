@@ -41,6 +41,7 @@ import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
+import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import useConfirmModal from './useConfirmModal';
 import useConfirmSubmitReportViolations from './useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -52,7 +53,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
-import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
+import {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -110,6 +111,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+    const submitterPersonalDetailsByLogin = usePersonalDetailsByLogins([submitterLogin]);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
@@ -154,7 +156,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetailsByLogin);
 
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -200,6 +202,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         shouldShowMarkAsDoneCopy,
     });
 
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});
+
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -209,39 +213,41 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showLockedAccountModal();
             return;
         }
-        if (!skipAnimation && !isSubmitPolicy(policy)) {
-            startApprovedAnimation();
-        }
-        approveMoneyRequest({
-            personalDetailsByLogins: getPersonalDetailsByLogin(),
-            getCurrencyDecimals,
-            expenseReport: moneyRequestReport,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            full: isFullApproval,
-            expenseReportPolicy: policy,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            ownerLogin: submitterLogin,
-            amountOwed,
-            onApproved: () => {
-                if (skipAnimation) {
-                    return;
-                }
+        confirmApproveReportViolations(() => {
+            if (!skipAnimation && !isSubmitPolicy(policy)) {
                 startApprovedAnimation();
-            },
-            delegateEmail,
-            delegateAccountID,
-            isTrackIntentUser,
-            rules,
-            allTransactionViolations,
-        });
-        if (skipAnimation) {
-            clearSelectedTransactions(true);
-            onCleanup?.();
-        }
+            }
+            approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                getCurrencyDecimals,
+                expenseReport: moneyRequestReport,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                full: isFullApproval,
+                expenseReportPolicy: policy,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                ownerLogin: submitterLogin,
+                amountOwed,
+                onApproved: () => {
+                    if (skipAnimation) {
+                        return;
+                    }
+                    startApprovedAnimation();
+                },
+                delegateEmail,
+                delegateAccountID,
+                isTrackIntentUser,
+                rules,
+                allTransactionViolations,
+            });
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+                onCleanup?.();
+            }
+        }, isFullApproval);
     };
 
     const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, false, isChatReportArchived);

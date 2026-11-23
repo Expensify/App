@@ -96,6 +96,8 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
             icon: icons[item.iconName],
             isSelected: item.isActive,
             badgeText: 'badgeText' in item ? item.badgeText : undefined,
+            // The badge is a todo count, which is green everywhere else it is shown.
+            isBadgeSuccess: true,
             rightComponent: indicatorColor ? (
                 <Icon
                     src={icons.DotIndicator}

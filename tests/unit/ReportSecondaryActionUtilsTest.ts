@@ -1167,7 +1167,6 @@ describe('getSecondaryAction', () => {
         const OWNER_EMAIL = 'owner@mail.com';
         // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1211,7 +1210,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_ACCOUNT_ID = 5;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1256,7 +1254,6 @@ describe('getSecondaryAction', () => {
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,

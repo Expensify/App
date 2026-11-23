@@ -239,7 +239,12 @@ const DYNAMIC_ROUTES = {
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
         entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
-        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+        getRoute: (bankAccountID: number | undefined, isPayingMultipleReports?: boolean) =>
+            getUrlWithParams(`global-reimbursements/${bankAccountID}`, {
+                // Shows the copy for several reports when bulk pay could not pay any of them
+                isPayingMultipleReports: isPayingMultipleReports ? 'true' : undefined,
+            }),
+        queryParams: ['isPayingMultipleReports'],
     },
     WISE_BUSINESS_ONBOARDING: {
         path: 'business-onboarding/:subPage?/:action?',
@@ -1123,6 +1128,10 @@ const DYNAMIC_ROUTES = {
         path: 'gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
     },
+    WORKSPACE_CATEGORY_VISIBLE_TO: {
+        path: 'visible-to',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
@@ -1239,6 +1248,54 @@ const DYNAMIC_ROUTES = {
     },
     RULES_TAG_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-tag-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_CURRENCY_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-currency-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-tax-rate-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-reimbursable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_BILLABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-billable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-submitter-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_DATE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-date-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_DATE_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-date-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH],
+    },
+    RULES_AMOUNT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-amount-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-amount-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_TO_MATCH],
+    },
+    RULES_HAS_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-has-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_CARD_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-card-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-merchant-type-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
@@ -2500,17 +2557,11 @@ const ROUTES = {
     SEARCH_REJECT_REASON_RHP: 'search/reject',
     SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: {
         route: 'search/edit-multiple/tag/:tagListIndex',
         getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
     },
-    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
-    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
     SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
@@ -4693,6 +4744,54 @@ const ROUTES = {
     RULES_TAG_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
+    },
+    RULES_CURRENCY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/currency-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/currency-to-match` as const,
+    },
+    RULES_TAX_RATE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax-rate-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax-rate-to-match` as const,
+    },
+    RULES_REIMBURSABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable-to-match` as const,
+    },
+    RULES_BILLABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable-to-match` as const,
+    },
+    RULES_SUBMITTER_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/submitter-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/submitter-to-match` as const,
+    },
+    RULES_DATE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-to-match` as const,
+    },
+    RULES_DATE_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-match-type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-match-type` as const,
+    },
+    RULES_AMOUNT_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-to-match` as const,
+    },
+    RULES_AMOUNT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-match-type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-match-type` as const,
+    },
+    RULES_HAS_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/has-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/has-to-match` as const,
+    },
+    RULES_CARD_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/card-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/card-to-match` as const,
+    },
+    RULES_MERCHANT_TYPE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-type-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-type-to-match` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',

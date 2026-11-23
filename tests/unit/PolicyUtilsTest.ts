@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
+    formatTaxRateName,
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
     canAdminPayReport,
@@ -63,6 +64,7 @@ import {
     getIntegrationLastSuccessfulDate,
     getManagerAccountID,
     getMemberAccountIDsForWorkspace,
+    isWorkflowApprover,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -85,6 +87,7 @@ import {
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
     getReimbursementChoice,
+    isCurrencyChangeBlockedByDirectReimbursement,
     hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
@@ -549,6 +552,46 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('formatTaxRateName', () => {
+        it('adds the percentage after a name that does not include it', () => {
+            // Given a tax rate whose name says nothing about its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT', '20%');
+
+            // Then the percentage follows the name, so the admin can tell rates apart by value
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('keeps a name that already ends with its percentage', () => {
+            // Given the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (20%)', '20%');
+
+            // Then the percentage isn't repeated
+            expect(label).toBe('Standard VAT (20%)');
+        });
+
+        it('adds the percentage when the name ends with a different one', () => {
+            // Given a rate whose value changed after it was named, so the percentage in its name is out of date
+            // When its label is built
+            const label = formatTaxRateName('Standard VAT (15%)', '20%');
+
+            // Then the current percentage is still shown
+            expect(label).toBe('Standard VAT (15%) (20%)');
+        });
+
+        it('shows the name alone when the rate has no percentage', () => {
+            // Given rates with an empty or missing value
+            // When their labels are built
+            const emptyValueLabel = formatTaxRateName('Tax exempt', '');
+            const missingValueLabel = formatTaxRateName('Tax exempt', undefined);
+
+            // Then there's no empty pair of parentheses after the name
+            expect(emptyValueLabel).toBe('Tax exempt');
+            expect(missingValueLabel).toBe('Tax exempt');
         });
     });
 
@@ -3148,22 +3191,13 @@ describe('PolicyUtils', () => {
         });
 
         describe('getManagerAccountID', () => {
-            beforeEach(() => {
-                wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            });
-            afterEach(async () => {
-                await Onyx.clear();
-                await waitForBatchedUpdatesWithAct();
-            });
-
             it('should return default approver for personal workspaces', () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
                     type: CONST.POLICY.TYPE.PERSONAL,
                     approver: categoryApprover1Email,
                 };
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(categoryApprover1AccountID);
             });
@@ -3177,7 +3211,7 @@ describe('PolicyUtils', () => {
                     owner: '',
                 };
 
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(-1);
             });
@@ -3195,7 +3229,7 @@ describe('PolicyUtils', () => {
                     },
                 };
 
-                const result = getManagerAccountID(policy, employeeEmail, undefined);
+                const result = getManagerAccountID(policy, employeeEmail, undefined, personalDetailsByLogins);
 
                 expect(result).toBe(adminAccountID);
             });
@@ -3231,9 +3265,80 @@ describe('PolicyUtils', () => {
                     approver: categoryApprover1Email,
                 };
 
-                const result = getManagerAccountID(policy, '', undefined);
+                const result = getManagerAccountID(policy, '', undefined, personalDetailsByLogins);
 
                 expect(result).toBe(categoryApprover1AccountID);
+            });
+        });
+
+        describe('isWorkflowApprover', () => {
+            const buildAdvancedPolicy = (): Policy => ({
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: approverEmail,
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, submitsTo: adminEmail},
+                    [adminEmail]: {email: adminEmail},
+                },
+            });
+
+            it('should return true when the user is the owner submitsTo', () => {
+                // Given an advanced workflow where the employee submits to the admin
+                const policy = buildAdvancedPolicy();
+
+                // When checking whether the admin is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, adminEmail);
+
+                // Then it is true, because the admin is who the report is submitted to
+                expect(result).toBe(true);
+            });
+
+            it('should return false when the user is not the owner submitsTo', () => {
+                // Given an advanced workflow where the employee submits to the admin
+                const policy = buildAdvancedPolicy();
+
+                // When checking whether someone else is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, categoryApprover1Email);
+
+                // Then it is false, because the report isn't submitted to them
+                expect(result).toBe(false);
+            });
+
+            it('should return false when the owner login is unresolved, even for the default approver', () => {
+                // Given an advanced workflow whose default approver is the approver
+                const policy = buildAdvancedPolicy();
+
+                // When the owner's login isn't known yet
+                const result = isWorkflowApprover(policy, undefined, undefined, 0, approverEmail);
+
+                // Then it is false, because without the owner the manager would fall back to the default approver and
+                // wrongly grant approver rights to them
+                expect(result).toBe(false);
+            });
+
+            it('should return false when the user email is missing, even when no manager resolves', () => {
+                // Given a policy where the owner has no employee entry and there is no default approver, so the manager
+                // email resolves to an empty string
+                const policy: Policy = {...buildAdvancedPolicy(), approver: undefined, owner: '', employeeList: {}};
+
+                // When the user's email isn't known
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, '');
+
+                // Then it is false, because an empty email must never match an empty manager email
+                expect(result).toBe(false);
+            });
+
+            it('should return false on a Submit & Close policy', () => {
+                // Given a Submit & Close policy, where reports have no approver, even though the employee's submitsTo is
+                // still set to the admin
+                const policy: Policy = {...buildAdvancedPolicy(), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+
+                // When checking whether the admin is the employee's workflow approver
+                const result = isWorkflowApprover(policy, employeeEmail, undefined, 0, adminEmail);
+
+                // Then it is false, because nobody approves reports on this policy
+                expect(result).toBe(false);
             });
         });
 
@@ -3429,7 +3534,7 @@ describe('PolicyUtils', () => {
             });
 
             it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
-                expect(getManagerAccountID(policy, employeeEmail, rulesCollection)).toBe(adminAccountID);
+                expect(getManagerAccountID(policy, employeeEmail, rulesCollection, personalDetailsByLogins)).toBe(adminAccountID);
             });
 
             it('getForwardsToAccount follows the rules for the next hop', () => {
@@ -4748,6 +4853,55 @@ describe('PolicyUtils', () => {
 
                 // Then missing countries do not count regardless of the bank account ID
                 expect(hasCountries).toBe(false);
+            });
+        });
+
+        describe('isCurrencyChangeBlockedByDirectReimbursement', () => {
+            it('should block a currency outside the direct reimbursement list on a Direct workspace', () => {
+                // Given a USD workspace on Direct reimbursement, which the server only lets switch to a direct reimbursement currency
+                const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks HKD
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD');
+
+                // Then the change is blocked, so the picker explains it instead of sending a request the server rejects
+                expect(isBlocked).toBe(true);
+            });
+
+            it.each([CONST.CURRENCY.AUD, CONST.CURRENCY.CAD, CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.SGD])('should allow %s on a Direct workspace', (currency) => {
+                // Given a USD workspace on Direct reimbursement
+                const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks a currency the server accepts for Direct reimbursement
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, currency);
+
+                // Then the change goes through, matching the server's direct reimbursement list
+                expect(isBlocked).toBe(false);
+            });
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+                'should allow any currency when reimbursement is %s',
+                (choice) => {
+                    // Given a workspace that does not use Direct reimbursement, so the server has no currency restriction
+                    const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: choice});
+
+                    // When the admin picks HKD
+                    const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD');
+
+                    // Then the change goes through
+                    expect(isBlocked).toBe(false);
+                },
+            );
+
+            it('should allow picking the current currency on a Direct workspace', () => {
+                // Given an HKD workspace on Direct reimbursement, which can exist on legacy workspaces
+                const policy = createMock<Policy>({id: '1', outputCurrency: 'HKD', reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks the currency the workspace already uses
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD');
+
+                // Then nothing is blocked, because nothing changes on the server either
+                expect(isBlocked).toBe(false);
             });
         });
 

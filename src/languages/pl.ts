@@ -108,6 +108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
         submitAnyway: 'Wyślij mimo to',
+        approveAnyway: 'Zatwierdź mimo to',
         markAsDone: 'Oznacz jako wykonane',
         markAsDoneAnyway: 'Oznacz jako wykonane mimo to',
         submitted: 'Przesłano',
@@ -584,9 +585,24 @@ const translations: TranslationDeepObject<typeof en> = {
         reportShared: 'Udostępniono raport',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} dzień`,
-            other: (count: number) => `${formattedCount ?? count} dni`,
+            few: (count: number) => `${formattedCount ?? count} dni`,
+            many: (count: number) => `${formattedCount ?? count} dni`,
+            other: (count: number) => `${formattedCount ?? count} dnia`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} godzina`,
+            few: (count: number) => `${formattedCount ?? count} godziny`,
+            many: (count: number) => `${formattedCount ?? count} godzin`,
+            other: (count: number) => `${formattedCount ?? count} godziny`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuta`,
+            few: (count: number) => `${formattedCount ?? count} minuty`,
+            many: (count: number) => `${formattedCount ?? count} minut`,
+            other: (count: number) => `${formattedCount ?? count} minuty`,
         }),
         amount: 'Kwota',
+        submitter: 'Zgłaszający',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -693,6 +709,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
+        notValid: 'Nieprawidłowy link.',
+        sessionMismatch: 'Link, który kliknąłeś, nie jest ważny dla twojej bieżącej sesji.',
+        switchAccount: {
+            title: 'Przełączyć konto?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Jesteś zalogowany jako ${currentEmail}. Ta akcja zaloguje cię zamiast tego jako ${newEmail}.`,
+            confirm: 'Przełącz konta',
+            staySignedIn: 'Nie przełączaj kont',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1318,6 +1342,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
         share: 'Udział',
         averageDays: 'Średnia liczba dni',
+        generatingAIInsights: 'Generowanie podpowiedzi AI...',
+        generatingAIInsightsSubtitle: 'To nie powinno zająć więcej niż minutę',
+        readingChart: (chartTitle: string) => `Odczytywanie ${chartTitle}`,
+        comparingWithYourAverage: 'Porównanie z twoją średnią',
+        lookingForAnythingUnusual: 'Szukamy czegoś nietypowego',
+        writingYourInsights: 'Spisywanie twoich spostrzeżeń',
         violationStage: {
             label: 'Naruszenia',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Wysyłający',
@@ -1608,6 +1638,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
+        confirmApproveReportViolations: {
+            title: 'Zatwierdzić mimo to?',
+            description: 'Ten raport zawiera naruszenia zasad. Na pewno chcesz go zatwierdzić bez wprowadzania zmian?',
+        },
         confirmSubmitReportViolations: {
             title: 'Wysłać raport?',
             description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
@@ -1734,6 +1768,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `zatwierdzono${memo ? `, wpisując ${memo}` : ''}`,
         rejectedThisReport: 'odrzucono',
         waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${vendorDisplayName} doda konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,
@@ -3335,6 +3370,11 @@ const translations: TranslationDeepObject<typeof en> = {
             getStarted: 'Zacznij',
             headerTitle: 'Globalne zwroty kosztów',
             payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
+            payingMultipleReportsSubtitle: 'Nie udało się opłacić żadnego z tych raportów, ponieważ konta bankowe firmy i pracownika są w różnych walutach.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Zapłać z konta x${lastFour}` : 'Zapłać z konta bankowego'),
+            description: 'Te raporty nie zostały opłacone z konta bankowego, ponieważ wymagają globalnych zwrotów kosztów. Rozpocznij proces poniżej.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
         wiseMoreInfoNeeded: 'Potrzeba więcej informacji, aby włączyć globalne zwroty kosztów',
@@ -7235,9 +7275,19 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            visibleTo: 'Widoczne dla',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 członek',
+                few: `${count} członkowie`,
+                many: `${count} członków`,
+                other: `${count} członka`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Nie można usunąć dostępu do ${categoryName}`,
+                bulkRemoveAccessTitle: 'Nie można usunąć dostępu do tych kategorii',
                 description: ({count}: {count: number}) => ({
                     one: '1 członek nie miałby żadnych kategorii do wyboru. Zaktualizuj widoczność kategorii dla tej osoby, a potem spróbuj ponownie:',
                     other: `${count} członków nie będzie miało żadnych kategorii do wyboru. Zaktualizuj widoczność ich kategorii, a potem spróbuj ponownie:`,
@@ -8528,6 +8578,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             startDate: 'Data rozpoczęcia',
             endDate: 'Data zakończenia',
             autoGeneratedRateTooltip: 'Ta stawka jest generowana automatycznie.',
+            taxReclaimableOnAmount: (amount: string) => `Podatek możliwy do odzyskania z ${amount}`,
             automaticRates: 'Automatyczne stawki',
             autoUpdateGovernmentRate: 'Automatycznie aktualizuj stawki rządowe',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8614,6 +8665,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             timezoneInputLabel: 'Strefa czasowa',
             timezoneInputHelpText: 'Twoja strefa czasowa jest używana do automatycznego wysyłania raportów',
             timezoneErrorMessage: 'Nie udało się zmienić strefy czasowej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
+            directReimbursementCurrencyTitle: 'Waluta niedostępna przy bezpośrednim zwrocie',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Ta przestrzeń robocza zwraca koszty członkom bezpośrednio przez Expensify, co nie jest dostępne w ${currency}. Aby używać ${currency}, przejdź do Przepływów pracy i wyłącz, a następnie ponownie włącz Płatności, aby płatności były realizowane poza Expensify.`,
+            goToWorkflows: 'Przejdź do przepływów pracy',
         },
         officeLocations: {
             title: 'Lokalizacje biur',
@@ -9231,6 +9286,36 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 confirmErrorConditionAndDefault: 'Dodaj co najmniej jeden warunek i zastosuj co najmniej jedną wartość domyślną',
                 createRuleFromExpenseAction: 'Utwórz regułę',
                 createRuleFromExpensePrompt: 'aby zastosować zmiany do wszystkich wydatków spełniających twoje kryteria.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Linie lotnicze',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alkohol i bary',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon i księgarnie',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Motoryzacja',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Wypożyczalnie samochodów',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Posiłki',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Paliwo i gaz',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Administracja publiczna i organizacje non-profit',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Zakupy spożywcze',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Siłownie i fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Opieka zdrowotna',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotele',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet i telefon',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Artykuły biurowe',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parking i opłaty za przejazd',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Usługi profesjonalne',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Sprzedaż detaliczna',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Wysyłka i dostawa',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Oprogramowanie',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Transport publiczny i przejazdy współdzielone',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Biura podróży',
+                },
+                dateMatchTypeOn: 'Włączone',
+                dateMatchTypeBefore: 'Przed',
+                dateMatchTypeAfter: 'Po',
+                hasOrDoesNotHave: 'Ma/Nie ma',
+                amountMatchTypeEqualTo: 'Równe',
+                amountMatchTypeGreaterThan: 'Większe niż',
+                amountMatchTypeLessThan: 'Mniej niż',
             },
             categoryRules: {
                 title: 'Reguły kategorii',
@@ -9569,6 +9654,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 tagIs: (tag: string) => `Tag to „${tag}”`,
                 merchantContains: (merchant: string) => `Sprzedawca zawiera „${merchant}”`,
                 merchantExactlyMatches: (merchant: string) => `Sprzedawca dokładnie odpowiada „${merchant}”`,
+                currencyIs: (currency: string) => `Waluta to „${currency}”`,
+                cardIs: (card: string) => `Karta to „${card}”`,
+                taxRateIs: (taxRate: string) => `Stawka podatku to „${taxRate}”`,
+                submitterIs: (submitter: string) => `Zgłaszający to „${submitter}”`,
+                reimbursableIs: (reimbursable: string) => `Zwrotne to „${reimbursable}”`,
+                billableIs: (billable: string) => `Fakturowalne to „${billable}”`,
+                dateIs: (comparison: string) => `Data jest ${comparison}`,
+                amountIs: (comparison: string) => `Kwota jest ${comparison}`,
+                hasValue: (value: string) => `Ma „${value}”`,
+                doesNotHaveValue: (value: string) => `Nie zawiera „${value}”`,
             },
             merchantTypeRule: {merchantType: 'Typ sprzedawcy', saveRule: 'Zapisz regułę', confirmErrorCategory: 'Wybierz kategorię.'},
             requireFieldsTable: {
@@ -10363,11 +10458,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `dodano stawkę jednostki niestandardowej ${customUnitName} „${rateName}”`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `zmienił(a) stawkę ${customUnitName} ${updatedField} „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `zmienił(a) stawkę podatku w stawce za dystans „${customUnitRateName}” na „${newValue} (${newTaxPercentage})” (poprzednio „${oldValue} (${oldTaxPercentage})”)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `zmienił(a) stawkę podatku w stawce za dystans „${customUnitRateName}” na „${newTaxRate}” (wcześniej „${oldTaxRate}”)`;
             }
-            return `dodano stawkę podatku „${newValue} (${newTaxPercentage})” do stawki za dystans „${customUnitRateName}”`;
+            return `dodał(a) stawkę podatku „${newTaxRate}” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11006,6 +11101,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
+            tooManyKeywords: `Twoje wyszukiwanie zawiera zbyt wiele słów kluczowych. Użyj maksymalnie ${CONST.SEARCH.MAX_KEYWORD_TOKENS} słów kluczowych i spróbuj ponownie.`,
+            unsupportedGrouping: 'To wyszukiwanie nie obsługuje grupowania ani widoku wykresu. Usuń grupowanie i użyj widoku tabeli.',
+            invalidReportID: 'Wpisz prawidłowy identyfikator raportu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
+            unsupportedFilter: 'Filtr "is:" nie jest obsługiwany w tym wyszukiwaniu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
                 subtitle: `Spróbuj zmienić kryteria wyszukiwania lub utworzyć coś za pomocą przycisku +.`,
@@ -11065,6 +11164,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             openMenu: ({columnName}: {columnName: string}) => `Opcje kolumny ${columnName}`,
             sortAscending: 'Sortuj rosnąco',
             sortDescending: 'Sortuj malejąco',
+            pinLeft: 'Przypnij do lewej',
+            pinRight: 'Przypnij do prawej',
+            unpin: 'Odepnij',
             hideColumn: 'Ukryj kolumnę',
             resetColumnSizes: 'Resetuj szerokość kolumn',
         },
@@ -13332,6 +13434,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
         toMarkAsDone: 'oznacz jako wykonane',
         receivedPayment: 'otrzymano płatność',
+        markedAsManuallyExported: (label: string) => `oznaczył ten raport jako ręcznie wyeksportowany do ${label}`,
     },
 };
 export default translations;

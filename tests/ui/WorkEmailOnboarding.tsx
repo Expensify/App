@@ -11,7 +11,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {openOldDotLink} from '@libs/actions/Link';
-import {AddWorkEmail} from '@libs/actions/Session';
+import {addWorkEmail} from '@libs/actions/Session';
 import * as SessionActions from '@libs/actions/Session';
 import * as TaskActions from '@libs/actions/Task';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -238,7 +238,7 @@ function AddWorkEmailShouldValidateFailure() {
         // Return a Promise that resolves with the mocked response
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
@@ -261,7 +261,7 @@ function AddWorkEmailShouldValidate() {
         // Return a Promise that resolves with the mocked response
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
@@ -276,7 +276,7 @@ function AddWorkEmailWith2FAError() {
 
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
@@ -292,7 +292,7 @@ function AddWorkEmailWithSingleSignOnError() {
 
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
@@ -307,7 +307,7 @@ function AddWorkEmailWithValidatedAccountError() {
 
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail, {reportID: '123'});
+    addWorkEmail(workEmail, {reportID: '123'});
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
@@ -322,7 +322,7 @@ function AddWorkEmailWithDomainControlledError() {
 
         return Promise.resolve(mockedResponse);
     });
-    AddWorkEmail(workEmail);
+    addWorkEmail(workEmail);
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 

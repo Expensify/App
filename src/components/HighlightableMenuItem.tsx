@@ -22,6 +22,7 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Prop
     const flattenedWrapperStyles = StyleSheet.flatten(wrapperStyle);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
+        highlightKey: undefined,
         height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem(true).height,
         borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem(true).borderRadius,
         highlightColor: theme.messageHighlightBG,
