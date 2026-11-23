@@ -23,10 +23,11 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 let mockIsSmallScreenWidth = false;
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: mockIsSmallScreenWidth, shouldUseNarrowLayout: mockIsSmallScreenWidth})));
 // Read lazily so a test can shrink the viewport, leaving the row short of room on both sides at once.
-let mockWindowHeight = 800;
-jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
-
 const WINDOW_HEIGHT = 800;
+const WINDOW_WIDTH = 1280;
+let mockWindowHeight = WINDOW_HEIGHT;
+let mockWindowWidth = WINDOW_WIDTH;
+jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: mockWindowWidth, windowHeight: mockWindowHeight})));
 
 const FIELD_NAME = 'Category';
 const ROW_TEST_ID = 'category-row';
@@ -44,11 +45,10 @@ const pressRow = () => fireEvent.press(screen.getByTestId(ROW_TEST_ID), {nativeE
  * Stands in for the measurement the row does when it opens: the container is positioned off the row's real
  * geometry, which the test renderer never lays out, so each test says where the row sits instead.
  */
-const mockRowAt = (rowTop: number) => {
+const mockRowAt = (rowTop: number, rowX = ROW_X, rowWidth = ROW_WIDTH) =>
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => {
-        callback(ROW_X, rowTop, ROW_WIDTH, ROW_HEIGHT);
+        callback(rowX, rowTop, rowWidth, ROW_HEIGHT);
     });
-};
 
 describe('DropdownField', () => {
     let renderedProps: DropdownFieldRenderProps | undefined;
@@ -68,6 +68,7 @@ describe('DropdownField', () => {
         renderedProps = undefined;
         renderCount = 0;
         mockWindowHeight = WINDOW_HEIGHT;
+        mockWindowWidth = WINDOW_WIDTH;
         mockIsSmallScreenWidth = false;
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -77,18 +78,19 @@ describe('DropdownField', () => {
         jest.restoreAllMocks();
     });
 
-    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) =>
-        render(
-            <DropdownField
-                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
-                name={FIELD_NAME}
-                testID={ROW_TEST_ID}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                onPress={onPress}
-                renderDropdown={renderDropdown}
-                listHeaderHeight={listHeaderHeight}
-            />,
-        );
+    const buildField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) => (
+        <DropdownField
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            name={FIELD_NAME}
+            testID={ROW_TEST_ID}
+            shouldOpenInDropdown={shouldOpenInDropdown}
+            onPress={onPress}
+            renderDropdown={renderDropdown}
+            listHeaderHeight={listHeaderHeight}
+        />
+    );
+
+    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) => render(buildField(shouldOpenInDropdown, onPress, listHeaderHeight));
 
     describe('with a header above the list', () => {
         const HEADER_HEIGHT = variables.componentSizeNormal;
@@ -332,6 +334,49 @@ describe('DropdownField', () => {
         // Then the sheet opens anyway: it is placed and sized by the screen, not by the row
         expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    describe('when the window is resized', () => {
+        // A narrower window, and the row moved and narrowed along with it
+        const RESIZE_DELTA = 40;
+        const RESIZED_WINDOW_WIDTH = WINDOW_WIDTH - RESIZE_DELTA;
+        const RESIZED_ROW_X = ROW_X + RESIZE_DELTA;
+        const RESIZED_ROW_WIDTH = ROW_WIDTH - RESIZE_DELTA;
+
+        it('follows the row to its new place and width while the list is open', () => {
+            // Given a field whose list is open, pinned to where the row sat when it was pressed
+            const onPress = jest.fn();
+            mockRowAt(ROW_TOP);
+            const {rerender} = renderField(true, onPress);
+            act(() => pressRow());
+
+            // When the window narrows, which moves the row and makes it narrower
+            mockWindowWidth = RESIZED_WINDOW_WIDTH;
+            mockRowAt(ROW_TOP, RESIZED_ROW_X, RESIZED_ROW_WIDTH);
+            rerender(buildField(true, onPress));
+
+            // Then the pop-over is placed off the row again, instead of staying where the row used to be
+            expect(renderedProps?.popoverWidth).toBe(RESIZED_ROW_WIDTH);
+            expect(renderedProps?.anchorPosition.horizontal).toBe(RESIZED_ROW_X);
+        });
+
+        it('places a list opened as a bottom sheet under the row once the layout turns wide', () => {
+            // Given a narrow layout, where the list opened as a bottom sheet without measuring the row
+            const onPress = jest.fn();
+            mockIsSmallScreenWidth = true;
+            mockRowAt(ROW_TOP);
+            const {rerender} = renderField(true, onPress);
+            act(() => pressRow());
+
+            // When the window widens past the breakpoint while the list is still open
+            mockIsSmallScreenWidth = false;
+            mockWindowWidth = RESIZED_WINDOW_WIDTH;
+            rerender(buildField(true, onPress));
+
+            // Then the pop-over is placed and sized off the row, not in the window's corner at the default width
+            expect(renderedProps?.popoverWidth).toBe(ROW_WIDTH);
+            expect(renderedProps?.anchorPosition.horizontal).toBe(ROW_X);
+        });
     });
 
     it('closes the list when the row is pressed again', () => {
