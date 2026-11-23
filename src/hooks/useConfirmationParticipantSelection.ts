@@ -185,7 +185,7 @@ function useConfirmationParticipantSelection({
                 }
             }
         }
-        if (selectedParticipant && iouType !== CONST.IOU.TYPE.SPLIT) {
+        if (selectedParticipant && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE) {
             const currency = !shouldKeepOnSelfDM && selectedParticipant.isPolicyExpenseChat ? selectedPolicy?.outputCurrency : (personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD);
             for (const transactionToUpdate of transactions) {
                 // An entered amount includes its currency, so only untouched Manual defaults follow the recipient.

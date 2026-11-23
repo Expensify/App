@@ -273,7 +273,10 @@ describe('DynamicIOURequestStepParticipants', () => {
     describe('Opened from the confirmation', () => {
         const PARTICIPANT_ACCOUNT_ID = 2;
 
-        async function renderFromConfirmation(transactionOverrides: Partial<Transaction> = {}) {
+        async function renderFromConfirmation(
+            transactionOverrides: Partial<Transaction> = {},
+            iouType: typeof CONST.IOU.TYPE.SUBMIT | typeof CONST.IOU.TYPE.INVOICE = CONST.IOU.TYPE.SUBMIT,
+        ) {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             const selfDMReport = {
                 ...createRandomReport(Number(SELF_DM_REPORT_ID), CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -302,7 +305,7 @@ describe('DynamicIOURequestStepParticipants', () => {
                                         key: ROUTE_KEY,
                                         name: 'Dynamic_Money_Request_Step_Participants',
                                         params: {
-                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            iouType,
                                             reportID: selfDMReport.reportID,
                                             transactionID: TRANSACTION_ID,
                                             action: CONST.IOU.ACTION.CREATE,
@@ -431,6 +434,30 @@ describe('DynamicIOURequestStepParticipants', () => {
                     comment: {comment: 'Keep description'},
                 });
             }
+        });
+
+        it.each<Participant>([
+            {accountID: PARTICIPANT_ACCOUNT_ID, login: 'recipient@user.com', selected: true},
+            {reportID: '4', policyID: POLICY_ID, selected: true},
+        ])('preserves the sender currency when selecting an invoice receiver: %j', async (receiver) => {
+            // Given an untouched Manual invoice whose sender currency differs from personal and receiver currencies
+            const personalPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'GBP'};
+            const receiverPolicy = {...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.TEAM), outputCurrency: 'AUD'};
+            const senderPolicy = {...createRandomPolicy(5, CONST.POLICY.TYPE.TEAM), outputCurrency: 'EUR'};
+            await Onyx.set(ONYXKEYS.PERSONAL_POLICY_ID, personalPolicy.id);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicy.id}`, receiverPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${senderPolicy.id}`, senderPolicy);
+            const sender: Participant = {policyID: senderPolicy.id, isSender: true, selected: false};
+            await renderFromConfirmation({amount: 0, isAmountSet: false, currency: 'EUR', participants: [sender]}, CONST.IOU.TYPE.INVOICE);
+
+            // When the invoice picker returns its receiver followed by the sender
+            act(() => latestSelectorProps.onParticipantsAdded?.([receiver, sender], receiver.policyID ? receiverPolicy : undefined));
+            await waitForBatchedUpdates();
+
+            // Then neither the receiver currency nor the personal fallback replaces the sender currency
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft).toMatchObject({amount: 0, currency: 'EUR', participants: [receiver, sender]});
         });
 
         it('keeps the category when the unreported expense moves to the workspace its categories came from', async () => {

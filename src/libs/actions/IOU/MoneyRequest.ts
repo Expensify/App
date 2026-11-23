@@ -392,13 +392,14 @@ function initMoneyRequest({
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation
     if (currentIouRequestType === newIouRequestType) {
-        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        // Reset the explicit choice marker with the currency so recipient defaults can apply again.
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
             isFromFloatingActionButton,
             created,
             currency,
+            isCurrencySet: false,
             transactionID: newTransactionID,
         });
         return;

@@ -449,6 +449,45 @@ describe('actions/IOU', () => {
                     });
                 });
         });
+
+        it('resets the explicit currency marker when reinitializing the same request type', async () => {
+            // Given a draft whose explicit currency choice differs from the new default
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                ...transactionResult,
+                currency: 'EUR',
+                isCurrencySet: true,
+                isAmountSet: false,
+                merchant: 'Lunch',
+                comment: {comment: 'Keep description'},
+            });
+
+            // When initialization reseeds the currency without replacing the rest of the draft
+            initMoneyRequest({
+                reportID: fakeReport.reportID,
+                policy: fakePolicy,
+                personalPolicy: fakePersonalPolicy,
+                isFromGlobalCreate: true,
+                currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                report: fakeReport,
+                parentReport: fakeParentReport,
+                currentDate,
+                hasOnlyPersonalPolicies: false,
+                draftTransactionIDs: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then recipient defaults can apply again, while unrelated entered data is preserved
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toMatchObject({
+                currency: 'USD',
+                isCurrencySet: false,
+                amount: 0,
+                isAmountSet: false,
+                merchant: 'Lunch',
+                comment: {comment: 'Keep description'},
+            });
+        });
+
         it('should return personal currency when policy is missing', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
