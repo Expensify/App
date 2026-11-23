@@ -83,6 +83,8 @@ type InsightsChartWidgetProps = {
 
     /** Whether GetInsights answered the dashboard's query */
     isDashboardLoaded: boolean | undefined;
+
+    /** Workspaces the Spend drill-down is limited to so it matches the Top spenders ranking */
     eligiblePolicyIDs?: string[];
 
     /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
