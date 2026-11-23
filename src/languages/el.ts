@@ -412,6 +412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Αναγνωριστικό αναφοράς',
         longReportID: 'Μακρύ αναγνωριστικό αναφοράς',
         withdrawalID: 'Αναγνωριστικό ανάληψης',
+        transactionID: 'Αναγνωριστικό συναλλαγής',
         internationalReimbursementIDs: 'Διεθνή αναγνωριστικά αποζημιώσεων',
         amountDebited: 'Ποσό χρέωσης',
         amountReimbursed: 'Ποσό που αποζημιώθηκε',
