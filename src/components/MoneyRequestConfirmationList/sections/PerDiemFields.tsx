@@ -1,4 +1,5 @@
 import Badge from '@components/Badge';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 
 type PerDiemFieldsProps = {
     perDiemCustomUnit: CustomUnit | undefined;
@@ -39,21 +40,22 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
     const shouldDisplaySubrateError = (shouldDisplayFieldError || formError === 'iou.error.invalidSubrateLength') && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
 
     const subRateFields = subRates.map((field, index) => (
-        <ExpenseFieldRow
-            key={`${translate('common.subrate')}${field?.key ?? index}`}
-            name={translate('common.subrate')}
-            value={getSubratesForDisplay(field, translate('iou.qty'))}
-            errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(index)));
-            }}
-            isDisabled={didConfirm}
-            isInteractive={!isReadOnly}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
-        />
+        <ExpenseFieldContainer key={`${translate('common.subrate')}${field?.key ?? index}`}>
+            <DropdownFieldRow
+                name={translate('common.subrate')}
+                value={getSubratesForDisplay(field, translate('iou.qty'))}
+                errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
+                onPress={() => {
+                    if (!transactionID) {
+                        return;
+                    }
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(index)));
+                }}
+                isDisabled={didConfirm}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
+            />
+        </ExpenseFieldContainer>
     ));
 
     const {firstDay, tripDays, lastDay} = getTimeDifferenceIntervals(transaction);
@@ -92,33 +94,37 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
 
     return (
         <>
-            <ExpenseFieldRow
-                name={translate('common.destination')}
-                value={getDestinationForDisplay(perDiemCustomUnit, transaction)}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path));
-                }}
-                isDisabled={didConfirm}
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESTINATION_FIELD}
-            />
-            <ExpenseFieldRow
-                name={translate('iou.time')}
-                value={getTimeForDisplay(transaction, dateFnsLocale)}
-                numberOfLinesValue={2}
-                onPress={() => {
-                    if (!transactionID) {
-                        return;
-                    }
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path));
-                }}
-                isDisabled={didConfirm}
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={translate('common.destination')}
+                    value={getDestinationForDisplay(perDiemCustomUnit, transaction)}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path));
+                    }}
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESTINATION_FIELD}
+                />
+            </ExpenseFieldContainer>
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={translate('iou.time')}
+                    value={getTimeForDisplay(transaction, dateFnsLocale)}
+                    numberOfLinesValue={2}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path));
+                    }}
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_FIELD}
+                />
+            </ExpenseFieldContainer>
 
             {badgeElements.length > 0 && <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh4, styles.flexWrap]}>{badgeElements}</View>}
 

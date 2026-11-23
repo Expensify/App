@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
@@ -50,6 +51,9 @@ type FlatNavItemProps = {
 
     onPress: () => void;
 
+    /** Route of the destination, so the row can be opened in a new browser tab */
+    linkRoute?: Route;
+
     /** Called when the pointer moves onto the row */
     onHoverIn?: () => void;
 
@@ -70,6 +74,7 @@ function FlatNavItem({
     accessibilityLabel,
     sentryLabel,
     onPress,
+    linkRoute,
     onHoverIn,
     onHoverOut,
 }: FlatNavItemProps) {
@@ -90,6 +95,7 @@ function FlatNavItem({
     return (
         <PressableWithFeedback
             onPress={onPress}
+            linkRoute={linkRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}

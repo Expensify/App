@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {GroupedItem} from '@components/Search/types';
+import Text from '@components/Text';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
 import localFileDownload from '@libs/localFileDownload';
@@ -23,6 +24,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
+import type {View} from 'react-native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -31,6 +34,15 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/WidgetHeaderMenu', () => jest.fn(() => null));
 jest.mock('@components/Search/SearchChartView', () => jest.fn(() => null));
+jest.mock('@components/WidgetContainer', () => {
+    const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
+    return ({titleRightContent, children}: React.PropsWithChildren<{titleRightContent?: React.ReactNode}>) => (
+        <MockView>
+            <MockView testID="widgetHeader">{titleRightContent}</MockView>
+            <MockView testID="widgetContent">{children}</MockView>
+        </MockView>
+    );
+});
 jest.mock('@libs/localFileDownload', () => jest.fn());
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@pages/Insights/useInsightsChartData', () => ({__esModule: true, default: jest.fn()}));
@@ -53,13 +65,28 @@ const FEBRUARY: GroupedItem = {
 };
 const DATA: GroupedItem[] = [FEBRUARY];
 
-function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDrillIn}: {dashboardID?: InsightsDashboardID; supportsDrillIn?: boolean} = {}) {
+function renderWidget({
+    dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND,
+    chart = CHART,
+    supportsDrillIn,
+    queryJSON = QUERY,
+    asOfDate,
+    controls,
+    children,
+}: React.PropsWithChildren<{
+    dashboardID?: InsightsDashboardID;
+    chart?: typeof CHART;
+    supportsDrillIn?: boolean;
+    queryJSON?: typeof QUERY;
+    asOfDate?: string;
+    controls?: React.ReactNode;
+}> = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsChartWidget
                 dashboardID={dashboardID}
-                chart={CHART}
-                queryJSON={QUERY}
+                chart={chart}
+                queryJSON={queryJSON}
                 snapshot={undefined}
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
@@ -69,7 +96,11 @@ function renderWidget({dashboardID = CONST.INSIGHTS.DASHBOARD.SPEND, supportsDri
                 insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
                 supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
-            />
+                asOfDate={asOfDate}
+            >
+                {!!controls && <InsightsChartWidget.Controls>{controls}</InsightsChartWidget.Controls>}
+                {children}
+            </InsightsChartWidget>
         </ComposeProviders>,
     );
 }
@@ -134,7 +165,7 @@ describe('Insights chart CSV action', () => {
     });
 });
 
-describe('Insights chart press', () => {
+describe('Insights chart view and press', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
@@ -145,6 +176,51 @@ describe('Insights chart press', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([INSIGHTS_CHART_STATE.READY, INSIGHTS_CHART_STATE.EMPTY, INSIGHTS_CHART_STATE.LOADING])('keeps controls in the header and notes below the %s chart', async (state) => {
+        // Given header controls and a note that must wait for chart loading to finish
+        jest.mocked(useInsightsChartData).mockReturnValue({data: DATA, state, comparison: undefined});
+
+        // When the widget places both kinds of children
+        renderWidget({controls: <Text>Tag selector</Text>, children: <Text>Future expenses</Text>});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then controls stay visible only in the header, while notes appear only below loaded or empty charts
+        const header = within(screen.getByTestId('widgetHeader'));
+        const content = within(screen.getByTestId('widgetContent'));
+        expect(header.getAllByText('Tag selector')).toHaveLength(1);
+        expect(content.queryByText('Tag selector')).toBeNull();
+        expect(header.queryByText('Future expenses')).toBeNull();
+        expect(content.queryByText('Future expenses') !== null).toBe(state !== INSIGHTS_CHART_STATE.LOADING);
+    });
+
+    it.each([
+        {hasComparison: false, expectedView: CONST.SEARCH.VIEW.PIE},
+        {hasComparison: true, expectedView: CONST.SEARCH.VIEW.BAR},
+    ])('renders multiple tags as $expectedView with comparison=$hasComparison', async ({hasComparison, expectedView}) => {
+        // Given multiple tag results, optionally paired with historical groups.
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        const data: GroupedItem[] = ['Marketing', 'Sales'].map((tag) => ({
+            groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+            tag,
+            keyForList: tag,
+            total: 10000,
+            count: 1,
+            currency: CONST.CURRENCY.USD,
+            transactions: [],
+        }));
+        jest.mocked(useInsightsChartData).mockReturnValue({data, state: INSIGHTS_CHART_STATE.READY, comparison: hasComparison ? {data, color: '#000000'} : undefined});
+
+        // When the Top tags widget renders the selected comparison.
+        renderWidget({chart});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ordinary rankings use a donut while comparisons retain paired bars.
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({view: expectedView, shouldShowSinglePointAsBar: true});
+    });
 
     it('opens the Details panel for the pressed period on the Spend dashboard', async () => {
         // Given a Spend chart plotting February, for a user on the beta the panel ships behind
@@ -159,6 +235,35 @@ describe('Insights chart press', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND, graphKey: CHART.graphKey, itemKey: '2026-02-01', periodEnd: '2026-02-28'}),
         );
+    });
+
+    it('keeps the tag level, parent and as-of date when opening Details', async () => {
+        // Given a dependent tag chart whose data stops before today
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        const tag: GroupedItem = {
+            groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+            tag: 'Marketing',
+            tagLevel: 2,
+            parentTagPath: 'North America',
+            keyForList: 'marketing',
+            total: 10000,
+            count: 1,
+            currency: CONST.CURRENCY.USD,
+            transactions: [],
+        };
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [tag], state: INSIGHTS_CHART_STATE.READY, comparison: undefined});
+        renderWidget({chart, queryJSON: buildSearchQueryJSON('type:expense groupBy:tag tagLevel:2'), asOfDate: '2026-10-08'});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens that tag's Details panel
+        jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress?.(tag);
+
+        // Then the URL preserves both the exact tag group and the last day counted by the chart
+        expect(Navigation.navigate).toHaveBeenCalledWith('insights/spend/details/topTags?item=Marketing&level=2&parent=North%20America&asOf=2026-10-08');
     });
 
     it('keeps the default press without the Insights AI beta', async () => {

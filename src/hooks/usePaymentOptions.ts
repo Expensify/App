@@ -2,7 +2,7 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBankAccountData, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {canPayViaABA} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
@@ -19,12 +19,11 @@ import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Pol
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
+import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 
 import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
@@ -36,8 +35,6 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
@@ -76,7 +73,7 @@ function usePaymentOptions({
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasActivatedWallet = userWallet?.tierName === CONST.WALLET.TIER_NAME.GOLD || userWallet?.tierName === CONST.WALLET.TIER_NAME.PLATINUM;
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
@@ -146,7 +143,7 @@ function usePaymentOptions({
             sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -189,14 +186,13 @@ function usePaymentOptions({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency);
             const getPaymentSubItems = (payAsBusiness: boolean) => {
                 const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
                 return formattedPaymentMethods
                     .filter((method) => {
-                        const accountData = method?.accountData as AccountData;
-                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                        const accountData = getBankAccountData(method.accountData);
+                        return accountData?.type === requiredAccountType && !isBankAccountPartiallySetup(accountData.state);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
