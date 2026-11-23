@@ -1,76 +1,65 @@
 ---
 title: Sign Into Your Account
-description: Sign in to Expensify on web or mobile using an email security code, your company's single sign-on, Google, or Apple.
-keywords: [how to sign in to Expensify, log in, email security code, SAML, single sign-on, SSO, Google sign-in, Apple sign-in, two-factor authentication]
-internalScope: Audience is all Expensify members. Covers signing in on web and mobile with an email security code, SAML single sign-on, Google, or Apple, including the two-factor authentication prompt. Does not cover troubleshooting login issues or setting up SSO or two-factor authentication.
+description: Learn how to sign in to your Expensify account on web or mobile using an email security code, SAML SSO, Google SSO, or Sign in with Apple.
+keywords: [sign in to Expensify, Expensify login, log in, email security code, SAML, SAML SSO, SSO, Google sign-in, Apple sign-in, two-factor authentication, 2FA, sign in with Apple]
+internalScope: Audience is all Expensify members. Covers signing in to an existing account on web and mobile using an email security code, SAML SSO, Google, or Apple, including two-factor authentication prompts. Does not cover troubleshooting sign-in issues or configuring SSO or two-factor authentication.
 ---
 
 # Sign Into Your Account
 
-Sign in to Expensify on web or mobile to access your account. Use the email address associated with your existing Expensify account to avoid creating a separate account.
+Sign in to Expensify on web or mobile using an email security code, your company's single sign-on (SSO), Google, or Apple.
 
----
+Use the email address associated with your existing Expensify account to avoid creating a separate account.
 
-## Who Can Sign In to Expensify
+## How to sign in to Expensify
 
-All members can sign in to their own Expensify account. Available sign-in methods depend on your account configuration and your company's settings. Single sign-on (SSO) is available if your company has set up SAML.
+To get started, open [new.expensify.com](https://new.expensify.com/) in your web browser on any device, or use the Expensify mobile app for [iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) or [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg).
 
----
+Then follow the instructions for your sign-in method below.
 
-## How to Sign In to Expensify
+![Expensify sign in page with Phone or email field highlighted ({{site.url}}/assets/images/sign-in.png){:width="100%"}
 
-On web, open [new.expensify.com](https://new.expensify.com/).
+## How to sign in with an email security code
 
-On mobile, open Expensify. If needed, download Expensify for [iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) or [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US).
+Expensify uses email security codes instead of passwords for email sign-in.
 
-Then follow the steps below for your sign-in method.
-
-## How to Sign In With an Email Security Code
-
-Expensify uses security codes instead of passwords for email sign-in.
-
-1. Enter your account's email address in the **Phone or email** field.
+1. In the **Phone or email** field, enter the email address associated with your Expensify account.
 2. Select **Continue**.
-3. If offered a choice between SSO and a security code, select **Use security code**.
-4. Check your email for the security code from Expensify.
-5. Enter the code on the sign-in screen. The form submits when you finish entering the code, or you can select **Sign in**.
-6. If prompted, enter the code from your authenticator app to finish signing in.
+3. If prompted to choose between SSO and a security code, select **Use security code**.
+4. Check your email for a message with the subject **Your Expensify security code**.
+5. Enter the security code on the sign-in screen and select **Sign in**.
 
-## How to Sign In With Your Company's SSO
+## How to sign in with SAML SSO
 
-If your company uses SAML SSO, sign in through your company's identity provider.
+If your company has configured SAML single sign-on (SSO) in Expensify, you can sign in through your company's identity provider.
 
-1. Enter your company email address in the **Phone or email** field.
+1. In the **Phone or email** field, enter your company email address.
 2. Select **Continue**.
-3. If shown, select **Use single sign-on**. If your company requires SSO, Expensify redirects you automatically.
-4. Follow your company's sign-in prompts to authenticate and return to Expensify.
+3. If prompted, select **Use single sign-on**. If your company requires SSO, you'll be redirected automatically.
+4. Follow your company's sign-in prompts to complete authentication and return to Expensify.
 
-## How to Sign In With Google
+## How to sign in with Google
 
 1. Select **Sign in with Google** on the sign-in screen.
-2. Use the Google account email associated with your existing Expensify account.
-3. Follow Google's prompts to authenticate and return to Expensify.
+2. Select the Google account associated with your existing Expensify account.
+3. Follow Google's prompts to complete sign-in.
 
-## How to Sign In With Apple
+## How to sign in with Apple
 
 1. Select **Sign in with Apple** on the sign-in screen.
-2. Use the Apple account email associated with your existing Expensify account.
-3. Follow Apple's prompts to authenticate and return to Expensify.
-
-## What Happens After You Sign In to Expensify
-
-After you finish signing in, you can access your existing Expensify account on that browser or mobile device.
-
----
+2. Use the Apple account associated with your existing Expensify account.
+3. Follow Apple's prompts to complete sign-in.
 
 # FAQ
 
-## How Does Two-Factor Authentication Affect Sign-In?
+## How does two-factor authentication affect sign-in?
 
-If you have two-factor authentication enabled, use email sign-in and enter the code from your authenticator app when prompted. This code is separate from the security code Expensify sends to your email.
+If you have two-factor authentication enabled, use email sign-in and enter the code from your authenticator app when prompted.
+
+This code is different from the security code Expensify sends to your email.
 
 Learn more about [signing in with two-factor authentication](/articles/new-expensify/settings/Two-Factor-Authentication#how-does-two-factor-authentication-change-how-i-log-into-my-account).
 
-## How Do I Get Help With Login Issues?
+## What if I can't sign in to Expensify?
 
-For help with missing security codes, SSO problems, or other login issues, see [Troubleshoot Expensify Login Issues](/articles/new-expensify/settings/Login-Troubleshooting).
+If you aren't receiving security codes, can't sign in with SSO, or encounter another login issue, see [Troubleshoot Expensify Login Issues](/articles/new-expensify/settings/Login-Troubleshooting).
