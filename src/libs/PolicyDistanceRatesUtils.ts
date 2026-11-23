@@ -132,7 +132,8 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit:
 function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate | undefined, translate: LocalizedTranslate): FormInputErrors<TaxReclaimableForm> {
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
-    if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
+    // A $0 rate is a real rate with nothing to reclaim, so any value has to be rejected rather than silently dropped on save
+    if (rate?.rate !== undefined && Number(values.taxClaimableValue) >= rate.rate / 100) {
         errors.taxClaimableValue = translate('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;

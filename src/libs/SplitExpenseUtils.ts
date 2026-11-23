@@ -119,7 +119,7 @@ function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, 
         return translate(errorKey, convertToDisplayString(Math.abs(lessThanDifference), currency));
     }
 
-    // Every split of a $0 distance expense is $0, whatever its rate, so it's only invalid when it has no distance either
+    // Every split of a $0 distance expense is $0, whatever its initial rate, so it's only invalid when it has no distance either
     const isZeroTotalDistance = isDistance && transactionDetailsAmount === 0;
     const isValidZeroAmountDistanceSplit = (item: SplitExpense) => isZeroTotalDistance && !!item.customUnit?.quantity;
     const invalidZeroAmountSplits = splitExpenses.filter((item) => item.amount === 0 && !isValidZeroAmountDistanceSplit(item));

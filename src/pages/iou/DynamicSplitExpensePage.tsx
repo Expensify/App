@@ -465,6 +465,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 isSelfDMSplit: isDraftSelfDMContext,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencySymbol,
+                getCurrencyDecimals,
                 policies: allPolicies,
                 frozenSplitsContext,
             });

@@ -11124,7 +11124,7 @@ describe('updateSplitExpenseAmountField', () => {
         expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
     });
 
-    it('keeps every split $0 and evens out the distance when making the splits of a $0 distance expense even', async () => {
+    it('evens out the distance of a $0 distance expense, keeping its own-rate split $0 and billing a split moved to another rate', async () => {
         // Given a $0 distance expense on a $0 rate, split in two, where the user moved one split to a positive rate
         const customUnitID = 'distance-unit';
         const zeroRateID = 'rate-zero-even';
@@ -11178,11 +11178,11 @@ describe('updateSplitExpenseAmountField', () => {
         evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
 
-        // Then the distance is evened out and every split stays $0, since a $0 expense has no amount to divide, while each
-        // split keeps its own rate
+        // Then the distance is evened out, the split on the expense's own rate stays $0 since a $0 expense has no amount to divide,
+        // and the split moved to another rate is billed at that rate (100 mi * 70 cents), as was decided for moved splits
         const evenSplits = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`))?.comment?.splitExpenses;
         expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
-        expect(evenSplits?.map((split) => split.amount)).toEqual([0, 0]);
+        expect(evenSplits?.map((split) => split.amount)).toEqual([0, 7000]);
         expect(evenSplits?.at(1)?.merchant).toContain('100.00');
         expect(evenSplits?.at(1)?.merchant).toContain('$0.70');
     });
