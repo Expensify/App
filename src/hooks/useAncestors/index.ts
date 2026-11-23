@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {getSortedReportActions} from '@libs/ReportActionsUtils';
+import {getSortedReportActions, isReportActionUnread} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {getAncestors, getParentReportChain} from '@libs/ReportUtils';
 
@@ -30,11 +30,17 @@ function selectAncestorReportActions(
     reportDrafts: OnyxCollection<Report>,
 ): OnyxCollection<ReportActions> {
     const ancestorReportActions: OnyxCollection<ReportActions> = {};
-    for (const {reportID, reportActionID} of getParentReportChain(report, ancestorReports, reportDrafts)) {
+    for (const {reportID, reportActionID, report: ancestorReport} of getParentReportChain(report, ancestorReports, reportDrafts)) {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
         const parentReportActions = reportActions?.[reportActionsKey];
         const ancestorReportAction = parentReportActions?.[reportActionID];
         if (!ancestorReportAction) {
+            continue;
+        }
+
+        // A read ancestor never shows the new marker, so the action before it can't change anything and isn't worth sorting for.
+        if (!isReportActionUnread(ancestorReportAction, ancestorReport.lastReadTime)) {
+            ancestorReportActions[reportActionsKey] = {[reportActionID]: ancestorReportAction};
             continue;
         }
 

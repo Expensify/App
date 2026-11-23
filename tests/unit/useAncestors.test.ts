@@ -206,6 +206,34 @@ describe('useAncestors', () => {
         expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(true);
     });
 
+    test('does not re-render when the action before a read ancestor changes', async () => {
+        // Given a read parent action, so the action before it cannot change its new marker
+        const parentReport: Report = {reportID: 'readParent', lastReadTime: '2026-01-01 00:00:05.000'};
+        const childReport: Report = {reportID: 'readChild', parentReportID: 'readParent', parentReportActionID: 'parentAction'};
+        const previousAction: ReportAction = {reportActionID: 'previousAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:01.000'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:02.000'};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}readParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}readParent`, {previousAction, parentAction});
+        });
+        let renderCount = 0;
+        const {result} = renderHook(() => {
+            renderCount++;
+            return useAncestors(childReport);
+        });
+        await waitForBatchedUpdates();
+        const renderCountBefore = renderCount;
+
+        // When the action before the parent is edited
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}readParent`, {previousAction: {message: [{type: 'COMMENT', html: 'edited', text: 'edited'}]}});
+        });
+
+        // Then the caller does not re-render, and the read parent still shows no new marker
+        expect(renderCount).toBe(renderCountBefore);
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
+    });
+
     test('if no ancestor reports', () => {
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]; // First report, should have no ancestors
         const {

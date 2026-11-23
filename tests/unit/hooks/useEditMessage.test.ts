@@ -193,45 +193,32 @@ describe('useEditMessage', () => {
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
-    it('saves with the names of only the rooms the original message mentions', async () => {
-        // Given an original message that mentions one room, and another room it does not mention
+    it('saves with the names of only the rooms and users the original message mentions', async () => {
+        // Given an original message that mentions one room and Alice by ID, plus another room and Bob that it does not mention
         const mentionedReportID = '111';
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mentionedReportID}`, {reportID: mentionedReportID, reportName: '#mentioned'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}222`, {reportID: '222', reportName: '#other'});
-        });
-        const reportAction = LHNTestUtils.getFakeReportAction();
-        const {hook} = renderUseEditMessage({
-            reportAction: {...reportAction, message: [{type: 'COMMENT', text: '#mentioned', html: `<mention-report reportID="${mentionedReportID}"/>`}]},
-        });
-
-        // When the edit is saved
-        act(() => hook.result.current.publishDraft('Updated message'));
-
-        // Then the unchanged check gets the mentioned room, which is all it needs to turn the original HTML back into markdown
-        expect(mockEditReportComment.mock.calls.at(0)?.[7]).toEqual({[mentionedReportID]: '#mentioned'});
-    });
-
-    it('saves with the names of only the users the original message mentions', async () => {
-        // Given an original message that mentions Alice by accountID, and a known user, Bob, that it does not mention
         const aliceAccountID = 1001;
         const bobAccountID = 1002;
         await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mentionedReportID}`, {reportID: mentionedReportID, reportName: '#mentioned'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}222`, {reportID: '222', reportName: '#other'});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [aliceAccountID]: {accountID: aliceAccountID, login: 'alice@test.com'},
                 [bobAccountID]: {accountID: bobAccountID, login: 'bob@test.com'},
             });
         });
         const reportAction = LHNTestUtils.getFakeReportAction();
+        const html = `<mention-report reportID="${mentionedReportID}"/> <mention-user accountID="${aliceAccountID}"/>`;
         const {hook} = renderUseEditMessage({
-            reportAction: {...reportAction, message: [{type: 'COMMENT', text: '@alice@test.com', html: `<mention-user accountID="${aliceAccountID}"/>`}]},
+            reportAction: {...reportAction, message: [{type: 'COMMENT', text: '#mentioned @alice@test.com', html}]},
         });
 
         // When the edit is saved
         act(() => hook.result.current.publishDraft('Updated message'));
 
-        // Then the unchanged check gets only Alice, which is all it needs to turn the original HTML back into markdown
-        expect(mockEditReportComment.mock.calls.at(0)?.[8]).toEqual({[aliceAccountID]: 'alice@test.com'});
+        // Then the unchanged check gets only the mentioned room and user, which is all it needs to turn the original HTML back into markdown
+        const [, , , , , , , reportIDToName, accountIDToName] = mockEditReportComment.mock.calls.at(0) ?? [];
+        expect(reportIDToName).toEqual({[mentionedReportID]: '#mentioned'});
+        expect(accountIDToName).toEqual({[aliceAccountID]: 'alice@test.com'});
     });
 
     it('does not re-render when an unrelated report or personal details change', async () => {
