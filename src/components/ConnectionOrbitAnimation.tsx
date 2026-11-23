@@ -17,7 +17,7 @@ import Svg, {Circle} from 'react-native-svg';
 
 import Icon from './Icon';
 
-const ORBIT_DURATION_MS = 10000;
+const ORBIT_DURATION_MS = 16667;
 const RING_STROKE_WIDTH = 1;
 const RING_DASH_PATTERN = '4 4';
 const RING_RADIUS = variables.connectionOrbitDiameter / 2;
