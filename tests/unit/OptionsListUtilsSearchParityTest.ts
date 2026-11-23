@@ -542,6 +542,7 @@ function computeGoldenMaster(sourceFixture: SearchFixture) {
 
     // SearchAutocompleteList server pass reads derived attributes from Onyx because reportAttributesDerived is omitted
     const serverPassOptions = getSearchOptions({
+        lastActions: undefined,
         ...serverPassConfig,
         options: {
             reports: searching.reports.filter((option) => serverReportIDs.has(option.reportID)),

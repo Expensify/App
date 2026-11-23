@@ -1,8 +1,8 @@
 ---
 title: Manage Workspace Members and Access
-description: Learn how to change workspace member roles, remove members, filter the member list, set display names, and download a CSV.
-keywords: [workspace members, change role, remove member, remove users, filter members, member display name, download members, export members, member CSV, workspace access]
-internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, removing members individually or in bulk, filtering by role, setting display names, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
+description: Learn how to change workspace member roles, set category visibility, remove members, set display names, update work arrangements and download a CSV.
+keywords: [workspace members, change role, remove member, remove users, filter members, member display name, download members, export members, member CSV, workspace access, work arrangement, commute exclusions, exclude usual commute, office-based, remote or mobile, default work arrangement, mileage commute]
+internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, setting per-member category visibility on Control, removing members individually or in bulk, filtering by role, setting display names, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
 contentType: task
 platform: new-expensify
 ---
@@ -39,6 +39,24 @@ On web, you can also hover over the member’s **Role** in the member list and s
 You cannot change the role of the member designated as the workspace’s authorized **Payer**. Role-change options are hidden until a different payer is assigned.
 
 To change their role, first go to **Workspaces > [workspace name] > Workflows > Payments** and set a different admin as the **Payer**. Then return to **Members** to change the previous payer’s role.
+
+## How to set a member’s Category visibility
+
+On the Control plan, workspace admins can use **Category visibility** to choose which enabled categories a member can use for their expenses. Categories must be enabled in the workspace before they can be assigned to a member.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select the member’s name.
+3. Select **Category visibility**.
+4. Select the categories the member can use. Use the search field to find specific categories.
+5. Select **Save**.
+
+The member’s details show **All categories** when access is unrestricted, or the number of available categories when restricted. To remove restrictions, select all enabled categories, then select **Save**. Each member must have access to at least one enabled category.
+
+Category visibility restrictions apply when members categorize their own expenses, including workspace admins. However, admins and approvers can still select any enabled category when editing another member’s expense.
+
+Changes to Category visibility are recorded in the workspace’s **#admins** room.
+
+Learn how [Category visibility affects automatic categorization and expense violations](/articles/new-expensify/workspaces/Create-expense-categories#how-to-control-which-categories-a-member-can-use).
 
 ## How to remove a workspace member
 
@@ -95,6 +113,28 @@ Workspace admins can set a display name for a member who has not added a name of
 The name applies in every workspace the member belongs to. After it is saved, **Display name** will not be editable and only the member can change it.
 
 **Note:** You can only set a display name if the member has not added a name of their own. If the member has already set their name, only they can edit it. [Learn how to update your display name on your account](/articles/new-expensify/settings/Account-Settings#how-to-update-your-display-name-or-legal-name).
+
+## How to set a member’s work arrangement for commute exclusions
+
+On Control workspaces using **Exclude usual commute**, workspace admins can set each member’s **Work arrangement** to determine how commute exclusions apply to their mileage expenses.
+
+Members use the workspace’s **Default work arrangement** unless an individual work arrangement has been set.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select the member’s name.
+3. Select **Work arrangement**.
+4. Choose **Office-based** or **Remote or mobile**. The change saves automatically.
+
+The work arrangement determines which commute exclusions apply:
+
+- **Office-based:** The member has a regular office commute. Direct home-to-office trips are excluded, and the usual one-way commute distance is subtracted from home-to-client or client-to-home trips.
+- **Remote or mobile:** The member works from home or travels between locations without a regular office. Home-and-office commute exclusions do not apply.
+
+Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.
+
+[Learn how to enable home-and-office commute exclusions](/articles/new-expensify/workspaces/Set-distance-rates#-How-to-exclude-commutes-using-home-and-office-locations).
+
+**Work arrangement** does not affect the **Remove fixed distance** method.
 
 ## How to download a CSV of workspace members
 

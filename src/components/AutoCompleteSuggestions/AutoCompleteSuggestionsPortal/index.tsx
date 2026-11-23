@@ -1,4 +1,6 @@
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+import FSClassView from '@components/FSClassView';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
@@ -8,9 +10,8 @@ import CONST from '@src/CONST';
 
 import type {ReactElement} from 'react';
 
-import React from 'react';
+import React, {useContext} from 'react';
 import ReactDOM from 'react-dom';
-import {View} from 'react-native';
 
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
@@ -35,6 +36,8 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
+    // The portal renders on <body>, outside the masked views of the chat that opened it, so it applies the chat's class itself
+    const fsClass = useContext(FSClassContext);
 
     const bodyElement = document.querySelector('body');
 
@@ -55,9 +58,12 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                     sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.OVERLAY}
                     style={zIndexStyle}
                 />
-                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}>
+                <FSClassView
+                    style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}
+                    forwardedFSClass={fsClass}
+                >
                     {componentToRender}
-                </View>
+                </FSClassView>
             </>,
             bodyElement,
         )

@@ -46,7 +46,7 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     });
 };
 
-const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
+const dismissKeyboardAndExecute = (cb: () => void | Promise<void>): Promise<void> => {
     return new Promise((resolve) => {
         // For iOS and other platforms, execute callback immediately
         cb();
@@ -54,7 +54,9 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     });
 };
 
-const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
+const isKeyboardVisible = () => isVisible;
+
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange, isKeyboardVisible};
 
 export type {SimplifiedKeyboardEvent};
 export default utils;

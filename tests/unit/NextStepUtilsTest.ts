@@ -1,4 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {
     buildNextStepMessage,
@@ -34,6 +35,11 @@ describe('libs/NextStepUtils', () => {
         const strangeAccountID = 50;
         const ownerEmail = 'owner@expensify.com';
         const ownerAccountID = 99;
+        const personalDetailsByLogins: PersonalDetailsByLogin = {
+            [strangeEmail]: {accountID: strangeAccountID, login: strangeEmail},
+            [currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail},
+            [ownerEmail]: {accountID: ownerAccountID, login: ownerEmail},
+        };
         const policyID = '1';
         const policy: Policy = {
             // Important props
@@ -95,18 +101,19 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates and optimistic nextStep once a report has been created', () => {
             test('Correct next steps message', () => {
-                const emptyReport = buildOptimisticEmptyReport(
-                    'fake-empty-report-id-2',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {reportID: 'fake-parent-report-id-3'},
-                    'fake-parent-report-action-id-4',
+                const emptyReport = buildOptimisticEmptyReport({
+                    reportID: 'fake-empty-report-id-2',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {reportID: 'fake-parent-report-id-3'},
+                    parentReportActionID: 'fake-parent-report-action-id-4',
                     policy,
-                    '2025-03-31 13:23:11',
-                    true,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    timeOfCreation: '2025-03-31 13:23:11',
+                    isASAPSubmitBetaEnabled: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins,
+                });
 
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
@@ -916,6 +923,7 @@ describe('libs/NextStepUtils', () => {
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
+        const currentUserPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
         const policyID = 'policy-1';
 
         beforeAll(() => {
@@ -929,6 +937,48 @@ describe('libs/NextStepUtils', () => {
                     },
                 },
             }).then(waitForBatchedUpdates);
+        });
+
+        it('returns the next step of an invoice only while a payment waits for the sender bank account', () => {
+            // Given an invoice that waits for the sender to add a bank account
+            const waitingNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+            const invoice = {
+                reportID: 'invoice-1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: waitingNextStep,
+            } as Report;
+            const getNextStep = (report: Report) =>
+                getReportNextStep({
+                    currentUserLogin: currentUserEmail,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    report,
+                    reportOwnerLogin: currentUserEmail,
+                    reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                    reportMetadata: undefined,
+                    reportActions: [],
+                    transactions: {},
+                    violations: {},
+                    policy: undefined,
+                    rules: undefined,
+                    areStrictPolicyRulesEnabled: false,
+                    isReportArchived: false,
+                    theme: undefined,
+                    isOffline: false,
+                });
+
+            // When the next step is read, then the invoice shows it, because the sender must act before they can be paid
+            expect(getNextStep(invoice)).toBe(waitingNextStep);
+
+            // And an invoice with any other next step shows none
+            expect(getNextStep({...invoice, nextStep: {...waitingNextStep, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY}})).toBeUndefined();
         });
 
         it('returns the current next step when no special conditions are met', () => {
@@ -962,6 +1012,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1012,6 +1063,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1071,6 +1123,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1126,6 +1179,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1145,6 +1199,7 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the current next step when the approve-only member is not the report owner', () => {
+            const ownerLogin = 'owner@expensify.com';
             const currentNextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1180,7 +1235,8 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: 'owner@expensify.com',
+                reportOwnerLogin: ownerLogin,
+                reportOwnerPersonalDetailsByLogin: {[ownerLogin]: {accountID: 99, login: ownerLogin}},
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1237,6 +1293,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1304,6 +1361,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1382,6 +1440,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
