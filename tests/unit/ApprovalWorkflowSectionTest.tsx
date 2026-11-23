@@ -1,8 +1,11 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 import React from 'react';
@@ -93,6 +96,43 @@ describe('ApprovalWorkflowSection', () => {
 
         // Then the admin sees an error telling them to fix it
         expect(screen.getByText('workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
+        expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
+        expect(approverRow?.props.shouldBeAccessible).toBe(false);
+    });
+
+    it.each([false, true])('shows the same inline error for a removed regular or over-limit approver: %s', (isOverLimit) => {
+        // Given a removed approver represented as its own step, including optional over-limit steps
+        const brokenWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {
+                    ...baseWorkflow.approvers[0],
+                    overLimitAmount: isOverLimit ? 50000 : undefined,
+                    isNotWorkspaceMember: true,
+                },
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn()});
+
+        // Then the same error follows either approver row, without restoring the obsolete forwarding note
+        const errorKey = 'workflowsPage.approverNotWorkspaceMember';
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
+        const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === errorKey);
+        expect(approverRow).toBeDefined();
+        expect(errorMessage).toBeDefined();
+        expect(approverRow?.props.helperText).toBeUndefined();
+        const approverStep = approverRow?.parent?.findAll(() => true) ?? [];
+        expect(approverStep.findIndex((child) => child === errorMessage)).toBeGreaterThan(approverStep.findIndex((child) => child === approverRow));
+        expect(screen.getByText(errorKey)).toBeTruthy();
+
+        // And its text starts under the approver title, with the dot in the icon column instead of beside the text
+        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(false);
+        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({marginLeft: 12})]));
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
     });
 
     it('does not show the non-member error for a regular approver', () => {

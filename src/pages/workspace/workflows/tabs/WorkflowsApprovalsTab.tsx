@@ -36,7 +36,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getApprovalWorkflowSource, hasApprovalWorkflowForks, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, hasApprovalWorkflowForks, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, sortApprovalWorkflowsByErrors} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -293,6 +293,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;
     };
 
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
+    const sortedApprovalWorkflows = canWriteApprovals && !shouldBlockApprovalWorkflowEditing ? sortApprovalWorkflowsByErrors(filteredApprovalWorkflows) : filteredApprovalWorkflows;
+
     const viewWorkflowForks = (workflow: ApprovalWorkflow) => {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, getWorkflowAnchor(workflow).approverEmail));
     };
@@ -322,7 +325,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
     };
 
-    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows, workflowSearchQuery] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
+    const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows, workflowSearchQuery] = useSearchResults(sortedApprovalWorkflows, filterWorkflow);
     const [isWorkflowListExpanded, setIsWorkflowListExpanded] = useState(false);
 
     useEffect(() => {
@@ -359,7 +362,6 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const isWorkflowEditingDisabled = shouldBlockApprovalWorkflowEditing || !canWriteApprovals;
     const approvalSubtitle = !isWorkflowFromIntegration ? (
         translate('workflowsPage.addApprovalsDescription')

@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -195,7 +196,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 )}
 
                 <MenuItemSectionRoot
-                    accessibilityLabel={members || translate('workflowsExpensesFromPage.title')}
+                    accessibilityLabel={[members || translate('workflowsExpensesFromPage.title'), approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined]
+                        .filter(Boolean)
+                        .join('. ')}
                     onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 >
@@ -203,17 +206,18 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                         <MenuItemField.Content name={translate('workflowsExpensesFromPage.title')}>
                             {approvalWorkflow.isDefault ? <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue> : <UserPills users={memberPills} />}
                         </MenuItemField.Content>
-                        {(!!approvalWorkflow?.errors?.members || !approvalWorkflow.isDefault) && (
+                        {!approvalWorkflow.isDefault && (
                             <MenuItem.Trailing>
-                                {!!approvalWorkflow?.errors?.members && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {!approvalWorkflow.isDefault && <MenuItem.Chevron />}
+                                <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         )}
                     </MenuItem.Row>
                     {!!approvalWorkflow?.errors?.members && (
-                        <MenuItem.HelpText
+                        <FormHelpMessage
                             isError
                             message={translate(approvalWorkflow.errors.members)}
+                            shouldShowRedDotIndicator
+                            style={[styles.alignItemsStart]}
                         />
                     )}
                 </MenuItemSectionRoot>
@@ -233,7 +237,12 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemSectionRoot
-                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '') || approverDescriptions.at(approverIndex)}
+                                accessibilityLabel={[
+                                    formatPhoneNumber(approver?.displayName ?? '') || approverDescriptions.at(approverIndex),
+                                    errorText ? Parser.htmlToText(errorText) : undefined,
+                                ]
+                                    .filter(Boolean)
+                                    .join('. ')}
                                 onPress={callIfAuthenticated(() => editApprover(approverIndex), session)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                                 style={errorText || hintText ? styles.pb0 : undefined}
@@ -252,7 +261,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                         )}
                                     </MenuItemField.Content>
                                     <MenuItem.Trailing>
-                                        {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                         <MenuItem.Chevron />
                                     </MenuItem.Trailing>
                                 </MenuItem.Row>
@@ -260,10 +268,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             {(!!errorText || !!hintText) && (
                                 <View style={styles.pb3}>
                                     {!!errorText && (
-                                        // Cancel the standalone HTML leaf's insets so feedback stays aligned with this section's rows.
-                                        <View style={[styles.mhn5, styles.mbn5, styles.mt1]}>
-                                            <MenuItem.HelpTextHTML isError>{errorText}</MenuItem.HelpTextHTML>
-                                        </View>
+                                        <FormHelpMessage
+                                            message={errorText}
+                                            isError
+                                            shouldShowRedDotIndicator
+                                            shouldRenderMessageAsHTML
+                                            style={[styles.alignItemsStart, styles.mt1, styles.mb0]}
+                                        />
                                     )}
                                     {!!hintText && (
                                         <PressableWithoutFeedback

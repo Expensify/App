@@ -3789,32 +3789,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (
-            policyID: string | undefined,
-            newConnectionName?: ConnectionName,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-            isIntuitEnterpriseSuite?: boolean,
-        ) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
-            }
-
-            let queryParams = '';
-            if (newConnectionName) {
-                queryParams += `?newConnectionName=${newConnectionName}`;
-                if (integrationToDisconnect) {
-                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
-                }
-                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
-                }
-                if (isIntuitEnterpriseSuite !== undefined) {
-                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
-                }
-            }
-            return `workspaces/${policyID}/accounting${queryParams}` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
     },
     WORKSPACE_CONNECTIONS: {
         route: 'workspaces/:policyID/connections',
