@@ -14087,6 +14087,20 @@ describe('SearchUIUtils', () => {
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
         });
 
+        test('Should not offer sorting by Transaction ID', () => {
+            // Given the Transaction ID column is shown next to a sortable column
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+
+            // When the Sort by options and the expense table headers are built
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+            const transactionIDHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then neither offers a Transaction ID sort, because Search cannot sort by it yet
+            expect(sortByOptions).toEqual([{text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE}]);
+            expect(transactionIDHeader).toBeDefined();
+            expect(transactionIDHeader?.isColumnSortable).toBe(false);
+        });
+
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
