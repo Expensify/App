@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 
@@ -10,11 +9,11 @@ import type {ForwardedRef} from 'react';
 
 import React from 'react';
 
-import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
+import type {AmountEditingRef} from './AmountEditingController';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 import AmountFormField from './AmountFormField';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+import KeypadAmountEditor from './KeypadAmountEditor';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -41,7 +40,7 @@ type AmountFormProps = {
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
-    /** Custom label for the TextInput */
+    /** Label of the text input. On the keypad path it only sets the accessibility label, which defaults to the amount label. */
     label?: string;
 
     /** Whether the form should use a standard TextInput as a base */
@@ -50,22 +49,22 @@ type AmountFormProps = {
     decimals?: number;
     hideCurrencySymbol?: boolean;
 
-    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
+    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows). Ignored on the keypad path (when `displayAsTextInput` is false). */
     shouldShowCurrencyButton?: boolean;
 
-    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). */
+    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). Ignored on the keypad path. */
     currencyButtonLabel?: string;
 
-    /** Accessibility label for the trailing dropdown */
+    /** Accessibility label for the trailing dropdown. Ignored on the keypad path. */
     currencyButtonAccessibilityLabel?: string;
 
-    /** Whether the input should be disabled */
+    /** Disables the text input. Ignored on the keypad path (when `displayAsTextInput` is false). */
     disabled?: boolean;
 
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference to the number form for imperative updates */
-    numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
+    numberFormRef?: ForwardedRef<AmountEditingRef>;
 
     onSubmitEditing?: () => void;
 
@@ -100,7 +99,6 @@ function AmountForm({
     numberFormRef,
 }: AmountFormProps) {
     const {preferredLocale} = useLocalize();
-    const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const symbol = getLocalizedCurrencySymbol(preferredLocale, currency) ?? '';
@@ -142,41 +140,35 @@ function AmountForm({
     }
 
     return (
-        <NumberWithSymbolForm
-            label={label}
+        <KeypadAmountEditor
+            ref={numberFormRef}
             value={value ?? ''}
-            decimals={decimals}
-            currency={currency}
-            displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
-            onSymbolButtonPress={onCurrencyButtonPress}
-            ref={(newRef: BaseTextInputRef | null) => {
-                if (typeof ref === 'function') {
-                    ref(newRef);
-                } else if (ref && 'current' in ref) {
-                    // eslint-disable-next-line no-param-reassign
-                    ref.current = newRef;
-                }
-            }}
-            numberFormRef={numberFormRef}
-            symbol={symbol}
-            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
-            isSymbolPressable={isCurrencyPressable}
-            hideSymbol={hideCurrencySymbol}
-            shouldShowCurrencyButton={shouldShowCurrencyButton}
-            currencyButtonLabel={currencyButtonLabel}
-            currencyButtonAccessibilityLabel={currencyButtonAccessibilityLabel}
+            decimals={decimals}
             maxLength={amountMaxLength}
             errorText={errorText}
-            style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
-            containerStyle={displayAsTextInput ? undefined : styles.iouAmountTextInputContainer}
-            touchableInputWrapperStyle={displayAsTextInput ? undefined : styles.heightUndefined}
-            autoFocus={autoFocus}
-            onSubmitEditing={onSubmitEditing}
-            disabled={disabled}
-            onFocus={onFocus}
-            onBlur={onBlur}
-        />
+            // A parent (FormWrapper, or ScreenWrapper on screens without edge-to-edge) already applies the bottom safe area around this editor
+            addBottomSafeAreaPadding={false}
+            actions={
+                isCurrencyPressable && !!currency ? (
+                    <KeypadAmountEditor.CurrencyPickerButton
+                        currency={currency}
+                        onPress={onCurrencyButtonPress}
+                    />
+                ) : undefined
+            }
+        >
+            {!hideCurrencySymbol && !!symbol && <KeypadAmountEditor.Symbol>{symbol}</KeypadAmountEditor.Symbol>}
+            <KeypadAmountEditor.Input
+                ref={ref}
+                accessibilityLabel={label}
+                autoGrowExtraSpace={0}
+                autoFocus={autoFocus}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onSubmitEditing={onSubmitEditing}
+            />
+        </KeypadAmountEditor>
     );
 }
 

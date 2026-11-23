@@ -27,6 +27,8 @@ import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
 
+import {getMatchTypeLabel} from './matchTypeOptions';
+import useMatchTypeDiscard from './useMatchTypeDiscard';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<
@@ -43,20 +45,15 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {inputCallbackRef} = useAutoFocusInput(true);
 
     const currentValue = form?.merchantToMatch ?? '';
-    const matchType = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
-    const getMatchTypeLabel = () => {
-        if (matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.merchantRules.matchTypeExact');
-        }
-        return translate('workspace.rules.merchantRules.matchTypeContains');
-    };
+    const keepMatchType = useMatchTypeDiscard('matchType', form?.matchType);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+        keepMatchType();
         updateDraftMerchantRule(values);
         goBack();
     };
@@ -138,7 +135,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                             getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
                         )
                     }
-                    value={getMatchTypeLabel()}
+                    value={getMatchTypeLabel('matchType', form?.matchType, translate)}
                 />
             </FormProvider>
         </ScreenWrapper>

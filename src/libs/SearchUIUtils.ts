@@ -227,6 +227,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
+import {getCustomColumns, groupByRequiredColumns} from './SearchColumnsUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
@@ -279,6 +280,7 @@ import {
     isOdometerDistanceRequest,
     isOnHold,
     isScanning,
+    isUnreportedTransactionOwnedByCurrentUser,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
@@ -787,6 +789,8 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
+    FILTER_KEYS.LEFT_PINNED_COLUMNS,
+    FILTER_KEYS.RIGHT_PINNED_COLUMNS,
     FILTER_KEYS.KEYWORD,
     FILTER_KEYS.FOOTER_COUNT,
     FILTER_KEYS.FOOTER_TOTAL,
@@ -2733,7 +2737,12 @@ function createAndOpenSearchTransactionThread({
     const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
     const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
     const ownSelfDMAction = isUnreportedTransaction ? getIOUActionForReportID(findSelfDMReportID(), item.transactionID) : undefined;
-    const isOwnExpense = (ownSelfDMAction ?? item.reportAction)?.actorAccountID === currentUserAccountID;
+    const ownerAction = ownSelfDMAction ?? item.reportAction;
+
+    // A legacy unreported expense can have no IOU action at all. With no action and no report, `from` holds only the card holder.
+    const isOwnExpense = ownerAction
+        ? ownerAction.actorAccountID === currentUserAccountID
+        : isUnreportedTransaction && isUnreportedTransactionOwnedByCurrentUser(item, item.from?.accountID === currentUserAccountID);
     const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
     const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
@@ -2781,6 +2790,7 @@ function createAndOpenSearchTransactionThread({
             hasCompletedGuidedSetupFlow,
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
             selfDMReportID,
+            isOwnedByCurrentUser: isOwnExpense,
         });
     }
 
@@ -4422,22 +4432,6 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     ),
 };
 
-const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchCustomColumnIds[]>> = {
-    [CONST.SEARCH.GROUP_BY.FROM]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM],
-    [CONST.SEARCH.GROUP_BY.CARD]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD],
-    [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID],
-    [CONST.SEARCH.GROUP_BY.CATEGORY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY],
-    [CONST.SEARCH.GROUP_BY.MERCHANT]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT],
-    [CONST.SEARCH.GROUP_BY.TAG]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG],
-    [CONST.SEARCH.GROUP_BY.DAY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY],
-    [CONST.SEARCH.GROUP_BY.MONTH]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH],
-    [CONST.SEARCH.GROUP_BY.WEEK]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK],
-    [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
-    [CONST.SEARCH.GROUP_BY.QUARTER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER],
-    [CONST.SEARCH.GROUP_BY.APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER],
-    [CONST.SEARCH.GROUP_BY.VIOLATION]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION],
-};
-
 /**
  * Sorts sections of data based on a specified column and sort order for displaying sorted results.
  */
@@ -4995,51 +4989,6 @@ function isReportDetailsCustomColumn(column: string): column is SearchCustomColu
     return Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).some((customColumn) => customColumn === column);
 }
 
-function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
-    switch (value) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
-        case CONST.SEARCH.DATA_TYPES.TASK:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TASK);
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP);
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.CHAT);
-        case CONST.SEARCH.GROUP_BY.CARD:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD);
-        case CONST.SEARCH.GROUP_BY.FROM:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
-        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
-        case CONST.SEARCH.GROUP_BY.CATEGORY:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY);
-        case CONST.SEARCH.GROUP_BY.MERCHANT:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT);
-        case CONST.SEARCH.GROUP_BY.TAG:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
-        case CONST.SEARCH.GROUP_BY.DAY:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY);
-        case CONST.SEARCH.GROUP_BY.MONTH:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK);
-        case CONST.SEARCH.GROUP_BY.YEAR:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR);
-        case CONST.SEARCH.GROUP_BY.QUARTER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
-        case CONST.SEARCH.GROUP_BY.APPROVER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
-        case CONST.SEARCH.GROUP_BY.VIOLATION:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION);
-        default:
-            return [];
-    }
-}
-
 /** Whether users can pick and reorder the columns of a search of this type. A trip search shows expenses unless it returns trip rooms, and only the rooms table has columns to pick. */
 function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
     return (type !== CONST.SEARCH.DATA_TYPES.TRIP || shouldReturnTripRooms) && getCustomColumns(type).length > 0;
@@ -5048,20 +4997,6 @@ function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: bool
 /** Columns users can't remove from a report's expense table. The total has to stay so at least one column flexes. */
 function getRequiredReportDetailsColumns(): Set<SearchCustomColumnIds> {
     return new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
-}
-
-/**
- * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
- * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
- */
-function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
-
-    if (shouldRequireViolationsColumn) {
-        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
-    }
-
-    return requiredColumns;
 }
 
 /** Which shown columns of a table users can hide from their menu, and the columns to save when they hide one. */
@@ -8820,10 +8755,8 @@ export {
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
-    getCustomColumns,
     getCustomColumnDefault,
     canEditSearchColumns,
-    getRequiredSearchColumns,
     getRequiredReportDetailsColumns,
     getColumnHiding,
     filterValidHasValues,

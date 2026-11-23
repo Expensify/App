@@ -265,6 +265,7 @@ function IOURequestStepDistanceOdometer({
         personalDetails,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserPersonalDetails,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backToReport,
         shouldSkipConfirmation,
@@ -597,6 +598,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges,
         onCancel: restoreLastInputFocus,
         onConfirm: isEditingConfirmation
