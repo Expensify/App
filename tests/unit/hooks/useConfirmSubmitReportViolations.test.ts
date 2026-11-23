@@ -3,6 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 
 import CONST from '@src/CONST';

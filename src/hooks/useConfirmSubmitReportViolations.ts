@@ -1,10 +1,11 @@
-import {useRef} from 'react';
 import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
 import {getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useRef} from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -71,9 +72,11 @@ function useConfirmSubmitReportViolations({
                 shouldDeferForPopoverDismiss: options?.shouldDeferForPopoverDismiss ?? shouldDeferForPopoverDismiss,
                 onProceed,
             });
-        } finally {
+        } catch (error) {
             isConfirmingRef.current = false;
+            throw error;
         }
+        isConfirmingRef.current = false;
     };
 }
 
