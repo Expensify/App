@@ -3,14 +3,19 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import FormContext from '@components/Form/FormContext';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormRef, FormWrapperRef, InputComponentBaseProps} from '@components/Form/types';
+import type {FormRef, FormWrapperRef} from '@components/Form/types';
+import {InputBlurContextProvider, useInputBlurState} from '@components/InputBlurContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
+
 import * as FormActions from '@libs/actions/FormActions';
 import type * as FormActionsModule from '@libs/actions/FormActions';
-import {isSafari} from '@libs/Browser';
-import type * as BrowserModule from '@libs/Browser';
+import * as Browser from '@libs/Browser';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import Visibility from '@libs/Visibility';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,28 +30,6 @@ import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWi
 
 const olderErrorKey = '1719999999999';
 const latestErrorKey = '1720000000000';
-
-const mockIsSafari = jest.mocked(isSafari);
-const mockGetActiveInput = jest.fn<unknown, []>(() => null);
-const mockSetIsBlurred = jest.fn();
-const mockCancelBlurTransition = jest.fn();
-const mockRunAfterTransitions = jest.fn<{cancel: () => void}, [{callback: () => void}]>(() => ({cancel: mockCancelBlurTransition}));
-
-jest.mock('@libs/Browser', () => ({
-    ...jest.requireActual<typeof BrowserModule>('@libs/Browser'),
-    isSafari: jest.fn(() => false),
-}));
-jest.mock('@libs/ComposerFocusManager', () => ({
-    __esModule: true,
-    default: {getActiveInput: () => mockGetActiveInput()},
-}));
-jest.mock('@libs/Navigation/TransitionTracker', () => ({
-    __esModule: true,
-    default: {runAfterTransitions: (options: {callback: () => void}) => mockRunAfterTransitions(options)},
-}));
-jest.mock('@components/InputBlurContext', () => ({
-    useInputBlurActions: () => ({setIsBlurred: mockSetIsBlurred}),
-}));
 
 type MockFormWrapperProps = {
     ref?: React.Ref<FormWrapperRef>;
@@ -111,28 +94,61 @@ jest.mock('@src/utils/keyboard', () => ({
 
 const FORM_ID = ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM;
 
-// Expose the form's blur handler to fireEvent without converting it to a native Pressable event.
-function BlurTarget({children}: React.PropsWithChildren<Pick<InputComponentBaseProps, 'onBlur'>>) {
-    return children;
-}
-
 function RegisteredInput({inputID = 'name' as keyof Form}: {inputID?: keyof Form}) {
     const {registerInput} = React.useContext(FormContext);
     const inputProps = registerInput(inputID, false, {});
 
     return (
-        <BlurTarget onBlur={inputProps.onBlur}>
-            <PressableWithFeedback
-                testID={`mock-input-${inputID}`}
-                onPress={() => inputProps.onInputChange?.('value', inputID)}
-                accessibilityRole="button"
-                accessibilityLabel={`Change ${inputID}`}
-                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
-            >
-                <Text>{`Change ${inputID}`}</Text>
-            </PressableWithFeedback>
-        </BlurTarget>
+        <PressableWithFeedback
+            testID={`mock-input-${inputID}`}
+            onPress={() => inputProps.onInputChange?.('value', inputID)}
+            accessibilityRole="button"
+            accessibilityLabel={`Change ${inputID}`}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+        >
+            <Text>{`Change ${inputID}`}</Text>
+        </PressableWithFeedback>
     );
+}
+
+type RegisteredBlurInputRef = {
+    blur: () => void;
+};
+
+function RegisteredBlurInput({ref}: {ref: React.Ref<RegisteredBlurInputRef>}) {
+    const {registerInput} = React.useContext(FormContext);
+    const inputBlur = registerInput('name', false, {}).onBlur;
+    React.useImperativeHandle(ref, () => ({
+        blur: () => {
+            if (!inputBlur) {
+                return;
+            }
+            Reflect.apply(inputBlur, undefined, []);
+        },
+    }));
+    return null;
+}
+
+function InputBlurStateObserver() {
+    const {isBlurred} = useInputBlurState();
+    return <Text testID="mock-input-blur-state">{String(isBlurred)}</Text>;
+}
+
+function renderBlurForm() {
+    const inputRef = React.createRef<RegisteredBlurInputRef>();
+    const result = render(
+        <InputBlurContextProvider>
+            <FormProvider
+                formID={FORM_ID}
+                submitButtonText="Submit"
+                onSubmit={jest.fn()}
+            >
+                <RegisteredBlurInput ref={inputRef} />
+            </FormProvider>
+            <InputBlurStateObserver />
+        </InputBlurContextProvider>,
+    );
+    return {...result, blur: () => inputRef.current?.blur()};
 }
 
 describe('FormProvider', () => {
@@ -142,8 +158,7 @@ describe('FormProvider', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockIsSafari.mockReturnValue(false);
-        mockGetActiveInput.mockReturnValue(null);
+        jest.mocked(useIsFocusedRef).mockReturnValue({current: true});
         await act(async () => {
             await Onyx.set(FORM_ID, null);
             await Onyx.set(`${FORM_ID}Draft`, null);
@@ -152,6 +167,7 @@ describe('FormProvider', () => {
     });
 
     afterEach(async () => {
+        jest.restoreAllMocks();
         await act(async () => {
             await Onyx.clear();
         });
@@ -177,76 +193,6 @@ describe('FormProvider', () => {
 
         // Then the wrapper receives the caller's timing choice unchanged
         expect(mockScrollTo).toHaveBeenCalledWith(420, shouldDelayScroll);
-    });
-
-    it('keeps the keyboard height constraint when an input is focused before the delayed Safari blur runs', async () => {
-        // Given Safari delays a field's blur update until transitions finish.
-        mockIsSafari.mockReturnValue(true);
-        render(
-            <FormProvider
-                formID={FORM_ID}
-                submitButtonText="Submit"
-                onSubmit={jest.fn()}
-            >
-                <RegisteredInput />
-            </FormProvider>,
-        );
-        await waitForBatchedUpdatesWithAct();
-        fireEvent(screen.UNSAFE_getByType(BlurTarget), 'blur');
-        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
-
-        // When text entry resumes before the pending callback, its original blur is no longer current.
-        mockGetActiveInput.mockReturnValue({});
-        act(() => mockRunAfterTransitions.mock.calls[0]?.[0].callback());
-
-        // Then the screen must not expand behind the still-open keyboard.
-        expect(mockGetActiveInput).toHaveBeenCalledTimes(1);
-        expect(mockSetIsBlurred).not.toHaveBeenCalled();
-    });
-
-    it('preserves the delayed Safari blur update when no text input remains focused', async () => {
-        // Given a Safari form still needs its existing blur workaround when text entry ends.
-        mockIsSafari.mockReturnValue(true);
-        render(
-            <FormProvider
-                formID={FORM_ID}
-                submitButtonText="Submit"
-                onSubmit={jest.fn()}
-            >
-                <RegisteredInput />
-            </FormProvider>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // When the field blurs and no input takes focus before the transition callback.
-        fireEvent(screen.UNSAFE_getByType(BlurTarget), 'blur');
-        expect(mockSetIsBlurred).not.toHaveBeenCalled();
-        act(() => mockRunAfterTransitions.mock.calls[0]?.[0].callback());
-
-        // Then the existing height-release behavior still runs after the transition.
-        expect(mockSetIsBlurred).toHaveBeenCalledWith(true);
-    });
-
-    it('does not run Safari blur handling on other platforms', async () => {
-        // Given non-Safari browsers and native platforms do not use this workaround.
-        render(
-            <FormProvider
-                formID={FORM_ID}
-                submitButtonText="Submit"
-                onSubmit={jest.fn()}
-            >
-                <RegisteredInput />
-            </FormProvider>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // When an input loses focus on those platforms.
-        fireEvent(screen.UNSAFE_getByType(BlurTarget), 'blur');
-
-        // Then their keyboard handling is untouched.
-        expect(mockRunAfterTransitions).not.toHaveBeenCalled();
-        expect(mockGetActiveInput).not.toHaveBeenCalled();
-        expect(mockSetIsBlurred).not.toHaveBeenCalled();
     });
 
     it('submits once for a valid form and forwards loading state from formState', async () => {
@@ -365,5 +311,94 @@ describe('FormProvider', () => {
             expect(lastCallProps?.serverErrorFields).toEqual(serverErrorFields);
             expect(lastCallProps?.serverErrorMessage).toBe('Latest server error');
         });
+    });
+
+    it('ignores a delayed Safari blur after focus moves to another input', async () => {
+        // Given a focused form whose input blur update is deferred until transitions finish
+        let applyBlur: (() => void | Promise<void>) | undefined;
+        jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
+        jest.spyOn(Visibility, 'isVisible').mockReturnValue(false);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the presence of another focused input matters to this test
+        jest.spyOn(ComposerFocusManager, 'getActiveInput').mockReturnValue({} as ReturnType<typeof ComposerFocusManager.getActiveInput>);
+        jest.spyOn(TransitionTracker, 'runAfterTransitions').mockImplementation(({callback}) => {
+            applyBlur = callback;
+            return {cancel: jest.fn()};
+        });
+        const {blur} = renderBlurForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the old input's delayed callback runs after another input owns focus
+        act(() => {
+            blur();
+            applyBlur?.();
+        });
+
+        // Then the shared blur state remains unchanged so the focused input keeps its keyboard-sized layout
+        expect(screen.getByTestId('mock-input-blur-state')).toHaveTextContent('false');
+    });
+
+    it('ignores a delayed Safari blur after the form screen loses focus', async () => {
+        // Given an active form that schedules its Safari blur update before navigation
+        const isFocusedRef = {current: true};
+        let applyBlur: (() => void | Promise<void>) | undefined;
+        jest.mocked(useIsFocusedRef).mockReturnValue(isFocusedRef);
+        jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
+        jest.spyOn(Visibility, 'isVisible').mockReturnValue(false);
+        jest.spyOn(ComposerFocusManager, 'getActiveInput').mockReturnValue(null);
+        jest.spyOn(TransitionTracker, 'runAfterTransitions').mockImplementation(({callback}) => {
+            applyBlur = callback;
+            return {cancel: jest.fn()};
+        });
+        const {blur} = renderBlurForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // When navigation makes that form inactive before its delayed callback runs
+        act(() => {
+            blur();
+            isFocusedRef.current = false;
+            applyBlur?.();
+        });
+
+        // Then the inactive form cannot alter the shared blur state used by the destination screen
+        expect(screen.getByTestId('mock-input-blur-state')).toHaveTextContent('false');
+    });
+
+    it('applies a delayed Safari blur when the current screen has no focused input', async () => {
+        // Given a focused Safari form with no input taking over focus
+        let applyBlur: (() => void | Promise<void>) | undefined;
+        jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
+        jest.spyOn(Visibility, 'isVisible').mockReturnValue(false);
+        jest.spyOn(ComposerFocusManager, 'getActiveInput').mockReturnValue(null);
+        jest.spyOn(TransitionTracker, 'runAfterTransitions').mockImplementation(({callback}) => {
+            applyBlur = callback;
+            return {cancel: jest.fn()};
+        });
+        const {blur} = renderBlurForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the input genuinely blurs and the delayed callback runs
+        act(() => {
+            blur();
+            applyBlur?.();
+        });
+
+        // Then the original Safari blur behavior is preserved for button and navigation interactions
+        expect(screen.getByTestId('mock-input-blur-state')).toHaveTextContent('true');
+    });
+
+    it('does not schedule shared blur handling outside Safari', async () => {
+        // Given a form running outside Safari
+        jest.spyOn(Browser, 'isSafari').mockReturnValue(false);
+        jest.spyOn(Visibility, 'isVisible').mockReturnValue(false);
+        const runAfterTransitions = jest.spyOn(TransitionTracker, 'runAfterTransitions');
+        const {blur} = renderBlurForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // When an input blurs
+        act(blur);
+
+        // Then the Safari-specific shared state flow remains disabled
+        expect(runAfterTransitions).not.toHaveBeenCalled();
+        expect(screen.getByTestId('mock-input-blur-state')).toHaveTextContent('false');
     });
 });

@@ -540,9 +540,8 @@ function FormProvider({
                         blurTransitionHandle.current?.cancel();
                         blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
                             callback: () => {
-                                // Focus may have moved to another input while waiting. Keep the keyboard-height
-                                // constraint until text entry has actually ended, rather than expanding behind the keyboard.
-                                if (ComposerFocusManager.getActiveInput()) {
+                                // A delayed blur must not change the shared layout after navigation or after focus moves to another input.
+                                if (!isFocusedRef.current || ComposerFocusManager.getActiveInput()) {
                                     return;
                                 }
                                 setIsBlurred(true);
