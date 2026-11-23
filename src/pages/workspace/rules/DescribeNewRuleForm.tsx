@@ -58,8 +58,8 @@ type SeedDraftContext = {
     /** The cards that a new spend rule can cover, or undefined while the card settings load */
     eligibleCardIDs: string[] | undefined;
 
-    /** Whether the expense default conditions behind their beta can be set */
-    canUseMoreConditions: boolean;
+    /** Whether the expense default conditions still behind their beta can be set */
+    canUseBetaConditions: boolean;
 };
 
 /**
@@ -78,7 +78,7 @@ function withoutBetaConditions(values: GeneratedRuleValues): GeneratedRuleValues
 }
 
 /** Seeds the draft of the editor for the generated rule type and opens that editor */
-function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs, canUseMoreConditions}: SeedDraftContext) {
+function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, {policyID, eligibleCardIDs, canUseBetaConditions}: SeedDraftContext) {
     switch (ruleType) {
         case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
             setDraftRequireFieldsRule(getRequireFieldsDraftFromGeneratedValues(values).draft);
@@ -95,7 +95,7 @@ function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRu
         // A category tax default is an expense default that matches on a category, so both open the same editor.
         case CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS:
         case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
-            setDraftMerchantRule(canUseMoreConditions ? values : withoutBetaConditions(values));
+            setDraftMerchantRule(canUseBetaConditions ? values : withoutBetaConditions(values));
             Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
             break;
         default:
@@ -166,7 +166,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             shouldUseScrollView
             submitFlexEnabled
             onRuleGenerated={(values, generatedRuleType) =>
-                seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs, canUseMoreConditions: isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS)})
+                seedDraftAndNavigate(values, generatedRuleType, {policyID, eligibleCardIDs, canUseBetaConditions: isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS)})
             }
             isCategoryEligible={isCategoryEligible}
             onAgentRuleFallback={offerAgentRule}

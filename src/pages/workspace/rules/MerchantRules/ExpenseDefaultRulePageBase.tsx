@@ -305,8 +305,8 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
-    // Tax rate and has are held back until the backend fixes for their deploy blockers deploy.
-    const canUseMoreConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
+    // Tax rate and has stay behind the beta until their backend fixes are live.
+    const canUseBetaConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
@@ -335,7 +335,7 @@ function ExpenseDefaultRulePageBase({
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const submittersToMatch = form?.submittersToMatch ?? [];
-    // A submitter who has left the workspace has no name left to read, so the row names them as hidden rather than showing the stored ID.
+    // An account this user holds no details for, such as one a copied rule names, reads as hidden rather than as the stored ID.
     const submittersToMatchDisplayName =
         submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? translate('common.hidden')).join(', ') : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
@@ -348,7 +348,7 @@ function ExpenseDefaultRulePageBase({
     const amountMatchType = form?.amountMatchType ?? getDefaultMatchType('amountMatchType');
     const getAmountToMatchDisplayName = () => (amountToMatch ? getAmountComparisonText(amountToMatch, amountMatchType, translate, convertToDisplayStringWithoutCurrency) : undefined);
     const cardsToMatch = form?.cardsToMatch ?? [];
-    // A deactivated card is gone from Onyx, so the row names it as deleted rather than showing the stored ID.
+    // A card that has been deactivated or closed drops out of the card lists, so the row names it as deleted once every card has arrived.
     const cardsToMatchDisplayName =
         cardsToMatch.length > 0
             ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', ')
@@ -608,7 +608,7 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.CreditCard,
                       }
                     : undefined,
-                canUseMoreConditions && (hasUsableTaxRates(policy) || taxRatesToMatch.length > 0)
+                canUseBetaConditions && (hasUsableTaxRates(policy) || taxRatesToMatch.length > 0)
                     ? {
                           key: 'taxRatesToMatch',
                           description: translate('workspace.taxes.taxRate'),
@@ -618,7 +618,7 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                canUseMoreConditions
+                canUseBetaConditions
                     ? {
                           key: 'hasToMatch',
                           description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
