@@ -305,7 +305,7 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
-    // The conditions beyond merchant, category and tag are held back while their deploy blockers are open.
+    // Billable, card, tax rate and has are held back while their deploy blockers are open.
     const canUseMoreConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
@@ -512,25 +512,20 @@ function ExpenseDefaultRulePageBase({
         {
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
-                canUseMoreConditions
-                    ? {
-                          key: 'submittersToMatch',
-                          description: translate('common.submitter'),
-                          title: submittersToMatchDisplayName,
-                          onPress: () =>
-                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Paycheck,
-                      }
-                    : undefined,
-                canUseMoreConditions
-                    ? {
-                          key: 'amountToMatch',
-                          description: translate('iou.amount'),
-                          title: getAmountToMatchDisplayName(),
-                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Cash,
-                      }
-                    : undefined,
+                {
+                    key: 'submittersToMatch',
+                    description: translate('common.submitter'),
+                    title: submittersToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
+                {
+                    key: 'amountToMatch',
+                    description: translate('iou.amount'),
+                    title: getAmountToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
                 {
                     key: 'merchantToMatch',
                     description: translate('common.merchant'),
@@ -541,18 +536,14 @@ function ExpenseDefaultRulePageBase({
                         ),
                     icon: icons.Basket,
                 },
-                canUseMoreConditions
-                    ? {
-                          key: 'merchantTypesToMatch',
-                          description: translate('workspace.rules.merchantTypeRule.merchantType'),
-                          title: merchantTypesToMatchDisplayName,
-                          onPress: () =>
-                              Navigation.navigate(
-                                  getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID)),
-                              ),
-                          icon: icons.Basket,
-                      }
-                    : undefined,
+                {
+                    key: 'merchantTypesToMatch',
+                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
+                    title: merchantTypesToMatchDisplayName,
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Basket,
+                },
                 hasCategoriesToMatch()
                     ? {
                           key: 'categoriesToMatch',
@@ -573,16 +564,14 @@ function ExpenseDefaultRulePageBase({
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Tag,
                       },
-                canUseMoreConditions
-                    ? {
-                          key: 'reimbursableToMatch',
-                          description: translate('common.reimbursable'),
-                          title: getBooleanTitle(form?.reimbursableToMatch, translate),
-                          onPress: () =>
-                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Paycheck,
-                      }
-                    : undefined,
+                {
+                    key: 'reimbursableToMatch',
+                    description: translate('common.reimbursable'),
+                    title: getBooleanTitle(form?.reimbursableToMatch, translate),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
                 canUseMoreConditions && (isBillableEnabled || form?.billableToMatch !== undefined)
                     ? {
                           key: 'billableToMatch',
@@ -593,25 +582,20 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.Paycheck,
                       }
                     : undefined,
-                canUseMoreConditions
-                    ? {
-                          key: 'dateToMatch',
-                          description: translate('common.date'),
-                          title: getDateToMatchDisplayName(),
-                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Calendar,
-                      }
-                    : undefined,
-                canUseMoreConditions
-                    ? {
-                          key: 'currenciesToMatch',
-                          description: translate('common.currency'),
-                          title: currenciesToMatchDisplayName,
-                          onPress: () =>
-                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Cash,
-                      }
-                    : undefined,
+                {
+                    key: 'dateToMatch',
+                    description: translate('common.date'),
+                    title: getDateToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Calendar,
+                },
+                {
+                    key: 'currenciesToMatch',
+                    description: translate('common.currency'),
+                    title: currenciesToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
                 canUseMoreConditions && (areCardsEnabled || cardsToMatch.length > 0)
                     ? {
                           key: 'cardsToMatch',
