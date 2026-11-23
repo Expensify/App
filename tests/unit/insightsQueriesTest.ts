@@ -74,7 +74,7 @@ describe('insightsQueries', () => {
             // When its request is built
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
 
-            // Then it is addressed to the spend dashboard and names the snapshot each chart's data belongs in
+            // Then it requests the headline summary and names the snapshot each chart's data belongs in
             const payload = parsePayload(request);
             const queryJSON = payload?.inputQuery ? buildSearchQueryJSON(payload.inputQuery) : undefined;
             expect(payload).toEqual({
@@ -87,6 +87,7 @@ describe('insightsQueries', () => {
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
                 numberOfPeriods: 1,
+                includeHeadlineSummary: true,
             });
         });
 

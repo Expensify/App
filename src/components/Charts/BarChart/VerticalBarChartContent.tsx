@@ -234,7 +234,12 @@ function VerticalBarChartCanvas({
                 color={color}
                 barWidth={groupedBarWidth}
                 barCount={data.length}
-                roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
+                roundedCorners={{
+                    topLeft: BAR_CORNER_RADIUS,
+                    topRight: BAR_CORNER_RADIUS,
+                    bottomLeft: BAR_CORNER_RADIUS,
+                    bottomRight: BAR_CORNER_RADIUS,
+                }}
             />
         );
     };
@@ -338,7 +343,11 @@ function VerticalBarChartCanvas({
 
     const labelSpace = shouldShowLabels ? getXAxisLabelSpace(resolvedLabelHeight) : 0;
     const chartHeight = getBarChartHeight(shouldShowLabels, resolvedLabelHeight);
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
+    const chartPadding = {
+        ...VictoryTheme.axis.padding,
+        bottom: labelSpace + VictoryTheme.axis.padding.bottom,
+        right: chartPaddingRight,
+    };
 
     const chart = (
         <GestureDetector
@@ -366,7 +375,14 @@ function VerticalBarChartCanvas({
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, tickValues: yAxisTicks, domain: yAxisTickDomain}]}
+                    yAxis={[
+                        {
+                            ...CARTESIAN_Y_AXIS,
+                            tickCount: yAxisTickCount,
+                            tickValues: yAxisTicks,
+                            domain: yAxisTickDomain,
+                        },
+                    ]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
@@ -410,8 +426,7 @@ function VerticalBarChartCanvas({
     // Stacked segments share their bar, so the legend is what names them. Each stage is listed once per period, the period named only when there are several.
     return (
         <>
-            {chart}
-            <View style={styles.pieChartLegendContainer}>
+            <View style={[styles.pieChartLegendContainer, styles.justifyContentStart, styles.mh0, styles.mt0, styles.mb3]}>
                 {stacks.flat().map((seriesItem) => (
                     <View
                         key={`legend-${seriesItem.key}`}
@@ -429,6 +444,7 @@ function VerticalBarChartCanvas({
                     </View>
                 ))}
             </View>
+            {chart}
         </>
     );
 }

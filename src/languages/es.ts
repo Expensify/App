@@ -1243,6 +1243,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `${amount} de media por gasto`,
+            flaggedExpenses: ({formattedCount}) => ({one: `En ${formattedCount} gasto`, other: `En ${formattedCount} gastos`}),
+            shareOfExpenses: (percentage) => `${percentage} de todos los gastos`,
+            timeToSubmit: (time) => `${time} para enviar`,
+            timeToApprove: (time) => `${time} para aprobar`,
+            timeToPay: (time) => `${time} para pagar`,
+            vsPreviousPeriod: (change) => `${change} respecto al periodo anterior`,
+        },
         tagLevel: (level: string) => `Nivel de etiqueta ${level}`,
         tagLevelLabel: 'Nivel de etiqueta',
         parent: 'Principal',

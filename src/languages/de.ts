@@ -1249,6 +1249,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `Ø ${amount} pro Ausgabe`,
+            flaggedExpenses: ({formattedCount}) => ({one: `Bei ${formattedCount} Ausgabe`, other: `Bei ${formattedCount} Ausgaben`}),
+            shareOfExpenses: (percentage) => `${percentage} aller Ausgaben`,
+            timeToSubmit: (time) => `${time} bis zur Einreichung`,
+            timeToApprove: (time) => `${time} bis zur Genehmigung`,
+            timeToPay: (time) => `${time} bis zur Zahlung`,
+            vsPreviousPeriod: (change) => `${change} gegenüber dem vorherigen Zeitraum`,
+        },
         tagLevel: (level: string) => `Tag-Stufe ${level}`,
         tagLevelLabel: 'Tag-Ebene',
         parent: 'Übergeordnet',

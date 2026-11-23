@@ -7,6 +7,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import StringUtils from '@libs/StringUtils';
 
+import CONST from '@src/CONST';
+
 import type {NonEmptyTuple} from 'type-fest';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
@@ -106,7 +108,7 @@ function buildStackedSeries({
     dateFnsLocale,
 }: BuildStackedSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const averageValue = isChartAverage(comparison) ? getStackedAverage(data, stages) : undefined;
+    const averageValue = isChartAverage(comparison) ? (comparison[CONST.SEARCH.CHART_METRIC.DURATION] ?? getStackedAverage(data, stages)) : undefined;
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;
     // Time buckets of another period cover other dates, so they are keyed by start date

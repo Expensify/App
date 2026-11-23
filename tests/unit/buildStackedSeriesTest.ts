@@ -258,6 +258,17 @@ describe('buildStackedSeries', () => {
         expect(getStackedAverage(data, ALL_STAGES)).toBeUndefined();
     });
 
+    it('uses the range-wide duration when the dashboard supplies it', () => {
+        // Given chart buckets that would average to five days if they were weighted equally
+        const data = [monthGroup(2026, 1, [2, null, null]), monthGroup(2026, 2, [8, null, null])];
+
+        // When the report-weighted average is three days
+        const {rows} = build(data, CONST.SEARCH.GROUP_BY.MONTH, {comparison: {[CONST.SEARCH.CHART_METRIC.DURATION]: 3 * DAY}});
+
+        // Then the average line uses the same value as the headline summary
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([3 * DAY, 3 * DAY]);
+    });
+
     it('stands each bucket beside its previous-period counterpart in a second stack of its own', () => {
         // Given two months of this year and the same months of last year
         const current = [monthGroup(2026, 1, [1, 2, 3]), monthGroup(2026, 2, [2, null, 1])];

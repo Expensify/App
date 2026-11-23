@@ -1201,6 +1201,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `每笔费用平均 ${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `涉及 ${formattedCount} 笔费用`, other: `涉及 ${formattedCount} 笔费用`}),
+            shareOfExpenses: (percentage) => `占所有费用的 ${percentage}`,
+            timeToSubmit: (time) => `提交用时 ${time}`,
+            timeToApprove: (time) => `审批用时 ${time}`,
+            timeToPay: (time) => `付款用时 ${time}`,
+            vsPreviousPeriod: (change) => `较上一周期 ${change}`,
+        },
         tagLevel: (level: string) => `标签级别 ${level}`,
         tagLevelLabel: '标签级别',
         parent: '父级',

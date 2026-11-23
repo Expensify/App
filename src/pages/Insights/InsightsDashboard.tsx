@@ -270,7 +270,20 @@ function InsightsDashboardContent({
     }
 
     const renderChart = (
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
+        {
+            chart,
+            queryJSON,
+            snapshot,
+            previousPeriodQueryJSON,
+            previousPeriodSnapshot,
+            averageQueryJSON,
+            averageSnapshot,
+            average,
+            isDashboardLoaded,
+            stages,
+            headlineSummary,
+            shouldWaitForSummary,
+        }: InsightsDashboardChart,
         isHeadline = false,
     ) => (
         <InsightsChartWidget
@@ -284,6 +297,9 @@ function InsightsDashboardContent({
             averageQueryJSON={averageQueryJSON}
             averageSnapshot={averageSnapshot}
             average={average}
+            headlineSummary={headlineSummary}
+            isHeadline={isHeadline}
+            shouldWaitForSummary={shouldWaitForSummary}
             isDashboardLoaded={isDashboardLoaded}
             stages={stages}
             filters={filters}
@@ -414,7 +430,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (isExporting) {
             return;
         }
-        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+        setViolationStages((currentStages) => ({
+            ...currentStages,
+            [graphKey]: stage,
+        }));
     };
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -448,7 +467,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
-        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart: applyViolationStage(chart, violationStages[chart.graphKey]), queryJSON: undefined}));
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({
+              chart: applyViolationStage(chart, violationStages[chart.graphKey]),
+              queryJSON: undefined,
+          }));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
@@ -467,6 +489,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
             isDashboardLoaded: hasDashboardResponse(dashboard),
+            headlineSummary: graph?.headlineSummary,
+            shouldWaitForSummary: !isOffline && !hasDashboardResponse(dashboard) && !dashboard?.responseJsonCode && !dashboard?.errors,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
@@ -559,7 +583,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 policyIDs: filters.policyIDs,
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
-                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
+                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {
+                                    tagLevel: filters.tagLevel,
+                                }),
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}

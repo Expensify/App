@@ -3,6 +3,7 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
+import type {SearchWorkflowStageDurations} from './SearchResults';
 
 /** Identifies a dashboard, paired with the query hash in the key an entry is stored under */
 type InsightsDashboardID = ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
@@ -13,8 +14,29 @@ type InsightsSearchKey = ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
 /** Key identifying a graph within a dashboard response */
 type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
 
+/** Spend in the selected group currency, and the number of expenses behind it. */
+type SpendHeadlineTotals = {
+    /** Backend cents, including for zero-decimal currencies. */
+    total: number;
+    expenseCount: number;
+};
+
+/** Individual violations, distinct expenses they affect, and all expenses eligible for the stage. */
+type ComplianceHeadlineTotals = {violations: number; flaggedExpenses: number; eligibleExpenses: number};
+
+/** Whole-range values for one of the three headline charts. */
+type InsightsHeadlineTotals = SpendHeadlineTotals | ComplianceHeadlineTotals | SearchWorkflowStageDurations;
+
+/** Totals for the selected range and, if available, the previous range trimmed to the same number of days. */
+type InsightsHeadlineSummary = {
+    current: InsightsHeadlineTotals;
+    previous?: SpendHeadlineTotals | Pick<ComplianceHeadlineTotals, 'violations'> | SearchWorkflowStageDurations;
+};
+
 /** Reference to graph data stored in a search snapshot */
 type InsightsGraph = {
+    headlineSummary?: InsightsHeadlineSummary;
+
     /** Hash of the graph's search snapshot */
     snapshotHash?: number;
 
@@ -133,5 +155,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsHeadlineSummary, InsightsHeadlineTotals, InsightsSearchKey};
 export default InsightsDashboard;

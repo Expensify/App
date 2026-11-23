@@ -1237,6 +1237,15 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        headline: {
+            averageExpense: (amount) => `経費1件あたり平均${amount}`,
+            flaggedExpenses: ({formattedCount}) => ({one: `${formattedCount}件の経費`, other: `${formattedCount}件の経費`}),
+            shareOfExpenses: (percentage) => `全経費の${percentage}`,
+            timeToSubmit: (time) => `提出まで${time}`,
+            timeToApprove: (time) => `承認まで${time}`,
+            timeToPay: (time) => `支払いまで${time}`,
+            vsPreviousPeriod: (change) => `前期間比 ${change}`,
+        },
         tagLevel: (level: string) => `タグレベル ${level}`,
         tagLevelLabel: 'タグレベル',
         parent: '親',
