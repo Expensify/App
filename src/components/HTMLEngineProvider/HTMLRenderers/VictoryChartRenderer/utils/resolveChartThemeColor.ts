@@ -1,8 +1,8 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 
-import type {Color} from '@shopify/react-native-skia';
 import type {ColorValue} from 'react-native';
+import type {Color} from 'react-native-skia';
 
 /**
  * Only the chart background colors are remapped. Data-visualization colors (series /

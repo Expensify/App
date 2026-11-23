@@ -2,6 +2,10 @@ import {READ_COMMANDS} from '@libs/API/types';
 import isStartupNetworkRequest from '@libs/AppStartupNetworkRequest';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import OnyxCache from 'react-native-onyx/dist/OnyxCache';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 
 /**
  * Separate names per command so a new one doesn't dilute an existing metric's history in Sentry.
@@ -17,6 +21,20 @@ function getRequestPhaseSpanNames(command?: string) {
     return undefined;
 }
 
+function getRequestPhaseApplyAttributes(command: string, requestData: Record<string, unknown> | undefined) {
+    if (command !== READ_COMMANDS.SEARCH) {
+        return {};
+    }
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${String(requestData?.hash)}` as const;
+    // We read the snapshot from the cache, not the response, because a response only carries the page it loaded, while the stored snapshot has every page loaded so far.
+    const snapshot = OnyxCache.get(snapshotKey);
+    const snapshotData = snapshot && typeof snapshot === 'object' && 'data' in snapshot ? snapshot.data : undefined;
+    return {
+        [CONST.TELEMETRY.ATTRIBUTE_SEARCH_SNAPSHOT_COUNT]: OnyxKeys.getMembersOfCollection(ONYXKEYS.COLLECTION.SNAPSHOT)?.size ?? 0,
+        [CONST.TELEMETRY.ATTRIBUTE_SEARCH_SNAPSHOT_ENTRIES]: snapshotData && typeof snapshotData === 'object' ? Object.keys(snapshotData).length : undefined,
+    };
+}
+
 const attemptsBySpanName = new Map<string, number>();
 
 /** Counted per span name rather than globally, so a concurrent Search never shifts the attempt numbers a startup span reports. */
@@ -27,4 +45,4 @@ function getNextRequestPhaseAttempt(spanName: string) {
 }
 
 export default getRequestPhaseSpanNames;
-export {getNextRequestPhaseAttempt};
+export {getNextRequestPhaseAttempt, getRequestPhaseApplyAttributes};
