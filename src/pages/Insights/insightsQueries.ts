@@ -257,7 +257,6 @@ function buildInsightsJsonQuery(
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
-            includeHeadlineSummary: true,
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
         hash,
