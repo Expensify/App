@@ -1,7 +1,6 @@
 /**
- * Typed access to the methods that `__mocks__/react-native.ts` adds to `Linking` and `AppState` for tests.
- * The methods are asserted here instead of being declared in a module augmentation, because under the React Native
- * Strict TypeScript API both objects are instances of classes that `react-native` doesn't export, so nothing can augment them.
+ * Typed access to the methods that `__mocks__/react-native.ts` adds to `Linking` and `AppState`.
+ * A module augmentation can't declare them under the React Native Strict TypeScript API, where both objects are instances of classes that are not exported.
  */
 import type {AppStateStatus} from 'react-native';
 

@@ -390,11 +390,11 @@ function ValidateCodeInput({
 
     /**
      * Handles logic related to certain key presses.
+     * The digit pad calls it with only a key, so the event is typed by the fields it reads.
      *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    // Typed by the fields it reads, because the digit pad calls it with only a key, not a whole native key press event
     const onKeyPress = (event: {nativeEvent?: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'>; preventDefault?: () => void; shiftKey?: boolean}) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {

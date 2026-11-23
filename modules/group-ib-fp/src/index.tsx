@@ -222,8 +222,7 @@ export class FP {
     if (!this.emitter) return () => {};
     const subscription = this.emitter.addListener(
       EVENT_SESSION_OPENED,
-      // The native module sends the cfids string, but `NativeEventEmitter` takes no event map on React Native 0.86 and types
-      // every listener argument as `Object` under the Strict TypeScript API, so the payload type is asserted.
+      // `NativeEventEmitter` can't type the payload on both React Native 0.86 and the Strict TypeScript API
       (cfids: unknown) => callback(cfids as string),
     );
     this.activeSubs.add(subscription);
@@ -234,7 +233,6 @@ export class FP {
     if (!this.emitter) return () => {};
     const subscription = this.emitter.addListener(
       EVENT_RECEIVE_SESSION,
-      // Same as in sessionDidOpen: the payload type can't be declared on NativeEventEmitter on both React Native versions.
       (cfids: unknown) => callback(cfids as string),
     );
     this.activeSubs.add(subscription);
