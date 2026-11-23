@@ -74,6 +74,7 @@ function useInvoiceSubmission({
             getCurrencyDecimals,
             writeBarrier,
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails,
             transaction,
             policyRecentlyUsedCurrencies,
             invoiceChatReport,

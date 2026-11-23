@@ -207,6 +207,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -235,6 +236,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR},
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -289,6 +291,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -338,6 +341,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -379,6 +383,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
@@ -417,6 +422,7 @@ describe('actions/SendInvoice', () => {
                 const result = getSendInvoiceInformation({
                     transaction: baseTransaction,
                     currentUserAccountID: 123,
+                    currentUserPersonalDetails: {accountID: 123},
                     policyRecentlyUsedCurrencies: [],
                     invoiceChatReport: undefined,
                     receiptFile: undefined,
@@ -460,6 +466,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
@@ -499,6 +506,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: mockReceipt,
@@ -551,6 +559,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 receiptFile: undefined,
@@ -583,6 +592,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
                 invoiceChatReportID: preGeneratedReportID,
@@ -636,6 +646,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport,
                 invoiceChatReportID: preGeneratedReportID,
@@ -700,6 +711,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
                 currentUserAccountID: 123,
+                currentUserPersonalDetails: {accountID: 123},
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
@@ -751,6 +763,7 @@ describe('actions/SendInvoice', () => {
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
                 currentUserAccountID: 123,
+                currentUserPersonalDetails: {accountID: 123},
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
                 formatPhoneNumber,
@@ -782,6 +795,7 @@ describe('actions/SendInvoice', () => {
             // When the user sends a new invoice to an individual
             sendInvoice({
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policy,
@@ -829,6 +843,7 @@ describe('actions/SendInvoice', () => {
 
             sendInvoice({
                 currentUserAccountID: 123,
+                currentUserPersonalDetails: {accountID: 123},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: undefined,
@@ -869,6 +884,7 @@ describe('actions/SendInvoice', () => {
             mockFetch.pause();
             sendInvoice({
                 currentUserAccountID: 1,
+                currentUserPersonalDetails: {accountID: 1},
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
@@ -910,6 +926,7 @@ describe('actions/SendInvoice', () => {
             // When sending an invoice
             sendInvoice({
                 currentUserAccountID,
+                currentUserPersonalDetails: {accountID: currentUserAccountID},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
@@ -949,6 +966,7 @@ describe('actions/SendInvoice', () => {
             // When sending an invoice
             sendInvoice({
                 currentUserAccountID: 1,
+                currentUserPersonalDetails: {accountID: 1},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
@@ -994,6 +1012,7 @@ describe('actions/SendInvoice', () => {
 
             sendInvoice({
                 currentUserAccountID: 123,
+                currentUserPersonalDetails: {accountID: 123},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,

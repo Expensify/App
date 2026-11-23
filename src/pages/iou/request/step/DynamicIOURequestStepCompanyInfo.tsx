@@ -110,6 +110,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         sendInvoice({
             getCurrencyDecimals,
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             invoiceChatReport: report,

@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -80,6 +81,7 @@ type SendInvoiceInformation = {
 type SendInvoiceOptions = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     currentUserAccountID: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     policyRecentlyUsedCurrencies: string[];
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
     invoiceChatReportID?: string;
@@ -127,6 +129,7 @@ type BuildOnyxDataForInvoiceParams = {
     companyName?: string;
     companyWebsite?: string;
     participant?: Participant;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for an invoice */
@@ -146,7 +149,7 @@ function buildOnyxDataForInvoice(
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
     | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
 > {
-    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
+    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant, currentUserPersonalDetails} = invoiceParams;
     const transaction = transactionParams.transaction;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -580,6 +583,7 @@ function buildOnyxDataForInvoice(
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        currentUserPersonalDetails,
         iouReport: iou.report,
         iouAction: iou.action,
         policy: policyParams.policy,
@@ -622,6 +626,7 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 function getSendInvoiceInformation({
     transaction,
     currentUserAccountID,
+    currentUserPersonalDetails,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
     invoiceChatReportID,
@@ -767,6 +772,7 @@ function getSendInvoiceInformation({
             policyRecentlyUsedTags: optimisticPolicyRecentlyUsedTags,
         },
         participant: receiver,
+        currentUserPersonalDetails,
         companyName,
         companyWebsite,
     });
@@ -789,6 +795,7 @@ function getSendInvoiceInformation({
 
 function sendInvoice({
     currentUserAccountID,
+    currentUserPersonalDetails,
     transaction,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
@@ -829,6 +836,7 @@ function sendInvoice({
     } = getSendInvoiceInformation({
         transaction,
         currentUserAccountID,
+        currentUserPersonalDetails,
         policyRecentlyUsedCurrencies,
         invoiceChatReportID,
         invoiceChatReport,
