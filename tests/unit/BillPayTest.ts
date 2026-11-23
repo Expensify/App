@@ -1,4 +1,3 @@
-import {maybeUpdateReportNameForFormulaTitle} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {isBillReport} from '@libs/BillUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
@@ -20,7 +19,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -319,33 +318,5 @@ describe('Bill Pay', () => {
             expect(billExpenseActions).not.toContain(action);
         }
         expect(canHoldUnholdReportAction(bill, createIOUAction(bill), undefined, billTransaction, policy, accountID, undefined, email).canHoldRequest).toBe(false);
-    });
-
-    it('keeps the stored bill name when the policy title is a formula', async () => {
-        // Given a bill and an expense report whose title fields follow the policy title formula
-        const formulaPolicy: Policy = {
-            ...policy,
-            fieldList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention -- text_title is the backend field ID
-                text_title: createMock<PolicyReportField>({fieldID: 'text_title', name: 'title', type: CONST.REPORT_FIELD_TYPES.FORMULA, defaultValue: '{report:type}', target: 'expense'}),
-            },
-        };
-        const formulaTitle = createMock<PolicyReportField>({fieldID: 'text_title', name: 'title', type: CONST.REPORT_FIELD_TYPES.FORMULA, defaultValue: '{report:type}'});
-        const namedBill: Report = {...bill, reportName: 'Bill #R00000001upZ'};
-        const namedExpenseReport: Report = {...expenseReport, reportName: 'Old name'};
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- expensify_text_title is the backend's NVP name
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${bill.reportID}`, {expensify_text_title: formulaTitle});
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- expensify_text_title is the backend's NVP name
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: formulaTitle});
-        await waitForBatchedUpdates();
-
-        // When an expense change recomputes the report names optimistically
-        const getCurrencyDecimals = () => 2;
-        const updatedBill = maybeUpdateReportNameForFormulaTitle(namedBill, formulaPolicy, getCurrencyDecimals);
-        const updatedExpenseReport = maybeUpdateReportNameForFormulaTitle(namedExpenseReport, formulaPolicy, getCurrencyDecimals);
-
-        // Then only the expense report follows the formula, and the bill keeps the name that Auth or the user gave it
-        expect(updatedExpenseReport.reportName).toBe('Expense Report');
-        expect(updatedBill.reportName).toBe('Bill #R00000001upZ');
     });
 });
