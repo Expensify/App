@@ -126,6 +126,11 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /**
+         * Violation messages sorted alphabetically for the Violations column.
+         */
+        formattedViolations?: string;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -516,6 +521,9 @@ type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {grou
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
+
+        /** Selected-level display name without dependent parents; absent on legacy full-tag rows. */
+        formattedTagName?: string;
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
