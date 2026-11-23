@@ -277,9 +277,9 @@ describe('Insights chart view and press', () => {
     });
 
     it('keeps the default press on dashboards without a Details panel', async () => {
-        // Given a chart on the Compliance dashboard, which has no Details panel
+        // Given a chart on the Efficiency dashboard, which has no Details panel
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
-        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.COMPLIANCE});
+        renderWidget({dashboardID: CONST.INSIGHTS.DASHBOARD.EFFICIENCY});
         await waitForBatchedUpdatesWithAct();
 
         // Then the chart gets no press override, so a press still opens Search filtered to the point
