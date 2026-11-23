@@ -195,6 +195,8 @@ describe('useAncestors', () => {
         });
         const {result} = renderHook(() => useAncestors(childReport));
         await waitForBatchedUpdates();
+
+        // Then the parent starts without the marker, because the unread action before it holds it
         expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
 
         // When the previous action is removed, so the parent becomes the first unread action
@@ -231,6 +233,36 @@ describe('useAncestors', () => {
 
         // Then the caller does not re-render, and the read parent still shows no new marker
         expect(renderCount).toBe(renderCountBefore);
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
+    });
+
+    test('shows the new marker when a read ancestor is marked unread', async () => {
+        // Given a read parent action with a read action before it
+        const parentReport: Report = {reportID: 'unreadParent', lastReadTime: '2026-01-01 00:00:05.000'};
+        const childReport: Report = {reportID: 'unreadChild', parentReportID: 'unreadParent', parentReportActionID: 'parentAction'};
+        const previousAction: ReportAction = {reportActionID: 'previousAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:01.000'};
+        const parentAction: ReportAction = {reportActionID: 'parentAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-01-01 00:00:02.000'};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}unreadParent`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}unreadParent`, {previousAction, parentAction});
+        });
+        const {result} = renderHook(() => useAncestors(childReport));
+        await waitForBatchedUpdates();
+
+        // When the parent is marked unread, which moves the read time just before it
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}unreadParent`, {lastReadTime: '2026-01-01 00:00:01.500'});
+        });
+
+        // Then the parent is the first unread action and shows the marker
+        expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(true);
+
+        // When the action before it becomes unread too, by moving after the read time
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}unreadParent`, {previousAction: {created: '2026-01-01 00:00:01.700'}});
+        });
+
+        // Then the marker moves off the parent, so the action before it is tracked again once the parent is unread
         expect(result.current.at(0)?.shouldDisplayNewMarker).toBe(false);
     });
 

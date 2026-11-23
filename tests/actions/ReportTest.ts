@@ -6,7 +6,9 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import type {SearchQueryJSON} from '@components/Search/types';
 import type handleWalletStatementNavigationDefault from '@components/WalletStatementModal/walletNavigationUtils';
 
+import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
@@ -3479,7 +3481,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        // Set up personal details with private domain users
+        // Given stored personal details for a teammate on the same private domain
         await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [MENTIONED_USER_ACCOUNT_ID]: {
@@ -3511,12 +3513,12 @@ describe('actions/Report', () => {
             reportID: REPORT_ID,
         };
 
-        // Edit the comment to add a short mention
+        // When the comment is edited to add a short mention, with no personal details passed in
         Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
-        // Verify the mention was converted in the edited comment
+        // Then the short mention is completed from the stored personal details
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -3535,6 +3537,31 @@ describe('actions/Report', () => {
         });
         setHasRadio(true);
         await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+    });
+
+    it('does not send an unchanged edit of a comment that mentions a user and a room by ID', async () => {
+        // Given a comment that mentions Bob and a room by ID, and the names the composer maps for exactly those mentions
+        global.fetch = TestHelper.createGlobalFetchMock();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+        const roomReportID = '2';
+        const bobAccountID = 2;
+        const html = `hello <mention-user accountID="${bobAccountID}"/> in <mention-report reportID="${roomReportID}"/>`;
+        const reportAction = {
+            ...TestHelper.buildTestReportComment('2026-01-01 00:00:00.000', 1, 'mentionAction'),
+            message: [{type: 'COMMENT', html, text: 'hello @bob@expensify.com in #room'}],
+        };
+        const reportIDToName = buildReportIDToNameMap({[`${ONYXKEYS.COLLECTION.REPORT}${roomReportID}`]: {reportID: roomReportID, reportName: '#room'}}, getMentionedReportIDs(html));
+        const accountIDToName = buildAccountIDToNameMap({[bobAccountID]: {accountID: bobAccountID, login: 'bob@expensify.com'}}, getMentionedAccountIDs(html));
+
+        // When the edit is saved with the text the editor showed, unchanged
+        Report.editReportComment({reportID: '1'}, reportAction, 'hello @bob@expensify.com in #room', undefined, '', 1, undefined, reportIDToName, accountIDToName);
+        await waitForBatchedUpdates();
+
+        // Then the scoped maps turn the mentions back into the same markdown, so no edit is sent
+        expect(PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.UPDATE_COMMENT)).toHaveLength(0);
+        setHasRadio(true);
         await waitForBatchedUpdates();
     });
 

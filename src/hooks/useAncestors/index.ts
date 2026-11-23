@@ -34,8 +34,10 @@ function selectAncestorReportActions(
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
         const parentReportActions = reportActions?.[reportActionsKey];
         const ancestorReportAction = parentReportActions?.[reportActionID];
+
+        // getAncestors stops at the first missing action, so nothing above it is shown and none of it needs to re-render the caller.
         if (!ancestorReportAction) {
-            continue;
+            break;
         }
 
         // A read ancestor never shows the new marker, so the action before it can't change anything and isn't worth sorting for.
