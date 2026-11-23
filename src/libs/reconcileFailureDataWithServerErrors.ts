@@ -38,12 +38,13 @@ function extractServerErrors<TKey extends OnyxKey>(onyxData: Array<OnyxUpdate<TK
     }
 
     for (const update of onyxData) {
-        if (!isRecord(update.value)) {
+        const value: unknown = update.value;
+        if (!isRecord(value)) {
             continue;
         }
 
         if (update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            const serverError = getLatestStringError(update.value.errors);
+            const serverError = getLatestStringError(value.errors);
             if (serverError) {
                 transactionErrors.set(update.key, serverError);
             }
@@ -51,7 +52,7 @@ function extractServerErrors<TKey extends OnyxKey>(onyxData: Array<OnyxUpdate<TK
         }
 
         if (update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-            for (const [actionID, actionValue] of Object.entries(update.value)) {
+            for (const [actionID, actionValue] of Object.entries(value)) {
                 if (!isRecord(actionValue)) {
                     continue;
                 }
@@ -104,14 +105,15 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(failureData:
     const reconciledUpdates: Array<OnyxUpdate<TKey>> = [];
 
     for (const update of failureData) {
-        if (!isRecord(update.value)) {
+        const value: unknown = update.value;
+        if (!isRecord(value)) {
             reconciledUpdates.push(update);
             continue;
         }
 
         const transactionServerError = transactionErrors.get(update.key);
         if (transactionServerError) {
-            const nextValue = reconcileErrorsField(update.value, transactionServerError);
+            const nextValue = reconcileErrorsField(value, transactionServerError);
             if (Object.keys(nextValue).length > 0) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Reconciling only updates or removes the errors field while keeping the update key and value shape intact.
                 reconciledUpdates.push({...update, value: nextValue} as OnyxUpdate<TKey>);
@@ -122,7 +124,7 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(failureData:
         const actionServerErrors = reportActionErrors.get(update.key);
         if (actionServerErrors) {
             const nextActions: Record<string, unknown> = {};
-            for (const [actionID, actionValue] of Object.entries(update.value)) {
+            for (const [actionID, actionValue] of Object.entries(value)) {
                 const actionServerError = actionServerErrors.get(actionID);
                 if (!actionServerError || !isRecord(actionValue)) {
                     nextActions[actionID] = actionValue;

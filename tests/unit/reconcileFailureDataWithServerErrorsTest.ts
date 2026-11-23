@@ -8,8 +8,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 describe('reconcileFailureDataWithServerErrors', () => {
-    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}101`;
-    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}202`;
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}101` as const;
+    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}202` as const;
     const actionID = '303';
     const clientErrorKey = '1';
     const serverErrorKey = '2';
