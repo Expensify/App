@@ -3,12 +3,12 @@ import redirectToSignIn from '@libs/actions/SignInRedirect';
 import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
-import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
+import {getAuthToken, getAuthTokenType, isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
 import reauthenticateLibs from '@libs/Reauthentication';
 import type {ReauthenticationResult} from '@libs/Reauthentication';
-import {processWithMiddleware} from '@libs/Request';
+import {getSentAuthState, processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import trackAuthenticationError from '@libs/telemetry/trackAuthenticationError';
 
@@ -20,6 +20,7 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './types';
+import type {SessionChange} from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<ReauthenticationResult> | null = null;
@@ -31,7 +32,9 @@ function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
         return isAuthenticating;
     }
 
-    isAuthenticating = retryReauthenticate(commandName).finally(() => {
+    // Every retry compares against the token this flow started with, so a session switch during a retry's backoff is not taken as the new baseline.
+    const authTokenAtFlowStart = getAuthToken() ?? null;
+    isAuthenticating = retryReauthenticate(authTokenAtFlowStart, commandName).finally(() => {
         // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
         isAuthenticating = null;
         reauthThrottle.clear();
@@ -40,12 +43,20 @@ function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     return isAuthenticating;
 }
 
-function retryReauthenticate(commandName?: string): Promise<ReauthenticationResult> {
-    return reauthenticateLibs(commandName).catch((error: RequestError) => {
+function retryReauthenticate(authTokenAtFlowStart: string | null, commandName?: string): Promise<ReauthenticationResult> {
+    return reauthenticateLibs(commandName, authTokenAtFlowStart).catch((error: RequestError) => {
         return reauthThrottle
             .sleep(error, 'Authenticate')
-            .then(() => retryReauthenticate(commandName))
+            .then(() => retryReauthenticate(authTokenAtFlowStart, commandName))
             .catch(() => {
+                // The session switched to another token while this flow was retrying, so its failure does not apply to the current session.
+                const currentAuthToken = getAuthToken();
+                if (currentAuthToken !== authTokenAtFlowStart) {
+                    setIsAuthenticating(false);
+                    Log.hmmm('[Reauthenticate] Session changed while retrying re-authentication. Keeping the current session.', {command: commandName});
+                    return {wasSuccessful: !!currentAuthToken};
+                }
+
                 trackAuthenticationError(error, {
                     errorType: 'retries_exhausted',
                     functionName: 'reauthenticate',
@@ -85,6 +96,70 @@ function shouldResolveAuthenticateHTTPError(error: unknown, request: {command: s
     );
 }
 
+/**
+ * Compares the session a request was sent with to the current session. A 407 for a token that has since been
+ * replaced does not mean the current session expired, and a request sent for another account (for example before
+ * connecting as a copilot) must not run under the current account's token.
+ */
+function getSessionChangeSinceSent<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>): SessionChange {
+    const sentAuthState = getSentAuthState(request);
+
+    // A request that carries its own authToken is always sent with it, and one sent without a token is waiting for a session.
+    if (!sentAuthState?.authToken || request.data?.authToken) {
+        return 'unchanged';
+    }
+
+    const currentAuthToken = getAuthToken();
+    if (sentAuthState.authToken === currentAuthToken) {
+        return 'unchanged';
+    }
+
+    // Connecting as a copilot and returning to the original account both change the token type. The session's accountID is not compared:
+    // the ConnectAsDelegate response updates it before the copilot token is saved, while requests still use the original account's token.
+    if (sentAuthState.authTokenType !== getAuthTokenType()) {
+        return 'accountChanged';
+    }
+
+    // Without a current token there is nothing to retry with, so re-authentication decides what happens next.
+    if (!currentAuthToken) {
+        return 'unchanged';
+    }
+
+    return 'tokenReplaced';
+}
+
+function retryWithCurrentSession<TKey extends OnyxKey>(
+    request: Request<TKey> | PaginatedRequest<TKey>,
+    isFromSequentialQueue: boolean,
+    apiRequestType: unknown,
+): Promise<Response<TKey> | void> {
+    if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+        return processWithMiddleware(request, isFromSequentialQueue);
+    }
+
+    if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
+        // READ requests are not replayed one by one. ReconnectApp loads their data again with the current session instead.
+        reconnect();
+        return Promise.resolve();
+    }
+
+    replayMainQueue(request);
+    return Promise.resolve();
+}
+
+function resolveRequestForChangedAccount<TKey extends OnyxKey>(request: Request<TKey> | PaginatedRequest<TKey>, isFromSequentialQueue: boolean, data: Response<TKey>): Response<TKey> {
+    Log.hmmm('[Reauthenticate] Not retrying a request that was sent for a different account', {command: request.command});
+
+    // The request's Onyx updates target the account it was sent for, so applying them would write into the current account.
+    request.failureData = undefined;
+    request.finallyData = undefined;
+
+    if (!isFromSequentialQueue && request.resolve) {
+        request.resolve(data);
+    }
+    return data;
+}
+
 function handleExpiredSession<TKey extends OnyxKey>(
     request: Request<TKey> | PaginatedRequest<TKey>,
     isFromSequentialQueue: boolean,
@@ -117,6 +192,18 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
+    const sessionChange = getSessionChangeSinceSent(request);
+    if (sessionChange === 'accountChanged') {
+        return Promise.resolve(resolveRequestForChangedAccount(request, isFromSequentialQueue, data));
+    }
+
+    // Another request already re-authenticated, so retry with the newer token. Re-authenticating again could
+    // overwrite a token the session switched to in the meantime, such as a copilot token.
+    if (sessionChange === 'tokenReplaced') {
+        Log.hmmm('[Reauthenticate] Retrying a request that failed with a replaced authToken', {command: request.command});
+        return retryWithCurrentSession(request, isFromSequentialQueue, apiRequestType);
+    }
+
     // We are already authenticating and using the DeprecatedAPI so we will replay the request
     if (!apiRequestType && isAuthenticatingNetworkStore()) {
         replayMainQueue(request);
@@ -143,17 +230,12 @@ function handleExpiredSession<TKey extends OnyxKey>(
                 return data;
             }
 
-            if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-                return processWithMiddleware(request, isFromSequentialQueue);
+            // The session can switch accounts while re-authentication is in flight, for example when connecting as a copilot.
+            if (getSessionChangeSinceSent(request) === 'accountChanged') {
+                return resolveRequestForChangedAccount(request, isFromSequentialQueue, data);
             }
 
-            if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                // Re-sync app data after successful re-authentication
-                reconnect();
-                return Promise.resolve();
-            }
-
-            replayMainQueue(request);
+            return retryWithCurrentSession(request, isFromSequentialQueue, apiRequestType);
         })
         .catch(() => {
             if (isFromSequentialQueue || apiRequestType) {

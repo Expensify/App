@@ -88,6 +88,10 @@ function getAccountID(): number | null | undefined {
     return accountID;
 }
 
+function getAuthTokenType(): ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null {
+    return authTokenType;
+}
+
 function getLastShortAuthToken(): string | null | undefined {
     return lastShortAuthToken;
 }
@@ -128,6 +132,7 @@ function setIsAuthenticating(val: boolean) {
 export {
     getAuthToken,
     getAccountID,
+    getAuthTokenType,
     setAuthToken,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
