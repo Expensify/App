@@ -59,6 +59,22 @@ describe('getSubmittedAnswers', () => {
         expect(answers).not.toHaveProperty(addressKeys.state);
     });
 
+    it('submits the state only when the schema lists states for the address', () => {
+        // Given a US address whose draft holds a state, under a schema that lists states and under one that lists none
+        const addressKeys = getAddressInputKeys('home');
+        const values = {home: '350 5th Avenue', [addressKeys.state]: 'NY', [addressKeys.country]: 'US'};
+        const withStates: DynamicFormField = {key: 'home', type: 'address', required: true, states: [{key: 'NY', label: 'New York'}]};
+        const withoutStates: DynamicFormField = {key: 'home', type: 'address', required: true, states: []};
+
+        // When the answers are collected
+        const answersWithStates = getSubmittedAnswers([withStates], values);
+        const answersWithoutStates = getSubmittedAnswers([withoutStates], values);
+
+        // Then the state goes out only where the form showed a state picker
+        expect(answersWithStates).toMatchObject({[addressKeys.state]: 'NY'});
+        expect(answersWithoutStates).not.toHaveProperty(addressKeys.state);
+    });
+
     it('lists every answer key of a compound field', () => {
         // Given an address field, whose answer is spread over several keys
         const field: DynamicFormField = {key: 'home', type: 'address', required: true, sensitive: true};

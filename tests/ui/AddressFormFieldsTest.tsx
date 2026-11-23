@@ -49,4 +49,26 @@ describe('AddressFormFields', () => {
         const canadianZip = wrapper.mock.calls.findLast(([props]) => props.inputID === 'zipCodeInput')?.[0];
         expect(canadianZip && 'inputMode' in canadianZip ? canadianZip.inputMode : undefined).toBeUndefined();
     });
+
+    it('lists only the given countries and limits address search picks to them', () => {
+        // Given an address that can only be in two countries.
+        const countryOptions = {[CONST.COUNTRY.GB]: CONST.ALL_COUNTRIES.GB, [CONST.COUNTRY.CA]: CONST.ALL_COUNTRIES.CA};
+
+        // When the fields render.
+        render(
+            <AddressFormFields
+                streetTranslationKey="common.city"
+                inputKeys={inputs}
+                shouldDisplayCountrySelector
+                countryOptions={countryOptions}
+                defaultValues={{street: '', city: '', state: '', zipCode: '', country: ''}}
+            />,
+        );
+
+        // Then the country picker and the address search both take those two countries only.
+        const country = wrapper.mock.calls.findLast(([props]) => props.inputID === 'country')?.[0];
+        expect(country && 'optionsList' in country ? country.optionsList : undefined).toEqual(countryOptions);
+        const street = wrapper.mock.calls.findLast(([props]) => props.inputID === 'street')?.[0];
+        expect(street && 'allowedCountries' in street ? street.allowedCountries : undefined).toEqual([CONST.COUNTRY.GB, CONST.COUNTRY.CA]);
+    });
 });

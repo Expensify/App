@@ -67,6 +67,9 @@ type AddressFormProps = ForwardedFSClassProps & {
     /** The states to list instead of the US states or Canadian provinces */
     stateOptions?: Record<string, string>;
 
+    /** The countries to list instead of every country. An address search pick in a country outside them leaves the country empty. */
+    countryOptions?: Record<string, string>;
+
     /** Whether a picked address fills the state with its code outside the US and Canada, for a caller that lists the states of other countries */
     shouldKeepStateCode?: boolean;
     onCountryChange?: (country: unknown) => void;
@@ -92,6 +95,7 @@ function AddressFormFields({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     stateOptions,
+    countryOptions,
     shouldKeepStateCode = false,
     onCountryChange,
     shouldAllowCountryChange = true,
@@ -125,6 +129,7 @@ function AddressFormFields({
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     shouldKeepStateCode={shouldKeepStateCode}
+                    allowedCountries={countryOptions ? Object.keys(countryOptions) : undefined}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
@@ -186,7 +191,7 @@ function AddressFormFields({
                         InputComponent={PushRowWithModal}
                         inputID={inputKeys?.country ?? 'country'}
                         shouldSaveDraft={shouldSaveDraft}
-                        optionsList={CONST.ALL_COUNTRIES}
+                        optionsList={countryOptions ?? CONST.ALL_COUNTRIES}
                         description={translate('common.country')}
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}

@@ -12,7 +12,7 @@ function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValu
     const answers: DynamicFormValues = {};
     for (const field of getVisibleFields(fields, values, allFields)) {
         // AddressSearch fills the state even where no state is asked, with a region name the user never sees
-        const hiddenStateKey = field.type === 'address' && !isStateAsked(getAddressCountry(field.key, values)) ? getAddressInputKeys(field.key).state : undefined;
+        const hiddenStateKey = field.type === 'address' && !isStateAsked(field, getAddressCountry(field.key, values)) ? getAddressInputKeys(field.key).state : undefined;
         for (const key of getAnswerKeys(field)) {
             if (values[key] !== undefined && key !== hiddenStateKey) {
                 answers[key] = values[key];

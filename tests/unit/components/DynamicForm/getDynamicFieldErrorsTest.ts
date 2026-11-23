@@ -328,6 +328,48 @@ describe('getDynamicFieldErrors', () => {
         expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
     });
 
+    it('takes the states and countries from the field when the schema lists them', () => {
+        // Given an address whose schema lists two countries and the states of the picked one, which the App has no list of
+        const homeAddress: DynamicFormField = {
+            key: 'homeAddress',
+            type: 'address',
+            required: true,
+            countries: [CONST.COUNTRY.GB, CONST.COUNTRY.MX],
+            states: [{key: 'JAL', label: 'Jalisco'}],
+        };
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const mexicanAddress = {homeAddress: '1 Main Street', [addressKeys.city]: 'Guadalajara', [addressKeys.zipCode]: '44100', [addressKeys.country]: CONST.COUNTRY.MX};
+
+        // When it is validated without a state, with a listed state, with a state outside the list, and in a country outside the list
+        const missingStateErrors = getDynamicFieldErrors([homeAddress], mexicanAddress, translateLocal);
+        const listedStateErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'JAL'}, translateLocal);
+        const unlistedStateErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'Jalisco'}, translateLocal);
+        const unlistedCountryErrors = getDynamicFieldErrors([homeAddress], {...mexicanAddress, [addressKeys.state]: 'JAL', [addressKeys.country]: CONST.COUNTRY.US}, translateLocal);
+
+        // Then only a listed state in a listed country passes, since the pickers show nothing else
+        const required = translateLocal('common.error.fieldRequired');
+        expect(missingStateErrors).toEqual({[addressKeys.state]: required});
+        expect(listedStateErrors).toEqual({});
+        expect(unlistedStateErrors).toEqual({[addressKeys.state]: required});
+        expect(unlistedCountryErrors).toEqual({[addressKeys.country]: required});
+    });
+
+    it('asks for no state when the schema lists none, even in a country the App has states for', () => {
+        // Given a US address whose schema sends an empty state list
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, states: []};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it is validated without a state
+        const errors = getDynamicFieldErrors(
+            [homeAddress],
+            {homeAddress: '350 5th Avenue', [addressKeys.city]: 'New York', [addressKeys.zipCode]: '10118', [addressKeys.country]: CONST.COUNTRY.US},
+            translateLocal,
+        );
+
+        // Then nothing is flagged, since the schema decides which states exist
+        expect(errors).toEqual({});
+    });
+
     it('checks an optional address like a required one once the user starts filling it in', () => {
         // Given an optional address
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false};

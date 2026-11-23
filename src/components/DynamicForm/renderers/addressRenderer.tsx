@@ -1,4 +1,4 @@
-import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getCountryOptions, getStateOptions, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -36,8 +36,9 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 shouldDisplayCountrySelector
                 // Only the country asks for a new form, so the rest of the address stays editable offline
                 shouldAllowCountryChange={!disabled}
-                shouldDisplayStateSelector={isStateAsked(country)}
-                stateOptions={getStateOptions(country)}
+                countryOptions={getCountryOptions(field)}
+                shouldDisplayStateSelector={isStateAsked(field, country)}
+                stateOptions={getStateOptions(field, country)}
                 // The pick can switch to any country with a state list, so the code is kept even while the current country has none
                 shouldKeepStateCode
                 forwardedFSClass={forwardedFSClass}

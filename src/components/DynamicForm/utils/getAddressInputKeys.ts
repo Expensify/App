@@ -5,6 +5,7 @@ import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormField
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
+import type {DynamicFormAddressField} from '@src/types/onyx';
 
 import type {ComponentProps} from 'react';
 
@@ -36,15 +37,34 @@ function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country
     return typeof country === 'string' && isCountryCode(country) ? country : '';
 }
 
-/** The states the picker lists, which are the US states until a country is picked */
-function getStateOptions(country: Country | ''): Record<string, string> | undefined {
-    return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+/** The countries the picker lists by code, or undefined when the field takes every country */
+function getCountryOptions(field: DynamicFormAddressField): Record<string, string> | undefined {
+    if (!field.countries) {
+        return undefined;
+    }
+    return Object.fromEntries(field.countries.filter(isCountryCode).map((code) => [code, CONST.ALL_COUNTRIES[code]]));
+}
+
+/** Whether the field takes an address in the country. No country is never allowed, so a required address still asks for one. */
+function isCountryAllowed(field: DynamicFormAddressField, country: Country | ''): boolean {
+    return !!country && (!field.countries || field.countries.includes(country));
+}
+
+/** The states the picker lists by code. The field's own states win, and without them the App's list for the country is used, which is the US one until a country is picked. */
+function getStateOptions(field: DynamicFormAddressField, country: Country | ''): Record<string, string> | undefined {
+    if (!field.states) {
+        return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+    }
+    if (field.states.length === 0) {
+        return undefined;
+    }
+    return Object.fromEntries(field.states.map((state) => [state.key, state.label ?? state.key]));
 }
 
 /** The state is asked only where the picker can list the country's states */
-function isStateAsked(country: Country | ''): boolean {
-    return !!getStateOptions(country);
+function isStateAsked(field: DynamicFormAddressField, country: Country | ''): boolean {
+    return !!getStateOptions(field, country);
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, getStateOptions, isStateAsked};
+export {getAddressCountry, getCountryOptions, getStateOptions, isCountryAllowed, isStateAsked};

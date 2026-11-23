@@ -1,7 +1,7 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormAddressField, DynamicFormField} from '@src/types/onyx';
 
 import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getFieldOptions, {getOptionLabel} from './getFieldOptions';
@@ -9,15 +9,15 @@ import isCountryCode from './isCountryCode';
 import {getListItemFiles, getListItems} from './listItems';
 
 /** Street, then city, then state and zip, then country, as in "1 Main Street, Springfield, IL 62701, United States" */
-function formatAddress(fieldKey: string, values: DynamicFormValues, translate: LocalizedTranslate): string {
-    const addressKeys = getAddressInputKeys(fieldKey);
+function formatAddress(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): string {
+    const addressKeys = getAddressInputKeys(field.key);
     const getPart = (partKey: string) => {
         const part = values[partKey];
         return typeof part === 'string' ? part : '';
     };
-    const country = getAddressCountry(fieldKey, values);
+    const country = getAddressCountry(field.key, values);
     // A state the form does not ask for is not submitted, so it is not shown either
-    const stateAndZip = [isStateAsked(country) ? getPart(addressKeys.state) : '', getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
+    const stateAndZip = [isStateAsked(field, country) ? getPart(addressKeys.state) : '', getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
     const countryName = country ? translate(`allCountries.${country}`) : '';
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
 }
@@ -57,7 +57,7 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
         case 'percent':
             return `${answer}%`;
         case 'address':
-            return formatAddress(field.key, values, translate);
+            return formatAddress(field, values, translate);
         case 'text':
             // A row shows one line, so a multiline answer is joined into it, which also gives a cut answer its ellipsis
             return field.multiline ? answer.replaceAll(/\s*\r?\n\s*/g, ' ').trim() : answer;

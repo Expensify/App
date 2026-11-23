@@ -120,6 +120,7 @@ function AddressSearch({
         lng: 'addressLng',
     },
     shouldKeepStateCode = false,
+    allowedCountries,
     autoComplete = 'off',
     autoFocus = false,
     resultTypes = 'address',
@@ -278,7 +279,7 @@ function AddressSearch({
         }
 
         const isValidCountryCode = !!Object.keys(CONST.ALL_COUNTRIES).find((foundCountry) => foundCountry === country);
-        if (isValidCountryCode) {
+        if (isValidCountryCode && (!allowedCountries || allowedCountries.includes(country))) {
             values.country = country;
         }
 

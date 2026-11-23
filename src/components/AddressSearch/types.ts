@@ -80,6 +80,9 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Whether the state stays a code outside the US and Canada, for a caller whose picker lists the states of other countries */
     shouldKeepStateCode?: boolean;
 
+    /** Codes of the countries a picked address can be in. A pick in any other country fills the rest of the address and leaves the country empty. */
+    allowedCountries?: string[];
+
     /** Auto complete attribute for the input field */
     autoComplete?: TextInputProps['autoComplete'];
 
