@@ -5,7 +5,7 @@ import type {ThemeColors} from '@styles/theme/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
@@ -504,8 +504,7 @@ type GetReportNextStepParams = {
     currentUserEmail: string;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
-    reportOwnerLogin: string;
-    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin;
+    reportOwnerPersonalDetails: PersonalDetails | undefined;
     reportMetadata: ReportMetadata | undefined;
     reportActions: ReportAction[];
     transactions: Record<string, Transaction>;
@@ -532,8 +531,7 @@ function getReportNextStep({
     currentUserEmail,
     currentUserAccountID,
     report,
-    reportOwnerLogin,
-    reportOwnerPersonalDetailsByLogin,
+    reportOwnerPersonalDetails,
     reportMetadata,
     reportActions,
     transactions,
@@ -615,7 +613,7 @@ function getReportNextStep({
         policy &&
         isOpenExpenseReport(report) &&
         !doesReportContainTransactions(report) &&
-        !canCreateExpensesOnPolicy(policy, reportOwnerLogin)
+        !canCreateExpensesOnPolicy(policy, reportOwnerPersonalDetails?.login)
     ) {
         return buildOptimisticNoFurtherActionNextStep();
     }
@@ -634,7 +632,7 @@ function getReportNextStep({
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules, reportOwnerPersonalDetailsByLogin)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules, reportOwnerPersonalDetails)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
