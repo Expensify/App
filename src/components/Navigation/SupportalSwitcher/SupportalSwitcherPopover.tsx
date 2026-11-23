@@ -147,6 +147,4 @@ function SupportalSwitcherPopover({isVisible, anchorRef, anchorPosition, onClose
     );
 }
 
-SupportalSwitcherPopover.displayName = 'SupportalSwitcherPopover';
-
 export default SupportalSwitcherPopover;

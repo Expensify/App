@@ -63,6 +63,4 @@ function FlatNavSupportalItem({isCollapsed, isSupportAgent, isSwitcherVisible, s
     );
 }
 
-FlatNavSupportalItem.displayName = 'FlatNavSupportalItem';
-
 export default FlatNavSupportalItem;

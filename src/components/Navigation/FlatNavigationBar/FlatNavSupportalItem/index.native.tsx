@@ -3,6 +3,4 @@ function FlatNavSupportalItem() {
     return null;
 }
 
-FlatNavSupportalItem.displayName = 'FlatNavSupportalItem';
-
 export default FlatNavSupportalItem;
