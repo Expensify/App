@@ -22,6 +22,9 @@ import {View} from 'react-native';
 
 import {getEfficiencyHeadlineAverage, getEfficiencyHeadlineStages} from './insightsHeadlineValues';
 
+const SKELETON_HEADLINE_WIDTH = 136;
+const SKELETON_BREAKDOWN_WIDTH = 220;
+
 const stageLabels = {
     [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'insightsPage.headline.timeToSubmit',
     [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'insightsPage.headline.timeToApprove',
@@ -144,11 +147,11 @@ function InsightsChartSummarySkeleton() {
         <View style={[cardPaddingHorizontal, styles.mb3]}>
             <SkeletonTextLine
                 lineHeight={lineHeightScale.h1}
-                barWidth={136}
+                barWidth={SKELETON_HEADLINE_WIDTH}
             />
             <SkeletonTextLine
                 lineHeight={lineHeightScale.label}
-                barWidth={220}
+                barWidth={SKELETON_BREAKDOWN_WIDTH}
             />
         </View>
     );

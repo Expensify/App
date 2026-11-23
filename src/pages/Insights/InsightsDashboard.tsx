@@ -490,6 +490,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             },
             isDashboardLoaded: hasDashboardResponse(dashboard),
             headlineSummary: graph?.headlineSummary,
+            // A cached chart can appear before its summary arrives. Don't keep the skeleton up offline or after a failed request.
             shouldWaitForSummary: !isOffline && !hasDashboardResponse(dashboard) && !dashboard?.responseJsonCode && !dashboard?.errors,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
