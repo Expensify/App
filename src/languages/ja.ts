@@ -1310,6 +1310,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
         },
+        flaggedExpenses: 'フラグ付き経費',
+        noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

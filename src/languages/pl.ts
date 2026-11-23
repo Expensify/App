@@ -1353,6 +1353,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Wysyłający',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Zatwierdzający',
         },
+        flaggedExpenses: 'Oznaczone wydatki',
+        noFlaggedExpensesInRange: 'Brak oznaczonych wydatków w tym zakresie',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

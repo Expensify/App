@@ -1324,6 +1324,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprovadores',
         },
+        flaggedExpenses: 'Despesas sinalizadas',
+        noFlaggedExpensesInRange: 'Nenhuma despesa sinalizada neste intervalo',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

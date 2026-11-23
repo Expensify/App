@@ -1368,6 +1368,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
         },
+        flaggedExpenses: 'Επισημασμένες δαπάνες',
+        noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

@@ -1322,6 +1322,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
         },
+        flaggedExpenses: 'Markierte Ausgaben',
+        noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

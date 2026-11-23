@@ -1270,6 +1270,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
         },
+        flaggedExpenses: '被标记的报销费用',
+        noFlaggedExpensesInRange: '此范围内没有被标记的报销费用',
     },
     allSettingsScreen: {
         subscription: '订阅',

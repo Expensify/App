@@ -1321,6 +1321,8 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
         },
+        flaggedExpenses: 'Gemarkeerde uitgaven',
+        noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
