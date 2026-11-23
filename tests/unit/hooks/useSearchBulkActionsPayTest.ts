@@ -12,6 +12,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import {getWiseQuote} from '@libs/actions/Wise';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -779,6 +780,21 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
 
         // Then the carousel opens for the selected report
         expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
+    });
+
+    it('asks for each quote with who pays the FX costs in the report workspace', async () => {
+        // Given a selected report in a workspace where the employee pays the FX costs
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {globalReimbursementFXPreferCompany: false});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user pays with the business bank account
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
+
+        // Then the quote is asked with the employee paying the FX costs, so a quote saved for the company paying them isn't reused
+        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, false));
     });
 });
 
