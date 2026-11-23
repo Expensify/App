@@ -307,9 +307,21 @@ describe('PolicyInlineEdit', () => {
             );
         });
 
-        it.each([0, undefined])('matches the details form guard when the stored rate is %s', (rateValue) => {
-            // Given a zero or missing distance rate
-            const emptyRate = {...rate, rate: rateValue};
+        it('rejects an amount on a $0 rate instead of silently dropping it on save', () => {
+            // Given a $0 rate, which is a real rate with nothing to reclaim
+            const emptyRate = {...rate, rate: 0};
+
+            // When an amount is submitted
+            const rejection = updateDistanceTaxClaimableValueInline(translate, '1', customUnit, emptyRate, '1');
+
+            // Then the page receives the details form error rather than persisting a value the save would drop
+            expect(rejection).toBe('workspace.taxes.error.updateTaxClaimableFailureMessage');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('matches the details form guard when the stored rate is missing', () => {
+            // Given a rate with no amount, which the guard has nothing to compare against
+            const emptyRate = {...rate, rate: undefined};
 
             // When an amount is submitted
             updateDistanceTaxClaimableValueInline(translate, '1', customUnit, emptyRate, '1');
