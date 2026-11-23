@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import startCameraButtonScanSpans from '@libs/telemetry/startCameraButtonScanSpans';
 
 import variables from '@styles/variables';
 
@@ -34,7 +34,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 
 type BaseFloatingCameraButtonProps = {
     icon: IconAsset;
@@ -78,20 +78,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
 
-            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN, {
-                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
-                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: quickActionReportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: Platform.OS,
-                    [CONST.TELEMETRY.ATTRIBUTE_SOURCE]: 'camera_fab',
-                },
-            });
-            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION, {
-                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
-                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
-                parentSpan: getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN),
-            });
+            startCameraButtonScanSpans(quickActionReportID);
 
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);

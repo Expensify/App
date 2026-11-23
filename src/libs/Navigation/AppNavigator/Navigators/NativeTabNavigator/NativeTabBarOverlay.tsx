@@ -24,16 +24,21 @@ import type {NativeTabLayoutProps} from './NativeTabLayout';
 
 import isTabHostFullWidth from './isTabHostFullWidth';
 import NativeTabBarShadow from './NativeTabBarShadow';
+import useIsTabBarVertical from './useIsTabBarVertical';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
+import VerticalBarActionItems from './VerticalBarActionItems';
 
 /** What a narrow layout draws over the tabs along with the native bar, kept apart so wide layouts skip its hooks. */
 function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
     const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
+    const isTabBarVertical = useIsTabBarVertical();
     // A full-width tab host doesn't keep the buttons out of the horizontal safe area, so they do it themselves.
     const floatingButtonsLeft = isTabHostFullWidth ? leftInset : 0;
     const floatingButtonsRight = isTabHostFullWidth ? rightInset : 0;
+    // A vertical tab bar leaves the bottom edge free, so the GPS button, the only one still floating then, sits just above the safe area.
+    const floatingButtonsBottom = isTabBarVertical ? bottomInset : getFloatingButtonsBottom(bottomInset);
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
 
@@ -60,14 +65,21 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
                 >
                     <NativeTabBarShadow />
                     <View
-                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset), floatingButtonsLeft, floatingButtonsRight)}
+                        style={styles.nativeTabBarFloatingButtons(floatingButtonsBottom, floatingButtonsLeft, floatingButtonsRight)}
                         pointerEvents="box-none"
                     >
-                        <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
-                            <NavigationTabBarFloatingActionButton />
-                        </View>
                         <FloatingGPSButton />
-                        <FloatingCameraButton />
+                        {/* UIKit draws the create and scan buttons in the vertical bar, where they cover none of the content. */}
+                        {isTabBarVertical ? (
+                            <VerticalBarActionItems />
+                        ) : (
+                            <>
+                                <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                                    <NavigationTabBarFloatingActionButton />
+                                </View>
+                                <FloatingCameraButton />
+                            </>
+                        )}
                     </View>
                 </Animated.View>
             )}

@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import useIsTabBarVertical from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical';
 import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -92,6 +93,8 @@ function SearchPageFooter({
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The vertical bar takes the create and scan buttons along with the tab bar, so nothing sits over the footer's right end then.
+    const isTabBarVertical = useIsTabBarVertical();
 
     const [isFooterButtonFocused, setIsFooterButtonFocused] = useState(false);
     // The size the real total last occupied, which is what the skeleton stands in at.
@@ -222,7 +225,15 @@ function SearchPageFooter({
     );
 
     return (
-        <View style={[styles.borderTop, styles.ph5, styles.pv3, shouldUseNarrowLayout && styles.searchPageFooterFABClearance, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View
+            style={[
+                styles.borderTop,
+                styles.ph5,
+                styles.pv3,
+                shouldUseNarrowLayout && !isTabBarVertical && styles.searchPageFooterFABClearance,
+                StyleUtils.getBackgroundColorStyle(theme.appBG),
+            ]}
+        >
             <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
                 <FilterPopupButton
                     wrapperStyle={styles.flexShrink1}
