@@ -10235,36 +10235,54 @@ describe('ReportActionsUtils', () => {
         }
 
         it('describes a new hotel booking with the hotel name and check-in date', () => {
+            // Given a new hotel booking whose name Spotnana sent in all caps
             const action = buildTravelUpdateAction({start: {date: '2026-12-01', longName: 'HILTON GARDEN INN'}, end: {date: '2026-12-03', longName: 'HILTON GARDEN INN'}});
+            // When the trip room message is built
+            // Then it names the hotel in normal capitalization with the check-in date, so the traveler can tell which stay was booked
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation at Hilton Garden Inn (check-in 2026-12-01) has been booked.');
         });
 
         it('describes a new car booking with the vendor and pick-up date', () => {
+            // Given a new car rental booking with its vendor
             const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.CAR, vendor: 'Hertz'});
+            // When the trip room message is built
+            // Then it names the vendor and pick-up date, so the traveler can tell which rental was booked
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your Hertz car rental (pick-up 2026-12-01) has been booked.');
         });
 
         it('describes a new rail booking with the route and date', () => {
+            // Given a new rail booking that has both station cities
             const action = buildTravelUpdateAction({
                 type: CONST.RESERVATION_TYPE.TRAIN,
                 start: {date: '2026-12-01', cityName: 'London', shortName: 'STP'},
                 end: {date: '2026-12-01', cityName: 'Paris', shortName: 'PNO'},
             });
+            // When the trip room message is built
+            // Then it shows the route and date instead of the generic "was updated" copy
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your rail ticket for London → Paris on 2026-12-01 has been booked.');
         });
 
         it('falls back to a generic booked message when the hotel has no name', () => {
+            // Given a new hotel booking that arrived without a hotel name
             const action = buildTravelUpdateAction({});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty hotel name
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation has been booked.');
         });
 
         it('falls back to a generic booked message when the rail stations are missing', () => {
+            // Given a new rail booking that arrived without station names
             const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.TRAIN});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty route
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your train reservation has been booked.');
         });
 
         it('falls back to a generic booked message for other reservation types', () => {
+            // Given a new booking for a type without its own booked copy
             const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.FLIGHT});
+            // When the trip room message is built
+            // Then it still reads as a booking instead of falling through to the generic "was updated" copy
             expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your flight reservation has been booked.');
         });
     });
