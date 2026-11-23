@@ -1408,6 +1408,8 @@ const translations = {
         viewAll: 'View all',
         topExpenses: 'Top expenses',
         noExpensesInRange: 'No expenses in this range',
+        flaggedExpenses: 'Flagged expenses',
+        noFlaggedExpensesInRange: 'No flagged expenses in this range',
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',

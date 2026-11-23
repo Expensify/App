@@ -47,15 +47,20 @@ import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpens
 type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
     query: SearchQueryString;
+
+    title: string;
+
+    /** Shown in place of the list when the query has no expenses */
+    emptyText: string;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({query, title, emptyText}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state, retry} = useInsightsTopExpenses(query);
+    const {expenses, violationsByTransactionID, queryJSON, state, retry} = useInsightsTopExpenses(query);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
@@ -78,7 +83,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
             DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             dateFnsLocale,
         );
-        return [expense.formattedMerchant ?? expense.merchant, amount, date].filter(Boolean).join(', ');
+        return [expense.formattedMerchant ?? expense.merchant, amount, date, ...(violationsByTransactionID[expense.transactionID] ?? [])].filter(Boolean).join(', ');
     };
 
     const openExpense = (expense: TransactionListItemType) => {
@@ -140,7 +145,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                     variant="label"
                     style={styles.textSupporting}
                 >
-                    {translate('insightsPage.topExpenses')}
+                    {title}
                 </Text>
                 {!!queryJSON && expenses.length > 0 && (
                     <PressableWithoutFeedback
@@ -178,36 +183,47 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
                     variant="label"
                     style={[styles.textSupporting, styles.p4]}
                 >
-                    {translate('insightsPage.noExpensesInRange')}
+                    {emptyText}
                 </Text>
             )}
-            {expenses.map((item, index) => (
-                <PressableWithFeedback
-                    key={item.keyForList}
-                    onPress={() => openExpense(item)}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={getRowAccessibilityLabel(item)}
-                    sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}
-                    wrapperStyle={styles.w100}
-                    hoverStyle={styles.hoveredComponentBG}
-                    style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
-                >
-                    <TransactionItemRow
-                        transactionItem={item}
-                        report={item.report}
-                        policy={item.policy}
-                        shouldUseNarrowLayout
-                        isSelected={false}
-                        shouldShowTooltip
-                        shouldShowErrors={false}
-                        shouldShowCategoryOnNarrowLayout={false}
-                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        style={[styles.p0, styles.noBorderRadius]}
-                    />
-                </PressableWithFeedback>
-            ))}
+            {expenses.map((item, index) => {
+                const violations = violationsByTransactionID[item.transactionID] ?? [];
+                return (
+                    <PressableWithFeedback
+                        key={item.keyForList}
+                        onPress={() => openExpense(item)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={getRowAccessibilityLabel(item)}
+                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}
+                        wrapperStyle={styles.w100}
+                        hoverStyle={styles.hoveredComponentBG}
+                        style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
+                    >
+                        <TransactionItemRow
+                            transactionItem={item}
+                            report={item.report}
+                            policy={item.policy}
+                            shouldUseNarrowLayout
+                            isSelected={false}
+                            shouldShowTooltip
+                            shouldShowErrors={false}
+                            shouldShowCategoryOnNarrowLayout={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            style={[styles.p0, styles.noBorderRadius]}
+                        />
+                        {violations.length > 0 && (
+                            <Text
+                                variant="label"
+                                style={[styles.textSupporting, styles.mt1]}
+                            >
+                                {violations.join(` ${CONST.DOT_SEPARATOR} `)}
+                            </Text>
+                        )}
+                    </PressableWithFeedback>
+                );
+            })}
         </View>
     );
 }

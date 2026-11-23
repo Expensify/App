@@ -8,7 +8,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {getSections, getSortedSections, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getPositiveHasFilterValues, getViolationDisplayName} from '@libs/SearchQueryUtils';
+import {getSections, getSortedSections, getViolationNamesForTransaction, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
@@ -32,12 +33,16 @@ type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
 
 type TopExpenses = {
     expenses: TransactionListItemType[];
+
+    /** Labels of each expense's violations by transaction ID, when the query is narrowed to expenses with violations */
+    violationsByTransactionID: Record<string, string[]>;
+
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     state: TopExpensesState;
     retry: () => void;
 };
 
-/** Requests the largest expenses in a Spend table query and returns them as Spend rows, sorted by amount. */
+/** Requests the largest expenses in a Spend table query and returns them as Spend rows, sorted by amount, with their violations when the query is narrowed to expenses with violations. */
 function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpenses {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -84,7 +89,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     }
 
     if (!queryJSON || !snapshot?.data || state !== TOP_EXPENSES_STATE.READY) {
-        return {expenses: [], queryJSON, state, retry};
+        return {expenses: [], violationsByTransactionID: {}, queryJSON, state, retry};
     }
 
     const [sections] = getSections({
@@ -106,7 +111,22 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .slice(0, queryJSON.limit);
 
-    return {expenses, queryJSON, state, retry};
+    const violationHasValues = getPositiveHasFilterValues(queryJSON);
+    // On a violation's panel, that violation leads each expense's list
+    const itemViolation = String(queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)?.filters.at(0)?.value ?? '');
+    const violationsByTransactionID = Object.fromEntries(
+        expenses.map((expense) => {
+            const reportActions = Object.values(snapshot.data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expense.reportID}`] ?? {});
+            const names = getViolationNamesForTransaction(reportActions, expense.transactionID, violationHasValues);
+            const otherLabels = [...names]
+                .filter((name) => name !== itemViolation)
+                .map((name) => getViolationDisplayName(name, translate))
+                .sort(localeCompare);
+            return [expense.transactionID, names.has(itemViolation) ? [getViolationDisplayName(itemViolation, translate), ...otherLabels] : otherLabels];
+        }),
+    );
+
+    return {expenses, violationsByTransactionID, queryJSON, state, retry};
 }
 
 export {TOP_EXPENSES_STATE};

@@ -2511,6 +2511,7 @@ const ROUTES = {
             tagLevel,
             parentTagPath,
             asOfDate,
+            violationStage,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
@@ -2519,8 +2520,9 @@ const ROUTES = {
             tagLevel?: number;
             parentTagPath?: string;
             asOfDate?: string;
+            violationStage?: ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
         }) =>
-            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}${violationStage ? `&stage=${violationStage}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {

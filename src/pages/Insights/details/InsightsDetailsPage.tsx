@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
@@ -38,14 +38,19 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
+    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf, stage} = route.params;
     const tagLevel = level ? Number(level) : undefined;
-    const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-    const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
-    const [storedMember] = usePersonalDetail(memberAccountID);
+    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID && INSIGHTS_DASHBOARD_SPECS[id].hasDetailsPanel);
+    const isCompliance = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
+    const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
-    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
+    const dashboardSpec = dashboardID ? INSIGHTS_DASHBOARD_SPECS[dashboardID] : undefined;
+    const declaredChartSpec = dashboardSpec ? [dashboardSpec.headlineChart, ...dashboardSpec.supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
+    const violationStage = Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage);
+    const chartSpec = declaredChartSpec ? applyViolationStage(declaredChartSpec, violationStage) : undefined;
+    const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const memberAccountID = isMemberItem ? Number(itemKey) : undefined;
+    const [storedMember] = usePersonalDetail(memberAccountID);
     const chartQueryJSON = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)) : undefined;
     const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
@@ -60,6 +65,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   periodEnd,
                   parentTagPath,
                   tagLevel,
+                  dateFilterKey: chartSpec.dateFilterKey,
                   member,
                   dateFnsLocale,
                   translate,
@@ -68,7 +74,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || (!!dashboardSpec?.beta && !isBetaEnabled(dashboardSpec.beta)) || !chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
@@ -100,7 +106,11 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    <InsightsTopExpenses query={drillDownQuery} />
+                    <InsightsTopExpenses
+                        query={drillDownQuery}
+                        title={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'insightsPage.topExpenses')}
+                        emptyText={translate(isCompliance ? 'insightsPage.noFlaggedExpensesInRange' : 'insightsPage.noExpensesInRange')}
+                    />
                 </ScrollView>
             )}
         </ScreenWrapper>
