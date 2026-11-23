@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 const SENTRY_LABEL = {
     TEXT_INPUT: {
         FIELD: 'TextInput-Field',

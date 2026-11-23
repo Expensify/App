@@ -169,7 +169,9 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
                 confirmButtonOptions={{
                     showButton: true,
                     text: translate('common.next'),
-                    onConfirm: () => confirmWorkspace(selectedPolicyID),
+                    onConfirm: () => {
+                        confirmWorkspace(selectedPolicyID);
+                    },
                     isDisabled: !selectedPolicyID,
                 }}
                 ListItem={UserListItem}
