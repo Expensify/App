@@ -5925,10 +5925,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.iconSizeNormal,
         },
 
-        gap0: {
-            gap: 0,
-        },
-
         menuItemRow: {
             ...flex.flexRow,
             ...pointerEventsAuto,

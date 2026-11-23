@@ -254,11 +254,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                         style={styles.sectionMenuItemTopDescription}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                     >
-                        <MenuItem.Row style={styles.gap0}>
+                        <MenuItem.Row>
                             <MenuItem.Leading>
-                                <View style={styles.mr5}>
-                                    <MenuItem.IconNarrow src={item.icon} />
-                                </View>
+                                <MenuItem.IconNarrow src={item.icon} />
                             </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>

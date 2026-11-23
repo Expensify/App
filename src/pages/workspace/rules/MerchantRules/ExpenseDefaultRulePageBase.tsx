@@ -663,12 +663,10 @@ function ExpenseDefaultRulePageBase({
                 onPress={canEditItem ? callIfAuthenticated(item.onPress, session) : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
             >
-                <MenuItem.Row style={styles.gap0}>
+                <MenuItem.Row>
                     {!!item.icon && (
                         <MenuItem.Leading>
-                            <View style={styles.mr3}>
-                                <MenuItem.IconNarrow src={item.icon} />
-                            </View>
+                            <MenuItem.IconNarrow src={item.icon} />
                         </MenuItem.Leading>
                     )}
                     <MenuItem.Content>

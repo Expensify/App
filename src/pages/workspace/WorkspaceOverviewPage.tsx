@@ -646,7 +646,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             style={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout && styles.mt3]}
                             onPress={readOnly ? undefined : callIfAuthenticated(onPressName, session)}
                         >
-                            <MenuItem.Row style={styles.gap0}>
+                            <MenuItem.Row>
                                 <MenuItem.Content>
                                     <MenuItem.FieldName>{translate('workspace.common.workspaceName')}</MenuItem.FieldName>
                                     <MenuItem.FieldValue
