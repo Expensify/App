@@ -74,10 +74,13 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
  * Builds the configs for the Home insights the current user should see, in display order.
  * Home's supported charts use the Insights dashboard filters and visibility.
  */
-function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsFilters['date']; isResolved: boolean; shouldShowRunningTotal: boolean; tagPolicyIDs: string[]} {
+function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsFilters['date']; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filters, isResolved: areFiltersResolved, tagPolicyIDs} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies);
+    // Home has no tag level picker, so it never loads workspace tag lists. Loading them means one request per workspace,
+    // which large accounts cannot afford on every Home load. Without them the saved tag level is used as is, and the
+    // Insights page corrects a level that no longer exists.
+    const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], getPoliciesInScope(policies, filters.policyIDs), session?.email)
@@ -88,7 +91,6 @@ function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsF
         date: filters.date,
         isResolved: areFiltersResolved,
         shouldShowRunningTotal: isShowingRunningTotal(filters),
-        tagPolicyIDs,
     };
 }
 

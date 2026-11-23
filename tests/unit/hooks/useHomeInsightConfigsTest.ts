@@ -29,6 +29,5 @@ describe('Home tag insight', () => {
         expect(tags?.icon).toBe('Tag');
         expect(tags?.searchQueryJSON).toMatchObject({groupBy: 'tag', tagLevel: 2, limit: CONST.SEARCH.TOP_SEARCH_LIMIT, view: CONST.SEARCH.VIEW.PIE});
         expect(tags?.searchQuery).toContain('policyID:A1');
-        expect(result.current.tagPolicyIDs).toEqual(['A1']);
     });
 });
