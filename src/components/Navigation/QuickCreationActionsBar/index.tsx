@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -52,6 +53,7 @@ function QuickCreationActionsBar() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -76,17 +78,17 @@ function QuickCreationActionsBar() {
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
         // Navigate to the Reports page first so getCreateReportRoute() resolves against
         // the Search/Reports fullscreen context before opening the created report modal.
         Navigation.navigate(getReportsRootRoute());
