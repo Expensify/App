@@ -558,7 +558,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         groupExchangeRate?: number;
 
         /** The transaction amount converted to its workspace's output currency, stored with the same sign as `amount`. Only sent in search results */
-        policyConvertedAmount?: number;
+        policyConvertedAmount?: number | null;
 
         /** The currency of `policyConvertedAmount`, which is the transaction's own currency when it has no workspace. Only sent in search results */
         policyCurrency?: string;
