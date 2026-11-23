@@ -1917,6 +1917,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Valor debitado',
             employeeReceived: 'O funcionário recebeu',
             payAll: 'Pagar tudo',
+            fxRateExpiredTitle: 'Taxa de câmbio expirada',
+            fxRatesExpiredTitle: 'Taxas de câmbio expiradas',
+            fxRateExpiredPrompt: 'Revise a taxa mais recente antes de pagar.',
+            fxRatesExpiredPrompt: 'Revise as taxas mais recentes antes de pagar.',
+            getLatestRate: 'Obter a taxa mais recente',
+            getLatestRates: 'Obter as taxas mais recentes',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 relatório',
                 other: `${count} relatórios`,

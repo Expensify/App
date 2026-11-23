@@ -1978,6 +1978,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Χρεωμένο ποσό',
             employeeReceived: 'Ο υπάλληλος έλαβε',
             payAll: 'Πληρωμή όλων',
+            fxRateExpiredTitle: 'Η συναλλαγματική ισοτιμία έληξε',
+            fxRatesExpiredTitle: 'Οι συναλλαγματικές ισοτιμίες έληξαν',
+            fxRateExpiredPrompt: 'Ελέγξτε την πιο πρόσφατη ισοτιμία πριν πληρώσετε.',
+            fxRatesExpiredPrompt: 'Ελέγξτε τις πιο πρόσφατες ισοτιμίες πριν πληρώσετε.',
+            getLatestRate: 'Λήψη πιο πρόσφατης ισοτιμίας',
+            getLatestRates: 'Λήψη πιο πρόσφατων ισοτιμιών',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 αναφορά',
                 other: `${count} αναφορές`,

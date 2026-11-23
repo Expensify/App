@@ -1846,6 +1846,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '扣款金额',
             employeeReceived: '员工已收到',
             payAll: '全部支付',
+            fxRateExpiredTitle: '汇率已过期',
+            fxRatesExpiredTitle: '汇率已过期',
+            fxRateExpiredPrompt: '请在付款前查看最新汇率。',
+            fxRatesExpiredPrompt: '请在付款前查看最新汇率。',
+            getLatestRate: '获取最新汇率',
+            getLatestRates: '获取最新汇率',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',
                 other: `${count} 份报告`,

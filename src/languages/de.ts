@@ -1924,6 +1924,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Abgebuchter Betrag',
             employeeReceived: 'Mitarbeiter erhielt',
             payAll: 'Alle bezahlen',
+            fxRateExpiredTitle: 'Wechselkurs abgelaufen',
+            fxRatesExpiredTitle: 'Wechselkurse abgelaufen',
+            fxRateExpiredPrompt: 'Prüfe den aktuellen Kurs, bevor du bezahlst.',
+            fxRatesExpiredPrompt: 'Prüfe die aktuellen Kurse, bevor du bezahlst.',
+            getLatestRate: 'Aktuellen Kurs abrufen',
+            getLatestRates: 'Aktuelle Kurse abrufen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 Bericht',
                 other: `${count} Berichte`,

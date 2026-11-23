@@ -1917,6 +1917,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Afgeschreven bedrag',
             employeeReceived: 'Medewerker ontving',
             payAll: 'Alles betalen',
+            fxRateExpiredTitle: 'Wisselkoers verlopen',
+            fxRatesExpiredTitle: 'Wisselkoersen verlopen',
+            fxRateExpiredPrompt: 'Controleer de nieuwste koers voordat je betaalt.',
+            fxRatesExpiredPrompt: 'Controleer de nieuwste koersen voordat je betaalt.',
+            getLatestRate: 'Nieuwste koers ophalen',
+            getLatestRates: 'Nieuwste koersen ophalen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 rapport',
                 other: `${count} rapporten`,

@@ -1932,6 +1932,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
+            fxRateExpiredTitle: 'Taux de change expiré',
+            fxRatesExpiredTitle: 'Taux de change expirés',
+            fxRateExpiredPrompt: 'Vérifiez le taux le plus récent avant de payer.',
+            fxRatesExpiredPrompt: 'Vérifiez les taux les plus récents avant de payer.',
+            getLatestRate: 'Obtenir le dernier taux',
+            getLatestRates: 'Obtenir les derniers taux',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
