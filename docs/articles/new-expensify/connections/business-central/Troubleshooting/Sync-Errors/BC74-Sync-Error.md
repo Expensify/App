@@ -19,7 +19,7 @@ Expensify couldn't read the date of an Expensify Card settlement, so it can't re
 
 The BC74 error is a problem with the settlement's data in Expensify. It isn't caused by your settings or by Business Central.
 
-## How to fix the BC74 sync error in Business Central
+## How to resolve the BC74 sync error
 
 Contact Concierge with the settlement ID from the error.
 

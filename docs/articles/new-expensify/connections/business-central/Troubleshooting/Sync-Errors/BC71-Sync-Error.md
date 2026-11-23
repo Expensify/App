@@ -21,7 +21,7 @@ The number after **Report** is the report ID. To open the report on web, press *
 
 The BC71 error usually happens when someone deleted the reimbursement line from the general journal batch before posting it. Expensify's reimbursement lines have a document number that starts with **EXPR-**.
 
-## How to fix the BC71 sync error in Business Central
+## How to resolve the BC71 sync error
 
 Contact Concierge with the report ID. Tell Concierge whether the line was deleted on purpose, for example because the reimbursement was recorded another way.
 

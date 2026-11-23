@@ -19,7 +19,7 @@ Expensify couldn't read the Business Central data saved for your workspace, such
 
 The BC77 error is a problem with the data saved in Expensify. It isn't caused by Business Central.
 
-## How to fix the BC77 sync error in Business Central
+## How to resolve the BC77 sync error
 
 Contact Concierge and include the name of the workspace.
 

@@ -19,7 +19,7 @@ Expensify asked Business Central to record an Expensify Card settlement, but Bus
 
 The BC75 error happens when Business Central sends an unexpected response. It isn't caused by your settings.
 
-## How to fix the BC75 sync error in Business Central
+## How to resolve the BC75 sync error
 
 Contact Concierge. Don't create the settlement line yourself, because Business Central might already have it.
 

@@ -21,7 +21,7 @@ The number after **Report** is the report ID. To open the report on web, press *
 
 The BC70 error is rare. It can happen when the company selected as the **Subsidiary** changes while a report's reimbursement is waiting to be posted in Business Central.
 
-## How to fix the BC70 sync error in Business Central
+## How to resolve the BC70 sync error
 
 Contact Concierge with the report ID. Concierge can check which company has the reimbursement and where it belongs.
 

@@ -21,7 +21,7 @@ The number after **Report** is the report ID. To open the report on web, press *
 
 The BC73 error happens when Business Central sends an unexpected response. It isn't caused by your settings.
 
-## How to fix the BC73 sync error in Business Central
+## How to resolve the BC73 sync error
 
 Contact Concierge with the report ID. Don't create the reimbursement line yourself, because Business Central might already have it.
 

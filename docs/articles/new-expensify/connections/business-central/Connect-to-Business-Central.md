@@ -218,7 +218,7 @@ If the values are correct but authentication still fails, update your credential
 4. Select **Enter your credentials**.
 5. Enter your updated credentials, then select **Confirm**.
 
-Learn more about [Business Central authentication errors](/new-expensify/hubs/connections/business-central/Troubleshooting/Authentication-and-Login-errors), such as BC04 and BC13.
+Learn how to [fix the BC04 sync error and other Business Central authentication errors](/articles/new-expensify/connections/business-central/Troubleshooting/Authentication-and-Login-errors/BC04-Sync-Error).
 
 ## Why does the subsidiary picker show "No companies found"?
 

@@ -19,7 +19,7 @@ Expensify couldn't read the Business Central settings saved for your workspace, 
 
 The BC68 error is a problem with the settings saved in Expensify. It isn't caused by Business Central.
 
-## How to fix the BC68 sync error in Business Central
+## How to resolve the BC68 sync error
 
 Contact Concierge and include the name of the workspace.
 

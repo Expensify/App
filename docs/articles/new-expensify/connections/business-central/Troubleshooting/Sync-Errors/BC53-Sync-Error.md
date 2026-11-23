@@ -19,7 +19,7 @@ Expensify couldn't prepare a request to send to Business Central, so it didn't s
 
 The BC53 error is a problem on Expensify's side. You can't fix it in Business Central or in your workspace settings.
 
-## How to fix the BC53 sync error in Business Central
+## How to resolve the BC53 sync error
 
 Contact Concierge. Include the name of the workspace, and the report's name if the error appeared on a report.
 
