@@ -2858,6 +2858,9 @@ const SENTRY_LABEL = {
         },
         EXPENSIFY_CARD: {
             ROW: 'WorkspaceExpensifyCard-Row',
+            LIMIT_REQUEST_CLOSE: 'WorkspaceExpensifyCard-LimitRequestClose',
+            LIMIT_REQUEST_CHOOSE_FILE: 'WorkspaceExpensifyCard-LimitRequestChooseFile',
+            LIMIT_REQUEST_CONFIRM: 'WorkspaceExpensifyCard-LimitRequestConfirm',
             BULK_ACTIONS_EXPORT_CSV: 'WorkspaceExpensifyCard-BulkActionsExportCSV',
             MORE_MENU_SETTINGS: 'WorkspaceExpensifyCard-MoreMenuSettings',
             EMPTY_STATE_ISSUE_CARD: 'WorkspaceExpensifyCard-EmptyStateIssueCard',
