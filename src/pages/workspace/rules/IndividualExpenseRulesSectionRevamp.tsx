@@ -256,7 +256,9 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <MenuItem.IconNarrow src={item.icon} />
+                                <View style={styles.mr2}>
+                                    <MenuItem.IconNarrow src={item.icon} />
+                                </View>
                             </MenuItem.Leading>
                             <MenuItem.Content>
                                 <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>
