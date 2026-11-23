@@ -668,7 +668,6 @@
 "../../src/libs/actions/OnyxUpdateManager/utils/applyUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/OnyxUpdates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/PaymentMethods.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/PersistedRequests.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/actions/PersonalCards.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -716,7 +715,7 @@
 "../../src/libs/actions/RequestConflictUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-misused-promises"	1
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
+"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3

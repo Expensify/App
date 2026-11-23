@@ -2314,7 +2314,17 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
     const {approvalWorkflows} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
     const shownApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
 
-    return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault)));
+    return shownApprovalWorkflows.some(hasNonMemberApprover);
+}
+
+/** Whether a workflow has an invalid approver, including its over-limit approver. */
+function hasNonMemberApprover(workflow: ApprovalWorkflow): boolean {
+    return workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault));
+}
+
+/** Pin Everyone first, then surface broken workflows without changing the order within either group. */
+function sortApprovalWorkflowsByErrors(workflows: ApprovalWorkflow[]): ApprovalWorkflow[] {
+    return workflows.toSorted((first, second) => Number(!!second.isDefault) - Number(!!first.isDefault) || Number(hasNonMemberApprover(second)) - Number(hasNonMemberApprover(first)));
 }
 
 /**
@@ -2370,5 +2380,6 @@ export {
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
     shouldUseApprovalWorkflowRules,
+    sortApprovalWorkflowsByErrors,
     updateWorkflowDataOnApproverRemoval,
 };

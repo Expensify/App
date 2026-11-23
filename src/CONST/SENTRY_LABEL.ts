@@ -19,6 +19,9 @@ const SENTRY_LABEL = {
     },
     DYNAMIC_FORM: {
         TABS_ITEM: 'DynamicForm-TabsItem',
+        CHOICE_FIELD: 'DynamicForm-ChoiceField',
+        CHOICE_FIELD_BACK: 'DynamicForm-ChoiceFieldBack',
+        CHOICE_FIELD_APPLY: 'DynamicForm-ChoiceFieldApply',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
         FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
@@ -107,6 +110,8 @@ const SENTRY_LABEL = {
         SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
         BIOMETRICS_TEST: 'TestToolMenu-BiometricsTest',
         BIOMETRICS_REVOKE: 'TestToolMenu-BiometricsRevoke',
+        ADD_TEST_BUSINESS_BANK_ACCOUNT: 'TestToolMenu-AddTestBusinessBankAccount',
+        ADD_TEST_PERSONAL_BANK_ACCOUNT: 'TestToolMenu-AddTestPersonalBankAccount',
     },
     BILLING_BANNER: {
         RIGHT_ICON: 'BillingBanner-RightIcon',

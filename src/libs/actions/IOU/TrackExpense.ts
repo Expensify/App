@@ -1820,6 +1820,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        shouldFlagNewTransactionForReportTable: true,
         isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
@@ -2192,6 +2193,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,

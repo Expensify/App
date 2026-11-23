@@ -1,8 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
-import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
-
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -16,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef, ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, Ref, RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
@@ -25,7 +20,12 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-type ExpenseFieldRowProps = WithRequiredSentryLabel & {
+import FormHelpMessage from './FormHelpMessage';
+import Icon from './Icon';
+import MenuItem from './MenuItem';
+import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from './MenuItem/MenuItemAccessibilityContext';
+
+type DropdownFieldRowProps = WithRequiredSentryLabel & {
     /** Name of the field. Renders small above the value, or as the placeholder when there is no value */
     name: string;
 
@@ -59,11 +59,20 @@ type ExpenseFieldRowProps = WithRequiredSentryLabel & {
     /** Error message rendered below the row. Also turns the row's border red, as it does on a text field */
     errorText?: string;
 
+    /**
+     * Whether screen readers read `errorText` itself along with the row, not only that the row needs a review.
+     * Forms that check a field as the user leaves it set this, since the message is the only way to learn what is wrong.
+     */
+    shouldReadErrorWithLabel?: boolean;
+
     /** Explanatory message rendered below the row, e.g. the commuter mileage a distance row has already deducted */
     hintText?: string;
 
     /** Opens the field's list, either in the container anchored to this row or on its own page */
     onPress?: () => void;
+
+    /** The pressable row, for a form that scrolls to and focuses its first invalid field */
+    rowRef?: Ref<ComponentRef<typeof View>>;
 
     /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
@@ -97,24 +106,31 @@ type ExpenseFieldRowProps = WithRequiredSentryLabel & {
  * Tells screen readers that the row needs a review, the way `MenuItem.BrickRoadIndicator` does on a push row.
  * The error message sits outside the focusable row and this layout draws no dot, so nothing else announces it.
  */
-function ExpenseFieldRowReviewRequiredAnnouncement() {
+function DropdownFieldRowReviewRequiredAnnouncement() {
     const {translate} = useLocalize();
     useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.REVIEW_REQUIRED, translate('common.yourReviewIsRequired'));
     return null;
 }
 
+/** Reads the error message out with the row, since the message itself sits outside the focusable row */
+function DropdownFieldRowErrorAnnouncement({message}: {message: string}) {
+    useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.ERROR, message);
+    return null;
+}
+
 /**
- * A selectable row of the expense form, rendered as one of the form's bordered fields rather than as a push row:
- * the field name stands in for the value while the field is empty, and moves above the value once one is picked.
+ * A selectable form field, rendered as a bordered box like a text input rather than as a push row: the field name
+ * stands in for the value while the field is empty, and moves above the value once one is picked.
  *
- * Tapping it opens the same selector the push row opened. The caret only says the row holds a value to pick.
+ * Tapping it opens the field's selector. The caret only says the row holds a value to pick.
  *
  * A field nobody can change stays a field: it keeps the border and reads as a disabled input, losing only the
- * caret and the press handler. That rule lives here rather than in each caller so every locked field on the form
- * looks the same. The fields backed by a text input rather than by a selector — amount, description and date —
- * reach this row only once they are locked, which is what keeps that promise true for the whole form.
+ * caret and the press handler. That rule lives here rather than in each caller so every locked field looks the
+ * same, including a field that is a text input while it can be changed.
+ *
+ * The row takes no outer margin. Each form spaces its fields itself, the same way it spaces its text inputs.
  */
-function ExpenseFieldRow({
+function DropdownFieldRow({
     name,
     value = '',
     numberOfLinesValue,
@@ -125,8 +141,10 @@ function ExpenseFieldRow({
     rightLabelIcon,
     shouldKeepRightLabelWhenFilled = false,
     errorText = '',
+    shouldReadErrorWithLabel = false,
     hintText = '',
     onPress,
+    rowRef,
     anchorRef,
     onLayout,
     isExpanded,
@@ -135,7 +153,7 @@ function ExpenseFieldRow({
     backgroundStyle,
     sentryLabel,
     testID,
-}: ExpenseFieldRowProps) {
+}: DropdownFieldRowProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -202,6 +220,7 @@ function ExpenseFieldRow({
     const borderedBox = (
         <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
             <MenuItem.Root
+                ref={rowRef}
                 style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
                 // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
@@ -214,14 +233,15 @@ function ExpenseFieldRow({
                 sentryLabel={sentryLabel}
                 testID={testID}
             >
-                {!!errorText && <ExpenseFieldRowReviewRequiredAnnouncement />}
+                {!!errorText && <DropdownFieldRowReviewRequiredAnnouncement />}
+                {!!errorText && shouldReadErrorWithLabel && <DropdownFieldRowErrorAnnouncement message={errorText} />}
                 {row}
             </MenuItem.Root>
         </Animated.View>
     );
 
     return (
-        <View style={[styles.mh4, styles.mv2]}>
+        <View>
             {anchorRef || onLayout ? (
                 <View
                     ref={anchorRef}
@@ -237,5 +257,5 @@ function ExpenseFieldRow({
     );
 }
 
-export default ExpenseFieldRow;
-export type {ExpenseFieldRowProps};
+export default DropdownFieldRow;
+export type {DropdownFieldRowProps};
