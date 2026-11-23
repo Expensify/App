@@ -5,16 +5,15 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -55,7 +54,6 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: getStableReportSelector});
     const participantAccountIDs = [currentUserAccountID, Number(reportAction.actorAccountID)];
-    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector(participantAccountIDs));
 
     const isAgentProcessingInThread = !!processingAgentIDs?.length;
 
@@ -85,7 +83,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                             navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
                             return;
                         }
-                        const participantsPersonalDetails = getParticipantsPersonalDetails(participantAccountIDs, personalDetails);
+                        const participantsPersonalDetails = getParticipantsPersonalDetails(participantAccountIDs, getAllPersonalDetails());
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}
                     role={CONST.ROLE.BUTTON}

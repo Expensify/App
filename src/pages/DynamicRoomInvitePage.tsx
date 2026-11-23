@@ -14,7 +14,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -34,6 +34,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
@@ -45,7 +47,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -146,7 +148,6 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         acc[login] = accountID;
         return acc;
     }, {} as MemberEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
@@ -172,7 +173,8 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                             delegateAccountID,
                         );
                     } else {
-                        inviteToRoom(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
+                        const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, getAllPersonalDetails());
+                        inviteToRoom(report, invitedEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
                     }
                 };
                 Navigation.goBack(backRoute, {afterTransition});

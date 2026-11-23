@@ -11,7 +11,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -25,6 +25,8 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName} from '@libs/ReportNameUtils';
 import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay, getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
@@ -32,7 +34,7 @@ import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay, getPendin
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
 import {accountIDSelector} from '@src/selectors/Session';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -139,13 +141,13 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         acc[login] = accountID;
         return acc;
     }, {} as InvitedEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
             return;
         }
-        inviteToGroupChat(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
+        const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, getAllPersonalDetails());
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, newAccountIDs, newLogins, formatPhoneNumber);
         goBack();
     };
 

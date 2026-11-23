@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails, usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -32,6 +32,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -115,8 +116,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
     // Bulk member actions (remove, change role) only exist for group chats, so expense reports always render the invite button instead.
     const shouldShowBulkActionsButton = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
-    const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
     // The Table stores selection as string keys, while this page tracks accountIDs as numbers.
     const onRowSelectionChange = (keys: string[]) => setSelectedMembers(keys.map(Number));
@@ -155,7 +154,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('workspace.people.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
+                memberName: formatPhoneNumber(getPersonalDetail(selectedMembers.at(0))?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),

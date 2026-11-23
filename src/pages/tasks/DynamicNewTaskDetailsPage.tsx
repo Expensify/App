@@ -13,13 +13,14 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {getCommentLength} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
@@ -41,7 +42,6 @@ function DynamicNewTaskDetailsPage() {
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [taskCreatorAndAssigneeDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID]);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const accountIDToName = useAccountIDToNameMap();
@@ -98,7 +98,7 @@ function DynamicNewTaskDetailsPage() {
                 isCreatedUsingMarkdown: false,
                 quickAction,
                 ancestors,
-                taskCreatorAndAssigneeDetails,
+                taskCreatorAndAssigneeDetails: getPersonalDetailsListByIDs([currentUserPersonalDetails.accountID, task.assigneeAccountID], getAllPersonalDetails()),
             });
         } else {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK.path));

@@ -1,7 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {close} from '@libs/actions/Modal';
@@ -11,6 +10,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -90,7 +91,6 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
     const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
-    const [personalDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails?.accountID, iouAction?.actorAccountID]);
 
     // A tracked expense lives in a chat, not an expense report. Leaving iouReportID undefined tells
     // navigateToCreatedExpense to open the transaction thread directly instead of an expense report RHP.
@@ -152,7 +152,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
                 iouReport,
                 iouReportAction: iouAction,
                 transaction,
-                personalDetails,
+                personalDetails: getPersonalDetailsListByIDs([currentUserPersonalDetails?.accountID, iouAction?.actorAccountID], getAllPersonalDetails()),
                 fullPolicySnapshotLastModified,
             });
             threadReportID = optimisticThread?.reportID;

@@ -21,7 +21,6 @@ import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import type {StartWithLoading} from '@hooks/usePressLoading';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
@@ -34,6 +33,8 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
@@ -113,12 +114,6 @@ function SearchEditMultiplePage() {
     const [allPolicyTagsLoadingStates] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [personalDetailsList] = usePersonalDetailsByIDs(
-        selectedTransactionIDs.map((transactionID) => {
-            const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
-            return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
-        }),
-    );
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -327,6 +322,10 @@ function SearchEditMultiplePage() {
         setIsSaving(true);
 
         const applyChanges = () => {
+            const ownerAccountIDs = selectedTransactionIDs.map((transactionID) => {
+                const iouReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+                return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]?.ownerAccountID;
+            });
             updateMultipleMoneyRequests({
                 isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionIDs,
@@ -346,7 +345,7 @@ function SearchEditMultiplePage() {
                 currentUserAccountID,
                 delegateAccountID,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
-                personalDetailsList,
+                personalDetailsList: getPersonalDetailsListByIDs(ownerAccountIDs, getAllPersonalDetails()),
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 rules,

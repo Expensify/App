@@ -22,7 +22,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,6 +36,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -111,8 +111,6 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
-    const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = usePersonalDetail(firstSelectedMember);
 
     const clearTableSelection = () => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -176,7 +174,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             }),
             prompt: translate('roomMembersPage.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
+                memberName: formatPhoneNumber(getPersonalDetail(selectedMembers.at(0))?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),

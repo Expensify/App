@@ -8,7 +8,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +18,7 @@ import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
@@ -90,7 +90,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     });
     const [travelCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
-    const [accountIDToLogin] = useAllPersonalDetails(accountIDToLoginSelector(reportsToArchive));
 
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
@@ -213,7 +212,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
                 personalPolicyID,
                 hasDeleteWorkspaceExpensifyCardsError,
                 currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                accountIDToLogin: accountIDToLogin ?? {},
+                accountIDToLogin: accountIDToLoginSelector(reportsToArchive)(getAllPersonalDetails()),
             });
 
             if (hasDeleteWorkspaceExpensifyCardsError) {

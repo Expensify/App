@@ -1,4 +1,4 @@
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -19,18 +19,17 @@ type DomainMemberTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavig
 function DomainMemberResetTwoFactorAuthPage({route}: DomainMemberTwoFactorAuthPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const [personalDetails] = usePersonalDetail(accountID);
-
     return (
         <BaseDomainRequireTwoFactorAuthPage
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.RESET_TWO_FACTOR_AUTH_SUBMIT}
             domainAccountID={domainAccountID}
             onSubmit={(code: string) => {
-                if (!personalDetails?.login) {
+                const login = getPersonalDetail(accountID)?.login;
+                if (!login) {
                     return;
                 }
 
-                resetDomainMemberTwoFactorAuth(domainAccountID, accountID, personalDetails.login, code);
+                resetDomainMemberTwoFactorAuth(domainAccountID, accountID, login, code);
                 Navigation.dismissModal();
             }}
             onBackButtonPress={() => {
