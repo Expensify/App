@@ -74,7 +74,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     }
     const isCurrentRoomMention = reportID === currentReportIDValue;
 
-    const flattenStyle = StyleSheet.flatten(style);
+    const flattenStyle = StyleSheet.flatten(style) ?? {};
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (

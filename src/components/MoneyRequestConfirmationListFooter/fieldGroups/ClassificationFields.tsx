@@ -147,7 +147,7 @@ function ClassificationFields({
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
-                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.date}
                     transactionID={transactionID}
                     action={action}
                     iouType={iouType}

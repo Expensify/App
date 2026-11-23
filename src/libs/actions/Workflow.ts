@@ -105,7 +105,12 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
 
     // A default workflow's first approver is the policy's default approver, which only needs sending when it changes
     const newDefaultApprover = approvalWorkflow.isDefault && firstApprover !== previousDefaultApprover ? firstApprover : undefined;
-    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
+    const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+        previousEmployeeList,
+        approvalWorkflow,
+        type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE,
+        defaultApprover: previousDefaultApprover,
+    });
 
     // If there are no changes to the employees list or the default approver, we can exit early
     if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {

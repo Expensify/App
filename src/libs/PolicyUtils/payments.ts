@@ -104,6 +104,19 @@ function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeo
     }
 }
 
+/**
+ * Whether the server will refuse to switch this workspace to `currency` because the workspace uses Direct reimbursement.
+ * Checking first lets the currency picker explain the block instead of sending a change that the server rejects.
+ */
+function isCurrencyChangeBlockedByDirectReimbursement(policy: OnyxInputOrEntry<Policy>, currency: string): boolean {
+    if (getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || currency === policy?.outputCurrency) {
+        return false;
+    }
+
+    const allowedCurrencies: readonly string[] = CONST.CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE;
+    return !allowedCurrencies.includes(currency);
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
@@ -191,6 +204,7 @@ export {
     isPolicyPayer,
     canAdminPayReport,
     getReimbursementChoice,
+    isCurrencyChangeBlockedByDirectReimbursement,
     arePaymentsEnabled,
     hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,

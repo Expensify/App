@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -57,6 +58,11 @@ type ReceiptRetryContext = {
     introSelected: OnyxEntry<IntroSelected>;
 };
 
+/** The retry context plus the data that is only read when the retry is dispatched, not while rendering. */
+type ReceiptRetryDispatchContext = ReceiptRetryContext & {
+    personalDetailsByLogins: PersonalDetailsByLogin;
+};
+
 type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed';
 
-export type {ReceiptRetryContext, ResolveReceiptFile, RetryOutcome};
+export type {ReceiptRetryContext, ReceiptRetryDispatchContext, ResolveReceiptFile, RetryOutcome};

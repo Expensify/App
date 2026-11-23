@@ -1,6 +1,6 @@
 import type {LabelItem, ResolvedPieLabel} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-import type {Color} from '@shopify/react-native-skia';
+import type {Color} from 'react-native-skia';
 import type {PieSliceData} from 'victory-native';
 
 import React from 'react';

@@ -46,7 +46,7 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     });
 };
 
-const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
+const dismissKeyboardAndExecute = (cb: () => void | Promise<void>): Promise<void> => {
     return new Promise((resolve) => {
         // For iOS and other platforms, execute callback immediately
         cb();

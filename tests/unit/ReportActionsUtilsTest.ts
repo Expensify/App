@@ -2392,18 +2392,12 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds were returned. You can retry the payment.');
         });
 
-        it.each([
-            [
-                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
-                'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-            ],
-            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'The review is complete and your payment is on its way. The final FX rate may change the amount.'],
-        ] as const)('should show the App copy for %s', (actionName, expectedMessage) => {
-            // Given a Wise hold or release action, which carries no fields
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
                 originalMessage: {},
             };
 
@@ -2411,7 +2405,42 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it uses the approved App copy instead of Auth's English fallback
-            expect(message).toBe(expectedMessage);
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
         });
 
         it.each([
@@ -7036,6 +7065,54 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
+
+        it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
+            // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: '',
+                    newValue: 'id_STANDARD_VAT_(20%)',
+                    oldTaxPercentage: '',
+                    newTaxPercentage: '20%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the percentage is shown once
+            expect(actual).toBe('added the tax rate "id_STANDARD_VAT_(20%)" to the distance rate "Default Rate"');
+        });
+
+        it('should not repeat the percentage when the previous tax rate of a rate already ends with it', () => {
+            // Given a rate moved from a tax rate whose code ends with its percentage to one whose code doesn't
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'id_STANDARD_VAT_(20%)',
+                    newValue: 'id_TAX_RATE_1',
+                    oldTaxPercentage: '20%',
+                    newTaxPercentage: '5%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the previous tax rate shows its percentage once, and the new one still gets its percentage added
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "id_TAX_RATE_1 (5%)" (previously "id_STANDARD_VAT_(20%)")');
+        });
     });
 
     describe('getWorkspaceCustomUnitUpdatedMessage', () => {
@@ -8025,6 +8102,29 @@ describe('ReportActionsUtils', () => {
 
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
+        });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
         });
     });
 
