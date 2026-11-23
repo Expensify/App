@@ -13260,7 +13260,8 @@ function getAncestors(
     const ancestors: Ancestor[] = [];
 
     for (const {reportID, reportActionID, report: ancestorReport} of getParentReportChain(report, reportCollection, reportDraftCollection)) {
-        const ancestorReportAction = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
+        const ancestorReportActions = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+        const ancestorReportAction = ancestorReportActions?.[reportActionID];
         if (!ancestorReportAction || shouldExcludeAncestorReportActionCallback(ancestorReportAction, ancestors.length === 0)) {
             return ancestors;
         }
@@ -13269,7 +13270,8 @@ function getAncestors(
         ancestors.unshift({
             report: ancestorReport,
             reportAction: ancestorReportAction,
-            shouldDisplayNewMarker: isCurrentActionUnread(ancestorReport, ancestorReportAction),
+            // Pass the actions we were given, so the marker is decided from the same data the caller subscribed to.
+            shouldDisplayNewMarker: isCurrentActionUnread(ancestorReport, ancestorReportAction, getSortedReportActions(Object.values(ancestorReportActions ?? {}))),
         });
     }
 

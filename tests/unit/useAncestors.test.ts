@@ -136,6 +136,40 @@ describe('useAncestors', () => {
         expect(result.current.at(0)?.report.reportName).toBe('Renamed');
     });
 
+    test('stops at a missing ancestor action and extends the chain once it arrives', async () => {
+        // Given report 3, whose parent action in report 2 is not loaded yet, so only the actions below it are shown
+        const missingParentActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const;
+        const missingParentActions = mockReportActions[missingParentActionsKey];
+        await act(async () => {
+            await Onyx.multiSet(createMock<OnyxMultiSetInput>({...mockReports, ...mockReportActions, [missingParentActionsKey]: null}));
+        });
+        let renderCount = 0;
+        const {result} = renderHook(() => {
+            renderCount++;
+            return useAncestors(mockReports[`${ONYXKEYS.COLLECTION.REPORT}3`]);
+        });
+        await waitForBatchedUpdates();
+        const renderCountBefore = renderCount;
+        expect(result.current).toEqual([]);
+
+        // When the action of report 1, above the missing one, changes
+        await act(async () => {
+            const topAncestorActionID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {[topAncestorActionID]: {message: [{type: 'COMMENT', html: 'edited', text: 'edited'}]}});
+        });
+
+        // Then nothing above the missing action is shown, so the caller does not re-render
+        expect(renderCount).toBe(renderCountBefore);
+
+        // When the missing parent action arrives
+        await act(async () => {
+            await Onyx.merge(missingParentActionsKey, missingParentActions);
+        });
+
+        // Then the chain extends up to the top ancestor
+        expect(result.current.map(({reportAction}) => reportAction.reportActionID)).toEqual(['1', '2']);
+    });
+
     test('follows the chain through a parent that only exists as a report draft', async () => {
         // Given a report whose parent is a draft, and the draft's parent is a saved report
         const rootAction: ReportAction = {reportActionID: 'rootAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()};

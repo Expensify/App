@@ -3385,7 +3385,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
 }
 
 /**
- * Finds the action sorted right before the given one, which decides whether the given one is the first unread action.
+ * Finds the action just before the given one in the given list, which decides whether the given one is the first unread action.
  * Shared by isCurrentActionUnread and the useAncestors selector, so both look at the same action.
  */
 function getReportActionBefore(sortedReportActions: ReportAction[], reportActionID: string): {isFound: boolean; previousReportAction: ReportAction | undefined} {
