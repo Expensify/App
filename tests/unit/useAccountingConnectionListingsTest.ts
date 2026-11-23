@@ -41,6 +41,8 @@ jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
 jest.mock('@pages/workspace/accounting/utils', () => ({
     getAccountingIntegrationData: (name: string) => ({title: name}),
     getActiveIntegrationToConnect: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getActiveIntegrationToConnect,
+    getAvailableAccountingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getAvailableAccountingIntegrations,
+    getConnectedAndSyncingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getConnectedAndSyncingIntegrations,
     getSynchronizationErrorMessage: () => undefined,
     isIntuitEnterpriseSuiteConnection: () => false,
 }));
