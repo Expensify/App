@@ -137,12 +137,13 @@ function DynamicIOURequestStepMerchant({
         // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
         // re-render every subscriber of that key for nothing.
         if (isEditing) {
-            const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+            const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, parentReportNameValuePairs] = await Onyx.multiGet([
                 ONYXKEYS.COLLECTION.RULE,
                 `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
                 `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
                 `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
                 ONYXKEYS.NVP_INTRO_SELECTED,
+                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(parentReport?.reportID)}`,
             ]);
             updateMoneyRequestMerchant({
                 isVendorMatchingBetaEnabled,
@@ -166,6 +167,7 @@ function DynamicIOURequestStepMerchant({
                 getCurrencyDecimals,
                 getCurrencySymbol,
                 rules,
+                parentReportNameValuePairs,
             });
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);

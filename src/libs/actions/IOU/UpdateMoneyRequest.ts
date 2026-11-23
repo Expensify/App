@@ -99,6 +99,8 @@ type UpdateMoneyRequestDateParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
+    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -256,6 +258,7 @@ function updateMoneyRequestDate({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    parentReportNameValuePairs,
 }: UpdateMoneyRequestDateParams) {
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
     const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
@@ -355,6 +358,7 @@ function updateMoneyRequestDate({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            iouReportNameValuePairs: parentReportNameValuePairs,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -556,6 +560,7 @@ function updateMoneyRequestMerchant({
     getCurrencySymbol,
     rules,
     isVendorMatchingBetaEnabled,
+    parentReportNameValuePairs,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
@@ -579,6 +584,8 @@ function updateMoneyRequestMerchant({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
+    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -622,6 +629,7 @@ function updateMoneyRequestMerchant({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            iouReportNameValuePairs: parentReportNameValuePairs,
         });
     }
     const {params, onyxData} = data;
@@ -1437,6 +1445,7 @@ function updateMoneyRequestDescription({
     rules,
     isVendorMatchingBetaEnabled,
     policyVendors,
+    parentReportNameValuePairs,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
@@ -1460,6 +1469,8 @@ function updateMoneyRequestDescription({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    /** RNVP of `parentReport`. Falls back to the module-level Onyx cache when omitted */
+    parentReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -1504,6 +1515,7 @@ function updateMoneyRequestDescription({
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
+            iouReportNameValuePairs: parentReportNameValuePairs,
         });
     }
     const {params, onyxData} = data;
@@ -1817,6 +1829,8 @@ type GetUpdateMoneyRequestParamsType = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     policyVendors?: OnyxEntry<OnyxTypes.PolicyVendors>;
+    /** RNVP of `iouReport`. Falls back to the module-level Onyx cache when omitted */
+    iouReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1871,6 +1885,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         rules,
         isVendorMatchingBetaEnabled,
         policyVendors: policyVendorsParam,
+        iouReportNameValuePairs,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2129,6 +2144,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         getCurrencyDecimals,
         updatedReportAction?.actorAccountID,
         transactionChanges,
+        undefined,
+        iouReportNameValuePairs,
     );
 
     optimisticData.push(
