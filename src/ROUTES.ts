@@ -3785,12 +3785,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
-            }
-            return `workspaces/${policyID}/accounting` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
     },
     WORKSPACE_CONNECTIONS: {
         route: 'workspaces/:policyID/connections',
