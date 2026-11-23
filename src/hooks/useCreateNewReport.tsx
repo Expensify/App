@@ -25,18 +25,17 @@ function useCreateNewReport() {
 
     return (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        return createNewReport(
-            currentUserPersonalDetails,
+        return createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             // A new report has no expenses yet, so it can't have violations.
-            false,
+            hasViolations: false,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
     };
 }
 

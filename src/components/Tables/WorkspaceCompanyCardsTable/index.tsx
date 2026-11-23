@@ -238,6 +238,7 @@ function WorkspaceCompanyCardsTable({
                     ];
                 },
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         {
@@ -263,7 +264,6 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
-                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
@@ -285,7 +285,8 @@ function WorkspaceCompanyCardsTable({
             label: '',
             sortable: false,
             styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.pr3],
             },
             // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
             // content while at least one row can render the button.

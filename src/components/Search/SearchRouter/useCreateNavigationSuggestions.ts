@@ -152,17 +152,16 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 clearLastSearchParams();
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                false,
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
-                false,
                 shouldDismissEmptyReportsConfirmation,
-            );
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});

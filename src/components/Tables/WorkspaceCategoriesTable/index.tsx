@@ -10,9 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -75,7 +76,7 @@ export default function WorkspaceCategoriesTable({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey>> = [
+    const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
@@ -84,6 +85,10 @@ export default function WorkspaceCategoriesTable({
                 // editableCellHeader matches the padded name cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
@@ -91,6 +96,9 @@ export default function WorkspaceCategoriesTable({
                       key: 'glCode' as const,
                       label: translate('workspace.categories.glCode'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceCategoryTableRowData) => (item.glCode ? [{text: item.glCode, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -100,6 +108,12 @@ export default function WorkspaceCategoriesTable({
                       key: 'approver' as const,
                       label: translate('common.approver'),
                       sortable: true,
+                      dynamicSizing: {
+                          // The row only renders the approver, avatar included, when it has both a name and an account.
+                          getContentToMeasure: (item: WorkspaceCategoryTableRowData) =>
+                              item.approverDisplayName && item.approverAccountID ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : [],
+                          extraWidth: variables.tableInlineAvatarCellWidth,
+                      },
                   },
               ]
             : []),
@@ -109,7 +123,7 @@ export default function WorkspaceCategoriesTable({
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
         {
@@ -166,6 +180,8 @@ export default function WorkspaceCategoriesTable({
     return (
         <Table
             ref={ref}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_CATEGORIES}
             data={categories}
             initialSortColumn="name"
             selectionEnabled={selectionEnabled}
