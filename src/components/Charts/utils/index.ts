@@ -1,5 +1,5 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
-import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
+import type {ChartDataPoint, LabelRotation, PieSlice, YAxisTickStep} from '@components/Charts/types';
 import VictoryTheme, {
     CHART_Y_SCALE_HEIGHT,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
@@ -9,14 +9,15 @@ import VictoryTheme, {
     MAX_X_AXIS_LABEL_WIDTH,
     SIN_45,
     WRAPPED_LABEL_ELLIPSIS,
+    X_AXIS_LABEL_MIN_GAP,
 } from '@components/Charts/VictoryTheme';
 
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from 'react-native-skia';
 
-import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
+import {FontStyle, FontWeight, Skia, TextAlign} from 'react-native-skia';
 
 import getDrawablePieData from './getDrawablePieData';
 import getLineRuns from './getLineRuns';
@@ -474,7 +475,8 @@ function getSteppedYAxisTicks(domain: [number, number], tickCount: number, step:
  * Y-axis ticks, tick count and domain of a cartesian chart. With a `step`, the ticks stay on its multiples and the domain stretches to the outermost tick,
  * so the axis ends on a label. Without one, the axis takes the default tick count over the data's own domain.
  */
-function getYAxisTickLayout(domain: [number, number], step: number | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+function getYAxisTickLayout(domain: [number, number], tickStep: YAxisTickStep | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+    const step = typeof tickStep === 'function' ? tickStep(domain[1]) : tickStep;
     if (!step) {
         return {ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain};
     }
@@ -562,6 +564,38 @@ function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepPa
     return candidates.find(fits) ?? Math.max(1, pointXs.length);
 }
 
+type SteppedLabelLayoutParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    lineHeight: number;
+
+    ellipsisWidth: number;
+};
+
+/**
+ * Label layout for a time axis whose labels stay horizontal and untruncated, labeling only every Nth point so they don't overlap.
+ * It has the same shape as `useChartLabelLayout`'s result, so a chart can use either one.
+ */
+function getSteppedLabelLayout({labelWidths, pointXs, steps, lineHeight, ellipsisWidth}: SteppedLabelLayoutParams) {
+    return {
+        labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+        labelSkipInterval: getAxisLabelStep({labelWidths, pointXs, steps, minGap: X_AXIS_LABEL_MIN_GAP}),
+        truncatedLabelWidths: labelWidths,
+        xAxisLabelHeight: lineHeight,
+        regularLabelMaxWidth: Infinity,
+        firstLabelMaxWidth: Infinity,
+        lastLabelMaxWidth: Infinity,
+        ellipsisWidth,
+    };
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -615,4 +649,5 @@ export {
     getBarLayout,
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,
+    getSteppedLabelLayout,
 };

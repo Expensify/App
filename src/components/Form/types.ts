@@ -8,15 +8,19 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
+import type CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import type DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type LabelledFileUploadAdapter from '@components/DynamicForm/adapters/LabelledFileUploadAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type MenuItemFieldInput from '@components/MenuItemFieldInput';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
@@ -40,7 +44,6 @@ import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInf
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
-import type NetSuiteMenuWithTopDescriptionForm from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteMenuWithTopDescriptionForm';
 import type InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
 import type TypeSelector from '@pages/workspace/reports/TypeSelector';
 import type TaxValuePicker from '@pages/workspace/taxes/TaxValuePicker';
@@ -89,7 +92,7 @@ type ValidInputs =
     | typeof EmojiPickerButtonDropdown
     | typeof NetSuiteCustomListPicker
     | typeof NetSuiteCustomFieldMappingPicker
-    | typeof NetSuiteMenuWithTopDescriptionForm
+    | typeof MenuItemFieldInput
     | typeof InitialListValueSelector
     | typeof TypeSelector
     | typeof CountryPicker
@@ -100,6 +103,9 @@ type ValidInputs =
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
+    | typeof DropdownChoiceAdapter
+    | typeof CurrencyDropdownAdapter
+    | typeof MultiChoiceDropdownAdapter
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter
@@ -174,7 +180,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Controls the submit button's visibility */
         isSubmitButtonVisible?: boolean;
 
-        onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        onSubmit: (values: FormOnyxValues<TFormID>) => void | Promise<void>;
 
         /** Should the button be enabled when offline */
         enabledWhenOffline?: boolean;
@@ -227,12 +233,14 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
+    /** Delay by the keyboard transition duration by default; pass false when the keyboard has finished opening. */
+    scrollTo: (y: number, shouldDelayScroll?: boolean) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

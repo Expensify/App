@@ -1,7 +1,7 @@
 import type {SearchQueryString} from '@components/Search/types';
 
-import {makeRequestWithSideEffects, waitForWrites, write} from '@libs/API';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getCachedInsightsExplanation} from '@libs/InsightsExplanationUtils';
 import Log from '@libs/Log';
@@ -35,7 +35,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
             value: {
                 errors: null,
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         })),
     ];
@@ -82,19 +82,6 @@ function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryStri
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-/** Stores the dashboard's filters locally and on the server, for changes that don't trigger a GetInsights call to save them */
-function saveInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SEARCH_FILTERS,
-            value: {[searchKey]: {query}},
-        },
-    ];
-
-    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
-}
-
 function preloadInsightsExplanation(jsonQuery: string, hash: number): Promise<string | undefined> {
     const pending = pendingExplanations.get(jsonQuery);
     if (pending) {
@@ -128,4 +115,4 @@ function preloadInsightsExplanation(jsonQuery: string, hash: number): Promise<st
     return request;
 }
 
-export {getInsights, preloadInsightsExplanation, saveInsightsFilters, setInsightsFilters};
+export {getInsights, preloadInsightsExplanation, setInsightsFilters};

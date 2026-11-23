@@ -19,6 +19,9 @@ const SENTRY_LABEL = {
     },
     DYNAMIC_FORM: {
         TABS_ITEM: 'DynamicForm-TabsItem',
+        CHOICE_FIELD: 'DynamicForm-ChoiceField',
+        CHOICE_FIELD_BACK: 'DynamicForm-ChoiceFieldBack',
+        CHOICE_FIELD_APPLY: 'DynamicForm-ChoiceFieldApply',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
         FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
@@ -83,6 +86,9 @@ const SENTRY_LABEL = {
         FLIP_BUTTON: 'NumberWithSymbolForm-FlipButton',
         CURRENCY_BUTTON: 'NumberWithSymbolForm-CurrencyButton',
         INPUT: 'NumberWithSymbolForm-Input',
+    },
+    KEYPAD_AMOUNT_EDITOR: {
+        INPUT: 'KeypadAmountEditor-Input',
     },
     TEST_TOOL_MENU: {
         INVALIDATE_AUTH_TOKEN: 'TestToolMenu-InvalidateAuthToken',
@@ -197,6 +203,9 @@ const SENTRY_LABEL = {
         CTA: 'ProductMarketingWindow-CTA',
         DISMISS: 'ProductMarketingWindow-Dismiss',
     },
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        CREATE: 'NewReportWorkspaceSelection-Create',
+    },
     NAVIGATION_TAB_BAR: {
         EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
         INBOX: 'NavigationTabBar-Inbox',
@@ -211,6 +220,12 @@ const SENTRY_LABEL = {
         FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
         FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         SUPPORTAL_SWITCHER_BUTTON: 'NavigationTabBar-SupportalSwitcherButton',
+        MORE_MENU: {
+            ACCOUNTING: 'NavigationTabBar-MoreMenu-Accounting',
+            SAVED: 'NavigationTabBar-MoreMenu-Saved',
+            INSIGHTS: 'NavigationTabBar-MoreMenu-Insights',
+            WORKSPACES: 'NavigationTabBar-MoreMenu-Workspaces',
+        },
     },
     FAB_MENU: {
         CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -787,11 +802,16 @@ const SENTRY_LABEL = {
         GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
         SORTABLE_HEADER: 'Search-SortableHeader',
         COLUMN_MENU: 'Search-ColumnMenu',
-        COLUMN_MENU_SORT_ASCENDING: 'Search-ColumnMenu-SortAscending',
-        COLUMN_MENU_SORT_DESCENDING: 'Search-ColumnMenu-SortDescending',
-        COLUMN_MENU_HIDE_COLUMN: 'Search-ColumnMenu-HideColumn',
-        COLUMN_MENU_EDIT_COLUMNS: 'Search-ColumnMenu-EditColumns',
-        COLUMN_MENU_RESET_COLUMN_SIZES: 'Search-ColumnMenu-ResetColumnSizes',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'Search-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'Search-ColumnMenu-SortDescending',
+            HIDE_COLUMN: 'Search-ColumnMenu-HideColumn',
+            EDIT_COLUMNS: 'Search-ColumnMenu-EditColumns',
+            RESET_COLUMN_SIZES: 'Search-ColumnMenu-ResetColumnSizes',
+            PIN_LEFT: 'Search-ColumnMenu-PinLeft',
+            PIN_RIGHT: 'Search-ColumnMenu-PinRight',
+            UNPIN: 'Search-ColumnMenu-Unpin',
+        },
         UNREPORTED_EXPENSE_LIST_ITEM: 'Search-UnreportedExpenseListItem',
         WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         STATIC_LIST_ITEM: 'Search-StaticListItem',
@@ -882,6 +902,7 @@ const SENTRY_LABEL = {
         BILLABLE_FIELD: 'SearchEditMultiple-BillableField',
         REIMBURSABLE_FIELD: 'SearchEditMultiple-ReimbursableField',
         ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
+        BOOLEAN_DROPDOWN_BACK_BUTTON: 'SearchEditMultiple-BooleanDropdownBackButton',
         SAVE_BUTTON: 'SearchEditMultiple-SaveButton',
     },
     INSIGHTS: {
@@ -1033,6 +1054,14 @@ const SENTRY_LABEL = {
         MONEY_REPORT_HEADER_SELECTION_DROPDOWN: 'Report-MoneyReportHeaderSelectionDropdown',
         SELECTION_TOOLBAR_DROPDOWN: 'Report-SelectionToolbarDropdown',
         COLUMNS_BUTTON: 'Report-ColumnsButton',
+        COLUMN_MENU: 'Report-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'Report-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'Report-ColumnMenu-SortDescending',
+            HIDE_COLUMN: 'Report-ColumnMenu-HideColumn',
+            EDIT_COLUMNS: 'Report-ColumnMenu-EditColumns',
+            RESET_COLUMN_SIZES: 'Report-ColumnMenu-ResetColumnSizes',
+        },
         GROUP_BY_BUTTON: 'Report-GroupByButton',
         GROUP_HEADER_CHECKBOX: 'Report-GroupHeaderCheckbox',
         TABLE_HEADER_SELECT_ALL: 'Report-TableHeaderSelectAll',
@@ -1155,6 +1184,11 @@ const SENTRY_LABEL = {
     },
     TABLE_HEADER: {
         SORTABLE_COLUMN: 'TableHeader-SortableColumn',
+        COLUMN_MENU: 'TableHeader-ColumnMenu',
+        COLUMN_MENU_ITEM: {
+            SORT_ASCENDING: 'TableHeader-ColumnMenu-SortAscending',
+            SORT_DESCENDING: 'TableHeader-ColumnMenu-SortDescending',
+        },
     },
     SELECTION_LIST: {
         BASE_LIST_ITEM: 'SelectionList-BaseListItem',
@@ -1563,6 +1597,12 @@ const SENTRY_LABEL = {
     TAX_PICKER_MODAL: {
         BACK_BUTTON: 'TaxPickerModal-BackButton',
     },
+    CREATE_DISTANCE_RATE: {
+        COUNTRY_FIELD: 'CreateDistanceRate-CountryField',
+        COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
+        KIND_GOVERNMENT_TAB: 'CreateDistanceRate-KindTab-Government',
+        KIND_CUSTOM_TAB: 'CreateDistanceRate-KindTab-Custom',
+    },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
     },
@@ -1942,6 +1982,8 @@ const SENTRY_LABEL = {
             SETTINGS_GL_CODE: 'WorkspaceCategories-SettingsGLCode',
             SETTINGS_NAME: 'WorkspaceCategories-SettingsName',
             SETTINGS_PAYROLL_CODE: 'WorkspaceCategories-SettingsPayrollCode',
+            SETTINGS_VISIBLE_TO: 'WorkspaceCategories-SettingsVisibleTo',
+            VISIBLE_TO_SAVE: 'WorkspaceCategories-VisibleToSave',
             SETTINGS_RULE_ROW: {
                 FLAG_FOR_REVIEW: 'WorkspaceCategories-SettingsRuleRow-FlagForReview',
                 REQUIRE_FIELDS: 'WorkspaceCategories-SettingsRuleRow-RequireFields',
@@ -2730,6 +2772,14 @@ const SENTRY_LABEL = {
             AUTO_APPROVE_REPORTS_UNDER: 'WorkspaceRules-AutoApproveReportsUnder',
             AUTO_PAY_REPORTS_UNDER: 'WorkspaceRules-AutoPayReportsUnder',
             MERCHANT_RULE_CATEGORY_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleCategoryToMatchSave',
+            MERCHANT_RULE_CARD_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleCardToMatchSave',
+            MERCHANT_RULE_CURRENCY_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleCurrencyToMatchSave',
+            MERCHANT_RULE_HAS_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleHasToMatchSave',
+            MERCHANT_RULE_MERCHANT_TYPE_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleMerchantTypeToMatchSave',
+            MERCHANT_RULE_SUBMITTER_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleSubmitterToMatchSave',
+            MERCHANT_RULE_TAX_RATE_TO_MATCH_SAVE: 'WorkspaceRules-MerchantRuleTaxRateToMatchSave',
+            MERCHANT_RULE_AMOUNT_MATCH_TYPE: 'WorkspaceRules-MerchantRuleAmountMatchType',
+            MERCHANT_RULE_DATE_MATCH_TYPE: 'WorkspaceRules-MerchantRuleDateMatchType',
             MERCHANT_RULE_MATCH_TYPE: 'WorkspaceRules-MerchantRuleMatchType',
             RANDOM_REPORT_AUDIT: 'WorkspaceRules-RandomReportAudit',
             SPEND_RULE_CARD_SAVE: 'WorkspaceRules-SpendRuleCardSave',
@@ -2769,6 +2819,7 @@ const SENTRY_LABEL = {
             SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
             SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
             DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
+            DESCRIBE_RULE_INPUT: 'WorkspaceRules-DescribeRuleInput',
             SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
             SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
             AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
@@ -2996,6 +3047,7 @@ const SENTRY_LABEL = {
     },
     ONBOARDING: {
         HELP_DROPDOWN: 'Onboarding-HelpDropdown',
+        OUTER_AREA: 'Onboarding-OuterArea',
         MERGING_ACCOUNT_BLOCKED_CONFIRM: 'Onboarding-MergingAccountBlockedConfirm',
         INTERESTED_FEATURES_ITEM: {
             CATEGORIES: 'Onboarding-InterestedFeaturesItem-Categories',
@@ -3293,6 +3345,7 @@ const SENTRY_LABEL = {
         DATE_OF_BIRTH: 'SettingsProfile-DateOfBirth',
         PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
         ADDRESS: 'SettingsProfile-Address',
+        ADDRESS_STATE_OR_PROVINCE: 'SettingsProfile-AddressStateOrProvince',
         TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
         AI_PROMPT: 'SettingsProfile-AIPrompt',
         AI_PROMPT_SAVE: 'SettingsProfile-AIPromptSave',
