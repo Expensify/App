@@ -1,7 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
-import {buildAccountIDToNameMap, getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
+import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getAccountIDToNameMap, getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -4047,7 +4047,7 @@ function editReportComment(
             // The caller's maps only have the rooms and users the original HTML mentions by ID. An offline message mentions
             // them by name, and the synced copy this edit is compared against mentions them by ID, so look them up here.
             reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(buildAccountIDToNameMap(getAllPersonalDetails()), textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(getAccountIDToNameMap(), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
