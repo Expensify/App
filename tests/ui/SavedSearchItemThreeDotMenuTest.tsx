@@ -18,9 +18,9 @@ jest.mock('@components/ThreeDotsMenu', () => {
     // The factory is hoisted above the imports, so it loads what it renders itself.
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const {Text: MockText} = require('react-native');
-    return ({menuItems, onModalShow, onModalHide}: {menuItems: PopoverMenuItem[]; onModalShow?: () => void; onModalHide?: () => void}) => (
+    return ({menuItems, onModalHide, shouldOverlay}: {menuItems: PopoverMenuItem[]; onModalHide?: () => void; shouldOverlay?: boolean}) => (
         <>
-            <MockText onPress={() => onModalShow?.()}>Menu shown</MockText>
+            {!!shouldOverlay && <MockText>Menu overlay</MockText>}
             <MockText onPress={() => onModalHide?.()}>Menu gone</MockText>
             {menuItems.map((menuItem) => (
                 <MockText
@@ -74,6 +74,15 @@ describe('SavedSearchItemThreeDotMenu', () => {
         }
     });
 
+    it('should render the menu over a backdrop', () => {
+        // Given a saved search's menu, which opens partly outside the sidebar
+        // When it renders
+        renderMenu();
+
+        // Then it renders over a backdrop, because the backdrop belongs to the sidebar's React tree and keeps a pointer past the menu's edge from ending the peek
+        expect(screen.getByText('Menu overlay')).toBeOnTheScreen();
+    });
+
     it('should end the peek of the navigation bar when the menu lives there', async () => {
         // Given the collapsed navigation bar peeks, with the menu on one of its rows
         const navigationBar = await startPeekOn(COLLAPSE_SURFACE.NAVIGATION_BAR);
@@ -100,89 +109,46 @@ describe('SavedSearchItemThreeDotMenu', () => {
         expect(searchSidebar.result.current.isPeeking).toBe(false);
     });
 
-    describe('holding the peek while the menu shows', () => {
-        function renderMenuInPeekingSurface() {
-            const holdPeek = jest.fn();
-            const releasePeek = jest.fn();
-            const view = render(
-                <PeekSurfaceContext.Provider value={{holdPeek, releasePeek}}>
+    describe('settling the peek once the menu is gone', () => {
+        it('should ask its surface to end the peek if the pointer left once the menu is gone', () => {
+            // Given a menu inside a surface that can end its peek
+            const endPeekIfPointerLeft = jest.fn();
+            render(
+                <PeekSurfaceContext.Provider value={{endPeekIfPointerLeft}}>
                     <SavedSearchItemThreeDotMenu
-                        menuItems={[{text: SHARE, onSelected: jest.fn(), shouldCloseModalOnSelect: false, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]}
+                        menuItems={[
+                            {
+                                text: SHARE,
+                                onSelected: jest.fn(),
+                                shouldCloseModalOnSelect: false,
+                                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+                            },
+                        ]}
                         isDisabledItem={false}
                     />
                 </PeekSurfaceContext.Provider>,
             );
-            return {holdPeek, releasePeek, ...view};
-        }
 
-        it('should hold the peek while the menu shows and release it once the menu is gone, as after Share closes the menu by itself', () => {
-            // Given a menu inside a peeking surface
-            const {holdPeek, releasePeek} = renderMenuInPeekingSurface();
-
-            // When the menu shows and the user picks Share, which keeps the menu open to show the link was copied
-            fireEvent.press(screen.getByText('Menu shown'));
+            // When the user picks Share, which keeps the menu open to show the link was copied
             fireEvent.press(screen.getByText(SHARE));
 
-            // Then the surface holds the peek, because ending it now would unmount the menu while it still shows the copied state
-            expect(holdPeek).toHaveBeenCalledTimes(1);
-            expect(releasePeek).not.toHaveBeenCalled();
+            // Then the surface is not asked yet, because ending the peek now would unmount the menu while it still shows the copied state
+            expect(endPeekIfPointerLeft).not.toHaveBeenCalled();
 
             // When the menu's modal is gone, for example after the Share timer closed it under a still pointer
             fireEvent.press(screen.getByText('Menu gone'));
 
-            // Then the hold is released, so the surface can read the pointer and end the peek
-            expect(releasePeek).toHaveBeenCalledTimes(1);
-        });
-
-        it('should hold the peek only once however often the menu shows, and release it only once', () => {
-            // Given a menu inside a peeking surface
-            const {holdPeek, releasePeek} = renderMenuInPeekingSurface();
-
-            // When the menu reports it shows twice in a row and is then gone twice in a row
-            fireEvent.press(screen.getByText('Menu shown'));
-            fireEvent.press(screen.getByText('Menu shown'));
-            fireEvent.press(screen.getByText('Menu gone'));
-            fireEvent.press(screen.getByText('Menu gone'));
-
-            // Then the surface sees one hold and one release, so the menu never ends a peek another menu holds
-            expect(holdPeek).toHaveBeenCalledTimes(1);
-            expect(releasePeek).toHaveBeenCalledTimes(1);
-        });
-
-        it('should release the hold when the menu unmounts while it shows', () => {
-            // Given a menu that holds the peek of its surface
-            const {releasePeek, unmount} = renderMenuInPeekingSurface();
-            fireEvent.press(screen.getByText('Menu shown'));
-
-            // When the menu goes away without a modal hide, for example because a pick collapsed the sidebar
-            unmount();
-
-            // Then the hold is released, so the surface does not stay open for good
-            expect(releasePeek).toHaveBeenCalledTimes(1);
-        });
-
-        it('should not release anything when it never held the peek', () => {
-            // Given a menu that never showed
-            const {releasePeek, unmount} = renderMenuInPeekingSurface();
-
-            // When the popover reports a hide without a matching show, and the menu then unmounts
-            fireEvent.press(screen.getByText('Menu gone'));
-            unmount();
-
-            // Then it releases nothing, which would otherwise end a peek another menu holds
-            expect(releasePeek).not.toHaveBeenCalled();
+            // Then the surface is asked to end the peek, since no hover-out reaches it when a portaled menu goes away
+            expect(endPeekIfPointerLeft).toHaveBeenCalledTimes(1);
         });
 
         it('should keep working outside a peeking surface', () => {
             // Given a menu rendered without a surface around it
             renderMenu();
 
-            // When the menu shows and is gone
-            // Then nothing throws, as there is no peek to hold
-            expect(() => {
-                fireEvent.press(screen.getByText('Menu shown'));
-                fireEvent.press(screen.getByText('Menu gone'));
-            }).not.toThrow();
+            // When the menu's modal is gone
+            // Then nothing throws, as there is no peek to settle
+            expect(() => fireEvent.press(screen.getByText('Menu gone'))).not.toThrow();
         });
     });
 

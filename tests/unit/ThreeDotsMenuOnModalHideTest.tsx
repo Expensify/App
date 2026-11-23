@@ -11,7 +11,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-type MockPopoverMenuProps = {isVisible?: boolean; onClose?: () => void; onModalShow?: () => void; onModalHide?: () => void};
+type MockPopoverMenuProps = {isVisible?: boolean; onClose?: () => void; onModalHide?: () => void};
 
 // Stable identities, so the menu's reposition effect doesn't re-run on every render
 const mockPopoverPosition = {
@@ -24,11 +24,10 @@ jest.mock('@hooks/usePopoverPosition', () => () => mockPopoverPosition);
 jest.mock('@components/PopoverMenu', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
     const {View: RNView, Text: RNText} = jest.requireActual('react-native');
-    function MockPopoverMenu({isVisible, onClose, onModalShow, onModalHide}: MockPopoverMenuProps) {
+    function MockPopoverMenu({isVisible, onClose, onModalHide}: MockPopoverMenuProps) {
         return (
             <RNView testID={isVisible ? 'popover-open' : 'popover-closed'}>
                 <RNText onPress={() => onClose?.()}>Close</RNText>
-                <RNText onPress={onModalShow}>Modal shown</RNText>
                 <RNText onPress={onModalHide}>Modal gone</RNText>
             </RNView>
         );
@@ -36,7 +35,7 @@ jest.mock('@components/PopoverMenu', () => {
     return MockPopoverMenu;
 });
 
-describe('ThreeDotsMenu modal callbacks', () => {
+describe('ThreeDotsMenu onModalHide', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, initialKeyStates: {[ONYXKEYS.MODAL]: {isVisible: false, willAlertModalBecomeVisible: false}}});
         return waitForBatchedUpdates();
@@ -77,28 +76,7 @@ describe('ThreeDotsMenu modal callbacks', () => {
         expect(onModalHide).toHaveBeenCalledTimes(1);
     });
 
-    it('tells the caller once the popover modal is on the screen', async () => {
-        // Given a menu whose caller wants to know when the popover shows
-        const onModalShow = jest.fn();
-        render(
-            <ThreeDotsMenu
-                shouldSelfPosition
-                testID="three-dots-menu"
-                menuItems={menuItems}
-                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
-                onModalShow={onModalShow}
-            />,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // When the popover reports that its modal is on the screen
-        fireEvent.press(screen.getByText('Modal shown'));
-
-        // Then the caller is told, so it can react only once the menu is really showing
-        expect(onModalShow).toHaveBeenCalledTimes(1);
-    });
-
-    it('still works for callers that do not pass the callbacks', async () => {
+    it('still works for callers that do not pass onModalHide', async () => {
         // Given a menu without the callback
         render(
             <ThreeDotsMenu
@@ -110,11 +88,8 @@ describe('ThreeDotsMenu modal callbacks', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // When the popover reports that its modal shows and is gone
-        // Then nothing throws, as before the callbacks existed
-        expect(() => {
-            fireEvent.press(screen.getByText('Modal shown'));
-            fireEvent.press(screen.getByText('Modal gone'));
-        }).not.toThrow();
+        // When the popover reports that its modal is gone
+        // Then nothing throws, as before the callback existed
+        expect(() => fireEvent.press(screen.getByText('Modal gone'))).not.toThrow();
     });
 });

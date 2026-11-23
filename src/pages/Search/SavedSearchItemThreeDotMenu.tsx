@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useContext, useEffect, useEffectEvent, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boolean};
@@ -27,30 +27,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
     const styles = useThemeStyles();
     const {endPeek} = useSearchSidebarCollapse(collapseSurface);
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
-    const {holdPeek, releasePeek} = useContext(PeekSurfaceContext);
-    const isHoldingPeekRef = useRef(false);
-
-    // Each menu holds the peek at most once, so a show without a matching hide cannot leave the surface held for good.
-    const holdPeekWhileShown = () => {
-        if (isHoldingPeekRef.current) {
-            return;
-        }
-        isHoldingPeekRef.current = true;
-        holdPeek();
-    };
-
-    // A hide without a matching show must not release a hold another menu owns.
-    const releasePeekHeldByMenu = () => {
-        if (!isHoldingPeekRef.current) {
-            return;
-        }
-        isHoldingPeekRef.current = false;
-        releasePeek();
-    };
-
-    // The hold has no modal hide to end it when the menu unmounts while open, for example when a pick collapses the sidebar or the user leaves Spend.
-    const releasePeekOnUnmount = useEffectEvent(releasePeekHeldByMenu);
-    useEffect(() => () => releasePeekOnUnmount(), []);
+    const {endPeekIfPointerLeft} = useContext(PeekSurfaceContext);
 
     const menuItemsWithPeekCleanup = menuItems.map((item) => {
         if (item.shouldCloseModalOnSelect === false) {
@@ -88,9 +65,11 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
                 iconStyles={styles.wAuto}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
-                onModalShow={holdPeekWhileShown}
-                // Share keeps the menu open and closes it later by itself, so the peek is settled once the menu is gone and not when an item is picked.
-                onModalHide={releasePeekHeldByMenu}
+                // The menu opens partly outside the sidebar. Its backdrop belongs to the sidebar's React tree, so moving the pointer past the menu's edge sends the sidebar no hover-out.
+                shouldOverlay
+                // Share closes the menu later by itself, and Escape or a click outside close it without picking an item at all.
+                // The peek is settled once the menu is gone, however it closed, because the pointer may have left the sidebar meanwhile.
+                onModalHide={endPeekIfPointerLeft}
             />
         </View>
     );

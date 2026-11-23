@@ -43,7 +43,6 @@ function ThreeDotsMenu({
     shouldChangeFillOnOpen = true,
     testID,
     onIconPress = () => {},
-    onModalShow,
     onModalHide,
     menuItems,
     anchorPosition,
@@ -212,7 +211,6 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalShow={onModalShow}
                 onModalHide={() => {
                     setRestoreFocusType(undefined);
                     onModalHide?.();
