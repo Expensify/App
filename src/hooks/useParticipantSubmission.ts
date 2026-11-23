@@ -43,6 +43,7 @@ import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedPolicyCreationModal from './useRestrictedPolicyCreationModal';
 import useTransactionsByID from './useTransactionsByID';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
@@ -100,6 +101,7 @@ function useParticipantSubmission({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
     const [draftTransactions] = useOptimisticDraftTransactions(initialTransaction);
     // React Compiler memoizes `transactionIDs` — it only gets a new reference when `draftTransactions`
     // changes (i.e. on actual Onyx writes to COLLECTION.TRANSACTION_DRAFT). The search hot-path updates
@@ -392,13 +394,7 @@ function useParticipantSubmission({
             const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-            setMoneyRequestCategory(
-                transaction.transactionID,
-                category,
-                isMovingTransactionFromTrackExpense ? movingPolicy : undefined,
-                getCurrencyDecimals,
-                isMovingTransactionFromTrackExpense,
-            );
+            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
 
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
@@ -406,6 +402,11 @@ function useParticipantSubmission({
         }
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
+            if (isRestrictedPolicyCreation) {
+                showRestrictedPolicyCreationModal();
+                return;
+            }
+
             const email = userDetails.email ?? '';
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName, translate);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({

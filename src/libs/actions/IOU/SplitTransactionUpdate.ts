@@ -41,6 +41,7 @@ import {
     getTransactionDetails,
     getUnheldReimbursableTotal,
     isArchivedReport,
+    isMoneyRequestReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
     updateOptimisticParentReportAction,
@@ -57,6 +58,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {removeDraftSplitTransaction} from '@userActions/TransactionEdit';
+import {removeActiveTransactionIDsForReport} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -244,6 +246,11 @@ function isActiveTransactionInReport(transaction: OnyxEntry<OnyxTypes.Transactio
     return transaction?.reportID === reportID && transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/** Whether the transaction is the split expense itself or one of its splits. */
+function isPartOfSplit(transaction: OnyxEntry<OnyxTypes.Transaction>, originalTransactionID: string): boolean {
+    return transaction?.transactionID === originalTransactionID || transaction?.comment?.originalTransactionID === originalTransactionID;
+}
+
 /**
  * Whether saving the split leaves the given expense report without any transactions: every transaction still active in
  * it is this expense or one of its splits, and none of the saved splits stays in it.
@@ -263,9 +270,7 @@ function willSplitUpdateEmptyExpenseReport(
     }
 
     // The original expense leaves the report too: it moves to the split report, or on a reverse split to the remaining split's report.
-    const isPartOfThisSplit = (itemTransaction: OnyxEntry<OnyxTypes.Transaction>) =>
-        itemTransaction?.transactionID === originalTransactionID || itemTransaction?.comment?.originalTransactionID === originalTransactionID;
-    if (!activeExpenseReportTransactions.every(isPartOfThisSplit)) {
+    if (!activeExpenseReportTransactions.every((itemTransaction) => isPartOfSplit(itemTransaction, originalTransactionID))) {
         return false;
     }
     return !splitExpenses.some((splitExpense) => {
@@ -757,6 +762,8 @@ function updateSplitTransactions({
     // SelfDM reports that splits are routed to, keyed by reportID, so the chat preview the optimistic pass points at a split can be restored on failure
     const selfDMReportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
 
+    const savedSplitCountByReportID = new Map<string, number>();
+
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
@@ -1058,6 +1065,9 @@ function updateSplitTransactions({
             parentChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport?.reportID}`],
             participantChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${participantChatReportID}`],
         });
+        if (!isSelfDMSplit) {
+            savedSplitCountByReportID.set(moneyRequestIOUReport.reportID, (savedSplitCountByReportID.get(moneyRequestIOUReport.reportID) ?? 0) + 1);
+        }
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
         const currentSplit = splits.at(index);
@@ -1138,6 +1148,7 @@ function updateSplitTransactions({
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     isVendorMatchingBetaEnabled,
                     transactionID: existingTransactionID,
+                    transaction: splitTransaction,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,
                     iouReportOwnerLogin: getLoginByAccountID(transactionIOUReport?.ownerAccountID, personalDetails),
@@ -1649,6 +1660,7 @@ function updateSplitTransactions({
     const undeletedTransactions = allChildTransactions.filter(
         (currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID),
     );
+    const removedSplitTransactionIDs = new Set<string>();
 
     for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
@@ -1676,6 +1688,10 @@ function updateSplitTransactions({
         // Since original transaction will be reverted and both splits will eventually be deleted, we remove
         // the undeleted split entirely instead of marking it for deletion.
         const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
+        const shouldRemoveIOUTransaction = isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID;
+        if (shouldRemoveIOUTransaction && undeletedTransaction?.transactionID) {
+            removedSplitTransactionIDs.add(undeletedTransaction.transactionID);
+        }
 
         const {
             optimisticData: deleteExpenseOptimisticData,
@@ -1689,7 +1705,7 @@ function updateSplitTransactions({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction?.childReportID}`],
             transactionThreadReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
-            shouldRemoveIOUTransaction: isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
+            shouldRemoveIOUTransaction,
         });
 
         // getDeleteTrackExpenseInformation only handles deleting the transaction report thread, so we need to update the report preview action here
@@ -1703,6 +1719,7 @@ function updateSplitTransactions({
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouReport: currentActionIOUReport,
                 chatReport: currentActionChatReport,
+                isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${currentActionIOUReport?.reportID}`]),
                 // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
                 transactionThreadReportActionsParam: undefined,
             });
@@ -1959,6 +1976,7 @@ function updateSplitTransactions({
                     transactionThread: allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouActionToCleanUp.childReportID}`],
                     iouReport: iouActionIOUReport,
                     chatReport: iouActionChatReport,
+                    isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouActionIOUReport?.reportID}`]),
                     transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 
@@ -2221,6 +2239,52 @@ function updateSplitTransactions({
         pushExpenseReportDeletionToOnyxData(emptiedExpenseReportID);
     }
 
+    // Each split write sets the old count plus one, so the count is rebuilt from the report's own count, as Onyx may hold only some of its transactions.
+    const splitMemberTransactions = Object.values(allTransactionsList ?? {}).filter((transaction) => isPartOfSplit(transaction, originalTransactionID));
+    // A split pending deletion keeps its row and stays counted, as with any delete, so only the original, saved splits and removed splits leave.
+    const isLeavingItsReport = (transaction: OnyxEntry<OnyxTypes.Transaction>) =>
+        transaction?.transactionID === originalTransactionID ||
+        processedChildTransactionIDs.includes(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID) ||
+        removedSplitTransactionIDs.has(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    const countedReportIDs = new Set([expenseReportID, ...splitMemberTransactions.map((splitMemberTransaction) => splitMemberTransaction?.reportID), ...savedSplitCountByReportID.keys()]);
+    for (const countedReportID of countedReportIDs) {
+        if (!countedReportID || emptiedExpenseReportIDs.includes(countedReportID)) {
+            continue;
+        }
+        const countedReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${countedReportID}`];
+        if (!countedReport || !isMoneyRequestReport(countedReport)) {
+            continue;
+        }
+        const isWrittenBySplit = reportsToRestoreOnFailure.has(countedReportID);
+        if (countedReport.transactionCount === undefined) {
+            // With no count to start from, the split write's guess is cleared rather than kept
+            if (isWrittenBySplit) {
+                onyxData.optimisticData?.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${countedReportID}`, value: {transactionCount: null}});
+            }
+            continue;
+        }
+        const membersInReport = splitMemberTransactions.filter((splitMemberTransaction) => splitMemberTransaction?.reportID === countedReportID);
+        const leavingCount = membersInReport.filter(isLeavingItsReport).length;
+        const savedSplitCount = savedSplitCountByReportID.get(countedReportID) ?? 0;
+        // The report holds at least the rows this split leaves in it, even when its count was already wrong
+        const transactionCount = Math.max(countedReport.transactionCount - leavingCount + savedSplitCount, membersInReport.length - leavingCount + savedSplitCount);
+        if (!isWrittenBySplit && transactionCount === countedReport.transactionCount) {
+            continue;
+        }
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${countedReportID}`,
+            value: {transactionCount},
+        });
+        if (!isWrittenBySplit) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${countedReportID}`,
+                value: {transactionCount: countedReport.transactionCount},
+            });
+        }
+    }
+
     if (!isCreationOfSplits && !isReverseSplitOperation) {
         const splitUpdateFailureDataKeys: Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` | `${typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${string}`> = [
             `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`,
@@ -2328,6 +2392,19 @@ function updateSplitTransactions({
         };
 
         writeSplit(isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters);
+    }
+
+    // Creating splits moves the original to SPLIT_REPORT_ID, so drop it from a carousel seeded from the report it left, like any
+    // other move. Otherwise the arrows keep paging to it. In the split-expenses flow, wait for the navigation like writeSplit does.
+    if (isCreationOfSplits) {
+        const removeOriginalTransactionFromCarousel = () => {
+            removeActiveTransactionIDsForReport([originalTransactionID], originalTransaction?.reportID);
+        };
+        if (isFromSplitExpensesFlow) {
+            TransitionTracker.runAfterTransitions({callback: removeOriginalTransactionFromCarousel, waitForUpcomingTransition: true});
+        } else {
+            removeOriginalTransactionFromCarousel();
+        }
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }

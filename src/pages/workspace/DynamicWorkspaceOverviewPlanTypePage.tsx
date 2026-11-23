@@ -30,7 +30,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -47,6 +47,21 @@ type WorkspacePlanTypeItem = {
     isSelected: boolean;
     actionElement?: ReactNode;
 };
+/** What saving the selected plan does, so the save handler and its Sentry label stay in sync */
+const PLAN_UPDATE_OUTCOME = {
+    UPGRADE: 'upgrade',
+    DOWNGRADE: 'downgrade',
+    DOWNGRADE_BLOCKED: 'downgradeBlocked',
+    NO_CHANGE: 'noChange',
+} as const;
+
+const PLAN_TYPE_SAVE_SENTRY_LABELS = {
+    [PLAN_UPDATE_OUTCOME.UPGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_UPGRADE,
+    [PLAN_UPDATE_OUTCOME.DOWNGRADE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_DOWNGRADE,
+    [PLAN_UPDATE_OUTCOME.DOWNGRADE_BLOCKED]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_DOWNGRADE_BLOCKED,
+    [PLAN_UPDATE_OUTCOME.NO_CHANGE]: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_NO_CHANGE,
+};
+
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
@@ -74,7 +89,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => {
+        .filter((type): type is PersonalPolicyTypeExcludedProps => {
             if (type === CONST.POLICY.TYPE.PERSONAL) {
                 return false;
             }
@@ -88,8 +103,8 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
             actionElement:
@@ -102,29 +117,44 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         }))
         .reverse();
 
+    // `endDate` is a yyyy-MM-dd calendar date. `parseISO` reads it as local midnight, where passing the string straight to
+    // `format` reads it as UTC midnight and shows the previous day in timezones behind UTC.
     const autoRenewalDate = privateSubscription?.endDate
-        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
+        ? format(parseISO(privateSubscription.endDate), CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
         : CardSectionUtils.getNextBillingDate(dateFnsLocale);
 
-    const handleUpdatePlan = () => {
+    const getPlanUpdateOutcome = (): ValueOf<typeof PLAN_UPDATE_OUTCOME> => {
         // Submit policies don't expose SUBMIT in the option list, but the editor can
         // still pick Team/Corporate. Route any selection from a Submit policy to the
         // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
         if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, undefined, currentPlan));
-            return;
+            return PLAN_UPDATE_OUTCOME.UPGRADE;
         }
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
+            return PLAN_UPDATE_OUTCOME.UPGRADE;
+        }
+
+        if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
+            return isSubscriptionTypeOfInvoicing(privateSubscription?.type) ? PLAN_UPDATE_OUTCOME.DOWNGRADE_BLOCKED : PLAN_UPDATE_OUTCOME.DOWNGRADE;
+        }
+
+        return PLAN_UPDATE_OUTCOME.NO_CHANGE;
+    };
+    const planUpdateOutcome = getPlanUpdateOutcome();
+
+    const handleUpdatePlan = () => {
+        if (planUpdateOutcome === PLAN_UPDATE_OUTCOME.UPGRADE && policyID) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, undefined, currentPlan));
             return;
         }
 
-        if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
-            if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
-                return;
-            }
+        if (planUpdateOutcome === PLAN_UPDATE_OUTCOME.DOWNGRADE_BLOCKED) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
+            return;
+        }
+
+        if (planUpdateOutcome === PLAN_UPDATE_OUTCOME.DOWNGRADE) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path));
             return;
         }
@@ -157,7 +187,10 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                                     count: privateSubscription?.userCount ?? 1,
                                     annualSubscriptionEndDate: autoRenewalDate,
                                 })}{' '}
-                                <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}>
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SUBSCRIPTIONS_LINK}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
+                                >
                                     {translate('workspace.planTypePage.subscriptions')}
                                 </TextLink>
                                 .
@@ -165,7 +198,13 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                         ) : (
                             <Text style={[styles.mh5, styles.mv3]}>
                                 {translate('workspace.planTypePage.description')}{' '}
-                                <TextLink href={CONST.PLAN_TYPES_AND_PRICING_HELP_URL}>{translate('workspace.planTypePage.subscriptionLink')}</TextLink>.
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_PRICING_LINK}
+                                    href={CONST.PLAN_TYPES_AND_PRICING_HELP_URL}
+                                >
+                                    {translate('workspace.planTypePage.subscriptionLink')}
+                                </TextLink>
+                                .
                             </Text>
                         )}
                         <SelectionList
@@ -183,6 +222,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button
+                                    sentryLabel={PLAN_TYPE_SAVE_SENTRY_LABELS[planUpdateOutcome]}
                                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.mt6}

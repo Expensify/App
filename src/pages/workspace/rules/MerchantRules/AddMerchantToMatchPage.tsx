@@ -26,6 +26,8 @@ import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import React from 'react';
 import {View} from 'react-native';
 
+import {getMatchTypeLabel} from './matchTypeOptions';
+import useMatchTypeDiscard from './useMatchTypeDiscard';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<
@@ -38,25 +40,19 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const currentValue = form?.merchantToMatch ?? '';
-    const matchType = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
-    const getMatchTypeLabel = () => {
-        if (matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.merchantRules.matchTypeExact');
-        }
-        return translate('workspace.rules.merchantRules.matchTypeContains');
-    };
+    const keepMatchType = useMatchTypeDiscard('matchType', form?.matchType);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+        keepMatchType();
         updateDraftMerchantRule(values);
         goBack();
     };
@@ -73,13 +69,15 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
         const trimmedValue = fieldValue.trim();
 
         if (!isRequiredFulfilled(fieldValue)) {
-            errors[fieldID] = translate('common.error.fieldRequired');
-        } else {
-            const {isValid, byteLength} = isValidInputLength(trimmedValue, CONST.MERCHANT_NAME_MAX_BYTES);
+            // A rule can match on a category or a tag instead, so clearing the merchant here is how an admin swaps
+            // one condition for another. The rule editor still refuses a rule that matches on nothing.
+            return errors;
+        }
 
-            if (!isValid) {
-                errors[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
-            }
+        const {isValid, byteLength} = isValidInputLength(trimmedValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+        if (!isValid) {
+            errors[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
         return errors;
@@ -120,13 +118,14 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                     />
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_MATCH_TYPE}
                     name={translate('workspace.rules.merchantRules.matchType')}
                     onPress={() =>
                         Navigation.navigate(
                             getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
                         )
                     }
-                    value={getMatchTypeLabel()}
+                    value={getMatchTypeLabel('matchType', form?.matchType, translate)}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -21,7 +21,6 @@ import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlace
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -120,6 +119,7 @@ function AddressSearch({
         lat: 'addressLat',
         lng: 'addressLng',
     },
+    shouldKeepStateCode = false,
     autoComplete = 'off',
     autoFocus = false,
     resultTypes = 'address',
@@ -244,8 +244,8 @@ function AddressSearch({
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
-        // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
+        // state / province in a TextInput instead of in a picker, unless the caller's picker lists the codes of other countries too.
+        if (!shouldKeepStateCode && country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 
@@ -284,7 +284,7 @@ function AddressSearch({
 
         if (inputID) {
             for (const [key, inputValue] of Object.entries(values)) {
-                const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
+                const inputKey = renamedInputKeys?.[key] ?? key;
                 if (!inputKey) {
                     continue;
                 }

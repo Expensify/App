@@ -19,20 +19,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
-type BaseDomainRequireTwoFactorAuthPageProps = {
+type BaseDomainRequireTwoFactorAuthPageProps = WithRequiredSentryLabel & {
     domainAccountID: number;
     onSubmit: (code: string) => void;
     onBackButtonPress: () => void;
     pendingAction?: PendingAction;
 };
 
-function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackButtonPress, pendingAction}: BaseDomainRequireTwoFactorAuthPageProps) {
+function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackButtonPress, pendingAction, sentryLabel}: BaseDomainRequireTwoFactorAuthPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -93,6 +94,7 @@ function BaseDomainRequireTwoFactorAuthPage({domainAccountID, onSubmit, onBackBu
                     </ScrollView>
                     <FixedFooter style={[styles.mt2, styles.pt2]}>
                         <Button
+                            sentryLabel={sentryLabel}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             isLoading={!!pendingAction}

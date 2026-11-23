@@ -13,15 +13,21 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import SidePanelExpandButton from '@components/SidePanel/SidePanelExpandButton';
+import TalkToHumanButton from '@components/TalkToHumanButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useIsPastDate from '@hooks/useIsPastDate';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -34,6 +40,7 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -90,7 +97,7 @@ import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/Billin
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
 import {joinRoom} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -124,6 +131,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
+    const shouldUseCompactJoinRow = useIsMobileWebLandscape();
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
@@ -152,13 +161,14 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isScheduledCallPast = useIsPastDate(latestScheduledCall?.eventTime);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const stackedRowBottomPadding = useStackedHeaderRowPadding();
+    const avatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldClaimOnlyForScreenReader: true});
     const isSelfDM = isSelfDMReportUtils(report);
@@ -197,6 +207,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const reportHeaderDataPolicy = usePolicy(reportHeaderData?.policyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, derivedReportHeaderName);
     const chatRoomSubtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, rules, false, isReportHeaderDataArchived);
@@ -210,19 +221,21 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
-        parentNavigationReport,
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
+        report: parentNavigationReport,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
-        isParentReportHeaderDataArchived,
-    );
+        parentReportName: derivedParentReportName,
+        isParentReportArchived: isParentReportHeaderDataArchived,
+        currentUserAccountID,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
-    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
+    const reportDescriptionHTML = getReportDescription(report);
+    const accountIDToName = useMentionedAccountIDToNameMap(reportDescriptionHTML);
+    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportDescriptionHTML, {accountIDToName}));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
@@ -267,32 +280,28 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
-    const getBookCallVisibility = (supportAccountID: number | undefined, calendarLink: string | undefined) => {
-        const canBookCall = !!supportAccountID && !!calendarLink;
-        return {
-            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[supportAccountID] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
-            inConcierge: canBookCall && isConciergeChat,
-        };
-    };
+    const shouldShowBookCallInDM = (supportAccountID: number | undefined, calendarLink: string | undefined) =>
+        !!supportAccountID &&
+        !!calendarLink &&
+        isOneOnOneChat(report) &&
+        !!report?.participants?.[supportAccountID] &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
+        !isChatThread;
 
-    const bookCallVisibility = {
-        accountManager: getBookCallVisibility(accountManagerAccountID, bookCallDetails?.accountManagerCalendarLink),
-        partnerManager: getBookCallVisibility(partnerManagerAccountID, bookCallDetails?.partnerManagerCalendarLink),
-        guide: getBookCallVisibility(isGuideEligibleForBooking ? guideAccountID : undefined, accountGuideDetails?.calendarLink),
-    };
-
-    const shouldShowAccountManagerBookCall = bookCallVisibility.accountManager.inDM || bookCallVisibility.accountManager.inConcierge;
-    const shouldShowPartnerManagerBookCall = bookCallVisibility.partnerManager.inDM || bookCallVisibility.partnerManager.inConcierge;
-    const shouldShowGuideBookCall = bookCallVisibility.guide.inDM || bookCallVisibility.guide.inConcierge;
+    const shouldShowAccountManagerBookCall = shouldShowBookCallInDM(accountManagerAccountID, bookCallDetails?.accountManagerCalendarLink);
+    const shouldShowPartnerManagerBookCall = shouldShowBookCallInDM(partnerManagerAccountID, bookCallDetails?.partnerManagerCalendarLink);
+    const shouldShowGuideBookCall = shouldShowBookCallInDM(isGuideEligibleForBooking ? guideAccountID : undefined, accountGuideDetails?.calendarLink);
     const shouldShowSupportTicketBookCall = isSupportTicketReport && !!report?.supportTicketCalendarLink && isPaidPolicyAdmin;
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
-    const shouldStackBookCall = shouldUseNarrowLayout || isInSidePanel;
+    const shouldShowTalkToHuman = isConciergeChat;
+    const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
-    // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
+    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
+    const shouldStackCallAction = shouldUseNarrowLayout || isInSidePanel;
+
+    // A single 1:1 chat can only match one of these roles, so precedence (account manager, then partner manager, then guide) resolves any overlap
     let bookCallCalendarLink: string | undefined;
     let bookCallAvatarAccountID: number | undefined;
     if (shouldShowSupportTicketBookCall) {
@@ -300,28 +309,28 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         bookCallAvatarAccountID = report?.managerID;
     } else if (shouldShowAccountManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? accountManagerAccountID : undefined;
     } else if (shouldShowPartnerManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.partnerManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.partnerManager.inConcierge ? partnerManagerAccountID : undefined;
     } else if (shouldShowGuideBookCall) {
         bookCallCalendarLink = accountGuideDetails?.calendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.guide.inConcierge ? guideAccountID : undefined;
     }
 
-    const bookCallButton = (
+    const callActionButton = shouldShowTalkToHuman ? (
+        <TalkToHumanButton />
+    ) : (
         <BookCallButton
             calendarLink={bookCallCalendarLink ?? ''}
             avatarAccountID={bookCallAvatarAccountID}
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
+    const join = callIfAuthenticated(() => joinRoom(report, currentUserAccountID), session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
     const joinButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.JOIN_BUTTON}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={join}
         >
@@ -336,6 +345,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const newConciergeChatButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.NEW_CONCIERGE_CHAT_BUTTON}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={startNewConciergeChat}
         >
@@ -356,9 +366,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         );
     };
 
-    // Memoize so trial Onyx values and current user account participate in React updates (shouldShowDiscountBanner is pure).
+    // shouldShowDiscountBanner is pure, so every input it depends on is passed in.
     const shouldShowDiscount =
-        shouldShowDiscountBanner(currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived;
+        shouldShowDiscountBanner(hasOwnedPaidPolicy, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID) && !isReportArchived;
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -382,6 +392,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
+    // On narrow layouts, the discount banner renders the help button, so grouping it here would show it twice.
+    const shouldGroupConciergeActions = shouldShowTalkToHuman && shouldStackCallAction && shouldShowOnBoardingHelpDropdownButton && !shouldShowEarlyDiscountBanner;
     const hasActiveScheduledCall = !!latestScheduledCall && !isScheduledCallPast && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
@@ -401,6 +413,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const multipleAvatars = (
         <ReportAvatar
             reportID={report?.reportID}
+            size={avatarSize}
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
         />
     );
@@ -525,9 +538,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
-                                    {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
+                                    {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
-                                    {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
+                                    {!shouldUseNarrowLayout && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
                                             pressable
                                             success={!hasActiveScheduledCall}
@@ -537,6 +550,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback
@@ -559,14 +573,22 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                         </View>
                     )}
                 </View>
-                {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
-                {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
+                {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
+                )}
+                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
+                {shouldGroupConciergeActions && (
+                    <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, stackedRowBottomPadding]}>
+                        <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>
+                        <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{onboardingHelpDropdownButton}</View>
+                    </View>
+                )}
+                {shouldShowCallAction && shouldStackCallAction && !shouldGroupConciergeActions && <View style={[styles.ph5, stackedRowBottomPadding]}>{callActionButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
-                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
-                        <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
+                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && !shouldGroupConciergeActions && (
+                        <View style={[styles.flex1, stackedRowBottomPadding]}>{onboardingHelpDropdownButton}</View>
                     )}
-                    {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                    {!isLoading && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial
                             pressable
                             addSpacing
@@ -577,14 +599,14 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 </View>
                 {!!report && shouldUseNarrowLayout && chatIncludesChronos(report) && (
                     <View style={[styles.appBG, styles.pl0]}>
-                        <View style={[styles.ph5, styles.pb3]}>
+                        <View style={[styles.ph5, stackedRowBottomPadding]}>
                             <ChronosTimerHeaderButton report={report} />
                         </View>
                     </View>
                 )}
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
-                        <View style={[styles.ph5, styles.pb3]}>
+                        <View style={[styles.ph5, stackedRowBottomPadding]}>
                             <TaskHeaderActionButton reportID={report.reportID} />
                         </View>
                     </View>

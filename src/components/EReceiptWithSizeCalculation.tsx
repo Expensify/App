@@ -57,7 +57,7 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 style={[
                     styles.w100,
                     styles.h100,
-                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'},
+                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform}`, transformOrigin: 'top left'},
                     (props.receiptType === 'perDiem' ? true : props.shouldUseAspectRatio) && {aspectRatio: eReceiptAspectRatio},
                 ]}
             >
