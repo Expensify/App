@@ -215,6 +215,7 @@ function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: Sub
     const selectedSubRateKeys = new Set(subRatesToBeDeleted.map((subRate) => getPerDiemRowKey(subRate.rateID, subRate.subRateID)));
     let subRateCount = 0;
     for (const rate of Object.values(customUnit.rates)) {
+        // Ignore earlier queued deletions so selecting all remaining subrates still uses deleteAllRates.
         if (rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
