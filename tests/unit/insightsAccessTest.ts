@@ -1,4 +1,6 @@
-import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import type {TransactionWorkflowStageGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+
+import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getEnabledStages, getPoliciesInScope, getVisibleCharts, keepEnabledStageGroups} from '@pages/Insights/dashboardSpecs';
 import {canViewAllPolicyData, hasMultipleMembers} from '@pages/Insights/insightsAccess';
 
 import CONST from '@src/CONST';
@@ -121,6 +123,17 @@ describe('insightsAccess', () => {
             expect(dashboards).toEqual([SPEND, COMPLIANCE]);
         });
 
+        it('hides Compliance once its only qualifying workspace is deleted offline', () => {
+            // Given an admin with the beta whose only workspace is waiting for the server to confirm its deletion
+            const policies = toCollection([{...buildPolicy(1, CONST.POLICY.ROLE.ADMIN), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]);
+
+            // When the dashboards they can open are resolved
+            const dashboards = getAccessibleDashboards(policies, LOGIN, isComplianceBetaEnabled);
+
+            // Then Compliance is gone right away, instead of turning into a not-found page on reconnect
+            expect(dashboards).toEqual([SPEND]);
+        });
+
         it('offers Efficiency to admins and auditors with the beta, on every plan', () => {
             // Given an admin of a Collect workspace and an auditor of a Control workspace, both with the beta
             const adminPolicies = toCollection([buildPolicy(1, CONST.POLICY.ROLE.ADMIN, CONST.POLICY.TYPE.TEAM)]);
@@ -225,6 +238,151 @@ describe('insightsAccess', () => {
 
             // Then Top violations is still shown, since it doesn't depend on the workspace setup
             expect(charts).toEqual([CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS]);
+        });
+    });
+
+    describe('getEnabledStages', () => {
+        const EFFICIENCY_SPEC = INSIGHTS_DASHBOARD_SPECS[EFFICIENCY];
+        const HEADLINE = EFFICIENCY_SPEC.headlineChart;
+        const PROCESSING_TIME = EFFICIENCY_SPEC.supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME);
+        const ALL_STAGES = Object.values(CONST.SEARCH.WORKFLOW_STAGES);
+        const UNAPPROVED_STAGES = [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED, CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID];
+
+        /** Returns the stages each Efficiency chart showing stages keeps for the given workspaces */
+        function getEnabledEfficiencyStages(policies: Policy[], policyIDs: string[] = []) {
+            const policiesInScope = getPoliciesInScope(toCollection(policies), policyIDs);
+            const toStages = (chart: typeof HEADLINE | undefined) =>
+                chart && getEnabledStages(chart, policiesInScope, LOGIN, EFFICIENCY_SPEC.isPolicyEligible)?.map(({workflowStage}) => workflowStage);
+            return {
+                headline: toStages(HEADLINE),
+                processingTime: toStages(PROCESSING_TIME),
+            };
+        }
+
+        it('keeps every stage when a workspace in scope has approvals', () => {
+            // Given an administered workspace with approvals turned on
+            const policy = {
+                ...buildPolicy(1, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            // When the Efficiency stages to show are resolved
+            const stages = getEnabledEfficiencyStages([policy]);
+
+            // Then the headline stacks and the processing-time donut both show all three stages
+            expect(stages).toEqual({
+                headline: ALL_STAGES,
+                processingTime: ALL_STAGES,
+            });
+        });
+
+        it('drops the approval stage from every chart when no workspace in scope has approvals', () => {
+            // Given an administered workspace with optional approvals
+            const policy = {
+                ...buildPolicy(1, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            // When the Efficiency stages to show are resolved
+            const stages = getEnabledEfficiencyStages([policy]);
+
+            // Then the headline and the donut both leave out Submitted → Approved, so the two charts never disagree about the stage
+            expect(stages).toEqual({
+                headline: UNAPPROVED_STAGES,
+                processingTime: UNAPPROVED_STAGES,
+            });
+        });
+
+        it('keeps the approval stage for a mixed scope where any workspace has approvals', () => {
+            // Given one administered workspace with approvals and one without
+            const approvingPolicy = {
+                ...buildPolicy(1, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const optionalPolicy = {
+                ...buildPolicy(2, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            // When the Efficiency stages to show are resolved for both, and then for the one without approvals alone
+            const bothStages = getEnabledEfficiencyStages([approvingPolicy, optionalPolicy]);
+            const optionalOnlyStages = getEnabledEfficiencyStages([approvingPolicy, optionalPolicy], [optionalPolicy.id]);
+
+            // Then one approving workspace is enough to keep the stage, and narrowing the filter away from it drops the stage from both charts
+            expect(bothStages).toEqual({
+                headline: ALL_STAGES,
+                processingTime: ALL_STAGES,
+            });
+            expect(optionalOnlyStages).toEqual({
+                headline: UNAPPROVED_STAGES,
+                processingTime: UNAPPROVED_STAGES,
+            });
+        });
+
+        it('ignores approvals on workspaces the dashboard does not report on', () => {
+            // Given an administered workspace without approvals and a workspace with approvals the user is only a member of
+            const administeredPolicy = {
+                ...buildPolicy(1, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const memberPolicy = {
+                ...buildPolicy(2, CONST.POLICY.ROLE.USER),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            // When the Efficiency stages to show are resolved
+            const stages = getEnabledEfficiencyStages([administeredPolicy, memberPolicy]);
+
+            // Then the approval stage is dropped, since Efficiency only reports on workspaces the user administers or audits
+            expect(stages).toEqual({
+                headline: UNAPPROVED_STAGES,
+                processingTime: UNAPPROVED_STAGES,
+            });
+        });
+
+        it('leaves charts that declare no stages without any', () => {
+            // Given an administered workspace
+            const policiesInScope = [buildPolicy(1, CONST.POLICY.ROLE.ADMIN)];
+
+            // When the stages of a chart that declares none are resolved
+            // Then there are none, so the chart keeps drawing its rows as they come
+            expect(getEnabledStages(INSIGHTS_DASHBOARD_SPECS[SPEND].headlineChart, policiesInScope, LOGIN)).toBeUndefined();
+        });
+    });
+
+    describe('keepEnabledStageGroups', () => {
+        function stageGroup(workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>): TransactionWorkflowStageGroupListItemType {
+            return {
+                groupedBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
+                workflowStage,
+                averageDuration: 1,
+                formattedWorkflowStage: workflowStage,
+                keyForList: workflowStage,
+                count: 1,
+                total: 0,
+                currency: CONST.CURRENCY.USD,
+                transactions: [],
+            };
+        }
+
+        it('drops the donut slices of stages left out of scope', () => {
+            // Given the three stage groups the processing-time query returns, and stages resolved for workspaces without approvals
+            const rows = Object.values(CONST.SEARCH.WORKFLOW_STAGES).map(stageGroup);
+            const policy = {
+                ...buildPolicy(1, CONST.POLICY.ROLE.ADMIN),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const processingTime = INSIGHTS_DASHBOARD_SPECS[EFFICIENCY].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME);
+            const stages = processingTime && getEnabledStages(processingTime, [policy], LOGIN);
+
+            // When the groups are narrowed to the enabled stages
+            const kept = keepEnabledStageGroups(rows, stages);
+
+            // Then the approval slice and its table row are gone, matching the headline that stacks no approval segment
+            expect(kept?.map((item) => ('workflowStage' in item ? item.workflowStage : undefined))).toEqual([
+                CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
+                CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
+            ]);
         });
     });
 });

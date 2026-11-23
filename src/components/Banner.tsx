@@ -8,6 +8,7 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -23,7 +24,7 @@ import RenderHTML from './RenderHTML';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-type BannerProps = {
+type BannerProps = WithSentryLabelWhenPressable & {
     /** Text to display in the banner. */
     text?: string;
 
@@ -47,7 +48,7 @@ type BannerProps = {
     /** Callback called when the close button is pressed */
     onClose?: () => void;
 
-    /** Callback called when the message is pressed */
+    /** Callback called when the message is pressed. Needs `sentryLabel`. */
     onPress?: () => void;
 
     /** Styles to be assigned to the Banner container */
@@ -67,6 +68,7 @@ function Banner({
     iconSize,
     onClose,
     onPress,
+    sentryLabel,
     containerStyles,
     textStyles,
     children,
@@ -81,6 +83,9 @@ function Banner({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Close']);
 
     const displayIcon = icon ?? expensifyIcons.Exclamation;
+
+    // The text is pressable only with onPress, and the props require a label with it.
+    const pressProps = onPress ? {onPress, sentryLabel} : {};
 
     return (
         <Hoverable>
@@ -117,7 +122,7 @@ function Banner({
                                 ) : (
                                     <Text
                                         style={[styles.flex1, styles.flexWrap, textStyles]}
-                                        onPress={onPress}
+                                        {...pressProps}
                                         suppressHighlighting
                                     >
                                         {text}

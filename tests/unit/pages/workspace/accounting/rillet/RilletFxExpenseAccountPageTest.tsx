@@ -6,6 +6,7 @@ import {updateRilletFxExpenseAccount} from '@libs/actions/connections/Rillet';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
@@ -105,6 +106,9 @@ describe('RilletFxExpenseAccountPage', () => {
         expect(selectionScreenProps.data.map((item) => item.keyForList)).toEqual([CONST.SEARCH.NONE_OPTION_KEY, BANK_FEES_ACCOUNT.code]);
         expect(selectionScreenProps.data.at(0)).toEqual(expect.objectContaining({value: '', isSelected: true}));
         expect(selectionScreenProps.confirmButtonOptions?.isDisabled).toBe(true);
+        expect(selectionScreenProps.shouldSingleExecuteRowSelect).toBe(true);
+        expect(selectionScreenProps.shouldUpdateFocusedIndex).toBe(true);
+        expect(selectionScreenProps.data.at(1)?.text).toBe(`${BANK_FEES_ACCOUNT.code} ${BANK_FEES_ACCOUNT.name}`);
     });
 
     it('saves the tapped account only when Save is pressed', () => {
@@ -118,6 +122,7 @@ describe('RilletFxExpenseAccountPage', () => {
 
         // Then: nothing is written until Save.
         expect(updateRilletFxExpenseAccount).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
 
         // When: Save is pressed.
         act(() => {
@@ -126,7 +131,7 @@ describe('RilletFxExpenseAccountPage', () => {
 
         // Then: the account code is written and we return to Advanced.
         expect(updateRilletFxExpenseAccount).toHaveBeenCalledWith('1', BANK_FEES_ACCOUNT.code, undefined);
-        expect(Navigation.goBack).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute('1'));
     });
 
     it('clears the saved account when None is saved', () => {
@@ -152,5 +157,21 @@ describe('RilletFxExpenseAccountPage', () => {
 
         // Then: the picker is blocked, matching the hidden Advanced row.
         expect(selectionScreenProps.shouldBeBlocked).toBe(true);
+    });
+    it('returns to its own Advanced page without saving when Back is pressed', () => {
+        // Given an account has been selected without saving it.
+        renderPicker();
+        act(() => {
+            getSelectionScreenProps().onSelectRow({value: BANK_FEES_ACCOUNT.code, text: BANK_FEES_ACCOUNT.name, keyForList: BANK_FEES_ACCOUNT.code});
+        });
+
+        // When Back is pressed in the shared picker.
+        act(() => {
+            getSelectionScreenProps().onBackButtonPress?.();
+        });
+
+        // Then the integration's Advanced route is preserved and nothing is persisted.
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute('1'));
+        expect(updateRilletFxExpenseAccount).not.toHaveBeenCalled();
     });
 });
