@@ -3304,10 +3304,10 @@ describe('WorkflowUtils', () => {
                         '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
                     },
                     [
-                        [500000, ['1@example.com', '5@example.com']],
-                        [2000000, ['1@example.com', '2@example.com', '5@example.com']],
-                        [30000000, ['1@example.com', '2@example.com', '3@example.com', '5@example.com']],
-                        [60000000, ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']],
+                        {amount: 500000, route: ['1@example.com', '5@example.com']},
+                        {amount: 2000000, route: ['1@example.com', '2@example.com', '5@example.com']},
+                        {amount: 30000000, route: ['1@example.com', '2@example.com', '3@example.com', '5@example.com']},
+                        {amount: 60000000, route: ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']},
                     ],
                 ],
                 [
@@ -3321,14 +3321,14 @@ describe('WorkflowUtils', () => {
                         '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
                     },
                     [
-                        [100000, ['1@example.com', '3@example.com', '5@example.com']],
-                        [700000, ['1@example.com', '3@example.com', '4@example.com', '5@example.com']],
-                        [2000000, ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']],
+                        {amount: 100000, route: ['1@example.com', '3@example.com', '5@example.com']},
+                        {amount: 700000, route: ['1@example.com', '3@example.com', '4@example.com', '5@example.com']},
+                        {amount: 2000000, route: ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']},
                     ],
                 ],
             ])(
                 'Should route every report along the workflow it showed once its forks are removed, when %s',
-                (_description, employees: PolicyEmployeeList, expectedRoutes: Array<[number, string[]]>) => {
+                (_description, employees: PolicyEmployeeList, expectedRoutes: Array<{amount: number; route: string[]}>) => {
                     // Given a workflow whose employee settings send some reports away from it, so it shows forks
                     const policy = createPolicy(employees, '5@example.com');
                     const findMemberWorkflow = (workflows: ApprovalWorkflow[]) => workflows.find((workflow) => workflow.members.some((member) => member.email === '9@example.com'));
@@ -3352,7 +3352,7 @@ describe('WorkflowUtils', () => {
                         forkedWorkflow?.approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount})),
                     );
                     expect(hasApprovalWorkflowForks({approvers: squashedApprovers})).toBe(false);
-                    for (const [amount, expectedRoute] of expectedRoutes) {
+                    for (const {amount, route: expectedRoute} of expectedRoutes) {
                         const route = squashedApprovers.filter(({overLimitAmount}) => overLimitAmount === undefined || amount > overLimitAmount).map(({email}) => email);
                         expect(route).toEqual(expectedRoute);
                     }
