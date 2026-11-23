@@ -54,6 +54,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
+import {getBankPaySkippedReports, isSelectedReportBankPayBlocked} from '@libs/BulkPaySkippedReportsUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -82,7 +83,6 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
-    isBankPayBlockedBySpend,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isDM,
@@ -256,11 +256,6 @@ function getRestrictedPolicyID(
         );
 }
 
-/** Whether a bank payment leaves a selected report out because nothing on it is owed, judged by the report's own workspace */
-function isSelectedReportBankPayBlocked(report: OnyxEntry<Report>, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): boolean {
-    return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchData, policies));
-}
-
 function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
 }
@@ -370,13 +365,11 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
  */
 function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
     const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
-    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
-        (range): ASTNode => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.start},
-            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.end},
-        }),
-    );
+    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map((range): ASTNode => ({
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.start},
+        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.end},
+    }));
     if (!firstRangeNode) {
         return queryJSON;
     }
@@ -1831,25 +1824,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // A report with nothing owed can only be marked as paid, so a bank payment leaves it out and lists it for the user once the rest are paid
-            const bankPaySkippedReportsByID = new Map<string, Report>();
-            // Pay via ABA is a bank payment even though it's sent as paid elsewhere
             const isABAPayment = additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA;
-            if (isABAPayment || paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                for (const reportID of new Set(selectedOptions.map((item) => item.reportID))) {
-                    const report = reportID ? getReportFromSearchSnapshot(reportID, searchResults?.data, allReports) : undefined;
-                    if (!reportID || !report) {
-                        continue;
-                    }
-                    const reportPaymentMethod =
-                        paymentMethod ?? getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, getReportType(report), isIOUReportUtil(reportID));
-                    if (!isABAPayment && (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) {
-                        continue;
-                    }
-                    if (isSelectedReportBankPayBlocked(report, searchResults?.data, policies)) {
-                        bankPaySkippedReportsByID.set(reportID, report);
-                    }
-                }
-            }
+            const bankPaySkippedReportsByID = getBankPaySkippedReports({
+                reportIDs: selectedOptions.map((item) => item.reportID),
+                paymentMethod,
+                isABAPayment,
+                searchData: searchResults?.data,
+                allReports,
+                policies,
+                personalPolicyID,
+                lastPaymentMethods,
+            });
             const showBankPaySkippedReports = (skippedReports?: BankPaySkippedReport[]) =>
                 // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
                 deferModalPresentationAfterPopoverDismiss(() => {
