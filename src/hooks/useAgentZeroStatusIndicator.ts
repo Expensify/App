@@ -44,19 +44,6 @@ const MIN_DISPLAY_TIME = 300; // ms
 const DEBOUNCE_DELAY = 150; // ms
 
 /**
- * Hook to manage the AgentZero status indicator for a single agent in a chat where AgentZero
- * responds. One instance runs per actively-thinking agent (a room can hold several), so all
- * its state — server label, optimistic store, reasoning store — is keyed by `(reportID,
- * agentAccountID)`. The reasoning Pusher subscription is owned by `AgentZeroStatusProvider`
- * (one per report), not here.
- *
- * @param reportID - The report ID to monitor
- * @param agentAccountID - The agent this indicator tracks (Concierge for Concierge/admin chats;
- *   the custom agent's accountID otherwise). Used to read this agent's server label and to
- *   decide when its final reply has landed: the indicator only clears once the newest
- *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
- */
-/**
  * Finishes each sent message once its reply is saved under the ID the client reserved for it, so an older reply
  * never finishes a newer message and a missed completion event does not leave the message waiting. Reading the
  * reply from Onyx also covers a reply that arrived while this tab was offline.
@@ -70,6 +57,19 @@ function useCompleteAnsweredTurns(reportID: string, agentAccountID: number, pend
     }, [answeredQuestionIDs]);
 }
 
+/**
+ * Hook to manage the AgentZero status indicator for a single agent in a chat where AgentZero
+ * responds. One instance runs per actively-thinking agent (a room can hold several), so all
+ * its state — server label, optimistic store, reasoning store — is keyed by `(reportID,
+ * agentAccountID)`. The reasoning Pusher subscription is owned by `AgentZeroStatusProvider`
+ * (one per report), not here.
+ *
+ * @param reportID - The report ID to monitor
+ * @param agentAccountID - The agent this indicator tracks (Concierge for Concierge/admin chats;
+ *   the custom agent's accountID otherwise). Used to read this agent's server label and to
+ *   decide when its final reply has landed: the indicator only clears once the newest
+ *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
+ */
 function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
