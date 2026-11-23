@@ -181,6 +181,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
                     shouldShowRoleColumn
+                    columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_AGENTS}
                     emptyStateButtons={emptyStateButtons}
                     bulkActionOptions={canWriteAgents ? bulkActionsButtonOptions : undefined}
                 />

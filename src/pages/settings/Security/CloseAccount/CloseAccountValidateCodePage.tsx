@@ -16,7 +16,6 @@ import {closeAccount} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -36,7 +35,7 @@ function CloseAccountValidateCodePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [closeAccountForm] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT);
     const showRuleBotGuardModal = useRuleBotGuardModal();
 
     const reasonForLeaving = draftValues?.reasonForLeaving;
@@ -46,10 +45,6 @@ function CloseAccountValidateCodePage() {
     useEffect(() => {
         // The reason is a required field of the close account form, so an empty draft means this page was reached
         // without submitting that form (e.g. a direct link) and the default contact method was never confirmed.
-        if (isLoadingOnyxValue(draftValuesMetadata)) {
-            return;
-        }
-
         if (!reasonForLeaving) {
             Navigation.goBack(ROUTES.SETTINGS_CLOSE);
             return;
@@ -58,7 +53,7 @@ function CloseAccountValidateCodePage() {
         if (ruleBotEnforcedPolicy) {
             showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
         }
-    }, [draftValuesMetadata, reasonForLeaving, ruleBotEnforcedPolicy, showRuleBotGuardModal]);
+    }, [reasonForLeaving, ruleBotEnforcedPolicy, showRuleBotGuardModal]);
 
     const handleSendValidateCode = () => {
         if (!reasonForLeaving) {
