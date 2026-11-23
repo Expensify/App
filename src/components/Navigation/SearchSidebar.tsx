@@ -40,6 +40,7 @@ import {
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
+import useEndPeekOnFocusLeave from './useEndPeekOnFocusLeave';
 
 type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
@@ -53,7 +54,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
-    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
     const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -93,6 +94,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
         endPeek();
     };
 
+    const saveFocusInside = useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeek);
+
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
@@ -128,7 +131,10 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     onHoverOut={endPeek}
                 >
                     <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
-                        <View style={styles.flex1}>
+                        <View
+                            style={styles.flex1}
+                            onFocus={saveFocusInside}
+                        >
                             <TopBar
                                 shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                                 breadcrumbLabel={translate('common.spend')}
