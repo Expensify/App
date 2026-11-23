@@ -254,7 +254,7 @@ function isCorpayNonUSBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount |
 }
 
 function canUseMismatchedCurrencyBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount | PaymentMethod>, isMismatchedReimbursementCurrencyBetaEnabled: boolean): boolean {
-    if (!isMismatchedReimbursementCurrencyBetaEnabled || !bankAccount || !('accountData' in bankAccount)) {
+    if (!isMismatchedReimbursementCurrencyBetaEnabled || !bankAccount || !('bankCountry' in bankAccount)) {
         return false;
     }
     return isCorpayNonUSBankAccount(bankAccount) && bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
