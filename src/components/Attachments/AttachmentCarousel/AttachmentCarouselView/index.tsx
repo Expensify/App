@@ -130,7 +130,7 @@ function AttachmentCarouselView({
         }
 
         // Safari may apply the scroll after layout. Read it back even if no viewability/scroll event follows.
-        // Content-size and scroll callbacks can retry if the virtualized content is not ready in that frame.
+        // Layout and content-size callbacks can retry if the virtualized content is not ready in that frame.
         if (shouldCheckNextFrame && restoreFrameRef.current === undefined) {
             restoreFrameRef.current = requestAnimationFrame(() => {
                 restoreFrameRef.current = undefined;
@@ -139,27 +139,29 @@ function AttachmentCarouselView({
         }
     };
 
-    const getSettledScrollNode = () => {
+    const getSettledScrollGeometry = () => {
+        if (isFullScreen || selectionRef.current.page < 0 || attachments.length === 0) {
+            return;
+        }
         const node = getScrollNode();
         const width = node?.getBoundingClientRect().width;
-        if (!node || !width || isFullScreen) {
+        if (!node || !width) {
             return;
         }
         // Read live DOM geometry: RNW's cached layout and scroll metrics can still describe portrait.
         if (Math.abs(width - cellWidth) > LAYOUT_TOLERANCE || restoredWidthRef.current !== width) {
-            restorePage();
+            // An unreliable sample must not scroll back over a swipe that is already in progress.
             return;
         }
-        return node;
+        return {width, scrollLeft: node.scrollLeft};
     };
 
-    const selectVisiblePage = (index: number, node: HTMLElement) => {
+    const selectVisiblePage = (index: number, {width, scrollLeft}: {width: number; scrollLeft: number}) => {
         const item = attachments.at(index);
         if (index < 0 || !item) {
             return;
         }
-        const width = node.getBoundingClientRect().width;
-        const visibleWidth = Math.min((index + 1) * cellWidth, node.scrollLeft + width) - Math.max(index * cellWidth, node.scrollLeft);
+        const visibleWidth = Math.min((index + 1) * cellWidth, scrollLeft + width) - Math.max(index * cellWidth, scrollLeft);
         if (visibleWidth + LAYOUT_TOLERANCE < (cellWidth * viewabilityConfig.itemVisiblePercentThreshold) / 100) {
             return;
         }
@@ -177,21 +179,21 @@ function AttachmentCarouselView({
     };
 
     const updatePage = ({viewableItems}: UpdatePageProps) => {
-        const node = getSettledScrollNode();
+        const geometry = getSettledScrollGeometry();
         const entry = viewableItems.length === 1 ? viewableItems.at(0) : undefined;
-        if (!node || entry?.index == null) {
+        if (!geometry || entry?.index == null) {
             return;
         }
-        selectVisiblePage(entry.index, node);
+        selectVisiblePage(entry.index, geometry);
     };
 
     const updatePageFromScroll = () => {
-        const node = getSettledScrollNode();
-        if (!node) {
+        const geometry = getSettledScrollGeometry();
+        if (!geometry) {
             return;
         }
         // FlatList need not emit another visibility callback after a resize sample was rejected.
-        selectVisiblePage(Math.round(node.scrollLeft / cellWidth), node);
+        selectVisiblePage(Math.round(geometry.scrollLeft / cellWidth), geometry);
     };
 
     useInsertionEffect(() => {
@@ -199,6 +201,10 @@ function AttachmentCarouselView({
         pagingRef.current = {restorePage, updatePage, updatePageFromScroll};
     });
     useInsertionEffect(() => {
+        // Parent acknowledgements of local navigation need no restoration, but external page changes do.
+        if (selectionRef.current.page !== page) {
+            restoredWidthRef.current = undefined;
+        }
         selectionRef.current.page = page;
     }, [page]);
     useInsertionEffect(() => {
@@ -206,7 +212,7 @@ function AttachmentCarouselView({
     }, [attachmentID, source]);
     useInsertionEffect(() => {
         restoredWidthRef.current = undefined;
-    }, [cellWidth]);
+    }, [cellWidth, attachments.length]);
 
     // RNW FlatList requires the same callback for its lifetime; compiler memoization is not that contract.
     const [paging] = useState(() => ({
