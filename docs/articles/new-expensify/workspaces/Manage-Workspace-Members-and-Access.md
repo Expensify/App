@@ -2,7 +2,7 @@
 title: Manage Workspace Members and Access
 description: Learn how to change workspace member roles, remove members, set display names, update work arrangements and office assignments, and download a CSV.
 keywords: [workspace members, change role, remove member, remove users, filter members, member display name, download members, export members, member CSV, workspace access, work arrangement, commute exclusions, exclude usual commute, office-based, remote or mobile, default work arrangement, mileage commute]
-internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, removing members individually or in bulk, filtering by role, setting display names, updating work arrangements and office assignments individually or in bulk, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
+internalScope: Audience is workspace admins, people admins, and other members with access to workspace member settings. Covers changing existing members' roles, removing members individually or in bulk, filtering by role, setting display names, updating work arrangements and office assignments individually or in bulk, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
 contentType: task
 platform: new-expensify
 ---
@@ -146,7 +146,7 @@ On web:
 On mobile:
 
 1. In the navigation tabs on the bottom, select **Workspaces > [workspace name] > Members**.
-2. Long press a member and select **Select**.
+2. Long-press a member, then select **Select**.
 3. Select the checkboxes next to the members you want to update.
 4. Select the menu showing the number of selected members, such as **2 selected**.
 5. Select **Change office location** or **Change work arrangement**.
