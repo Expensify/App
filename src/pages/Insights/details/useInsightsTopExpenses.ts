@@ -60,8 +60,12 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
         reportAttributesDerivedValue: undefined,
         queryJSON,
     });
-    const expenses = getSortedSections(queryJSON.type, sections, localeCompare, translate, queryJSON.sortBy, queryJSON.sortOrder)
-        .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+    // The server sorts by the converted amount, while the client can only sort by each expense's own currency
+    const sortedItems = snapshot.orderedKeys
+        ? snapshot.orderedKeys.map((key) => sections.find((item) => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === key))
+        : getSortedSections(queryJSON.type, sections, localeCompare, translate, queryJSON.sortBy, queryJSON.sortOrder);
+    const expenses = sortedItems
+        .filter((item): item is TransactionListItemType => !!item && 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .slice(0, queryJSON.limit);
 
     return {expenses, queryJSON, state};
