@@ -1519,6 +1519,10 @@ const translations: TranslationDeepObject<typeof en> = {
         movedTransactionToAnotherReport: '已将此报销移动到另一份报表',
         movedTransactionFrom: (reportUrl: string, reportName: string) => `已将此报销从 <a href="${reportUrl}">${reportName}</a> 中移出`,
         movedTransactionFromAnotherReport: '已将此报销从另一份报表中移出',
+        mergedReports: ({reportNames}: {reportNames: string}) => ({
+            one: `已将 ${reportNames} 合并到此报表`,
+            other: (count: number) => `已将 ${count} 份报表合并到此报表：${reportNames}`,
+        }),
         unreportedTransaction: (reportUrl: string) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

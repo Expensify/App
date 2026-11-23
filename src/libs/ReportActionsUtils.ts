@@ -33,6 +33,7 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageMergedReports,
     OriginalMessageReimbursed,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
@@ -351,6 +352,7 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+    CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS,
     CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
     CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
@@ -5463,6 +5465,21 @@ function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAct
     return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole, newRole);
 }
 
+/**
+ * Joins the names of the reports a merge deleted into the comma-separated list the MERGED_REPORTS message shows.
+ */
+function getMergedReportNames(sourceReports: OriginalMessageMergedReports['sourceReports']) {
+    return sourceReports.map((sourceReport) => sourceReport.reportName).join(', ');
+}
+
+/**
+ * Builds the MERGED_REPORTS message. The merged report names are plain text because the merge deletes those reports.
+ */
+function getMergedReportsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS>>) {
+    const sourceReports = getOriginalMessage(reportAction)?.sourceReports ?? [];
+    return translate('iou.mergedReports', {count: sourceReports.length, reportNames: getMergedReportNames(sourceReports)});
+}
+
 function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {oldAuditRate, newAuditRate} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE>) ?? {};
 
@@ -6451,6 +6468,8 @@ export {
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
+    getMergedReportNames,
+    getMergedReportsMessage,
     getDynamicExternalWorkflowRoutedMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getReportAction,
