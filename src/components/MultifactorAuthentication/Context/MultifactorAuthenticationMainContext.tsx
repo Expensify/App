@@ -422,6 +422,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         handleCallback(true);
     };
 
+    const isAuthorizedAndOnline = state.isAuthorizationComplete && !isOffline;
+
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.
      * This effect acts as the "engine" that progresses through the authentication flow:
@@ -471,6 +473,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         state.isRegistrationComplete,
         state.isAuthorizationComplete,
         state.isFlowComplete,
+
+        // Reconnect after authorization - resumes the final step that was skipped while offline
+        isAuthorizedAndOnline,
     ]);
 
     /**

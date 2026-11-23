@@ -166,6 +166,40 @@ describe('Wallet MFA composed providers', () => {
         expect(state.error).toBeUndefined();
     });
 
+    it('finishes the flow on reconnect when wallet succeeds while offline', async () => {
+        // Given the wallet sheet is presented over the modal.
+        let finishWallet: ((status: TokenizationStatus) => void) | undefined;
+        jest.mocked(handleAddCardToWallet).mockImplementation(
+            () =>
+                new Promise<TokenizationStatus>((resolve) => {
+                    finishWallet = resolve;
+                }),
+        );
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+        await startScenario();
+        await waitFor(() => expect(handleAddCardToWallet).toHaveBeenCalled());
+
+        // When the connection drops before the wallet reports success.
+        mockIsOffline = true;
+        view.rerender(renderTree());
+        await act(async () => finishWallet?.('success'));
+        await waitFor(() => expect(state.isAuthorizationComplete).toBe(true));
+        expect(state.isFlowComplete).toBe(false);
+
+        // Then reconnecting finishes the flow once, so a later MFA attempt is not blocked by the old scenario.
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isModalOpen).toBe(false);
+        expect(mockBiometrics.authorize).toHaveBeenCalledTimes(1);
+        expect(handleAddCardToWallet).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
         // Given the wallet sheet is presented over the modal.
         let finishWallet: ((status: TokenizationStatus) => void) | undefined;
