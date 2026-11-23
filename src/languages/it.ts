@@ -13128,5 +13128,21 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         toMarkAsDone: 'segnare come completato',
         receivedPayment: 'pagamento ricevuto',
     },
+    reimbursementIntentStep: {
+        title: 'Come vuoi di solito pagare?',
+        subtitle: 'Non preoccuparti, potrai configurare entrambi i metodi più tardi.',
+        payViaExpensify: 'Paga con Expensify',
+        payViaExpensifyDescription: 'Veloce, sicuro e facile',
+        payViaABAFile: 'Paga altrove tramite file ABA',
+        payViaABAFileDescription: 'Per i pagamenti manuali',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Quali sono i dati del tuo conto?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Numero di identificazione utente bancario',
+        companyName: 'Nome azienda',
+        includeSelfBalancingTransaction: 'Includi la transazione auto-bilanciante nel file ABA',
+        error: {bsbNumber: 'Inserisci un BSB valido, ad esempio 123-456', bankUserIdentificationNumber: 'Inserisci un valido codice identificativo utente bancario di massimo 6 cifre'},
+    },
 };
 export default translations;
