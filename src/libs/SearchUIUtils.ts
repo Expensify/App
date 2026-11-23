@@ -260,7 +260,6 @@ import {
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
     hasDisplayableMCC,
-    hasAppliedCommuterExclusion,
     isDeletedTransaction,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -8281,7 +8280,7 @@ function canChangeWorkspaceOfSearchReport({
     currentUserLogin,
     personalDetails,
 }: CanChangeWorkspaceOfSearchReportParams): boolean {
-    if (!report || !isExpenseReportUtil(report) || reportTransactions?.some(hasAppliedCommuterExclusion)) {
+    if (!report || !isExpenseReportUtil(report)) {
         return false;
     }
     const reportToCheck = liveReport?.isExportedToIntegration === undefined ? report : {...report, isExportedToIntegration: liveReport.isExportedToIntegration};

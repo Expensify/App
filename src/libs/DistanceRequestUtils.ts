@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 
 import {format, parseISO} from 'date-fns';
 
@@ -37,6 +38,11 @@ type MileageRate = {
 };
 
 type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
+
+const COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS = ['commuterExclusion', 'reimbursableDistance', 'commuterExclusionType', 'commuterExclusionMethod'] as const;
+
+/** The custom unit's commuter exclusion fields, where null clears the stored value through Onyx.merge */
+type CommuterExclusionCustomUnitUpdate = {[Key in TupleToUnion<typeof COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS>]?: TransactionCustomUnit[Key] | null};
 
 const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
@@ -364,6 +370,51 @@ function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distan
     const fixedDistanceInRequestUnit = convertRoundedDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
 
     return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
+}
+
+/**
+ * Build the custom unit's commuter exclusion for the workspace a distance expense ends up on.
+ *
+ * A commuter exclusion belongs to the workspace the expense is on, and always describes the distance of
+ * `selectedCustomUnit`, or of `previousCustomUnit` when nothing is selected. Custom units are stored with Onyx.merge,
+ * which deep merges them, so both the exclusion of a workspace that is no longer the destination and the reimbursable
+ * distance of a previous merge selection would otherwise survive. The distance field then shows the reimbursable
+ * distance in place of the full distance.
+ *
+ * `iouRequestType` is the type the expense ends up with, so that the result matches the exclusion that creating the
+ * expense on the destination workspace would apply.
+ */
+function getCommuterExclusionCustomUnitUpdate(
+    selectedCustomUnit: TransactionCustomUnit | undefined,
+    previousCustomUnit: TransactionCustomUnit | undefined,
+    destinationPolicy: OnyxEntry<Policy>,
+    iouRequestType: IOURequestType | undefined,
+): CommuterExclusionCustomUnitUpdate {
+    const quantity = selectedCustomUnit?.quantity ?? previousCustomUnit?.quantity;
+    const distanceUnit = selectedCustomUnit?.distanceUnit ?? previousCustomUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    // The destination workspace's setting decides the exclusion, so it applies to an expense that arrives from a
+    // workspace excluding nothing, and stops applying to one that leaves a workspace that excludes a distance
+    const commuterExclusion =
+        typeof quantity === 'number' && isCommuterExclusionApplicableToRequestType(iouRequestType) ? getPolicyCommuterExclusionForDistance(destinationPolicy, quantity, distanceUnit) : 0;
+
+    if (commuterExclusion > 0 && typeof quantity === 'number') {
+        return {
+            commuterExclusion,
+            reimbursableDistance: Math.max(0, quantity - commuterExclusion),
+            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+        };
+    }
+
+    // Null the exclusion keys that hold a value so Onyx removes them, leaving the ones that were never set out of the update
+    const clearedUpdate: CommuterExclusionCustomUnitUpdate = {};
+    for (const key of COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS) {
+        if (selectedCustomUnit?.[key] === undefined && previousCustomUnit?.[key] === undefined) {
+            continue;
+        }
+        clearedUpdate[key] = null;
+    }
+
+    return clearedUpdate;
 }
 
 function getTransactionCommuterExclusionData({
@@ -1079,6 +1130,7 @@ export default {
     getDistanceRequestAmount,
     getCommuterExclusionDisplayData,
     getPolicyCommuterExclusionForDistance,
+    getCommuterExclusionCustomUnitUpdate,
     isCommuterExclusionApplicableToRequestType,
     hasCommuterExclusionPreviewForPolicy,
     getTransactionCommuterExclusionData,
@@ -1117,4 +1169,4 @@ export default {
     compareRatesByDisplayName,
 };
 
-export type {MileageRate, CommuterExclusionData};
+export type {MileageRate, CommuterExclusionData, CommuterExclusionCustomUnitUpdate};

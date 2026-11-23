@@ -17,6 +17,7 @@ import {
 import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {setForceOffline} from '@libs/NetworkState';
 import * as NextStepUtils from '@libs/NextStepUtils';
@@ -32,7 +33,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2403,6 +2404,173 @@ describe('Transaction', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+        });
+
+        describe('commuter exclusion of a distance expense moving to another workspace', () => {
+            const SOURCE_POLICY_ID = '201';
+            const DESTINATION_POLICY_ID = '202';
+            const SOURCE_RATE_ID = 'source_rate';
+            const DESTINATION_RATE_ID = 'destination_rate';
+            const DESTINATION_RATE = 6550;
+            const SOURCE_COMMUTER_EXCLUSION: TransactionCustomUnit = {
+                customUnitRateID: SOURCE_RATE_ID,
+                commuterExclusion: 2,
+                reimbursableDistance: 8,
+                commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            };
+
+            function buildDestinationPolicy(commuterExclusions?: Policy['commuterExclusions'], rateID = DESTINATION_RATE_ID): Policy {
+                return {
+                    ...createRandomPolicy(Number(DESTINATION_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    id: DESTINATION_POLICY_ID,
+                    outputCurrency: 'USD',
+                    commuterExclusions,
+                    customUnits: {
+                        distanceUnit: {
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'distanceUnit',
+                            defaultCategory: '',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: {
+                                [rateID]: {
+                                    currency: 'USD',
+                                    customUnitRateID: rateID,
+                                    enabled: true,
+                                    name: 'Default Rate',
+                                    rate: DESTINATION_RATE,
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            // Moves a 10 mi map distance expense from a report on another workspace onto a report on the destination workspace
+            async function moveDistanceExpense(customUnit: TransactionCustomUnit, destinationPolicy: Policy) {
+                const transaction = generateTransaction({
+                    reportID: FAKE_OLD_REPORT_ID,
+                    amount: -500,
+                    currency: 'USD',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 10,
+                            ...customUnit,
+                        },
+                    },
+                });
+                const oldExpenseReport = {
+                    ...createExpenseReport(Number(FAKE_OLD_REPORT_ID)),
+                    reportID: FAKE_OLD_REPORT_ID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: CURRENT_USER_ID,
+                    currency: 'USD',
+                };
+                const newExpenseReport = {
+                    ...createExpenseReport(Number(FAKE_NEW_REPORT_ID)),
+                    reportID: FAKE_NEW_REPORT_ID,
+                    policyID: DESTINATION_POLICY_ID,
+                    ownerAccountID: CURRENT_USER_ID,
+                    currency: 'USD',
+                };
+                const oldIOUAction = createIOUAction(transaction);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, oldExpenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, newExpenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    currentUserPersonalDetails,
+                    newReport: newExpenseReport,
+                    policy: destinationPolicy,
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                    policyTagList: undefined,
+                    reports: {
+                        ...reports,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`]: oldExpenseReport,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: newExpenseReport,
+                    },
+                    transactionViolations: {},
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                return getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            }
+
+            function getExpectedAmount(miles: number) {
+                return -DistanceRequestUtils.getDistanceRequestAmount(
+                    DistanceRequestUtils.convertToDistanceInMeters(miles, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                    CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    DESTINATION_RATE,
+                );
+            }
+
+            it('removes the exclusion and prices the full distance on a workspace without commuter exclusions', async () => {
+                // Given a 10 mi expense that reimburses 8 mi under its workspace's 2 mi commuter exclusion
+                // When it moves to a workspace without commuter exclusions
+                const movedTransaction = await moveDistanceExpense(SOURCE_COMMUTER_EXCLUSION, buildDestinationPolicy());
+
+                // Then the preview drops the exclusion and prices all 10 mi at the new workspace's rate, as the server does
+                expect(movedTransaction?.comment?.customUnit?.customUnitRateID).toBe(DESTINATION_RATE_ID);
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusion).toBeUndefined();
+                expect(movedTransaction?.comment?.customUnit?.reimbursableDistance).toBeUndefined();
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusionMethod).toBeUndefined();
+                expect(movedTransaction?.modifiedAmount).toBe(getExpectedAmount(10));
+            });
+
+            it("applies the new workspace's fixed commuter exclusion", async () => {
+                // Given a 10 mi expense without a commuter exclusion
+                // When it moves to a workspace that excludes 3 mi of every trip
+                const movedTransaction = await moveDistanceExpense(
+                    {customUnitRateID: SOURCE_RATE_ID},
+                    buildDestinationPolicy({
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 3,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    }),
+                );
+
+                // Then the preview takes 3 mi out and prices the remaining 7 mi
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusion).toBe(3);
+                expect(movedTransaction?.comment?.customUnit?.reimbursableDistance).toBe(7);
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusionMethod).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE);
+                expect(movedTransaction?.modifiedAmount).toBe(getExpectedAmount(7));
+            });
+
+            it('keeps the saved exclusion on a workspace that excludes commutes by home and office', async () => {
+                // Given a 10 mi expense that reimburses 8 mi under its workspace's 2 mi commuter exclusion
+                // When it moves to a workspace that excludes commutes by home and office, which only the server can match
+                const movedTransaction = await moveDistanceExpense(SOURCE_COMMUTER_EXCLUSION, buildDestinationPolicy({method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}));
+
+                // Then the preview keeps the saved exclusion and prices the 8 mi it leaves until the server responds
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusion).toBe(2);
+                expect(movedTransaction?.comment?.customUnit?.reimbursableDistance).toBe(8);
+                expect(movedTransaction?.modifiedAmount).toBe(getExpectedAmount(8));
+            });
+
+            it('reprices an expense whose rate the new workspace also has when the exclusion changes', async () => {
+                // Given a 10 mi expense that reimburses 8 mi under its workspace's 2 mi commuter exclusion, on a rate the
+                // destination workspace also has
+                // When it moves to that workspace, which has no commuter exclusions
+                const movedTransaction = await moveDistanceExpense({...SOURCE_COMMUTER_EXCLUSION, customUnitRateID: DESTINATION_RATE_ID}, buildDestinationPolicy());
+
+                // Then the rate is kept, but the exclusion is removed and all 10 mi are priced
+                expect(movedTransaction?.comment?.customUnit?.customUnitRateID).toBe(DESTINATION_RATE_ID);
+                expect(movedTransaction?.comment?.customUnit?.commuterExclusion).toBeUndefined();
+                expect(movedTransaction?.modifiedAmount).toBe(getExpectedAmount(10));
+            });
         });
 
         describe('when all matching items are selected (jsonQuery + hash)', () => {

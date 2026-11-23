@@ -2,12 +2,10 @@ import type {CurrencyListActionsContextType} from '@components/CurrencyListConte
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -51,9 +49,6 @@ import {
 
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
-const COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS = ['commuterExclusion', 'reimbursableDistance', 'commuterExclusionType', 'commuterExclusionMethod'] as const;
-/** The custom unit's commuter exclusion fields, where null clears the stored value through Onyx.merge */
-type CommuterExclusionCustomUnitUpdate = {[Key in TupleToUnion<typeof COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS>]?: TransactionCustomUnit[Key] | null};
 // Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
 const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
@@ -741,52 +736,6 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
 };
 
 /**
- * Build the custom unit's commuter exclusion for a merge selection.
- *
- * A commuter exclusion belongs to the workspace the surviving expense ends up on, and always describes the distance
- * that is selected. Selections are stored with Onyx.merge, which deep merges the custom unit, so both the exclusion of
- * a workspace that is no longer the destination and the reimbursable distance of a previously selected merchant would
- * otherwise survive. The distance field then shows the reimbursable distance in place of the full distance.
- *
- * `iouRequestType` is the type the merged expense ends up with, so that merging reaches the same exclusion that
- * creating the expense on the destination workspace would.
- */
-function getCommuterExclusionCustomUnitUpdate(
-    selectedCustomUnit: TransactionCustomUnit | undefined,
-    previousCustomUnit: TransactionCustomUnit | undefined,
-    destinationPolicy: OnyxEntry<Policy>,
-    iouRequestType: IOURequestType | undefined,
-): CommuterExclusionCustomUnitUpdate {
-    const quantity = selectedCustomUnit?.quantity ?? previousCustomUnit?.quantity;
-    const distanceUnit = selectedCustomUnit?.distanceUnit ?? previousCustomUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    // The destination workspace's setting decides the exclusion, so it applies to an expense that arrives from a
-    // workspace excluding nothing, and stops applying to one that leaves a workspace that excludes a distance
-    const commuterExclusion =
-        typeof quantity === 'number' && DistanceRequestUtils.isCommuterExclusionApplicableToRequestType(iouRequestType)
-            ? DistanceRequestUtils.getPolicyCommuterExclusionForDistance(destinationPolicy, quantity, distanceUnit)
-            : 0;
-
-    if (commuterExclusion > 0 && typeof quantity === 'number') {
-        return {
-            commuterExclusion,
-            reimbursableDistance: Math.max(0, quantity - commuterExclusion),
-            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
-        };
-    }
-
-    // Null the exclusion keys that hold a value so Onyx removes them, leaving the ones that were never set out of the update
-    const clearedUpdate: CommuterExclusionCustomUnitUpdate = {};
-    for (const key of COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS) {
-        if (selectedCustomUnit?.[key] === undefined && previousCustomUnit?.[key] === undefined) {
-            continue;
-        }
-        clearedUpdate[key] = null;
-    }
-
-    return clearedUpdate;
-}
-
-/**
  * Scales an amount that pays for `billedDistance` so that it pays for `newBilledDistance` instead, keeping a merged
  * distance expense's amount on the distance its workspace reimburses once a commuter exclusion is applied or dropped.
  */
@@ -846,7 +795,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
             const previousCustomUnit = mergeTransaction?.customUnit;
             // The merchant selection is what sets the merged expense's type, so it is preferred over the type of the
             // expense whose report was selected here
-            const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(
+            const commuterExclusionUpdate = DistanceRequestUtils.getCommuterExclusionCustomUnitUpdate(
                 undefined,
                 previousCustomUnit,
                 destinationPolicy,
@@ -869,7 +818,12 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         const transactionDetails = getTransactionDetails(transaction);
         updatedValues.currency = getCurrency(transaction);
         const selectedCustomUnit = transaction?.comment?.customUnit;
-        const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(selectedCustomUnit, mergeTransaction?.customUnit, destinationPolicy, transaction?.iouRequestType);
+        const commuterExclusionUpdate = DistanceRequestUtils.getCommuterExclusionCustomUnitUpdate(
+            selectedCustomUnit,
+            mergeTransaction?.customUnit,
+            destinationPolicy,
+            transaction?.iouRequestType,
+        );
         updatedValues.customUnit = {
             ...selectedCustomUnit,
             ...commuterExclusionUpdate,
