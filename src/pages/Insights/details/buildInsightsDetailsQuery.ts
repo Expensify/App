@@ -98,7 +98,7 @@ function getSummarizedPeriod({
         return periodEnd ? {start: itemKey, end: periodEnd} : undefined;
     }
 
-    const range = getInsightsDateRange(filters.date);
+    const range = getInsightsDateRange(filters.date, lastDay);
     // Ranges like This year end in the future, but the chart only has buckets up to the last day
     const end = range.end && range.end > lastDay ? lastDay : range.end;
     if (!end || end < range.start) {
@@ -123,7 +123,10 @@ function buildInsightsDetailsQuery({
     }
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
     const period = getSummarizedPeriod({graphKey, filters, itemKey, periodEnd, lastDay, periodGroupBy});
-    const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+    // Sent as dates rather than the preset, which the server would count from its own today and could reject the period for falling outside it
+    const {start, end} = getInsightsDateRange(filters.date, lastDay);
+    const datedFilters = 'preset' in filters.date && start && end ? {...filters, date: {from: start, to: end}} : filters;
+    const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, datedFilters);
     if (!period || !filtersQueryJSON) {
         return undefined;
     }

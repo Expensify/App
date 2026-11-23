@@ -2122,8 +2122,7 @@ function isSearchBeforeViolationsSnapshotStarted(queryJSON: SearchQueryJSON | un
 /**
  * Returns the start and end date range for a date preset.
  */
-function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
-    const now = new Date();
+function getDateRangeForPreset(preset: SearchDatePreset, now = new Date()): {start: string; end: string} {
     let start: Date;
     let end: Date;
     const lastWeek = subWeeks(now, 1);
