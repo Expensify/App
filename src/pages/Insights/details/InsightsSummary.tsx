@@ -153,8 +153,8 @@ function SummaryAverageComparison({comparison, graphKey, periodGroupBy, currency
         );
     }
 
-    // A $0 average means either no spend before or spend and refunds cancelling out
-    if (comparison.type === INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE) {
+    // A $0 average means either no spend before or spend and refunds cancelling out, and spend matching the average is neither over nor under
+    if (comparison.type === INSIGHTS_AVERAGE_COMPARISON.ZERO_AVERAGE || comparison.difference === 0) {
         return <Text style={StyleUtils.getColorStyle(theme.icon)}>{CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER}</Text>;
     }
 
