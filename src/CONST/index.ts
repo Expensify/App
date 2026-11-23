@@ -9504,6 +9504,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
                 [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
                 [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.TRANSACTION_ID]: 'transaction-id',
                 [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
                 [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
                 [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
