@@ -2482,6 +2482,59 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
         });
 
+        it('moves the default workflow members the page does not list along with the ones it does', async () => {
+            mockFetch.pause();
+
+            // Given a default workflow approved by the owner, where employee3 is pending removal, so the page leaves them out
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: ownerEmail,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+                rules: {},
+            };
+            await createForwardApproveRules(policyID, [employee1Email, employee2Email, employee3Email], ownerEmail, 'default', true);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the default workflow, listing only employee1 and employee2, is changed to be approved by employee4
+            const initialApprovalWorkflow = {
+                members: [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {...initialApprovalWorkflow, approvers: [{email: employee4Email, displayName: employee4Email, isCircularReference: false}]};
+            updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: await getRulesCollection()});
+            await waitForBatchedUpdates();
+
+            // Then employee3 moves with them, so no rule still routes anyone to the owner as a second default workflow
+            const rules = await getActivePolicyRules(policyID);
+            const forwardApprovers = rules.flatMap((rule) => Object.values(rule.actions)).flatMap((action) => (action.name === CONST.RULES.ACTIONS.FORWARD_TO ? [action.approver] : []));
+            expect(forwardApprovers).toEqual([employee4Email]);
+            for (const rule of rules) {
+                expect(extractSubmitterEmails(rule).sort()).toEqual([employee1Email, employee2Email, employee3Email]);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('promotes the new first approver even when the default workflow has no members of its own', async () => {
             mockFetch.pause();
 

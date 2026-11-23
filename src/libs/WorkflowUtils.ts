@@ -2080,6 +2080,20 @@ function getApproverPendingActionByMemberEmail(
 }
 
 /**
+ * The submitters of the policy's default workflow, see `getDefaultWorkflowRules`. A rule can be shared with another
+ * workflow, so they are the submitters every one of its rules lists.
+ */
+function getDefaultWorkflowSubmitterEmails(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Set<string> {
+    let defaultWorkflowSubmitters: Set<string> | undefined;
+    for (const rule of Object.values(getDefaultWorkflowRules(rules, defaultApprover))) {
+        const ruleSubmitters = extractSubmitterEmails(rule);
+        const previousSubmitters = defaultWorkflowSubmitters;
+        defaultWorkflowSubmitters = new Set(previousSubmitters ? ruleSubmitters.filter((email) => previousSubmitters.has(email)) : ruleSubmitters);
+    }
+    return defaultWorkflowSubmitters ?? new Set();
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
@@ -2087,14 +2101,8 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
     const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
     // Rules can mark more than one workflow as the default, but only one is, so the members of the others still count as
-    // being in a workflow. A rule can be shared with another workflow, so the default workflow's members are the
-    // submitters every one of its rules lists.
-    let defaultWorkflowSubmitters: Set<string> | undefined;
-    for (const rule of canReadDefaultWorkflowFromRules ? Object.values(getDefaultWorkflowRules(rules, defaultApprover)) : []) {
-        const ruleSubmitters = extractSubmitterEmails(rule);
-        const previousSubmitters = defaultWorkflowSubmitters;
-        defaultWorkflowSubmitters = new Set(previousSubmitters ? ruleSubmitters.filter((email) => previousSubmitters.has(email)) : ruleSubmitters);
-    }
+    // being in a workflow.
+    const defaultWorkflowSubmitters = canReadDefaultWorkflowFromRules ? getDefaultWorkflowSubmitterEmails(rules, defaultApprover) : undefined;
 
     const result: Record<string, string> = {};
     for (const [submitter, submitterRules] of groupApprovalWorkflowRulesBySubmitter(rules)) {
@@ -2411,6 +2419,7 @@ export {
     getApproverTitles,
     getApproversFromImportedApprovers,
     getDefaultWorkflowRules,
+    getDefaultWorkflowSubmitterEmails,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,

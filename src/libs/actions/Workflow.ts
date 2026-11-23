@@ -15,6 +15,7 @@ import {
     getApproverChainKey,
     getApproversFromImportedApprovers,
     getDefaultWorkflowRules,
+    getDefaultWorkflowSubmitterEmails,
     getNonMemberApproverError,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -451,13 +452,21 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const memberDiff = reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails, newMemberEmails, {existingRules: rulesAfterRemoval});
     const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
 
-    // 3. Reconcile the approver chain with the membership-updated rules.
-    const newRules = buildApprovalWorkflowRulesForSave(approvalWorkflow, {
+    // 3. Reconcile the approver chain with the membership-updated rules. The page leaves out members pending removal and
+    // hidden Expensify team members, so the default workflow's chain carries its unlisted submitters along too. Leaving
+    // them on the old chain would make it a second default workflow.
+    const defaultApprover = getDefaultApprover(policy);
+    const unlistedDefaultWorkflowMembers: Member[] =
+        initialApprovalWorkflow.isDefault && hasRuleBasedDefaultWorkflow(existingRules)
+            ? [...getDefaultWorkflowSubmitterEmails(existingRules, defaultApprover)].filter((email) => !previousMemberEmails.includes(email)).map((email) => ({email, displayName: email}))
+            : [];
+    const workflowToSave = {...approvalWorkflow, members: [...approvalWorkflow.members, ...unlistedDefaultWorkflowMembers]};
+    const newRules = buildApprovalWorkflowRulesForSave(workflowToSave, {
         existingRules: rulesAfterMembers,
         employees: policy.employeeList ?? {},
-        defaultApprover: getDefaultApprover(policy),
+        defaultApprover,
     });
-    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
+    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, getWorkflowMemberEmails(workflowToSave.members), {existingRules: rulesAfterMembers});
 
     // 4. Members taken out of this workflow go back to the default workflow.
     const returnToDefaultDiff = buildReturnToDefaultWorkflowDiff({
@@ -465,7 +474,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
         defaultApprovalWorkflow,
         existingRules: applyApprovalWorkflowRulesDiff(rulesAfterMembers, chainDiff),
         employees: policy.employeeList ?? {},
-        defaultApprover: getDefaultApprover(policy),
+        defaultApprover,
     });
 
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff, ...returnToDefaultDiff};
