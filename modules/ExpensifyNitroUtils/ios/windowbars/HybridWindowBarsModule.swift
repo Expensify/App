@@ -34,6 +34,13 @@ final class HybridWindowBarsModule: HybridWindowBarsModuleSpec {
     private var listeners: [UUID: () -> Void] = [:]
     private weak var probe: WindowBarsProbeView?
 
+    override init() {
+        super.init()
+        // JS creates this object when the bundle loads, long before the tab bar first reads the edge. Reading the window
+        // now means that read gets the real edge, so the bar doesn't first draw its items for a horizontal bar.
+        DispatchQueue.main.async { MainActor.assumeIsolated { self.startObservingIfNeeded() } }
+    }
+
     deinit {
         // The window keeps the probe, so a module that goes away, as on a reload, takes its probe out with it.
         let probe = self.probe

@@ -418,6 +418,8 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
+    PENDING_RHP_WIDTH_WINDOW: 2000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -1653,6 +1655,7 @@ const CONST = {
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
         MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
+        EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3477,6 +3480,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        ACCOUNT_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -10086,6 +10090,35 @@ const CONST = {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
         },
+        /**
+         * The merchant categories a rule can match on.
+         *
+         * These are the rules engine's own vocabulary, which is not the same as the `mccGroup` groups the
+         * merchant type defaults use. The two taxonomies overlap only on `airlines` and `groceries`.
+         */
+        MERCHANT_TYPE: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
@@ -10641,6 +10674,24 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+            WORKSPACE_CATEGORIES: 'workspaceCategories',
+            WORKSPACE_FLAG_FOR_REVIEW: 'workspaceFlagForReview',
+            WORKSPACE_REQUIRE_FIELDS: 'workspaceRequireFields',
+            WORKSPACE_DISTANCE_RATES: 'workspaceDistanceRates',
+            WORKSPACE_EXPENSE_DEFAULTS: 'workspaceExpenseDefaults',
+            WORKSPACE_LIST: 'workspaceList',
+            WORKSPACE_PER_DIEM: 'workspacePerDiem',
+            WORKSPACE_ROOMS: 'workspaceRooms',
+            WORKSPACE_SPEND_RULES: 'workspaceSpendRules',
+            WORKSPACE_TAGS: 'workspaceTags',
+            WORKSPACE_VENDORS: 'workspaceVendors',
+            AGENTS: 'agents',
+            WORKSPACE_AGENTS: 'workspaceAgents',
+            DOMAIN_ADMINS: 'domainAdmins',
+            DOMAIN_GROUPS: 'domainGroups',
+            DOMAIN_LIST: 'domainList',
+            DOMAIN_MEMBERS: 'domainMembers',
+            PERSONAL_EXPENSE_RULES: 'personalExpenseRules',
 
             /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',

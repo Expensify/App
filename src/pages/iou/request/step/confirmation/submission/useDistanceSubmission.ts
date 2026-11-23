@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
@@ -92,8 +92,8 @@ function useDistanceSubmission({
     const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
     const delegateAccountID = useDelegateAccountID();
     const {transactionViolationsRef} = useSubmissionViolations();
-    const reportTransactions = useReportTransactions(report?.reportID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
 
@@ -139,7 +139,6 @@ function useDistanceSubmission({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             report,
-            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -194,6 +193,7 @@ function useDistanceSubmission({
             formatPhoneNumber,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             reusableDistanceRoutes,
         });
         commitDistanceRequest(distanceRequestPlan, writeBarrier);
