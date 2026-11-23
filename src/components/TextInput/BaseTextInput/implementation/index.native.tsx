@@ -24,6 +24,7 @@ import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -448,6 +449,7 @@ function BaseTextInput({
                                 onBlur={onBlur}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
+                                forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}

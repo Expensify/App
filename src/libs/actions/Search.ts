@@ -4,7 +4,16 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {
+    BankAccountMenuItem,
+    BulkPaySelectionData,
+    PaymentData,
+    SearchFooterTotal,
+    SearchQueryJSON,
+    SearchQueryString,
+    SelectedReports,
+    SelectedTransactions,
+} from '@components/Search/types';
 
 import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -44,7 +53,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -94,6 +103,7 @@ import type {
     BankAccountList,
     BillingGraceEndPeriod,
     ExportTemplate,
+    InsightsSearchKey,
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
@@ -1044,6 +1054,19 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
     ];
 
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
+}
+
+/** Stores the query a Spend tab or Insights dashboard reopens with, for changes that make no request that would save it. */
+function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey, query: SearchQueryString) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {[searchKey]: {query}},
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
 }
 
 function deleteSavedSearch(savedSearchID: string) {
@@ -2302,7 +2325,18 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, isGroupsOnly}: ExportSearchItemsToCSVParams,
+    {
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        excludedTransactionIDList,
+        isBasicExport,
+        exportColumnLabels,
+        exportName,
+        isGroupExport,
+        isGroupsOnly,
+        searchViolationNameList,
+    }: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2341,6 +2375,7 @@ function exportSearchItemsToCSV(
         exportColumnLabels,
         isGroupExport,
         isGroupsOnly,
+        ...(searchViolationNameList?.length ? {searchViolationNameList} : {}),
     }) as Params;
 
     const formData = new FormData();
@@ -2762,6 +2797,8 @@ function handleBulkPayItemSelected(params: {
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
     isOffline: boolean;
+    showOfflineModal: () => void;
+    areAllMatchingItemsSelected: boolean;
     verifyAccountAndResume: (retry?: () => void) => void;
 }) {
     const {
@@ -2783,6 +2820,8 @@ function handleBulkPayItemSelected(params: {
         setPendingPaymentAdditionalData,
         currentUserAccountID,
         isOffline,
+        showOfflineModal,
+        areAllMatchingItemsSelected,
         verifyAccountAndResume,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -2792,11 +2831,10 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    // While offline, route every payment method straight to the offline modal via confirmPayment (onBulkPaySelected),
-    // before any branch below can navigate the user into a KYC / account-verification / add-bank-account / restricted-action flow.
-    if (isOffline) {
-        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
-        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
+    // Check the menu key, not paymentType, because getActivePaymentType maps workspace and invoice keys to ELSEWHERE.
+    if (isOffline && !canPayOffline(item.key, areAllMatchingItemsSelected)) {
+        Log.info('[BulkPay] Blocking bulk pay: offline');
+        deferModalPresentationAfterPopoverDismiss(showOfflineModal);
         return;
     }
 
@@ -2981,6 +3019,7 @@ function setOptimisticDataForTransactionThreadPreview(
 
 export {
     queueBulkExpenseAction,
+    saveSearchFilters,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,

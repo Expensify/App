@@ -88,6 +88,7 @@ import {
     canModifyHoldStatus,
     canRejectReportAction,
     canReassignAsApprover,
+    canRemoveSupportTicketParticipant,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -109,6 +110,7 @@ import {
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultGroupAvatar,
+    getDefaultMoneyRequestReport,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
     getDisplayedReportID,
@@ -124,6 +126,7 @@ import {
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMissingPaymentMethodForQueuedPayment,
+    getMoneyRequestReportCandidate,
     getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
@@ -159,6 +162,7 @@ import {
     getReportNotificationPreference,
     getReportNotificationPreferenceForSettings,
     getReportOrDraftReport,
+    getReportParticipantAccountIDSet,
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
@@ -218,6 +222,7 @@ import {
     isReportFieldDisabledForUser,
     isReportManager,
     isReportOutstanding,
+    isReportParticipant,
     isReportPendingDelete,
     isReportTransactionThreadNew,
     isResolvedSupportTicket,
@@ -275,6 +280,7 @@ import type {
     CardList,
     Onboarding,
     OnyxInputOrEntry,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyCategories,
@@ -310,7 +316,7 @@ import Onyx from 'react-native-onyx';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {createRandomExpensifyCard} from '../utils/collections/card';
+import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -481,6 +487,10 @@ const participantsPersonalDetails: PersonalDetailsList = {
         pronouns: 'She/her',
     },
 };
+
+const participantsPersonalDetailsByLogins: PersonalDetailsByLogin = Object.fromEntries(
+    Object.values(participantsPersonalDetails).flatMap((personalDetail) => (personalDetail?.login ? [[personalDetail.login, personalDetail]] : [])),
+);
 
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
@@ -7288,6 +7298,68 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canLeaveChat on support tickets', () => {
+        const customerAccountID = 100;
+        const repAccountID = 200;
+        const inviteeAccountID = 300;
+        const supportTicket: Report = {
+            ...createRandomReport(80209, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            participants: buildParticipantsFromAccountIDs([customerAccountID, repAccountID, inviteeAccountID]),
+        };
+
+        it('only lets invited participants leave', () => {
+            // Given an open ticket where the customer and assigned rep must stay
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(supportTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, repAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
+        });
+
+        it('lets invitees leave resolved tickets', () => {
+            // Given a resolved ticket that invitees no longer need in their inbox
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(closedTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
+        });
+
+        it('blocks leaving hidden tickets', () => {
+            // Given a ticket hidden for the invitee
+            const hiddenTicket: Report = {
+                ...supportTicket,
+                participants: {...supportTicket.participants, [inviteeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+
+            // When the invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(hiddenTicket, undefined, inviteeAccountID, false)).toBe(false);
+        });
+
+        it('blocks anonymous users from leaving tickets', () => {
+            // Given a ticket viewed anonymously
+            // When checking leave permissions with an invitee account ID
+            // Then the anonymous viewer cannot leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, true)).toBe(false);
+        });
+
+        it('blocks leaving archived tickets', () => {
+            // Given an archived ticket
+            // When an invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
+        });
+    });
+
     describe('canLeaveChat uses explicit currentUserAccountID', () => {
         it('should use the passed currentUserAccountID for IOU owner/manager check instead of the Onyx session value', () => {
             const ownerAccountID = 100;
@@ -7713,6 +7785,68 @@ describe('ReportUtils', () => {
                 expect(
                     canDeleteReportAction(reportPreviewAction, report.reportID, transaction, transactions, childReportActions, currentUserAccountID, undefined, otherDetails, undefined),
                 ).toBe(false);
+            });
+        });
+
+        describe('legacy unreported expenses without an IOU action', () => {
+            const LEGACY_CARD_ID = 9301;
+
+            /** An unreported expense with no IOU action anywhere, on a company card when managed, which its holder may delete. */
+            function buildLegacyUnreportedTransaction(index: number, managedCard: boolean): Transaction {
+                return {
+                    ...createRandomTransaction(index),
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    managedCard,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: LEGACY_CARD_ID,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+                };
+            }
+
+            it('should allow deleting an expense that is not on a managed card', () => {
+                // Given a legacy unreported expense that is not on a managed card, which only its owner can see
+                const transaction = buildLegacyUnreportedTransaction(9302, false);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can delete it, instead of the missing action hiding the option
+                expect(canDelete).toBe(true);
+            });
+
+            it("should allow deleting a managed card expense on the current user's card", () => {
+                // Given a legacy unreported expense on a managed card that is in the current user's card list
+                const transaction = buildLegacyUnreportedTransaction(9303, true);
+                const cardList: CardList = {[LEGACY_CARD_ID]: createRandomCompanyCard(LEGACY_CARD_ID, {accountID: currentUserAccountID})};
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, cardList);
+
+                // Then the card holder can delete it
+                expect(canDelete).toBe(true);
+            });
+
+            it("should not allow deleting a managed card expense on another member's card", () => {
+                // Given a legacy unreported expense on a managed card that isn't in the current user's card list, as an admin sees on their card feed
+                const transaction = buildLegacyUnreportedTransaction(9304, true);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can't delete it, because it belongs to the card holder
+                expect(canDelete).toBe(false);
+            });
+
+            it('should still read the owner from the IOU action when there is one', () => {
+                // Given an unreported expense that is not on a managed card, whose IOU action was created by another user
+                const transaction = buildLegacyUnreportedTransaction(9305, false);
+                const iouAction = buildIOUActionForTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, transaction.transactionID, currentUserAccountID + 1);
+
+                // When the delete option is checked with that action
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the action decides, so the fallback for expenses without an action doesn't let the current user delete it
+                expect(canDelete).toBe(false);
             });
         });
     });
@@ -13807,6 +13941,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isReportParticipant', () => {
+        const report: Report = {
+            ...createRandomReport(1, undefined),
+            ownerAccountID: 3,
+            managerID: 4,
+            participants: {
+                0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+        };
+
+        it('returns true for account IDs in the participants list', () => {
+            // Given a report whose participants list holds account IDs 1 and 2
+            // When checking those account IDs
+            // Then both count as participants, whatever their notification preference
+            expect(isReportParticipant(1, report)).toBe(true);
+            expect(isReportParticipant(2, report)).toBe(true);
+        });
+
+        it('returns true for the owner and manager even when they are not in the participants list', () => {
+            // Given a report whose owner (3) and manager (4) are missing from its participants list
+            // When checking the owner and manager
+            // Then they still count as participants
+            expect(isReportParticipant(3, report)).toBe(true);
+            expect(isReportParticipant(4, report)).toBe(true);
+        });
+
+        it('returns false for an account ID that is not a participant, owner or manager', () => {
+            // Given an account ID that has no link to the report
+            // When checking it
+            // Then it is not a participant
+            expect(isReportParticipant(5, report)).toBe(false);
+        });
+
+        it('returns false for a missing or zero account ID even when the participants list has a 0 key', () => {
+            // Given a report whose participants list has a 0 key
+            // When checking a zero or missing account ID
+            // Then neither counts as a participant, because there is no real account behind them
+            expect(isReportParticipant(0, report)).toBe(false);
+            expect(isReportParticipant(undefined, report)).toBe(false);
+        });
+
+        it('returns false when there is no report', () => {
+            // Given no report
+            // When checking any account ID
+            // Then it is not a participant
+            expect(isReportParticipant(1, undefined)).toBe(false);
+        });
+
+        it('builds the participant set from the participants, owner and manager, without a zero account ID', () => {
+            // Given the same report, and no report
+            // When building the participant set that isReportParticipant and the mention suggestions check against
+            // Then it holds the participants, owner and manager but not the 0 key, and is empty without a report
+            expect(getReportParticipantAccountIDSet(report)).toEqual(new Set([1, 2, 3, 4]));
+            expect(getReportParticipantAccountIDSet(undefined)).toEqual(new Set());
+        });
+    });
+
     describe('getParticipantsList', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
@@ -16757,6 +16950,42 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canRemoveSupportTicketParticipant', () => {
+        const customerAccountID = 80001;
+        const repAccountID = 80002;
+        const inviteeAccountID = 80003;
+        const supportTicket: Report = {
+            ...createRandomReport(80208, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('only lets the assigned rep remove invitees', () => {
+            // Given an open ticket where the customer and assigned rep must remain participants
+            // When removal is checked for the rep, customer, and invitee
+            // Then only the rep can remove an invitee, and neither protected participant can be removed
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, inviteeAccountID)).toBe(true);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, customerAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, inviteeAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, repAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, undefined, inviteeAccountID)).toBe(false);
+        });
+
+        it('blocks removal on closed or archived tickets', () => {
+            // Given a resolved ticket whose participants should remain available after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When the assigned rep views a closed or archived ticket
+            // Then removal is unavailable even though they are still assigned to it
+            expect(canRemoveSupportTicketParticipant(closedTicket, false, repAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, true, repAccountID, inviteeAccountID)).toBe(false);
+        });
+    });
+
     describe('isCurrentUserInvoiceReceiver', () => {
         const receiverAccountID = 60401;
         const otherAccountID = 60402;
@@ -16881,6 +17110,45 @@ describe('ReportUtils', () => {
 
             // Then a plain participant can invite, and no policy is needed to decide that
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('only lets the customer and assigned rep invite on an open support ticket', () => {
+            // Given a ticket with a customer, assigned rep, and invited participant
+            const supportTicket: Report = {
+                ...createRandomReport(80206, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: buildParticipantsFromAccountIDs([submitterAccountID, otherAccountID, 80003]),
+            };
+
+            // When invite permissions are checked for each role
+            // Then only the customer and assigned rep can invite, regardless of workspace role
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, adminPolicy, false, 80003)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, 80004)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the customer and assigned rep from inviting on a closed support ticket', () => {
+            // Given a ticket that has been resolved
+            const supportTicket: Report = {
+                ...createRandomReport(80207, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            // When either authorized inviter opens its Members page
+            // Then inviting is unavailable while the ticket is closed
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(false);
         });
 
         it('lets the submitter invite on an open expense report', () => {
@@ -20783,7 +21051,7 @@ describe('ReportUtils', () => {
 
     describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
         const policyID = '1';
-        const ownerPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
+        const ownerPersonalDetails: PersonalDetails = {accountID: currentUserAccountID, login: currentUserEmail};
 
         it('should return false when policy is undefined', () => {
             const report: Report = {
@@ -20793,7 +21061,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when policy has preventSelfApproval false', () => {
@@ -20810,7 +21078,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
@@ -20827,7 +21095,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, {})).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined)).toBe(false);
         });
 
         it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
@@ -20863,8 +21131,8 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(getNextApproverAccountID(report, undefined)).toBe(currentUserAccountID);
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, {[currentUserEmail]: ownerPersonalDetails})).toBe(currentUserAccountID);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
@@ -20883,7 +21151,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is open, and the submitter is the first of several approvers', async () => {
@@ -20933,10 +21201,14 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When the next approver is somebody else, because getNextApproverAccountID skips past the submitter's own hop
-            expect(getNextApproverAccountID(report, undefined)).toBe(secondApproverAccountID);
+            const personalDetailsByLogins: PersonalDetailsByLogin = {
+                [currentUserEmail]: ownerPersonalDetails,
+                [secondApproverEmail]: {accountID: secondApproverAccountID, login: secondApproverEmail},
+            };
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, personalDetailsByLogins)).toBe(secondApproverAccountID);
 
             // Then submitting is still blocked, because the report is being submitted to the submitter themselves
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
@@ -20972,7 +21244,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await waitForBatchedUpdates();
 
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when preventSelfApproval is true but report is not open or processing', () => {
@@ -20990,7 +21262,52 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
+        });
+
+        it('should return false when the owner login is unknown, even though the open report submits to its owner', async () => {
+            // Given an advanced-workflow policy where the submitter submits to themselves and then forwards to a second approver
+            const secondApproverEmail = 'owner@test.com';
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(103),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: secondApproverEmail,
+                owner: secondApproverEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: currentUserEmail,
+                        forwardsTo: secondApproverEmail,
+                    },
+                    [secondApproverEmail]: {
+                        email: secondApproverEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open-unknown-owner',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            // When checking whether Submit is blocked without the owner's login or personal details
+            const result = shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined);
+
+            // Then Submit isn't blocked, because an unknown owner login is never treated as the login the report submits to
+            expect(result).toBe(false);
         });
     });
 
@@ -21628,6 +21945,70 @@ describe('ReportUtils', () => {
 
             // Then the existing report is reused
             expect(result).toBe(false);
+        });
+    });
+
+    describe('money request report defaults', () => {
+        const olderReport: Report = {
+            reportID: 'candidate-older',
+            policyID: 'candidate-policy',
+            ownerAccountID: currentUserAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            created: '2026-11-18 10:00:00',
+        };
+        const newerReport: Report = {...olderReport, reportID: 'candidate-newer', created: '2026-11-19 10:00:00'};
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${olderReport.reportID}`]: olderReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${newerReport.reportID}`]: newerReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}other-owner`]: {...newerReport, reportID: 'other-owner', ownerAccountID: currentUserAccountID + 1, created: '2026-11-20 10:00:00'},
+            [`${ONYXKEYS.COLLECTION.REPORT}submitted`]: {...newerReport, reportID: 'submitted', stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        };
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])(
+            'uses the newest open report for %s when the chat link is cleared',
+            (action) => {
+                // Given a cleared chat link and reports from different owners and workflow states
+                // When the action uses the builder's automatic fallback
+                const candidate = getMoneyRequestReportCandidate(undefined, action, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+                // Then only the current member's newest open report is selected
+                expect(candidate).toBe(newerReport);
+            },
+        );
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])('rejects a pending-delete default for %s', (action) => {
+            // Given a linked report that the builder cannot reuse
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving a default for an action saved through the builder
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, action);
+
+            // Then confirmation and picker both fall back to creating a new report
+            expect(defaultReport).toBeUndefined();
+        });
+
+        it('preserves a linked candidate rather than replacing it with the newest report', () => {
+            // Given a chat linked to an older report despite a newer report being available
+            // When resolving the automatic candidate
+            const candidate = getMoneyRequestReportCandidate(olderReport, CONST.IOU.ACTION.CREATE, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+            // Then the linked report takes precedence, matching the builder
+            expect(candidate).toBe(olderReport);
+        });
+
+        it('does not apply builder defaults or checks when editing an expense', () => {
+            // Given an editing action and an explicitly chosen report pending deletion
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving an absent chat candidate and the explicitly chosen default
+            const absentCandidate = getMoneyRequestReportCandidate(undefined, CONST.IOU.ACTION.EDIT, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, CONST.IOU.ACTION.EDIT);
+
+            // Then editing neither automatically selects a fallback nor runs the builder's checks
+            expect(absentCandidate).toBeUndefined();
+            expect(defaultReport).toBe(candidate);
         });
     });
 
@@ -26924,18 +27305,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -26964,18 +27346,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -26992,18 +27375,19 @@ describe('ReportUtils', () => {
             };
 
             const buildEmptyReportWithBeta = (isASAPSubmitBetaEnabled: boolean) =>
-                buildOptimisticEmptyReport(
-                    'test-report-id-201',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
-                    'parent-report-action-id-201',
-                    instantSubmitPolicy,
-                    DateUtils.getDBTime(),
+                buildOptimisticEmptyReport({
+                    reportID: 'test-report-id-201',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
+                    parentReportActionID: 'parent-report-action-id-201',
+                    policy: instantSubmitPolicy,
+                    timeOfCreation: DateUtils.getDBTime(),
                     isASAPSubmitBetaEnabled,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins: participantsPersonalDetailsByLogins,
+                });
 
             it('opens the report when the beta is enabled', () => {
                 // Given a policy that would otherwise submit the report instantly
