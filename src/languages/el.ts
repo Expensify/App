@@ -579,7 +579,16 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} ημέρα`,
             other: (count: number) => `${formattedCount ?? count} ημέρες`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ώρα`,
+            other: (count: number) => `${formattedCount ?? count} ώρες`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} λεπτό`,
+            other: (count: number) => `${formattedCount ?? count} λεπτά`,
+        }),
         amount: 'Ποσό',
+        submitter: 'Υποβάλλων',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -690,6 +699,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
+        notValid: 'Μη έγκυρος σύνδεσμος.',
+        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
+        switchAccount: {
+            title: 'Αλλαγή λογαριασμών;',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
+            confirm: 'Αλλαγή λογαριασμών',
+            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1339,6 +1357,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        generatingAIInsights: 'Δημιουργία AI Insights...',
+        generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
+        readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
+        comparingWithYourAverage: 'Σύγκριση με τον μέσο όρο σας',
+        lookingForAnythingUnusual: 'Αναζητούμε οτιδήποτε ασυνήθιστο',
+        writingYourInsights: 'Καταγράφετε τις ιδέες σας',
         violationStage: {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
@@ -3080,16 +3104,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Εισαγάγετε τα στοιχεία της επιχείρησής σας',
                 legalName: 'Επίσημη επωνυμία επιχείρησης',
-                companyType: 'Τύπος εταιρείας',
-                companyTypeLimitedLiabilityCompany: 'Εταιρεία περιορισμένης ευθύνης (LLC)',
-                companyTypeForProfitCorporation: 'Κερδοσκοπική εταιρεία',
-                companyTypeNonProfitCorporation: 'Μη κερδοσκοπική εταιρεία',
-                companyTypeSoleProprietorship: 'Ατομική επιχείρηση',
-                companyTypeGeneralPartnership: 'Ομόρρυθμη εταιρεία',
-                companyTypeLimitedPartnership: 'Ετερόρρυθμη εταιρεία',
-                companyTypeLimitedLiabilityPartnership: 'Εταιρική σύμπραξη περιορισμένης ευθύνης (LLP)',
-                companyTypeTrust: 'Καταπίστευμα',
-                companyTypeOther: 'Άλλο',
                 companyRole: 'Ο ρόλος σας στην εταιρεία',
                 companyRoleOwner: 'Ιδιοκτήτης',
                 companyRoleDirector: 'Διευθυντής',
@@ -3343,8 +3357,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Βεβαιώνω ότι οι πληροφορίες που έδωσα είναι αληθείς και ακριβείς.',
                 expensifyTerms: `Αποδέχομαι τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">πολιτική απορρήτου</a> της Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Expensify.',
-                wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
-                wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
+                wiseTerms: `Κάνοντας κλικ στο Επιβεβαιώστε, αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">Όρους χρήσης</a> της Wise, συναινώ να λαμβάνω ηλεκτρονικά αρχεία όπως περιγράφεται στην <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Πολιτική ηλεκτρονικών επικοινωνιών</a> της Wise, και αποδέχομαι την <a href="${CONST.WISE.PRIVACY_URL}">Πολιτική απορρήτου</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Κάνοντας κλικ στο Επιβεβαιώστε, αποδέχομαι τους Όρους χρήσης της Wise, συναινώ να λαμβάνω ηλεκτρονικά αρχεία όπως περιγράφεται στην Πολιτική ηλεκτρονικών επικοινωνιών της Wise, και αποδέχομαι την Πολιτική απορρήτου.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
             },
             moreInfoNeeded: {
@@ -3365,13 +3380,22 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
             },
         },
-        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.'},
+            inReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', action: 'Έλεγχος κατάστασης'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+            payingMultipleReportsSubtitle:
+                'Καμία από αυτές τις αναφορές δεν ήταν δυνατό να πληρωθεί, επειδή οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Πληρωμή με x${lastFour}` : 'Πληρωμή με τραπεζικό λογαριασμό'),
+            description: 'Αυτές οι αναφορές δεν πληρώθηκαν με τον τραπεζικό λογαριασμό, επειδή απαιτούν παγκόσμιες αποζημιώσεις. Ξεκινήστε τη διαδικασία παρακάτω.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
         wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
@@ -7373,9 +7397,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            visibleTo: 'Ορατό σε',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η κατάργηση πρόσβασης στην κατηγορία ${categoryName}`,
+                bulkRemoveAccessTitle: 'Δεν είναι δυνατή η κατάργηση πρόσβασης σε αυτές τις κατηγορίες',
                 description: ({count}: {count: number}) => ({
                     one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
                     other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
@@ -8848,6 +8880,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 startDateMustBeBeforeEndDate: 'Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης',
             },
             autoGeneratedRateTooltip: 'Αυτός ο συντελεστής δημιουργείται αυτόματα.',
+            taxReclaimableOnAmount: (amount: string) => `Ποσό φόρου που μπορεί να ανακτηθεί σε ${amount}`,
             automaticRates: 'Αυτόματες τιμές',
             autoUpdateGovernmentRate: 'Αυτόματη ενημέρωση κρατικών συντελεστών',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8936,6 +8969,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             timezoneInputLabel: 'Ζώνη ώρας',
             timezoneInputHelpText: 'Η ζώνη ώρας σας χρησιμοποιείται για την αυτόματη υποβολή αναφορών',
             timezoneErrorMessage: 'Δεν ήταν δυνατή η αλλαγή της ζώνης ώρας. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
+            directReimbursementCurrencyTitle: 'Το νόμισμα δεν είναι διαθέσιμο με την άμεση αποζημίωση',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Αυτός ο χώρος εργασίας αποζημιώνει τα μέλη απευθείας μέσω του Expensify, κάτι που δεν είναι διαθέσιμο σε ${currency}. Για να χρησιμοποιήσετε ${currency}, μεταβείτε στις Ροές εργασιών και απενεργοποιήστε και ενεργοποιήστε ξανά τις Πληρωμές, ώστε οι πληρωμές να γίνονται εκτός Expensify.`,
+            goToWorkflows: 'Μετάβαση στις ροές εργασιών',
         },
         officeLocations: {
             title: 'Τοποθεσίες γραφείων',
@@ -9631,6 +9668,36 @@ ${reportName}`,
                 confirmErrorConditionAndDefault: 'Προσθέστε τουλάχιστον μία συνθήκη και ορίστε τουλάχιστον μία προεπιλογή',
                 createRuleFromExpenseAction: 'Δημιουργία κανόνα',
                 createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Αεροπορικές εταιρείες',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Αλκοόλ και μπαρ',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon και βιβλιοπωλεία',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Αυτοκίνητο',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Ενοικιάσεις αυτοκινήτων',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Εστίαση',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Καύσιμα και βενζίνη',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Κυβέρνηση και μη κερδοσκοπικοί οργανισμοί',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Ψώνια παντοπωλείου',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Γυμναστήρια και φυσική κατάσταση',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Υγεία',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Ξενοδοχεία',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Ίντερνετ και τηλέφωνο',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Είδη γραφείου',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Στάθμευση και διόδια',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Επαγγελματικές υπηρεσίες',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Λιανική',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Αποστολή και παράδοση',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Λογισμικό',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Μεταφορές και υπηρεσίες διαμοιρασμού διαδρομής',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
+                },
+                dateMatchTypeOn: 'Ενεργό',
+                dateMatchTypeBefore: 'Πριν',
+                dateMatchTypeAfter: 'Μετά',
+                hasOrDoesNotHave: 'Έχει/Δεν έχει',
+                amountMatchTypeEqualTo: 'Ίσο με',
+                amountMatchTypeGreaterThan: 'Μεγαλύτερο από',
+                amountMatchTypeLessThan: 'Μικρότερο από',
             },
             newRule: {
                 title: 'Νέος κανόνας',
@@ -9680,6 +9747,16 @@ ${reportName}`,
                 tagIs: (tag: string) => `Η ετικέτα είναι «${tag}»`,
                 merchantContains: (merchant: string) => `Ο έμπορος περιέχει «${merchant}»`,
                 merchantExactlyMatches: (merchant: string) => `Ο έμπορος ταιριάζει ακριβώς με το «${merchant}»`,
+                currencyIs: (currency: string) => `Το νόμισμα είναι «${currency}»`,
+                cardIs: (card: string) => `Η κάρτα είναι «${card}»`,
+                taxRateIs: (taxRate: string) => `Ο φορολογικός συντελεστής είναι «${taxRate}»`,
+                submitterIs: (submitter: string) => `Ο καταχωρίζων είναι «${submitter}»`,
+                reimbursableIs: (reimbursable: string) => `Αποζημιώσιμη είναι «${reimbursable}»`,
+                billableIs: (billable: string) => `Χρέωση στον πελάτη είναι «${billable}»`,
+                dateIs: (comparison: string) => `Η ημερομηνία είναι ${comparison}`,
+                amountIs: (comparison: string) => `Το ποσό είναι ${comparison}`,
+                hasValue: (value: string) => `Έχει «${value}»`,
+                doesNotHaveValue: (value: string) => `Δεν περιέχει «${value}»`,
             },
             merchantTypeRule: {
                 merchantType: 'Τύπος εμπόρου',
@@ -10588,11 +10665,11 @@ ${reportName}`,
             `προστέθηκε πεδίο αναφοράς ${fieldType} «${fieldName}»${defaultValue ? `με προεπιλεγμένη τιμή «${defaultValue}»` : ''}`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `άλλαξε την τιμή του ${customUnitName} ${updatedField} «${customUnitRateName}» σε «${newValue}» (προηγουμένως «${oldValue}»)`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newValue} (${newTaxPercentage})» (προηγουμένως «${oldValue} (${oldTaxPercentage})»)`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newTaxRate}» (προηγουμένως «${oldTaxRate}»)`;
             }
-            return `πρόσθεσε τον φορολογικό συντελεστή «${newValue} (${newTaxPercentage})» στον συντελεστή απόστασης «${customUnitRateName}»`;
+            return `προστέθηκε ο φορολογικός συντελεστής «${newTaxRate}» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -11265,6 +11342,10 @@ ${reportName}`,
         appliedFilters: 'Εφαρμοσμένα φίλτρα',
         resetFilters: 'Επαναφορά φίλτρων',
         searchResults: {
+            tooManyKeywords: `Η αναζήτησή σου έχει πάρα πολλές λέξεις-κλειδιά. Χρησιμοποίησε έως ${CONST.SEARCH.MAX_KEYWORD_TOKENS} λέξεις-κλειδιά και δοκίμασε ξανά.`,
+            unsupportedGrouping: 'Αυτή η αναζήτηση δεν υποστηρίζει ομαδοποίηση ή προβολή γραφήματος. Αφαίρεσε την ομαδοποίηση και χρησιμοποίησε την προβολή πίνακα.',
+            invalidReportID: 'Εισήγαγε ένα έγκυρο αναγνωριστικό αναφοράς. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
+            unsupportedFilter: 'Το φίλτρο "is:" δεν υποστηρίζεται για αυτήν την αναζήτηση. Για να βρεις μη αναφερόμενα έξοδα, χρησιμοποίησε status:unreported.',
             emptyResults: {
                 title: 'Τίποτα προς εμφάνιση',
                 subtitle: `Δοκιμάστε να προσαρμόσετε τα κριτήρια αναζήτησής σας ή να δημιουργήσετε κάτι με το κουμπί +.`,
@@ -11328,6 +11409,9 @@ ${reportName}`,
             openMenu: ({columnName}: {columnName: string}) => `Επιλογές στήλης ${columnName}`,
             sortAscending: 'Αύξουσα ταξινόμηση',
             sortDescending: 'Φθίνουσα ταξινόμηση',
+            pinLeft: 'Καρφίτσωμα αριστερά',
+            pinRight: 'Καρφίτσωμα δεξιά',
+            unpin: 'Ξεκαρφίτσωμα',
             hideColumn: 'Απόκρυψη στήλης',
             resetColumnSizes: 'Επαναφορά πλάτους στηλών',
         },
@@ -13608,6 +13692,7 @@ ${reportName}`,
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
         toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
         receivedPayment: 'λάβατε πληρωμή',
+        markedAsManuallyExported: (label: string) => `σήμανε αυτήν την αναφορά ως μη αυτόματα εξαχθείσα σε ${label}`,
     },
 };
 export default translations;

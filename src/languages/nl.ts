@@ -582,7 +582,16 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} dag`,
             other: (count: number) => `${formattedCount ?? count} dagen`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} uur`,
+            other: (count: number) => `${formattedCount ?? count} uur`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuut`,
+            other: (count: number) => `${formattedCount ?? count} minuten`,
+        }),
         amount: 'Bedrag',
+        submitter: 'Indiener',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -689,6 +698,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1292,6 +1310,12 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Meeste tijd om te betalen',
         share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
+        generatingAIInsights: 'AI-inzichten genereren...',
+        generatingAIInsightsSubtitle: 'Dit duurt niet langer dan een minuut',
+        readingChart: (chartTitle: string) => `${chartTitle} wordt geladen`,
+        comparingWithYourAverage: 'Vergelijken met je gemiddelde',
+        lookingForAnythingUnusual: 'Op zoek naar iets ongewoons',
+        writingYourInsights: 'Je inzichten opschrijven',
         violationStage: {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
@@ -3012,16 +3036,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Voer je bedrijfsgegevens in',
                 legalName: 'Wettelijke bedrijfsnaam',
-                companyType: 'Bedrijfstype',
-                companyTypeLimitedLiabilityCompany: 'Vennootschap met beperkte aansprakelijkheid (LLC)',
-                companyTypeForProfitCorporation: 'Vennootschap met winstoogmerk',
-                companyTypeNonProfitCorporation: 'Vennootschap zonder winstoogmerk',
-                companyTypeSoleProprietorship: 'Eenmanszaak',
-                companyTypeGeneralPartnership: 'Vennootschap onder firma',
-                companyTypeLimitedPartnership: 'Commanditaire vennootschap',
-                companyTypeLimitedLiabilityPartnership: 'Personenvennootschap met beperkte aansprakelijkheid (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Overig',
                 companyRole: 'Je rol in het bedrijf',
                 companyRoleOwner: 'Eigenaar',
                 companyRoleDirector: 'Directeur',
@@ -3274,8 +3288,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Ik verklaar dat de door mij verstrekte informatie waar en juist is.',
                 expensifyTerms: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacybeleid</a> van Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Expensify.',
-                wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
-                wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
+                wiseTerms: `Door op Bevestigen te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Beleid voor elektronische communicatie</a> van Wise, en accepteer ik het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Door op Bevestigen te klikken, accepteer ik de Gebruiksvoorwaarden van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het Beleid voor elektronische communicatie van Wise, en accepteer ik het Privacybeleid.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
             moreInfoNeeded: {
@@ -3292,13 +3307,21 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
             rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
-        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.'},
+            inReview: {message: 'Instellen van wereldwijde terugbetalingen wordt beoordeeld.', action: 'Status bekijken'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
             getStarted: 'Aan de slag',
             headerTitle: 'Wereldwijde terugbetalingen',
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
+            payingMultipleReportsSubtitle: 'Geen van deze rapporten kon worden betaald, omdat de bankrekeningen van het bedrijf en de medewerker verschillende valuta gebruiken.',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Betalen met x${lastFour}` : 'Betalen met bankrekening'),
+            description: 'Deze rapporten zijn niet met de bankrekening betaald, omdat ze wereldwijde terugbetalingen vereisen. Start het proces hieronder.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
         wiseMoreInfoNeeded: 'Meer informatie nodig om wereldwijde terugbetalingen in te schakelen',
@@ -7208,9 +7231,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            visibleTo: 'Zichtbaar voor',
+            membersCount: ({count}: {count: number}) => ({
+                one: '1 lid',
+                other: `${count} leden`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Toegang tot ${categoryName} kan niet worden verwijderd`,
+                bulkRemoveAccessTitle: 'Toegang tot deze categorieën kan niet worden verwijderd',
                 description: ({count}: {count: number}) => ({
                     one: '1 lid zou geen categorieën meer hebben om uit te kiezen. Werk de zichtbaarheid van diens categorieën bij en probeer het opnieuw:',
                     other: `${count} leden zouden geen categorieën meer hebben om uit te kiezen. Werk hun categoriezichtbaarheid bij en probeer het daarna opnieuw:`,
@@ -8491,6 +8522,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
             autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
+            taxReclaimableOnAmount: (amount: string) => `Terugvorderbare belasting op ${amount}`,
             automaticRates: 'Automatische tarieven',
             autoUpdateGovernmentRate: 'Overheidspercentages automatisch bijwerken',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8577,6 +8609,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             timezoneInputLabel: 'Tijdzone',
             timezoneInputHelpText: 'Je tijdzone wordt gebruikt voor het automatisch indienen van rapporten',
             timezoneErrorMessage: 'Tijdzone kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
+            directReimbursementCurrencyTitle: 'Valuta niet beschikbaar met directe terugbetaling',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Deze workspace betaalt leden rechtstreeks terug via Expensify, wat niet beschikbaar is in ${currency}. Ga naar Workflows en zet Betalingen uit en weer aan om ${currency} te gebruiken, zodat betalingen buiten Expensify plaatsvinden.`,
+            goToWorkflows: 'Naar workflows',
         },
         officeLocations: {
             title: 'Kantoorlokaties',
@@ -9194,6 +9230,36 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en pas minstens één standaardinstelling toe',
                 createRuleFromExpenseAction: 'Maak een regel',
                 createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Luchtvaartmaatschappijen',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alcohol en bars',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon en boekhandels',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Auto-industrie',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Autoverhuur',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Uit eten',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Brandstof en gas',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Overheid en non-profitorganisaties',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Boodschappen',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Sportscholen en fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Gezondheidszorg',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotels',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet en telefoon',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Kantoorbenodigdheden',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parkeren en tol',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Professionele diensten',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Detailhandel',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Verzending en bezorging',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Software',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Openbaar vervoer en ritdiensten',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Reisbureaus',
+                },
+                dateMatchTypeOn: 'Aan',
+                dateMatchTypeBefore: 'Vooraf',
+                dateMatchTypeAfter: 'Na',
+                hasOrDoesNotHave: 'Heeft/Heeft niet',
+                amountMatchTypeEqualTo: 'Gelijk aan',
+                amountMatchTypeGreaterThan: 'Groter dan',
+                amountMatchTypeLessThan: 'Minder dan',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -9531,6 +9597,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantContains: (merchant: string) => `Handelaar bevat "${merchant}"`,
                 merchantExactlyMatches: (merchant: string) => `Handelaar komt exact overeen met "${merchant}"`,
+                currencyIs: (currency: string) => `Valuta is "${currency}"`,
+                cardIs: (card: string) => `Kaart is "${card}"`,
+                taxRateIs: (taxRate: string) => `Belastingtarief is "${taxRate}"`,
+                submitterIs: (submitter: string) => `Indiener is "${submitter}"`,
+                reimbursableIs: (reimbursable: string) => `Vergoedbaar is "${reimbursable}"`,
+                billableIs: (billable: string) => `Declarabel is "${billable}"`,
+                dateIs: (comparison: string) => `Datum is ${comparison}`,
+                amountIs: (comparison: string) => `Bedrag is ${comparison}`,
+                hasValue: (value: string) => `Heeft "${value}"`,
+                doesNotHaveValue: (value: string) => `Bevat geen "${value}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -10326,11 +10402,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft ${customUnitName}-tarief „${rateName}” toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newValue: string, newTaxPercentage: string, oldTaxPercentage?: string, oldValue?: string) => {
-            if (oldTaxPercentage && oldValue) {
-                return `heeft het belastingtarief van het kilometertarief "${customUnitRateName}" gewijzigd naar "${newValue} (${newTaxPercentage})" (voorheen "${oldValue} (${oldTaxPercentage})")`;
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
+            if (oldTaxRate) {
+                return `heeft het belastingtarief van het afstandstarief "${customUnitRateName}" gewijzigd naar "${newTaxRate}" (voorheen "${oldTaxRate}")`;
             }
-            return `heeft het belastingtarief "${newValue} (${newTaxPercentage})" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
+            return `heeft het belastingtarief "${newTaxRate}" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {
@@ -10974,6 +11050,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
+            tooManyKeywords: `Je zoekopdracht bevat te veel trefwoorden. Gebruik maximaal ${CONST.SEARCH.MAX_KEYWORD_TOKENS} trefwoorden en probeer het opnieuw.`,
+            unsupportedGrouping: 'Deze zoekopdracht ondersteunt geen groepering of grafiekweergave. Verwijder de groepering en gebruik de tabelweergave.',
+            invalidReportID: 'Voer een geldige rapport-ID in. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
+            unsupportedFilter: 'Het filter "is:" wordt niet ondersteund voor deze zoekopdracht. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
             emptyResults: {
                 title: 'Niets om weer te geven',
                 subtitle: `Probeer je zoekcriteria aan te passen of iets te maken met de knop +.`,
@@ -11033,6 +11113,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             openMenu: ({columnName}: {columnName: string}) => `Kolomopties voor ${columnName}`,
             sortAscending: 'Oplopend sorteren',
             sortDescending: 'Aflopend sorteren',
+            pinLeft: 'Links vastzetten',
+            pinRight: 'Rechts vastzetten',
+            unpin: 'Losmaken',
             hideColumn: 'Kolom verbergen',
             resetColumnSizes: 'Kolombreedtes opnieuw instellen',
         },
@@ -13287,6 +13370,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
         toMarkAsDone: 'markeren als voltooid',
         receivedPayment: 'betaling ontvangen',
+        markedAsManuallyExported: (label: string) => `heeft dit rapport gemarkeerd als handmatig geëxporteerd naar ${label}`,
     },
 };
 export default translations;

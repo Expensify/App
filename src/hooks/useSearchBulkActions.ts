@@ -13,6 +13,7 @@ import type {ASTNode, BulkPaySelectionData, PaymentData, SearchColumnType, Searc
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
+import {followGlobalReimbursementsBulkPay} from '@libs/actions/GlobalReimbursementsBulkPay';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
@@ -51,11 +52,13 @@ import {
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import formatReportNamesAsBulletList from '@libs/formatReportNamesAsBulletList';
 import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import Log from '@libs/Log';
@@ -63,9 +66,11 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
+import {canPayOffline} from '@libs/PaymentUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -1755,7 +1760,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
-            if (isOffline) {
+            if (isOffline && !canPayOffline(paymentMethod, areAllMatchingItemsSelected)) {
                 // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
                 // so defer it until the popover transition completes (matching the delegate/locked-account guards).
                 deferModalPresentationAfterPopoverDismiss(() => showOfflineModal());
@@ -1905,6 +1910,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             let paidReportCount = 0;
             const expensePayments: PayMoneyRequestFunctionParams[] = [];
+            // Bulk pay pays every expense report from one bank account: the one the user picked, or else the first one a report resolves to
+            let bulkPayBankAccountID = expenseReportBankAccountID;
+            // Reports skipped because the bank account needs global reimbursements, keyed by reportID because selecting several expenses of one report yields one item per expense
+            const reportNamesNeedingGlobalReimbursements = new Map<string, string>();
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -2010,8 +2019,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const methodID =
-                    paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
+                if (paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                    bulkPayBankAccountID ??= workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID;
+                }
+                const methodID = paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? bulkPayBankAccountID : undefined;
+
+                // The backend rejects this payment until the account is set up for global reimbursements, so keep the report unpaid and list it in the modal after the loop
+                const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
+                    paymentType: paymentItem.paymentType,
+                    iouReport,
+                    policy: reportPolicy,
+                    methodID,
+                    bankAccountList,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+                });
+
+                if (methodID && bankAccountToSetUp) {
+                    reportNamesNeedingGlobalReimbursements.set(item.reportID, getReportName(iouReport) || translate('common.report'));
+                    continue;
+                }
+
                 const payMoneyRequestParams: PayMoneyRequestFunctionParams = {
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -2046,32 +2073,45 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 expensePayments.push(payMoneyRequestParams);
             }
 
+            const hasPaidInvoices = paidReportCount > 0;
             const payExpenseReports = (wiseQuoteIDsByReportID: Record<string, string> = {}) => {
-                let count = 0;
+                const bankAccount = bulkPayBankAccountID ? bankAccountList?.[bulkPayBankAccountID] : undefined;
+                if (bulkPayBankAccountID && bankAccount && isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
+                    // The pre-check can't catch every report the backend rejects for global reimbursements, so the rejected reports are listed with the skipped ones
+                    // once every payment has a response. Only the leader tab gets the responses, so another tab lists the skipped reports right away.
+                    const shouldWaitForResponses = isClientTheLeader();
+                    const pendingReportNames = new Map<string, string>();
+                    if (shouldWaitForResponses) {
+                        for (const {iouReport} of expensePayments) {
+                            if (iouReport?.reportID) {
+                                pendingReportNames.set(iouReport.reportID, getReportName(iouReport) || translate('common.report'));
+                            }
+                        }
+                    }
+                    followGlobalReimbursementsBulkPay({
+                        bankAccount: {
+                            bankAccountID: bulkPayBankAccountID,
+                            bankCountry: bankAccount.bankCountry,
+                            bankCurrency: bankAccount.bankCurrency,
+                            accountNumber: bankAccount.accountData?.accountNumber,
+                        },
+                        pendingReportNames,
+                        skippedReportNames: [...reportNamesNeedingGlobalReimbursements.values()],
+                        hasPaidReports: hasPaidInvoices || (!shouldWaitForResponses && expensePayments.length > 0),
+                    });
+                }
+
                 for (const params of expensePayments) {
                     const reportID = params.iouReport?.reportID;
                     payMoneyRequest({...params, wiseQuoteID: reportID ? wiseQuoteIDsByReportID[reportID] : undefined});
-
-                    // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
-                    if (
-                        getBankAccountToSetUpBeforePaying({
-                            paymentType: params.paymentType,
-                            methodID: params.methodID,
-                            bankAccountList,
-                            isWiseReimbursementsBetaEnabled: params.isWiseReimbursementsBetaEnabled,
-                        })
-                    ) {
-                        continue;
-                    }
-                    count += 1;
                 }
-                return count;
             };
 
             // One report with an expense in another currency than the bank account is enough to show every report with its quote before paying
             const shouldConfirmWiseQuotes = expensePayments.some((params) => shouldConfirmWiseQuoteBeforePaying(params));
             if (!shouldConfirmWiseQuotes) {
-                paidReportCount += payExpenseReports();
+                payExpenseReports();
+                paidReportCount += expensePayments.length;
             }
 
             if (paidReportCount + (shouldConfirmWiseQuotes ? expensePayments.length : 0) < itemsToPay.length) {
@@ -2083,29 +2123,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 clearSelectedTransactions();
             }
 
-            if (shouldConfirmWiseQuotes) {
-                const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-                const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
-                for (const report of quotedReports) {
-                    // Search results don't hold the quote, which the server merges into the report in Onyx
-                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
-                }
-                const quotedReportIDs = quotedReports.map((report) => report.reportID);
-                // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
-                deferModalPresentationAfterPopoverDismiss(() => {
-                    showWiseQuoteCarouselModal({
-                        reports,
-                        quotedReportIDs,
-                        onConfirm: (wiseQuoteIDsByReportID) => {
-                            if (payExpenseReports(wiseQuoteIDsByReportID) === 0) {
-                                return;
-                            }
-                            playSound(SOUNDS.SUCCESS);
-                            clearSelectedTransactions();
-                        },
-                    });
-                });
+            if (!shouldConfirmWiseQuotes) {
+                return;
             }
+
+            const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
+            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+            for (const report of quotedReports) {
+                // Search results don't hold the quote, which the server merges into the report in Onyx
+                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+            }
+            const quotedReportIDs = quotedReports.map((report) => report.reportID);
+            // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showWiseQuoteCarouselModal({
+                    reports,
+                    quotedReportIDs,
+                    onConfirm: (wiseQuoteIDsByReportID) => {
+                        payExpenseReports(wiseQuoteIDsByReportID);
+                        playSound(SOUNDS.SUCCESS);
+                        clearSelectedTransactions();
+                    },
+                });
+            });
         },
         [
             hash,
@@ -2151,6 +2191,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            translate,
             payReportsViaABA,
         ],
     );
@@ -2534,7 +2575,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 connectionNameFriendly,
                                 reportName: '',
                             }).trim(),
-                            prompt: exportedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                            prompt: formatReportNamesAsBulletList(exportedReportNames),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -2567,7 +2608,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integrationReportIDs.length < integrationGroupSize,
                             connectionNameFriendly,
                         ),
-                        prompt: exportableReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                        prompt: formatReportNamesAsBulletList(exportableReportNames),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
                         cancelText: translate('workspace.exportPartialModal.cancelText'),
                         shouldEnablePromptScroll: true,
@@ -3030,7 +3071,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                             title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
                             subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
-                            prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                            prompt: formatReportNamesAsBulletList(blockedReportNames),
                             confirmText: translate('common.buttonConfirm'),
                             shouldShowCancelButton: false,
                             shouldEnablePromptScroll: true,
@@ -3844,6 +3885,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment: stableOnBulkPaySelected,
+        showOfflineModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,

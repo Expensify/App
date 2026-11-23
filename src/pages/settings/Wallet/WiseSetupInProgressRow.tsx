@@ -1,4 +1,4 @@
-/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with Continue when the admin has something to do */
+/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with a button to where the admin can pick it up or follow it */
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 
 import useLocalize from '@hooks/useLocalize';
@@ -15,13 +15,13 @@ import React from 'react';
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
 
-    /** Whether the admin has something to do, which shows Continue to the intro that picks the setup up */
-    canContinue: boolean;
+    /** Whether Wise is reviewing the onboarding with nothing for the admin to do, so the row says it is in review instead of offering to continue it */
+    isInReview: boolean;
 
-    /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+    /** Whether the onboarding is already with Wise, so the row links to the status page instead of the intro */
     isOnboardingSubmitted: boolean;
 
-    /** The bank account's name and description, so screen readers say which account Continue is for */
+    /** The bank account's name and description, so screen readers say which account the action is for */
     bankAccountLabel: string;
 };
 
@@ -29,16 +29,18 @@ type WiseSetupInProgressRowProps = {
  * Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished.
  * It renders like the bank account's other status messages, so it reads as part of that account and not the next one.
  */
-function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitted, bankAccountLabel}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, isInReview, isOnboardingSubmitted, bankAccountLabel}: WiseSetupInProgressRowProps) {
     const {translate} = useLocalize();
-    const continueText = translate('common.continue');
+    // While the admin has something to do they continue the setup, and while Wise reviews it the admin can only check its status.
+    const message = isInReview ? translate('walletPage.wiseSetupRow.inReview.message') : translate('walletPage.wiseSetupRow.inProgress.message');
+    const actionText = isInReview ? translate('walletPage.wiseSetupRow.inReview.action') : translate('common.continue');
 
     return (
         <ConnectionStatusMessage
-            message={translate('walletPage.wiseSetupInProgress.message')}
+            message={message}
             statusTone="pending"
-            actionText={canContinue ? continueText : undefined}
-            actionAccessibilityLabel={`${continueText} ${bankAccountLabel}`}
+            actionText={actionText}
+            actionAccessibilityLabel={`${actionText} ${bankAccountLabel}`}
             onActionPress={() =>
                 isOnboardingSubmitted
                     ? Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))

@@ -14,6 +14,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -173,6 +174,7 @@ function AttachmentPickerWithMenuItems({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
@@ -194,17 +196,18 @@ function AttachmentPickerWithMenuItems({
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
                 () =>
-                    createNewReport(
-                        currentUserPersonalDetails,
+                    createNewReport({
+                        ownerPersonalDetails: currentUserPersonalDetails,
                         hasViolations,
                         isASAPSubmitBetaEnabled,
                         policy,
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         rules,
-                        true,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
+                        shouldNotifyNewAction: true,
                         shouldDismissEmptyReportsConfirmation,
-                    ),
+                    }),
                 true,
             ),
     });
@@ -213,7 +216,17 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
+            createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                shouldNotifyNewAction: true,
+            });
         }
     };
 
