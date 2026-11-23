@@ -156,6 +156,17 @@ describe('maskOnyxState', () => {
         expect(result[ONYXKEYS.CURRENT_DATE]).toBe(input[ONYXKEYS.CURRENT_DATE]);
     });
 
+    it.each([false, true])('redacts custom accounting software names when masking is %s', (isMaskingEnabled) => {
+        // Given a draft whose free-text answer can contain private information
+        const input = {[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]: {integration: 'other', name: 'Private software name'}};
+        // When exporting in either masking mode
+        const result = maskOnyxState(input, isMaskingEnabled);
+        // Then the integration is retained but the free-text name is redacted
+        expect(result[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]).toHaveProperty('integration', 'other');
+        expect(result[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]).toHaveProperty('name', expect.any(String));
+        expect(JSON.stringify(result)).not.toContain('Private software name');
+    });
+
     it('propagates collection, title and reservation context through nested records and arrays', () => {
         // Given action text, a special title node and reservation fields requiring full masking
         const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`;
