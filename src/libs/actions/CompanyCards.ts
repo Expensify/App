@@ -837,6 +837,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
             value: {
                 [cardID]: {
                     nameValuePairs: {
+                        cardTitle: oldCardTitle ?? null,
                         pendingFields: {
                             cardTitle: null,
                         },

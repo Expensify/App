@@ -3921,7 +3921,7 @@ describe('CardUtils', () => {
 
         it('should fall back to cardName when cardTitle is not set', () => {
             // Given a company card with no cardTitle — simulating a card not yet backfilled.
-            const cardListNoTitle: CardList = {
+            const legacyCardList: CardList = {
                 '30000003': createMock<Card>({
                     cardID: 30000003,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -3932,7 +3932,7 @@ describe('CardUtils', () => {
             };
 
             // When the description is requested.
-            const description = getCompanyCardDescription(mockTranslate, '480801XXXXXX5678', 30000003, cardListNoTitle);
+            const description = getCompanyCardDescription(mockTranslate, '480801XXXXXX5678', 30000003, legacyCardList);
 
             // Then the existing cardName is returned unchanged (no duplicate last-four appended).
             expect(description).toBe('480801XXXXXX5678');
