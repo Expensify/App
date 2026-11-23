@@ -154,6 +154,7 @@ import {
     getTagGLCode,
     getValidConnectedIntegration,
     getVendorDisplayName,
+    hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -2331,6 +2332,24 @@ function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): Ony
 }
 
 /**
+ * Whether a workspace admin can open Change approver for the report. The workflow still decides which approver changes the picker offers.
+ * Reports with errors are excluded because their Search rows only offer View.
+ */
+function canPolicyAdminChangeApprover(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>): boolean {
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return (
+        !!report &&
+        !!policy &&
+        !report.errors &&
+        isPolicyAdmin(policy) &&
+        isExpenseReportUtil(report) &&
+        isProcessingReport(report) &&
+        !isMoneyRequestReportPendingDeletion(report) &&
+        isApprovalEnabled
+    );
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2473,8 +2492,8 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
+    // On a dynamic external workflow, an admin's only approver change is bypassing the approvers, which needs permission to approve the report.
+    if (canPolicyAdminChangeApprover(report, policy) && (!hasDynamicExternalWorkflow(policy) || isAllowedToApproveExpenseReportUtils(report, currentUserAccountID, policy))) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     }
 
@@ -8655,6 +8674,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
     replaceIncludedFilterValues,
