@@ -1622,8 +1622,6 @@ function search({
         inFlightRequestState.isSent = true;
         return makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
-                // The response rewrites the snapshot, so it needs an access record even if it was evicted mid-flight
-                trackSearchSnapshotAccess([queryJSON.hash]);
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
@@ -1710,6 +1708,8 @@ function search({
                 throw error;
             })
             .finally(() => {
+                // Both outcomes rewrite the snapshot, so it needs an access record even if it was evicted mid-flight
+                trackSearchSnapshotAccess([queryJSON.hash]);
                 releaseSearchSnapshot(jsonQuery);
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();

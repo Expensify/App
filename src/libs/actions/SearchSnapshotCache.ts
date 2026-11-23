@@ -56,12 +56,22 @@ function trackSearchSnapshotAccess(hashes: number[], isPinned = false) {
     return accessQueue;
 }
 
-/** Marks snapshots as used and keeps them from eviction until the returned function hides them */
+/** A view can show a query with nothing cached yet, e.g. offline, and an access record without a snapshot would take a cache slot from a real one */
+async function updateCachedSnapshotAccess(hashes: number[], isPinned: boolean) {
+    const snapshots = await Promise.all(hashes.map((hash) => readOnceOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`)));
+    const cachedHashes = hashes.filter((hash, index) => !!snapshots.at(index));
+    if (cachedHashes.length === 0) {
+        return;
+    }
+    await updateSnapshotAccess(cachedHashes, isPinned);
+}
+
+/** Marks cached snapshots as used and keeps them from eviction until the returned function hides them */
 function showSearchSnapshots(hashes: number[], isPinned = false) {
     for (const hash of hashes) {
         shownSnapshotCounts.set(String(hash), (shownSnapshotCounts.get(String(hash)) ?? 0) + 1);
     }
-    trackSearchSnapshotAccess(hashes, isPinned);
+    accessQueue = accessQueue.then(() => updateCachedSnapshotAccess(hashes, isPinned));
 
     return () => {
         for (const hash of hashes) {

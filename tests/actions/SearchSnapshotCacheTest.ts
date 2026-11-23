@@ -1,5 +1,8 @@
+import {search} from '@libs/actions/Search';
 import {showSearchSnapshots, trackSearchSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
+import * as API from '@libs/API';
 import ClearUntrackedSearchSnapshots from '@libs/migrations/ClearUntrackedSearchSnapshots';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,6 +115,55 @@ describe('trackSearchSnapshotAccess', () => {
         hashes = await getSnapshotHashes();
         expect(hashes).toContain(MAX + 10);
         expect(hashes).toHaveLength(MAX);
+    });
+
+    it('keeps a query shown with nothing cached out of the cache budget', async () => {
+        // Given A full cache
+        await cacheSearches(range(1, MAX));
+
+        // When Views show queries that were never cached, e.g. offline, so no request writes their snapshots
+        const hide = showSearchSnapshots([9001, 9002]);
+        hide();
+        await cacheSearches([MAX + 1]);
+
+        // Then They take no cache slot, so only the oldest real snapshot makes room for the new one
+        expect(await getSnapshotHashes()).toEqual(range(2, MAX));
+    });
+
+    it('tracks a snapshot a failed request recreates after it was evicted mid-flight', async () => {
+        // Given A search whose request is still pending
+        const queryJSON = buildSearchQueryJSON('type:expense status:all');
+        if (!queryJSON) {
+            throw new Error('Invalid query');
+        }
+        let rejectRequest: (error: Error) => void = () => {};
+        jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation(
+            () =>
+                new Promise((resolve, reject) => {
+                    rejectRequest = reject;
+                }),
+        );
+        search({queryJSON, searchKey: undefined, offset: 0, isLoading: false, skipWaitForWrites: true});
+        await waitForBatchedUpdates();
+
+        // When Newer searches evict its snapshot, then the request fails at the network level and writes its error state
+        await cacheSearches(range(1, MAX + 1));
+        rejectRequest(new Error('Network request failed'));
+        await waitForBatchedUpdates();
+        await trackSearchSnapshotAccess([]);
+
+        // Then The recreated snapshot is tracked again, so a later eviction can still remove it
+        const access = await new Promise<Record<string, unknown> | undefined>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.SEARCH_SNAPSHOT_ACCESS,
+                callback: (value) => {
+                    connection.unsubscribe();
+                    resolve(value);
+                },
+            });
+        });
+        expect(await getSnapshotHashes()).toContain(queryJSON.hash);
+        expect(access).toHaveProperty(String(queryJSON.hash));
     });
 
     it('caps pinned searches separately, so pins of deleted or edited saved searches age out', async () => {
