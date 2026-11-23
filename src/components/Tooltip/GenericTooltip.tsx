@@ -53,8 +53,10 @@ function GenericTooltip({
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    // Is tooltip already rendered on the page's body? happens once.
-    const [isRendered, setIsRendered] = useState(false);
+    const currentKey = [text, ...renderTooltipContentKey, preferredLocale].join('-');
+
+    // Keep hidden content mounted only until its identity changes, so recycled rows don't measure unused tooltips.
+    const [renderedKey, setRenderedKey] = useState<string>();
 
     // Is the tooltip currently visible?
     const [isVisible, setIsVisible] = useState(false);
@@ -93,7 +95,7 @@ function GenericTooltip({
      * Display the tooltip in an animation.
      */
     const showTooltip = () => {
-        setIsRendered(true);
+        setRenderedKey(currentKey);
         setIsVisible(true);
         // Bring the overlay back, since a tap on it turned it off for the last showing
         setShouldUseOverlay(shouldUseOverlayProp);
@@ -152,7 +154,7 @@ function GenericTooltip({
      */
     const updateTargetBounds = (bounds: LayoutRectangle) => {
         if (bounds.width === 0) {
-            setIsRendered(false);
+            setRenderedKey(undefined);
         }
         setWrapperWidth(bounds.width);
         setWrapperHeight(bounds.height);
@@ -192,7 +194,7 @@ function GenericTooltip({
 
     return (
         <>
-            {hasTooltipContent && shouldRender && isRendered && (
+            {hasTooltipContent && shouldRender && renderedKey !== undefined && (isVisible || renderedKey === currentKey) && (
                 <BaseGenericTooltip
                     isEducationTooltip={isEducationTooltip}
                     animation={animation}
@@ -210,7 +212,7 @@ function GenericTooltip({
                     renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
-                    key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
+                    key={currentKey}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}

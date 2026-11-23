@@ -27,9 +27,9 @@ jest.mock('@components/Tooltip/BaseGenericTooltip', () => {
     const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
     return {
         __esModule: true,
-        default: ({animation}: {animation: Reanimated.SharedValue<number>}) => {
+        default: ({animation, text}: {animation: Reanimated.SharedValue<number>; text: string}) => {
             mockAnimation = animation;
-            return mockReact.createElement(MockView, {testID: 'tooltip-bubble'});
+            return mockReact.createElement(MockView, {testID: 'tooltip-bubble', accessibilityLabel: text});
         },
     };
 });
@@ -60,6 +60,37 @@ function MountCounter({onMount}: {onMount: () => void}) {
 }
 
 describe('GenericTooltip', () => {
+    it('unmounts a hidden tooltip when its text changes and mounts the new text on the next hover', () => {
+        // Given a tooltip that has been hovered and hidden, retaining its bubble for the same content
+        let tooltipState: GenericTooltipState | undefined;
+        const renderTooltip = (text: string) => (
+            <GenericTooltip text={text}>
+                {(state) => {
+                    tooltipState = state;
+                    return null;
+                }}
+            </GenericTooltip>
+        );
+        const {rerender} = render(renderTooltip('Old report'));
+        expect(screen.queryByTestId('tooltip-bubble')).not.toBeOnTheScreen();
+        act(() => tooltipState?.showTooltip());
+        expect(screen.getByLabelText('Old report')).toBeOnTheScreen();
+        act(() => tooltipState?.hideTooltip());
+        expect(screen.getByTestId('tooltip-bubble')).toBeOnTheScreen();
+
+        // When a recycled row receives new text while its tooltip is hidden
+        rerender(renderTooltip('New report'));
+
+        // Then the hidden bubble is unmounted rather than remounted to measure unused content
+        expect(screen.queryByTestId('tooltip-bubble')).not.toBeOnTheScreen();
+
+        // When the row is hovered again
+        act(() => tooltipState?.showTooltip());
+
+        // Then a bubble mounts with the current text
+        expect(screen.getByLabelText('New report')).toBeOnTheScreen();
+    });
+
     it('does not remount its children when the text toggles between empty and non-empty', () => {
         // Given a tooltip with no text, wrapping a child that counts its mounts. Callers such as a text input toggle `text`
         // to turn the tooltip on and off, and a remount would drop the input's focus.
