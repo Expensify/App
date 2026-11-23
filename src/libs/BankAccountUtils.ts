@@ -254,7 +254,12 @@ type WiseQuotePaymentParams = {
     wiseQuoteID?: string;
 };
 
-/** The business bank account a payment debits, for admins in the Wise beta. Without a chosen account the backend pays from the workspace account */
+/** Without a chosen account the backend pays from the workspace account */
+function getBankAccountIDForPayment({methodID, policy}: Pick<WiseQuotePaymentParams, 'methodID' | 'policy'>): number | undefined {
+    return methodID ?? policy?.achAccount?.bankAccountID;
+}
+
+/** The business bank account a payment debits, for admins in the Wise beta */
 function getBusinessBankAccountForPayment({
     paymentType,
     methodID,
@@ -262,7 +267,7 @@ function getBusinessBankAccountForPayment({
     isWiseReimbursementsBetaEnabled,
     policy,
 }: Pick<WiseQuotePaymentParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled' | 'policy'>): OnyxTypes.BankAccount | undefined {
-    const bankAccountID = methodID ?? policy?.achAccount?.bankAccountID;
+    const bankAccountID = getBankAccountIDForPayment({methodID, policy});
     if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !bankAccountID) {
         return undefined;
     }
@@ -573,6 +578,7 @@ function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof use
 }
 
 export {
+    getBankAccountIDForPayment,
     getBusinessBankAccountForPayment,
     getBankAccountSearchLabel,
     isFilterableBankAccount,

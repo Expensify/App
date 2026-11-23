@@ -53,7 +53,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
-import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
+import {getBankAccountIDForPayment, shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -2127,12 +2127,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
-            for (const report of quotedReports) {
+            const quotedReportIDs: string[] = [];
+            for (const params of expensePayments) {
+                const report = params.iouReport;
+                const bankAccountID = getBankAccountIDForPayment(params);
+                if (!report?.reportID || !bankAccountID || !shouldGetWiseQuote(params)) {
+                    continue;
+                }
                 // Search results don't hold the quote, which the server merges into the report in Onyx
-                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, bankAccountID);
+                quotedReportIDs.push(report.reportID);
             }
-            const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({

@@ -1,7 +1,7 @@
 import {payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {getWiseQuote} from '@libs/actions/Wise';
-import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
+import {getBankAccountIDForPayment, shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 
 import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
@@ -17,14 +17,15 @@ function usePayWithWiseQuote() {
     const payWithWiseQuote = ({onPaymentSent, ...params}: PayWithWiseQuoteParams) => {
         const iouReport = params.iouReport;
         const reportID = iouReport?.reportID;
-        if (!iouReport || !reportID || !shouldConfirmWiseQuoteBeforePaying(params)) {
+        const bankAccountID = getBankAccountIDForPayment(params);
+        if (!iouReport || !reportID || !bankAccountID || !shouldConfirmWiseQuoteBeforePaying(params)) {
             payMoneyRequest(params);
             onPaymentSent?.();
             return;
         }
 
         const isPayingUnheldOnly = params.full === false;
-        getWiseQuote(iouReport, !isPayingUnheldOnly);
+        getWiseQuote(iouReport, !isPayingUnheldOnly, bankAccountID);
         showWiseQuoteConfirmModal({
             reportID,
             isPayingUnheldOnly,

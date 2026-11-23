@@ -15,6 +15,7 @@ import type * as PayMoneyRequestActions from '@libs/actions/IOU/PayMoneyRequest'
 import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import {getWiseQuote} from '@libs/actions/Wise';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1135,6 +1136,23 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
 
         // Then the carousel opens for the selected report
         expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
+    });
+
+    it('asks Wise for a quote from the bank account picked in the pay popover', async () => {
+        // Given a selected report whose expenses need a Wise quote, on a workspace that pays from another account
+        const PICKED_BANK_ACCOUNT_ID = 999;
+        const WORKSPACE_BANK_ACCOUNT_ID = 888;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {achAccount: {bankAccountID: WORKSPACE_BANK_ACCOUNT_ID}});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user picks a bank account that is not set as the workspace account
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: PICKED_BANK_ACCOUNT_ID}));
+
+        // Then Wise prices the transfer from that account, the same one the payment debits
+        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PICKED_BANK_ACCOUNT_ID));
     });
 });
 

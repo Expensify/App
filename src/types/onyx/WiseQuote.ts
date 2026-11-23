@@ -38,6 +38,9 @@ type WiseQuoteRequest = {
 
     /** The amount being paid, in the report currency, in cents */
     amount: number;
+
+    /** The account the admin pays from */
+    bankAccountID: number;
 };
 
 export default WiseQuote;
