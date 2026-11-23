@@ -33,7 +33,7 @@ import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxS
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {isTryNewDotLoading, shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -47,7 +47,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
@@ -74,9 +73,10 @@ function TroubleshootPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {showConfirmModal} = useConfirmModal();
-    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, false, isLoadingApp);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {isOffline} = useNetwork();

@@ -1,6 +1,6 @@
 # `victory-native` patches
 
-### [victory-native+42.0.1+001+horizontal-bars.patch](victory-native+42.0.1+001+horizontal-bars.patch)
+### [victory-native+43.0.1+001+horizontal-bars.patch](victory-native+43.0.1+001+horizontal-bars.patch)
 
 - Reason:
   

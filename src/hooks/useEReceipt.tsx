@@ -1,5 +1,5 @@
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
-import * as MCCIcons from '@components/Icon/MCCIcons';
+import MCCIcons from '@components/Icon/MCCIcons';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -31,7 +31,7 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
     const titleColor = colorStyles?.titleColor;
     const transactionDetails = getTransactionDetails(transactionData);
     const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
+    const MCCIcon = transactionMCCGroup ? MCCIcons[transactionMCCGroup] : undefined;
     const tripIcon = getTripEReceiptIcon(expensifyIcons, transactionData);
 
     const backgroundImage = backgroundImages[colorCode];

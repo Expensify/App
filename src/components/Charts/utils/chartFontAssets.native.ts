@@ -14,7 +14,7 @@ import SANS_SC_MONTHS_FONT from '@assets/fonts/NotoSansSC-Months.ttf';
 
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
-import type {DataModule} from '@shopify/react-native-skia';
+import type {DataModule} from 'react-native-skia';
 
 const CHART_SKIA_TYPEFACE_ASSETS: Record<ChartSkiaTypefaceKey, DataModule | string> = {
     MONOSPACE: EXPENSIFY_MONO_REGULAR,

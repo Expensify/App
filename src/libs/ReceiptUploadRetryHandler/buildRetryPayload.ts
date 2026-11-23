@@ -18,7 +18,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {ReceiptRetryContext} from './types';
+import type {ReceiptRetryContext, ReceiptRetryDispatchContext} from './types';
 
 import isRetrySupported from './isRetrySupported';
 
@@ -112,7 +112,7 @@ function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
 }
 
 /** Rebuilds the `RequestMoney` call behind a failed receipt upload from the records the failure left in Onyx. */
-function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject): RequestMoneyInformation | undefined {
+function buildRetryPayload(context: ReceiptRetryDispatchContext, receiptFile: FileObject): RequestMoneyInformation | undefined {
     const {
         transaction,
         iouReport,
@@ -121,6 +121,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         policyParams,
         isVendorMatchingBetaEnabled,
         rules,
+        personalDetailsByLogins,
         conciergeReportID,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,
@@ -167,6 +168,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         personalDetails: getAllPersonalDetails(),
         isVendorMatchingBetaEnabled,
         rules,
+        personalDetailsByLogins,
         conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,

@@ -483,6 +483,32 @@ describe('KeypadAmountPad', () => {
         focusSpy.mockRestore();
     });
 
+    it('prevents the default of a touch pointerdown on the number pad', async () => {
+        // Given an input rendered with BigNumberPad
+        renderInputWithPad({value: '12'});
+        await waitForBatchedUpdatesWithAct();
+        const preventDefault = jest.fn();
+
+        // When a finger presses backspace
+        fireEvent(screen.getByTestId('button_<'), 'pointerDown', {nativeEvent: {pointerType: 'touch'}, preventDefault});
+
+        // Then the default is prevented, so a long press in mobile Chrome cannot move focus to the key
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not prevent the default of a mouse pointerdown on the number pad', async () => {
+        // Given an input rendered with BigNumberPad
+        renderInputWithPad({value: '12'});
+        await waitForBatchedUpdatesWithAct();
+        const preventDefault = jest.fn();
+
+        // When a mouse presses backspace
+        fireEvent(screen.getByTestId('button_<'), 'pointerDown', {nativeEvent: {pointerType: 'mouse'}, preventDefault});
+
+        // Then the default is kept, so mouse presses still dispatch mousedown
+        expect(preventDefault).not.toHaveBeenCalled();
+    });
+
     it('deletes several characters continuously when backspace is held down', async () => {
         jest.useFakeTimers();
         try {
