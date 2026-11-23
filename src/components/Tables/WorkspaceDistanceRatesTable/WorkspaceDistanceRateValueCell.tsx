@@ -18,9 +18,12 @@ type WorkspaceDistanceRateValueCellProps = {
 
     /** Shown right after the rate text, like the auto-generated rate icon. */
     children?: ReactNode;
+
+    /** Whether the user can edit rates at all, so the cell keeps room for the edit button after `children`. */
+    shouldReserveEditButtonClearance: boolean;
 } & EditableProps<string>;
 
-function WorkspaceDistanceRateValueCell({rate, displayText, children, canEdit, onSave}: WorkspaceDistanceRateValueCellProps) {
+function WorkspaceDistanceRateValueCell({rate, displayText, children, shouldReserveEditButtonClearance, canEdit, onSave}: WorkspaceDistanceRateValueCellProps) {
     const {translate} = useLocalize();
     const currency = rate.currency ?? CONST.CURRENCY.USD;
     const rateValue = getRateValueWithDecimals((rate.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
@@ -33,6 +36,7 @@ function WorkspaceDistanceRateValueCell({rate, displayText, children, canEdit, o
             decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
             textAlign="left"
             accessibilityLabel={translate('workspace.distanceRates.rate')}
+            shouldReserveEditButtonClearance={shouldReserveEditButtonClearance}
             canEdit={canEdit}
             onSave={onSave}
         >

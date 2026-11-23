@@ -59,6 +59,12 @@ type WorkspaceDistanceRatesTableRowProps = {
     shouldShowTaxReclaimableColumn: boolean;
     statusLabels: Record<string, string>;
     unit?: Unit;
+
+    /**
+     * Whether the user can edit distance rates at all. Unlike the row's own edit flags, it doesn't change while rows are
+     * selected or deleted, so the rate cell's room for the edit button doesn't come and go.
+     */
+    canWriteDistanceRates: boolean;
 };
 
 function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {
@@ -86,6 +92,7 @@ function WorkspaceDistanceRatesTableRow({
     shouldShowTaxReclaimableColumn,
     statusLabels,
     unit,
+    canWriteDistanceRates,
 }: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -244,6 +251,7 @@ function WorkspaceDistanceRatesTableRow({
                             <WorkspaceDistanceRateValueCell
                                 rate={rate}
                                 displayText={formattedRate}
+                                shouldReserveEditButtonClearance={canWriteDistanceRates}
                                 canEdit={item.canEditRate && !item.disabled}
                                 onSave={item.onChangeRate}
                             >

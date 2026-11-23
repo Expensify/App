@@ -56,8 +56,18 @@ type InlineNumberEditCellProps = {
     /** Defaults to Number() comparison so "1.00" and "1" are treated as unchanged. */
     isEqual?: (newValue: string, originalValue: string) => boolean;
 
-    /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
+    /**
+     * Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge.
+     * Never covered by the edit button, since the text truncates first. Hidden while editing.
+     */
     children?: ReactNode;
+
+    /**
+     * Whether a left-aligned value keeps the edit button's width clear after `children`. Pass false when the user can
+     * never edit the cell, so no room is left for a button they never see. Unlike `canEdit`, it shouldn't change while
+     * the cell is on screen, or the row would shift.
+     */
+    shouldReserveEditButtonClearance?: boolean;
 } & EditableProps<string>;
 
 const areNumericValuesEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
@@ -72,6 +82,7 @@ function InlineNumberEditCell({
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
     children,
+    shouldReserveEditButtonClearance = true,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {
@@ -147,7 +158,17 @@ function InlineNumberEditCell({
             }
         >
             {children ? (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, isRightAligned && styles.justifyContentEnd]}>
+                // A left-aligned amount puts the edit button at the trailing edge, where the content after the text ends up
+                // once the text truncates. The clearance is kept even while the button is hidden, so hovering never shifts the row.
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.gap2,
+                        isRightAligned && styles.justifyContentEnd,
+                        !isRightAligned && shouldReserveEditButtonClearance && styles.editableCellEditButtonClearance,
+                    ]}
+                >
                     {displayTextElement}
                     {children}
                 </View>
