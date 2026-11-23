@@ -3331,6 +3331,7 @@ const SENTRY_LABEL = {
         UPDATE_PERSONAL_BANK_ACCOUNT_SUCCESS_CONTINUE: 'SettingsWallet-UpdatePersonalBankAccountSuccessContinue',
         PERSONAL_CARD_ADDED_CONTINUE: 'SettingsWallet-PersonalCardAddedContinue',
         INTERNATIONAL_DEPOSIT_ACCOUNT_SUCCESS_CONTINUE: 'SettingsWallet-InternationalDepositAccountSuccessContinue',
+        ABA_DEPOSIT_ACCOUNT_SUCCESS_CONTINUE: 'SettingsWallet-ABADepositAccountSuccessContinue',
         COLLECT_DEPOSIT_ACCOUNT_SUCCESS_CONTINUE: 'SettingsWallet-CollectDepositAccountSuccessContinue',
         ADD_PERSONAL_BANK_ACCOUNT_SUCCESS_CONTINUE: 'SettingsWallet-AddPersonalBankAccountSuccessContinue',
         BANK_ACCOUNT_MENU_ENABLE_GLOBAL_REIMBURSEMENTS: 'SettingsWallet-BankAccountMenuEnableGlobalReimbursements',
