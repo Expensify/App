@@ -1593,6 +1593,17 @@ const keywordTests = [
         },
     },
     {
+        query: 'columns:report-id,transaction-id',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            columns: [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID, CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID],
+            filters: null,
+        },
+    },
+    {
         query: 'columns:purchase-amount,tax,report-id',
         expected: {
             type: 'expense',
