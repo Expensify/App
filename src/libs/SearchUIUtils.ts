@@ -393,6 +393,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'transactionID' as const,
     [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
@@ -4573,10 +4574,6 @@ function getSortedTransactionData(
             const bValue = b.reportID;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
-    }
-
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID) {
-        return data.sort((a, b) => compareValues(a.transactionID, b.transactionID, sortOrder, sortBy, localeCompare, true));
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
