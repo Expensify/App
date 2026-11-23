@@ -1978,6 +1978,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Χρεωμένο ποσό',
             employeeReceived: 'Ο υπάλληλος έλαβε',
             payAll: 'Πληρωμή όλων',
+            fxRateExpiredTitle: 'Η συναλλαγματική ισοτιμία έληξε',
+            fxRatesExpiredTitle: 'Οι συναλλαγματικές ισοτιμίες έληξαν',
+            fxRateExpiredPrompt: 'Ελέγξτε την πιο πρόσφατη ισοτιμία πριν πληρώσετε.',
+            fxRatesExpiredPrompt: 'Ελέγξτε τις πιο πρόσφατες ισοτιμίες πριν πληρώσετε.',
+            getLatestRate: 'Λήψη πιο πρόσφατης ισοτιμίας',
+            getLatestRates: 'Λήψη πιο πρόσφατων ισοτιμιών',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 αναφορά',
                 other: `${count} αναφορές`,
@@ -3104,16 +3110,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Εισαγάγετε τα στοιχεία της επιχείρησής σας',
                 legalName: 'Επίσημη επωνυμία επιχείρησης',
-                companyType: 'Τύπος εταιρείας',
-                companyTypeLimitedLiabilityCompany: 'Εταιρεία περιορισμένης ευθύνης (LLC)',
-                companyTypeForProfitCorporation: 'Κερδοσκοπική εταιρεία',
-                companyTypeNonProfitCorporation: 'Μη κερδοσκοπική εταιρεία',
-                companyTypeSoleProprietorship: 'Ατομική επιχείρηση',
-                companyTypeGeneralPartnership: 'Ομόρρυθμη εταιρεία',
-                companyTypeLimitedPartnership: 'Ετερόρρυθμη εταιρεία',
-                companyTypeLimitedLiabilityPartnership: 'Εταιρική σύμπραξη περιορισμένης ευθύνης (LLP)',
-                companyTypeTrust: 'Καταπίστευμα',
-                companyTypeOther: 'Άλλο',
                 companyRole: 'Ο ρόλος σας στην εταιρεία',
                 companyRoleOwner: 'Ιδιοκτήτης',
                 companyRoleDirector: 'Διευθυντής',
@@ -3367,8 +3363,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Βεβαιώνω ότι οι πληροφορίες που έδωσα είναι αληθείς και ακριβείς.',
                 expensifyTerms: `Αποδέχομαι τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">πολιτική απορρήτου</a> της Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Expensify.',
-                wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
-                wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
+                wiseTerms: `Κάνοντας κλικ στο Επιβεβαιώστε, αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">Όρους χρήσης</a> της Wise, συναινώ να λαμβάνω ηλεκτρονικά αρχεία όπως περιγράφεται στην <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Πολιτική ηλεκτρονικών επικοινωνιών</a> της Wise, και αποδέχομαι την <a href="${CONST.WISE.PRIVACY_URL}">Πολιτική απορρήτου</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Κάνοντας κλικ στο Επιβεβαιώστε, αποδέχομαι τους Όρους χρήσης της Wise, συναινώ να λαμβάνω ηλεκτρονικά αρχεία όπως περιγράφεται στην Πολιτική ηλεκτρονικών επικοινωνιών της Wise, και αποδέχομαι την Πολιτική απορρήτου.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
             },
             moreInfoNeeded: {
@@ -3389,7 +3386,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
             },
         },
-        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.'},
+            inReview: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται υπό έλεγχο.', action: 'Έλεγχος κατάστασης'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',

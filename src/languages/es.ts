@@ -1911,6 +1911,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importe cargado',
             employeeReceived: 'El empleado recibió',
             payAll: 'Pagar todo',
+            fxRateExpiredTitle: 'Tipo de cambio caducado',
+            fxRatesExpiredTitle: 'Tipos de cambio caducados',
+            fxRateExpiredPrompt: 'Revisa el tipo de cambio más reciente antes de pagar.',
+            fxRatesExpiredPrompt: 'Revisa los tipos de cambio más recientes antes de pagar.',
+            getLatestRate: 'Obtener el tipo de cambio más reciente',
+            getLatestRates: 'Obtener los tipos de cambio más recientes',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 informe',
                 other: `${count} informes`,
@@ -3026,16 +3032,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Introduce los datos de tu empresa',
                 legalName: 'Razón social',
-                companyType: 'Tipo de empresa',
-                companyTypeLimitedLiabilityCompany: 'Sociedad de responsabilidad limitada (LLC)',
-                companyTypeForProfitCorporation: 'Corporación con fines de lucro',
-                companyTypeNonProfitCorporation: 'Corporación sin fines de lucro',
-                companyTypeSoleProprietorship: 'Empresa individual',
-                companyTypeGeneralPartnership: 'Sociedad colectiva',
-                companyTypeLimitedPartnership: 'Sociedad comanditaria',
-                companyTypeLimitedLiabilityPartnership: 'Sociedad colectiva de responsabilidad limitada (LLP)',
-                companyTypeTrust: 'Fideicomiso',
-                companyTypeOther: 'Otro',
                 companyRole: 'Tu cargo en la empresa',
                 companyRoleOwner: 'Propietario',
                 companyRoleDirector: 'Director',
@@ -3288,8 +3284,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Certifico que la información que he proporcionado es verdadera y exacta.',
                 expensifyTerms: `Acepto los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">política de privacidad</a> de Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Expensify.',
-                wiseTerms: `Acepto los <a href="${CONST.WISE.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.WISE.PRIVACY_URL}">política de privacidad</a> de Wise.`,
-                wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
+                wiseTerms: `Al hacer clic en Confirmar, acepto los <a href="${CONST.WISE.TERMS_URL}">Términos de uso</a> de Wise, doy mi consentimiento para recibir registros electrónicos según lo indicado en la <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Política de comunicaciones electrónicas</a> de Wise, y acepto su <a href="${CONST.WISE.PRIVACY_URL}">Política de privacidad</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Al hacer clic en Confirmar, acepto los Términos de uso de Wise, doy mi consentimiento para recibir registros electrónicos según lo indicado en la Política de comunicaciones electrónicas de Wise, y acepto su Política de privacidad.',
                 error: 'Acepta todos los términos para continuar.',
             },
             moreInfoNeeded: {
@@ -3306,7 +3303,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Cuenta aprobada', heading: 'Aprobada para pagar en todo el mundo', description: 'Paga a los miembros estén donde estén.'},
             rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
-        wiseSetupInProgress: {message: 'Configuración de reembolsos globales en curso.', continue: 'Continuar.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Configuración de reembolsos globales en curso.'},
+            inReview: {message: 'Configuración de reembolsos globales en revisión.', action: 'Ver estado'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',

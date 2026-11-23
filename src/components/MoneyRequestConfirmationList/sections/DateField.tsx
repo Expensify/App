@@ -1,4 +1,5 @@
 import DatePicker from '@components/DatePicker';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -32,7 +33,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -178,15 +179,17 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError,
     // rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
-                name={translate('common.date')}
-                value={readOnlyDate}
-                errorText={dateErrorText}
-                onPress={openDatePage}
-                isDisabled={didConfirm}
-                isInteractive={false}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={translate('common.date')}
+                    value={readOnlyDate}
+                    errorText={dateErrorText}
+                    onPress={openDatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={false}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

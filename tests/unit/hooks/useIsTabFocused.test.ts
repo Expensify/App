@@ -3,6 +3,8 @@ import {renderHook} from '@testing-library/react-native';
 import useIsTabFocused from '@hooks/useIsTabFocused';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
+import {getPreInsertedOriginalTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -13,7 +15,12 @@ jest.mock('@hooks/useRootNavigationState', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers', () => ({
+    getPreInsertedOriginalTabRoute: jest.fn(),
+}));
+
 const mockedUseRootNavigationState = jest.mocked(useRootNavigationState);
+const mockedGetPreInsertedOriginalTabRoute = jest.mocked(getPreInsertedOriginalTabRoute);
 
 type RootRoute = NavigationState['routes'][number];
 
@@ -57,6 +64,7 @@ function renderWithState(state: NavigationState | undefined, tabName: string = S
 describe('useIsTabFocused', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(undefined);
     });
 
     it('is true when the tab is the selected one', () => {
@@ -109,5 +117,53 @@ describe('useIsTabFocused', () => {
 
         // Then it reports not focused rather than refreshing against an unknown state
         expect(isFocused).toBe(false);
+    });
+
+    it('is false when the stack has no tab navigator', () => {
+        // Given a root route that must not be mistaken for a tab navigator
+        const state = buildRootState([{key: 'home', name: SCREENS.HOME}]);
+
+        // When the hook is asked about Home
+        const isFocused = renderWithState(state);
+
+        // Then a matching screen name alone is not tab focus
+        expect(isFocused).toBe(false);
+    });
+
+    it('keeps the original tab focused while a destination is pre-inserted under an RHP', () => {
+        // Given Home was selected before Search was pre-inserted beneath an RHP and its buffer
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(buildTabNavigatorRoute('tabs', SCREENS.HOME));
+        const state = buildRootState([
+            buildTabNavigatorRoute('tabs', SCREENS.SEARCH.ROOT),
+            {key: 'buffer', name: SCREENS.PRE_MOUNT_BUFFER},
+            {key: 'rhp', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+        ]);
+
+        // When querying both the original tab and the speculative destination
+        const isHomeFocused = renderWithState(state);
+        const isSearchFocused = renderWithState(state, SCREENS.SEARCH.ROOT);
+
+        // Then pre-mounting does not count as leaving Home or arriving at Search
+        expect(isHomeFocused).toBe(true);
+        expect(isSearchFocused).toBe(false);
+    });
+
+    it.each(['different navigator', 'no RHP', 'RHP below the navigator'] as const)('ignores the saved tab with %s', (scenario) => {
+        // Given a saved Home route that no longer represents a destination hidden under its RHP
+        mockedGetPreInsertedOriginalTabRoute.mockReturnValue(buildTabNavigatorRoute('tabs', SCREENS.HOME));
+        const searchRoute = buildTabNavigatorRoute(scenario === 'different navigator' ? 'new-tabs' : 'tabs', SCREENS.SEARCH.ROOT);
+        const rhpRoute = {key: 'rhp', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR};
+        let routes = [searchRoute];
+        if (scenario === 'different navigator') {
+            routes = [searchRoute, rhpRoute];
+        } else if (scenario === 'RHP below the navigator') {
+            routes = [rhpRoute, searchRoute];
+        }
+
+        // When the hook resolves the active tab
+        const isHomeFocused = renderWithState(buildRootState(routes));
+
+        // Then stale saved state cannot keep Home focused
+        expect(isHomeFocused).toBe(false);
     });
 });
