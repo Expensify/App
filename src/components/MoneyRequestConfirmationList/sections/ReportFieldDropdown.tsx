@@ -1,3 +1,4 @@
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import ReportPickerModal from '@components/ReportPicker/ReportPickerModal';
 
@@ -11,9 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type ReportFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type ReportFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked report is written to */
     transactionID: string;
 };
@@ -55,7 +54,7 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
 }
 
 /**
- * The report list, in the container anchored to the expense form's report row. `ExpenseFieldDropdown` keeps a dropdown
+ * The report list, in the container anchored to the expense form's report row. `DropdownField` keeps a dropdown
  * mounted once it has been opened, so the list is mounted here only while its container is open or still closing: its
  * hooks subscribe to whole report, policy and transaction collections and fetch outstanding reports again on every
  * reconnect, which the form should not pay for while the list is hidden.

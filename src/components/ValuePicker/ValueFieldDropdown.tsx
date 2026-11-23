@@ -4,7 +4,7 @@
  * `ValuePicker` opens it.
  */
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import DropdownField from '@components/DropdownField';
 
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
@@ -53,7 +53,7 @@ function ValueFieldDropdown({value, label, items = [], errorText, onInputChange,
 
     return (
         <View ref={ref}>
-            <ExpenseFieldDropdown
+            <DropdownField
                 name={label}
                 value={selectedItem?.label}
                 errorText={errorText}

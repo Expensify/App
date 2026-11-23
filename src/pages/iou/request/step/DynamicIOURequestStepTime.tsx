@@ -128,8 +128,7 @@ function DynamicIOURequestStepTime({
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
                 </View>
-                {/* The time rows carry the form's own horizontal margin, which the page padding already provides. */}
-                <View style={styles.mhn4}>
+                <View style={styles.mv2}>
                     <InputWrapper
                         InputComponent={PerDiemTimeField}
                         inputID={INPUT_IDS.START_TIME}
@@ -147,7 +146,7 @@ function DynamicIOURequestStepTime({
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
                 </View>
-                <View style={styles.mhn4}>
+                <View style={styles.mv2}>
                     <InputWrapper
                         InputComponent={PerDiemTimeField}
                         inputID={INPUT_IDS.END_TIME}

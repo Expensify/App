@@ -683,6 +683,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        shouldFlagNewTransactionForReportTable: true,
         shouldGenerateTransactionThreadReport: false,
         participant,
         isNewChatReport,

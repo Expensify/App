@@ -52,7 +52,7 @@ jest.mock('@components/ValuePicker/ValueSelectorModal', () => {
 });
 
 // Pressing the row opens the full page list, the way the field falls back when there is no room for the container.
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
+jest.mock('@components/DropdownField', () => {
     const PressableWithoutFeedback = jest.requireActual<typeof PressableWithoutFeedbackModule>('@components/Pressable/PressableWithoutFeedback').default;
     return ({onPress, onOpen}: MockFieldDropdownProps) => (
         <PressableWithoutFeedback

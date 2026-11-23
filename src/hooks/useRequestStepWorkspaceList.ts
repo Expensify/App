@@ -15,6 +15,8 @@ import type {Policy, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import Onyx from 'react-native-onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -42,9 +44,6 @@ function useRequestStepWorkspaceList({transaction, getPolicies, onSelectWorkspac
     const {localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     useOpenRecipientPicker();
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
@@ -70,11 +69,16 @@ function useRequestStepWorkspaceList({transaction, getPolicies, onSelectWorkspac
     const sortWorkspaces = (data: WorkspaceListItem[]) => data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
     const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
-    const selectWorkspace = (policyID: string | undefined) => {
+    const selectWorkspace = async (policyID: string | undefined) => {
         if (!policyID) {
             return;
         }
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+        ]);
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;

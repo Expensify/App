@@ -2,7 +2,7 @@
  * A time field on the per diem time page. It is drawn as a bordered field so it lines up with the date inputs it sits
  * between, unlike the menu row `TimeModalPicker` uses on other forms.
  */
-import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import TimePickerModal from '@components/TimePickerModal';
 
 import useLocalize from '@hooks/useLocalize';
@@ -41,7 +41,7 @@ function PerDiemTimeField({value, errorText, label, onInputChange = () => {}, re
     return (
         <>
             <View ref={ref}>
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     name={label}
                     value={currentTime}
                     onPress={() => setIsPickerVisible(true)}

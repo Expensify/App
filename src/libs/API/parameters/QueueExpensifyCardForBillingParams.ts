@@ -1,5 +1,5 @@
 type QueueExpensifyCardForBillingParams = {
-    feedCountry: string;
+    feedCountry?: string;
     domainAccountID: number;
 };
 

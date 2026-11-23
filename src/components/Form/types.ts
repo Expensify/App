@@ -8,11 +8,14 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
+import type CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import type DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type LabelledFileUploadAdapter from '@components/DynamicForm/adapters/LabelledFileUploadAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import type MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -104,6 +107,9 @@ type ValidInputs =
     | typeof PerDiemTimeField
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
+    | typeof DropdownChoiceAdapter
+    | typeof CurrencyDropdownAdapter
+    | typeof MultiChoiceDropdownAdapter
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter

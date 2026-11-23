@@ -220,8 +220,7 @@ function DynamicIOURequestStepSubrate({
                     submitButtonText={translate('common.save')}
                 >
                     <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
-                    {/* The subrate row carries the form's own horizontal margin, which the page margin already provides. */}
-                    <View style={[styles.mhn4]}>
+                    <View style={[styles.mv2]}>
                         <InputWrapperWithRef
                             InputComponent={ValueFieldDropdown}
                             inputID={`subrate${pageIndex}`}

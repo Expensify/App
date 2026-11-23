@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
+import type {ParsedPhoneNumber, PhoneNumberParseOptions} from 'awesome-phonenumber';
 
 // eslint-disable-next-line no-restricted-imports
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
@@ -26,13 +26,15 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             possible: false,
             number: {
                 ...parsedPhoneNumber.number,
+                // The invalid type marks `number` optional, so set `input` here. awesome-phonenumber sets it to the raw string too.
+                input: phoneNumber,
                 e164: phoneNumberWithoutSpecialChars,
                 international: phoneNumberWithoutSpecialChars,
                 national: phoneNumberWithoutSpecialChars,
                 rfc3966: `tel:${phoneNumberWithoutSpecialChars}`,
                 significant: phoneNumberWithoutSpecialChars,
             },
-        } as ParsedPhoneNumberInvalid;
+        };
     }
 
     if (!/^\+11[0-9]{10}$/.test(phoneNumberWithoutSpecialChars)) {
@@ -48,6 +50,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
         possible: false,
         number: {
             ...parsedPhoneNumber.number,
+            input: phoneNumber,
 
             // mimic the behavior of awesome-phonenumber
             e164: phoneNumberWithoutSpecialChars,
@@ -56,7 +59,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             rfc3966: `tel:${countryCode}-${phoneNumberWithoutCountryCode}`,
             significant: phoneNumberWithoutCountryCode,
         },
-    } as ParsedPhoneNumberInvalid;
+    };
 }
 
 /**
