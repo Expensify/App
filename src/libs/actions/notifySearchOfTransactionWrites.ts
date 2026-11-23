@@ -1,13 +1,22 @@
 /**
  * Tells Search which transactions just changed on the server, so it can refetch the values only the server computes
  * (footer totals, row actions, filter membership). Fed by successful user writes, Pusher and Airship updates, and
- * the catch-up requests that recover missed Pusher updates.
+ * reconnects and the catch-up requests that recover missed Pusher updates.
  */
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+// Enough for a frozen Search to catch up on. One that fell further behind searches again without checking.
+const MAX_KEPT_WRITES = 100;
+
 let writeID = 0;
+let transactionWriteIDs: Record<string, number> = {};
+let reportWriteIDs: Record<string, number> = {};
+
+function keepRecentWrites(writeIDs: Record<string, number>, oldestWriteID: number) {
+    return Object.fromEntries(Object.entries(writeIDs).filter(([, id]) => id >= oldestWriteID));
+}
 
 function getReportID(value: unknown) {
     if (typeof value !== 'object' || value === null || !('reportID' in value) || typeof value.reportID !== 'string') {
@@ -46,8 +55,11 @@ function notifySearchOfTransactionWrites(updates: ReadonlyArray<{key: string; va
     }
 
     writeID = nextWriteID;
-    // Merged, not set, so a Search that renders only after several writes (frozen tab, batched updates) still sees each of them.
-    Onyx.merge(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {writeID, transactionIDs, reportIDs});
+    const oldestWriteID = Math.max(1, writeID - MAX_KEPT_WRITES + 1);
+    transactionWriteIDs = keepRecentWrites({...transactionWriteIDs, ...transactionIDs}, oldestWriteID);
+    reportWriteIDs = keepRecentWrites({...reportWriteIDs, ...reportIDs}, oldestWriteID);
+    // Every recent write stays in the value, so a Search that renders only after several of them (frozen tab, batched updates) still sees each one.
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {writeID, oldestWriteID, transactionIDs: transactionWriteIDs, reportIDs: reportWriteIDs});
 }
 
 export default notifySearchOfTransactionWrites;

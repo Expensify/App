@@ -24,6 +24,11 @@ async function runMiddleware(request: Partial<Request<OnyxKey>>, jsonCode: numbe
     return getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES);
 }
 
+/** IDs the latest write flagged. Earlier writes stay in the signal, including those from earlier tests. */
+function getIDsOfLatestWrite(writeIDs: Record<string, number> | undefined, writeID: number | undefined) {
+    return Object.keys(writeIDs ?? {}).filter((id) => writeIDs?.[id] === writeID);
+}
+
 describe('FlagSearchTransactionWrites', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
     beforeEach(() => Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, null));
@@ -40,7 +45,7 @@ describe('FlagSearchTransactionWrites', () => {
         });
 
         // Then Search is told only that transaction changed
-        expect(Object.keys(signal?.transactionIDs ?? {})).toEqual(['1']);
+        expect(getIDsOfLatestWrite(signal?.transactionIDs, signal?.writeID)).toEqual(['1']);
     });
 
     it('flags the report a moved transaction left', async () => {
@@ -49,7 +54,7 @@ describe('FlagSearchTransactionWrites', () => {
         const signal = await runMiddleware({failureData: [transactionUpdate('1', '5')]});
 
         // Then Search is told report 5 changed too, because it just lost an expense it may not show as a row
-        expect(Object.keys(signal?.reportIDs ?? {})).toEqual(['5']);
+        expect(getIDsOfLatestWrite(signal?.reportIDs, signal?.writeID)).toEqual(['5']);
     });
 
     it('flags each transaction a collection rollback restores', async () => {
@@ -66,8 +71,8 @@ describe('FlagSearchTransactionWrites', () => {
         });
 
         // Then Search is told about each transaction and the report they left, not about an empty transaction ID
-        expect(Object.keys(signal?.transactionIDs ?? {})).toEqual(['1', '2']);
-        expect(Object.keys(signal?.reportIDs ?? {})).toEqual(['5']);
+        expect(getIDsOfLatestWrite(signal?.transactionIDs, signal?.writeID)).toEqual(['1', '2']);
+        expect(getIDsOfLatestWrite(signal?.reportIDs, signal?.writeID)).toEqual(['5']);
     });
 
     it('does not flag a read that writes transactions without rolling them back', async () => {
@@ -95,11 +100,22 @@ describe('FlagSearchTransactionWrites', () => {
         const second = await runMiddleware({failureData: [transactionUpdate('2')]});
 
         // Then both transactions are still flagged, each with the write that changed it, so Search can check every one
-        expect(second?.transactionIDs).toEqual(
-            Object.fromEntries([
-                ['1', first?.writeID],
-                ['2', second?.writeID],
-            ]),
-        );
+        expect(second?.transactionIDs?.['1']).toBe(first?.writeID);
+        expect(second?.transactionIDs?.['2']).toBe(second?.writeID);
+    });
+
+    it('drops the oldest writes once it holds too many', async () => {
+        // Given an edit of transaction 1
+        const first = await runMiddleware({failureData: [transactionUpdate('1')]});
+
+        // When 100 more edits of another transaction succeed
+        let latest = first;
+        for (let i = 0; i < 100; i++) {
+            latest = await runMiddleware({failureData: [transactionUpdate('2')]});
+        }
+
+        // Then transaction 1 is no longer listed, and the signal says writes before the oldest kept one were dropped, so the signal stays small for the whole session
+        expect(latest?.transactionIDs?.['1']).toBeUndefined();
+        expect(latest?.oldestWriteID).toBeGreaterThan(first?.writeID ?? CONST.DEFAULT_NUMBER_ID);
     });
 });

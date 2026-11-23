@@ -292,8 +292,8 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
         const shouldQueueUpdates = request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites;
         const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates).then((appliedResponse) => {
-            // Catch-up requests deliver the Pusher updates this client missed, so they tell Search about them like Pusher would.
-            if (isCatchUpRequest) {
+            // Reconnects deliver the server changes this client missed, so they tell Search about them like Pusher would.
+            if (isCatchUpRequest || isFullReconnectRequest) {
                 notifySearchOfTransactionWrites(response.onyxData);
             }
             return appliedResponse;

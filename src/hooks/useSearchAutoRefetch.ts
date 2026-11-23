@@ -163,13 +163,15 @@ function useSearchAutoRefetch({
         const hasWrittenResultTransaction =
             !isChat &&
             !!newTransactionWrite &&
-            hasWrittenTransactionInSearchResults(
-                getIDsWrittenSince(newTransactionWrite.transactionIDs, handledTransactionWriteIDRef.current),
-                getIDsWrittenSince(newTransactionWrite.reportIDs, handledTransactionWriteIDRef.current),
-                transactions,
-                searchResultsData,
-                isGroupedSearch,
-            );
+            // Older writes were dropped from the signal, so a Search that missed them cannot tell what changed.
+            (handledTransactionWriteIDRef.current < newTransactionWrite.oldestWriteID - 1 ||
+                hasWrittenTransactionInSearchResults(
+                    getIDsWrittenSince(newTransactionWrite.transactionIDs, handledTransactionWriteIDRef.current),
+                    getIDsWrittenSince(newTransactionWrite.reportIDs, handledTransactionWriteIDRef.current),
+                    transactions,
+                    searchResultsData,
+                    isGroupedSearch,
+                ));
         if (newTransactionWrite) {
             handledTransactionWriteIDRef.current = newTransactionWrite.writeID;
         }

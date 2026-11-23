@@ -50,6 +50,7 @@ async function signalTransactionWrite(transactionIDs: string[], reportIDs: strin
     const writeID = lastWriteID;
     await Onyx.merge(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {
         writeID,
+        oldestWriteID: 1,
         transactionIDs: Object.fromEntries(transactionIDs.map((id) => [id, writeID])),
         reportIDs: Object.fromEntries(reportIDs.map((id) => [id, writeID])),
     });
@@ -427,6 +428,26 @@ describe('useSearchAutoRefetch', () => {
         rerender({});
 
         // Then Search still requests the results again, because the edit to expense 1 was not lost behind the later one
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search when it missed writes that were already dropped from the signal', async () => {
+        // Given Search showing expense 1, skipping its checks for now as a frozen tab does
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1'})});
+
+        // When so many writes succeed meanwhile that the ones it missed are dropped, and the kept one changes an expense the results do not show
+        lastWriteID += 200;
+        await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {
+            writeID: lastWriteID,
+            oldestWriteID: lastWriteID,
+            transactionIDs: Object.fromEntries([['99', lastWriteID]]),
+            reportIDs: {},
+        });
+        mockIsInPreloadedTab = false;
+        rerender({});
+
+        // Then Search requests the results again, because it cannot tell whether a dropped write changed one of its rows
         expect(search).toHaveBeenCalledTimes(1);
     });
 
