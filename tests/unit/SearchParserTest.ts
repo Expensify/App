@@ -1619,7 +1619,7 @@ const keywordTests = [
         },
     },
     {
-        query: 'CONVERTEDAMOUNT>1250',
+        query: 'ConvertedAMOUNT>1250',
         expected: {
             type: 'expense',
             sortBy: 'date',
