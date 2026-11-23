@@ -36,7 +36,7 @@ import WorkspaceX from '@assets/images/avatars/workspace/default-avatar_x.svg';
 import WorkspaceY from '@assets/images/avatars/workspace/default-avatar_y.svg';
 import WorkspaceZ from '@assets/images/avatars/workspace/default-avatar_z.svg';
 
-export {
+const workspaceDefaultAvatars = {
     Workspace0,
     Workspace1,
     Workspace2,
@@ -75,3 +75,5 @@ export {
     WorkspaceZ,
     WorkspaceBuilding,
 };
+
+export default workspaceDefaultAvatars;

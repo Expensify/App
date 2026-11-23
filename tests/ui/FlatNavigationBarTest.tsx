@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import {FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH} from '@components/Navigation/SearchSidebarCollapseStore';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
@@ -339,7 +340,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar narrows to the rail, the flag is saved for the next load, and the toggle now offers to expand
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
             expect(await getSavedSidebarState()).toEqual({isCollapsed: true});
             expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Expand'})).toBeOnTheScreen();
         });
@@ -353,7 +354,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it is already the rail, so a reload does not flash the wide bar first
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps every row reachable by its name while collapsed', async () => {
@@ -427,7 +428,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the peek ends and the bar collapses back to a rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps the bar peeking after the create menu closes if the pointer is still hovering the bar', async () => {
@@ -466,7 +467,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the peek ends and the bar collapses back to a rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps the bar peeking after the create menu closes if an item has keyboard focus', async () => {
@@ -560,7 +561,7 @@ describe('FlatNavigationBar', () => {
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
             renderBar(NAVIGATION_TABS.HOME);
             await waitForBatchedUpdatesWithAct();
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
 
             // When navigation items gain focus via keyboard navigation
             mockHasKeyboardFocusInside = true;
@@ -578,7 +579,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar collapses back to a skinny rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps the peek open when focus moves between items inside the bar', async () => {
@@ -640,7 +641,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar collapses, because mouse focus must not hold it open
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('stays collapsed when the closing create menu hands focus back to its button without the keyboard', async () => {
@@ -665,14 +666,14 @@ describe('FlatNavigationBar', () => {
                 mockCreateButtonProps?.onCreateMenuHidden?.();
             });
             await waitForBatchedUpdatesWithAct();
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
 
             // And the modal then restores focus to the Create button, which is not keyboard focus
             fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar stays collapsed, because only keyboard focus may start a peek
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
     });
 

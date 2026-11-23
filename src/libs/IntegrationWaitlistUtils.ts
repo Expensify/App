@@ -9,6 +9,10 @@ const INTEGRATION_WAITLIST_NVP_KEYS = {
 
 type WaitlistIntegration = keyof typeof INTEGRATION_WAITLIST_NVP_KEYS;
 
+function getIntegrationWaitlistNames(): WaitlistIntegration[] {
+    return Object.keys(INTEGRATION_WAITLIST_NVP_KEYS).filter(isWaitlistIntegration);
+}
+
 /** Account field that holds the pending action and errors of a waitlist signup. */
 type IntegrationWaitlistField = `${WaitlistIntegration}Waitlist`;
 
@@ -24,5 +28,5 @@ function getIntegrationWaitlistField(integration: WaitlistIntegration): Integrat
     return `${integration}Waitlist`;
 }
 
-export {isWaitlistIntegration, getIntegrationWaitlistNVPKey, getIntegrationWaitlistField};
+export {isWaitlistIntegration, getIntegrationWaitlistNVPKey, getIntegrationWaitlistField, getIntegrationWaitlistNames};
 export type {WaitlistIntegration};

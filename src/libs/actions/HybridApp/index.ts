@@ -1,13 +1,13 @@
 import Navigation from '@libs/Navigation/Navigation';
-import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+import {isLockedToNewApp, isTryNewDotLoading, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session, TryNewDot} from '@src/types/onyx';
+import type {HybridApp, Session, TryNewDot} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -24,27 +24,17 @@ function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] 
     return session?.accountID;
 }
 
-function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewDotUpdate = false) {
-    if (currentTryNewDot !== undefined) {
-        isLoadingTryNewDot = false;
-        return;
-    }
-
-    if (isTryNewDotUpdate && !isInitialTryNewDotUpdate && isLoadingTryNewDot === false) {
-        isLoadingTryNewDot = true;
-        return;
-    }
-
-    isLoadingTryNewDot = isLoadingApp !== false;
+function updateTryNewDotLoadingState() {
+    // Wait for the NVP subscription before trusting an earlier app-loading update.
+    isLoadingTryNewDot = isTryNewDotLoading(currentTryNewDot, !hasReceivedTryNewDotUpdate, isLoadingApp);
 }
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
-        const isInitialTryNewDotUpdate = !hasReceivedTryNewDotUpdate;
         hasReceivedTryNewDotUpdate = true;
         currentTryNewDot = tryNewDot;
-        updateTryNewDotLoadingState(true, isInitialTryNewDotUpdate);
+        updateTryNewDotLoadingState();
     },
 });
 
@@ -72,7 +62,7 @@ Onyx.connectWithoutView({
         }
 
         currentTryNewDot = undefined;
-        hasReceivedTryNewDotUpdate = false;
+        // Storage is still initialized; OpenApp may finish without another optional NVP update.
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
     },
 });
@@ -142,6 +132,11 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
+const SIGN_IN_FLOW_START: Partial<HybridApp> = {
+    readyToShowAuthScreens: false,
+    useNewDotSignInPage: true,
+};
+
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -151,10 +146,32 @@ function resetSignInFlow() {
         return Promise.resolve();
     }
 
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        readyToShowAuthScreens: false,
-        useNewDotSignInPage: true,
-    });
+    return Onyx.merge(ONYXKEYS.HYBRID_APP, {...SIGN_IN_FLOW_START});
 }
 
-export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, closeReactNativeApp};
+/*
+ * The same reset as `resetSignInFlow`, as an update to apply in the batch that clears Onyx.
+ */
+function getResetSignInFlowUpdate(): OnyxUpdate<typeof ONYXKEYS.HYBRID_APP> {
+    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HYBRID_APP, value: {...SIGN_IN_FLOW_START}};
+}
+
+function signOutFromOldDot() {
+    // OldDot only exists in HybridApp, so there is nothing to sign out in other environments.
+    if (!CONFIG.IS_HYBRID_APP) {
+        return;
+    }
+
+    HybridAppModule.signOutFromOldDot();
+}
+
+/*
+ * Signs OldDot out and restarts the HybridApp sign-in flow. Call it only after Onyx has been cleared, because a later clear would wipe the reset.
+ */
+function signOutFromOldDotAndRestartSignIn() {
+    const resetPromise = resetSignInFlow();
+    signOutFromOldDot();
+    return resetPromise;
+}
+
+export {getHybridAppSettings, setReadyToShowAuthScreens, getResetSignInFlowUpdate, setUseNewDotSignInPage, closeReactNativeApp, signOutFromOldDot, signOutFromOldDotAndRestartSignIn};
