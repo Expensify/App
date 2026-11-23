@@ -19,7 +19,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters, buildTopExpensesQueryJSON, scopeInsightsDrillDownQuery, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
+import {applyInsightsFilters, buildChartSnapshotQueryJSON, buildTopExpensesQueryJSON, scopeInsightsDrillDownQuery, withInsightsSnapshotHash} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -54,7 +54,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
-    const chartQueryJSON = chartSpec && isResolved ? withInsightsSnapshotHash(buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)), chartSpec.graphKey) : undefined;
+    const chartQueryJSON = chartSpec && isResolved ? buildChartSnapshotQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, chartSpec, filters) : undefined;
     const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });

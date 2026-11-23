@@ -326,6 +326,7 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
 
 export {
     applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
     buildDateFormValues,
     buildDetailsFiltersQueryJSON,
     buildFutureExpensesQueryString,
