@@ -255,6 +255,19 @@ describe('useInsightsTopExpenses', () => {
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
 
+        it('returns no violations when the query is not narrowed to expenses with violations', async () => {
+            // Given a Spend query, which lists expenses whether or not they have violations
+            await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
+
+            // When the panel renders
+            const {result} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expenses come without violations, so their rows keep the expense's details
+            expect(result.current.expenses).toHaveLength(2);
+            expect(result.current.violationsByTransactionID).toBeUndefined();
+        });
+
         it('is stale when the request got no response', async () => {
             // Given a request that failed without reaching the server
             await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: buildSearchMetadata(CONST.JSON_CODE.NO_RESPONSE)});

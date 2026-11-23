@@ -108,7 +108,6 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         query={drillDownQuery}
                         title={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'insightsPage.topExpenses')}
                         emptyText={translate(isCompliance ? 'insightsPage.noFlaggedExpensesInRange' : 'insightsPage.noExpensesInRange')}
-                        shouldShowViolations={isCompliance}
                     />
                 </ScrollView>
             )}

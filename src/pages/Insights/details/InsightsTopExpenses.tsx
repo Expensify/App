@@ -53,13 +53,10 @@ type InsightsTopExpensesProps = {
 
     /** Shown in place of the list when the query has no expenses */
     emptyText: string;
-
-    /** Whether each row lists the expense's violations in place of its details */
-    shouldShowViolations?: boolean;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, title, emptyText, shouldShowViolations = false}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({query, title, emptyText}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
@@ -87,9 +84,7 @@ function InsightsTopExpenses({query, title, emptyText, shouldShowViolations = fa
             DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             dateFnsLocale,
         );
-        return [expense.formattedMerchant ?? expense.merchant, amount, date, ...(shouldShowViolations ? (violationsByTransactionID[expense.transactionID] ?? []) : [])]
-            .filter(Boolean)
-            .join(', ');
+        return [expense.formattedMerchant ?? expense.merchant, amount, date, ...(violationsByTransactionID?.[expense.transactionID] ?? [])].filter(Boolean).join(', ');
     };
 
     const openExpense = (expense: TransactionListItemType) => {
@@ -213,7 +208,7 @@ function InsightsTopExpenses({query, title, emptyText, shouldShowViolations = fa
                         shouldShowErrors={false}
                         shouldShowCategoryOnNarrowLayout={false}
                         narrowSubtitle={
-                            shouldShowViolations ? (
+                            violationsByTransactionID ? (
                                 <>
                                     <Text
                                         variant="label"

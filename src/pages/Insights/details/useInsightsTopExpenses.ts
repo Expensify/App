@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import {getPositiveHasFilterValues, getViolationDisplayName} from '@libs/SearchQueryUtils';
+import {getPositiveHasFilterValues, getViolationDisplayName, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getSections, getSortedSections, getViolationNamesForTransaction, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
@@ -34,8 +34,8 @@ type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
 type TopExpenses = {
     expenses: TransactionListItemType[];
 
-    /** Labels of each expense's violations by transaction ID, when the query is narrowed to expenses with violations */
-    violationsByTransactionID: Record<string, string[]>;
+    /** Labels of each expense's violations by transaction ID, undefined unless the query is narrowed to expenses with violations */
+    violationsByTransactionID: Record<string, string[]> | undefined;
 
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     state: TopExpensesState;
@@ -89,7 +89,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     }
 
     if (!queryJSON || !snapshot?.data || state !== TOP_EXPENSES_STATE.READY) {
-        return {expenses: [], violationsByTransactionID: {}, queryJSON, state, retry};
+        return {expenses: [], violationsByTransactionID: undefined, queryJSON, state, retry};
     }
 
     const [sections] = getSections({
@@ -112,6 +112,10 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         .slice(0, queryJSON.limit);
 
     const violationHasValues = getPositiveHasFilterValues(queryJSON);
+    if (!hasValuesIncludeViolationFilter(violationHasValues)) {
+        return {expenses, violationsByTransactionID: undefined, queryJSON, state, retry};
+    }
+
     // On a violation's panel, that violation leads each expense's list
     const itemViolation = String(queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)?.filters.at(0)?.value ?? '');
     const violationsByTransactionID = Object.fromEntries(
