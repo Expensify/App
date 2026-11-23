@@ -184,6 +184,7 @@ const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.
 const mockLegendListMount = jest.fn();
 const mockLegendListUnmount = jest.fn();
 const mockLegendScrollToEnd = jest.fn();
+const mockLegendScrollToOffset = jest.fn();
 const mockLegendScrollToIndex = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
 const mockLegendGetState = jest.fn(() => ({
@@ -202,7 +203,13 @@ jest.mock('@legendapp/list/react-native', () => {
     const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
         reactModule.useImperativeHandle(
             ref,
-            () => ({scrollToEnd: mockLegendScrollToEnd, scrollToIndex: mockLegendScrollToIndex, getState: mockLegendGetState, getScrollableNode: mockLegendGetScrollableNode}),
+            () => ({
+                scrollToEnd: mockLegendScrollToEnd,
+                scrollToOffset: mockLegendScrollToOffset,
+                scrollToIndex: mockLegendScrollToIndex,
+                getState: mockLegendGetState,
+                getScrollableNode: mockLegendGetScrollableNode,
+            }),
             [],
         );
         reactModule.useEffect(() => {
@@ -295,6 +302,14 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 /** Returns the chronological report actions the body fed into the mocked LegendList on its latest render. */
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockLegendList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendList.mock.calls.at(-1)?.at(0);
+
+const createListScrollEvent = ({offset, contentHeight, viewportHeight}: {offset: number; contentHeight: number; viewportHeight: number}) => ({
+    nativeEvent: {
+        contentOffset: {x: 0, y: offset},
+        contentSize: {height: contentHeight, width: 300},
+        layoutMeasurement: {height: viewportHeight, width: 300},
+    },
+});
 
 const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): {props: Props} | undefined => {
     if (!jest.isMockFunction(type)) {
@@ -567,7 +582,7 @@ describe('ReportActionsList (body)', () => {
         }
     });
 
-    it.each([800, 1000])('refreshes the newest-message offset without following successive viewport layouts at %i pixels', async (height) => {
+    it.each([800, 1000])('preserves the distance above the newest message across successive viewport layouts at %i pixels', async (height) => {
         // Given a reader 600 pixels from the end before the viewport grows.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
@@ -610,8 +625,19 @@ describe('ReportActionsList (body)', () => {
                 mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: viewportHeight, scroll: 900});
                 act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: viewportHeight}}})));
 
-                // Then a future incoming message uses the current pixel offset without resizing itself starting a scroll.
-                expect(scrollOffsetRef.current).toBe(2000 - viewportHeight - 900);
+                // Native can report the new viewport with the old offset before it acknowledges the correction.
+                act(() =>
+                    getCapturedListProps()?.onScroll?.({
+                        nativeEvent: {
+                            contentOffset: {x: 0, y: 900},
+                            contentSize: {height: 2000, width: 300},
+                            layoutMeasurement: {height: viewportHeight, width: 300},
+                        },
+                    }),
+                );
+                // Then both layouts preserve the reader's bottom row before any native scroll event acknowledges the correction.
+                expect(mockLegendScrollToOffset).toHaveBeenLastCalledWith({offset: 1400 - viewportHeight, animated: false});
+                expect(scrollOffsetRef.current).toBe(600);
                 expect(frames).toHaveLength(0);
             }
             expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
@@ -622,22 +648,180 @@ describe('ReportActionsList (body)', () => {
         }
     });
 
-    it('keeps following the newest action when the keyboard shrinks the viewport', async () => {
-        // Given the reader is following the newest action before opening the keyboard.
+    it.each([0, 150])('keeps the reader %i pixels above the newest action when the keyboard shrinks the viewport', async (distanceFromEnd) => {
+        // Given the reader is at or near the end before the keyboard opens.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         renderReportActionsList();
         await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
         mockLegendScrollToEnd.mockClear();
         try {
-            // When the smaller viewport temporarily leaves the newest action 300 pixels below it.
-            mockLegendGetState.mockReturnValue({...originalState, contentLength: 1000, scrollLength: 200, scroll: 500});
-            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+            const offset = 500 - distanceFromEnd;
+            const listProps = getCapturedListProps();
+            act(() => {
+                listProps?.onScrollBeginDrag?.();
+                listProps?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: offset},
+                        contentSize: {height: 1000, width: 300},
+                        layoutMeasurement: {height: 500, width: 300},
+                    },
+                });
+            });
 
-            // Then resizing keeps the existing end-following intent.
-            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+            // When the keyboard reduces the viewport by 300 pixels.
+            mockLegendGetState.mockReturnValue({...originalState, contentLength: 1000, scrollLength: 200, scroll: offset});
+            act(() => listProps?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+
+            // Then the same message stays above the composer even inside the new-message follow distance.
+            expect(mockLegendScrollToOffset).toHaveBeenCalledWith({offset: offset + 300, animated: false});
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
         } finally {
             mockLegendGetState.mockReturnValue(originalState);
+        }
+    });
+
+    it('moves the preserved bottom with rows measured above it before the viewport resizes', async () => {
+        // Given a reader 600 pixels above the end, with the last visible row 1300 pixels into the list.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalState = mockLegendGetState();
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        try {
+            mockLegendPositionByKey.mockReturnValue(1300);
+            mockLegendGetState.mockReturnValue({...originalState, end: 1, contentLength: 2000, scrollLength: 500, scroll: 900});
+            const listProps = getCapturedListProps();
+            act(() => {
+                listProps?.onScrollBeginDrag?.();
+                listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
+            });
+
+            // When the rows above it are measured 820 pixels taller and the keyboard shrinks the viewport before any
+            // scroll event reports the offset LegendList moved to keep that row in place.
+            mockLegendPositionByKey.mockReturnValue(2120);
+            mockLegendGetState.mockReturnValue({...originalState, end: 1, contentLength: 2820, scrollLength: 200, scroll: 1720});
+            act(() => listProps?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+
+            // Then the same row stays at the bottom edge instead of the list jumping 820 pixels up.
+            expect(mockLegendScrollToOffset).toHaveBeenLastCalledWith({offset: 1400 + 820 - 200, animated: false});
+        } finally {
+            mockLegendPositionByKey.mockReturnValue(1500);
+            mockLegendGetState.mockReturnValue(originalState);
+        }
+    });
+
+    it('replays the newest scroll event when native never reports a viewport correction', async () => {
+        // Given the keyboard shrinks the viewport and the list asks native to keep the reader's bottom row in place.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalState = mockLegendGetState();
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
+        const trackVerticalScrolling = jest.fn<void, Parameters<ReturnType<typeof useReportActionsScroll>['trackVerticalScrolling']>>();
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, trackVerticalScrolling});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        jest.useFakeTimers();
+        try {
+            const listProps = getCapturedListProps();
+            act(() => {
+                listProps?.onScrollBeginDrag?.();
+                listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
+            });
+            mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 200, scroll: 900});
+            act(() => listProps?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+            expect(mockLegendScrollToOffset).toHaveBeenLastCalledWith({offset: 1200, animated: false});
+            trackVerticalScrolling.mockClear();
+
+            // When another programmatic scroll supersedes the correction, so native reports the end instead.
+            const endScrollEvent = createListScrollEvent({offset: 1800, contentHeight: 2000, viewportHeight: 200});
+            act(() => listProps?.onScroll?.(endScrollEvent));
+            const isEndScrollTracked = () => trackVerticalScrolling.mock.calls.some(([event]) => event?.nativeEvent.contentOffset.y === 0);
+            expect(isEndScrollTracked()).toBe(false);
+            act(() => {
+                jest.advanceTimersByTime(200);
+            });
+
+            // Then that event is processed once the list stops waiting for the correction, and the next resize keeps the
+            // end in view instead of restoring the superseded position.
+            expect(isEndScrollTracked()).toBe(true);
+            mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 500, scroll: 1800});
+            act(() => listProps?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}}})));
+            expect(mockLegendScrollToOffset).toHaveBeenLastCalledWith({offset: 1500, animated: false});
+        } finally {
+            jest.useRealTimers();
+            mockLegendGetState.mockReturnValue(originalState);
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
+    it('stops waiting for a viewport correction when the list remounts', async () => {
+        // Given the keyboard resized the viewport and the list waits for native to report the correction.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        const originalState = mockLegendGetState();
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
+        const trackLinkedMessageScroll = jest.fn<void, Parameters<ReturnType<typeof useReportActionsScroll>['trackLinkedMessageScroll']>>();
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, trackLinkedMessageScroll});
+        try {
+            const view = renderReportActionsList();
+            await waitForBatchedUpdatesWithAct();
+            const listProps = getCapturedListProps();
+            act(() => {
+                listProps?.onScrollBeginDrag?.();
+                listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
+            });
+            mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 200, scroll: 900});
+            act(() => listProps?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 200}}})));
+            expect(mockLegendScrollToOffset).toHaveBeenLastCalledWith({offset: 1200, animated: false});
+
+            // When the hydrated report remounts the list before native reports that correction.
+            mockHasOnceLoadedReportActions = true;
+            mockShouldCallLegendListOnLoad = false;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    onLayout={jest.fn()}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
+            const newListScrollEvent = createListScrollEvent({offset: 300, contentHeight: 2000, viewportHeight: 500});
+            act(() => getCapturedListProps()?.onScroll?.(newListScrollEvent));
+
+            // Then the new list's scroll events reach linked-message positioning during its initial layout instead of
+            // waiting for the correction of the list it replaced.
+            expect(trackLinkedMessageScroll).toHaveBeenCalledWith(newListScrollEvent);
+        } finally {
+            mockLegendGetState.mockReturnValue(originalState);
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
+    it('tracks web scroll events whose integer viewport height rounds a fractional layout height', async () => {
+        // Given web measures the list at a fractional height, while its scroll events report the integer clientHeight.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const platform = jest.replaceProperty(Platform, 'OS', 'web');
+        const originalState = mockLegendGetState();
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
+        const trackVerticalScrolling = jest.fn<void, Parameters<ReturnType<typeof useReportActionsScroll>['trackVerticalScrolling']>>();
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, trackVerticalScrolling});
+        mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 500.4, scroll: 1499.6});
+        try {
+            renderReportActionsList();
+            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+            trackVerticalScrolling.mockClear();
+
+            // When the reader scrolls up with the mouse wheel.
+            act(() => getCapturedListProps()?.onScroll?.(createListScrollEvent({offset: 1000, contentHeight: 2000, viewportHeight: 500})));
+
+            // Then the scroll position still reaches the "Latest messages" and pagination tracking.
+            expect(trackVerticalScrolling).toHaveBeenCalledWith(expect.objectContaining({nativeEvent: expect.objectContaining({contentOffset: {x: 0, y: 500}})}));
+        } finally {
+            platform.restore();
+            mockLegendGetState.mockReturnValue(originalState);
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
         }
     });
 
