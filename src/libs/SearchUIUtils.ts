@@ -150,7 +150,7 @@ import {
     canSendInvoice,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getTagGLCode,
     getValidConnectedIntegration,
     getVendorDisplayName,
@@ -209,7 +209,7 @@ import {
     hasHeldExpenses,
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
-    isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isApproverAllowedToApprove,
     isArchivedReport,
     isClosedReport,
     isExpenseReport as isExpenseReportUtil,
@@ -2455,8 +2455,8 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const isSubmittedToOwner = isSubmittingToSelf(policy, report, ownerLogin, rules);
+    const isAllowedToApproveExpenseReport = isApproverAllowedToApprove(policy, isSubmittedToOwner);
 
     if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
@@ -2468,7 +2468,7 @@ function getActions(
     if (
         isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
-        isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
+        isSubmitActionAllowedForSearch(report, policy, isSubmittedToOwner, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
@@ -2499,16 +2499,16 @@ function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID
  * should not be blocked by `isSubmitterApproveBlockedOnSubmitWorkspace` on the default submit-to
  * route (that guard is for Approve). Non-submit workspaces keep the preventSelfApproval gate.
  */
-function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, submitToAccountID: number, currentUserAccountID: number): boolean {
+function isSubmitActionAllowedForSearch(report: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>, isSubmittedToOwner: boolean, currentUserAccountID: number): boolean {
     if (isSubmitPolicy(policy)) {
         const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
-        if (submitToAccountID === report?.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+        if (isSubmittedToOwner && policy?.preventSelfApproval && !isReportSubmitter) {
             return false;
         }
         return true;
     }
 
-    return isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    return isApproverAllowedToApprove(policy, isSubmittedToOwner);
 }
 
 /**
