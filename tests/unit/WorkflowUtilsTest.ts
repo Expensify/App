@@ -3292,6 +3292,74 @@ describe('WorkflowUtils', () => {
             });
 
             it.each([
+                [
+                    'an over-limit approver sends the reports under their own limit to a different final approver',
+                    {
+                        '1@example.com': {email: '1@example.com', forwardsTo: '5@example.com', approvalLimit: 1000000, overLimitForwardsTo: '2@example.com'},
+                        '2@example.com': {email: '2@example.com', forwardsTo: '5@example.com', approvalLimit: 25000000, overLimitForwardsTo: '3@example.com'},
+                        '3@example.com': {email: '3@example.com', forwardsTo: '6@example.com', approvalLimit: 50000000, overLimitForwardsTo: '4@example.com'},
+                        '4@example.com': {email: '4@example.com', forwardsTo: '5@example.com'},
+                        '5@example.com': {email: '5@example.com'},
+                        '6@example.com': {email: '6@example.com'},
+                        '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
+                    },
+                    [
+                        [500000, ['1@example.com', '5@example.com']],
+                        [2000000, ['1@example.com', '2@example.com', '5@example.com']],
+                        [30000000, ['1@example.com', '2@example.com', '3@example.com', '5@example.com']],
+                        [60000000, ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']],
+                    ],
+                ],
+                [
+                    'two over-limit approvers final approve the reports they get',
+                    {
+                        '1@example.com': {email: '1@example.com', forwardsTo: '3@example.com', approvalLimit: 1000000, overLimitForwardsTo: '2@example.com'},
+                        '2@example.com': {email: '2@example.com'},
+                        '3@example.com': {email: '3@example.com', forwardsTo: '5@example.com', approvalLimit: 500000, overLimitForwardsTo: '4@example.com'},
+                        '4@example.com': {email: '4@example.com'},
+                        '5@example.com': {email: '5@example.com'},
+                        '9@example.com': {email: '9@example.com', submitsTo: '1@example.com'},
+                    },
+                    [
+                        [100000, ['1@example.com', '3@example.com', '5@example.com']],
+                        [700000, ['1@example.com', '3@example.com', '4@example.com', '5@example.com']],
+                        [2000000, ['1@example.com', '2@example.com', '3@example.com', '4@example.com', '5@example.com']],
+                    ],
+                ],
+            ])(
+                'Should route every report along the workflow it showed once its forks are removed, when %s',
+                (_description, employees: PolicyEmployeeList, expectedRoutes: Array<[number, string[]]>) => {
+                    // Given a workflow whose employee settings send some reports away from it, so it shows forks
+                    const policy = createPolicy(employees, '5@example.com');
+                    const findMemberWorkflow = (workflows: ApprovalWorkflow[]) => workflows.find((workflow) => workflow.members.some((member) => member.email === '9@example.com'));
+                    const forkedWorkflow = findMemberWorkflow(convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: {}}).approvalWorkflows);
+                    expect(hasApprovalWorkflowForks(forkedWorkflow ?? {approvers: []})).toBe(true);
+
+                    // When its forks are removed, which saves it as rules exactly as it's shown, and the workflows are read back
+                    const savedRules = buildApprovalWorkflowRulesForSave(forkedWorkflow ?? {members: [], approvers: [], isDefault: false}, {
+                        existingRules: {},
+                        employees,
+                        defaultApprover: '5@example.com',
+                    });
+                    const squashedWorkflow = findMemberWorkflow(
+                        convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules: keyRules(savedRules)}).approvalWorkflows,
+                    );
+
+                    // Then the workflow has the approvers it showed, with no forks left, and each report goes through the approvers
+                    // the workflow showed for its total instead of the routes the forks took
+                    const squashedApprovers = squashedWorkflow?.approvers ?? [];
+                    expect(squashedApprovers.map(({email, overLimitAmount}) => ({email, overLimitAmount}))).toEqual(
+                        forkedWorkflow?.approvers.map(({email, overLimitAmount}) => ({email, overLimitAmount})),
+                    );
+                    expect(hasApprovalWorkflowForks({approvers: squashedApprovers})).toBe(false);
+                    for (const [amount, expectedRoute] of expectedRoutes) {
+                        const route = squashedApprovers.filter(({overLimitAmount}) => overLimitAmount === undefined || amount > overLimitAmount).map(({email}) => email);
+                        expect(route).toEqual(expectedRoute);
+                    }
+                },
+            );
+
+            it.each([
                 ['an optional over-limit approver as the only other approver', [buildApprover(1), buildApprover(3, {overLimitAmount: 50000})]],
                 ['an optional over-limit approver between two approvers', [buildApprover(1), buildApprover(3, {overLimitAmount: 10000}), buildApprover(4)]],
                 ['optional over-limit approvers in a row', [buildApprover(1), buildApprover(2, {overLimitAmount: 10000}), buildApprover(3, {overLimitAmount: 50000}), buildApprover(4)]],
