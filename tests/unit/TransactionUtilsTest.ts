@@ -730,6 +730,42 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
         });
 
+        it('should clear the workspace amount from Search when the amount is edited', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stale workspace amount is cleared so the expense shows its own amount until the next search
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should keep the workspace amount from Search when the amount does not change', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When only its merchant is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'New merchant'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the workspace amount stays because it still matches the expense
+            expect(updatedTransaction.policyConvertedAmount).toBe(-1000);
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
