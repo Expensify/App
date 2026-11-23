@@ -217,8 +217,14 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
-    // A secret code stays off the card, but the customer still sees the discount it gives them.
+    // A secret code stays off the card. The generic badge and the discount sentence still show.
     const discountMessage = promoDiscountValue !== undefined ? getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles) : undefined;
+    let expensifyCodeBadgeText: string | undefined;
+    if (isSecretPromoCode) {
+        expensifyCodeBadgeText = translate('subscription.subscriptionSettings.secretExpensifyCodeApplied');
+    } else if (privatePromoCode) {
+        expensifyCodeBadgeText = translate('subscription.subscriptionSettings.expensifyCodeApplied', privatePromoCode);
+    }
     const showPlanBadges = cardView.showExpensifyCodeBadge || cardView.showTaxExemptBadge;
     const showPlanStatus = showPlanBadges || !!discountMessage;
 
@@ -358,9 +364,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     <View style={styles.mb3}>
                         {showPlanBadges && (
                             <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.mt2]}>
-                                {cardView.showExpensifyCodeBadge && !!privatePromoCode && (
+                                {cardView.showExpensifyCodeBadge && !!expensifyCodeBadgeText && (
                                     <Badge
-                                        text={translate('subscription.subscriptionSettings.expensifyCodeApplied', privatePromoCode)}
+                                        text={expensifyCodeBadgeText}
                                         icon={icons.Tag}
                                         badgeStyles={styles.ml0}
                                     />

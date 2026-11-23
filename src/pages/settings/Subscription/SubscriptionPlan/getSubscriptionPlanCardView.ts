@@ -78,7 +78,6 @@ function getSubscriptionPlanCardView({
     const isAnnual = subscriptionType === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const showSettings = shouldShowSubscriptionPlanSettings({isFromComparisonModal, subscriptionType});
     const showAnnualControls = showSettings && isAnnual && !isNewCollect;
-    const hasVisiblePromoCode = !!promoCode && !isSecretPromoCode;
     const showAnnualSavings = showSettings && subscriptionType === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !isNewCollect;
     // An applied code cannot be replaced from the card. Classic does not let a customer swap codes after one is applied.
     const hasAppliedCode = !!promoCode || isSecretPromoCode;
@@ -93,7 +92,7 @@ function getSubscriptionPlanCardView({
         subscriptionTypeLabel: isNewCollect || !isAnnual ? 'payPerUse' : 'annual',
         memberCount: userCount ?? 0,
         showSizeNotSetHelper: showAnnualControls && !userCount,
-        showExpensifyCodeBadge: hasVisiblePromoCode,
+        showExpensifyCodeBadge: hasAppliedCode,
         showTaxExemptBadge: isTaxExempt,
         expensifyCodeMenu,
         includeRequestTaxExempt: showSettings,

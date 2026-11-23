@@ -138,7 +138,7 @@ describe('getSubscriptionPlanCardView', () => {
         const visibleCode = getSubscriptionPlanCardView({...base, promoCode: 'SAVE20', isSecretPromoCode: false, isTaxExempt: true});
         const secretCode = getSubscriptionPlanCardView({...base, promoCode: 'SECRET', isSecretPromoCode: true, isTaxExempt: false});
 
-        // Then Add is offered only with no code, because an applied code cannot be replaced and a secret code stays hidden
+        // Then Add is offered only with no code. A secret code still shows a badge, but the code string stays off the card and the menu stays hidden.
         expect(noCode.expensifyCodeMenu).toBe('add');
         expect(noCode.showExpensifyCodeBadge).toBe(false);
 
@@ -148,7 +148,7 @@ describe('getSubscriptionPlanCardView', () => {
         expect(visibleCode.includeRequestTaxExempt).toBe(true);
 
         expect(secretCode.expensifyCodeMenu).toBe('hidden');
-        expect(secretCode.showExpensifyCodeBadge).toBe(false);
+        expect(secretCode.showExpensifyCodeBadge).toBe(true);
         expect(secretCode.includeRequestTaxExempt).toBe(true);
     });
 
