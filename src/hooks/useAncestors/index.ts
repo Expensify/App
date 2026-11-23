@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {getSortedReportActions, isReportActionUnread} from '@libs/ReportActionsUtils';
+import {getReportActionBefore, getSortedReportActions, isReportActionUnread} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {getAncestors, getParentReportChain} from '@libs/ReportUtils';
 
@@ -47,9 +47,7 @@ function selectAncestorReportActions(
         }
 
         // The new marker on an ancestor also depends on the action before it, so a change to that action has to re-render too.
-        const sortedReportActions = getSortedReportActions(Object.values(parentReportActions ?? {}));
-        const ancestorIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportActionID);
-        const previousReportAction = ancestorIndex > 0 ? sortedReportActions.at(ancestorIndex - 1) : undefined;
+        const {previousReportAction} = getReportActionBefore(getSortedReportActions(Object.values(parentReportActions ?? {})), reportActionID);
         ancestorReportActions[reportActionsKey] = previousReportAction
             ? {[previousReportAction.reportActionID]: previousReportAction, [reportActionID]: ancestorReportAction}
             : {[reportActionID]: ancestorReportAction};

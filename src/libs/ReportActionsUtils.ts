@@ -3385,18 +3385,26 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
 }
 
 /**
+ * Finds the action sorted right before the given one, which decides whether the given one is the first unread action.
+ * Shared by isCurrentActionUnread and the useAncestors selector, so both look at the same action.
+ */
+function getReportActionBefore(sortedReportActions: ReportAction[], reportActionID: string): {isFound: boolean; previousReportAction: ReportAction | undefined} {
+    const index = sortedReportActions.findIndex((action) => action.reportActionID === reportActionID);
+    return {isFound: index !== -1, previousReportAction: index > 0 ? sortedReportActions.at(index - 1) : undefined};
+}
+
+/**
  * Check whether the current report action of the report is unread or not
  *
  */
 function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
     const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
-    const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
-    if (currentActionIndex === -1) {
+    const {isFound, previousReportAction} = getReportActionBefore(sortedReportActions, reportAction.reportActionID);
+    if (!isFound) {
         return false;
     }
-    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
-    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    return isReportActionUnread(reportAction, lastReadTime) && (!previousReportAction || !isReportActionUnread(previousReportAction, lastReadTime));
 }
 
 /**
@@ -6496,6 +6504,7 @@ export {
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
     isCurrentActionUnread,
+    getReportActionBefore,
     isDeletedAction,
     isDeletedReportPreviewWithError,
     getVisibleReportActionErrors,

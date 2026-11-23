@@ -10212,4 +10212,33 @@ describe('ReportActionsUtils', () => {
             });
         });
     });
+
+    describe('getReportActionBefore and isCurrentActionUnread', () => {
+        const buildAction = (reportActionID: string, created: string): ReportAction => ({reportActionID, created, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const firstAction = buildAction('first', '2026-01-01 00:00:01.000');
+        const secondAction = buildAction('second', '2026-01-01 00:00:02.000');
+        const thirdAction = buildAction('third', '2026-01-01 00:00:03.000');
+        const sortedActions = [firstAction, secondAction, thirdAction];
+
+        it('returns the action sorted right before, none for the first one, and not found for a missing one', () => {
+            // Given three actions sorted oldest first
+            // When the action before each one, and before an action that is not in the list, is looked up
+            // Then the middle one gets the first one, the first one gets none, and a missing one is reported as not found
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'second')).toEqual({isFound: true, previousReportAction: firstAction});
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'first')).toEqual({isFound: true, previousReportAction: undefined});
+            expect(ReportActionsUtils.getReportActionBefore(sortedActions, 'missing')).toEqual({isFound: false, previousReportAction: undefined});
+        });
+
+        it('marks only the first unread action as the current unread one', () => {
+            // Given a report read up to the first action, so the second and third are unread
+            const report = {reportID: '1', lastReadTime: '2026-01-01 00:00:01.500'};
+
+            // When each action is checked against the sorted list
+            // Then only the second one is the current unread action, because the action before the third is unread too
+            expect(ReportActionsUtils.isCurrentActionUnread(report, firstAction, sortedActions)).toBe(false);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, secondAction, sortedActions)).toBe(true);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, thirdAction, sortedActions)).toBe(false);
+            expect(ReportActionsUtils.isCurrentActionUnread(report, buildAction('missing', '2026-01-01 00:00:04.000'), sortedActions)).toBe(false);
+        });
+    });
 });
