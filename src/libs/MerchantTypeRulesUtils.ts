@@ -268,6 +268,9 @@ type ExpenseDefaultConditionNames = {
 
     /** Card descriptions, keyed by card ID */
     cards?: Record<string, string>;
+
+    /** Whether every card this account can see has arrived, so a card with no name is gone rather than pending */
+    areCardsLoaded?: boolean;
 };
 
 /**
@@ -376,7 +379,10 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate('workspace.rules.expenseDefaultsTable.cardIs', values.map((cardID) => conditionNames.cards?.[cardID] ?? translate('workspace.companyCards.deletedCard')).join(', '));
+        return translate(
+            'workspace.rules.expenseDefaultsTable.cardIs',
+            values.map((cardID) => conditionNames.cards?.[cardID] ?? (conditionNames.areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', '),
+        );
     }
 
     if (field === CONDITION.TAX_RATE) {

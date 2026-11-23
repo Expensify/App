@@ -25,12 +25,12 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {translate} = useLocalize();
     const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
     // `usePolicyCards` already asks for every card, so a second loader here would send the same request twice.
-    const cardNames = useExpenseDefaultCardNames(false);
+    const {cards: cardNames, areCardsLoaded} = useExpenseDefaultCardNames(false);
 
     // Stored as card IDs, which is what the `cardID` filter carries.
     const cardItems: RuleConditionItem[] = policyCards.map((card) => ({
         value: String(card.cardID),
-        text: cardNames[String(card.cardID)] ?? translate('workspace.companyCards.deletedCard'),
+        text: cardNames[String(card.cardID)] ?? String(card.cardID),
     }));
 
     return (
@@ -42,7 +42,7 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
             backToRoute={backToRoute}
             items={cardItems}
             onSave={(cardsToMatch) => updateDraftMerchantRule({cardsToMatch})}
-            getFallbackText={(cardID) => cardNames[cardID] ?? translate('workspace.companyCards.deletedCard')}
+            getFallbackText={(cardID) => cardNames[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)}
             isLoading={isLoadingCards}
         />
     );

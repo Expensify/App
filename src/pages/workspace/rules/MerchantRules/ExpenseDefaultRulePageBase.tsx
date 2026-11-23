@@ -180,7 +180,7 @@ function ExpenseDefaultRulePageBase({
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID} = useExpenseDefaultConditionNames(policy);
+    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID, areCardsLoaded} = useExpenseDefaultConditionNames(policy);
     // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
     // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
@@ -350,7 +350,9 @@ function ExpenseDefaultRulePageBase({
     const cardsToMatch = form?.cardsToMatch ?? [];
     // A deactivated card is gone from Onyx, so the row names it as deleted rather than showing the stored ID.
     const cardsToMatchDisplayName =
-        cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? translate('workspace.companyCards.deletedCard')).join(', ') : undefined;
+        cardsToMatch.length > 0
+            ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', ')
+            : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {
