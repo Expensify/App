@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {Shortcut} from '@libs/KeyboardShortcut';
 import mergeRefs from '@libs/mergeRefs';
 import getRoutePath from '@libs/Navigation/helpers/getRoutePath';
 import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -27,6 +28,9 @@ import {Pressable} from 'react-native';
 
 /** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
 type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
+
+/** `useKeyboardShortcut` always needs a shortcut. A pressable without `keyboardShortcut` passes this empty one and keeps the hook inactive. */
+const NO_KEYBOARD_SHORTCUT: Pick<Shortcut, 'shortcutKey' | 'descriptionKey' | 'modifiers'> = {shortcutKey: '', descriptionKey: '', modifiers: []};
 
 function GenericPressable({
     children,
@@ -180,8 +184,7 @@ function GenericPressable({
         return !isDisabled ? pressOnce : undefined;
     };
 
-    // The hook always needs a shortcut. Without `keyboardShortcut` it is inactive, so the ENTER placeholder is never subscribed.
-    useKeyboardShortcut(keyboardShortcut ?? CONST.KEYBOARD_SHORTCUTS.ENTER, onKeyboardShortcutPressHandler, {
+    useKeyboardShortcut(keyboardShortcut ?? NO_KEYBOARD_SHORTCUT, onKeyboardShortcutPressHandler, {
         isActive: !!keyboardShortcut,
         shouldBubble: false,
         shouldPreventDefault: false,
