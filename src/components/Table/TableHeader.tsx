@@ -381,7 +381,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             >
                 <View style={labelRowStyles}>{label}</View>
             </ColumnHeaderMenu.Trigger>
-            <ColumnHeaderMenu.Content>
+            <ColumnHeaderMenu.Content alignment={alignment}>
                 <ColumnHeaderMenu.SortItems
                     sorting={{
                         activeSortOrder: isSortingByColumn ? activeSorting.order : undefined,

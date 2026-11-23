@@ -3,6 +3,7 @@ import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {TransactionViolationGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import {getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
 
@@ -136,7 +137,7 @@ describe('group-by:violation', () => {
 
         // Then the table shows the violation name with the counts every group has, and the name can't be removed
         expect(defaultColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
-        expect(SearchUIUtils.getRequiredSearchColumns(false).has(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION)).toBe(true);
+        expect(getRequiredSearchColumns(false).has(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION)).toBe(true);
         expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION)).toBe('search.filters.groupBy.violation');
     });
 

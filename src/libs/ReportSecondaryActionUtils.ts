@@ -30,7 +30,7 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getReimbursementChoice,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
@@ -74,6 +74,7 @@ import {
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isActionCreator,
+    isAllowedToApproveExpenseReport,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -273,7 +274,6 @@ function isSubmitAction({
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isCurrentUserWorkflowApprover = !isReportSubmitter && isWorkflowApprover(policy, ownerLogin, rules, report.total ?? 0, currentUserLogin);
 
     if (!isReportSubmitter && !isAdmin && !isCurrentUserWorkflowApprover) {
@@ -290,7 +290,7 @@ function isSubmitAction({
         return false;
     }
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval) {
         return false;
     }
 
@@ -1256,7 +1256,12 @@ function getSecondaryReportActions({
         isLoadingSecurityGroup,
         areStrictPolicyRulesEnabled,
     });
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled) {
+    // A dynamic external workflow picks the next approver, so members, whose only change is a reassignment, cannot change it,
+    // and admins can only bypass the approvers, which needs permission to approve the report.
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const canMemberChangeApprover = canReassignReportAsApprover && !isDEWPolicy;
+    const canAdminChangeApprover = isPolicyAdmin(policy) && (!isDEWPolicy || isAllowedToApproveExpenseReport(report, currentUserAccountID, policy));
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (canAdminChangeApprover || canMemberChangeApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 

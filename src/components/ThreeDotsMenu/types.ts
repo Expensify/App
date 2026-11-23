@@ -44,6 +44,9 @@ type ThreeDotsMenuProps = WithRequiredSentryLabel & {
     testID?: string;
     onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
+    /** Called once the menu has fully closed and its modal is gone from the screen */
+    onModalHide?: () => void;
+
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
 

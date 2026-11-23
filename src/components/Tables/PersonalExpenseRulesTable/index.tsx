@@ -10,6 +10,7 @@ import {clearDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -49,16 +50,22 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey>> = [
+    const personalExpenseRulesTableColumns: Array<TableColumn<PersonalExpenseRulesTableColumnKey, PersonalExpenseRuleRowData>> = [
         {
             key: 'merchant',
             label: translate('common.merchant'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.merchant, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'changes',
             label: translate('common.change'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.changes, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -106,6 +113,8 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.PERSONAL_EXPENSE_RULES}
             selectionEnabled
             title={translate('expenseRulesPage.title')}
             initialSortColumn="merchant"

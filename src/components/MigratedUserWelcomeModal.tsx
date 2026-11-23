@@ -61,9 +61,8 @@ function MigratedUserWelcomeModal() {
 
     const handleClose = () => {
         const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS});
-        Navigation.goBack(undefined, {
-            afterTransition: () => Navigation.navigate(spendRoute),
-        });
+        Navigation.goBack();
+        Navigation.goBack(spendRoute);
     };
 
     const onHelp = () => {

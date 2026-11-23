@@ -144,63 +144,6 @@ describe('visibleReportActions', () => {
         expect(result[roomReportID]?.invoicePreviewID).toBeUndefined();
     });
 
-    it('does not cache the visibility of a REIMBURSED action that is hidden outside invoices', () => {
-        // Given a NewDot REIMBURSED action and one that Auth marked with shouldShow false. Both are hidden on expense reports and shown on invoices.
-        const reportID = 'reportWithNewDotPayment';
-        const reimbursedActionID = 'reimbursedActionID';
-        const hiddenReimbursedActionID = 'hiddenReimbursedActionID';
-        const commentActionID = 'commentActionID';
-        const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-            reportActionID: reimbursedActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-            created: '2026-10-13 12:00:00.000',
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth sends isNewDot on originalMessage, which getOriginalMessage reads.
-            originalMessage: {isNewDot: true},
-        };
-        const hiddenReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-            reportActionID: hiddenReimbursedActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-            created: '2026-10-13 12:00:00.500',
-            shouldShow: false,
-        };
-        const allReportActions: OnyxCollection<ReportActions> = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
-                [reimbursedActionID]: reimbursedAction,
-                [hiddenReimbursedActionID]: hiddenReimbursedAction,
-                [commentActionID]: {
-                    reportActionID: commentActionID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2026-10-13 12:00:01.000',
-                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
-                },
-            },
-        };
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [
-            allReportActions,
-            undefined,
-            {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
-                    reportID,
-                    type: CONST.REPORT.TYPE.INVOICE,
-                },
-            },
-            {},
-            {},
-        ];
-
-        // When the derived value computes the report's visibility
-        const result = visibleReportActionsConfig.compute(args, {
-            currentValue: undefined,
-            sourceValues: undefined,
-            triggeredKeys: new Set<OnyxKey>(),
-        });
-
-        // Then it leaves both payment actions out, because their visibility depends on the report type, which the cache doesn't track
-        expect(result[reportID]?.[reimbursedActionID]).toBeUndefined();
-        expect(result[reportID]?.[hiddenReimbursedActionID]).toBeUndefined();
-        expect(result[reportID]?.[commentActionID]).toBe(true);
-    });
-
     it('recomputes only the changed report when a report changes', () => {
         // Given a closed report that turned into a support ticket, where the closed action shows only for support tickets
         const reportID = 'ticketReportID';

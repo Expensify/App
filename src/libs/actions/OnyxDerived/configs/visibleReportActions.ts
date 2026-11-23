@@ -4,7 +4,6 @@ import {
     isActionableWhisperRequiringWritePermission,
     isActionOfType,
     isConciergeCategoryOptions,
-    isPaymentActionHiddenOutsideInvoices,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {isSupportTicket} from '@libs/ReportUtils';
@@ -20,18 +19,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, the type of its report, sibling actions, or the report it links to.
+ * such as write permissions, policy settings, sibling actions, or the report it links to.
  */
 function shouldSkipCachingAction(action: ReportAction, allReports: OnyxCollection<Report>): boolean {
     if (isActionableReportMentionWhisper(action)) {
         return false;
     }
-    // A payment action hidden outside invoices depends on its report's type. The cache doesn't pass a reportID, so it
-    // can't tell that the report is an invoice and would hide the action there.
     return (
         isActionableWhisperRequiringWritePermission(action) ||
         isConciergeCategoryOptions(action) ||
-        isPaymentActionHiddenOutsideInvoices(action) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) ||
         isPreviewOfInvoiceOrUnloadedReport(action, allReports)
     );
@@ -83,18 +79,7 @@ function computeReportVisibility(
         }
         if (isActionableReportMentionWhisper(action)) {
             // Write permission is still checked at runtime in isReportActionVisible, so pass true here to run the remaining visibility checks (deleted, resolved, targeted, room-creation permission) against the snapshot.
-            reportVisibility[action.reportActionID] = shouldReportActionBeVisible(
-                action,
-                actionID,
-                true,
-                currentUserAccountID,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                policy,
-                currentUserEmail,
-            );
+            reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, policy, currentUserEmail);
             continue;
         }
         // A replacement ticket has its own active survey, so the original ticket's survey is stale.
@@ -125,7 +110,7 @@ function updateReportMentionWhispersVisibility(
         if (!action || actionID !== action.reportActionID || !isActionableReportMentionWhisper(action)) {
             continue;
         }
-        const isVisible = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, undefined, policy, currentUserEmail);
+        const isVisible = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, policy, currentUserEmail);
         if (nextReportVisibility?.[action.reportActionID] === isVisible) {
             continue;
         }

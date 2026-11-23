@@ -1,10 +1,10 @@
 import AmountFormField from '@components/AmountFormField';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
-import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -24,10 +24,12 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import type {StartWithLoading} from '@hooks/usePressLoading';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -221,7 +223,12 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const currencyButtonRef = useRef<View>(null);
+    const shouldSaveButtonBeInScrollView = useShouldFooterBeInsideList();
+
+    // On touch devices Enter is the only way to add a new line to the description, so it saves only with a hardware keyboard.
+    const canUseHardwareKeyboard = !canUseTouchScreen();
 
     // The draft only holds a currency once one is picked; until then the amount is read in the workspace's currency.
     const currency = draftTransaction?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -440,6 +447,22 @@ function SearchEditMultiplePage() {
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
     const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
+    const saveButton = (
+        <Button
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            onPress={save}
+            isLoading={isSaving}
+            isDisabled={isSaving}
+            style={[styles.m5]}
+        >
+            {/* An open list with no row focused leaves Enter unclaimed, so it would otherwise save the page behind the list. */}
+            {!isDropdownVisible && !isCurrencyPickerVisible && <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />}
+            <Button.Text>{translate('common.save')}</Button.Text>
+        </Button>
+    );
+
     return (
         <ScreenWrapper
             testID="SearchEditMultiplePage"
@@ -458,10 +481,13 @@ function SearchEditMultiplePage() {
                 launcherRef={currencyButtonRef}
             />
             <View style={[styles.flex1]}>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     {isAmountDisabled ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('iou.amount')}
                             value={lockedAmountTitle}
                             isInteractive={false}
@@ -479,6 +505,7 @@ function SearchEditMultiplePage() {
                                 <AmountFormField.Input
                                     label={translate('iou.amount')}
                                     prefixCharacter={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                                    submitBehavior="blurAndSubmit"
                                 >
                                     <AmountFormField.SignFlipButton shouldUseBorderlessStyle />
                                     <AmountFormField.CurrencyPickerButton
@@ -495,6 +522,8 @@ function SearchEditMultiplePage() {
                         <TextInput
                             value={description}
                             onChangeText={saveDraftDescription}
+                            submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
+                            onSubmitEditing={canUseHardwareKeyboard ? () => save() : undefined}
                             label={translate('common.description')}
                             accessibilityLabel={translate('common.description')}
                             errorText={descriptionErrorText}
@@ -505,7 +534,7 @@ function SearchEditMultiplePage() {
                         />
                     </View>
                     {hasPartiallyEditableMerchantTransaction ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('common.merchant')}
                             value={draftMerchant}
                             numberOfLinesValue={2}
@@ -527,7 +556,7 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {hasPartiallyEditableDateTransaction ? (
-                        <ExpenseFieldRow
+                        <DropdownFieldRow
                             name={translate('common.date')}
                             value={draftDate}
                             isInteractive={false}
@@ -547,7 +576,8 @@ function SearchEditMultiplePage() {
                         </View>
                     )}
                     {areCategoriesEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.category')}
                             value={draftTransaction?.category ?? ''}
                             numberOfLinesValue={2}
@@ -556,6 +586,7 @@ function SearchEditMultiplePage() {
                                 Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
                             }}
                             shouldOpenInDropdown={canOpenListInDropdown}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleCategoryDropdown
                                     {...dropdownProps}
@@ -573,7 +604,8 @@ function SearchEditMultiplePage() {
                             }
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
-                                <ExpenseFieldDropdown
+                                <DropdownField
+                                    onVisibilityChange={setIsDropdownVisible}
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
@@ -597,7 +629,8 @@ function SearchEditMultiplePage() {
                             );
                         })}
                     {isTaxTrackingEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
+                            onVisibilityChange={setIsDropdownVisible}
                             name={taxRateName}
                             value={selectedTaxRate}
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
@@ -616,10 +649,12 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areSelectedTransactionsReimbursable && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.reimbursable')}
                             value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
                             shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
                                     {...dropdownProps}
@@ -633,10 +668,12 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areSelectedTransactionsBillable && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('common.billable')}
                             value={getPendingBooleanTitle(draftTransaction?.billable)}
                             shouldOpenInDropdown={!isBillableDisabled}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
                                     {...dropdownProps}
@@ -650,7 +687,8 @@ function SearchEditMultiplePage() {
                         />
                     )}
                     {areAttendeesEnabled && (
-                        <ExpenseFieldDropdown
+                        <DropdownField
+                            onVisibilityChange={setIsDropdownVisible}
                             name={translate('iou.attendees')}
                             valueComponent={hasDraftAttendees ? <SearchEditMultipleAttendeePills attendees={draftAttendees} /> : undefined}
                             hasValueComponent={hasDraftAttendees}
@@ -670,18 +708,9 @@ function SearchEditMultiplePage() {
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
                         />
                     )}
+                    {shouldSaveButtonBeInScrollView && saveButton}
                 </ScrollView>
-                <Button
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.SAVE_BUTTON}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={save}
-                    isLoading={isSaving}
-                    isDisabled={isSaving}
-                    style={[styles.m5]}
-                >
-                    <Button.Text>{translate('common.save')}</Button.Text>
-                </Button>
+                {!shouldSaveButtonBeInScrollView && saveButton}
             </View>
         </ScreenWrapper>
     );

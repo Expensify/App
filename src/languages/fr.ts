@@ -591,6 +591,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) => `${formattedCount ?? count} minutes`,
         }),
         amount: 'Montant',
+        submitter: 'Déclarant',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -697,6 +698,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
         signIn: 'Veuillez vous reconnecter.',
+        notValid: 'Lien invalide.',
+        sessionMismatch: 'Le lien sur lequel vous avez cliqué n’est pas valide pour votre session actuelle.',
+        switchAccount: {
+            title: 'Changer de compte ?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Vous êtes connecté en tant que ${currentEmail}. Cette action vous connectera plutôt en tant que ${newEmail}.`,
+            confirm: 'Changer de compte',
+            staySignedIn: 'Ne changez pas de compte',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1922,6 +1932,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
+            fxRateExpiredTitle: 'Taux de change expiré',
+            fxRatesExpiredTitle: 'Taux de change expirés',
+            fxRateExpiredPrompt: 'Vérifiez le taux le plus récent avant de payer.',
+            fxRatesExpiredPrompt: 'Vérifiez les taux les plus récents avant de payer.',
+            getLatestRate: 'Obtenir le dernier taux',
+            getLatestRates: 'Obtenir les derniers taux',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
@@ -2345,6 +2361,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Paiement en attente, attendez une autre mise à jour.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oups ! Il semble que vous soumettiez cette note de frais à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour changer la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -3044,16 +3061,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Saisissez les informations de votre entreprise',
                 legalName: 'Raison sociale',
-                companyType: 'Type d’entreprise',
-                companyTypeLimitedLiabilityCompany: 'Société à responsabilité limitée (LLC)',
-                companyTypeForProfitCorporation: 'Société à but lucratif',
-                companyTypeNonProfitCorporation: 'Société à but non lucratif',
-                companyTypeSoleProprietorship: 'Entreprise individuelle',
-                companyTypeGeneralPartnership: 'Société en nom collectif',
-                companyTypeLimitedPartnership: 'Société en commandite',
-                companyTypeLimitedLiabilityPartnership: 'Société de personnes à responsabilité limitée (LLP)',
-                companyTypeTrust: 'Fiducie',
-                companyTypeOther: 'Autre',
                 companyRole: 'Votre rôle dans l’entreprise',
                 companyRoleOwner: 'Propriétaire',
                 companyRoleDirector: 'Directeur',
@@ -3306,8 +3313,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Je certifie que les informations fournies sont exactes et véridiques.',
                 expensifyTerms: `J’accepte les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">conditions générales</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politique de confidentialité</a> d’Expensify.`,
                 expensifyTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité d’Expensify.',
-                wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
-                wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
+                wiseTerms: `En cliquant sur Confirmer, j’accepte les <a href="${CONST.WISE.TERMS_URL}">Conditions d’utilisation</a> de Wise, je consens à recevoir des documents électroniques comme indiqué dans la <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Politique de communications électroniques</a> de Wise, ainsi que sa <a href="${CONST.WISE.PRIVACY_URL}">Politique de confidentialité</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'En cliquant sur Confirmer, j’accepte les Conditions d’utilisation de Wise, je consens à recevoir des documents électroniques comme indiqué dans la Politique de communications électroniques de Wise, ainsi que sa Politique de confidentialité.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
             },
             moreInfoNeeded: {
@@ -3324,7 +3332,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Compte approuvé', heading: 'Approuvé pour être payé dans le monde entier', description: "Payez les membres où qu'ils soient."},
             rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
-        wiseSetupInProgress: {message: 'Configuration des remboursements globaux en cours.', continue: 'Continuer.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Configuration des remboursements globaux en cours.'},
+            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', action: 'Vérifier le statut'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
@@ -8614,6 +8625,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             startDate: 'Date de début',
             endDate: 'Date de fin',
             autoGeneratedRateTooltip: 'Ce taux est généré automatiquement.',
+            taxReclaimableOnAmount: (amount: string) => `Taxe récupérable sur ${amount}`,
             automaticRates: 'Tarifs automatiques',
             autoUpdateGovernmentRate: 'Mettre automatiquement à jour les taux gouvernementaux',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -8700,6 +8712,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             timezoneInputLabel: 'Fuseau horaire',
             timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
             timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
+            directReimbursementCurrencyTitle: 'Devise non disponible avec le remboursement direct',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Cet espace de travail rembourse les membres directement via Expensify, ce qui n’est pas disponible en ${currency}. Pour utiliser ${currency}, allez dans Workflows et désactivez puis réactivez Paiements, afin que les paiements soient effectués en dehors d’Expensify.`,
+            goToWorkflows: 'Aller aux workflows',
         },
         officeLocations: {
             title: 'Sites de bureau',
@@ -9325,6 +9341,36 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 confirmErrorConditionAndDefault: 'Ajoutez au moins une condition et appliquez au moins une valeur par défaut',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Compagnies aériennes',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alcool et bars',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon et librairies',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Automobile',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Locations de voitures',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Restauration',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Carburant et gaz',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Secteur public et organisations à but non lucratif',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Courses',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Salles de sport et fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Santé',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hôtels',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet et téléphone',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Fournitures de bureau',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parking et péages',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Services professionnels',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Vente au détail',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Expédition et livraison',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Logiciel',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Transports en commun et VTC',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Agences de voyage',
+                },
+                dateMatchTypeOn: 'Activé',
+                dateMatchTypeBefore: 'Avant',
+                dateMatchTypeAfter: 'Après',
+                hasOrDoesNotHave: 'A/Ne possède pas',
+                amountMatchTypeEqualTo: 'Égal à',
+                amountMatchTypeGreaterThan: 'Supérieur à',
+                amountMatchTypeLessThan: 'Inférieur à',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -9663,6 +9709,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 tagIs: (tag: string) => `Le tag est « ${tag} »`,
                 merchantContains: (merchant: string) => `Le commerçant contient « ${merchant} »`,
                 merchantExactlyMatches: (merchant: string) => `Le commerçant correspond exactement à « ${merchant} »`,
+                currencyIs: (currency: string) => `La devise est « ${currency} »`,
+                cardIs: (card: string) => `La carte est « ${card} »`,
+                taxRateIs: (taxRate: string) => `Le taux de taxe est « ${taxRate} »`,
+                submitterIs: (submitter: string) => `Le déclarant est « ${submitter} »`,
+                reimbursableIs: (reimbursable: string) => `Remboursable est « ${reimbursable} »`,
+                billableIs: (billable: string) => `Facturable est « ${billable} »`,
+                dateIs: (comparison: string) => `La date est ${comparison}`,
+                amountIs: (comparison: string) => `Le montant est ${comparison}`,
+                hasValue: (value: string) => `A pour valeur « ${value} »`,
+                doesNotHaveValue: (value: string) => `N’inclut pas « ${value} »`,
             },
             merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
             requireFieldsTable: {
@@ -11112,6 +11168,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
+            tooManyKeywords: `Votre recherche contient trop de mots-clés. Utilisez ${CONST.SEARCH.MAX_KEYWORD_TOKENS} mots-clés ou moins et réessayez.`,
+            unsupportedGrouping: 'Cette recherche ne prend en charge ni le regroupement ni les vues graphiques. Supprimez le regroupement et utilisez la vue tableau.',
+            invalidReportID: 'Saisissez un identifiant de rapport valide. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
+            unsupportedFilter: 'Le filtre "is:" ne peut pas être utilisé pour cette recherche. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
             emptyResults: {
                 title: 'Rien à afficher',
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,
@@ -11171,6 +11231,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             openMenu: ({columnName}: {columnName: string}) => `Options de la colonne ${columnName}`,
             sortAscending: 'Trier par ordre croissant',
             sortDescending: 'Trier par ordre décroissant',
+            pinLeft: 'Épingler à gauche',
+            pinRight: 'Épingler à droite',
+            unpin: 'Désépingler',
             hideColumn: 'Masquer la colonne',
             resetColumnSizes: 'Réinitialiser la largeur des colonnes',
         },
@@ -11727,7 +11790,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 reimbursementRefundedWithoutBankAccount: 'Les fonds ont été renvoyés. Vous pouvez réessayer le paiement.',
                 reimbursementHeld:
                     'Paiement en attente pendant que notre partenaire termine un examen. Attendez une autre mise à jour. Discutez avec <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'L’examen est terminé et votre paiement est en cours d’acheminement. Le taux de change final peut modifier le montant.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Paiement effectué, les fonds devraient arriver d’ici le ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Paiement effectué.',
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -13435,6 +13499,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
         toMarkAsDone: 'marquer comme terminé',
         receivedPayment: 'paiement reçu',
+        markedAsManuallyExported: (label: string) => `a marqué cette note de frais comme exportée manuellement vers ${label}`,
     },
 };
 export default translations;
