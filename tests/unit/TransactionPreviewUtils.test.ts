@@ -208,22 +208,20 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays the server rejection reason on a receipt error when present', () => {
-            // Given a scan transaction with both a ReceiptError and a server rejection message
+            // Given a scan transaction whose ReceiptError carries a server rejection reason
             const serverReason = 'New expenses cannot be added to this report.';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
-            const mixedErrors = {
-                receiptError: {
-                    error: CONST.IOU.RECEIPT_ERROR,
-                    source: 'file:///receipt.jpg',
-                    filename: 'receipt.jpg',
-                },
-                serverError: serverReason,
-            } as unknown as Transaction['errors'];
             const functionArgs = {
                 ...basicProps,
                 transaction: {
                     ...basicProps.transaction,
-                    errors: mixedErrors,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: serverReason,
+                        },
+                    },
                 },
                 violations: [],
                 originalTransaction: undefined,
@@ -238,21 +236,19 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('strips HTML tags and line breaks from a server rejection reason on a receipt error', () => {
-            // Given a scan transaction with a ReceiptError and an HTML server rejection reason
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
-            const mixedErrors = {
-                receiptError: {
-                    error: CONST.IOU.RECEIPT_ERROR,
-                    source: 'file:///receipt.jpg',
-                    filename: 'receipt.jpg',
-                },
-                serverError: 'Check <a href="https://expensify.com">policy settings</a>.<br />Try again.',
-            } as unknown as Transaction['errors'];
+            // Given a scan transaction whose ReceiptError carries an HTML server rejection reason
             const functionArgs = {
                 ...basicProps,
                 transaction: {
                     ...basicProps.transaction,
-                    errors: mixedErrors,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: 'Check <a href="https://expensify.com">policy settings</a>.<br />Try again.',
+                        },
+                    },
                 },
                 violations: [],
                 originalTransaction: undefined,

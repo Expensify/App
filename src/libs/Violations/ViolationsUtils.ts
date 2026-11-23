@@ -7,7 +7,7 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {hasStringErrorMessage, isReceiptError} from '@libs/ErrorUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import {
@@ -518,8 +518,6 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         allErrors = {...allErrors, ...action.errors};
     }
 
-    const hasTransactionStringError = hasStringErrorMessage(errors);
-
     // Extract error messages
     for (const errorValue of Object.values(allErrors)) {
         if (!errorValue) {
@@ -528,11 +526,10 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            // Skip the generic receipt copy when the transaction already holds a server error string,
-            // while still showing it when only an unrelated thread action failed.
-            if (!hasTransactionStringError) {
-                uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
-            }
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            const receiptServerMessage = errorValue.message?.trim();
+            uniqueMessages.add(receiptServerMessage || translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {

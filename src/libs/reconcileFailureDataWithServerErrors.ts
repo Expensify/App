@@ -1,30 +1,32 @@
 /**
- * Strips redundant client generic string errors from expense creation failureData when the server response already wrote errors for the same transaction or report action, while preserving ReceiptError retry metadata.
+ * Reconciles expense creation failureData against server-provided transaction and report action errors so the server rejection message shows without duplicating generic errors or losing receipt retry metadata.
  */
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import {WRITE_COMMANDS} from './API/types';
-import {hasStringErrorMessage} from './ErrorUtils';
+import {getLatestStringErrorMessage, isReceiptError} from './ErrorUtils';
 import {isRecord} from './ObjectUtils';
 
 const EXPENSE_CREATION_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE]);
 
-function stripStringErrors(record: Record<string, unknown>): Record<string, unknown> {
+function reconcileErrorsField(record: Record<string, unknown>, serverError: string): Record<string, unknown> {
     if (!isRecord(record.errors)) {
         return record;
     }
 
-    const remainingErrors: Record<string, unknown> = {};
+    const updatedErrors: Record<string, unknown> = {};
     for (const [errorKey, errorValue] of Object.entries(record.errors)) {
-        if (typeof errorValue !== 'string') {
-            remainingErrors[errorKey] = errorValue;
+        if (isReceiptError(errorValue)) {
+            updatedErrors[errorKey] = {...errorValue, message: serverError};
+        } else if (typeof errorValue !== 'string') {
+            updatedErrors[errorKey] = errorValue;
         }
     }
 
-    if (Object.keys(remainingErrors).length > 0) {
-        return {...record, errors: remainingErrors};
+    if (Object.keys(updatedErrors).length > 0) {
+        return {...record, errors: updatedErrors};
     }
 
     const rest = {...record};
@@ -41,8 +43,8 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(
         return failureData;
     }
 
-    const transactionKeys = new Set<string>();
-    const reportActionTargets = new Map<string, Set<string>>();
+    const transactionErrors = new Map<string, string>();
+    const reportActionErrors = new Map<string, Map<string, string>>();
 
     for (const update of responseOnyxData) {
         const value: unknown = update.value;
@@ -50,27 +52,34 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(
             continue;
         }
 
-        if (update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && hasStringErrorMessage(value.errors)) {
-            transactionKeys.add(update.key);
+        if (update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            const serverError = getLatestStringErrorMessage(value.errors);
+            if (serverError) {
+                transactionErrors.set(update.key, serverError);
+            }
             continue;
         }
 
         if (update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
             for (const [actionID, actionValue] of Object.entries(value)) {
-                if (!isRecord(actionValue) || !hasStringErrorMessage(actionValue.errors)) {
+                if (!isRecord(actionValue)) {
                     continue;
                 }
-                let actionIDs = reportActionTargets.get(update.key);
-                if (!actionIDs) {
-                    actionIDs = new Set<string>();
-                    reportActionTargets.set(update.key, actionIDs);
+                const serverError = getLatestStringErrorMessage(actionValue.errors);
+                if (!serverError) {
+                    continue;
                 }
-                actionIDs.add(actionID);
+                let actionMap = reportActionErrors.get(update.key);
+                if (!actionMap) {
+                    actionMap = new Map<string, string>();
+                    reportActionErrors.set(update.key, actionMap);
+                }
+                actionMap.set(actionID, serverError);
             }
         }
     }
 
-    if (transactionKeys.size === 0 && reportActionTargets.size === 0) {
+    if (transactionErrors.size === 0 && reportActionErrors.size === 0) {
         return failureData;
     }
 
@@ -83,30 +92,32 @@ function reconcileFailureDataWithServerErrors<TKey extends OnyxKey>(
             continue;
         }
 
-        if (transactionKeys.has(update.key)) {
-            const nextValue = stripStringErrors(value);
+        const transactionServerError = transactionErrors.get(update.key);
+        if (transactionServerError) {
+            const nextValue = reconcileErrorsField(value, transactionServerError);
             if (Object.keys(nextValue).length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Stripping string errors preserves the transaction update key and value shape.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Reconciling only updates or removes the errors field while keeping the transaction update shape intact.
                 reconciledUpdates.push({...update, value: nextValue} as OnyxUpdate<TKey>);
             }
             continue;
         }
 
-        const actionIDs = reportActionTargets.get(update.key);
-        if (actionIDs) {
+        const actionServerErrors = reportActionErrors.get(update.key);
+        if (actionServerErrors) {
             const nextActions: Record<string, unknown> = {};
             for (const [actionID, actionValue] of Object.entries(value)) {
-                if (!actionIDs.has(actionID) || !isRecord(actionValue)) {
+                const actionServerError = actionServerErrors.get(actionID);
+                if (!actionServerError || !isRecord(actionValue)) {
                     nextActions[actionID] = actionValue;
                     continue;
                 }
-                const nextActionValue = stripStringErrors(actionValue);
+                const nextActionValue = reconcileErrorsField(actionValue, actionServerError);
                 if (Object.keys(nextActionValue).length > 0) {
                     nextActions[actionID] = nextActionValue;
                 }
             }
             if (Object.keys(nextActions).length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Stripping string errors on matching actions preserves the reportActions update shape.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Reconciling only updates or removes errors fields on matching actions while keeping the reportActions update shape intact.
                 reconciledUpdates.push({...update, value: nextActions} as OnyxUpdate<TKey>);
             }
             continue;

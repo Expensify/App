@@ -394,18 +394,9 @@ function MoneyRequestReceiptView({
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
-    const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
-    const hasTransactionReceiptError = Object.values(transactionErrors ?? {}).some((error) => isReceiptError(error));
-    // Drop only MoneyRequestBuilder's generic create-failure string from parentReportAction when the transaction
-    // has a ReceiptError, so ordinary upload failures keep receipt retry guidance while specific action errors still show.
-    const genericCreateFailureMessage = translate('iou.error.genericCreateFailureMessage');
-    const parentActionErrors =
-        hasTransactionReceiptError && parentReportAction?.errors
-            ? Object.fromEntries(Object.entries(parentReportAction.errors).filter(([, error]) => error !== genericCreateFailureMessage))
-            : parentReportAction?.errors;
     const errorsWithoutReportCreation = {
-        ...transactionErrors,
-        ...parentActionErrors,
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
+        ...parentReportAction?.errors,
     };
     const reportCreationError = getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {};
     const hasReceiptUploadError = Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error));

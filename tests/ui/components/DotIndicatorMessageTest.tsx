@@ -100,10 +100,10 @@ describe('DotIndicatorMessage selection override', () => {
 
 describe('DotIndicatorMessage receipt error server reason', () => {
     it('renders the server rejection message while keeping receipt retry and save actions', () => {
-        // Given a receipt error alongside a server rejection reason and a retry callback.
+        // Given a receipt error carrying a server rejection reason and a retry callback.
         const serverReason = 'New expenses cannot be added to this report.';
 
-        // When rendering DotIndicatorMessage with both errors.
+        // When rendering DotIndicatorMessage with that receipt error.
         render(
             <DotIndicatorMessage
                 messages={{
@@ -112,8 +112,8 @@ describe('DotIndicatorMessage receipt error server reason', () => {
                         source: 'file:///receipt.jpg',
                         filename: 'receipt.jpg',
                         action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                        message: serverReason,
                     },
-                    serverError: serverReason,
                 }}
                 type="error"
                 onRetryReceiptUpload={jest.fn()}
@@ -126,32 +126,34 @@ describe('DotIndicatorMessage receipt error server reason', () => {
         expect(screen.getByText('common.save')).toBeOnTheScreen();
     });
 
-    it('falls back to the generic receipt upload error when no server message is attached', () => {
-        // Given a standard receipt error without a server rejection reason.
-        const receiptOnlyMessages = {
+    it('keeps generic receipt upload guidance when an unrelated string error is present without ReceiptError.message', () => {
+        // Given a receipt error without a server rejection message alongside an unrelated edit error string.
+        const messagesWithUnrelatedString = {
             receiptError: {
                 error: CONST.IOU.RECEIPT_ERROR,
                 source: 'file:///receipt.jpg',
                 filename: 'receipt.jpg',
                 action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
             },
+            editError: 'Unable to find that request',
         };
 
-        // When rendering DotIndicatorMessage with only that receipt error.
+        // When rendering DotIndicatorMessage with both errors.
         render(
             <DotIndicatorMessage
-                messages={receiptOnlyMessages}
+                messages={messagesWithUnrelatedString}
                 type="error"
                 onRetryReceiptUpload={jest.fn()}
             />,
         );
 
-        // Then the localized receipt upload failure copy is shown.
+        // Then the localized receipt upload failure copy stays above Try again and Save.
         expect(screen.getByText('iou.error.receiptUploadFailedMessage')).toBeOnTheScreen();
+        expect(screen.queryByText('Unable to find that request')).not.toBeOnTheScreen();
     });
 
     it('renders HTML server rejection messages through RenderHTML alongside receipt buttons', () => {
-        // Given a receipt error alongside an HTML server rejection message.
+        // Given a receipt error carrying an HTML server rejection message.
         const htmlServerReason = 'Check <a href="https://expensify.com">policy settings</a>.';
         const messages = {
             receiptError: {
@@ -159,8 +161,8 @@ describe('DotIndicatorMessage receipt error server reason', () => {
                 source: 'file:///receipt.jpg',
                 filename: 'receipt.jpg',
                 action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                message: htmlServerReason,
             },
-            serverError: htmlServerReason,
         };
 
         // When rendering DotIndicatorMessage with that HTML rejection message.

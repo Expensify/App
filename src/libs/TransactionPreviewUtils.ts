@@ -17,7 +17,7 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
-import {getLatestStringErrorMessage} from './ErrorUtils';
+import {isReceiptError} from './ErrorUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Parser from './Parser';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
@@ -250,7 +250,8 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
         const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
-        const serverReason = getLatestStringErrorMessage(transactionErrors);
+        const receiptError = Object.values(transactionErrors ?? {}).find(isReceiptError);
+        const serverReason = receiptError?.message?.trim();
         RBRMessage = serverReason ? {text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(serverReason))} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 

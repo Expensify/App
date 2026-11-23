@@ -329,6 +329,9 @@ type ReceiptError = {
     /** Parameters required to retry the failed action */
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
+    /** Server rejection reason attached when expense creation failed with a specific message */
+    message?: string;
+
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 

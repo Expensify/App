@@ -5003,8 +5003,8 @@ describe('getRBRMessages', () => {
         expect(result).toBe(expectedResult);
     });
 
-    it('should omit the generic receipt failure message when a server error is present alongside a ReceiptError', () => {
-        // Given a scan transaction with both a server rejection string and a ReceiptError.
+    it('should deduplicate the server rejection message when ReceiptError carries the same server reason', () => {
+        // Given a scan transaction with a server rejection string and a reconciled ReceiptError carrying that same message.
         const serverReason = 'New expenses cannot be added to this report.';
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
         const mixedErrors = {
@@ -5012,6 +5012,7 @@ describe('getRBRMessages', () => {
                 error: CONST.IOU.RECEIPT_ERROR,
                 source: 'file:///receipt.jpg',
                 filename: 'receipt.jpg',
+                message: serverReason,
             },
             serverError: serverReason,
         } as unknown as Transaction['errors'];
@@ -5032,6 +5033,37 @@ describe('getRBRMessages', () => {
 
         // Then only the server rejection reason is returned without appending Receipt upload failed.
         expect(result).toBe(serverReason);
+    });
+
+    it('should preserve the generic receipt failure message alongside an unrelated transaction error', () => {
+        // Given a scan transaction with an ordinary ReceiptError and an unrelated server edit error string.
+        const editError = 'Unable to find that request';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+            },
+            editError,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then both the receipt upload failure and the unrelated edit error are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${editError}`);
     });
 
     it('should keep the generic receipt failure message when only a ReceiptError is present', () => {

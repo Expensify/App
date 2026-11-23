@@ -268,14 +268,9 @@ function isNonEmptyStringError(error: unknown): error is string {
     return typeof error === 'string' && error.trim().length > 0;
 }
 
-/** Returns true when an error map contains at least one string error with text. */
-function hasStringErrorMessage(errors: unknown): boolean {
-    return isRecord(errors) && Object.values(errors).some(isNonEmptyStringError);
-}
-
 /** Returns the latest string error with empty entries ignored from an error map that may also contain ReceiptError entries. */
-function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): string | undefined {
-    if (!errors) {
+function getLatestStringErrorMessage(errors: unknown): string | undefined {
+    if (!isRecord(errors)) {
         return undefined;
     }
 
@@ -289,7 +284,7 @@ function getLatestStringErrorMessage(errors?: Record<string, unknown> | null): s
     }
 
     const error = errors[latestKey];
-    return isNonEmptyStringError(error) ? error : undefined;
+    return isNonEmptyStringError(error) ? error.trim() : undefined;
 }
 
 export {
@@ -305,7 +300,6 @@ export {
     getLatestErrorMessageField,
     getLatestError,
     getLatestStringErrorMessage,
-    hasStringErrorMessage,
     getMicroSecondOnyxErrorWithTranslationKey,
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,

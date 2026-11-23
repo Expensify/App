@@ -6,7 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getLatestStringErrorMessage, isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
+import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getPlatform from '@libs/getPlatform';
 
@@ -130,7 +130,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     };
 
     if (receiptError) {
-        const serverError = getLatestStringErrorMessage(messages);
+        const serverError = receiptError.message?.trim();
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
