@@ -58,8 +58,8 @@ If you have two-factor authentication enabled, use email sign-in and enter the c
 
 This code is different from the security code Expensify sends to your email.
 
-Learn more about [signing in with two-factor authentication](/articles/new-expensify/settings/Two-Factor-Authentication#how-does-two-factor-authentication-change-how-i-log-into-my-account).
+Learn more about [signing in with two-factor authentication](/articles/expensify-classic/settings/Two-Factor-Authentication).
 
 ## What if I can't sign in to Expensify?
 
-If you aren't receiving security codes, can't sign in with SSO, or encounter another login issue, see [Troubleshoot Expensify Login Issues](/articles/new-expensify/settings/Login-Troubleshooting).
+If you aren't receiving security codes, can't sign in with SSO, or encounter another login issue, see [Troubleshoot Expensify Login Issues](/articles/expensify-classic/settings/Login-Troubleshooting).
