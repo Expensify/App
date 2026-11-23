@@ -1939,7 +1939,7 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Χρεωμένο ποσό',
             employeeReceived: 'Ο υπάλληλος έλαβε',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>Ο παραλήπτης ενδέχεται να λάβει λιγότερα λόγω χρεώσεων της τράπεζάς του και ξένων φόρων. Κάνοντας κλικ στο ${buttonText}, αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">Όρους χρήσης</a> και την <a href="${CONST.WISE.PRIVACY_URL}">Πολιτική απορρήτου</a> της Wise.</muted-text-label>`,
+                `<muted-text-micro>Ο παραλήπτης ενδέχεται να λάβει λιγότερα λόγω χρεώσεων της τράπεζάς του και ξένων φόρων. Κάνοντας κλικ στο ${buttonText}, αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">Όρους χρήσης</a> και την <a href="${CONST.WISE.PRIVACY_URL}">Πολιτική απορρήτου</a> της Wise.</muted-text-micro>`,
             payAll: 'Πληρωμή όλων',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 αναφορά',

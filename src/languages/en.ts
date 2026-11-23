@@ -2039,7 +2039,7 @@ const translations = {
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-label>`,
+                `<muted-text-micro>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-micro>`,
             payAll: 'Pay all',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',

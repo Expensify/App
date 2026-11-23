@@ -16,6 +16,8 @@ import {View} from 'react-native';
 /** Height of the modal title, the Pay and Cancel buttons and the paddings around the prompt */
 const MODAL_CHROME_HEIGHT = 210;
 
+const NON_BREAKING_SPACE = '\u00A0';
+
 type WisePaymentPromptProps = {
     /** The quote the admin confirms */
     children: ReactNode;
@@ -33,14 +35,18 @@ function WisePaymentPrompt({children, buttonText}: WisePaymentPromptProps) {
     const insets = useSafeAreaInsets();
     const {isContentWrappedInScrollView} = useContext(ModalContext);
 
-    // Non-breaking spaces keep the quoted button text, like "Pay $10.10", on one line in the disclosure
-    const unbreakableButtonText = buttonText.replaceAll(' ', ' ');
+    // Non-breaking spaces keep the quoted button text, like "Pay $10.10", and each link label on one line in the disclosure
+    const disclosure = translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: buttonText.replaceAll(' ', NON_BREAKING_SPACE)}).replaceAll(
+        /(<a [^>]*>)([^<]*)(<\/a>)/g,
+        (link, openingTag: string, label: string, closingTag: string) => `${openingTag}${label.replaceAll(' ', NON_BREAKING_SPACE)}${closingTag}`,
+    );
 
     const content = (
         <>
             {children}
-            <View style={styles.mt5}>
-                <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: unbreakableButtonText})} />
+            {/* With the buttons' own top margin, the bottom margin leaves the same 20px gap under the disclosure as above it */}
+            <View style={[styles.mt5, styles.mb1]}>
+                <RenderHTML html={disclosure} />
             </View>
         </>
     );

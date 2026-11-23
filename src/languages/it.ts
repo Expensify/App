@@ -1882,7 +1882,7 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importo addebitato',
             employeeReceived: 'Il dipendente ha ricevuto',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>Il destinatario potrebbe ricevere meno a causa delle commissioni della sua banca e delle imposte estere. Facendo clic su ${buttonText}, accetto i <a href="${CONST.WISE.TERMS_URL}">Termini di utilizzo</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">Informativa sulla privacy</a> di Wise.</muted-text-label>`,
+                `<muted-text-micro>Il destinatario potrebbe ricevere meno a causa delle commissioni della sua banca e delle imposte estere. Facendo clic su ${buttonText}, accetto i <a href="${CONST.WISE.TERMS_URL}">Termini di utilizzo</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">Informativa sulla privacy</a> di Wise.</muted-text-micro>`,
             payAll: 'Paga tutto',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 resoconto',

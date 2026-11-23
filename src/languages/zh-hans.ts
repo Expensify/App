@@ -1808,7 +1808,7 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '扣款金额',
             employeeReceived: '员工已收到',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>由于收款人银行收取的费用和境外税费，收款人实际收到的金额可能会减少。点击${buttonText}即表示我接受 Wise 的<a href="${CONST.WISE.TERMS_URL}">使用条款</a>和<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。</muted-text-label>`,
+                `<muted-text-micro>由于收款人银行收取的费用和境外税费，收款人实际收到的金额可能会减少。点击${buttonText}即表示我接受 Wise 的<a href="${CONST.WISE.TERMS_URL}">使用条款</a>和<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。</muted-text-micro>`,
             payAll: '全部支付',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',

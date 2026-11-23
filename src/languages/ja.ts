@@ -1862,7 +1862,7 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '引き落とし額',
             employeeReceived: '従業員の受取額',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>受取人の銀行が請求する手数料や外国の税金により、受取額が少なくなる場合があります。${buttonText}をクリックすると、Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>と<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-label>`,
+                `<muted-text-micro>受取人の銀行が請求する手数料や外国の税金により、受取額が少なくなる場合があります。${buttonText}をクリックすると、Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>と<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-micro>`,
             payAll: 'すべて支払う',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 件のレポート',

@@ -1878,7 +1878,7 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Afgeschreven bedrag',
             employeeReceived: 'Medewerker ontving',
             paymentDisclosure: ({buttonText}: {buttonText: string}) =>
-                `<muted-text-label>De ontvanger kan minder ontvangen door kosten van de bank van de ontvanger en buitenlandse belastingen. Door op ${buttonText} te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a> van Wise.</muted-text-label>`,
+                `<muted-text-micro>De ontvanger kan minder ontvangen door kosten van de bank van de ontvanger en buitenlandse belastingen. Door op ${buttonText} te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a> van Wise.</muted-text-micro>`,
             payAll: 'Alles betalen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 rapport',
