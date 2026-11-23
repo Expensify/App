@@ -1,10 +1,14 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {LegendListProps, LegendListRef} from '@legendapp/list/react-native';
+import type {ComponentType, Ref} from 'react';
 
-import {LegendList as LibraryLegendList} from '@legendapp/list/react-native';
+import {LegendList as LibraryLegendListWithWebTypes} from '@legendapp/list/react-native';
 import {createRef} from 'react';
 import {View} from 'react-native';
+
+// Jest runs the react-native build of LegendList, but the jest typecheck resolves its web typings, which have no testID.
+const LibraryLegendList = LibraryLegendListWithWebTypes as ComponentType<LegendListProps<string> & {ref?: Ref<LegendListRef>; testID?: string}>;
 
 const DATA = ['first', 'second', 'third'];
 

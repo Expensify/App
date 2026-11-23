@@ -518,6 +518,29 @@ export default await buildOxlintConfig({
         },
         {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
         {
+            // The nitro-utils entry creates Nitro hybrid objects when it loads, and those only exist on iOS and Android.
+            // The web typecheck can't catch a runtime import of it, because the entry restates the native NitroModules type.
+            files: ['src/**/*.{ts,tsx}'],
+            excludeFiles: ['src/**/*.native.{ts,tsx}', 'src/**/*.ios.{ts,tsx}', 'src/**/*.android.{ts,tsx}'],
+            rules: {
+                'no-restricted-imports': [
+                    'error',
+                    {
+                        paths: [
+                            ...restrictedImportPaths,
+                            {
+                                name: '@expensify/nitro-utils',
+                                message:
+                                    'Nitro modules only exist on iOS and Android. Import @expensify/nitro-utils from a .native, .ios or .android file. Type-only imports are still allowed.',
+                                allowTypeImports: true,
+                            },
+                        ],
+                        patterns: restrictedImportPatterns,
+                    },
+                ],
+            },
+        },
+        {
             files: ['modules/ExpensifyNitroUtils/src/**/*'],
             rules: {
                 'typescript/consistent-type-definitions': 'off',

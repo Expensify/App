@@ -4,10 +4,6 @@ import {Keyboard} from 'react-native';
 
 import type {DismissKeyboardOptions} from './types';
 
-type SimplifiedKeyboardEvent = {
-    height?: number;
-};
-
 let isVisible = false;
 
 Keyboard.addListener('keyboardDidHide', () => {
@@ -58,5 +54,4 @@ const isKeyboardVisible = () => isVisible;
 
 const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange, isKeyboardVisible};
 
-export type {SimplifiedKeyboardEvent};
 export default utils;

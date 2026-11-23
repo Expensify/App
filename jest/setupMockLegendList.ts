@@ -1,6 +1,6 @@
 import type * as LegendListModule from '@legendapp/list/react-native';
 import type React from 'react';
-import type {ScrollViewProps, View as ReactNativeView} from 'react-native';
+import type {ScrollViewProps, StyleProp, View as ReactNativeView, ViewStyle} from 'react-native';
 
 export default function setupMockLegendList() {
     jest.mock('@legendapp/list/react-native', () => {
@@ -132,13 +132,18 @@ export default function setupMockLegendList() {
                     content = data.length > 0 ? renderedItems : empty;
                 }
 
+                // Jest runs the react-native build of LegendList, but the jest typecheck resolves its web typings, where the
+                // scroll view and style props are typed as DOM CSS. Cast them back to the React Native types the mock renders with.
+                // The casts can't be narrowed with a type guard because the mismatch is only in the typings, so the rule is disabled for them.
+                /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
                 return ReactActual.createElement(
                     ScrollView,
-                    {...scrollViewProps, onScroll: handleScroll},
-                    header && ReactActual.createElement(View, {style: ListHeaderComponentStyle}, header),
+                    {...(scrollViewProps as ScrollViewProps), onScroll: handleScroll},
+                    header && ReactActual.createElement(View, {style: ListHeaderComponentStyle as StyleProp<ViewStyle>}, header),
                     content,
-                    footer && ReactActual.createElement(View, {style: ListFooterComponentStyle}, footer),
+                    footer && ReactActual.createElement(View, {style: ListFooterComponentStyle as StyleProp<ViewStyle>}, footer),
                 );
+                /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
             },
         );
         const LegendList = jest.fn((props: MockLegendListProps & {ref?: React.Ref<unknown>}) => ReactActual.createElement(MockLegendList, props));

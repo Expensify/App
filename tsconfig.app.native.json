@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "tsBuildInfoFile": "./tsconfig.app.native.ts7.tsbuildinfo",
+        // Empty on purpose. `types: ["react-native"]` would load
+        // `@types/react-native@0.72` (a transitive leftover), which is not RN's
+        // own types and is not the native type environment we want. RN types
+        // come in via imports of `react-native`.
+        "types": [],
+        "lib": ["ESNext"],
+        "moduleSuffixes": [".ios", ".android", ".native", ""]
+    },
+    "include": ["src", "modules", "assets", "prompts"],
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        "src/stories/**",
+        "src/**/__mocks__/**",
+        "src/types/env.d.ts",
+        "src/types/modules/jest.d.ts",
+        "src/types/web/**",
+        "src/**/*.web.ts",
+        "src/**/*.web.tsx",
+        "modules/ExpensifyNitroUtils/**"
+    ]
+}

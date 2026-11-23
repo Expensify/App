@@ -7,9 +7,9 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
 import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
+import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/web/dom';
 
 import type {NativeConfig} from 'react-native-config';
 import type {OnyxEntry} from 'react-native-onyx';

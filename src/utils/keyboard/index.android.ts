@@ -3,11 +3,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Keyboard} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
 
-import type {DismissKeyboardOptions} from './types';
-
-type SimplifiedKeyboardEvent = {
-    height?: number;
-};
+import type {DismissKeyboardOptions, SimplifiedKeyboardEvent} from './types';
 
 let isVisible = false;
 
@@ -72,5 +68,4 @@ const isKeyboardVisible = () => isVisible;
 
 const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange, isKeyboardVisible};
 
-export type {SimplifiedKeyboardEvent};
 export default utils;
