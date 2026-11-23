@@ -35,7 +35,7 @@ function HeaderThreeDotsMenu({items, onIconPress = () => {}, shouldOverlay = fal
         <ThreeDotsMenu
             shouldSelfPosition
             // ThreeDotsMenu narrows the button to the icon width by default; the Header keeps the full 40px touch target
-            iconStyles={{width: styles.touchableButtonImage.width}}
+            iconStyles={styles.touchableButtonImage}
             disabled={false}
             menuItems={items}
             onIconPress={onIconPress}
