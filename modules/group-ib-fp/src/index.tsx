@@ -222,7 +222,6 @@ export class FP {
     if (!this.emitter) return () => {};
     const subscription = this.emitter.addListener(
       EVENT_SESSION_OPENED,
-      // `NativeEventEmitter` can't type the payload on both React Native 0.86 and the Strict TypeScript API
       (cfids: unknown) => callback(cfids as string),
     );
     this.activeSubs.add(subscription);
