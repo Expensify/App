@@ -127,3 +127,42 @@ describe('MenuItem.Title typography', () => {
         expect(screen.getByText('Receipt review', {exact: false})).toHaveStyle(result.current.textStrong);
     });
 });
+
+describe('MenuItem.FieldName typography', () => {
+    it.each([false, true])('layers typography without changing label defaults, with override=%s', (hasOverride) => {
+        // Given some form labels deliberately keep the normal text size when filled
+        const {result} = renderHook(() => useThemeStyles());
+
+        // When the name is rendered with or without a caller's typography override
+        render(
+            <Wrapper>
+                <MenuItem.FieldName style={hasOverride ? result.current.textNormal : undefined}>Currency</MenuItem.FieldName>
+            </Wrapper>,
+        );
+
+        // Then the override is layered after the base, while line height, line count and masking stay intact
+        expect(screen.getByText('Currency')).toHaveStyle([result.current.textLabelSupporting, result.current.textLineHeightNormal, hasOverride && result.current.textNormal]);
+        expect(screen.getByText('Currency')).toHaveProp('numberOfLines', 2);
+        expect(screen.UNSAFE_getByType(Text).props.fsClass).toBe(CONST.FULLSTORY.CLASS.UNMASK);
+    });
+
+    it('keeps explicit masking when typography is overridden', () => {
+        // Given a caller explicitly masks a field label rather than using the default unmask
+        const {result} = renderHook(() => useThemeStyles());
+
+        // When both the mask and a typography override are supplied
+        render(
+            <Wrapper>
+                <MenuItem.FieldName
+                    style={result.current.textNormal}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                >
+                    Private label
+                </MenuItem.FieldName>
+            </Wrapper>,
+        );
+
+        // Then adding typography support does not discard the caller's privacy setting
+        expect(screen.UNSAFE_getByType(Text).props.fsClass).toBe(CONST.FULLSTORY.CLASS.MASK);
+    });
+});

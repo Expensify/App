@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import mimeDb from 'mime-db';
@@ -594,20 +594,6 @@ function matchesFileSignature(headerHex: string, formatSignatures: readonly stri
     return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
 }
 
-/**
- * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
- *
- * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
- * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
- */
-function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
-    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
-        return Promise.resolve(false);
-    }
-
-    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
-}
-
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -647,7 +633,11 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            const arr = new Uint8Array(reader.result as ArrayBuffer);
+            if (!(reader.result instanceof ArrayBuffer)) {
+                resolve(null);
+                return;
+            }
+            const arr = new Uint8Array(reader.result);
 
             // Check for JPEG (starts with 0xFF 0xD8)
             if (arr[0] === 0xff && arr[1] === 0xd8) {
@@ -762,9 +752,8 @@ const resizeImageIfNeeded = (file: FileObject) => {
 
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-    );
+    const normalizedExtension = fileExtension.toLowerCase();
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -995,7 +984,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
 function getFileWithUri(file: File) {
     const newFile = file;
     newFile.uri = URL.createObjectURL(newFile);
-    return newFile as FileObject;
+    return newFile;
 }
 
 function getFilesFromClipboardEvent(event: DragEvent) {
@@ -1007,15 +996,15 @@ function getFilesFromClipboardEvent(event: DragEvent) {
     return Array.from(files).map((file) => getFileWithUri(file));
 }
 
-function cleanFileObject(fileObject: FileObject): FileObject {
+function cleanFileObject(fileObject: FileObject): FileObject | null {
     if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile() as FileObject;
+        return fileObject.getAsFile();
     }
 
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject): FileObject {
+function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {
@@ -1060,7 +1049,6 @@ export {
     validateImageForCorruption,
     getFileResolution,
     isHighResolutionImage,
-    verifyFileFormat,
     readFileHeaderHex,
     matchesFileSignature,
     getImageDimensionsAfterResize,

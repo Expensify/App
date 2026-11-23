@@ -45,7 +45,7 @@ import {
     recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
@@ -3965,7 +3965,7 @@ describe('OptionsListUtils', () => {
                 const report = option.item;
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
 
-                if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, isReportArchived.current)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -4872,7 +4872,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
 
-                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -4941,7 +4941,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
 
-                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false)) {
                     filtered.push(option);
                 }
                 return filtered;

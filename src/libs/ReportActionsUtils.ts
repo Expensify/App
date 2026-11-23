@@ -74,6 +74,8 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
+import {formatTaxRateName} from './PolicyUtils/tax';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -1739,6 +1741,8 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1803,6 +1807,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
+        return false;
+    }
+
     if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
@@ -1812,10 +1820,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
+    // Auth sets shouldShow to false on REIMBURSED and MARKED_REIMBURSED actions created from NewDot, because NewDot shows an IOU PAY action instead.
+    // Invoices keep them visible, because paying a linked bill adds no IOU PAY action to the invoice.
+    if (isPaymentRecordedByReimbursedAction(reportAction)) {
+        if (reportAction.shouldShow === false) {
             return false;
         }
 
@@ -2999,8 +3007,12 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return originalMessage?.debitBankAccountLast4
                 ? translate('report.actions.type.reimbursementRefunded', {bankAccountLastFour: originalMessage.debitBankAccountLast4})
                 : translate('report.actions.type.reimbursementRefundedWithoutBankAccount');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED:
-            return translate('report.actions.type.reimbursementReleased');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED: {
+            const formattedExpectedDate = originalMessage?.expectedDate ? formatReimbursementDate(originalMessage.expectedDate) : '';
+            return formattedExpectedDate
+                ? translate('report.actions.type.reimbursementReleased', {expectedDate: formattedExpectedDate})
+                : translate('report.actions.type.reimbursementReleasedWithoutDate');
+        }
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
@@ -3021,8 +3033,23 @@ function getTravelUpdateMessage(
 ) {
     const details = getOriginalMessage(action);
     const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const railOrigin = details?.start.cityName ?? details?.start.shortName ?? '';
+    const railDestination = details?.end.cityName ?? details?.end.shortName ?? '';
 
     switch (details?.operation) {
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED:
+            if (details.type === CONST.RESERVATION_TYPE.HOTEL && details.start.longName) {
+                // Spotnana sends some hotel names in all caps, so this matches how the trip room preview shows them
+                return translate('travel.updates.hotelBooked', Str.recapitalize(details.start.longName), formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.CAR && details.vendor) {
+                return translate('travel.updates.carBooked', details.vendor, formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN && (railOrigin || railDestination)) {
+                return translate('travel.updates.railTicketBooked', railOrigin, railDestination, formattedStartDate);
+            }
+            return translate('travel.updates.defaultBooked', details.type);
+
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
             return translate(
                 'travel.updates.bookingTicketed',
@@ -3083,12 +3110,7 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
@@ -3097,30 +3119,15 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
-            return translate(
-                'travel.updates.railTicketRefund',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketRefund', railOrigin, railDestination, formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
-            return translate(
-                'travel.updates.railTicketExchange',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketExchange', railOrigin, railDestination, formattedStartDate);
 
         default:
             return translate('travel.updates.defaultUpdate', details?.type ?? '');
@@ -3560,6 +3567,15 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
 }
 
 /**
+ * Whether the action records a payment that ReimburseReport or MarkReimbursed made
+ */
+function isPaymentRecordedByReimbursedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+}
+
+/**
  * Checks if a report action is an actionable whisper that requires write permission to be visible.
  */
 function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -3700,6 +3716,7 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
+                case CONST.EXPORT_LABELS.DIGITS:
                 case CONST.EXPORT_LABELS.ZOHO_BOOKS:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
@@ -4394,7 +4411,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
+        const oldTaxRate = oldTaxPercentage && typeof oldValue === 'string' && oldValue ? formatTaxRateName(oldValue, oldTaxPercentage) : undefined;
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, formatTaxRateName(newValue, newTaxPercentage), oldTaxRate);
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
@@ -4697,7 +4715,7 @@ function formatTax(taxName?: string, taxPercentage?: string): string {
     if (!taxName) {
         return '';
     }
-    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+    return formatTaxRateName(taxName, taxPercentage);
 }
 
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {

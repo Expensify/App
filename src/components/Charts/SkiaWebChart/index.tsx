@@ -18,10 +18,10 @@ import viewRef from '@src/types/utils/viewRef';
 import type {ComponentType, LazyExoticComponent} from 'react';
 
 import * as Sentry from '@sentry/react-native';
-import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React, {lazy, Suspense, useRef, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
+import {LoadSkiaWeb} from 'react-native-skia/lib/module/web';
 
 import getSkiaWebUnsupportedReason from './getSkiaWebUnsupportedReason';
 import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
@@ -65,7 +65,6 @@ function getLazyChart<TProps>(getComponent: ChartLoader<TProps>) {
     const LazyChart = lazy(async () => {
         try {
             markCanvasKitLoadStarted();
-            // The glue mutates `opts` into the module object, so give each load its own object rather than sharing one.
             await LoadSkiaWeb({locateFile: locateCanvasKitFile});
             return await getComponent();
         } catch (error) {
