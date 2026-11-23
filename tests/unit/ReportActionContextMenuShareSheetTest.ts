@@ -14,6 +14,7 @@ function setMountedContextMenu() {
         hideContextMenu: jest.fn(),
         showDeleteModal: jest.fn(),
         hideDeleteModal: jest.fn(),
+        handleHoldEducationalModal: jest.fn(),
         isActiveReportAction: jest.fn(),
         instanceIDRef: {current: ''},
         runAndResetOnPopoverHide: jest.fn(),
