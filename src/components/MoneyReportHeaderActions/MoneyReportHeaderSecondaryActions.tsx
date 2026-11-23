@@ -335,7 +335,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         chatReportID: chatReport?.reportID,
         formattedAmount: totalAmount,
         policyID: moneyRequestReport?.policyID,
-        onPress: confirmPayment,
+        onPress: (params: PaymentActionParams) => {
+            // Pay via ABA is a bank payment sent as paid elsewhere, and its menu item comes straight here instead of through onPaymentSelect
+            if (isBankPayBlocked && params.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                showReportBankPaySkippedModal(undefined, true);
+                return;
+            }
+            confirmPayment(params);
+        },
         shouldHidePaymentOptions: !shouldShowPayButton,
         shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,

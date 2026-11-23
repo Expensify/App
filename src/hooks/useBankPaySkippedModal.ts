@@ -32,6 +32,9 @@ type ShowBankPaySkippedModalParams = {
     /** Whether one report was paid from its own Pay button rather than a selection in bulk */
     isSingleReport?: boolean;
 
+    /** Whether the payment is an ABA file, which pays from the workspace's AU withdrawal account */
+    isABAPayment?: boolean;
+
     /**
      * Set when a bulk payment paid some reports and skipped these, to list them by name.
      * Left out when it paid none of them. A skipped report without a name is simply missing from the list.
@@ -43,8 +46,9 @@ function useBankPaySkippedModal({bankAccountList}: UseBankPaySkippedModalParams)
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
-    const showBankPaySkippedModal = ({bankAccountID, policy, isSingleReport = false, skippedReports}: ShowBankPaySkippedModalParams) => {
-        const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : getAccessiblePolicyBankAccount(policy, bankAccountList);
+    const showBankPaySkippedModal = ({bankAccountID, policy, isSingleReport = false, isABAPayment = false, skippedReports}: ShowBankPaySkippedModalParams) => {
+        const payingBankAccountID = isABAPayment ? policy?.reimbursement?.countries?.[CONST.COUNTRY.AU]?.bankAccountID : bankAccountID;
+        const bankAccount = payingBankAccountID ? bankAccountList?.[payingBankAccountID] : getAccessiblePolicyBankAccount(policy, bankAccountList);
         const title = translate('iou.payWithBankAccountTitle', bankAccount?.accountData?.accountNumber?.slice(-4));
         const confirmText = translate('common.buttonConfirm');
 

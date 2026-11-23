@@ -28,7 +28,7 @@ function useReportBankPaySkippedModal({bankAccountList, report, policy, onlyShow
     const {showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList});
     const isBankPayBlocked = onlyShowPayElsewhere && isBankPayBlockedBySpend(report, policy);
 
-    const showReportBankPaySkippedModal = (bankAccountID?: number) => showBankPaySkippedModal({bankAccountID, policy, isSingleReport: true});
+    const showReportBankPaySkippedModal = (bankAccountID?: number, isABAPayment = false) => showBankPaySkippedModal({bankAccountID, policy, isSingleReport: true, isABAPayment});
 
     return {isBankPayBlocked, showReportBankPaySkippedModal};
 }
