@@ -2,12 +2,15 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {differenceInCalendarDays, fromUnixTime} from 'date-fns';
+
+import {hasKey} from './ObjectUtils';
 
 const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.QBO]: CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -55,6 +58,19 @@ const STANDARD_EXPORT_TEMPLATE_NAME_MAPPING = {
 };
 
 const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_EXPORT_TEMPLATE_NAME_MAPPING));
+
+const ACCOUNTING_CONNECTION_BETAS = {
+    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: CONST.BETAS.BUSINESS_CENTRAL,
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: CONST.BETAS.DIGITS,
+} as const satisfies Partial<Record<ConnectionName, Beta>>;
+
+/** Keep onboarding choices and Connections listings behind the same connector beta gates. */
+function isAccountingConnectionAvailable(connectionName: string, policy: OnyxEntry<Policy>, isBetaEnabled: (beta: Beta) => boolean): boolean {
+    if (!hasKey(ACCOUNTING_CONNECTION_BETAS, connectionName)) {
+        return true;
+    }
+    return isBetaEnabled(ACCOUNTING_CONNECTION_BETAS[connectionName]) || !!policy?.connections?.[connectionName];
+}
 
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
     return ROUTE_NAME_MAPPING[routeParam];
@@ -140,6 +156,7 @@ function isStandardExportTemplateLabel(label: string): boolean {
 }
 
 export {
+    isAccountingConnectionAvailable,
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,

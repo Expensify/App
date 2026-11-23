@@ -3996,6 +3996,9 @@ ${date} の ${merchant} への ${amount}`,
         accounting: {
             title: '会計ソフトを利用していますか？',
             otherAccountingSoftware: 'ソフトウェア名',
+            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
+            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
+            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'ご希望の機能を選択してください',

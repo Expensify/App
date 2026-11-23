@@ -3079,6 +3079,7 @@ const SENTRY_LABEL = {
             TIME_TRACKING: 'Onboarding-InterestedFeaturesCheckbox-TimeTracking',
         },
         ACCOUNTING_SELECT_INTEGRATION: 'OnboardingAccounting-SelectIntegration',
+        ACCOUNTING_CONFIRM_SOFTWARE: 'OnboardingAccounting-ConfirmSoftware',
         PURPOSE_ITEM: 'Onboarding-PurposeItem',
         CONTINUE: 'Onboarding-Continue',
         SKIP: 'Onboarding-Skip',
