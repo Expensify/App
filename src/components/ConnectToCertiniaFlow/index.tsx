@@ -10,6 +10,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
+import {getCertiniaSetupRoute} from '@pages/workspace/accounting/certinia/utils';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -48,21 +49,13 @@ function ConnectToCertiniaFlow({policyID, isSandbox}: ConnectToCertiniaFlowProps
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const navigateToPrerequisites = (shouldConnectToSandbox: boolean) => {
-        if (shouldConnectToSandbox) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, shouldConnectToSandbox));
-            return;
-        }
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
-    };
-
     const connectionOptions = [
         {
             icon: icons.LinkCopy,
             text: translate('workspace.certinia.prerequisites.connectButton'),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.CONNECT,
             onSelected: () => {
-                navigateToPrerequisites(false);
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
                 setIsConnectionOptionsPopoverOpen(false);
             },
         },
@@ -71,7 +64,7 @@ function ConnectToCertiniaFlow({policyID, isSandbox}: ConnectToCertiniaFlowProps
             text: translate('workspace.certinia.prerequisites.connectSandboxButton'),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.CONNECT_SANDBOX,
             onSelected: () => {
-                navigateToPrerequisites(true);
+                Navigation.navigate(getCertiniaSetupRoute(policyID, true, hasReusablePoliciesConnectedToCertinia));
                 setIsConnectionOptionsPopoverOpen(false);
             },
         },
@@ -99,11 +92,7 @@ function ConnectToCertiniaFlow({policyID, isSandbox}: ConnectToCertiniaFlowProps
         didInitialize.current = true;
 
         if (!isAuthError && isSandbox !== undefined) {
-            if (!isSandbox && hasReusablePoliciesConnectedToCertinia) {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID));
-                return;
-            }
-            navigateToPrerequisites(isSandbox);
+            Navigation.navigate(getCertiniaSetupRoute(policyID, isSandbox, hasReusablePoliciesConnectedToCertinia));
             return;
         }
         if (!isAuthError) {

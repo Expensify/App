@@ -11,10 +11,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate, isConnectPageConnectionName, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
+import {getIntegrationLastSuccessfulDate, isConnectPageConnectionName, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
-import {getAccountingIntegrationData, getActiveIntegrationToConnect, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
+import {
+    getAccountingIntegrationData,
+    getActiveIntegrationToConnect,
+    getAvailableAccountingIntegrations,
+    getConnectedAndSyncingIntegrations,
+    getSynchronizationErrorMessage,
+    isIntuitEnterpriseSuiteConnection,
+} from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,23 +67,10 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         return [];
     }
 
-    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
-            return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
-            return canUseDigitsIntegration;
-        }
-        return true;
-    });
-
-    const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
-    // HR providers write to the same sync progress key, so only an accounting sync counts here
+    const accountingIntegrations = getAvailableAccountingIntegrations(policy, isBetaEnabled);
+    const {connectedIntegration, syncingIntegration} = getConnectedAndSyncingIntegrations(policy, connectionSyncProgress, accountingIntegrations);
     const accountingSyncProgress = syncingIntegration ? connectionSyncProgress : undefined;
     const isSyncInProgress = !!accountingSyncProgress && isConnectionInProgress(accountingSyncProgress, policy);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingIntegration;
     const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
     const isConnectedToIntuitEnterpriseSuite =
         connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && (isIntuitEnterpriseSuiteConnection(policy) || isIntuitEnterpriseSuiteSyncInProgress);

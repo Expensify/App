@@ -27,8 +27,6 @@ const avatarSizes = {
     avatarSizeMedium: 40,
     avatarSizeLarge: 48,
     avatarSizeXLarge: 52,
-    connectionOrbitDiameter: 160,
-    connectionOrbitBadgeSize: 56,
     avatarSizeXxLarge: 60,
     avatarSizeXxxLarge: 80,
     avatarSizeXxxxLarge: 100,
@@ -685,4 +683,6 @@ export default {
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
     pieChartLegendMargin: 32,
+    connectionOrbitDiameter: 160,
+    connectionOrbitBadgeSize: 56,
 } as const;

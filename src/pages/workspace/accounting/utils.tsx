@@ -19,7 +19,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/NetSuiteUtils';
-import {getCurrentConnectionName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -29,7 +29,8 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CombinedCardFeeds, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CombinedCardFeeds, Policy, PolicyConnectionSyncProgress, WorkspaceCardsList} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -41,7 +42,7 @@ import React from 'react';
 import type {ActiveIntegration} from './AccountingContext/types';
 import type {AccountingIntegration} from './types';
 
-import {isCertiniaFFAConnection} from './certinia/utils';
+import {getCertiniaSetupRoute, isCertiniaFFAConnection} from './certinia/utils';
 import {
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
@@ -147,13 +148,7 @@ function getAccountingIntegrationData(
         if (integrationToDisconnect) {
             return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, undefined, undefined, isSandbox);
         }
-        if (isSandbox) {
-            return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox);
-        }
-        if (existingConnections.certinia) {
-            return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
-        }
-        return ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID);
+        return getCertiniaSetupRoute(policyID, !!isSandbox, existingConnections.certinia);
     };
     const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
         if (integrationToDisconnect) {
@@ -921,6 +916,29 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
+/** Accounting integrations still behind a beta are left out unless the workspace is already connected to them */
+function getAvailableAccountingIntegrations(policy: OnyxEntry<Policy>, isBetaEnabled: (beta: Beta) => boolean) {
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
+    return CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
+        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+            return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
+        }
+        return true;
+    });
+}
+
+/** A first sync runs before the connection is saved on the policy, so the integration being synced also counts as connected */
+function getConnectedAndSyncingIntegrations(policy: OnyxEntry<Policy>, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, accountingIntegrations: readonly ConnectionName[]) {
+    // HR providers write to the same sync progress key, so only an accounting sync counts here
+    const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingIntegration;
+    return {connectedIntegration, syncingIntegration};
+}
+
 /** Adds the replace prompt details when the workspace already has another accounting integration connected */
 function getActiveIntegrationToConnect(activeIntegration: ActiveIntegration, connectedIntegration: ConnectionName | undefined): ActiveIntegration {
     if (!connectedIntegration) {
@@ -931,6 +949,8 @@ function getActiveIntegrationToConnect(activeIntegration: ActiveIntegration, con
 
 export {
     getActiveIntegrationToConnect,
+    getAvailableAccountingIntegrations,
+    getConnectedAndSyncingIntegrations,
     getAccountingIntegrationData,
     getCurrentAccountingIntegrationName,
     getSynchronizationErrorMessage,
