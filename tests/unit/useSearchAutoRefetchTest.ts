@@ -920,6 +920,43 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
+        it('searches again once Search is back in focus when a Select all job finished while it was away', async () => {
+            // Given a Select all job running while the user is on another page
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When the user comes back to Search
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the job changed reports the results show
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('searches again once a search that was loading when a Select all job finished is done', async () => {
+            // Given a Select all job that finishes while a search is loading
+            const loadingProps = createMock<UseSearchAutoRefetch>({...baseProps, searchResults: {...baseProps.searchResults, search: {...baseProps.searchResults?.search, isLoading: true}}});
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {initialProps: loadingProps});
+            await waitForBatchedUpdatesWithAct();
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When that search finishes loading
+            rerender(baseProps);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the loading one started before the job changed the reports
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
         it('does not search again while the job is still running', async () => {
             // Given Search is open while a Select all job runs
             await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});

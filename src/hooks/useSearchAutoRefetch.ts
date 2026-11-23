@@ -247,16 +247,22 @@ function useSearchAutoRefetch({
 
     const [runningBulkActionKeys = ''] = useOnyx(ONYXKEYS.COLLECTION.BULK_ACTION, {selector: runningBulkActionKeysSelector});
     const previousRunningBulkActionKeys = usePrevious(runningBulkActionKeys);
+    const hasFinishedBulkActionRef = useRef(false);
 
     // A Select all job changes reports the results already show, so search again once one stops running.
     useEffect(() => {
-        if (!isFocused || isOffline || shouldReturnTripRooms || !previousRunningBulkActionKeys) {
+        if (previousRunningBulkActionKeys) {
+            const runningKeys = new Set(runningBulkActionKeys.split(','));
+            if (previousRunningBulkActionKeys.split(',').some((key) => !runningKeys.has(key))) {
+                hasFinishedBulkActionRef.current = true;
+            }
+        }
+        // Kept until Search can run, since `usePrevious` moves on and the finished job can't be detected again.
+        const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+        if (!hasFinishedBulkActionRef.current || !isSearchStillActive || isOffline || shouldReturnTripRooms || searchResults?.search?.isLoading) {
             return;
         }
-        const runningKeys = new Set(runningBulkActionKeys.split(','));
-        if (previousRunningBulkActionKeys.split(',').every((key) => runningKeys.has(key))) {
-            return;
-        }
+        hasFinishedBulkActionRef.current = false;
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
