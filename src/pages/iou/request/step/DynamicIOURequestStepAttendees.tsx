@@ -92,6 +92,7 @@ function DynamicIOURequestStepAttendees({
                 updateMoneyRequestAttendees({
                     isVendorMatchingBetaEnabled,
                     transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     iouReportOwnerLogin,

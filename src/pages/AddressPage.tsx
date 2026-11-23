@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCountryCode} from '@libs/CountryUtils';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 
@@ -23,7 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-type AddressPageProps = {
+type AddressPageProps = ForwardedFSClassProps & {
     /** User's private personal details */
     address?: Address;
     isLoadingApp: OnyxEntry<boolean>;
@@ -40,7 +41,7 @@ type AddressPageProps = {
     defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip, forwardedFSClass}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -121,6 +122,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street2={street2}
                         zip={zipcode}
                         shouldRequireZip={shouldRequireZip}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 )}
             </DelegateNoAccessWrapper>

@@ -162,18 +162,18 @@ function SearchTransactionsChangeReport() {
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            targetOwnerPersonalDetails,
+        const optimisticReport = createNewReport({
+            ownerPersonalDetails: targetOwnerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            managedCardTransactionID,
+        });
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,

@@ -74,8 +74,8 @@ type MoneyRequestConfirmationListProps = {
     /** Whether manual entry of amount / merchant / date is offered. */
     canEnterScanFieldsManually?: boolean;
 
-    /** ID of a partially filled Scan among the transactions being confirmed. */
-    partiallyManuallyFilledScanID?: string;
+    /** The other transactions being confirmed with this one, which Create submits together with it. */
+    siblingTransactions?: OnyxTypes.Transaction[];
 
     /** Brings another confirmed transaction on screen. */
     onSwitchToTransaction?: (transactionID: string) => void;

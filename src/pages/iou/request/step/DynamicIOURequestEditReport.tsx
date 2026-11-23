@@ -194,18 +194,18 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         }
 
         const [rules, introSelected] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_INTRO_SELECTED]);
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
-            isTrackIntentUserSelector(introSelected),
+            policy: policyForMovingExpenses,
+            isTrackIntentUser: isTrackIntentUserSelector(introSelected),
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            managedCardTransactionID,
+        });
         selectReport(
             {
                 value: optimisticReport.reportID,
