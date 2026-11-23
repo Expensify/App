@@ -15008,6 +15008,15 @@ describe('SearchUIUtils', () => {
             expect(translationKey).toBe('common.withdrawalID');
         });
 
+        it('should return correct translation key for TRANSACTION_ID column', () => {
+            // Given the Transaction ID column, whose header is also sent as the export column label
+            // When its translation key is resolved
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then it uses the Transaction ID label
+            expect(translationKey).toBe('common.transactionID');
+        });
+
         it('should label the DECLINED column with the Rejected filter label', () => {
             // Given the Rejected column, whose header is also sent as the export column label
             // When its translation key is resolved for expenses and expense reports
