@@ -265,7 +265,7 @@ describe('NetworkTests', () => {
             });
     });
 
-    test('scanned expense whose create is already on the server stops being pending after reauthentication', async () => {
+    test('does not resend an expense the server already created after reauthentication', async () => {
         const mockFetch = TestHelper.getGlobalFetchMock();
         global.fetch = mockFetch;
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
@@ -291,7 +291,7 @@ describe('NetworkTests', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then the expense matches the server right away: no longer pending, no receipt error, no third send, nothing left in the queue
+        // Then the create is sent only twice (407, then "already created"), and the expense is no longer pending, has no error and is out of the queue
         const transaction = await getOnyxValue(transactionKey);
         expect(transaction?.pendingAction).toBeFalsy();
         expect(transaction?.errors).toBeUndefined();
