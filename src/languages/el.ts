@@ -1296,6 +1296,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
+        noTaggedExpenses: 'Δεν υπάρχουν δαπάνες με ετικέτες',
+        noExpensesForTagLevel: (tagLevelName: string) => `Δεν υπάρχουν δαπάνες για ${tagLevelName} σε αυτό το εύρος ημερομηνιών.`,
         tagLevelLabel: 'Επίπεδο ετικέτας',
         parent: 'Γονέας',
         shareOfTotal: 'Μερίδιο του συνόλου (%)',

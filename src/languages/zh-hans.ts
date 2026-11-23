@@ -1202,6 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
