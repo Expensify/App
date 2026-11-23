@@ -42,7 +42,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, hasStringErrorMessage, isReceiptError} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -396,12 +396,16 @@ function MoneyRequestReceiptView({
 
     const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
     const hasTransactionReceiptError = Object.values(transactionErrors ?? {}).some((error) => isReceiptError(error));
-    // Skip merging parentReportAction errors when the transaction only has a ReceiptError with no server string,
-    // so MoneyRequestBuilder's generic error on the IOU action does not hide receipt retry guidance.
-    const shouldOmitParentActionErrors = hasTransactionReceiptError && !hasStringErrorMessage(transactionErrors);
+    // Drop only MoneyRequestBuilder's generic create-failure string from parentReportAction when the transaction
+    // has a ReceiptError, so ordinary upload failures keep receipt retry guidance while specific action errors still show.
+    const genericCreateFailureMessage = translate('iou.error.genericCreateFailureMessage');
+    const parentActionErrors =
+        hasTransactionReceiptError && parentReportAction?.errors
+            ? Object.fromEntries(Object.entries(parentReportAction.errors).filter(([, error]) => error !== genericCreateFailureMessage))
+            : parentReportAction?.errors;
     const errorsWithoutReportCreation = {
         ...transactionErrors,
-        ...(shouldOmitParentActionErrors ? {} : parentReportAction?.errors),
+        ...parentActionErrors,
     };
     const reportCreationError = getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {};
     const hasReceiptUploadError = Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error));

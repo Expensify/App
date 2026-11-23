@@ -237,6 +237,35 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage).toEqual({text: serverReason});
         });
 
+        it('strips HTML tags and line breaks from a server rejection reason on a receipt error', () => {
+            // Given a scan transaction with a ReceiptError and an HTML server rejection reason
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+            const mixedErrors = {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+                serverError: 'Check <a href="https://expensify.com">policy settings</a>.<br />Try again.',
+            } as unknown as Transaction['errors'];
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: mixedErrors,
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then raw HTML tags and line breaks are converted to clean single-line plain text
+            expect(result.RBRMessage).toEqual({text: 'Check policy settings. Try again.'});
+        });
+
         it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,

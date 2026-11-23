@@ -10,7 +10,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
 import truncate from 'lodash/truncate';
 
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
@@ -20,6 +19,7 @@ import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import {getLatestStringErrorMessage} from './ErrorUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Parser from './Parser';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {
     getMostRecentActiveDEWSubmitFailedAction,
@@ -249,8 +249,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        const serverReason = getLatestStringErrorMessage(transaction?.errors);
-        RBRMessage = serverReason ? {text: Str.htmlDecode(serverReason)} : {translationPath: 'iou.error.receiptFailureMessageShort'};
+        const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
+        const serverReason = getLatestStringErrorMessage(transactionErrors);
+        RBRMessage = serverReason ? {text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(serverReason))} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
