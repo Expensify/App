@@ -11,15 +11,16 @@ import usePermissions from './usePermissions';
 
 const reimbursementAccountAchStateSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state;
 
+const policyAchAccountSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount;
+
 const policyAchStateSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.state;
 
 function useShouldBlockCurrencyChange(policyID: string | undefined): boolean {
     const {isBetaEnabled} = usePermissions();
     const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
     const [policyAchState] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAchStateSelector});
-    const [canUseMismatchedCurrency = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (policy: OnyxEntry<Policy>) => canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isMismatchedReimbursementCurrencyBetaEnabled),
-    });
+    const [achAccount] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAchAccountSelector});
+    const [linkedBankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccountAchState] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountAchStateSelector});
     const bankAccountListSelector = (bankAccountList: OnyxEntry<BankAccountList>) => !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID);
     const [hasPartiallySetupBankAccount = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
@@ -28,6 +29,7 @@ function useShouldBlockCurrencyChange(policyID: string | undefined): boolean {
 
     const achState = policyAchState ?? reimbursementAccountAchState;
     const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
+    const canUseMismatchedCurrency = canUseMismatchedCurrencyPolicyBankAccount(achAccount, isMismatchedReimbursementCurrencyBetaEnabled, false, linkedBankAccountList);
 
     return (hasVBA && !canUseMismatchedCurrency) || hasPartiallySetupBankAccount;
 }

@@ -9,7 +9,7 @@ import type * as PolicyPaymentsUtils from '@libs/PolicyUtils/payments';
 import {WorkspaceOverviewCurrencyPage} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
 import type {WorkspaceOverviewCurrencyPageProps} from '@pages/workspace/WorkspaceOverviewCurrencyPage';
 
-import {setWorkspaceCurrencyConversionFeesPreference, updateGeneralSettings} from '@userActions/Policy/Policy';
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,7 +141,6 @@ jest.mock('@userActions/FormActions', () => ({clearDraftValues: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({
     isCurrencySupportedForGlobalReimbursement: () => false,
     updateGeneralSettings: jest.fn(),
-    setWorkspaceCurrencyConversionFeesPreference: jest.fn(),
 }));
 jest.mock('@userActions/ReimbursementAccount', () => ({
     navigateToBankAccountRoute: jest.fn(),
@@ -227,8 +226,8 @@ describe('WorkspaceOverviewCurrencyPage', () => {
             // When the admin changes the workspace currency to NOK
             fireEvent.press(screen.getByTestId('currency-NOK'));
 
-            // Then the workspace pays the conversion fees
-            expect(setWorkspaceCurrencyConversionFeesPreference).toHaveBeenCalledWith(POLICY_ID, true, undefined);
+            // Then the same action also sets company-paid FX, so it can roll both back together
+            expect(updateGeneralSettings).toHaveBeenCalledWith(policyWithEurVBA, policyWithEurVBA.name, 'NOK', undefined, expect.objectContaining({shouldPreferCompanyFXFees: true}));
         });
 
         it('does not change FX when the new currency matches the VBA currency', () => {
@@ -240,7 +239,13 @@ describe('WorkspaceOverviewCurrencyPage', () => {
             fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.EUR}`));
 
             // Then FX stays as it is
-            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
         });
 
         it('does not change FX when the company already pays', () => {
@@ -252,7 +257,13 @@ describe('WorkspaceOverviewCurrencyPage', () => {
             fireEvent.press(screen.getByTestId('currency-NOK'));
 
             // Then no extra request is sent
-            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
         });
 
         it('does not change FX when the beta is off', () => {
@@ -263,7 +274,13 @@ describe('WorkspaceOverviewCurrencyPage', () => {
             fireEvent.press(screen.getByTestId('currency-NOK'));
 
             // Then behavior stays the same as before the beta
-            expect(setWorkspaceCurrencyConversionFeesPreference).not.toHaveBeenCalled();
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
         });
     });
 

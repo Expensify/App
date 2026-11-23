@@ -103,6 +103,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
     const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
     const [reimbursementAccountBackup] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
@@ -155,7 +156,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
               !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType) &&
               (isChangingBankAccount ||
                   !!route.params?.stepToOpen ||
-                  !canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), true));
+                  !canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), true, bankAccountList));
 
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';

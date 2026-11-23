@@ -5,7 +5,7 @@ import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
-import {isCurrencySupportedForGlobalReimbursement, setWorkspaceCurrencyConversionFeesPreference, updateGeneralSettings} from '@userActions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
@@ -51,17 +51,15 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        const shouldPreferCompanyFXFees =
+            canUseMismatchedCurrencyPolicyBankAccount(policy.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), false, bankAccountList) &&
+            currencyCode !== policy.achAccount?.bankCurrency &&
+            !policy.globalReimbursementFXPreferCompany;
         updateGeneralSettings(policy, policy.name ?? '', currencyCode, getReviewWorkspaceSettingsTaskCompletion(), {
             governmentRateCountry,
             governmentMileageRates: governmentMileageRates ?? [],
+            shouldPreferCompanyFXFees,
         });
-        if (
-            canUseMismatchedCurrencyPolicyBankAccount(policy.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY)) &&
-            currencyCode !== policy.achAccount?.bankCurrency &&
-            !policy.globalReimbursementFXPreferCompany
-        ) {
-            setWorkspaceCurrencyConversionFeesPreference(policy.id, true, policy.globalReimbursementFXPreferCompany);
-        }
         clearCorpayBankAccountFields();
 
         const isUkEuCurrencySupported = isCurrencySupportedForECards(currencyCode);

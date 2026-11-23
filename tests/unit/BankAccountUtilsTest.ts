@@ -1604,6 +1604,50 @@ describe('canUseMismatchedCurrencyPolicyBankAccount', () => {
         expect(result).toBe(false);
     });
 
+    describe('with a copy of the linked account in the bank account list', () => {
+        const buildList = (provider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>, bankCountry: string) =>
+            createMock<BankAccountList>({
+                [String(achAccount.bankAccountID)]: {
+                    methodID: achAccount.bankAccountID,
+                    bankCountry,
+                    accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {globalReimbursementProvider: provider}},
+                },
+            });
+
+        it('returns true for a non-US Corpay copy', () => {
+            // Given a non-US Corpay copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY, 'DE');
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is allowed, the same as in the payment menu
+            expect(result).toBe(true);
+        });
+
+        it('returns false for a Wise copy', () => {
+            // Given a Wise copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, 'DE');
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is rejected, because the payment menu rejects it too
+            expect(result).toBe(false);
+        });
+
+        it('returns false for a US Corpay copy', () => {
+            // Given a US Corpay copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY, CONST.COUNTRY.US);
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is rejected, because the payment menu rejects it too
+            expect(result).toBe(false);
+        });
+    });
+
     it('returns false when there is no account', () => {
         // Given no linked account
         // When the beta is on

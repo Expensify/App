@@ -94,6 +94,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 addressName: accountData?.addressName,
                 bankName: accountData?.additionalData?.bankName,
                 state: accountData?.state,
+                bankCurrency: bankAccountList[methodID]?.bankCurrency,
                 lastPaymentMethod: lastPaymentMethod?.[policyID],
                 shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
                 bankAccountList,
