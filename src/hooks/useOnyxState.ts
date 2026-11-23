@@ -15,6 +15,8 @@ import {useOnyxState as useOnyxStateWithoutSnapshots} from 'react-native-onyx';
 
 import {getKeyData} from './useOnyx';
 
+type UseOnyxStateWithoutSnapshots = typeof useOnyxStateWithoutSnapshots;
+
 type SnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
 
 const collectionsBySnapshotData = new WeakMap<NonNullable<SearchResults['data']>, Map<OnyxKey, unknown>>();
@@ -78,17 +80,17 @@ function useSearchSnapshotKey(shouldUseLiveData: boolean): SnapshotKey | undefin
     return `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`;
 }
 
-type UseOnyxStateWithSnapshotsOptions<T> = UseOnyxStateOptions<T> & {
+type UseOnyxStateWithSnapshotsOptions<TReturnValue> = UseOnyxStateOptions<TReturnValue> & {
     shouldUseLiveData?: boolean;
 };
 
-function useOnyxState<T>(selector: UseOnyxStateSelector<T>, options?: UseOnyxStateWithSnapshotsOptions<T>): T {
+const useOnyxState: UseOnyxStateWithoutSnapshots = <TReturnValue>(selector: UseOnyxStateSelector<TReturnValue>, options?: UseOnyxStateWithSnapshotsOptions<TReturnValue>): TReturnValue => {
     const {shouldUseLiveData = false, ...onyxOptions} = options ?? {};
     const snapshotKey = useSearchSnapshotKey(shouldUseLiveData);
 
-    const snapshotAwareSelector: UseOnyxStateSelector<T> = snapshotKey ? (state) => selector(createSnapshotStateView(state, snapshotKey)) : selector;
+    const snapshotAwareSelector: UseOnyxStateSelector<TReturnValue> = snapshotKey ? (state) => selector(createSnapshotStateView(state, snapshotKey)) : selector;
 
     return useOnyxStateWithoutSnapshots(snapshotAwareSelector, onyxOptions);
-}
+};
 
 export default useOnyxState;
