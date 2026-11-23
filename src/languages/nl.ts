@@ -4630,6 +4630,12 @@ ${amount} voor ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
         onFile: 'In bestand',
+        continueOffline: {
+            title: 'Je kunt offline niet doorgaan',
+            prompt: 'Er is een internetverbinding nodig om dit formulier in te vullen. Maak je geen zorgen, we slaan je voortgang op en je kunt doorgaan zodra je weer online bent.',
+            saveForLater: 'Opslaan en later invullen',
+            progressSaved: 'Je voortgang is opgeslagen',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',

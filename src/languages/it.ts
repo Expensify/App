@@ -4632,6 +4632,12 @@ ${amount} per ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Le domande di questa pagina sono cambiate',
         onFile: 'Registrato',
+        continueOffline: {
+            title: 'Non puoi continuare offline',
+            prompt: 'È necessaria una connessione a Internet per compilare questo modulo. Non preoccuparti, salveremo i tuoi progressi e potrai continuare quando tornerai online.',
+            saveForLater: 'Salva e compila più tardi',
+            progressSaved: 'I tuoi progressi sono stati salvati',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Lo SWIFT/BIC deve essere lungo 8 o 11 caratteri, con 6 lettere seguite da 2 oppure 5 lettere o numeri.',

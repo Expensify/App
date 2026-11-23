@@ -4477,6 +4477,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: '此页面上的问题已更改',
         onFile: '已备案',
+        continueOffline: {
+            title: '你无法在离线状态下继续',
+            prompt: '填写此表单需要互联网连接。别担心，我们会保存您的进度，等您重新联网后即可继续。',
+            saveForLater: '保存，稍后填写',
+            progressSaved: '您的进度已保存',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
