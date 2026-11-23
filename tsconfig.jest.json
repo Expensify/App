@@ -5,5 +5,5 @@
         "tsBuildInfoFile": "./tsconfig.jest.ts7.tsbuildinfo"
     },
     "include": ["tests", "jest", "__mocks__", "src/**/__mocks__/**/*", "src/types/**/*.d.ts", "src/types/modules/react-native-web-augmentation.ts"],
-    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling", "modules/ExpensifyNitroUtils/**"]
+    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling", "modules/ExpensifyNitroUtils/**", "src/types/native/**"]
 }
