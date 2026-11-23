@@ -62,6 +62,32 @@ function getEvenSplitQuantity(totalQuantity: number, splitCount: number, index: 
 }
 
 /**
+ * The expense's billed distance in `unit`. A split can be moved to a rate that bills in the other unit, and an
+ * expense isn't re-expressed when that happens, so its stored quantity can't be divided as it is.
+ */
+function getBilledDistanceInUnit(transaction: OnyxEntry<OnyxTypes.Transaction>, unit: Unit | undefined): number {
+    const distance = getBilledDistance(transaction) ?? 0;
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    if (!unit || !transactionUnit || unit === transactionUnit || distance === 0) {
+        return distance;
+    }
+    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(DistanceRequestUtils.convertToDistanceInMeters(distance, transactionUnit), unit));
+}
+
+/**
+ * A split's stored distance in its expense's unit, so the shares can be measured against the expense's own distance.
+ */
+function getSplitDistanceInTransactionUnit(transaction: OnyxEntry<OnyxTypes.Transaction>, customUnit: TransactionCustomUnit | undefined): number {
+    const quantity = customUnit?.quantity ?? 0;
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const splitUnit = customUnit?.distanceUnit;
+    if (!splitUnit || !transactionUnit || splitUnit === transactionUnit || quantity === 0) {
+        return quantity;
+    }
+    return DistanceRequestUtils.convertDistanceUnit(DistanceRequestUtils.convertToDistanceInMeters(quantity, splitUnit), transactionUnit);
+}
+
+/**
  * Calculate merchant for distance transactions based on distance and rate
  */
 function getDistanceMerchantFromDistance(
@@ -171,9 +197,10 @@ function getEvenDistanceSplit({
     currency: string;
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): {customUnit: TransactionCustomUnit; merchant: string} {
-    const quantity = getEvenSplitQuantity(getBilledDistance(transaction) ?? 0, splitCount, index, 0);
+    const splitUnit = unit ?? customUnit.distanceUnit;
+    const quantity = getEvenSplitQuantity(getBilledDistanceInUnit(transaction, splitUnit), splitCount, index, 0);
     return {
-        customUnit: {...customUnit, quantity, distanceUnit: unit ?? customUnit.distanceUnit},
+        customUnit: {...customUnit, quantity, distanceUnit: splitUnit},
         merchant: getDistanceMerchantFromDistance(quantity, unit, rate, currency, getCurrencySymbol),
     };
 }
@@ -1186,7 +1213,6 @@ function updateSplitExpenseDistanceFromPercentage({
         return;
     }
 
-    const quantity = Math.max(0, roundToTwoDecimalPlaces(((getBilledDistance(originalTransaction) ?? 0) * percentage) / 100));
     const mileageRate = resolveSplitMileageRate({transaction: originalTransaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const currency = originalTransaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD;
 
@@ -1195,6 +1221,8 @@ function updateSplitExpenseDistanceFromPercentage({
             return splitExpense;
         }
         const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
+        // The percentage is a share of the expense's distance, taken in the unit this split's rate bills in.
+        const quantity = Math.max(0, roundToTwoDecimalPlaces((getBilledDistanceInUnit(originalTransaction, unit ?? splitExpense.customUnit.distanceUnit) * percentage) / 100));
         const sign = splitExpense.amount < 0 ? -1 : 1;
         const amount = isUsableSplitRate(rate) && quantity > 0 ? Math.round(quantity * rate) * sign : 0;
         return {
@@ -1232,6 +1260,7 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 export {
     getEvenDistanceSplit,
     getEvenSplitQuantity,
+    getSplitDistanceInTransactionUnit,
     isUsableSplitRate,
     shouldSplitByDistance,
     updateSplitExpenseDistanceFromAmount,

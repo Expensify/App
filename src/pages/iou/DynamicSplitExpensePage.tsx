@@ -38,6 +38,7 @@ import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
+    getSplitDistanceInTransactionUnit,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     resolveSplitItemReportID,
@@ -516,7 +517,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const toDistanceUnits = (distance: number) => Math.round(distance * 10 ** CONST.DISTANCE_DECIMAL_PLACES);
     const adjustedPercentages = isZeroTotalDistanceSplit
         ? calculateSplitPercentages(
-              splitExpensesArray.map((item) => toDistanceUnits(item.customUnit?.quantity ?? 0)),
+              splitExpensesArray.map((item) => toDistanceUnits(getSplitDistanceInTransactionUnit(transaction, item.customUnit))),
               toDistanceUnits(getBilledDistance(transaction) ?? 0),
           )
         : calculateSplitPercentages(splitAmounts, transactionDetailsAmount);
