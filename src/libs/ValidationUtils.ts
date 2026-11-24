@@ -490,13 +490,6 @@ function isValidDisplayName(name: string): boolean {
 }
 
 /**
- * Checks that the provided legal name doesn't contain special characters
- */
-function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
-}
-
-/**
  * Checks that the provided name on card does not contain HTML-like tags (e.g. `<script>`).
  * Lone `<` or `>` characters are allowed; the backend sanitizes the value before embossing.
  */
@@ -956,6 +949,15 @@ function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, mercha
 }
 
 /**
+ * Checks if the merchant field is empty from the user's point of view: nothing but whitespace, or a placeholder the
+ * flow seeded and the user never typed.
+ */
+function isMerchantBlank(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    const trimmedMerchant = merchant?.trim() ?? '';
+    return !trimmedMerchant || isUntypedPlaceholderMerchant(isMerchantSet, trimmedMerchant);
+}
+
+/**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
  */
@@ -1005,7 +1007,6 @@ export {
     isValidCompanyName,
     isValidNameOnCard,
     isValidDisplayName,
-    isValidLegalName,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
@@ -1031,6 +1032,7 @@ export {
     getMerchantError,
     getMerchantErrorMessage,
     isUntypedPlaceholderMerchant,
+    isMerchantBlank,
     isValidPIN,
     containsHtmlTag,
 };

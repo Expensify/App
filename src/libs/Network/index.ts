@@ -13,7 +13,7 @@ import {flush as flushSequentialQueue} from './SequentialQueue';
 let processQueueInterval: NodeJS.Timeout | number;
 
 function startMainQueue() {
-    // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
+    // Start after client initialization. SequentialQueue checks leadership before sending persisted requests.
     ActiveClientManager.isReady().then(() => {
         flushSequentialQueue();
 

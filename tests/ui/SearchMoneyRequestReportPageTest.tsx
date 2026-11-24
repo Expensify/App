@@ -52,10 +52,6 @@ jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@components/OnyxListItemProvider', () => ({usePersonalDetails: jest.fn()}));
-jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
-    default: () => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)}),
-}));
 jest.mock('@hooks/useDismissOnMoneyRequestReportRemoval', () => jest.fn());
 jest.mock('@hooks/useSubmitToDestinationVisible', () => jest.fn());
 jest.mock('@hooks/useReportIsArchived', () => jest.fn());
@@ -81,6 +77,7 @@ jest.mock('@userActions/Report', () => ({
     openReport: jest.fn(),
     updateLastVisitTime: jest.fn(),
     clearDeleteTransactionNavigateBackUrl: jest.fn(),
+    clearDeleteTransactionNavigateBackUrlAfterTransitions: jest.fn(),
 }));
 
 // All child components are mocked to null: none of them need to actually render for these tests,

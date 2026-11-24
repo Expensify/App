@@ -1,4 +1,5 @@
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
@@ -10,7 +11,6 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -44,7 +44,7 @@ import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPr
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {pendingNewTransactionsSelector} from '@src/selectors/ReportMetaData';
 import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -52,7 +52,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
@@ -102,10 +102,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const isReportVisible = useIsScreenVisible();
     const shouldReserveBulkActionBarSpace = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -128,15 +126,24 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
+    const {reportActions, reportTransactions, transactions, arrivedTransactionCount, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
         reportIDFromRoute,
         unfilteredReportActions,
         isOffline,
     );
-    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        selector: pendingNewTransactionIDsSelector,
+    const [pendingNewTransactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: pendingNewTransactionsSelector,
     });
-    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
+    const newTransactions = useNewTransactions({
+        hasOnceLoadedReportActions: reportLoadingState?.hasOnceLoadedReportActions,
+        transactions: reportTransactions,
+        arrivedTransactionCount,
+        expectedTransactionCount: report?.transactionCount ?? 0,
+        transactionsReportID: reportIDFromRoute,
+        pendingNewTransactions,
+        railReportID: reportIDFromRoute,
+        isReportVisible,
+    });
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -150,7 +157,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -232,8 +238,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
         report,
-        // The table view doesn't show the expense thread's actions, so a new one there shouldn't mark the report as read
-        transactionThreadReport: shouldUseTableViewForSingleExpense ? undefined : transactionThreadReport,
+        transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
         sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
@@ -430,7 +435,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onLayout={onLayout}
                         transactions={transactions}
                         newTransactions={newTransactions}
-                        isReportVisible={isReportVisible}
                         hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                         reportActions={reportActions}
                         policy={policy}

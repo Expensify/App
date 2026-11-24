@@ -1,5 +1,5 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
@@ -7,12 +7,13 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
-import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import tokenizeForReveal, {EMPTY_REVEAL_STAGES, findRevealStage} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
+import type {RevealStages} from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
 
@@ -32,7 +33,7 @@ type PusherDraftPaceRefs = {
     finalRenderedHTMLRevealIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
     finalRenderedHTMLRevealLastStageRef: MutableRef<number>;
     finalRenderedHTMLRevealStartedAtRef: MutableRef<number>;
-    finalRenderedHTMLRevealTokensRef: MutableRef<string[]>;
+    finalRenderedHTMLRevealTokensRef: MutableRef<RevealStages>;
     lastPaceTickTimeRef: MutableRef<number>;
     latestPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     pusherPaceIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
@@ -44,7 +45,7 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
-    accountIDToNameRef: MutableRef<Record<string, string>>;
+    personalDetailsListRef: MutableRef<PersonalDetailsList | undefined>;
     completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
@@ -132,7 +133,7 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
     completedPusherDraftEventRef.current = null;
     terminalPusherDraftEventRef.current = null;
     finalRenderedHTMLRevealDurationRef.current = 0;
-    finalRenderedHTMLRevealTokensRef.current = [];
+    finalRenderedHTMLRevealTokensRef.current = EMPTY_REVEAL_STAGES;
     finalRenderedHTMLRevealStartedAtRef.current = 0;
     finalRenderedHTMLRevealLastStageRef.current = 0;
     visibleBodyMarkdownRef.current = '';
@@ -141,7 +142,7 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
     lastPaceTickTimeRef.current = 0;
 }
 
-function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
+function clearCachedPusherDraft(runtime: PusherDraftPaceRefs & Pick<PusherDraftPacingRuntime, 'completedReportActionIDsRef' | 'currentDraftRef' | 'reportID' | 'setDraft'>) {
     const {completedReportActionIDsRef, currentDraftRef, reportID, setDraft} = runtime;
 
     // Clearing the display must not let delayed Pusher events restart a completed reply.
@@ -227,7 +228,7 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {accountIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {personalDetailsListRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -247,7 +248,7 @@ function publishVisibleEvent(
         status: visibleStatus,
     };
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, personalDetailsListRef.current);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -377,7 +378,7 @@ function startPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     pusherPaceIntervalRef.current = setInterval(() => tickPacing(runtime), PUSHER_DRAFT_PACE_INTERVAL_MS);
 }
 
-function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, tokens: string[]): number {
+function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event: ConciergeDraftEvent, tokens: RevealStages): number {
     const {currentDraftRef} = runtime;
     const currentDraft = currentDraftRef.current;
     if (!currentDraft || currentDraft.streamSessionID !== event.streamSessionID) {
@@ -389,10 +390,7 @@ function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event:
         return 0;
     }
 
-    return Math.max(
-        0,
-        tokens.findLastIndex((token) => token === currentHTML),
-    );
+    return Math.max(0, findRevealStage(tokens, currentHTML));
 }
 
 function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
@@ -462,7 +460,7 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
     const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
     if (tokens.length < MIN_TRICKLE_TOKEN_COUNT || currentStage === tokens.length - 1) {
         finalRenderedHTMLRevealDurationRef.current = 0;
-        finalRenderedHTMLRevealTokensRef.current = [];
+        finalRenderedHTMLRevealTokensRef.current = EMPTY_REVEAL_STAGES;
         finalRenderedHTMLRevealStartedAtRef.current = 0;
         finalRenderedHTMLRevealLastStageRef.current = 0;
         publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
@@ -928,21 +926,20 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const finalRenderedHTMLRevealDurationRef = useRef(0);
     const finalRenderedHTMLRevealIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const finalRenderedHTMLRevealTokensRef = useRef<string[]>([]);
+    const finalRenderedHTMLRevealTokensRef = useRef<RevealStages>(EMPTY_REVEAL_STAGES);
     const finalRenderedHTMLRevealStartedAtRef = useRef(0);
     const finalRenderedHTMLRevealLastStageRef = useRef(0);
-    const accountIDToName = useAccountIDToNameMap();
-    const accountIDToNameRef = useRef(accountIDToName);
+    const [personalDetailsList] = useAllPersonalDetails();
+    const personalDetailsListRef = useRef(personalDetailsList);
     useEffect(() => {
-        accountIDToNameRef.current = accountIDToName;
-    }, [accountIDToName]);
+        personalDetailsListRef.current = personalDetailsList;
+    }, [personalDetailsList]);
     const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
     });
 
     const clearDraft = () => {
         clearCachedPusherDraft({
-            accountIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -951,7 +948,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             finalRenderedHTMLRevealLastStageRef,
             finalRenderedHTMLRevealStartedAtRef,
             finalRenderedHTMLRevealTokensRef,
-            isGroupPolicyReport,
             lastPaceTickTimeRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
@@ -962,7 +958,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleBodyMarkdownRef,
             visibleSourceMarkdownRef,
             visibleSourceOffsetRef,
-            visibleSequenceRef,
         });
     };
 
@@ -984,7 +979,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceOffsetRef,
         });
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, personalDetailsListRef.current);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -1020,7 +1015,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
-                accountIDToNameRef,
+                personalDetailsListRef,
                 completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
@@ -1058,7 +1053,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
-            accountIDToNameRef,
+            personalDetailsListRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,

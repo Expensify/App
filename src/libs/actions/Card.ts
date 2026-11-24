@@ -595,7 +595,7 @@ function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: st
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    scrapeMinDate: oldStartDate,
+                    scrapeMinDate: oldStartDate ?? null,
                     pendingFields: {
                         scrapeMinDate: null,
                     },
@@ -726,6 +726,7 @@ function updateSettlementFrequency(
     const parameters = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
+        feedCountry: programKey,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
@@ -1814,7 +1815,7 @@ function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefi
     ]);
 }
 
-function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
+function queueExpensifyCardForBilling(domainAccountID: number, feedCountry?: CardProgramKey) {
     const parameters = {
         feedCountry,
         domainAccountID,
