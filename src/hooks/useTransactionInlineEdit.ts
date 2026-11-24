@@ -8,12 +8,12 @@ import {
     editTransactionDescriptionInline,
     editTransactionMerchantInline,
     editTransactionTagInline,
-    getTransactionEditPermissions,
+    resolveTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {applyRules, isTrackExpenseReportNew} from '@libs/ReportUtils';
 import {filterRulesForPolicy} from '@libs/RuleUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -177,7 +177,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
 
     const editPolicy = completePolicy ?? policy;
-    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, editPolicy?.id)});
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
@@ -185,12 +184,12 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const {isOffline} = useNetwork();
     const personalPolicy = usePersonalPolicy();
 
-    const permissions = getTransactionEditPermissions({
+    const resolvedPermissions = resolveTransactionEditPermissions({
         transaction,
         parentReportAction,
         parentReport: effectiveParentReport,
         parentReportActions,
-        policy: completePolicy ?? policy,
+        policy: editPolicy,
         transactionThreadReport,
         policyCategories,
         policyTags,
@@ -199,8 +198,10 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
-        rules: policyRules,
     });
+    const doPermissionsNeedRules = typeof resolvedPermissions === 'function';
+    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => (doPermissionsNeedRules ? filterRulesForPolicy(rules, editPolicy?.id) : undefined)});
+    const permissions = applyRules(resolvedPermissions, policyRules);
 
     const wasEditingOnMouseDownRef = useRef(false);
 
