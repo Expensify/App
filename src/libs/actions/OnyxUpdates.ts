@@ -151,16 +151,16 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
         return Promise.resolve(response);
     };
 
-    // Search writes its snapshot in the response, success and finally data, so one update renders and stores it once
-    if (request.command === READ_COMMANDS.SEARCH && response.jsonCode === CONST.JSON_CODE.SUCCESS && !response.paginationOnyxData) {
-        return updateHandler([...(response.onyxData ?? []), ...getRequestUpdates(request, response)]).then(finishApplying);
-    }
-
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const onyxDataWithSignInFlowReset = getUpdatesWithSignInFlowReset(response.onyxData);
     const onyxData: AnyOnyxUpdate[] | undefined = onyxDataWithSignInFlowReset ?? response.onyxData;
+
+    // Search writes its results and its request's data to the same snapshot, so one update renders and stores it once
+    if (request.command === READ_COMMANDS.SEARCH && !onyxDataWithSignInFlowReset && !response.paginationOnyxData) {
+        return updateHandler([...(onyxData ?? []), ...getRequestUpdates(request, response)]).then(finishApplying);
+    }
 
     const onyxDataUpdatePromise = onyxData ? updateHandler(onyxData) : Promise.resolve();
 
