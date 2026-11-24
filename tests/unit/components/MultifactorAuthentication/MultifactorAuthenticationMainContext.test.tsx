@@ -200,6 +200,35 @@ describe('Wallet MFA composed providers', () => {
         expect(handleAddCardToWallet).toHaveBeenCalledTimes(1);
     });
 
+    it('runs the scenario callback once when the connection flaps while the flow is finalizing', async () => {
+        // Given credential checks that hang once the scenario callback has run, holding finalization open.
+        let releaseCredentialCheck: ((value: boolean) => void) | undefined;
+        const pendingCredentialCheck = new Promise<boolean>((resolve) => {
+            releaseCredentialCheck = resolve;
+        });
+        mockBiometrics.areLocalCredentialsKnownToServer.mockImplementation(() => (jest.mocked(getPaymentMethods).mock.calls.length > 0 ? pendingCredentialCheck : Promise.resolve(true)));
+        const renderTree = () => (
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>
+        );
+        const view = render(renderTree());
+        await startScenario();
+        await waitFor(() => expect(getPaymentMethods).toHaveBeenCalledTimes(1));
+        expect(state.isFlowComplete).toBe(false);
+
+        // When the connection drops and returns before finalization finishes.
+        mockIsOffline = true;
+        view.rerender(renderTree());
+        mockIsOffline = false;
+        view.rerender(renderTree());
+        await act(async () => releaseCredentialCheck?.(true));
+
+        // Then the reconnect re-run does not finalize again, so the callback runs exactly once.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(getPaymentMethods).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
         // Given the wallet sheet is presented over the modal.
         let finishWallet: ((status: TokenizationStatus) => void) | undefined;

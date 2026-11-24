@@ -97,6 +97,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const startStateRef = useRef<CredentialsState | undefined>(undefined);
 
+    // Blocks a second finalization while handleCallback awaits, before SET_FLOW_COMPLETE lands (e.g. offline flap)
+    const isFinalizingRef = useRef(false);
+
     const captureCredentialsState = async (): Promise<CredentialsState> => {
         const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
         return {
@@ -120,9 +123,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const handleCallback = async (isSuccessful: boolean) => {
         const {error, scenario, scenarioResponse, payload} = state;
 
-        if (!scenario) {
+        if (!scenario || isFinalizingRef.current) {
             return;
         }
+        isFinalizingRef.current = true;
 
         const scenarioConfig = scenario;
         const callbackInput: MultifactorAuthenticationCallbackInput = {
@@ -437,6 +441,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     useEffect(() => {
         // Don't run until a scenario has been initiated
         if (!state.scenario) {
+            isFinalizingRef.current = false;
             return;
         }
 
