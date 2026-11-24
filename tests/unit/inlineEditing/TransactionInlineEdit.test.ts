@@ -760,7 +760,7 @@ describe('TransactionInlineEdit', () => {
                 edit();
 
                 // Then only that snapshot is invalidated, synchronously before optimistic data is applied
-                expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, hash, ...expectedChange}));
+                expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({translate, transactionID: TRANSACTION_ID, transaction: snapshotTransaction, hash, ...expectedChange}));
                 expect(markInFlightSearchRequestsStale).toHaveBeenCalledTimes(1);
                 expect(markInFlightSearchRequestsStale).toHaveBeenCalledWith(hash);
                 expect(jest.mocked(markInFlightSearchRequestsStale).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(getDelegate()).mock.invocationCallOrder.at(0) ?? 0);
