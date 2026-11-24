@@ -1,5 +1,4 @@
 /** Renders report messages with history controls, unread indicators, and loading states. */
-import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -317,7 +316,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     estimatedItemSize={REPORT_ACTIONS_ESTIMATED_ITEM_SIZE}
                     recycleItems
                     experimental_hideItemsUntilMeasured
-                    renderScrollComponent={Platform.OS === 'web' ? undefined : renderActionSheetAwareScrollView}
                     scrollEventThrottle={16}
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     ListHeaderComponent={offlineHistoryHeader}

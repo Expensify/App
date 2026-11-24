@@ -73,3 +73,12 @@ Patches 001 through 007 use the build output of their linked upstream PRs. Remov
 - E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-7097005137
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On mobile web, open an expense chat, scroll up to an expense with replies and tap its "Replies" link. Go back with the back button in the header. The chat should be at the same position as before.
+
+### [@legendapp+list+3.9.0+009+anchor-safari-history-during-momentum.patch](@legendapp+list+3.9.0+009+anchor-safari-history-during-momentum.patch)
+
+- Reason: When older messages arrive during a touch fling, LegendList scrolls by the height of the inserted rows to keep the same message on screen. On iOS, WebKit can overwrite that adjustment in the next momentum frame, skipping the whole page. The patch briefly suspends vertical scrolling while applying the data adjustment, then restores the previous overflow style.
+- Scope: Positive data-anchor corrections in an internal vertical list on iOS WebKit.
+- Upstream PR/issue: https://github.com/LegendApp/legend-list/issues/488
+- E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-7097005137
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: In iOS Safari, open a long chat and flick toward older messages. As a page loads, the same messages should stay in view. Keep scrolling to read the newly loaded messages.

@@ -930,6 +930,21 @@ function getHeight(height: number): ViewStyle {
 }
 
 /**
+ * Pins a scroll view to the bottom of its container, raised by the given distance. The scroll view keeps the given
+ * height, or fills the container without one, and draws its content outside its bounds.
+ */
+function getBottomPinnedScrollViewStyle(height: number | undefined, raisedBy: number): ViewStyle {
+    return {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: raisedBy,
+        height: height ?? '100%',
+        overflow: 'visible',
+    };
+}
+
+/**
  * Get minimum height as style
  */
 function getMinimumHeight(minHeight: number): ViewStyle {
@@ -1510,6 +1525,7 @@ const staticStyleUtils = {
     getHorizontalInsetsFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
+    getBottomPinnedScrollViewStyle,
     getHeight,
     getMinimumHeight,
     getMinimumWidth,

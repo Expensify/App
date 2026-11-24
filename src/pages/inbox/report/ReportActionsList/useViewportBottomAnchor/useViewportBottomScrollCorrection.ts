@@ -1,22 +1,21 @@
 /**
  * Keeps the content at the bottom edge of the report-actions list in place when the list viewport changes height,
  * for example when the keyboard opens or the composer grows. Content size changes are not handled here.
+ *
+ * The list scrolls to the new offset once the platform reports the resized viewport. iOS and Android pin the scroll
+ * view of an end-aligned list instead, see `useBottomPinnedScrollView`.
  */
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {LegendListRef} from '@legendapp/list/react-native';
-import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {getReportActionKey} from '@pages/inbox/report/ReportActionsList/reportActionListUtils';
 
 import {useEffect, useRef} from 'react';
 
-import {getReportActionKey} from './reportActionListUtils';
+import type {ScrollEvent, UseViewportBottomAnchorParams, ViewportBottomAnchor} from './types';
+
+type UseViewportBottomScrollCorrectionParams = Pick<UseViewportBottomAnchorParams, 'legendListRef' | 'listData' | 'listID'>;
 
 // Native reports a viewport correction within a few frames. Scroll events deferred while waiting for it are
 // replayed after this delay, so a correction that native never reports cannot hold them back for longer.
 const VIEWPORT_CORRECTION_SETTLE_DELAY = 200;
-
-type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
 
 /** The content at the bottom edge of the list, kept in place when the viewport changes height. */
 type ViewportAnchor = {
@@ -31,17 +30,7 @@ type ViewportAnchor = {
     awaitingScroll?: boolean;
 };
 
-type UseViewportBottomAnchorParams = {
-    legendListRef: RefObject<LegendListRef | null>;
-
-    /** The rows LegendList renders, used to find the row at the bottom edge. */
-    listData: OnyxTypes.ReportAction[];
-
-    /** Changes when LegendList remounts, which starts over without an anchor. */
-    listID: string;
-};
-
-function useViewportBottomAnchor({legendListRef, listData, listID}: UseViewportBottomAnchorParams) {
+function useViewportBottomScrollCorrection({legendListRef, listData, listID}: UseViewportBottomScrollCorrectionParams): Omit<ViewportBottomAnchor, 'renderScrollComponent'> {
     const viewportAnchorRef = useRef<ViewportAnchor | undefined>(undefined);
     const viewportCorrectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const deferredScrollEventRef = useRef<ScrollEvent | undefined>(undefined);
@@ -151,4 +140,4 @@ function useViewportBottomAnchor({legendListRef, listData, listID}: UseViewportB
     return {startViewportAnchor, deferScrollUntilViewportCorrected, finishViewportCorrection, preserveViewportBottom};
 }
 
-export default useViewportBottomAnchor;
+export default useViewportBottomScrollCorrection;

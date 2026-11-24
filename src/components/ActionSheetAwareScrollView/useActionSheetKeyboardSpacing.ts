@@ -35,8 +35,13 @@ const useAnimatedKeyboard = () => {
                 'worklet';
 
                 if (e.height > 0) {
+                    // An open keyboard also starts when only its frame changes, for example when the edited text
+                    // changes its suggestions. It is not at height 0 then, and the spacing must not act as if it were.
+                    const isKeyboardOpening = state.get() !== KeyboardState.OPEN;
                     state.set(KeyboardState.OPEN);
-                    height.set(0);
+                    if (isKeyboardOpening) {
+                        height.set(0);
+                    }
 
                     if (e.height > maxOpenHeight.get()) {
                         maxOpenHeight.set(e.height);

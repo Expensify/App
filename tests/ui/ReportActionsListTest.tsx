@@ -37,6 +37,7 @@ import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListContent from '@pages/inbox/report/ReportActionsList/ReportActionsListContent';
 import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
+import type UseViewportBottomAnchor from '@pages/inbox/report/ReportActionsList/useViewportBottomAnchor';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import ReportActionsSkeletonGuard from '@pages/inbox/report/ReportActionsSkeletonGuard';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -54,7 +55,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type ReactNative from 'react-native';
 
-import {useRoute} from '@react-navigation/native';
+import {NavigationContainer, useRoute} from '@react-navigation/native';
 import React from 'react';
 import {Platform, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -80,6 +81,14 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// iOS and Android anchor the viewport in their scroll component, and Jest resolves that hook. Tests of the scroll
+// corrections web makes in JS switch to the web hook.
+let mockShouldUseWebViewportAnchor = false;
+jest.mock('@pages/inbox/report/ReportActionsList/useViewportBottomAnchor', () => {
+    const nativeHook = jest.requireActual<{default: typeof UseViewportBottomAnchor}>('@pages/inbox/report/ReportActionsList/useViewportBottomAnchor/index.native.ts');
+    const webHook = jest.requireActual<{default: typeof UseViewportBottomAnchor}>('@pages/inbox/report/ReportActionsList/useViewportBottomAnchor/index.ts');
+    return (params: Parameters<typeof UseViewportBottomAnchor>[0]) => (mockShouldUseWebViewportAnchor ? webHook.default(params) : nativeHook.default(params));
+});
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@pages/inbox/report/AskConciergeWelcome', () => {
     const {View} = jest.requireActual<typeof ReactNative>('react-native');
@@ -456,6 +465,7 @@ describe('ReportActionsList (body)', () => {
         mockIsLoadingInitialReportActions = false;
         mockIsLoadingOlderReportActions = false;
         mockShouldCallLegendListOnLoad = true;
+        mockShouldUseWebViewportAnchor = false;
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseRoute.mockReturnValue({key: 'report', name: 'Report', params: {}});
@@ -641,6 +651,7 @@ describe('ReportActionsList (body)', () => {
 
     it.each([800, 1000])('preserves the distance above the newest message across successive viewport layouts at %i pixels', async (height) => {
         // Given a reader 600 pixels from the end before the viewport grows.
+        mockShouldUseWebViewportAnchor = true;
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         const scrollOffsetRef = {current: 600};
@@ -706,6 +717,7 @@ describe('ReportActionsList (body)', () => {
 
     it.each([0, 150])('keeps the reader %i pixels above the newest action when the keyboard shrinks the viewport', async (distanceFromEnd) => {
         // Given the reader is at or near the end before the keyboard opens.
+        mockShouldUseWebViewportAnchor = true;
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         renderReportActionsList();
@@ -739,6 +751,7 @@ describe('ReportActionsList (body)', () => {
 
     it('moves the preserved bottom with rows measured above it before the viewport resizes', async () => {
         // Given a reader 600 pixels above the end, with the last visible row 1300 pixels into the list.
+        mockShouldUseWebViewportAnchor = true;
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         renderReportActionsList();
@@ -768,6 +781,7 @@ describe('ReportActionsList (body)', () => {
 
     it('replays the newest scroll event when native never reports a viewport correction', async () => {
         // Given the keyboard shrinks the viewport and the list asks native to keep the reader's bottom row in place.
+        mockShouldUseWebViewportAnchor = true;
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
@@ -791,7 +805,7 @@ describe('ReportActionsList (body)', () => {
             // When another programmatic scroll supersedes the correction, so native reports the end instead.
             const endScrollEvent = createListScrollEvent({offset: 1800, contentHeight: 2000, viewportHeight: 200});
             act(() => listProps?.onScroll?.(endScrollEvent));
-            const isEndScrollTracked = () => trackVerticalScrolling.mock.calls.some(([event]) => event?.nativeEvent.contentOffset.y === 0);
+            const isEndScrollTracked = () => trackVerticalScrolling.mock.calls.some(([event]) => event === endScrollEvent);
             expect(isEndScrollTracked()).toBe(false);
             act(() => {
                 jest.advanceTimersByTime(200);
@@ -812,6 +826,7 @@ describe('ReportActionsList (body)', () => {
 
     it('stops waiting for a viewport correction when the list remounts', async () => {
         // Given the keyboard resized the viewport and the list waits for native to report the correction.
+        mockShouldUseWebViewportAnchor = true;
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockHasOnceLoadedReportActions = false;
         const originalState = mockLegendGetState();
@@ -854,6 +869,48 @@ describe('ReportActionsList (body)', () => {
         }
     });
 
+    it('keeps the header scroll direction and edge distances in sync with the report list', async () => {
+        // Given the landscape header and unread tracking share scroll events from a chronological chat.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        mockUseReportActionsScroll.mockImplementation(jest.requireActual<{default: typeof useReportActionsScroll}>('@hooks/useReportActionsScroll').default);
+        const scrollOffsetRef = {current: 0};
+        const syncScrollSharedValues = jest.fn();
+        const contextValue = {
+            scrollOffsetRef,
+            syncScrollSharedValues,
+            scrollMetricsSV: makeMutable(INITIAL_SCROLL_METRICS),
+            collapsedHeaderHeightSV: makeMutable(0),
+            getScrollOffset: () => scrollOffsetRef.current,
+            getListRef: () => null,
+            registerListRef: jest.fn(),
+        };
+        let view: ReturnType<typeof render> | undefined;
+        try {
+            view = render(
+                // The report and its header read the same action-list context.
+                // eslint-disable-next-line rulesdir/context-provider-split-values
+                <ActionListContext.Provider value={contextValue}>
+                    <NavigationContainer>
+                        <ReportActionsList reportID={mockReport.reportID} />
+                    </NavigationContainer>
+                </ActionListContext.Provider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            // When the reader reaches the newest message, then scrolls 300 pixels toward older messages.
+            for (const offset of [3500, 3200]) {
+                act(() => getCapturedListProps()?.onScroll?.(createListScrollEvent({offset, contentHeight: 4000, viewportHeight: 500})));
+
+                // Then the header tracks direction from the native offset and unread tracking measures from the newest end.
+                expect(syncScrollSharedValues).toHaveBeenLastCalledWith({offset: -offset, distanceToOldestEnd: offset, distanceToNewestEnd: 3500 - offset, viewportHeight: 500});
+                expect(scrollOffsetRef.current).toBe(3500 - offset);
+            }
+        } finally {
+            view?.unmount();
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
     it('tracks web scroll events whose integer viewport height rounds a fractional layout height', async () => {
         // Given web measures the list at a fractional height, while its scroll events report the integer clientHeight.
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -873,7 +930,7 @@ describe('ReportActionsList (body)', () => {
             act(() => getCapturedListProps()?.onScroll?.(createListScrollEvent({offset: 1000, contentHeight: 2000, viewportHeight: 500})));
 
             // Then the scroll position still reaches the "Latest messages" and pagination tracking.
-            expect(trackVerticalScrolling).toHaveBeenCalledWith(expect.objectContaining({nativeEvent: expect.objectContaining({contentOffset: {x: 0, y: 500}})}));
+            expect(trackVerticalScrolling).toHaveBeenCalledWith(expect.objectContaining({nativeEvent: expect.objectContaining({contentOffset: {x: 0, y: 1000}})}));
         } finally {
             platform.restore();
             mockLegendGetState.mockReturnValue(originalState);

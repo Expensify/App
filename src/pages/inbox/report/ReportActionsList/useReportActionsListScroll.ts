@@ -262,7 +262,12 @@ function useReportActionsListScroll({
     const shouldShowInitialViewportSkeleton = loadedInitialViewportListID !== listID || (!isOffline && isInitialReportLoadPending);
 
     const readyEndListIDRef = useRef<string | undefined>(undefined);
-    const {startViewportAnchor, deferScrollUntilViewportCorrected, finishViewportCorrection, preserveViewportBottom} = useViewportBottomAnchor({legendListRef, listData, listID});
+    const {startViewportAnchor, deferScrollUntilViewportCorrected, finishViewportCorrection, preserveViewportBottom, renderScrollComponent} = useViewportBottomAnchor({
+        legendListRef,
+        listData,
+        listID,
+        shouldBeAlignedToTop,
+    });
     const lastScrollMetricsRef = useRef<ReportActionsListScrollMetrics | undefined>(undefined);
 
     const stopFollowingEnd = () => {
@@ -335,15 +340,7 @@ function useReportActionsListScroll({
             loadOlderChatsOnStartReached();
         }
 
-        const bottomRelativeEvent = {
-            ...event,
-            nativeEvent: {
-                ...event.nativeEvent,
-                contentOffset: {...contentOffset, y: distanceFromBottom},
-            },
-        };
-
-        trackVerticalScrolling(bottomRelativeEvent);
+        trackVerticalScrolling(event);
         onScrolledOverThresholdChange(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         emitComposerScrollEvents();
     };
@@ -435,6 +432,7 @@ function useReportActionsListScroll({
             // Concierge reply when it first appears, then keep following as its text grows.
             maintainScrollAtEnd: hasNewerActions ? false : {on: {dataAppend: isDraftPendingCompletion, itemLayout: true, footerLayout: true}},
             onReady: markInitialViewportReady,
+            renderScrollComponent,
             onItemSizeChanged,
             onContentSizeChange: () => trackVerticalScrolling(undefined),
             onMetricsChange: ({headerSize}: {headerSize: number}) => {

@@ -231,12 +231,12 @@ function useReportActionsScroll({
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
-            scrollOffsetRef.current = contentOffset.y;
-            // The list is not inverted, so the oldest end is the top.
+            const distanceToNewestEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+            scrollOffsetRef.current = Math.max(0, distanceToNewestEnd);
             syncScrollSharedValues({
                 offset: -contentOffset.y,
                 distanceToOldestEnd: contentOffset.y,
-                distanceToNewestEnd: contentSize.height - layoutMeasurement.height - contentOffset.y,
+                distanceToNewestEnd,
                 viewportHeight: layoutMeasurement.height,
             });
         },
