@@ -996,7 +996,14 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
-    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
+    supportalSwitcher: {
+        title: '切换 Supportal 到其他账户',
+        navigationLabel: 'Supportal',
+        emailLabel: '电子邮箱地址',
+        reasonLabel: '支持登录原因',
+        reasonHint: '未找到此账户的近期工单。',
+        login: '登录',
+    },
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -1202,6 +1209,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
@@ -3896,9 +3905,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         accounting: {
             title: '你是否使用任何会计软件？',
             otherAccountingSoftware: '软件名称',
-            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
-            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
-            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: '选择你想要的功能',
@@ -7732,6 +7738,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 willBeReadyToUse: '此卡将立即可用。',
                 willBeReadyToShip: '此卡将立即准备发货。',
                 cardholder: '持卡人',
+                cardholderEmail: '持卡人电子邮箱',
                 cardType: '卡类型',
                 limit: '限额',
                 limitType: '限额类型',

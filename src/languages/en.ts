@@ -1124,6 +1124,7 @@ const translations = {
     },
     supportalSwitcher: {
         title: 'Supportal into another account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
@@ -1399,6 +1400,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -4245,9 +4249,6 @@ const translations = {
         accounting: {
             title: 'Do you use any accounting software?',
             otherAccountingSoftware: 'Name of software',
-            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
-            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
-            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'Select the features you want',
@@ -8737,6 +8738,7 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
+                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',

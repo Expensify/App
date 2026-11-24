@@ -18,7 +18,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
-    setOnboardingAccountingDraft,
     setOnboardingAccountingEnabled,
     setOnboardingAdminsChatReportID,
     setOnboardingInterestedFeaturesMap,
@@ -169,12 +168,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingInterestedFeaturesMap(featuresMap);
 
         if (isAccountingEnabled) {
+            setOnboardingUserReportedIntegration(null);
             Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
             return;
         }
 
         setOnboardingUserReportedIntegration(null);
-        setOnboardingAccountingDraft(null);
         await completeOnboardingFlow({featuresMap});
     };
 

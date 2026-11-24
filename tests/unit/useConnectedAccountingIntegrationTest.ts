@@ -1,7 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 
-import type * as AccountingUtils from '@libs/AccountingUtils';
-
 import useConnectedAccountingIntegration from '@pages/workspace/accounting/useConnectedAccountingIntegration';
 
 import CONST from '@src/CONST';
@@ -35,7 +33,6 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: true, sh
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useWorkspaceAccountID', () => () => undefined);
 jest.mock('@libs/AccountingUtils', () => ({
-    ...jest.requireActual<typeof AccountingUtils>('@libs/AccountingUtils'),
     getQBORefreshTokenExpiryDate: () => undefined,
     getQBORefreshTokenExpiryStatus: () => undefined,
 }));

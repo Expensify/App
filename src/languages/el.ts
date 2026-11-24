@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal σε άλλο λογαριασμό',
+        navigationLabel: 'Supportal',
         emailLabel: 'Διεύθυνση email',
         reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
         reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
@@ -1296,6 +1297,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
+        noTaggedExpenses: 'Δεν υπάρχουν δαπάνες με ετικέτες',
+        noExpensesForTagLevel: (tagLevelName: string) => `Δεν υπάρχουν δαπάνες για ${tagLevelName} σε αυτό το εύρος ημερομηνιών.`,
         tagLevelLabel: 'Επίπεδο ετικέτας',
         parent: 'Γονέας',
         shareOfTotal: 'Μερίδιο του συνόλου (%)',
@@ -4108,9 +4111,6 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             otherAccountingSoftware: 'Όνομα λογισμικού',
-            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
-            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
-            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'Επιλέξτε τις λειτουργίες που θέλετε',
@@ -8218,6 +8218,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
+                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',
