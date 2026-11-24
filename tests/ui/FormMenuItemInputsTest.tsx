@@ -4,6 +4,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import TimeModalPicker from '@components/TimeModalPicker';
+import ValuePicker from '@components/ValuePicker';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -32,6 +33,7 @@ const cases = [
     ['Type', TypeSelector, CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_TYPE],
     ['Initial value', InitialListValueSelector, CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_INITIAL_VALUE],
     ['Time', TimeModalPicker, CONST.SENTRY_LABEL.TIME_MODAL_PICKER.OPEN],
+    ['Value', ValuePicker, CONST.SENTRY_LABEL.VALUE_PICKER.OPEN],
 ] as const;
 
 describe('Composable form picker rows', () => {
@@ -42,6 +44,55 @@ describe('Composable form picker rows', () => {
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
         await waitForBatchedUpdates();
+    });
+
+    it('keeps details out of the field label and announces validation without losing the selected value', () => {
+        // Given a selected value with explanatory details and an announced validation error.
+        render(
+            <LocaleContextProvider>
+                <ValuePicker
+                    ref={null}
+                    label="Field"
+                    value="one"
+                    items={[{value: 'one', label: 'One'}]}
+                    furtherDetails="More information"
+                    errorText="Required field"
+                    shouldReadErrorWithLabel
+                />
+            </LocaleContextProvider>,
+        );
+
+        // When the composed field is read by its accessible name.
+        const row = screen.getByRole('button', {name: /^Field, One/});
+
+        // Then the details remain visible without replacing the value or error in the row name.
+        expect(row).toBeOnTheScreen();
+        expect(row.props.accessibilityLabel).toContain('Required field');
+        expect(row.props.accessibilityLabel).toContain('common.yourReviewIsRequired');
+        expect(row.props.accessibilityLabel).not.toContain('More information');
+        expect(screen.getByText('More information')).toBeOnTheScreen();
+    });
+
+    it('does not let supporting details turn an empty disabled value into a populated field', () => {
+        // Given an empty disabled selector with supporting details.
+        const onOpen = jest.fn();
+        render(
+            <ValuePicker
+                ref={null}
+                label="Field"
+                furtherDetails="More information"
+                disabled
+                onOpen={onOpen}
+            />,
+        );
+
+        // When the disabled row is pressed.
+        fireEvent.press(screen.getByRole('button', {name: 'Field'}), {nativeEvent: {}});
+
+        // Then it remains a placeholder and does not open its modal.
+        expect(screen.UNSAFE_getByType(MenuItem.FieldNamePlaceholder)).toBeDefined();
+        expect(screen.UNSAFE_queryByType(MenuItem.FieldValue)).toBeNull();
+        expect(onOpen).not.toHaveBeenCalled();
     });
 
     it.each(cases)('%s keeps its form ref on the focusable root and its existing Sentry label', (_name, Component, sentryLabel) => {

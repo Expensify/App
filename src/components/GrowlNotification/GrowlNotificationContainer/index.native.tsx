@@ -9,7 +9,7 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import type GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, progress, inactiveY}: GrowlNotificationContainerProps) {
+function GrowlNotificationContainer({children, progress, inactiveY, useBottomPosition}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
     const {paddingTop, paddingBottom, insets} = useSafeAreaPaddings();
     // `progress` is a SharedValue read via .get() inside the worklet, so it's intentionally
@@ -24,8 +24,13 @@ function GrowlNotificationContainer({children, progress, inactiveY}: GrowlNotifi
         paddingRight: insets.right + variables.growlNotificationInset,
     };
 
+    const containerStyle = useBottomPosition ? [styles.growlNotificationContainerBottomRight, styles.pAbsolute] : styles.growlNotificationContainer;
+
     return (
-        <Animated.View style={[styles.growlNotificationContainer, safeAreaPadding, animatedStyles]}>
+        <Animated.View
+            pointerEvents={useBottomPosition ? 'box-none' : undefined}
+            style={[containerStyle, safeAreaPadding, animatedStyles]}
+        >
             <View style={styles.growlNotificationNativeContent}>{children}</View>
         </Animated.View>
     );

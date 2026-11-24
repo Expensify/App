@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -922,6 +922,32 @@ describe('actions/PersonalDetails', () => {
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('openPublicProfilePage', () => {
+        it('sets the account loading state to true, then to false once the request finishes', () => {
+            // Given an account whose public profile has not been requested yet, so it has no loading state
+            const accountID = 123;
+            const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`;
+
+            // When the public profile of that account is opened
+            PersonalDetailsActions.openPublicProfilePage(accountID);
+            const [command, parameters, onyxData] = getRequiredWriteCall(mockAPI.read.mock.calls);
+
+            // Then it requests that account's profile
+            expect(command).toBe(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE);
+            expect(parameters).toEqual({accountID});
+
+            // And it marks only that account as loading, in its own collection member, so other open profiles don't re-render
+            expect(getRequiredOnyxUpdates(onyxData, 'optimisticData')).toHaveLength(1);
+            expect(getRequiredOnyxUpdate(onyxData, 'optimisticData', loadingStateKey, Onyx.METHOD.MERGE).value).toEqual({isLoading: true});
+
+            // And the response clears it, whether the request succeeds or fails, so the page never stays on a loader
+            expect(onyxData).not.toHaveProperty('successData');
+            expect(onyxData).not.toHaveProperty('failureData');
+            expect(getRequiredOnyxUpdates(onyxData, 'finallyData')).toHaveLength(1);
+            expect(getRequiredOnyxUpdate(onyxData, 'finallyData', loadingStateKey, Onyx.METHOD.MERGE).value).toEqual({isLoading: false});
         });
     });
 

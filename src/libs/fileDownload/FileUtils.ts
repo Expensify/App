@@ -594,20 +594,6 @@ function matchesFileSignature(headerHex: string, formatSignatures: readonly stri
     return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
 }
 
-/**
- * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
- *
- * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
- * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
- */
-function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
-    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
-        return Promise.resolve(false);
-    }
-
-    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
-}
-
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -1063,7 +1049,6 @@ export {
     validateImageForCorruption,
     getFileResolution,
     isHighResolutionImage,
-    verifyFileFormat,
     readFileHeaderHex,
     matchesFileSignature,
     getImageDimensionsAfterResize,

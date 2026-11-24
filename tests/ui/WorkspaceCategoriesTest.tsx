@@ -4,11 +4,17 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import type {TableHandle} from '@components/Table';
+import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
+import type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as useNetworkModule from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyCategories} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
@@ -45,6 +52,24 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in.
+ */
+const openBulkActions = async () => {
+    // Without this the missing bar only surfaces later, as a confusing missing-action failure.
+    expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+
+    if (moreButton) {
+        fireEvent.press(moreButton);
+    }
+
+    await waitForBatchedUpdatesWithAct();
+};
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
@@ -100,6 +125,7 @@ const renderPageUnderStackedScreen = (initialParams: WorkspaceSplitNavigatorPara
 describe('WorkspaceCategories', () => {
     const FIRST_CATEGORY = 'categoryOne';
     const SECOND_CATEGORY = 'categoryTwo';
+    const PAYROLL_CODE = 'Payroll Code';
 
     beforeAll(() => {
         Onyx.init({
@@ -125,6 +151,158 @@ describe('WorkspaceCategories', () => {
             await Onyx.clear();
         });
         jest.restoreAllMocks();
+    });
+
+    it.each<{
+        description: string;
+        hasPayrollCode?: boolean;
+        enabled?: boolean;
+        pendingDelete?: boolean;
+        isOffline?: boolean;
+        isControl?: boolean;
+        isNarrow?: boolean;
+        isMedium?: boolean;
+        expected: boolean;
+    }>([
+        {description: 'payroll codes without GL codes', expected: true},
+        {description: 'disabled categories', enabled: false, expected: true},
+        {description: 'no payroll codes', hasPayrollCode: false, expected: false},
+        {description: 'pending deletion online', pendingDelete: true, expected: false},
+        {description: 'pending deletion offline', pendingDelete: true, isOffline: true, expected: true},
+        {description: 'non-Control workspaces', isControl: false, expected: false},
+        {description: 'narrow layouts', isNarrow: true, expected: false},
+        {description: 'medium layouts', isMedium: true, expected: false},
+    ])(
+        'shows the Payroll code column appropriately for $description',
+        async ({hasPayrollCode = true, enabled = true, pendingDelete = false, isOffline = false, isControl = true, isNarrow = false, isMedium = false, expected}) => {
+            // Given category data that covers visibility boundaries without relying on a GL code.
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                type: isControl ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                areCategoriesEnabled: true,
+            };
+            jest.mocked(useResponsiveLayoutModule.default).mockReturnValue(
+                createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: isNarrow, isSmallScreenWidth: isNarrow, isMediumScreenWidth: isMedium}),
+            );
+            jest.spyOn(useNetworkModule, 'default').mockReturnValue({isOffline});
+            const categories: PolicyCategories = {
+                [FIRST_CATEGORY]: {
+                    name: FIRST_CATEGORY,
+                    enabled,
+                    [PAYROLL_CODE]: hasPayrollCode ? 'PAY-100' : '',
+                    pendingAction: pendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+                },
+                [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true},
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+            });
+
+            // When the unfiltered Categories page renders.
+            const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both headers and cells follow the workspace, deletion, and responsive gates.
+            expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
+            expect(screen.queryAllByText(TestHelper.translateLocal('workspace.categories.payrollCode')).length > 0).toBe(expected);
+            expect(screen.queryAllByText('PAY-100').length > 0).toBe(expected);
+            unmount();
+        },
+    );
+
+    it('searches payroll codes without changing column visibility', async () => {
+        // Given a Control workspace with payroll codes that do not occur in category names.
+        await TestHelper.signInWithTestUser();
+        const policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled: true};
+        const categories: PolicyCategories = {
+            [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true, [PAYROLL_CODE]: 'PAY-100'},
+            [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true, [PAYROLL_CODE]: 'PAY-200'},
+        };
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+        });
+        const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        // When searching by payroll code with a different case.
+        fireEvent.changeText(screen.getByPlaceholderText(TestHelper.translateLocal('workspace.categories.findCategory')), 'pay-100');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the matching category remains, and clearing search restores both rows.
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+            expect(screen.queryByText(SECOND_CATEGORY)).not.toBeOnTheScreen();
+        });
+        fireEvent.changeText(screen.getByPlaceholderText(TestHelper.translateLocal('workspace.categories.findCategory')), '');
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText(SECOND_CATEGORY)).toBeOnTheScreen();
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.categories.payrollCode')).length).toBeGreaterThan(0);
+        unmount();
+    });
+
+    it('sorts payroll codes in both directions with blanks and handles removing the last code', async () => {
+        // Given payroll code ordering that differs from category name ordering.
+        let categories: WorkspaceCategoryTableRowData[] = [FIRST_CATEGORY, SECOND_CATEGORY, 'categoryThree'].map((name, index) => ({
+            keyForList: name,
+            name,
+            payrollCode: ['PAY-200', 'PAY-100', ''].at(index),
+            enabled: true,
+            disabled: false,
+            isLocked: false,
+            canEditName: false,
+            action: jest.fn(),
+            dismissError: jest.fn(),
+            onToggleEnabled: jest.fn(),
+            onRenameName: jest.fn(),
+        }));
+        const tableRef = React.createRef<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>>();
+        const renderTable = (shouldShowPayrollCodeColumn: boolean) => (
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
+                <PortalProvider>
+                    <NavigationContainer>
+                        <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true}}>
+                            <WorkspaceCategoriesTable
+                                ref={tableRef}
+                                categories={categories}
+                                selectedKeys={[]}
+                                selectionEnabled={false}
+                                shouldShowGLCodeColumn={false}
+                                shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
+                                shouldShowApproverColumn={false}
+                                emptyStateSubtitleText=""
+                                emptyStateButtons={undefined}
+                                onRowSelectionChange={jest.fn()}
+                            />
+                        </ScreenWrapperStatusContext.Provider>
+                    </NavigationContainer>
+                </PortalProvider>
+            </ComposeProviders>
+        );
+        const {unmount, rerender} = render(renderTable(true));
+        await waitForBatchedUpdatesWithAct();
+        const getRowNames = () => tableRef.current?.getProcessedData().map((row) => row.name);
+
+        // When sorting by payroll code, both directions include the category with no code.
+        const [payrollCodeHeader] = screen.getAllByRole('button', {name: TestHelper.translateLocal('workspace.categories.payrollCode')});
+        fireEvent.press(payrollCodeHeader);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then descending and ascending order follow payroll codes rather than names.
+        expect(getRowNames()).toEqual([FIRST_CATEGORY, SECOND_CATEGORY, 'categoryThree']);
+        fireEvent.press(payrollCodeHeader);
+        await waitForBatchedUpdatesWithAct();
+        expect(getRowNames()).toEqual(['categoryThree', SECOND_CATEGORY, FIRST_CATEGORY]);
+
+        categories = categories.map((category) => ({...category, payrollCode: ''}));
+        rerender(renderTable(false));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryAllByText(TestHelper.translateLocal('workspace.categories.payrollCode'))).toHaveLength(0);
+        expect(getRowNames()).toEqual([FIRST_CATEGORY, 'categoryThree', SECOND_CATEGORY]);
+        unmount();
     });
 
     it('should delete categories through UI interactions', async () => {
@@ -174,28 +352,15 @@ describe('WorkspaceCategories', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        // Wait for selection mode to be active and click the dropdown menu button
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        // Click the "2 selected" button to open the menu
-        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-        fireEvent.press(dropdownButton);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for menu items to be visible
         await waitFor(() => {
             const deleteText = TestHelper.translateLocal('workspace.categories.deleteCategories');
             expect(screen.getByText(deleteText)).toBeOnTheScreen();
         });
 
-        // Find and verify "Delete categories" dropdown menu item
-        const deleteMenuItem = screen.getByTestId('PopoverMenuItem-Delete categories');
-        expect(deleteMenuItem).toBeOnTheScreen();
+        const deleteMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.deleteCategories'));
 
         // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
         const mockEvent = {
@@ -285,28 +450,15 @@ describe('WorkspaceCategories', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        // Wait for selection mode to be active and click the dropdown menu button
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        // Click the "2 selected" button to open the menu
-        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-        fireEvent.press(dropdownButton);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for menu items to be visible
         await waitFor(() => {
             const disableText = TestHelper.translateLocal('workspace.categories.disableCategories');
             expect(screen.getByText(disableText)).toBeOnTheScreen();
         });
 
-        // Find and verify "Disable categories" dropdown menu item
-        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable categories');
-        expect(disableMenuItem).toBeOnTheScreen();
+        const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.disableCategories'));
 
         // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
         const mockEvent = {
@@ -381,6 +533,81 @@ describe('WorkspaceCategories', () => {
 
         expect(navigate.mock.calls.at(1)?.at(0)).toBe(categoryRoute);
         expect(JSON.stringify(getStateFromPath(categoryRoute))).not.toContain(SCREENS.NOT_FOUND);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+    /** Two enabled categories on an admin policy, which is all either selection case below needs. */
+    const setUpCategories = async ({shouldEnableMobileSelectionMode = false} = {}) => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCategoriesEnabled: true,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {
+                [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true},
+                [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true},
+            });
+        });
+
+        const renderResult = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+        });
+
+        // A narrow layout keeps its checkboxes behind selection mode, which a long press turns on in the app. It has
+        // to be turned on after the page is mounted, because a page that starts in it turns it back off.
+        if (shouldEnableMobileSelectionMode) {
+            await act(async () => {
+                turnOnMobileSelectionMode();
+            });
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        // Once the list loads, the sticky table header renders a second "Select all" checkbox
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+        fireEvent.press(selectAll);
+        await waitForBatchedUpdatesWithAct();
+
+        return renderResult;
+    };
+
+    it('keeps the header buttons in place while the floating bar carries the selection', async () => {
+        // Given the full-width page, where the bar fits
+        const {unmount} = await setUpCategories();
+
+        // Then the bar holds the bulk actions and the header is left alone, which is the point of moving them there
+        expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.categories.addCategory'))).toBeOnTheScreen();
+        expect(screen.queryByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button')).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('falls back to the header dropdown in the RHP, where the floating bar cannot go', async () => {
+        // Given a wide screen showing the page in the RHP, which is narrow without being a small screen
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: true,
+            }),
+        );
+
+        const {unmount} = await setUpCategories({shouldEnableMobileSelectionMode: true});
+
+        // Then the actions stay reachable from the header instead
+        expect(screen.getByTestId('WorkspaceCategoriesPage-header-dropdown-menu-button')).toBeOnTheScreen();
+        expect(screen.queryByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeNull();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

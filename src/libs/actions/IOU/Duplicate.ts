@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -47,7 +48,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils';
+import type {MergeDuplicatesTransactionParams} from '@libs/TransactionUtils/duplicates';
 
 import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
@@ -93,6 +94,11 @@ function getIOUActionForTransactions(
         return transactionIDList.includes(message.IOUTransactionID);
     });
 }
+
+/** Duplicating can reach every expense type, including per diem, which needs `personalDetailsByLogins`. */
+type DuplicateRequestMoneyInformation = RequestMoneyInformation & {
+    personalDetailsByLogins: PersonalDetailsByLogin;
+};
 
 type DiscardedSource = {
     amount: number;
@@ -718,7 +724,7 @@ function createExpenseByType({
     rules,
 }: {
     transactionType: string;
-    params: RequestMoneyInformation;
+    params: DuplicateRequestMoneyInformation;
     transaction: OnyxTypes.Transaction;
     transactionDetails: ReturnType<typeof getTransactionDetails>;
     waypoints: WaypointCollection | undefined;
@@ -741,9 +747,6 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
-                // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
-                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
@@ -828,6 +831,7 @@ type DuplicateExpenseTransactionParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -838,6 +842,7 @@ type DuplicateExpenseTransactionParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function duplicateExpenseTransaction({
@@ -861,6 +866,7 @@ function duplicateExpenseTransaction({
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -872,6 +878,7 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -886,7 +893,7 @@ function duplicateExpenseTransaction({
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
-    const params: RequestMoneyInformation = {
+    const params: DuplicateRequestMoneyInformation = {
         isVendorMatchingBetaEnabled,
         report: targetReport,
         existingIOUReport,
@@ -912,6 +919,7 @@ function duplicateExpenseTransaction({
         quickAction,
         existingTransactionDraft,
         rules,
+        personalDetailsByLogins,
         existingTransaction: {
             iouRequestType: duplicateRequestType,
             amount: 0,
@@ -963,6 +971,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
+            currentUserPersonalDetails,
             introSelected,
             conciergeChat,
             quickAction,
@@ -1030,6 +1039,7 @@ type DuplicateReportParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 /**
@@ -1116,26 +1126,24 @@ function duplicateReport({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+    const {reportPreviewReportActionID, ...newReport} = createNewReport({
         ownerPersonalDetails,
-        false,
+        hasViolations: false,
         isASAPSubmitBetaEnabled,
-        targetPolicy,
+        policy: targetPolicy,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
-        false,
-        undefined,
-        {
-            reportName: newReportName,
-        },
-    );
+        reportName: newReportName,
+        personalDetailsByLogins,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1202,7 +1210,7 @@ function duplicateReport({
         const isLastExpense = i === eligibleTransactions.length - 1;
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
-        const params: RequestMoneyInformation = {
+        const params: DuplicateRequestMoneyInformation = {
             isVendorMatchingBetaEnabled,
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
@@ -1234,6 +1242,7 @@ function duplicateReport({
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
             rules,
+            personalDetailsByLogins,
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1299,6 +1308,7 @@ type BulkDuplicateExpensesParams = {
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -1309,6 +1319,7 @@ type BulkDuplicateExpensesParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function bulkDuplicateExpenses({
@@ -1328,6 +1339,7 @@ function bulkDuplicateExpenses({
     transactionDrafts,
     recentWaypoints,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -1338,6 +1350,7 @@ function bulkDuplicateExpenses({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1425,6 +1438,7 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1446,6 +1460,7 @@ function bulkDuplicateExpenses({
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             isTrackIntentUser,
             delegateAccountID,
@@ -1503,6 +1518,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 async function bulkDuplicateReports({
@@ -1533,6 +1549,7 @@ async function bulkDuplicateReports({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateReportsParams) {
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
@@ -1608,6 +1625,7 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',
