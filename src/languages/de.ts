@@ -12765,7 +12765,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 one: '1 Mitglied',
                 other: `${count} Mitglieder`,
             }),
-            sizeNotSet: `<muted-text>Wenn Sie Ihre Abonnementgröße jetzt nicht festlegen, legen wir sie automatisch basierend auf der Anzahl der aktiven Mitglieder in Ihrem ersten Monat fest. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text>`,
+            sizeNotSet: `<muted-text-label>Wenn Sie Ihre Abonnementgröße jetzt nicht festlegen, legen wir sie automatisch basierend auf der Anzahl der aktiven Mitglieder in Ihrem ersten Monat fest. <a href="${CONST.PRICING}">Mehr erfahren</a></muted-text-label>`,
             expensifyCodeApplied: (code: string) => `${code} angewendet`,
             addExpensifyCode: 'Expensify-Code hinzufügen',
             editExpensifyCode: 'Expensify-Code bearbeiten',
@@ -12773,7 +12773,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Sparen Sie bis zu ${amountWithCurrency}/Monat pro aktivem Mitglied. Zusätzliche Plätze werden automatisch hinzugefügt, wenn aktive Nutzer:innen Ihr Abonnement überschreiten, wodurch sich Ihr jährliches Enddatum verlängert.`,
             annualSavingsDescription: (hasAdminsRoom: boolean) =>
-                `<muted-text>Für den niedrigsten Preis wählen Sie ein Jahresabonnement und erhalten die Expensify Karte. Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
+                `<muted-text>Wählen Sie für den niedrigsten Preis ein Jahresabonnement und holen Sie sich die Expensify Karte. Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatten Sie mit unserem Team in Ihrem ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">#admins-Raum.</a>` : '#admins-Raum.'}</muted-text>`,
+            secretExpensifyCodeApplied: 'Expensify-Code angewendet',
         },
         cancelSubscription: {
             title: 'Abonnement kündigen',

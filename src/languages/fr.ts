@@ -12685,7 +12685,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             saveWithExpensifyTitle: 'Économisez avec la Carte Expensify',
             saveWithExpensifyDescription: 'Utilisez notre calculateur d’économies pour voir comment le cash back de la Carte Expensify peut réduire votre facture Expensify.',
             saveWithExpensifyButton: 'En savoir plus',
-            plan: 'Formule',
+            plan: 'Forfait',
         },
         compareModal: {
             comparePlans: 'Comparer les offres',
@@ -12785,7 +12785,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             renewsOn: (date: string) => `Se renouvelle le ${date}.`,
             pricingConfiguration: 'Le prix dépend de la configuration. Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la Carte Expensify.',
             learnMore: (hasAdminsRoom: boolean) =>
-                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Salon #admins.</a>` : 'salon #admins.'}</muted-text>`,
+                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
@@ -12795,15 +12795,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 one: '1 membre',
                 other: `${count} membres`,
             }),
-            sizeNotSet: `<muted-text>Si vous ne définissez pas la taille de votre abonnement maintenant, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text>`,
+            sizeNotSet: `<muted-text-label>Si vous ne définissez pas maintenant la taille de votre abonnement, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text-label>`,
             expensifyCodeApplied: (code: string) => `${code} appliqué`,
             addExpensifyCode: 'Ajouter le code Expensify',
             editExpensifyCode: 'Modifier le code Expensify',
             saveWithAnnualSubscription: 'Économisez avec un abonnement annuel',
             autoIncreaseDescription: (amountWithCurrency: string) =>
-                `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif. Des places supplémentaires sont ajoutées automatiquement lorsque les utilisateurs actifs dépassent votre abonnement, prolongeant ainsi votre date de fin annuelle.`,
+                `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif. Des places supplémentaires sont ajoutées automatiquement lorsque le nombre d’utilisateurs actifs dépasse votre abonnement, ce qui prolonge votre date de fin annuelle.`,
             annualSavingsDescription: (hasAdminsRoom: boolean) =>
-                `<muted-text>Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la Carte Expensify. En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">Salon #admins.</a>` : 'salon #admins.'}</muted-text>`,
+                `<muted-text>Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la Carte Expensify. En savoir plus sur notre <a href="${CONST.PRICING}">page des tarifs</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="${CONST.SUBSCRIPTION.ADMINS_ROOM_LINK}">salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
+            secretExpensifyCodeApplied: 'Code Expensify appliqué',
         },
         cancelSubscription: {
             title: "Annuler l'abonnement",
