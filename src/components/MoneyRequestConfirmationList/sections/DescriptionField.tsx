@@ -1,3 +1,4 @@
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
@@ -30,7 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -116,17 +117,19 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     const readOnlyDescription = shouldUseDropdownRows ? (
-        <ExpenseFieldRow
-            name={translate('common.description')}
-            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
-            hasValueComponent={!!descriptionHTML}
-            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML, {accountIDToName})}` : undefined}
-            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-            onPress={openDescriptionPage}
-            isDisabled={didConfirm}
-            isInteractive={false}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-        />
+        <ExpenseFieldContainer>
+            <DropdownFieldRow
+                name={translate('common.description')}
+                valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+                hasValueComponent={!!descriptionHTML}
+                accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML, {accountIDToName})}` : undefined}
+                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                onPress={openDescriptionPage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+            />
+        </ExpenseFieldContainer>
     ) : (
         <MenuItemFieldHTML
             name={translate('common.description')}

@@ -1,7 +1,7 @@
 import type {ParagraphWithWidth} from '@components/Charts/types';
 import {buildChartParagraph, buildWrappedChartParagraph} from '@components/Charts/utils';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
 /**
  * Builds and lays out Skia paragraphs for the given labels.

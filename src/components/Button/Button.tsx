@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import HapticFeedback from '@libs/HapticFeedback';
 
 import CONST from '@src/CONST';
@@ -124,7 +125,7 @@ function Button({
     if (!blendOpacity) {
         buttonBlendForegroundStyle = undefined;
     } else {
-        const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
+        const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles) ?? {};
         buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
@@ -148,7 +149,7 @@ function Button({
             accessibilityState={accessibilityState}
             hitSlop={hitSlop}
             accessibilityHasPopup={accessibilityHasPopup}
-            sentryLabel={sentryLabel}
+            sentryLabel={castToSentryLabel(sentryLabel)}
             role={CONST.ROLE.BUTTON}
             isNested={isNested}
             disabled={isLoading || isDisabled}

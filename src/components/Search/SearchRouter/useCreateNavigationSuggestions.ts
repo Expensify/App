@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import {showSupportalPermissionDenied} from '@libs/actions/App';
@@ -114,6 +115,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -152,17 +154,17 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 clearLastSearchParams();
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                false,
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
-                false,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 shouldDismissEmptyReportsConfirmation,
-            );
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});

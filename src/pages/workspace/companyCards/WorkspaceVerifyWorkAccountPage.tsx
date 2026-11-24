@@ -18,7 +18,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {clearGetAccessiblePoliciesErrors, validateUserAndGetAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -55,7 +55,7 @@ function WorkspaceVerifyWorkAccountPageContent({route}: WorkspaceVerifyWorkAccou
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
-        getAccessiblePolicies(validateCode);
+        validateUserAndGetAccessiblePolicies(validateCode);
     };
 
     const onDismissError = () => {

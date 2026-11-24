@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
+    CreateTestBankAccountParams,
     CreateWithdrawalABAAccountParams,
     DeletePaymentBankAccountParams,
     LinkPlaidToBankAccountParams,
@@ -745,6 +746,12 @@ function addPersonalBankAccount(
     }
 
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function createTestBankAccount(type: CreateTestBankAccountParams['type']) {
+    const parameters: CreateTestBankAccountParams = {type};
+
+    API.write(WRITE_COMMANDS.CREATE_TEST_BANK_ACCOUNT, parameters);
 }
 
 function deletePaymentBankAccount(
@@ -2187,6 +2194,7 @@ export {
     linkPlaidToBankAccount,
     clearLinkPlaidBankAccountErrors,
     createCorpayBankAccount,
+    createTestBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,

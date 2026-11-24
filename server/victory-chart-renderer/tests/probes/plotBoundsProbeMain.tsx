@@ -4,7 +4,7 @@ import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING}
 
 import type {ChartBounds} from 'victory-native';
 
-import {drawOffscreen, makeOffscreenSurface} from '@shopify/react-native-skia/lib/module/headless';
+import {drawOffscreen, makeOffscreenSurface} from 'react-native-skia/lib/module/headless';
 import {CartesianChart} from 'victory-native';
 
 const CHART_WIDTH = 400;
