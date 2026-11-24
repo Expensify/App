@@ -16361,6 +16361,26 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptionAvailability', () => {
+        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows violations for a %s workspace without a Rules setting', (policyType) => {
+            // Given a group workspace without a Rules setting or enabled tags and categories
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, policyType),
+                    areRulesEnabled: undefined,
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                },
+            };
+
+            // When checking availability without loading any category rules
+            const availability = SearchUIUtils.getHasOptionAvailability(policies);
+
+            // Then violations are available without enabling tags or categories
+            expect(availability).toEqual({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
+        });
+    });
+
     describe('getHasOptions', () => {
         const getExpenseHasOptions = () => ({
             receipt: {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
@@ -16386,7 +16406,8 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Tag only when at least one accessible workspace has tags enabled', () => {
-            const {receipt, attachment, tag} = getExpenseHasOptions();
+            // Given a workspace with tags enabled but categories and Rules disabled
+            const {receipt, attachment, tag, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -16396,9 +16417,11 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, tag]);
+            // Then tags and violations are available without exposing categories
+            expect(result).toEqual([receipt, attachment, tag, submittedViolation, approvedViolation]);
         });
 
         test('hides Tag when no accessible workspace has tags enabled', () => {
@@ -16420,7 +16443,8 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Category only when at least one accessible workspace has categories enabled', () => {
-            const {receipt, attachment, category} = getExpenseHasOptions();
+            // Given a workspace with categories enabled but tags and Rules disabled
+            const {receipt, attachment, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -16430,9 +16454,11 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, category]);
+            // Then categories and violations are available without exposing tags
+            expect(result).toEqual([receipt, attachment, category, submittedViolation, approvedViolation]);
         });
 
         test('hides Category when no accessible workspace has categories enabled', () => {
@@ -16469,20 +16495,23 @@ describe('SearchUIUtils', () => {
             expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
-        test('hides Submitted and Approved violation when no accessible workspace has Rules enabled', () => {
+        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows Submitted and Approved violation for a %s workspace with Rules off', (policyType) => {
+            // Given a group workspace with Rules disabled, expenses can still have violations
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    ...createRandomPolicy(1, policyType),
                     areTagsEnabled: true,
                     areCategoriesEnabled: true,
                     areRulesEnabled: false,
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+            // Then both violation options remain available alongside enabled workspace features
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
         });
@@ -18205,9 +18234,7 @@ describe('Trip search', () => {
     it('offers upcoming, done and canceled as trip room statuses', () => {
         // Given a trip search with and without the TravelApproval beta
         const getStatusValues = (shouldReturnTripRooms: boolean) =>
-            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, undefined, shouldReturnTripRooms).map(
-                (option) => option.value,
-            );
+            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, shouldReturnTripRooms).map((option) => option.value);
 
         // When the Status filter options are built
         // Then trip rooms offer their own statuses, and the expense search keeps current and past
