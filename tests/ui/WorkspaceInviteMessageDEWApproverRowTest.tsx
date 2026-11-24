@@ -216,3 +216,82 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         expect(queryApproverRow()).not.toBeOnTheScreen();
     });
 });
+
+describe('WorkspaceInviteMessageComponent - Turn on travel checkbox', () => {
+    const travelSettings = {spotnanaCompanyID: 'spotnana-company-id'};
+    const pressTurnOnTravel = () => fireEvent.press(screen.getByText(translateLocal('workspace.inviteMessage.turnOnTravel')));
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_MEMBER_ACCESS]);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin'),
+                [INVITEE_ACCOUNT_ID]: buildPersonalDetails(INVITEE_EMAIL, INVITEE_ACCOUNT_ID, 'invitee'),
+            } satisfies PersonalDetailsList);
+            await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`, {[INVITEE_EMAIL]: INVITEE_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    it('sends no travel choice when the admin keeps the default, so the workspace setting decides', async () => {
+        // Given a travel workspace whose new member travel setting was never changed, which means on
+        await renderPage(buildPolicy({travelSettings}));
+
+        // When the admin sends the invite without touching the checkbox
+        await pressInvite();
+
+        // Then no travel choice is sent, so the request matches an invite without the checkbox
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.canUseTravel).toBeUndefined();
+    });
+
+    it('sends false when the admin unchecks travel on a workspace where new members can book', async () => {
+        // Given a travel workspace where new members can book travel
+        await renderPage(buildPolicy({travelSettings}));
+
+        // When the admin unchecks "Turn on travel" and sends the invite
+        pressTurnOnTravel();
+        await pressInvite();
+
+        // Then the invitee is sent with travel off, the only value the server stores
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.canUseTravel).toBe(false);
+    });
+
+    it('sends no travel choice when the admin keeps travel off on a workspace where new members start with travel off', async () => {
+        // Given a travel workspace whose new member travel setting is off, so the checkbox starts unchecked
+        await renderPage(buildPolicy({travelSettings: {...travelSettings, autoEnableNewMembers: false}}));
+
+        // When the admin sends the invite as is
+        await pressInvite();
+
+        // Then no travel choice is sent and the server applies the workspace setting
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.canUseTravel).toBeUndefined();
+    });
+
+    it('sends true when the admin checks travel on a workspace where new members start with travel off', async () => {
+        // Given a travel workspace whose new member travel setting is off, so the checkbox starts unchecked
+        await renderPage(buildPolicy({travelSettings: {...travelSettings, autoEnableNewMembers: false}}));
+
+        // When the admin checks "Turn on travel" and sends the invite
+        pressTurnOnTravel();
+        await pressInvite();
+
+        // Then the choice is sent so the server skips the workspace setting and the invitee can book travel
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.canUseTravel).toBe(true);
+    });
+});

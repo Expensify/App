@@ -146,7 +146,9 @@ function WorkspaceInviteMessageComponent({
     const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
     const shouldShowTravelCheckbox = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAdmin(policy, currentUserLogin);
-    const [shouldTurnOnTravel, setShouldTurnOnTravel] = useState(policy?.travelSettings?.autoEnableNewMembers ?? false);
+    // Invitees follow the workspace's new member travel setting, which counts as on until an admin turns it off
+    const shouldTurnOnTravelByDefault = policy?.travelSettings?.autoEnableNewMembers !== false;
+    const [shouldTurnOnTravel, setShouldTurnOnTravel] = useState(shouldTurnOnTravelByDefault);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -228,7 +230,7 @@ function WorkspaceInviteMessageComponent({
                 approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
                 hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
                 policyCategories,
-                canUseTravel: shouldShowTravelCheckbox ? shouldTurnOnTravel : undefined,
+                canUseTravel: shouldShowTravelCheckbox && shouldTurnOnTravel !== shouldTurnOnTravelByDefault ? shouldTurnOnTravel : undefined,
             },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);

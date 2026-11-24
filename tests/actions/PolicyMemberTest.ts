@@ -645,6 +645,35 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
+        it("follows the inviter's travel choice over the workspace's new member travel setting", async () => {
+            // Given a workspace whose new member travel setting is off, and one where it is missing, which means on
+            const offPolicy = {...createRandomPolicy(1), travelSettings: {autoEnableNewMembers: false}};
+            const onPolicy = {...createRandomPolicy(2), travelSettings: {}};
+            const turnedOnEmail = 'turnedon@gmail.com';
+            const turnedOffEmail = 'turnedoff@gmail.com';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${offPolicy.id}`, offPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${onPolicy.id}`, onPolicy);
+
+            // When the admin turns travel on for an invitee to the first and off for an invitee to the second, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace({[turnedOnEmail]: 1234}, {}, 'Welcome', offPolicy, [], CONST.POLICY.ROLE.USER, currentUser, {}, {canUseTravel: true});
+            Member.addMembersToWorkspace({[turnedOffEmail]: 5678}, {}, 'Welcome', onPolicy, [], CONST.POLICY.ROLE.USER, currentUser, {}, {canUseTravel: false});
+            await waitForBatchedUpdates();
+
+            // Then the turned on invitee has nothing stored, since a missing key means they can book, and the turned off one has false
+            const offPolicyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${offPolicy.id}`);
+            const onPolicyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${onPolicy.id}`);
+            expect(offPolicyResult?.employeeList?.[turnedOnEmail]).not.toHaveProperty('canUseTravel');
+            expect(onPolicyResult?.employeeList?.[turnedOffEmail]?.canUseTravel).toBe(false);
+
+            // And both choices are sent, so the server applies them instead of the workspace setting
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            const requestBodies = TestHelper.getFetchMockCalls(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE).map((call) => call[1]?.body);
+            const canUseTravelParams = requestBodies.map((body) => (body instanceof FormData ? body.get('canUseTravel') : null));
+            expect(canUseTravelParams).toEqual(['true', 'false']);
+        });
+
         it('lets an invited member use every category while some categories are limited to other members', async () => {
             // Given a workspace where Fuel is limited to one member, Meals to a member being invited back with a stale entry, and Travel is open to everyone
             const policyID = '1';

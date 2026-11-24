@@ -4,7 +4,7 @@ type AddMembersToWorkspaceParams = {
     policyID: string;
     hasOfficeWorkArrangement?: boolean;
 
-    /** Whether the invited members can book travel. Omitted, the workspace setting for new members decides. */
+    /** The inviter's travel choice when it differs from the workspace's new member travel setting. Omitted, the setting decides. The server never stores true. */
     canUseTravel?: boolean;
     reportCreationData?: string;
     announceChatReportID?: string;
