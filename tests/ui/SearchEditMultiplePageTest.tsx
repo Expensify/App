@@ -1,17 +1,20 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import type DropdownField from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+
 import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
@@ -27,6 +30,7 @@ import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from
 import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {ComponentProps} from 'react';
+import type ReactNative from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -58,6 +62,13 @@ jest.mock('@userActions/Policy/Tag', () => ({
     openPolicyTagsPage: jest.fn(),
 }));
 
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/DeviceCapabilities'),
+    canUseTouchScreen: jest.fn(() => true),
+}));
+
+jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
+
 jest.mock('@hooks/usePermissions', () => () => ({
     isBetaEnabled: () => false,
     isBetaEnabledOrUnknown: () => false,
@@ -66,11 +77,20 @@ jest.mock('@hooks/usePermissions', () => () => ({
 // Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
 const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
 const mockValueByRow: Record<string, string | undefined> = {};
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown' | 'value'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown, value}: ExpenseFieldDropdownMockProps) => {
+const mockOnVisibilityChangeByRow: Record<string, ((isVisible: boolean) => void) | undefined> = {};
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'name' | 'shouldOpenInDropdown' | 'value' | 'onVisibilityChange'>;
+jest.mock('@components/DropdownField', () => ({name, shouldOpenInDropdown, value, onVisibilityChange}: DropdownFieldMockProps) => {
     mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
     mockValueByRow[name] = value;
+    mockOnVisibilityChangeByRow[name] = onVisibilityChange;
     return null;
+});
+
+// The Enter shortcut only registers on web, so a marker stands in for it to show whether Save is listening for Enter.
+const ENTER_SHORTCUT_TEST_ID = 'SaveEnterShortcut';
+jest.mock('@components/Button/primitives/ButtonKeyboardShortcut', () => {
+    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
+    return () => <MockView testID="SaveEnterShortcut" />;
 });
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -179,9 +199,12 @@ describe('SearchEditMultiplePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
         for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
             delete mockShouldOpenInDropdownByRow[rowName];
             delete mockValueByRow[rowName];
+            delete mockOnVisibilityChangeByRow[rowName];
         }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
@@ -536,6 +559,110 @@ describe('SearchEditMultiplePage', () => {
 
         // Then the amount goes with that currency, as each expense would otherwise keep its own and read as a different amount
         expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {amount: 5000, currency: CONST.CURRENCY.EUR}}));
+    });
+
+    it("closes the keyboard from the amount's Done key", async () => {
+        // Given a selection whose amount can be edited
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Done blurs the amount input, because the page has no form that would close the keyboard on submit
+        expect(screen.getByLabelText('Amount').props.submitBehavior).toBe('blurAndSubmit');
+    });
+
+    it("saves from the description's Enter key when a hardware keyboard is used", async () => {
+        // Given a device with a hardware keyboard, where Shift+Enter still adds a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(false);
+        await selectTransactions([OPEN_TRANSACTION_ID], {comment: {comment: 'Team lunch'}});
+
+        // When Enter is pressed in the description
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent(screen.getByLabelText('Description'), 'submitEditing');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are saved, as they are from the expense form
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {comment: 'Team lunch'}}));
+    });
+
+    it('keeps Enter as a new line in the description on a touch device', async () => {
+        // Given a touch device, where Enter is the only way to add a new line
+        jest.mocked(canUseTouchScreen).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Enter adds a new line to the description instead of saving
+        expect(screen.getByLabelText('Description').props.submitBehavior).toBe('newline');
+    });
+
+    it('lets the first tap with the keyboard open reach the field under it', async () => {
+        // Given a selection on the Edit multiple page
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the scroll view hands taps to the field instead of using them only to close the keyboard
+        expect(screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).length).toBeGreaterThan(0);
+    });
+
+    it('moves Save into the scrolling fields in landscape with the keyboard open', async () => {
+        // Given a phone in landscape with the keyboard open, which leaves little room above the keyboard
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(true);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page is opened
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save scrolls with the fields, so it does not cover the field being edited
+        const scrollView = screen.UNSAFE_getAllByProps({keyboardShouldPersistTaps: 'handled'}).at(0);
+        if (!scrollView) {
+            throw new Error('No scroll view');
+        }
+        expect(within(scrollView).getByText('Save')).toBeOnTheScreen();
+        expect(screen.getAllByText('Save')).toHaveLength(1);
+    });
+
+    it('stops listening for Enter while a list is open, so Enter in the list does not save the page behind it', async () => {
+        // Given the Edit multiple page with its Reimbursable row
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+
+        // When the row's list opens with no option focused
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(true));
+
+        // Then Save no longer takes Enter, which would otherwise save every selected expense behind the list
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
+
+        // When the list closes
+        act(() => mockOnVisibilityChangeByRow.Reimbursable?.(false));
+
+        // Then Enter saves the page again
+        expect(screen.getByTestId(ENTER_SHORTCUT_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('stops listening for Enter while the currency picker is open', async () => {
+        // Given the Edit multiple page with an editable amount shown in EUR
+        await selectTransactions([OPEN_TRANSACTION_ID], {currency: CONST.CURRENCY.EUR});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the currency picker is opened from the amount row
+        fireEvent.press(screen.getByText(CONST.CURRENCY.EUR));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save no longer takes Enter, so Enter in the picker does not save the page
+        expect(screen.queryByTestId(ENTER_SHORTCUT_TEST_ID)).toBeNull();
     });
 
     it('accepts a negative amount when every selected expense allows one', async () => {

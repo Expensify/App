@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -92,6 +93,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -269,6 +271,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             report,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             currentUserEmail: currentUserPersonalDetails.login,
+            currentUserPersonalDetails,
             backToReport,
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled,
@@ -295,6 +298,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             conciergeChat,
             formatPhoneNumber,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

@@ -4,6 +4,7 @@ import GpsDraftDetailsRefSync from '@components/GpsDraftDetailsRefSync';
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import Icon from '@components/Icon';
 import OfflineIndicator from '@components/OfflineIndicator';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -12,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRequire2FAOverlayVisibility from '@hooks/useRequire2FAOverlayVisibility';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSignOut from '@hooks/useSignOut';
 import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,15 +57,20 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const testToolsTapResponder = useTestToolsTapResponder();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // OfflineIndicator is a fixed-height row. Safe-area padding has to live on the container around it,
-    // or the home-indicator inset consumes that height and the "You appear to be offline" label clips.
+    // The label is a fixed-height row. Safe-area padding has to live on the container around it, or the home-indicator inset consumes that height and clips the label.
+    // It is pinned to the overlay instead of following the content in the column, because web clips a sibling that spills past the overlay.
     const offlineBannerSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
+    // The pinned row no longer takes space in the column. This gap keeps a card that still fits from centering under the label.
+    const offlineContentPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isOffline,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        additionalPaddingBottom: isOffline ? CONST.OFFLINE_INDICATOR_HEIGHT : 0,
     });
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
@@ -133,51 +138,60 @@ function RequireTwoFactorAuthenticationOverlay() {
                     {...testToolsTapResponder}
                 >
                     <HorizontalSafeArea>
-                        <View style={styles.flex1}>
-                            <View style={styles.twoFARequiredContainer}>
-                                <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
-                                    <Icon
-                                        src={illustrations.Encryption}
-                                        width={variables.twoFAIconHeight}
-                                        height={variables.twoFAIconHeight}
-                                    />
-                                </View>
-                                <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
-                                    <View style={styles.mb5}>
-                                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
-                                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                                            {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
-                                        </Text>
+                        <View style={[styles.flex1, offlineContentPaddingStyle]}>
+                            {/* The card does not shrink, so a short window would leave the buttons under the pinned row. Scrolling is the only way to move them above it. */}
+                            <ScrollView
+                                style={styles.flex1}
+                                contentContainerStyle={styles.flexGrow1}
+                                keyboardShouldPersistTaps="handled"
+                            >
+                                <View style={styles.twoFARequiredContainer}>
+                                    <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
+                                        <Icon
+                                            src={illustrations.Encryption}
+                                            width={variables.twoFAIconHeight}
+                                            height={variables.twoFAIconHeight}
+                                        />
                                     </View>
-                                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
-                                        <Button
-                                            sentryLabel={
-                                                isActingAsDelegate
-                                                    ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
-                                                    : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
-                                            }
-                                            size={CONST.BUTTON_SIZE.LARGE}
-                                            isLoading={isEscapeInFlight}
-                                            onPress={onEscapePress}
-                                        >
-                                            <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
-                                        </Button>
-                                        <Button
-                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
-                                            size={CONST.BUTTON_SIZE.LARGE}
-                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                            onPress={enableTwoFactorAuth}
-                                        >
-                                            {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
-                                            <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
-                                        </Button>
+                                    <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
+                                        <View style={styles.mb5}>
+                                            <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>
+                                                {translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}
+                                            </Text>
+                                            <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                                                {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
+                                            </Text>
+                                        </View>
+                                        <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                            <Button
+                                                sentryLabel={
+                                                    isActingAsDelegate
+                                                        ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
+                                                        : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
+                                                }
+                                                size={CONST.BUTTON_SIZE.LARGE}
+                                                isLoading={isEscapeInFlight}
+                                                onPress={onEscapePress}
+                                            >
+                                                <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
+                                            </Button>
+                                            <Button
+                                                sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
+                                                size={CONST.BUTTON_SIZE.LARGE}
+                                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                                onPress={enableTwoFactorAuth}
+                                            >
+                                                {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
+                                                <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                            </Button>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
+                            </ScrollView>
                         </View>
-                        {shouldUseNarrowLayout && isOffline && (
+                        {isOffline && (
                             <View
-                                style={offlineBannerSafeAreaStyle}
+                                style={[styles.stickToBottom, styles.zIndex1, styles.appBG, offlineBannerSafeAreaStyle]}
                                 testID="RequireTwoFactorOfflineBanner"
                             >
                                 <OfflineIndicator style={styles.pl5} />

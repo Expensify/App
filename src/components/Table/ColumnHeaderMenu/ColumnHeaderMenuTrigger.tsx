@@ -36,11 +36,14 @@ type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     /** Insets the label and the caret together, so the caret sits as close to the label in an inset heading as in any other. */
     labelRowStyle?: StyleProp<ViewStyle>;
 
+    /** Whether the label shows only an icon, which leaves no room for a caret beside it, so the caret takes the icon's place on hover. */
+    isIconOnly?: boolean;
+
     /** The heading's label. A centered column renders it twice, once hidden to size the label's slot. */
     children: React.ReactNode;
 };
 
-function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
+function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, isIconOnly = false, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -83,16 +86,28 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
             >
                 {({hovered}) => {
                     const isCaretVisible = hovered && !isMenuVisible;
-                    const caret = isCaretVisible && (
-                        <View style={isCaretBeforeLabel ? styles.mr1 : styles.ml1}>
-                            <Icon
-                                src={icons.DownArrow}
-                                fill={theme.icon}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                        </View>
+                    const caretIcon = (
+                        <Icon
+                            src={icons.DownArrow}
+                            fill={theme.icon}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                        />
                     );
+
+                    if (isIconOnly) {
+                        return (
+                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                {isCaretVisible ? (
+                                    <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeSmall), styles.alignItemsCenter, styles.justifyContentCenter]}>{caretIcon}</View>
+                                ) : (
+                                    <View style={labelRowStyle}>{children}</View>
+                                )}
+                            </View>
+                        );
+                    }
+
+                    const caret = isCaretVisible && <View style={isCaretBeforeLabel ? styles.mr1 : styles.ml1}>{caretIcon}</View>;
                     const labelRow = (
                         <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, isEndAligned && styles.justifyContentEnd, labelRowStyle]}>

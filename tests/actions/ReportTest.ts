@@ -3857,7 +3857,16 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -3923,7 +3932,15 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID: 1234},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
             managedCardTransactionID,
         });
 
@@ -3945,7 +3962,16 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -3982,7 +4008,16 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -4016,7 +4051,16 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const optimisticReportData = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -4057,7 +4101,16 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({
+            ownerPersonalDetails: {accountID},
+            hasViolations: true,
+            isASAPSubmitBetaEnabled: false,
+            policy,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+            rules: undefined,
+            personalDetailsByLogins: {},
+        });
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -6443,6 +6496,10 @@ describe('actions/Report', () => {
     });
 
     describe('buildOptimisticChangePolicyData', () => {
+        const getPolicyOwnerPersonalDetailsByLogins = (destinationPolicy: OnyxTypes.Policy): PersonalDetailsByLogin => ({
+            [destinationPolicy.owner]: {accountID: destinationPolicy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, login: destinationPolicy.owner},
+        });
+
         it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -6467,7 +6524,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6478,7 +6535,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
         });
 
@@ -6507,7 +6564,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6539,7 +6596,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6589,7 +6646,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Find the transaction optimistic data
@@ -6658,7 +6715,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6711,7 +6768,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6777,7 +6834,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6846,7 +6903,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6932,7 +6989,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: getPolicyOwnerPersonalDetailsByLogins(policy),
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -11969,6 +12026,36 @@ describe('actions/Report', () => {
             // Then the action no longer points at the failed thread, because nothing from the server repairs another user's self DM and the next open has to retry
             const ownerSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`);
             expect(ownerSelfDMActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
+        });
+
+        it("should build a legacy unreported expense with no IOU action in the current user's self DM when they own it", async () => {
+            // Given a legacy unreported expense with no IOU action, and the current user's self DM missing from Onyx
+            const selfDMReportID = '604';
+            const transaction = {...createRandomTransaction(604), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            // When its thread is created with ownership passed in, since there is no action to read the owner from
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                transaction,
+                selfDMReportID,
+                isOwnedByCurrentUser: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self DM is built optimistically and the missing action is created there as a track expense. Without the
+            // ownership flag, the self DM would be treated as another member's, and the action would be built as a CREATE instead
+            expect(result?.parentReportID).toBe(selfDMReportID);
+            const selfDM = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+            expect(selfDM?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
+            const builtAction = Object.values(selfDMActions ?? {}).find((action) => action?.childReportID === result?.reportID);
+            expect(builtAction?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+            const builtOriginalMessage = isActionOfType(builtAction, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(builtAction) : undefined;
+            expect(builtOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
         });
 
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {

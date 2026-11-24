@@ -39,6 +39,17 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
     return policy?.taxRates?.taxes?.[taxID];
 }
 
+/**
+ * Gets a tax rate's label: its name followed by its percentage. A name that already ends with its percentage, like the
+ * `Standard VAT (20%)` rate created for UK fuel-band distance rates, is shown as is so the percentage isn't repeated.
+ */
+function formatTaxRateName(name: string, value: string | undefined): string {
+    if (!value || name.trimEnd().endsWith(`(${value})`)) {
+        return name;
+    }
+    return `${name} (${value})`;
+}
+
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Pick<Policy, 'taxRates'>>): Record<string, string[]> {
@@ -163,6 +174,7 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 export {
     isTaxTrackingEnabled,
     getTaxByID,
+    formatTaxRateName,
     getAllTaxRatesNamesAndValues,
     canDisableOrDeleteTaxRate,
     getCurrentTaxID,

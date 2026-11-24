@@ -11,7 +11,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -30,6 +29,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import {reportPolicyAndChatReportIDsSelector} from '@selectors/Report';
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 import RejectReasonFormView from './RejectReasonFormView';
 
@@ -49,17 +49,17 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const submitRejection = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
+        const [rules, reportTransactionsAndViolations] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]);
+        const reportTransactionsCollection = reportTransactionsAndViolations?.[reportID]?.transactions ?? {};
         const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
@@ -102,7 +102,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={submitRejection}
             validate={validate}
             backTo={backTo}
         />
