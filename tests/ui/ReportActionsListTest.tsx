@@ -49,7 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
+import type {LegendListMetrics, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type ReactNative from 'react-native';
@@ -281,6 +281,8 @@ type MockLegendListProps = {
     onScrollBeginDrag?: () => void;
     onStartReachedThreshold?: number;
     onContentSizeChange?: (width: number, height: number) => void;
+    onItemSizeChanged?: ReturnType<typeof useReportActionsScroll>['onItemSizeChanged'];
+    onMetricsChange?: (metrics: LegendListMetrics) => void;
     onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
@@ -905,6 +907,27 @@ describe('ReportActionsList (body)', () => {
         await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
     });
 
+    it.each(['row', 'footer'])('follows the end when a %s grows without a content size event', async (part) => {
+        // Given a chat has finished its initial scroll to the latest message.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        mockLegendScrollToEnd.mockClear();
+
+        // When LegendList measures a streamed reply or shows the thinking indicator below it.
+        const listProps = getCapturedListProps();
+        act(() => {
+            if (part === 'row') {
+                listProps?.onItemSizeChanged?.({index: 1, size: 400, previous: 20});
+            } else {
+                listProps?.onMetricsChange?.({headerSize: 0, footerSize: 40});
+            }
+        });
+
+        // Then the next frame brings the new bottom into view.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
     it('follows content growth when the reader is 50 pixels above the newest action', async () => {
         // Given a reader still within the existing 250-pixel follow distance.
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -952,16 +975,21 @@ describe('ReportActionsList (body)', () => {
                     layoutMeasurement: {height: 500, width: 300},
                 },
             });
-            listProps?.onContentSizeChange?.(300, 1025);
         });
 
-        // When content grows, the reader's position stays where they left it.
+        // When the last row grows, the web measurement and the native content size event can both arrive.
+        act(() => {
+            listProps?.onItemSizeChanged?.({index: 1, size: 400, previous: 20});
+            listProps?.onContentSizeChange?.(300, 1380);
+        });
         await act(
             async () =>
                 new Promise<void>((resolve) => {
                     setTimeout(resolve, 30);
                 }),
         );
+
+        // Then the reader can continue reading the older messages.
         expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
     });
 

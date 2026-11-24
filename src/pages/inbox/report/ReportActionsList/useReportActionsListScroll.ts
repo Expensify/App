@@ -17,7 +17,7 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
+import type {LegendListMetrics, LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -93,6 +93,7 @@ function useReportActionsListScroll({
     const listRef = useActionListRef();
     const legendListRef = useRef<LegendListRef>(null);
     const headerSizeRef = useRef(0);
+    const footerSizeRef = useRef(0);
 
     useImperativeHandle(
         listRef,
@@ -463,6 +464,12 @@ function useReportActionsListScroll({
         distanceFromBottomRef.current = distanceFromEnd;
     };
 
+    // LegendList on web reports row and footer measurements without firing onContentSizeChange.
+    const followResizedItem: typeof onItemSizeChanged = (change) => {
+        onItemSizeChanged(change);
+        scheduleEndCorrection();
+    };
+
     const trackContentSizeChange = (_width: number, height: number) => {
         trackVerticalScrolling(undefined);
         // Native can report the same content size again when only the viewport resizes.
@@ -504,10 +511,14 @@ function useReportActionsListScroll({
             initialScrollIndex: initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams},
             alignItemsAtEnd: !shouldBeAlignedToTop,
             onReady: markInitialViewportReady,
-            onItemSizeChanged,
+            onItemSizeChanged: followResizedItem,
             onContentSizeChange: trackContentSizeChange,
-            onMetricsChange: ({headerSize}: {headerSize: number}) => {
+            onMetricsChange: ({headerSize, footerSize}: LegendListMetrics) => {
                 headerSizeRef.current = headerSize;
+                if (footerSize !== footerSizeRef.current) {
+                    footerSizeRef.current = footerSize;
+                    scheduleEndCorrection();
+                }
             },
         },
     };
