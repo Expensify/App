@@ -23,6 +23,8 @@ import {
     getConnectedIntegrationNamesForPolicies,
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
+    getDisplayDefaultQueryJSON,
+    getGroupCurrencyValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getFilterFormValues,
@@ -52,6 +54,7 @@ import {
     getValidLastQuery,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptions,
     getChangedDisplayOptionsCount,
     isFilterNegated,
     normalizeDatePresetsInQuery,
@@ -4098,6 +4101,67 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getChangedDisplayOptions', () => {
+        it('marks nothing as changed when the display options match the default query', () => {
+            // Given a query that only adds a filter to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking which display options changed
+            // Then none did, so no option offers Reset
+            expect(getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON)).toEqual({
+                sort: false,
+                sortOrder: false,
+                groupBy: false,
+                view: false,
+                limit: false,
+                groupCurrency: false,
+                columns: false,
+            });
+        });
+
+        it('marks only the options that differ from the default query', () => {
+            // Given a grouped query with a group currency and a limit, on top of an ungrouped default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category groupCurrency:EUR limit:10');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then the grouping, group currency and limit offer Reset, while the view still matches the default
+            expect(changedOptions?.groupBy).toBe(true);
+            expect(changedOptions?.groupCurrency).toBe(true);
+            expect(changedOptions?.limit).toBe(true);
+            expect(changedOptions?.view).toBe(false);
+        });
+
+        it('marks the sort as changed when only the sort order differs', () => {
+            // Given a query that keeps the default sort column but flips its order
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:desc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:asc');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then both the sort order and the sort offer Reset, since resetting the sort puts back the order too
+            expect(changedOptions?.sortOrder).toBe(true);
+            expect(changedOptions?.sort).toBe(true);
+        });
+
+        it('marks the sort but not the sort order as changed when only the sort column differs', () => {
+            // Given a query that keeps the default sort order but sorts by another column
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:desc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:desc');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then only the sort offers Reset, since the order already matches the default
+            expect(changedOptions?.sort).toBe(true);
+            expect(changedOptions?.sortOrder).toBe(false);
+        });
+    });
+
     describe('getChangedDisplayOptionsCount', () => {
         it('returns nothing when the display options match the default query', () => {
             // Given a query that only adds a filter to its default
@@ -4165,6 +4229,69 @@ describe('SearchQueryUtils', () => {
             // When counting the changed display options
             // Then the currency and the view each count once
             expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
+        });
+    });
+
+    describe('getDisplayDefaultQueryJSON', () => {
+        it('returns the provided default query', () => {
+            // Given a current query with a custom sort and a default query with its own sort
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:merchant sortOrder:asc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:desc');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the display default query
+            const result = getDisplayDefaultQueryJSON(currentQueryJSON, defaultQueryJSON);
+
+            // Then the provided default is used as is, since it reflects the default of the current search
+            expect(result).toBe(defaultQueryJSON);
+        });
+
+        it('falls back to the default query of the current type when no default query is provided', () => {
+            // Given a current query with a custom sort order and no default query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc');
+            if (!currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the display default query
+            const result = getDisplayDefaultQueryJSON(currentQueryJSON, undefined);
+
+            // Then the default display options of the type are used, so resetting the sort order restores descending instead of the first option
+            expect(result?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(result?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(result?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+    });
+
+    describe('getGroupCurrencyValue', () => {
+        it('returns the group currency of the query', () => {
+            // Given a grouped query with a group currency
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the group currency value
+            const result = getGroupCurrencyValue(queryJSON);
+
+            // Then the currency is returned, so the group currency picker can reset to it
+            expect(result).toBe('USD');
+        });
+
+        it('returns undefined when the query has no group currency', () => {
+            // Given a query without a group currency
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the group currency value
+            const result = getGroupCurrencyValue(queryJSON);
+
+            // Then nothing is returned, so resetting the group currency clears it
+            expect(result).toBeUndefined();
         });
     });
 

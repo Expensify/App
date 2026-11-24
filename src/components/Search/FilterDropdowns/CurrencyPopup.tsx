@@ -35,6 +35,8 @@ type CurrencyPopupProps = {
     /** Whether the popover keeps a fixed height instead of growing with its content */
     shouldUseFixedPopoverHeight?: boolean;
 
+    allowDeselect?: boolean;
+    shouldShowResetButton?: boolean;
     applySentryLabel: SentryLabel;
     resetSentryLabel: SentryLabel;
 };
@@ -53,6 +55,8 @@ function CurrencyPopup({
     searchPlaceholder,
     shouldShowList,
     shouldUseFixedPopoverHeight,
+    allowDeselect,
+    shouldShowResetButton,
     applySentryLabel,
     resetSentryLabel,
 }: CurrencyPopupProps) {
@@ -75,6 +79,8 @@ function CurrencyPopup({
             defaultValue={defaultValue}
             shouldShowList={shouldShowList}
             shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
+            allowDeselect={allowDeselect}
+            shouldShowResetButton={shouldShowResetButton}
             applySentryLabel={applySentryLabel}
             resetSentryLabel={resetSentryLabel}
         />

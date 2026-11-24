@@ -1546,26 +1546,48 @@ function getColumnsValue(queryJSON: SearchQueryJSON) {
     return [[queryJSON.columns ?? []].flat().join(','), left.join(','), right.join(',')].join('|');
 }
 
-function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
+type ChangedDisplayOptions = {
+    /** The sort column or order, which the Sort by option resets together */
+    sort: boolean;
+    sortOrder: boolean;
+    groupBy: boolean;
+    view: boolean;
+    limit: boolean;
+    groupCurrency: boolean;
+    columns: boolean;
+};
+
+function getChangedDisplayOptions(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): ChangedDisplayOptions | undefined {
     if (!currentQueryJSON) {
-        return 0;
+        return undefined;
     }
 
     const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
     if (!defaultQueryJSON) {
+        return undefined;
+    }
+
+    const sortOrder = currentQueryJSON.sortOrder !== defaultQueryJSON.sortOrder;
+    return {
+        sort: currentQueryJSON.sortBy !== defaultQueryJSON.sortBy || sortOrder,
+        sortOrder,
+        groupBy: currentQueryJSON.groupBy !== defaultQueryJSON.groupBy,
+        view: currentQueryJSON.view !== defaultQueryJSON.view,
+        limit: currentQueryJSON.limit !== defaultQueryJSON.limit,
+        groupCurrency: getGroupCurrencyValue(currentQueryJSON) !== getGroupCurrencyValue(defaultQueryJSON),
+        columns: getColumnsValue(currentQueryJSON) !== getColumnsValue(defaultQueryJSON),
+    };
+}
+
+function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
+    const changedOptions = getChangedDisplayOptions(currentQueryJSON, searchDefaultQueryJSON);
+    if (!changedOptions) {
         return 0;
     }
 
-    const changedOptions = [
-        currentQueryJSON.sortBy !== defaultQueryJSON.sortBy || currentQueryJSON.sortOrder !== defaultQueryJSON.sortOrder,
-        currentQueryJSON.groupBy !== defaultQueryJSON.groupBy,
-        currentQueryJSON.view !== defaultQueryJSON.view,
-        currentQueryJSON.limit !== defaultQueryJSON.limit,
-        getGroupCurrencyValue(currentQueryJSON) !== getGroupCurrencyValue(defaultQueryJSON),
-        getColumnsValue(currentQueryJSON) !== getColumnsValue(defaultQueryJSON),
-    ];
-
-    return changedOptions.filter(Boolean).length;
+    // The sort order is counted with the sort column, since the Sort by option resets both
+    const {sortOrder, ...countedOptions} = changedOptions;
+    return Object.values(countedOptions).filter(Boolean).length;
 }
 
 function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'>) {
@@ -3771,6 +3793,7 @@ export {
     isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptions,
     getChangedDisplayOptionsCount,
     isSearchDatePreset,
     normalizeDatePreset,
@@ -3784,6 +3807,8 @@ export {
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
     buildQueryStringWithResetDisplay,
+    getDisplayDefaultQueryJSON,
+    getGroupCurrencyValue,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,

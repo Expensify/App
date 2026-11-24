@@ -24,12 +24,14 @@ type GroupByPopupItem = {
 type GroupByPopupProps = {
     sections: GroupBySection[];
     value: GroupByPopupItem | null;
+    defaultValue?: SearchGroupBy;
     onBackButtonPress: () => void;
     closeOverlay: () => void;
-    onChange: (item: GroupByPopupItem | null) => void;
+    onChange: (value: SearchGroupBy | undefined) => void;
+    shouldShowResetButton: boolean;
 };
 
-function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({value, defaultValue, sections, shouldShowResetButton, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -53,23 +55,27 @@ function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChang
     const itemCount = Math.max(1, sectionItemCount);
 
     const updateSelectedItem = (item: ListItem) => {
+        if (item.keyForList === selectedItem?.value) {
+            setSelectedItem(null);
+            return;
+        }
         const newItem = allSelectableItems.find((option) => option.value === item.keyForList) ?? null;
         setSelectedItem(newItem);
     };
 
     const applyChanges = () => {
-        onChange(selectedItem);
+        onChange(selectedItem?.value);
         closeOverlay();
     };
 
     const resetChanges = () => {
-        onChange(null);
+        onChange(defaultValue);
         closeOverlay();
     };
 
     return (
         <BasePopup
-            onReset={resetChanges}
+            onReset={shouldShowResetButton ? resetChanges : undefined}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             label={translate('search.display.groupBy')}
