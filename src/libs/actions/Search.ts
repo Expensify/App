@@ -92,7 +92,7 @@ import {
 } from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
+import {hasHeldCorporateCardExpenses, hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -298,6 +298,7 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    onHeldCorporateCardExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     /** Requires approval callers to confirm report violations before proceeding. */
@@ -351,6 +352,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    onHeldCorporateCardExpensesBlock,
     confirmSubmitReportViolations,
     confirmApproveReportViolations,
     currentUserAccountID,
@@ -478,6 +480,10 @@ function handleActionButtonPress({
             }
             if (hasOnlyHeldExpenses(allReportTransactions)) {
                 onAllHeldExpensesBlock?.();
+                return;
+            }
+            if (searchData?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${snapshotReport.reportID}`]?.expensify_statementCardID && hasHeldCorporateCardExpenses(allReportTransactions)) {
+                onHeldCorporateCardExpensesBlock?.();
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
