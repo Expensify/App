@@ -178,9 +178,9 @@ enum CertificatePinning {
         return monitor
     }()
 
-    /// Only a pin mismatch that TrustKit really blocked is announced. In monitor mode the connection goes through, and
-    /// a chain the device itself rejects fails with or without pinning, so neither is the network intercepting TLS
-    /// with a certificate the device trusts.
+    /// Only a pin mismatch that TrustKit really blocked is announced. In monitor mode the connection still goes through,
+    /// so there is nothing to explain. A chain the device itself rejects would fail without pinning too, so it is not
+    /// the case this message describes: a network intercepting TLS with a certificate the device trusts.
     private static func announceBlockedConnectionIfNeeded(result: TSKPinningValidatorResult, hostname: String) {
         guard result.evaluationResult == .failedNoMatchingPin, result.finalTrustDecision == .shouldBlockConnection else {
             return

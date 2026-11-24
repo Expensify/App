@@ -11,8 +11,8 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Log triggers a circular dep chain (NetworkState → Log → Network → SequentialQueue → NetworkState.subscribe())
-// that causes the listeners Set to be undefined during module init. Mock Log to break the cycle.
+// NetworkState imports Log, which imports Network and SequentialQueue, which call NetworkState.subscribe() while
+// NetworkState is still loading, so its listeners Set is undefined. Mocking Log breaks that import cycle.
 jest.mock('@src/libs/Log');
 
 jest.mock('@src/CONFIG', () => ({

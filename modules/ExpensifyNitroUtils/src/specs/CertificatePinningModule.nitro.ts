@@ -15,10 +15,11 @@ type BlockedConnection = {
 /**
  * Forwards connections blocked by certificate pinning from native code to JS.
  *
- * Pinning runs in several native stacks that do not depend on each other (TrustKit and the OkHttp,
- * HttpURLConnection and Cronet clients, in both the App and Mobile-Expensify). Each of them announces
- * a blocked connection with an in-process signal named in config/certificatePinning/README.md, and
- * this module is the only listener. Signals are sent only in enforce mode, when a request really fails.
+ * Pinning runs in several native stacks that do not depend on each other (TrustKit on iOS, and the OkHttp
+ * and Cronet clients on Android, in both the App and Mobile-Expensify). Each of them announces a blocked
+ * connection with an in-process signal named in config/certificatePinning/README.md, and this module is
+ * the only listener. Signals are sent only in enforce mode, when a request really fails. HttpURLConnection
+ * and WebView are pinned by the platform `<pin-set>`, which gives no callback, so they never announce.
  */
 interface CertificatePinningModule extends HybridObject<{
     ios: 'swift';
@@ -27,7 +28,7 @@ interface CertificatePinningModule extends HybridObject<{
     /** Starts forwarding blocked connections to the listener. A new listener replaces the previous one. */
     setConnectionBlockedListener(listener: (connection: BlockedConnection) => void): void;
 
-    /** Stops forwarding blocked connections. */
+    /** Unregisters the native observer or receiver, so blocked connections are no longer forwarded. */
     removeConnectionBlockedListener(): void;
 }
 
