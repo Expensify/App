@@ -10,13 +10,13 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {getEffectiveSortBy} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
@@ -125,7 +125,6 @@ function SearchStaticList({
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
-    const [personalDetails] = usePersonalDetailsByIDs([accountID, ...sortedData.flatMap((item) => [item.reportAction?.actorAccountID, item.report?.ownerAccountID])]);
 
     // Sync the pending-expense placeholder on focus and notify the parent that
     // the destination is visible (focus signal for the dual-gate span ending).
@@ -158,7 +157,7 @@ function SearchStaticList({
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
-                personalDetails,
+                personalDetails: getAllPersonalDetails(),
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 delegateAccountID,

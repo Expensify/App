@@ -15,7 +15,6 @@ import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentRe
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,6 +44,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
@@ -639,13 +639,6 @@ function Search({
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
-    const [personalDetails] = usePersonalDetailsByIDs([
-        accountID,
-        ...(filteredData as SearchListItem[]).flatMap((item) => {
-            const transaction = isTransactionGroupListItemType(item) ? item.transactions.at(0) : item;
-            return transaction && isTransactionListItemType(transaction) ? [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID] : [];
-        }),
-    ]);
     const totalSelectableItemsCount = useMemo(() => {
         if (!areItemsGrouped) {
             return filteredData.length;
@@ -749,7 +742,7 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    personalDetails,
+                    personalDetails: getAllPersonalDetails(),
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -823,7 +816,7 @@ function Search({
                                 backTo,
                                 currentUserLogin: email ?? '',
                                 currentUserAccountID: accountID,
-                                personalDetails,
+                                personalDetails: getAllPersonalDetails(),
                                 isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow,
                                 delegateAccountID,
@@ -923,7 +916,6 @@ function Search({
             handleSearch,
             unmarkReportRHPWidth,
             introSelected,
-            personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             email,

@@ -1,4 +1,5 @@
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -25,7 +26,7 @@ function useChatWithAgent() {
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            undefined,
+            getAllPersonalDetails(),
             conciergeChat,
         );
     };
