@@ -10727,6 +10727,11 @@ ${reportName}`,
             }),
             editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
+            unapprove: '取消批准',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '其中 1 份报表已导出至会计集成。更改它可能会导致数据不一致。确定要取消批准吗？',
+                other: `其中 ${count} 份报表已导出至会计集成。更改它们可能会导致数据不一致。确定要取消批准吗？`,
+            }),
             pay: '支付',
             delete: '删除',
             hold: '暂挂',
@@ -12749,6 +12754,7 @@ ${reportName}`,
     },
     bulkAction: {
         approvingTitle: '正在批准报表…',
+        unapprovingTitle: '正在取消批准报表…',
         submittingTitle: '正在提交报表…',
         payingTitle: '正在将报表标记为已支付…',
         holdingTitle: '正在暂挂报销费用…',
@@ -12765,6 +12771,10 @@ ${reportName}`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已批准 ${count} 份报表中的 ${doneCount} 份`,
             other: `已批准 ${count} 份报表中的 ${doneCount} 份`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `已取消批准 ${count} 份报表中的 ${doneCount} 份`,
+            other: `已取消批准 ${count} 份报表中的 ${doneCount} 份`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已提交 ${count} 份报表中的 ${doneCount} 份`,
@@ -12806,6 +12816,10 @@ ${reportName}`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 份报表无法批准。',
             other: `${count} 份报表无法批准。`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法取消批准。',
+            other: `${count} 份报表无法取消批准。`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 份报表无法提交。',

@@ -11200,6 +11200,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }),
             editMultipleDescription: 'Zmiany zostaną ustawione dla wszystkich wybranych wydatków i nadpiszą wszystkie wcześniej ustawione wartości.',
             approve: 'Zatwierdź',
+            unapprove: 'Cofnij zatwierdzenie',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 z tych raportów został już wyeksportowany do integracji księgowej. Zmiana może prowadzić do rozbieżności w danych. Czy na pewno chcesz cofnąć jego zatwierdzenie?',
+                other: `${count} z tych raportów zostało już wyeksportowanych do integracji księgowej. Zmiana może prowadzić do rozbieżności w danych. Czy na pewno chcesz cofnąć ich zatwierdzenie?`,
+            }),
             pay: 'Zapłać',
             delete: 'Usuń',
             hold: 'Wstrzymaj',
@@ -13302,6 +13307,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     bulkAction: {
         approvingTitle: 'Zatwierdzanie raportów...',
+        unapprovingTitle: 'Cofanie zatwierdzenia raportów...',
         submittingTitle: 'Wysyłanie raportów...',
         payingTitle: 'Oznaczanie raportów jako opłacone...',
         holdingTitle: 'Wstrzymywanie wydatków...',
@@ -13318,6 +13324,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Zatwierdzono ${doneCount} z ${count} raportu`,
             other: `Zatwierdzono ${doneCount} z ${count} raportów`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Cofnięto zatwierdzenie ${doneCount} z ${count} raportu`,
+            other: `Cofnięto zatwierdzenie ${doneCount} z ${count} raportów`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Przesłano ${doneCount} z ${count} raportu`,
@@ -13359,6 +13369,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: 'Nie udało się zatwierdzić 1 raportu.',
             other: `Nie udało się zatwierdzić ${count} raportów.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się cofnąć zatwierdzenia 1 raportu.',
+            other: `Nie udało się cofnąć zatwierdzenia ${count} raportów.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: 'Nie udało się przesłać 1 raportu.',

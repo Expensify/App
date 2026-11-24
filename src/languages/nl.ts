@@ -11160,6 +11160,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }),
             editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
+            unapprove: 'Goedkeuring intrekken',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 van deze rapporten is al geëxporteerd naar een boekhoudintegratie. Het wijzigen ervan kan leiden tot gegevensafwijkingen. Weet je zeker dat je de goedkeuring wilt intrekken?',
+                other: `${count} van deze rapporten zijn al geëxporteerd naar een boekhoudintegratie. Het wijzigen ervan kan leiden tot gegevensafwijkingen. Weet je zeker dat je de goedkeuring wilt intrekken?`,
+            }),
             pay: 'Betalen',
             delete: 'Verwijderen',
             hold: 'Vasthouden',
@@ -13251,6 +13256,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     bulkAction: {
         approvingTitle: 'Rapporten goedkeuren...',
+        unapprovingTitle: 'Goedkeuring van rapporten intrekken...',
         submittingTitle: 'Rapporten worden ingediend...',
         payingTitle: 'Rapporten markeren als betaald...',
         holdingTitle: 'Uitgaven vasthouden...',
@@ -13267,6 +13273,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} van ${count} rapport goedgekeurd`,
             other: `${doneCount} van ${count} rapporten goedgekeurd`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Goedkeuring ingetrokken voor ${doneCount} van ${count} rapport`,
+            other: `Goedkeuring ingetrokken voor ${doneCount} van ${count} rapporten`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `${doneCount} van ${count} rapport ingediend`,
@@ -13308,6 +13318,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 rapport kon niet worden goedgekeurd.',
             other: `${count} rapporten konden niet worden goedgekeurd.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'De goedkeuring van 1 rapport kon niet worden ingetrokken.',
+            other: `De goedkeuring van ${count} rapporten kon niet worden ingetrokken.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 rapport kon niet worden ingediend.',

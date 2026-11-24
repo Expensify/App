@@ -11167,6 +11167,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             }),
             editMultipleDescription: 'As alterações serão aplicadas a todas as despesas selecionadas e substituirão quaisquer valores definidos anteriormente.',
             approve: 'Aprovar',
+            unapprove: 'Cancelar aprovação',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 destes relatórios já foi exportado para uma integração contábil. Alterá-lo pode causar discrepâncias nos dados. Tem certeza de que deseja cancelar a aprovação dele?',
+                other: `${count} destes relatórios já foram exportados para uma integração contábil. Alterá-los pode causar discrepâncias nos dados. Tem certeza de que deseja cancelar a aprovação deles?`,
+            }),
             pay: 'Pagar',
             delete: 'Excluir',
             hold: 'Reter',
@@ -13251,6 +13256,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     bulkAction: {
         approvingTitle: 'Aprovando relatórios...',
+        unapprovingTitle: 'Cancelando a aprovação dos relatórios...',
         submittingTitle: 'Enviando relatórios...',
         payingTitle: 'Marcando relatórios como pagos...',
         holdingTitle: 'Retendo despesas...',
@@ -13267,6 +13273,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Aprovado(s) ${doneCount} de ${count} relatório`,
             other: `Aprovado(s) ${doneCount} de ${count} relatórios`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Aprovação cancelada de ${doneCount} de ${count} relatório`,
+            other: `Aprovação cancelada de ${doneCount} de ${count} relatórios`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Enviado(s) ${doneCount} de ${count} relatório`,
@@ -13308,6 +13318,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         notApprovedBody: ({count}: {count: number}) => ({
             one: '1 relatório não pôde ser aprovado.',
             other: `${count} relatórios não puderam ser aprovados.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: 'Não foi possível cancelar a aprovação de 1 relatório.',
+            other: `Não foi possível cancelar a aprovação de ${count} relatórios.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: '1 relatório não pôde ser enviado.',

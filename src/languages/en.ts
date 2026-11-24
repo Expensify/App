@@ -11601,7 +11601,11 @@ const translations = {
             // cspell:disable
             editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',
-            unApprove: 'Unapprove',
+            unapprove: 'Unapprove',
+            unapproveExportedReportsWarning: ({count}: {count: number}) => ({
+                one: '1 of these reports has already been exported to an accounting integration. Changing it may lead to data discrepancies. Are you sure you want to unapprove it?',
+                other: `${count} of these reports have already been exported to an accounting integration. Changing them may lead to data discrepancies. Are you sure you want to unapprove them?`,
+            }),
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
