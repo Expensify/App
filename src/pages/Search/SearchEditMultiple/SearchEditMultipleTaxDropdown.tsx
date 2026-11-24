@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
 
@@ -31,13 +32,11 @@ function SearchEditMultipleTaxDropdown({policyID, currentTaxCode, onClose, ...po
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    // The list has no expense to read, so it marks the workspace currency's default rate, while the row's name marks the
-    // default for the draft's currency. The list finds the picked rate by its name, so it is given the name the list uses,
-    // or the rate shows twice when those defaults differ.
-    const selectedTaxRate = getWorkspaceTaxesSettingsName(translate, policy, currentTaxCode) ?? '';
+    const resolvedTaxCode = resolveCurrentTaxCode(policy, currentTaxCode);
+    const selectedTaxRate = getWorkspaceTaxesSettingsName(translate, policy, resolvedTaxCode) ?? '';
 
     const saveTaxRate = (taxes: TaxRatesOption) => {
-        updateBulkEditDraftTransaction(getBulkEditTaxCodeChange(taxes.code ?? '', currentTaxCode));
+        updateBulkEditDraftTransaction(getBulkEditTaxCodeChange(taxes.code ?? '', resolvedTaxCode));
     };
 
     return (

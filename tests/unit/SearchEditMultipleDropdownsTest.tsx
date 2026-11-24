@@ -196,6 +196,42 @@ describe('SearchEditMultiple dropdowns', () => {
             expect(mockTaxModalProps?.selectedTaxRate).toBe(`Tax Rate 1 (5%) ${CONST.DOT_SEPARATOR} Default`);
         });
 
+        it('finds and clears a picked rate whose code was renamed while the draft was open', async () => {
+            // Given a draft holding a rate's old code, after an admin renamed that code while the bulk edit was open
+            const oldTaxCode = 'id_OLD_TAX_RATE_1';
+            const renamedPolicy: Partial<Policy> = {
+                id: POLICY_ID,
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    name: 'Taxes',
+                    defaultExternalID: TAX_EXEMPT_CODE,
+                    foreignTaxDefault: TAX_EXEMPT_CODE,
+                    defaultValue: '0%',
+                    taxes: {
+                        [TAX_CODE]: {name: 'Tax Rate 1', value: '5%', previousTaxCode: oldTaxCode},
+                        [TAX_EXEMPT_CODE]: {name: 'Tax exempt', value: '0%'},
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, renamedPolicy);
+            await setDraft({taxCode: oldTaxCode});
+
+            // When the tax list opens
+            renderTaxDropdown(oldTaxCode);
+            await waitForBatchedUpdates();
+
+            // Then the list still marks the rate under its new code
+            expect(mockTaxModalProps?.selectedTaxRate).toBe('Tax Rate 1 (5%)');
+
+            // When that rate is tapped again
+            act(() => mockTaxModalProps?.onSelected?.({code: TAX_CODE, text: 'Tax Rate 1', keyForList: TAX_CODE}));
+            await waitForBatchedUpdates();
+
+            // Then the pending change is dropped, as for any rate tapped again, rather than picked again under its new code
+            const draft = await getOnyxValue(DRAFT_KEY);
+            expect(draft?.taxCode).toBeUndefined();
+        });
+
         it('records a picked tax rate on the draft', async () => {
             // Given a draft with no tax rate picked yet
             await setDraft({});
