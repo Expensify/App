@@ -2,6 +2,7 @@ import {write} from '@libs/API';
 import type {
     ConnectPolicyToCampfireParams,
     UpdateCampfireAccountingMethodParams,
+    UpdateCampfireAutoCreateVendorParams,
     UpdateCampfireAutoSyncParams,
     UpdateCampfireBillPaymentAccountParams,
     UpdateCampfireCardProgramAccountParams,
@@ -689,6 +690,15 @@ function updateCampfireAccountingMethod(policyID: string, accountingMethod: Camp
     write(WRITE_COMMANDS.UPDATE_CAMPFIRE_ACCOUNTING_METHOD, parameters, onyxData);
 }
 
+function updateCampfireAutoCreateVendor(policyID: string, enabled: CampfireExport['autoCreateVendor'], oldEnabled?: CampfireExport['autoCreateVendor']) {
+    const onyxData = prepareCampfireExportOnyxData(policyID, CONST.CAMPFIRE_CONFIG.AUTO_CREATE_VENDOR, enabled, oldEnabled ?? null);
+    const parameters: UpdateCampfireAutoCreateVendorParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_AUTO_CREATE_VENDOR, parameters, onyxData);
+}
+
 function updateCampfireSyncReimbursedReports(policyID: string, enabled: CampfireSync['syncReimbursedReports'], oldEnabled?: CampfireSync['syncReimbursedReports']) {
     const onyxData = prepareCampfireSyncOnyxData(policyID, CONST.CAMPFIRE_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
     const parameters: UpdateCampfireSyncReimbursedReportsParams = {
@@ -811,6 +821,7 @@ export {
     updateCampfireCreditCardAccount,
     updateCampfireAutoSync,
     updateCampfireAccountingMethod,
+    updateCampfireAutoCreateVendor,
     updateCampfireSyncReimbursedReports,
     updateCampfireBillPaymentAccount,
     updateCampfireSyncExpensifyCardSettlements,

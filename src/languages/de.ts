@@ -10015,6 +10015,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
                 },
             },
+            autoCreateVendor: 'Lieferanten automatisch erstellen',
+            autoCreateVendorDescription: 'Expensify erstellt in Campfire automatisch Lieferanten, wenn sie noch nicht vorhanden sind.',
             syncReimbursedReports: 'Erstattete Berichte synchronisieren',
             syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erstellt.',
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto „Campfire-Guthaben“, wenn Expensify eine Rechnung als bezahlt markiert.'},

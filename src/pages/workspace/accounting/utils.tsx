@@ -673,6 +673,7 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD,
+                    CONST.CAMPFIRE_CONFIG.AUTO_CREATE_VENDOR,
                     CONST.CAMPFIRE_CONFIG.AUTO_SYNC,
                     CONST.CAMPFIRE_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.CAMPFIRE_CONFIG.BILL_PAYMENT_ACCOUNT_ID,

@@ -101,6 +101,7 @@ export type {default as UpdateCampfireExportToMultipleAccountsParams} from './Up
 export type {default as UpdateCampfireCardProgramAccountParams} from './UpdateCampfireCardProgramAccountParams';
 export type {default as UpdateCampfireAutoSyncParams} from './UpdateCampfireAutoSyncParams';
 export type {default as UpdateCampfireAccountingMethodParams} from './UpdateCampfireAccountingMethodParams';
+export type {default as UpdateCampfireAutoCreateVendorParams} from './UpdateCampfireAutoCreateVendorParams';
 export type {default as UpdateCampfireSyncReimbursedReportsParams} from './UpdateCampfireSyncReimbursedReportsParams';
 export type {default as UpdateCampfireBillPaymentAccountParams} from './UpdateCampfireBillPaymentAccountParams';
 export type {default as UpdateCampfireSyncExpensifyCardSettlementsParams} from './UpdateCampfireSyncExpensifyCardSettlementsParams';

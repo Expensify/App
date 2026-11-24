@@ -13,6 +13,7 @@ import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearCampfireErrorField,
+    updateCampfireAutoCreateVendor,
     updateCampfireAutoSync,
     updateCampfireSyncExpensifyCardSettlements,
     updateCampfireSyncReimbursedReports,
@@ -48,6 +49,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const campfireData = policy?.connections?.campfire?.data;
     const autoSync = campfireConfig?.autoSync?.enabled ?? false;
     const accountingMethod = campfireConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+    const autoCreateVendor = campfireConfig?.export?.autoCreateVendor ?? false;
     const syncReimbursedReports = campfireConfig?.sync?.syncReimbursedReports ?? true;
     const billPaymentAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.sync?.billPaymentAccountID);
     const syncExpensifyCardSettlements = campfireConfig?.sync?.syncExpensifyCardSettlements ?? true;
@@ -118,6 +120,20 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>
+            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+            <ToggleSettingOptionRow
+                title={translate('workspace.campfire.autoCreateVendor')}
+                subtitle={translate('workspace.campfire.autoCreateVendorDescription')}
+                switchAccessibilityLabel={translate('workspace.campfire.autoCreateVendor')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CAMPFIRE.AUTO_CREATE_VENDOR_SWITCH}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={autoCreateVendor}
+                onToggle={() => policyID && updateCampfireAutoCreateVendor(policyID, !autoCreateVendor, autoCreateVendor)}
+                pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.AUTO_CREATE_VENDOR], campfireConfig?.pendingFields)}
+                errors={getLatestErrorField(campfireConfig ?? {}, CONST.CAMPFIRE_CONFIG.AUTO_CREATE_VENDOR)}
+                onCloseError={() => policyID && clearCampfireErrorField(policyID, CONST.CAMPFIRE_CONFIG.AUTO_CREATE_VENDOR)}
+            />
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
                 title={translate('workspace.campfire.syncReimbursedReports')}

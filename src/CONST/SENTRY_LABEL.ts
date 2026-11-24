@@ -2377,6 +2377,7 @@ const SENTRY_LABEL = {
                 },
             },
             CAMPFIRE: {
+                AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingCampfire-AutoCreateVendorSwitch',
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCampfire-AutoSyncSwitch',
                 ACCOUNTING_METHOD: 'WorkspaceAccountingCampfire-AccountingMethod',
                 BILL_PAYMENT_ACCOUNT: 'WorkspaceAccountingCampfire-BillPaymentAccount',

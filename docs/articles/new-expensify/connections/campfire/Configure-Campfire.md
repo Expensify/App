@@ -57,7 +57,7 @@ On the Campfire connection, select **Export** to configure:
 - **Company card account** – Choose the Campfire credit card or bank account that company card expenses post to.
 - **Configure exporting to multiple accounts** – Send different card programs or individual cards to different Campfire accounts.
 
-Vendor bills are matched to the Campfire vendor whose email matches the report submitter's email.
+Vendor bills are matched to the Campfire vendor whose email matches the report submitter's email. If no matching vendor exists and **Auto-create vendors** is turned on under **Advanced** settings, Expensify creates the vendor automatically.
 
 ---
 
@@ -71,6 +71,7 @@ On the Campfire connection, select **Advanced** to configure:
 - **Export method** – Choose when reports export automatically. This option only appears when **Auto-sync** is on.
   - **Accrual** exports out-of-pocket expenses when they are final approved.
   - **Cash** exports out-of-pocket expenses when they are paid.
+- **Auto-create vendors** – Automatically create a vendor in Campfire using the report submitter's name and email when no matching vendor exists during a reimbursable export. Defaults to off.
 - **Sync reimbursed reports** – When a report is paid via ACH, Expensify creates a bill payment in Campfire. Choose the **Bill payment account** that Campfire credits.
 - **Sync Expensify Card settlements** – Create the Expensify Card settlement payment in Campfire. Choose the **Expensify Card settlement account** the settlement is paid from. This option only appears when the Expensify Card is set up on the workspace.
 - **Sync Consolidated Travel Billing settlements** – Create Consolidated Travel Billing settlement payments in Campfire. Choose a **Consolidated Travel Billing settlement account** and a **Consolidated Travel Billing payable account**. This option only appears when Consolidated Travel Billing is turned on.

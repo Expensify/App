@@ -9927,6 +9927,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uitgaven uit eigen zak worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            autoCreateVendor: 'Leveranciers automatisch aanmaken',
+            autoCreateVendorDescription: 'Expensify maakt automatisch leveranciers aan in Campfire als ze nog niet bestaan.',
             syncReimbursedReports: 'Vergoede rapporten synchroniseren',
             syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er in deze rekening een rekeningbetaling aangemaakt.',
             billPaymentAccount: {

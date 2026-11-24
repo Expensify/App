@@ -9952,6 +9952,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            autoCreateVendor: 'Crea automaticamente i fornitori',
+            autoCreateVendorDescription: 'Expensify creerà automaticamente i fornitori in Campfire se non esistono già.',
             syncReimbursedReports: 'Sincronizza i report rimborsati',
             syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento di fattura in questo conto.',
             billPaymentAccount: {
