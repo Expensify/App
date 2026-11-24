@@ -11,6 +11,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
@@ -49,6 +50,7 @@ function WorkspaceEditTaxPage({
     const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const canEditTaxFields = canWriteTaxes;
     const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canDisableOrDeleteTaxRateUtil(policy, currentTaxID ?? taxID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const shouldShowDeleteMenuItem = canDisableOrDeleteTaxRate && !hasAccountingConnections(policy);
 
@@ -77,7 +79,7 @@ function WorkspaceEditTaxPage({
         if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policy, [taxID], localeCompare);
+        deletePolicyTaxes(policy, [taxID], localeCompare, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
 

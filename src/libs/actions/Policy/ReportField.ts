@@ -20,6 +20,9 @@ import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
+import {withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFieldForm';
@@ -63,11 +66,13 @@ type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 
     policyReportIDs: Array<string | undefined> | undefined;
     isInvoiceField?: boolean;
     policy: OnyxEntry<Policy>;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 type DeleteReportFieldsParams = {
     reportFieldsToUpdate: string[];
     policy: OnyxEntry<Policy>;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 type RemoveReportFieldListValueParams = {
@@ -93,6 +98,7 @@ type UpdateReportFieldInitialValueParams = {
     newInitialValue: string;
     reportFieldID: string;
     policy: OnyxEntry<Policy>;
+    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -190,7 +196,17 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyReportIDs, isInvoiceField = false, policy}: CreateReportFieldParams) {
+function createReportField({
+    name,
+    type,
+    initialValue,
+    listValues,
+    disabledListValues,
+    policyReportIDs,
+    isInvoiceField = false,
+    policy,
+    reviewWorkspaceSettingsTaskData = {},
+}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
@@ -275,7 +291,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         })),
     ];
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData,
         successData: [
             {
@@ -300,13 +316,15 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         : {
               policyID: policy?.id,
               reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           };
 
     const createCommand = isInvoiceField ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
-    API.write(createCommand, parameters, onyxData);
+    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
+    API.write(createCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
+function deleteReportFields({policy, reportFieldsToUpdate, reviewWorkspaceSettingsTaskData = {}}: DeleteReportFieldsParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
@@ -335,7 +353,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return acc;
     }, {});
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -383,16 +401,18 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         : {
               policyID: policy?.id,
               reportFields: JSON.stringify(remainingExpenseFields),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           };
     const deleteCommand = isInvoiceField ? WRITE_COMMANDS.DELETE_POLICY_INVOICE_FIELD : WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD;
 
-    API.write(deleteCommand, parameters, onyxData);
+    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
+    API.write(deleteCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
  * Updates the initial value of a report field.
  */
-function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}: UpdateReportFieldInitialValueParams) {
+function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue, reviewWorkspaceSettingsTaskData = {}}: UpdateReportFieldInitialValueParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
@@ -414,7 +434,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
         type: nextType,
         defaultValue: newInitialValue,
     };
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -463,10 +483,12 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
         : {
               policyID: policy?.id,
               reportFields: JSON.stringify([updatedReportField]),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           };
     const updateCommand = isInvoiceField ? WRITE_COMMANDS.UPDATE_WORKSPACE_INVOICE_FIELD_INITIAL_VALUE : WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE;
 
-    API.write(updateCommand, parameters, onyxData);
+    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
+    API.write(updateCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes, enabled}: UpdateReportFieldListValueEnabledParams) {

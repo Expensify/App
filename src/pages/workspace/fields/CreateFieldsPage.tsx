@@ -9,6 +9,7 @@ import TextPicker from '@components/TextPicker';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -53,6 +54,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const reportTypeForTarget = isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE;
     const fieldTarget = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
@@ -77,6 +79,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
             disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
             policyReportIDs,
             isInvoiceField,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
         setInitialCreateReportFieldsForm();
         Navigation.goBack();

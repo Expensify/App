@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasCircularReferences} from '@libs/Formula';
@@ -46,6 +47,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
@@ -55,13 +57,18 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
         if (currentInitialValue !== values.initialValue) {
-            updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue});
+            updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue, reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion()});
         }
         Navigation.goBack();
     };
 
     const submitListValueUpdate = (value: string) => {
-        updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: currentInitialValue === value ? '' : value});
+        updateReportFieldInitialValue({
+            policy,
+            reportFieldID,
+            newInitialValue: currentInitialValue === value ? '' : value,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
+        });
         Navigation.goBack();
     };
 

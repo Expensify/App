@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -42,6 +43,7 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM), []);
 
@@ -66,7 +68,7 @@ function WorkspaceCreateTaxPage({
             value: getTaxValueWithPercentage(value),
             code: getNextTaxCode(values[INPUT_IDS.NAME], policy?.taxRates?.taxes),
         } satisfies TaxRate;
-        createPolicyTax(policyID, taxRate);
+        createPolicyTax(policyID, taxRate, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
 

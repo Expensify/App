@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
@@ -43,6 +44,7 @@ function ValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = getTaxByID(policy, taxID);
     const defaultValue = currentTaxRate?.value?.replace('%', '');
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID));
 
@@ -51,7 +53,7 @@ function ValuePage({
             goBack();
             return;
         }
-        updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates?.taxes[taxID]);
+        updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates?.taxes[taxID], getReviewWorkspaceSettingsTaskCompletion());
         goBack();
     };
 

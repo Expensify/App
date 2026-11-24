@@ -391,7 +391,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTagKeys, isVendorMatchingBetaEnabled);
+        deletePolicyTags(policyData, selectedTagKeys, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
 
         clearTableSelection();
         if (isMobileSelectionModeEnabled && selectedTagKeys.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {

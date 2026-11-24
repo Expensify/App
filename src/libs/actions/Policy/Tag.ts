@@ -467,7 +467,12 @@ function setWorkspaceTagEnabled(
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[], isVendorMatchingBetaEnabled: boolean | undefined) {
+function deletePolicyTags(
+    policyData: PolicyData,
+    tagsToDelete: string[],
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(0);
 
@@ -538,9 +543,10 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[], isVend
     const parameters = {
         policyID,
         tags: JSON.stringify(tagsToDelete),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 type ClearPolicyTagErrorsProps = {
@@ -1276,6 +1282,7 @@ function setPolicyTagLevelsRequired(
     requiredByOrderWeight: Record<number, boolean>,
     isVendorMatchingBetaEnabled: boolean | undefined,
     extraPolicyUpdate: Partial<Policy> = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyID = policyData.policy?.id;
     if (!policyID || !policyData.tags) {
@@ -1340,6 +1347,8 @@ function setPolicyTagLevelsRequired(
     // The command carries a single isRequired, so mixed directions still need one request each. Only the first one carries
     // the violation recompute, so the second can't overwrite it.
     let hasRecomputedViolations = false;
+    // Only the first request of the two carries the task completion too, so the backend doesn't complete it twice.
+    let remainingReviewWorkspaceSettingsTaskData = reviewWorkspaceSettingsTaskData;
     for (const isRequired of [true, false]) {
         const tagListEntriesForDirection = changedTagListEntries.filter(([, tagList]) => requiredByOrderWeight[tagList.orderWeight] === isRequired);
         if (tagListEntriesForDirection.length === 0) {
@@ -1353,9 +1362,11 @@ function setPolicyTagLevelsRequired(
             policyID,
             tagListIndexes: tagListEntriesForDirection.map(([, tagList]) => tagList.orderWeight),
             isRequired,
+            completedTaskReportActionID: remainingReviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         };
 
-        API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
+        API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, withReviewWorkspaceSettingsTaskData(onyxData, remainingReviewWorkspaceSettingsTaskData));
+        remainingReviewWorkspaceSettingsTaskData = {};
     }
 }
 

@@ -286,7 +286,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     if (!currentPolicyTag?.name) {
                                         return;
                                     }
-                                    deletePolicyTags(policyData, [currentPolicyTag.name], isVendorMatchingBetaEnabled);
+                                    deletePolicyTags(policyData, [currentPolicyTag.name], isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                                     Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
                                 }
                             }}

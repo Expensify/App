@@ -8,6 +8,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,6 +64,7 @@ function FieldsSettingsPage({
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {showConfirmModal} = useConfirmModal();
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
@@ -79,7 +81,7 @@ function FieldsSettingsPage({
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {
-        deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey]});
+        deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey], reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion()});
         Navigation.goBack();
     };
 

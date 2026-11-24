@@ -29,6 +29,10 @@ import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {OnboardingTaskCompletionOnyxData} from './Task';
+
+import {withReviewWorkspaceSettingsTaskData} from './Task';
+
 /**
  * Get tax value with percentage
  */
@@ -100,7 +104,7 @@ function getNextTaxCode(name: string, taxRates?: TaxRates): string {
     return covertTaxNameToID(`${name}_${nextID}`);
 }
 
-function createPolicyTax(policyID: string, taxRate: TaxRate) {
+function createPolicyTax(policyID: string, taxRate: TaxRate, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     if (!taxRate.code) {
         console.debug('Policy or tax rates not found');
         return;
@@ -164,9 +168,10 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
             enabled: true,
             taxCode: taxRate.code,
         }),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     } satisfies CreatePolicyTaxParams;
 
-    API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_POLICY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function clearTaxRateFieldError(policyID: string, taxID: string, field: keyof TaxRate) {
@@ -286,7 +291,12 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
+function deletePolicyTaxes(
+    policy: OnyxEntry<Policy>,
+    taxesToDelete: string[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {})
@@ -411,12 +421,13 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
     const parameters = {
         policyID: policy.id,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     } satisfies DeletePolicyTaxesParams;
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate) {
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const stringTaxValue = `${taxValue}%`;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -475,12 +486,13 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number,
         policyID,
         taxCode: taxID,
         taxRate: stringTaxValue,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     } satisfies UpdatePolicyTaxValueParams;
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
-function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate) {
+function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -537,9 +549,10 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string, origi
         policyID,
         taxCode: taxID,
         newName,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     } satisfies RenamePolicyTaxParams;
 
-    API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyTaxCode(

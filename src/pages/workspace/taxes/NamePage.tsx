@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {renamePolicyTax, validateTaxName} from '@libs/actions/TaxRate';
@@ -41,6 +42,7 @@ function NamePage({
     const {translate} = useLocalize();
     const currentTaxRate = getTaxByID(policy, taxID);
     const {inputCallbackRef} = useAutoFocusInput();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const [name, setName] = useState(currentTaxRate?.name ?? '');
 
@@ -50,7 +52,7 @@ function NamePage({
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
         if (currentTaxRate?.name !== taxName && policy?.taxRates?.taxes[taxID]) {
-            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates?.taxes[taxID]);
+            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates?.taxes[taxID], getReviewWorkspaceSettingsTaskCompletion());
         }
         goBack();
     };

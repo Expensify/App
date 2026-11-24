@@ -214,7 +214,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
-                        deletePolicyTags(policyData, selectedTags, isVendorMatchingBetaEnabled);
+                        deletePolicyTags(policyData, selectedTags, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
                         setSelectedTags([]);
                     }
                 },
