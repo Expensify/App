@@ -270,7 +270,7 @@ describe('NetworkTests', () => {
         global.fetch = mockFetch;
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
 
-        // Given a scanned expense whose first create landed on the server but whose response was lost, so the queue replays it after the session expired
+        // Given an expense whose first create landed on the server but whose response was lost, so the queue replays it after the session expired
         await TestHelper.signInWithTestUser(1, 'test@testguy.com');
         let requestMoneyCalls = 0;
         mockFetch.mockAPICommand(WRITE_COMMANDS.REQUEST_MONEY, () => {
@@ -280,13 +280,11 @@ describe('NetworkTests', () => {
 
         // When the create gets a 407, the app reauthenticates and the replay is answered "Transaction already created."
         API.write(WRITE_COMMANDS.REQUEST_MONEY, createMock<RequestMoneyParams>({transactionID: '1'}), {
-            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {transactionID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}],
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}],
             successData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {pendingAction: null}}],
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: {errors: {receiptError: 'failed'}}}],
         });
-        await waitForBatchedUpdates();
         await SequentialQueue.waitForIdle();
-        await waitForBatchedUpdates();
 
         // Then the create is sent only twice (407, then "already created"), and the expense is no longer pending, has no error and is out of the queue
         const transaction = await getOnyxValue(transactionKey);
