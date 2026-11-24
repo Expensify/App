@@ -1029,6 +1029,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Portail d’assistance vers un autre compte',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adresse e-mail',
         reasonLabel: 'Raison de connexion à l’assistance',
         reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
@@ -2594,6 +2595,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache de la navigation de gauche',
             clearleftHandNavCache: 'Effacer',
             softKillTheApp: 'Arrêter l’application en douceur',
+            testBusinessBankAccount: 'Tester le compte bancaire professionnel en USD',
+            testPersonalBankAccount: 'Tester le compte bancaire personnel en USD',
             kill: 'Tuer',
             sentryDebug: 'Débogage Sentry',
             sentrySendDescription: 'Envoyer les données à Sentry',
@@ -2601,6 +2604,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            hideEnvironmentBadge: 'Masquer le badge d’environnement',
             betaOverrides: 'Remplacements de bêtas',
             betaOverridesDescription:
                 "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Une bêta ne conserve un remplacement que tant qu'il diffère des bêtas de votre compte ; la rebasculer supprime donc le remplacement. « Réinitialiser tous les remplacements » rétablit les valeurs de votre compte. Certaines bêtas sont aussi contrôlées par le backend et peuvent donc échouer au niveau de la requête.",
@@ -5393,6 +5397,10 @@ ${amount} pour ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été échangé.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été mis à jour.`,
             defaultUpdate: (type: string) => `Votre réservation de ${type} a été mise à jour.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Votre réservation d'hôtel à ${hotelName} (arrivée le ${startDate}) a été effectuée.`,
+            carBooked: (vendor: string, startDate: string) => `Votre location de voiture ${vendor} (prise en charge le ${startDate}) a été réservée.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été réservé.`,
+            defaultBooked: (type: string) => `Votre réservation de ${type} a été effectuée.`,
         },
         flightTo: 'Vol à destination de',
         trainTo: 'Train pour',
@@ -5656,6 +5664,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -11694,7 +11705,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bientôt';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'dans un mois';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'dans deux semaines';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'dans une semaine';

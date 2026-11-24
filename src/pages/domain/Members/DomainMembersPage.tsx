@@ -3,7 +3,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
@@ -11,8 +10,8 @@ import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
+import useCloseDomainAccountModal from '@hooks/useCloseDomainAccountModal';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -73,7 +72,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
     const {showConfirmModal} = useConfirmModal();
-    const {showDecisionModal} = useDecisionModal();
+    const {showCloseAccountModal: showCloseDomainAccountModal} = useCloseDomainAccountModal();
     const [personalDetails] = useAllPersonalDetails();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
@@ -121,32 +120,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     });
 
     const showCloseAccountModal = async () => {
-        const decision = await showDecisionModal({
-            title: translate('domain.members.closeAccount', {count: selectedMembers.length}),
-            prompt: translate('domain.members.closeAccountInfo', {count: selectedMembers.length}),
-            secondOptionText: translate('domain.members.safeCloseAccount', {count: selectedMembers.length}),
-            firstOptionText: translate('domain.members.forceCloseAccount', {count: selectedMembers.length}),
-            isFirstOptionDanger: true,
-            isSecondOptionSuccess: true,
-            shouldReportDismiss: true,
-        });
-
-        if (decision.action === ModalActions.DISMISS) {
-            return;
-        }
-
-        const shouldForceCloseAccount = decision.action === ModalActions.CONFIRM;
-        const result = await showConfirmModal({
-            title: translate('domain.members.closeAccount', {count: selectedMembers.length}),
-            prompt: translate('domain.members.closeAccountPrompt'),
-            confirmText: translate('domain.members.closeAccount', {count: selectedMembers.length}),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            shouldShowCancelButton: true,
-        });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            showCloseAccountModal();
+        const shouldForceCloseAccount = await showCloseDomainAccountModal(selectedMembers.length);
+        if (shouldForceCloseAccount === undefined) {
             return;
         }
 

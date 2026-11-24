@@ -14,6 +14,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
@@ -40,6 +41,9 @@ function registerMiddlewares() {
 
     // Logging - Logs request details and errors.
     addMiddleware(Logging);
+
+    // ReceiptTelemetry - Logs the sent and server result steps of the receipt trail. Right after Logging so each replayed attempt is logged too.
+    addMiddleware(ReceiptTelemetry);
 
     // Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
     addMiddleware(LoadTest);
