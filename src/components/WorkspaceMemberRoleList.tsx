@@ -176,12 +176,13 @@ function WorkspaceMemberRoleList({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
+
+    const {isBetaEnabled} = usePermissions();
 
     // Travel admins choose who can book travel, so the role comes with the travel member access beta
     const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
