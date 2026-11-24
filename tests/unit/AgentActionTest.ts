@@ -1,3 +1,4 @@
+import {registerAgentAccountIDMapping, setHeldAgentRecords} from '@libs/AgentAccountIDMapping';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,6 +20,13 @@ import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 
 jest.mock('@libs/API');
+
+// Whether this tab holds an agent's personal details decides whether a save may write the personal details list.
+const mockGetPersonalDetail = jest.fn<{accountID: number; login?: string} | undefined, [number | undefined]>(() => undefined);
+jest.mock('@libs/PersonalDetailsStore', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/PersonalDetailsStore'),
+    getPersonalDetail: (accountID: number | undefined) => mockGetPersonalDetail(accountID),
+}));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 
 // API initializes Log, which imports this unavailable native module in the Jest environment.
@@ -351,13 +359,19 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
-    it('success data leaves both optimistic entries in place so replaceOptimisticAgentWithActualAgent can clear them after redirecting', () => {
+    it('success data removes the temporary personal detail and leaves the temporary agent record', () => {
+        // Given a new agent whose temporary personal detail must leave the personal details list without a separate
+        // cleanup write, because every write of that list saves it whole and could drop another tab's newer entries
+        // When createAgent builds the CreateAgent request, whose success data is applied together with the response
         createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN);
 
+        // Then its success data removes the temporary personal detail, so it normally leaves in the same write that brings
+        // in the real agent's details, while the temporary agent record stays for replaceOptimisticAgentWithActualAgent to
+        // remove once a tab can show the real agent
         const {successData} = getWriteOptions();
         const accountID = getOptimisticAccountID();
 
-        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(getPersonalDetailValue(successData, accountID)).toBeNull();
         expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${accountID}`)).toBeUndefined();
     });
 
@@ -388,6 +402,11 @@ const TEST_ACCOUNT_ID = 42;
 describe('updateAgentName', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        // A test may mark a real agent's record as held in this tab; the next one starts without it.
+        setHeldAgentRecords({});
     });
 
     it('calls write with UPDATE_AGENT_NAME command and correct params', () => {
@@ -436,6 +455,60 @@ describe('updateAgentName', () => {
         expect(promptValue.pendingAction).toBeNull();
     });
 
+    it("sends the name but skips the optimistic personal details write while this tab does not hold the real agent's details", () => {
+        // Given a tab that already resolves the real accountID from another tab's mapping, but whose personal details list
+        // does not hold the real agent yet. A write of that list now would save this tab's whole copy, without the real
+        // agent's login, in every tab.
+        const optimisticAccountID = 6029384715602938;
+        const realAccountID = 8203947561820394;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the name is saved from a screen that still shows the temporary agent
+        updateAgentName(optimisticAccountID, 'New Name', 'Old Name');
+
+        // Then the request still renames the real agent, nothing is written optimistically and there is nothing to revert,
+        // while the result is still applied by the tab that runs the request queue
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_NAME, {agentAccountID: realAccountID, firstName: 'New Name'}, expect.any(Object));
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(optimisticData).toHaveLength(0);
+        expect(findUpdate(failureData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: null});
+        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: null});
+    });
+
+    it("writes the real agent's new name optimistically once this tab holds its details", () => {
+        // Given a tab that resolves the real accountID and already holds the real agent's details from the server, but not
+        // its record yet, so only its personal details list is up to date
+        const optimisticAccountID = 6029384715602939;
+        const realAccountID = 8203947561820395;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        mockGetPersonalDetail.mockImplementationOnce((accountID) => (accountID === realAccountID ? {accountID: realAccountID, login: 'agent@expensify.ai'} : undefined));
+
+        // When the name is saved from a screen that still shows the temporary agent
+        updateAgentName(optimisticAccountID, 'New Name', 'Old Name');
+
+        // Then the real agent's name is written optimistically, as for any other agent, but its record is not
+        const {optimisticData} = getWriteOptions();
+        expect(getPersonalDetailEntry(optimisticData, realAccountID)).toMatchObject({displayName: 'New Name'});
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
+    });
+
+    it("marks the real agent's record optimistically once this tab holds it", () => {
+        // Given a tab that resolves the real accountID and already holds the real agent's record, but not its details
+        const optimisticAccountID = 6029384715602941;
+        const realAccountID = 8203947561820397;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        setHeldAgentRecords({[`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`]: {prompt: 'Book my flights'}});
+
+        // When the name is saved from a screen that still shows the temporary agent
+        updateAgentName(optimisticAccountID, 'New Name', 'Old Name');
+
+        // Then the record is marked as updating, while the personal details list is still left alone
+        const {optimisticData} = getWriteOptions();
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        expect(findUpdate(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+    });
+
     it('no data set touches EDIT_AGENT_NAME_FORM', () => {
         updateAgentName(TEST_ACCOUNT_ID, 'New Name', 'Old Name');
 
@@ -450,6 +523,24 @@ describe('updateAgentName', () => {
 describe('updateAgentPrompt', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("saves the new prompt through the success data while this tab does not hold the real agent's record", () => {
+        // Given a tab that already resolves the real accountID from another tab's mapping, but does not hold the real
+        // agent's record yet, so an optimistic merge would save a record without its owner
+        const optimisticAccountID = 6029384715602942;
+        const realAccountID = 8203947561820398;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the instructions are saved from a screen that still shows the temporary agent
+        updateAgentPrompt(optimisticAccountID, 'New prompt', 'Old prompt');
+
+        // Then nothing is written optimistically, and the tab that runs the request, which holds the record, saves the new
+        // prompt on success; a failure has nothing to revert
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(optimisticData).toHaveLength(0);
+        expect(getUpdateRecord(successData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toMatchObject({prompt: 'New prompt', pendingAction: null});
+        expect(getUpdateRecord(failureData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`).prompt).toBeUndefined();
     });
 
     it('calls write with UPDATE_AGENT_PROMPT command and correct params', () => {
@@ -555,6 +646,47 @@ describe('deleteAgent', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('also marks the optimistic agent as deleted when its real accountID is already known', () => {
+        // Given a CreateAgent response that registered the real accountID while another request kept the queue from
+        // draining, so the agents list still shows the optimistic agent
+        const optimisticAccountID = 4718293056471829;
+        const realAccountID = 9031827465903182;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the agent is deleted through the optimistic accountID the list still holds
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+
+        // Then the request targets the real agent and the optimistic agent is hidden until the result is known. Its cleanup
+        // waits for the real agent's personal details, which a successful deletion removes, so only the success clears it.
+        // A failed deletion leaves it hidden for that cleanup, because the real agent still exists. The real agent's data is
+        // not in this tab yet, so nothing is written to it optimistically.
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: realAccountID}, expect.any(Object));
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
+        expect(findUpdate(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
+            value: null,
+        });
+        expect(successData.filter((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST).map((update) => update.value)).toContainEqual({[optimisticAccountID]: null});
+        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(JSON.stringify(failureData)).not.toContain(String(optimisticAccountID));
+    });
+
+    it('marks only the given agent when no real accountID is known for it', () => {
+        // Given an accountID that has no registered mapping, like any agent that already exists on the server
+
+        // When it is deleted
+        deleteAgent(TEST_ACCOUNT_ID, undefined, undefined, false);
+
+        // Then no other agent key is written
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const agentKeys = [...optimisticData, ...successData, ...failureData].map((update) => String(update.key)).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.AGENT));
+        expect(new Set(agentKeys)).toStrictEqual(new Set([`${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`]));
     });
 
     describe('cascade to policies containing the agent', () => {
@@ -729,6 +861,22 @@ describe('updateAgentAvatar (bot avatar)', () => {
         updateAgentAvatar(TEST_ACCOUNT_ID, {customExpensifyAvatarID: BOT_AVATAR_ID, uri: BOT_AVATAR_URI}, currentAvatar);
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, {agentAccountID: TEST_ACCOUNT_ID, customExpensifyAvatarID: BOT_AVATAR_ID}, expect.any(Object));
+    });
+
+    it("sends the avatar but skips the optimistic personal details write while this tab does not hold the real agent's details", () => {
+        // Given a tab that already resolves the real accountID from another tab's mapping, but whose personal details list
+        // does not hold the real agent yet, so a write of that list would drop the real agent's login in every tab
+        const optimisticAccountID = 6029384715602940;
+        const realAccountID = 8203947561820396;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When an avatar is picked on a screen that still shows the temporary agent
+        updateAgentAvatar(optimisticAccountID, {customExpensifyAvatarID: BOT_AVATAR_ID, uri: BOT_AVATAR_URI}, currentAvatar);
+
+        // Then the request still updates the real agent, and the personal details list is not written optimistically
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, {agentAccountID: realAccountID, customExpensifyAvatarID: BOT_AVATAR_ID}, expect.any(Object));
+        const {optimisticData} = getWriteOptions();
+        expect(findUpdate(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
     });
 
     it('optimistic data sets avatar URI for bot avatar', () => {

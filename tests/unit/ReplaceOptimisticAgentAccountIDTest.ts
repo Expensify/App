@@ -1,4 +1,5 @@
 import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import replaceOptimisticAgentAccountID from '@libs/Middleware/ReplaceOptimisticAgentAccountID';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -139,6 +140,77 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
             {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {prompt: 'Old prompt', pendingAction: null}},
             {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: {displayName: 'Concierge'}}},
         ]);
+    });
+
+    it('keeps removing the optimistic agent when a DeleteAgent queued while CreateAgent was in flight succeeds', async () => {
+        // Given a DeleteAgent built for the optimistic agent before CreateAgent's response, with removals shaped like
+        // deleteAgent()'s, and one queued for another agent
+        requestIndex += 1;
+        const optimisticAgentRemovals: AnyRequest['successData'] = [
+            {onyxMethod: 'set', key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: null},
+            {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+        ];
+        const request: AnyRequest = {
+            command: WRITE_COMMANDS.DELETE_AGENT,
+            data: {agentAccountID: optimisticAccountID},
+            successData: optimisticAgentRemovals,
+            failureData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: {pendingAction: null}}],
+            requestIndex,
+        };
+        save(request);
+        requestIndex += 1;
+        const otherAgentRequest: AnyRequest = {
+            command: WRITE_COMMANDS.DELETE_AGENT,
+            data: {agentAccountID: otherAgentAccountID},
+            successData: [{onyxMethod: 'set', key: `${ONYXKEYS.COLLECTION.AGENT}${otherAgentAccountID}`, value: null}],
+            requestIndex,
+        };
+        save(otherAgentRequest);
+        await waitForBatchedUpdates();
+        const otherAgentRequestBefore = cloneDeep(otherAgentRequest);
+
+        // When CreateAgent's response rewrites it to the real agent. The server sends the mapping twice in that response,
+        // and a second rewrite would turn the kept optimistic removals into real ones.
+        const mappingUpdates = buildMappingResponse({[optimisticAccountID]: realAccountID}).onyxData ?? [];
+        const responseWithMappingTwice: Response<MappingKey> = {jsonCode: 200, onyxData: [...mappingUpdates, ...mappingUpdates]};
+        await replaceOptimisticAgentAccountID(Promise.resolve(responseWithMappingTwice), buildCreateAgentRequest(optimisticAccountID), true);
+
+        // Then it deletes the real agent, and its success still removes the optimistic one, which the cleanup never clears
+        // once the deletion has removed the real agent's details. The failure data only restores the real agent, and the
+        // other agent's deletion gets nothing extra.
+        const persistedRequest = getAll().at(0);
+        expect(persistedRequest?.data?.agentAccountID).toBe(realAccountID);
+        expect(persistedRequest?.successData).toStrictEqual([
+            {onyxMethod: 'set', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: null},
+            {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: null}},
+            ...(optimisticAgentRemovals ?? []),
+        ]);
+        expect(persistedRequest?.failureData).toStrictEqual([{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {pendingAction: null}}]);
+        expect(getAll().at(1)).toStrictEqual(otherAgentRequestBefore);
+    });
+
+    it('leaves a DeleteAgent that already targets the real agent untouched when the mapping arrives again', async () => {
+        // Given a DeleteAgent built after the real accountID was registered, which keeps the optimistic agent's removals
+        requestIndex += 1;
+        const request: AnyRequest = {
+            command: WRITE_COMMANDS.DELETE_AGENT,
+            data: {agentAccountID: realAccountID},
+            successData: [
+                {onyxMethod: 'set', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: null},
+                {onyxMethod: 'set', key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: null},
+                {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+            ],
+            requestIndex,
+        };
+        save(request);
+        await waitForBatchedUpdates();
+        const requestBefore = cloneDeep(request);
+
+        // When a catch-up response such as GetMissingOnyxMessages carries the mapping again while it is still queued
+        await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[optimisticAccountID]: realAccountID})), buildUpdateAgentPromptRequest(realAccountID), true);
+
+        // Then its removals of the optimistic agent are kept, or a successful deletion would leave that agent behind
+        expect(getAll().at(0)).toStrictEqual(requestBefore);
     });
 
     it('leaves the CreateAgent that produced the mapping untouched and only rewrites the requests queued behind it', async () => {

@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAgentAccountID from '@hooks/useAgentAccountID';
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -42,19 +43,19 @@ import {View} from 'react-native';
 
 type DynamicEditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>;
 
-function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
+function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
-    const accountID = route.params.accountID;
+    const [accountID, accountIDMetadata, personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
+    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(personalDetailsAccountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+    const isOnyxLoaded = accountIDMetadata.status === 'loaded' && agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);
@@ -84,7 +85,9 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
         deleteAgent(accountID, agentLogin, allPolicies, true, backPath);
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
+    // The real agent's details can show while the screen still uses the temporary agent's ID, which chat and search
+    // cannot use yet.
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin || personalDetailsAccountID !== accountID;
     const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
     const handleChatPress = () => {
         chatWithAgent(accountID);
