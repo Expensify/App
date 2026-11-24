@@ -388,6 +388,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         type: report.type,
         visibility: report.visibility,
         invoiceReceiver: report.invoiceReceiver,
+        isHiddenForBillReceiver: report.isHiddenForBillReceiver,
+        isAwaitingActionFromCurrentUser: report.isAwaitingActionFromCurrentUser,
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,

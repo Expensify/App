@@ -15,7 +15,7 @@ import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -87,24 +87,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCre
 }
 
 /**
- * Give a list of report actions and a list of transactions,
- * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
- * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
- */
-function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
-    return transactions
-        .map((transaction) => {
-            if (isTransactionPendingDelete(transaction)) {
-                return;
-            }
-
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            return action?.childReportID;
-        })
-        .filter((reportID): reportID is string => !!reportID);
-}
-
-/**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
 function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
@@ -118,11 +100,11 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
-    // The first IOU action of each transaction, as `getIOUActionForTransactionID` finds it, indexed once instead of scanning every action per transaction.
+    // Keeps the first action per expense, the one getIOUActionForTransactionID would return.
     const iouActionByTransactionID = new Map<string, ReportAction>();
     for (const reportAction of reportActions) {
         const transactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-        if (transactionID && !iouActionByTransactionID.has(transactionID)) {
+        if (transactionID !== undefined && !iouActionByTransactionID.has(transactionID)) {
             iouActionByTransactionID.set(transactionID, reportAction);
         }
     }
@@ -331,7 +313,6 @@ export {
     getReportRowReport,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,

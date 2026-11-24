@@ -72,6 +72,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                     {adminFrozenTextPrefix}
                     <TextLink
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                        sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                         style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
@@ -87,6 +88,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                    sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                     style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}

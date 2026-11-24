@@ -2,14 +2,24 @@ import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionS
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
+
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {setNameValuePair} from '@userActions/User';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
@@ -18,6 +28,7 @@ import type {ComponentRef, ForwardedRef} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -88,6 +99,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
@@ -394,11 +412,31 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
+    const handleHoldEducationalModal: ReportActionContextMenu['handleHoldEducationalModal'] = (performHold, moneyRequestChatReport) => {
+        const isChatReportDM = isDM(moneyRequestChatReport);
+        const shouldShowHoldEducationalModal = isCurrentUserSubmitter(moneyRequestChatReport, currentUserAccountID) || isChatReportDM;
+        const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+        if (isDismissed || shouldSuppressPromotionalUI) {
+            performHold();
+        } else if (shouldShowHoldEducationalModal) {
+            showHoldSubmitterEducationalModal({isDM: isChatReportDM}).finally(() => {
+                setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
+                performHold();
+            });
+        } else {
+            showHoldOrRejectEducationalModal().finally(() => {
+                dismissRejectUseExplanation();
+                performHold();
+            });
+        }
+    };
+
     useImperativeHandle(ref, () => ({
         showContextMenu,
         hideContextMenu,
         showDeleteModal,
         hideDeleteModal,
+        handleHoldEducationalModal,
         isActiveReportAction,
         instanceIDRef,
         runAndResetOnPopoverHide,

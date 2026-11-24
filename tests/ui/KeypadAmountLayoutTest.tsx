@@ -8,7 +8,10 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
+import CONST from '@src/CONST';
+
 import type * as NativeNavigation from '@react-navigation/native';
+import type {ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet} from 'react-native';
@@ -64,13 +67,16 @@ jest.mock('@react-navigation/native', () => ({
 type LayoutOptions = {
     /** Whether the layout renders a footer below the body */
     hasFooter?: boolean;
+
+    /** Forwarded to the editor, undefined keeps its default. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function renderLayout(inputRef?: React.Ref<BaseTextInputRef>, options?: LayoutOptions) {
     return renderWithProviders(getLayout(inputRef, options));
 }
 
-function getLayout(inputRef?: React.Ref<BaseTextInputRef>, {hasFooter = true}: LayoutOptions = {}) {
+function getLayout(inputRef?: React.Ref<BaseTextInputRef>, {hasFooter = true, addBottomSafeAreaPadding}: LayoutOptions = {}) {
     return (
         // The decimals keep the value as given: sanitizing it on mount would move the caret to the end manually and swallow the
         // next native selection event as its echo, so the highlighted range the refocus tests set would never apply
@@ -78,7 +84,17 @@ function getLayout(inputRef?: React.Ref<BaseTextInputRef>, {hasFooter = true}: L
             value="12.5"
             decimals={2}
             testID={ROOT_TEST_ID}
-            footer={hasFooter ? <Button onPress={jest.fn()}>Save</Button> : undefined}
+            footer={
+                hasFooter ? (
+                    <Button
+                        onPress={jest.fn()}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    >
+                        Save
+                    </Button>
+                ) : undefined
+            }
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <KeypadAmountEditor.Input
                 testID={INPUT_TEST_ID}
@@ -242,6 +258,28 @@ describe('KeypadAmountLayout', () => {
         expect(safeAreaPaddingBottom).toBeGreaterThan(0);
         expect(screen.queryByTestId(FOOTER_TEST_ID)).toBeNull();
         expect(StyleSheet.flatten(screen.getByTestId(BODY_TEST_ID).props.contentContainerStyle)).toMatchObject({paddingBottom: safeAreaPaddingBottom});
+    });
+
+    it.each([
+        ['a single column', PORTRAIT_PHONE, ROOT_TEST_ID, true, true],
+        ['two columns with a footer', LANDSCAPE_PHONE, FOOTER_TEST_ID, true, true],
+        ['two columns without a footer', LANDSCAPE_PHONE, BODY_TEST_ID, false, false],
+    ])('adds no bottom safe area in %s when addBottomSafeAreaPadding is false', async (_, windowDimensions, paddedTestID, hasFooter, hasOwnSpacing) => {
+        // Given a screen with a home indicator, in a layout nested in a parent that already applies the bottom safe area
+        mockWindowDimensions.mockReturnValue(windowDimensions);
+        mockSafeAreaInsets.mockReturnValue(HOME_INDICATOR_INSETS);
+        const styles = getLayoutStyles();
+        const safeAreaPaddingBottom = getSafeAreaPaddingBottom();
+
+        // When the layout opts out of the bottom safe area
+        renderLayout(undefined, {hasFooter, addBottomSafeAreaPadding: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the part that would clear the home indicator keeps exactly its own spacing, so no part of the inset is added
+        expect(safeAreaPaddingBottom).toBeGreaterThan(0);
+        const {style: elementStyle, contentContainerStyle} = screen.getByTestId(paddedTestID).props as {style?: ViewStyle; contentContainerStyle?: ViewStyle};
+        const style = StyleSheet.flatten(paddedTestID === FOOTER_TEST_ID ? elementStyle : contentContainerStyle);
+        expect(Number(style?.paddingBottom ?? 0)).toBe(hasOwnSpacing ? styles.pb5.paddingBottom : 0);
     });
 
     it.each([

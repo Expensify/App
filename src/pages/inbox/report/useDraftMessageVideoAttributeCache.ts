@@ -30,19 +30,18 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    // Only the edited message is converted, so the maps hold just the people and rooms it mentions and a write to another report doesn't run this again.
-    const editingReportActionHTML = getReportActionHtml(editingReportAction);
-    const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHTML);
-    const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHTML);
+    const editingReportActionHtml = isEditing ? getReportActionHtml(editingReportAction) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHtml);
+    const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHtml);
 
     useEffect(() => {
-        if (!isEditing) {
+        if (editingReportActionHtml === undefined) {
             return;
         }
 
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = Parser.htmlToMarkdown(editingReportActionHTML, {
+        const originalMessage = Parser.htmlToMarkdown(editingReportActionHtml, {
             reportIDToName,
             accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
@@ -55,7 +54,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, editingReportActionHTML, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, editingReportActionHtml, isEditInProgressRef, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }

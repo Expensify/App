@@ -2,9 +2,31 @@
 
 Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`, and the prop's `SentryLabel` type accepts nothing else, so type any prop or map that passes a label along as `SentryLabel` too, not `string`. Don't cast a string to it.
 
-When you write a component that forwards `sentryLabel` to a pressable, make the prop required with `WithRequiredSentryLabel`, so TypeScript checks every usage, including ones that pass props through a spread. Keep it optional only when the component falls back to a default label, or for inputs. In tests, pass `CONST.SENTRY_LABEL.TEST.LABEL` to these components. Tests send nothing to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
+TypeScript requires a label on every element that runs code when it is pressed, through the helper types in [`src/types/utils/SentryLabel.ts`](../src/types/utils/SentryLabel.ts):
 
-Older wrappers still have an optional prop, so lint (`no-restricted-syntax`) checks them instead. It requires the label on every pressable, on `Button`, `MenuItem` and the other wrappers that forward it to a pressable whenever they get a press handler, and always on wrappers that handle their own press, like `ThreeDotsMenu`. The lists of these wrappers are in `oxlint.config.mts`. Don't add new components to them. Once all usages of a listed wrapper have a label, make its prop required and remove it from the lists. Inputs and wrappers that fall back to a default label aren't checked, and neither are story files (`*.stories.tsx`), which never send anything to Sentry. Usages that had no label when the rule was added are grandfathered in the [seatbelt baseline](LINTING.md#seatbelt). Add a label when you touch one.
+- **Pressables** (`PressableWithFeedback`, `PressableWithoutFeedback`, `GenericPressable` and the others) require a label whenever they get `onPress` or `onLongPress`. `PressableWithSecondaryInteraction` also requires one with `onSecondaryInteraction`. A pressable without a handler is read-only and needs none.
+- **`Text`** requires a label with `onPress` or `onLongPress`. On web it renders the label with `sentryLabelExact` (see [below](#labels-on-wrappers-that-are-not-pressable)), since text isn't a pressable.
+- **`TextLink`** always opens something, so it always requires a label.
+- **Handlers that come through context** bring their label with them. `PopoverMenu.Trigger` and `PopoverMenu.SecondaryInteractionTrigger` require `sentryLabel` and pass it to the pressable below them with the handler, which uses it when it has no label of its own. `MenuItem.Copy` and `MenuItem.ExternalLink` give a read-only row the shared `MenuItem-CopyLongPress` and `MenuItem-ExternalLinkContextMenu` labels for its long press.
+
+When you write a component that passes `sentryLabel` on to one of these, give its props one of these types:
+
+- `WithRequiredSentryLabel`: every usage passes a label. Use it for components that always handle a press, such as a button that requires `onPress`, a menu that opens itself, or a link, and for menu, dropdown and tab items.
+- `WithSentryLabelWhenPressable<'onPress' | ...>`: usages that pass one of the listed props must pass a defined label too, and usages without one need none. Use it for components that can render read-only, such as `MenuItem` or `Button` without `onPress`. The listed props don't have to be handlers: `Badge` uses `pressable`. When the label prop has another name, pass it as the second parameter, e.g. `WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'>`. To derive another props type from one that uses it, use `DistributedOmit` or `DistributedPick` from type-fest. `Omit` and `Pick` merge the union and silently drop the requirement.
+
+TypeScript only knows the label goes with the handler while both are in the same props object. Once you take them out of the props, check the prop that makes the element pressable (the handler, or a flag like `interactive` or `pressable`) and pass the label in that branch. Assign the result to a `const`, so TypeScript keeps the label tied to the check:
+
+```tsx
+const pressProps = onPress ? {onPress, sentryLabel} : {};
+
+return <Text {...pressProps}>{text}</Text>;
+```
+
+When the element is rendered only with the handler, the same check narrows the label: `{!!onAddCategory && <Button onPress={onAddCategory} sentryLabel={addCategorySentryLabel} />}`. Check the handler or the flag, never the label, so if a type hole lets a handler through without a label, the element still renders and works and only the label is missing. Two things stop TypeScript from narrowing: a default value on the prop you check (`pressable = false`), and writing the check inline in JSX (`{...(onPress ? {onPress, sentryLabel} : {})}`), which TypeScript merges into one object with optional props. To derive another props type, use `DistributedPick` or `DistributedOmit` (see above).
+
+A few core wrappers can't narrow, because they attach a handler of their own even when the caller passes none (`Button`, the legacy `MenuItem`) or get the label from a press responder through context (`PressableWithFeedback`, `PressableWithSecondaryInteraction`). Only they use [`castToSentryLabel`](../src/libs/castToSentryLabel.ts), which types a label as defined. Lint blocks it everywhere else. The list is `CAST_TO_SENTRY_LABEL_FILES` in `oxlint.config.mts`.
+
+Inputs, such as `TextInput` (`TextInput-Field`), and components that fall back to a default label, such as `RadioButton` and `FormProvider`, keep an optional `sentryLabel` (`WithSentryLabel`). In tests and stories, pass `CONST.SENTRY_LABEL.TEST.LABEL`. Neither sends anything to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
 
 The attribute is used by:
 

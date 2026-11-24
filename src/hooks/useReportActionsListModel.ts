@@ -16,6 +16,7 @@ import {useRoute} from '@react-navigation/native';
 
 import useConciergeAskState from './useConciergeAskState';
 import {useIsAppLoadPending} from './useInFlightRequests';
+import useInitial from './useInitial';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -70,7 +71,9 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
     });
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    // Cached actions displayed offline must stay mounted when queued loads resume.
+    const hasUsableReportActions = reportLoadingState?.hasOnceLoadedReportActions || (isOffline && combinedActions.length > 0);
+    const hasOnceLoadedReportActions = useInitial(hasUsableReportActions ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
@@ -165,6 +168,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const state = {
         report,
         hasOnceLoadedReportActions,
+        // Pagination reports no older actions until a load stores pages, so a pending report load may still bring some.
+        isWaitingForOlderActions: hasOlderActions || isReportLoadPending,
         hasNewerActions,
         cachedActions,
         oldestUnreadReportAction,
