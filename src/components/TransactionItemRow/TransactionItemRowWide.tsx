@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, getTransactionPolicyConvertedDisplayAmount, isCurrentUserSubmitter, isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -42,7 +42,6 @@ import {
     getTotalForDisplay,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
-    isFailedScanAmountPlaceholder,
     isOnHold,
     isPerDiemRequest,
     isScanning,
@@ -67,6 +66,7 @@ import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, Tr
 
 import CategoryCell from './DataCells/CategoryCell';
 import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
+import ConvertedAmountCell from './DataCells/ConvertedAmountCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
@@ -586,29 +586,19 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
-            case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT: {
-                const effectiveReport = report ?? transactionItem.report;
-                const effectivePolicy = policy ?? transactionItem.policy;
-                const convertedAmount = getTransactionPolicyConvertedDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
-                // Expenses created offline have no workspace amount from the server yet, so they show their own currency until the next search.
-                const convertedCurrency = (transactionItem.policyConvertedAmount != null ? transactionItem.policyCurrency : undefined) ?? getCurrency(transactionItem);
-                // A failed scan leaves a placeholder amount that the Amount column hides, so this column hides it too.
-                const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem, isSettled(effectiveReport));
+            case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
                 return (
                     <View
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
-                        {!hasFailedScanAmountPlaceholder && (
-                            <AmountCell
-                                total={convertedAmount}
-                                currency={convertedCurrency}
-                                isScanning={isScanning(transactionItem)}
-                            />
-                        )}
+                        <ConvertedAmountCell
+                            transactionItem={transactionItem}
+                            report={report}
+                            policy={policy}
+                        />
                     </View>
                 );
-            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
