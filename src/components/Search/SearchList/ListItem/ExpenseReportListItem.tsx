@@ -22,6 +22,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -121,6 +122,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {
@@ -460,7 +462,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         item={liveReportItem}
                         columns={columns}
                         reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
+                        isActionLoading={isActionLoading == null ? isLoading : !isOffline && isActionLoading}
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
