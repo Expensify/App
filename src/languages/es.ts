@@ -11016,6 +11016,8 @@ ${reportName}`,
                 : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'activó la reserva de viajes para los nuevos miembros' : 'desactivó la reserva de viajes para los nuevos miembros',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `activó la reserva de viajes para ${displayName}` : `desactivó la reserva de viajes para ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `desactivó la reserva de viajes para ${memberNames}`,

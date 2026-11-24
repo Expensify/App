@@ -10891,6 +10891,7 @@ ${reportName}`,
                 : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) => (enabled ? '新しいメンバーの出張予約をオンにしました' : '新しいメンバーの出張予約をオフにしました'),
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `${displayName}さんの出張予約をオンにしました` : `${displayName}さんの出張予約をオフにしました`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `${memberNames}の出張予約をオフにしました`,

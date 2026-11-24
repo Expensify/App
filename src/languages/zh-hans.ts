@@ -10619,6 +10619,7 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) => (enabled ? '已为新成员开启差旅预订' : '已为新成员关闭差旅预订'),
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `已为 ${displayName} 开启差旅预订` : `已为 ${displayName} 关闭差旅预订`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `已为 ${memberNames} 关闭差旅预订`,

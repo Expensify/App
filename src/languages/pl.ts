@@ -11083,6 +11083,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 : `zmienił(a) proces akceptacji dla ${member}, żeby przestać przekazywać raporty powyżej ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'włączył(a) rezerwowanie podróży dla nowych członków' : 'wyłączył(a) rezerwowanie podróży dla nowych członków',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `włączył(a) rezerwowanie podróży dla użytkownika ${displayName}` : `wyłączył(a) rezerwowanie podróży dla użytkownika ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `wyłączył(a) rezerwowanie podróży dla: ${memberNames}`,

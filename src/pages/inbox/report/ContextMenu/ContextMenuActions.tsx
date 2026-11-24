@@ -127,6 +127,7 @@ import {
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedMemberWorkArrangementMessage,
     getTravelSetupMemberAccessMessage,
+    getUpdatedTravelAutoEnableNewMembersMessage,
     getUpdatedMemberTravelAccessMessage,
     getUpdatedOfficeLocationMessage,
     getUpdatedOwnershipMessage,
@@ -1590,6 +1591,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedMemberTravelAccessMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS)) {
                     setClipboardMessage(getTravelSetupMemberAccessMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TRAVEL_AUTO_ENABLE_NEW_MEMBERS)) {
+                    setClipboardMessage(getUpdatedTravelAutoEnableNewMembersMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
                     setClipboardMessage(getAddedOfficeLocationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION)) {

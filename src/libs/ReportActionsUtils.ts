@@ -5670,6 +5670,17 @@ function getTravelSetupMemberAccessMessage(translate: LocalizedTranslate, report
     return translate('workspaceActions.setUpTravelMemberAccess', {memberNames: formatList(listedMembers)});
 }
 
+function getUpdatedTravelAutoEnableNewMembersMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TRAVEL_AUTO_ENABLE_NEW_MEMBERS)) {
+        return getReportActionText(reportAction);
+    }
+    const {newValue} = getOriginalMessage(reportAction) ?? {};
+    if (typeof newValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+    return translate('workspaceActions.updatedTravelAutoEnableNewMembers', {enabled: newValue});
+}
+
 function getAddedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
         return getReportActionText(reportAction);
@@ -6625,6 +6636,7 @@ export {
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedMemberTravelAccessMessage,
     getTravelSetupMemberAccessMessage,
+    getUpdatedTravelAutoEnableNewMembersMessage,
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,

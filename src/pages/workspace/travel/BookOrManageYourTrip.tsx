@@ -7,18 +7,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelAutoEnableNewMembers, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {canMemberRead, canMemberUseTravel, isDeletedPolicyEmployee, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+import {canMemberRead, canMemberUseTravel} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -26,7 +26,6 @@ import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -48,7 +47,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const {isOffline} = useNetwork();
+    const workspaceMembers = useWorkspaceMembers(policy);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     // Travel admins only see who can book travel, so the workspace settings stay with the members who can read them
@@ -71,18 +70,14 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
         setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
     };
 
-    const autoEnableNewMembers = policy?.travelSettings?.autoEnableNewMembers ?? false;
+    // Members join able to book travel unless an admin turned this off, so a missing setting reads as on
+    const autoEnableNewMembers = policy?.travelSettings?.autoEnableNewMembers ?? true;
 
     const toggleAutoEnableNewMembers = (enabled: boolean) => {
         setPolicyTravelAutoEnableNewMembers(policy, enabled);
     };
 
-    // Count the same members the Members page lists
-    const shouldHideExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
-    const memberLogins = Object.entries(policy?.employeeList ?? {})
-        .filter(([login, employee]) => !isEmptyValueObject(employee) && !isDeletedPolicyEmployee(employee, isOffline) && !(shouldHideExpensifyTeam && isExpensifyTeam(login)))
-        .map(([login]) => login);
-    const membersWithTravelCount = memberLogins.filter((login) => canMemberUseTravel(policy, login)).length;
+    const membersWithTravelCount = workspaceMembers.filter(({email}) => canMemberUseTravel(policy, email)).length;
 
     const handleManageTravel = () => {
         if (isPreventSpotnanaTravelEnabled) {
@@ -200,7 +195,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                                         <MenuItem.Description>
                                             {translate('workspace.moreFeatures.travel.members.membersWithTravelAccess', {
                                                 enabledCount: membersWithTravelCount,
-                                                totalCount: memberLogins.length,
+                                                totalCount: workspaceMembers.length,
                                             })}
                                         </MenuItem.Description>
                                     </MenuItem.Content>

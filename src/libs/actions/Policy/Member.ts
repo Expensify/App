@@ -961,6 +961,9 @@ function buildAddMembersToWorkspaceOnyxData(
             role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
             ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
+
+            // The server turns travel off for members who join while the workspace's new member travel setting is off
+            ...(policy.travelSettings?.autoEnableNewMembers === false ? {canUseTravel: false} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {

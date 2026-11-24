@@ -11125,6 +11125,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 : `hat den Genehmigungs-Workflow für ${member} so geändert, dass Berichte über ${previousLimit} nicht mehr weitergeleitet werden`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} weiterzuleiten (zuvor ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'hat Reisebuchungen für neue Mitglieder aktiviert' : 'hat Reisebuchungen für neue Mitglieder deaktiviert',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `hat Reisebuchungen für ${displayName} aktiviert` : `hat Reisebuchungen für ${displayName} deaktiviert`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `hat Reisebuchungen für ${memberNames} deaktiviert`,

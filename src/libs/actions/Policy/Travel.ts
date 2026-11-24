@@ -136,8 +136,8 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
 }
 
 /**
- * Sets whether members get travel turned on as soon as they join the workspace. It has its own command so travel admins,
- * who can't save other workspace settings, can change it.
+ * Sets whether members who join the workspace can book travel. Members already on the workspace keep their access. It has
+ * its own command so travel admins, who can't save other workspace settings, can change it.
  */
 function setPolicyTravelAutoEnableNewMembers(policy: OnyxEntry<OnyxTypes.Policy>, enabled: boolean) {
     if (!policy?.id) {
@@ -151,7 +151,8 @@ function setPolicyTravelAutoEnableNewMembers(policy: OnyxEntry<OnyxTypes.Policy>
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    travelSettings: {autoEnableNewMembers: enabled},
+                    // Turning it on removes the setting, matching the server, which never stores true
+                    travelSettings: {autoEnableNewMembers: enabled ? null : false},
                     pendingFields: {autoEnableNewMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     errorFields: {autoEnableNewMembers: null},
                 },

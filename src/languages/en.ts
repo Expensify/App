@@ -11194,6 +11194,7 @@ const translations = {
                 `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) => (enabled ? 'turned on travel booking for new members' : 'turned off travel booking for new members'),
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `turned on travel booking for ${displayName}` : `turned off travel booking for ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `turned off travel booking for ${memberNames}`,

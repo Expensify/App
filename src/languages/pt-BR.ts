@@ -11052,6 +11052,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 : `alterou o fluxo de aprovação de ${member} para parar de encaminhar relatórios acima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'ativou a reserva de viagens para novos membros' : 'desativou a reserva de viagens para novos membros',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ativou a reserva de viagens para ${displayName}` : `desativou a reserva de viagens para ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `desativou a reserva de viagens para ${memberNames}`,

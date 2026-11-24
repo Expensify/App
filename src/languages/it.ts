@@ -11074,6 +11074,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 : `ha modificato il workflow di approvazione per ${member} per smettere di inoltrare i report oltre ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'ha attivato la prenotazione dei viaggi per i nuovi membri' : 'ha disattivato la prenotazione dei viaggi per i nuovi membri',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ha attivato la prenotazione dei viaggi per ${displayName}` : `ha disattivato la prenotazione dei viaggi per ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `ha disattivato la prenotazione dei viaggi per ${memberNames}`,
