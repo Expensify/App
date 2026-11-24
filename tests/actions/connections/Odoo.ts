@@ -61,7 +61,7 @@ describe('actions/connections/Odoo', () => {
             // When the connection is initiated
             connectToOdoo(MOCK_POLICY_ID, MOCK_ODOO_URL, MOCK_API_KEY);
 
-            // Then the Accounting page shows the sync spinner right away, and a rejected URL or key doesn't leave it spinning
+            // Then the Accounting page shows the sync spinner right away, and a rejected URL doesn't leave it spinning
             const syncProgressKey = `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${MOCK_POLICY_ID}`;
             expect(getFirstWriteOnyxData()).toMatchObject({
                 optimisticData: [
@@ -73,8 +73,22 @@ describe('actions/connections/Odoo', () => {
                             timestamp: ANY_STRING,
                         },
                     },
+                    ANY_VALUE,
                 ],
-                failureData: [{onyxMethod: Onyx.METHOD.SET, key: syncProgressKey, value: null}],
+                failureData: [{onyxMethod: Onyx.METHOD.SET, key: syncProgressKey, value: null}, ANY_VALUE],
+            });
+        });
+
+        it('keeps the setup form loading until the server responds and records the result on the form', () => {
+            // Given a policy being linked to Odoo
+            // When the connection is initiated
+            connectToOdoo(MOCK_POLICY_ID, MOCK_ODOO_URL, MOCK_API_KEY);
+
+            // Then the form shows a loading button, closes on success, and shows an error when the server rejects the URL
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [ANY_VALUE, {key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM, value: {isLoading: true, errors: null, hasConnectionSucceeded: null}}],
+                successData: [{key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM, value: {isLoading: false, hasConnectionSucceeded: true}}],
+                failureData: [ANY_VALUE, {key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM, value: {isLoading: false, errors: ANY_VALUE}}],
             });
         });
     });

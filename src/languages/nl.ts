@@ -10073,6 +10073,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 'Alleen Odoo-beheerders kunnen Permanente sleutel kiezen. Andere gebruikers kunnen maximaal 3 maanden kiezen, dus hun sleutel verloopt en ze moeten opnieuw verbinden met een nieuwe sleutel.',
             odooURL: 'Odoo-URL',
             odooURLHint: 'Bijvoorbeeld https://acme.odoo.com',
+            invalidURL: 'Voer een geldige Odoo-URL in, bijvoorbeeld https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',

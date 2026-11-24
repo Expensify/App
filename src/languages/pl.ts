@@ -10111,6 +10111,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 'Tylko administratorzy Odoo mogą wybrać Klucz stały. Pozostali użytkownicy mogą wybrać maksymalnie 3 miesiące, więc ich klucz wygasa i muszą ponownie połączyć się nowym kluczem.',
             odooURL: 'Adres URL Odoo',
             odooURLHint: 'Na przykład https://acme.odoo.com',
+            invalidURL: 'Wpisz prawidłowy adres URL Odoo, na przykład https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',

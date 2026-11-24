@@ -9689,6 +9689,7 @@ ${reportName}`,
             persistentKeyNote: '只有 Odoo 管理员可以选择 永久密钥。其他用户最多只能选择 3 个月，因此他们的密钥会过期，需要使用新密钥重新连接。',
             odooURL: 'Odoo URL',
             odooURLHint: '例如：https://acme.odoo.com',
+            invalidURL: '请输入有效的 Odoo URL，例如 https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',

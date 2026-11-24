@@ -9945,6 +9945,7 @@ ${reportName}`,
                 '永続キーを選択できるのは Odoo の管理者のみです。その他のユーザーは最長 3 か月までしか選択できないため、キーの期限が切れると新しいキーで再接続する必要があります。',
             odooURL: 'Odoo の URL',
             odooURLHint: '例: https://acme.odoo.com',
+            invalidURL: '有効な Odoo の URL を入力してください（例: https://acme.odoo.com）',
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',

@@ -6794,6 +6794,7 @@ const CONST = {
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
+        ODOO_ONLINE_URL: /^https:\/\/[a-z0-9-]+\.odoo\.com\/?$/i,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
         ISO_8601_UTC_OFFSET_SUFFIX: /([+-]\d{2}:\d{2})$/,

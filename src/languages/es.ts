@@ -10052,6 +10052,7 @@ ${reportName}`,
                 'Solo los administradores de Odoo pueden elegir Clave persistente. Los demás usuarios pueden elegir como máximo 3 meses, así que su clave caduca y tienen que volver a conectarse con una nueva.',
             odooURL: 'URL de Odoo',
             odooURLHint: 'Por ejemplo, https://acme.odoo.com',
+            invalidURL: 'Introduce una URL de Odoo válida, por ejemplo https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',

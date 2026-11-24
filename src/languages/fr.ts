@@ -10185,6 +10185,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 'Seuls les administrateurs Odoo peuvent choisir Clé persistante. Les autres utilisateurs peuvent choisir au maximum 3 mois, donc leur clé expire et ils doivent se reconnecter avec une nouvelle clé.',
             odooURL: 'URL d’Odoo',
             odooURLHint: 'Par exemple, https://acme.odoo.com',
+            invalidURL: 'Veuillez saisir une URL Odoo valide, par exemple https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',

@@ -7412,6 +7412,7 @@ const translations = {
             persistentKeyNote: 'Only Odoo administrators can pick Persistent Key. Other users can pick at most 3 months, so their key expires and they need to reconnect with a new one.',
             odooURL: 'Odoo URL',
             odooURLHint: 'For example, https://acme.odoo.com',
+            invalidURL: 'Please enter a valid Odoo URL, like https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',

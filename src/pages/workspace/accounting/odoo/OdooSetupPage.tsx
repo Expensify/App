@@ -13,19 +13,18 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAuthenticationError} from '@libs/actions/connections';
-import {connectToOdoo} from '@libs/actions/connections/Odoo';
+import {connectToOdoo, resetOdooCredentialsForm} from '@libs/actions/connections/Odoo';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isValidWebsite} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/OdooCredentialsForm';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type OdooSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.ODOO_SETUP>;
@@ -39,10 +38,24 @@ function OdooSetupPage({route}: OdooSetupPageProps) {
     const [shouldBeBlocked = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => !!policy?.connections?.odoo?.config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.ODOO),
     });
+    const [hasConnectionSucceeded = false] = useOnyx(ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM, {selector: (form) => !!form?.hasConnectionSucceeded});
+
+    // Start without a previous attempt's error or result, and leave none behind for the next visit
+    useEffect(() => {
+        resetOdooCredentialsForm();
+        return resetOdooCredentialsForm;
+    }, []);
+
+    // The page waits for the server to accept the URL, so a rejected URL shows its error here instead of after the page closed
+    useEffect(() => {
+        if (!hasConnectionSucceeded) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [hasConnectionSucceeded]);
 
     const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>) => {
         connectToOdoo(policyID, values[INPUT_IDS.ODOO_URL].trim(), values[INPUT_IDS.API_KEY].trim());
-        Navigation.dismissModal();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>) => {
@@ -55,9 +68,10 @@ function OdooSetupPage({route}: OdooSetupPageProps) {
             addErrorMessage(errors, inputID, translate('common.error.fieldRequired'));
         }
 
+        // Only Odoo Online databases are supported, so anything but https://<name>.odoo.com is caught before the request
         const odooURL = values[INPUT_IDS.ODOO_URL]?.trim();
-        if (odooURL && !isValidWebsite(odooURL)) {
-            addErrorMessage(errors, INPUT_IDS.ODOO_URL, translate('bankAccount.error.website'));
+        if (odooURL && !CONST.REGEX.ODOO_ONLINE_URL.test(odooURL)) {
+            addErrorMessage(errors, INPUT_IDS.ODOO_URL, translate('workspace.odoo.invalidURL'));
         }
         return errors;
     };

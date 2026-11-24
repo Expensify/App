@@ -13,7 +13,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 function connectToOdoo(policyID: string, odooURL: string, apiKey: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS | typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
@@ -23,13 +23,31 @@ function connectToOdoo(policyID: string, odooURL: string, apiKey: string) {
                 timestamp: new Date().toISOString(),
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM,
+            value: {isLoading: true, errors: null, hasConnectionSucceeded: null},
+        },
     ];
-    // A rejected URL or API key never starts a sync, so the progress is cleared instead of left spinning
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM,
+            value: {isLoading: false, hasConnectionSucceeded: true},
+        },
+    ];
+    // The server rejects an invalid URL right away, so the progress is cleared instead of left spinning and the form stays open to show the error.
+    // The generic error only shows when the server sends none, because the server's error is newer.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS | typeof ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
     const parameters: ConnectPolicyToOdooParams = {
@@ -37,7 +55,11 @@ function connectToOdoo(policyID: string, odooURL: string, apiKey: string) {
         odooURL,
         apiKey,
     };
-    write(WRITE_COMMANDS.CONNECT_POLICY_TO_ODOO, parameters, {optimisticData, failureData});
+    write(WRITE_COMMANDS.CONNECT_POLICY_TO_ODOO, parameters, {optimisticData, successData, failureData});
+}
+
+function resetOdooCredentialsForm() {
+    Onyx.merge(ONYXKEYS.FORMS.ODOO_CREDENTIALS_FORM, {isLoading: false, errors: null, hasConnectionSucceeded: null});
 }
 
 function clearOdooErrorField(policyID: string, fieldName: string) {
@@ -108,4 +130,4 @@ function updateOdooSubsidiary(policyID: string, subsidiaryID: OdooConnectionsCon
     write(WRITE_COMMANDS.UPDATE_ODOO_SUBSIDIARY, parameters, {optimisticData, successData, failureData});
 }
 
-export {connectToOdoo, clearOdooErrorField, updateOdooSubsidiary};
+export {connectToOdoo, resetOdooCredentialsForm, clearOdooErrorField, updateOdooSubsidiary};

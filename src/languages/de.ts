@@ -10161,6 +10161,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 'Nur Odoo-Administratoren können Dauerhafter Schlüssel wählen. Andere Benutzer können höchstens 3 Monate wählen, sodass ihr Schlüssel abläuft und sie sich mit einem neuen Schlüssel erneut verbinden müssen.',
             odooURL: 'Odoo-URL',
             odooURLHint: 'Zum Beispiel https://acme.odoo.com',
+            invalidURL: 'Bitte geben Sie eine gültige Odoo-URL ein, zum Beispiel https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',

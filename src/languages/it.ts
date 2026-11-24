@@ -10101,6 +10101,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 'Solo gli amministratori di Odoo possono scegliere Chiave persistente. Gli altri utenti possono scegliere al massimo 3 mesi, quindi la loro chiave scade e devono riconnettersi con una nuova chiave.',
             odooURL: 'URL di Odoo',
             odooURLHint: 'Ad esempio, https://acme.odoo.com',
+            invalidURL: 'Inserisci un URL di Odoo valido, ad esempio https://acme.odoo.com',
         },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',
