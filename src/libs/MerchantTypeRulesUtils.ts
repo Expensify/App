@@ -30,7 +30,7 @@ import {
     isExpenseDefaultTaxValue,
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isPolicyFeatureEnabled, isTagInPolicy} from './PolicyUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
@@ -71,9 +71,12 @@ function getExpenseDefaultRuleDescription(
             // The rate saved on the rule is a snapshot, so resolve the live one first and keep the snapshot
             // as a fallback. Without this a renamed rate reads stale, and a rule saved before the rates
             // loaded has no snapshot at all and its tax default disappears from the summary.
-            actions.push(
-                translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX)),
+            const taxAction = translate(
+                'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                fieldLabels.tax,
+                getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
             );
+            actions.push(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) ? taxAction : translate('workspace.rules.merchantRules.inactiveTaxAction', taxAction));
         } else if (field === FIELD.AMOUNT && typeof value === 'number') {
             // The rule stores the amount negated, the way an expense carries it.
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.amount, convertToDisplayString(Math.abs(value), policy?.outputCurrency)));

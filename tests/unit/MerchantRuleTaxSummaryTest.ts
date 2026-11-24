@@ -19,6 +19,7 @@ const TAX_KEY = 'id_TAX_RATE_1';
 const buildPolicy = (taxes?: Record<string, {name: string; value: string}>): Policy => ({
     ...createRandomPolicy(0),
     id: 'policy1',
+    tax: {trackingEnabled: true},
     taxRates: {
         name: 'Tax',
         defaultExternalID: TAX_KEY,
@@ -64,6 +65,20 @@ describe('Merchant rule tax summary', () => {
         }).at(0)?.ruleDescription;
 
     describe('Expense defaults table', () => {
+        it('marks the tax action inactive only while workspace taxes are off', () => {
+            // Given a saved tax rule and a workspace that still has its rate
+            const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
+            const rule = buildTaxRule();
+
+            // When taxes are disabled and enabled again, both summaries still show the saved default
+            const inactive = describeRule({...policy, tax: {trackingEnabled: false}}, rule);
+            const active = describeRule(policy, rule);
+
+            // Then only the summary for the disabled workspace explains that the action is inactive
+            expect(inactive).toBe('Update tax to "GST (15%)" (inactive: taxes are off)');
+            expect(active).toBe('Update tax to "GST (15%)"');
+        });
+
         it('prefers the live rate over the one captured when the rule was saved', () => {
             const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
 

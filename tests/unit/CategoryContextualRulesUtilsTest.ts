@@ -129,6 +129,7 @@ describe('getCategoryContextualRules', () => {
     describe('category tax default', () => {
         const policyWithTaxRule: Policy = {
             ...policy,
+            tax: {trackingEnabled: true},
             taxRates: {
                 name: 'Tax',
                 defaultExternalID: 'TAX_EXEMPT',
@@ -291,9 +292,9 @@ describe('getCategoryContextualRules', () => {
                 },
             };
 
-            // When the category details RHP builds its rules
+            // When the category details show a rule for a workspace with taxes turned off
             const rules = getCategoryContextualRules({
-                policy: policyWithTaxRule,
+                policy: {...policyWithTaxRule, tax: {trackingEnabled: false}},
                 policyRules: taxAndAmountRules,
                 category,
                 categoryName: 'Travel',
@@ -303,8 +304,8 @@ describe('getCategoryContextualRules', () => {
                 isOffline: false,
             });
 
-            // Then the amount is in the summary too, so the row is not a tax-only view of the rule
-            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
+            // Then only the tax action is marked inactive; the amount action still applies
+            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)" (inactive: taxes are off), update amount to "$10.00"');
         });
 
         it('shows what a rule matches on, so two rules with the same action can be told apart', () => {
