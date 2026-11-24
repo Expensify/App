@@ -547,6 +547,57 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 170, total: undefined}));
         });
 
+        it('adds back only a re-checked row that belongs to the breakdown', async () => {
+            // Given Select all on the reimbursable breakdown, with a group carrying its own reimbursable figure
+            // unchecked, and two of its expenses checked again: one reimbursable, one not
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            mockSelectedTransactions.current = {
+                transaction1: {...buildFlaggedTransaction(-3000, {reimbursable: true}), groupKey: GROUP_KEY},
+                transaction2: {...buildFlaggedTransaction(-4000, {reimbursable: false}), groupKey: GROUP_KEY},
+            };
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the group's reimbursable share comes off and only the reimbursable row goes back on: 80000 - 20000 + 3000.
+            // The non-reimbursable row was never part of the figure, so it adds nothing, while both still count.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 63000}));
+        });
+
+        it('keeps an excluded group under a breakdown in the default currency rather than converting its plain total', async () => {
+            // Given a select-all on the reimbursable breakdown in EUR, with the search's own converted total fresh
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            const searchHash = mockSearchQueryContext.current.currentSearchHash;
+
+            // When the group's cached EUR figure is a conversion of its plain total, as every group conversion is
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 172, total: 70000}}},
+                groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -45000}},
+                sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 80000}}, groups: {[GROUP_KEY]: {[CONST.CURRENCY.EUR]: -50000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer stays on the default currency and takes the group's reimbursable share off there, instead
+            // of taking its whole converted amount off a total that only covers the breakdown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 60000, currency: CONST.CURRENCY.USD}));
+        });
+
         it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {
             // When the footer describes the reimbursable breakdown, which leaves it no figure to show
             await renderWithExcludedGroup(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);

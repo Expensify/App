@@ -549,10 +549,14 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
             };
         } else {
             const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesEntryMatchFooterTotal(key, excludedTransactions[key], footerTotalBreakdown));
+            const rowsCheckedInExcludedGroupsForTotal = Object.entries(rowsCheckedInExcludedGroups).filter(([key, transaction]) =>
+                doesEntryMatchFooterTotal(key, transaction, footerTotalBreakdown),
+            );
             if (
                 hasCustomFooterCurrency &&
                 isSearchTotalFresh &&
                 canConvertExcludedReports &&
+                !hasGroupUnderBreakdown &&
                 ((!hasExcludedExpenses && !hasExcludedReports) || areAllExcludedConverted) &&
                 !hasConversionFailed &&
                 selectedCurrencyConvertedTotal
@@ -574,7 +578,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                 } else if (hasExcludedExpenses) {
                     excludedConvertedTotal =
                         getConvertedTotal(excludedKeysForTotal.map((key): [string, SelectedTransactionInfo] => [key, excludedTransactions[key]])) -
-                        getConvertedTotal(Object.entries(rowsCheckedInExcludedGroups));
+                        getConvertedTotal(rowsCheckedInExcludedGroupsForTotal);
                 }
                 footerData = {
                     count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
@@ -587,7 +591,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                         ? getTransactionTotal(
                               excludedKeysForTotal.map((key) => excludedTransactions[key]),
                               footerTotalBreakdown,
-                          ) - getTransactionTotal(Object.values(rowsCheckedInExcludedGroups), footerTotalBreakdown)
+                          ) -
+                          getTransactionTotal(
+                              rowsCheckedInExcludedGroupsForTotal.map(([, transaction]) => transaction),
+                              footerTotalBreakdown,
+                          )
                         : 0;
                 footerData = {
                     count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount + rowsCheckedInExcludedGroupsCount, 0),
