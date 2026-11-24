@@ -11,6 +11,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
+import {shallowEqual} from 'fast-equals';
 import React, {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
 
 import type {DropdownFieldRowProps} from './DropdownFieldRow';
@@ -179,17 +180,32 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
         });
     };
 
-    const remeasureOpenDropdown = useEffectEvent(() => {
-        if (!isVisible || isSmallScreenWidth) {
-            return;
-        }
-        measureLayout((measuredLayout) => setLayout(measuredLayout));
+    const remeasureOpenDropdown = useEffectEvent((isStale: () => boolean) => {
+        measureLayout((measuredLayout, hasUsableHeight) => {
+            if (isStale()) {
+                return;
+            }
+            // Pressing the row here would have opened its page instead, but a resize is no reason to navigate, so the list just closes.
+            if (!hasUsableHeight && onPress) {
+                closeDropdown();
+                return;
+            }
+            setLayout((currentLayout) => (shallowEqual(currentLayout, measuredLayout) ? currentLayout : measuredLayout));
+        });
     });
 
     // The row moves and resizes with the window (a row in an RHP follows the window's right edge), so an open pop-over is placed off it again.
+    // A measurement that lands after the list closed or the window changed again is dropped, so it can't put back an older layout.
     useEffect(() => {
-        remeasureOpenDropdown();
-    }, [windowWidth, windowHeight]);
+        if (!isVisible || isSmallScreenWidth) {
+            return;
+        }
+        let isStale = false;
+        remeasureOpenDropdown(() => isStale);
+        return () => {
+            isStale = true;
+        };
+    }, [isVisible, isSmallScreenWidth, windowWidth, windowHeight]);
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {

@@ -377,6 +377,61 @@ describe('DropdownField', () => {
             expect(renderedProps?.popoverWidth).toBe(ROW_WIDTH);
             expect(renderedProps?.anchorPosition.horizontal).toBe(ROW_X);
         });
+
+        it('does not measure the row while the list is closed', () => {
+            // Given a field whose list was never opened
+            const onPress = jest.fn();
+            const measureSpy = mockRowAt(ROW_TOP);
+            const {rerender} = renderField(true, onPress);
+            // The spy sits on the shared View prototype, so it starts this test with calls from earlier ones
+            measureSpy.mockClear();
+
+            // When the window narrows
+            mockWindowWidth = RESIZED_WINDOW_WIDTH;
+            rerender(buildField(true, onPress));
+
+            // Then nothing is measured, since there is no pop-over to place
+            expect(measureSpy).not.toHaveBeenCalled();
+            expect(screen.queryByText(DROPDOWN_TEXT)).toBeNull();
+        });
+
+        it('closes the list instead of opening the page when the window leaves no room for it', () => {
+            // Given a field whose list is open below the row
+            const onPress = jest.fn();
+            mockRowAt(120);
+            const {rerender} = renderField(true, onPress);
+            act(() => pressRow());
+
+            // When the window gets so short that neither side of the row has room for a list
+            mockWindowHeight = 300;
+            rerender(buildField(true, onPress));
+
+            // Then the list closes rather than shrinking to nothing, and the page does not open, since a resize is no reason to navigate
+            expect(screen.queryByText(DROPDOWN_TEXT)).toBeNull();
+            expect(onPress).not.toHaveBeenCalled();
+        });
+
+        it('ignores a measurement that lands after the list closed', () => {
+            // Given an open list, and a row measurement that answers later, as it does on native
+            const onPress = jest.fn();
+            mockRowAt(ROW_TOP);
+            const {rerender} = renderField(true, onPress);
+            act(() => pressRow());
+            let answerMeasurement: (() => void) | undefined;
+            jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => {
+                answerMeasurement = () => callback(RESIZED_ROW_X, ROW_TOP, RESIZED_ROW_WIDTH, ROW_HEIGHT);
+            });
+            mockWindowWidth = RESIZED_WINDOW_WIDTH;
+            rerender(buildField(true, onPress));
+
+            // When the list closes before the measurement comes back
+            act(() => pressRow());
+            act(() => answerMeasurement?.());
+
+            // Then the closed list keeps the layout it had, instead of taking a measurement meant for an open one
+            expect(renderedProps?.isVisible).toBe(false);
+            expect(renderedProps?.popoverWidth).toBe(ROW_WIDTH);
+        });
     });
 
     it('closes the list when the row is pressed again', () => {
