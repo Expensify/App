@@ -9,8 +9,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import accountingIntegrationIconNames, {accountingConnectionIconNames} from '@libs/accountingIntegrationIconNames';
-import {isAccountingConnectionAvailable} from '@libs/AccountingUtils';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
@@ -42,13 +40,37 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(accountingConnectionIconNames);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'CampfireSquare',
+        'DigitsSquare',
+        'BusinessCentralSquare',
+        'ZohoBooksSquare',
+    ]);
 
     if (!policyID) {
         return [];
     }
 
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => isAccountingConnectionAvailable(name, policy, isBetaEnabled));
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
+        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+            return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
+        }
+        return true;
+    });
 
     const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     // HR providers write to the same sync progress key, so only an accounting sync counts here
@@ -152,7 +174,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                 category: CONST.TAB.CONNECTIONS.ACCOUNTING,
                 title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
                 // Sage Accounting shares the Sage logo with Sage Intacct
-                icon: accountingIcons[accountingIntegrationIconNames.sageAccounting],
+                icon: accountingIcons.IntacctSquare,
             },
             {
                 key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
