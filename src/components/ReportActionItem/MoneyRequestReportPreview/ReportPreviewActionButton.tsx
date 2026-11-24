@@ -40,7 +40,7 @@ function ReportPreviewActionButton() {
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
-            return <PayActionButton isSecondary={shouldShowViewFirst} />;
+            return <PayActionButton />;
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING && connectedIntegration) {
@@ -68,15 +68,18 @@ function ReportPreviewActionButton() {
         </Button>
     );
 
+    const primaryButtonContainer = <View style={[styles.flex1]}>{primaryButton}</View>;
+
     if (!primaryButton) {
         return <View style={[buttonMaxWidth, styles.flex1, styles.reportPreviewActionRow]}>{viewButton}</View>;
     }
 
     return (
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, styles.reportPreviewActionRow]}>
-            {shouldShowViewFirst && viewButton}
-            <View style={[styles.flex1]}>{primaryButton}</View>
-            {!shouldShowViewFirst && viewButton}
+            {/* View keeps the middle slot so it stays mounted, and keeps keyboard focus, when the primary action moves to the other side. */}
+            {!shouldShowViewFirst && primaryButtonContainer}
+            {viewButton}
+            {shouldShowViewFirst && primaryButtonContainer}
         </View>
     );
 }

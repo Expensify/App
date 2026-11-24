@@ -35,9 +35,6 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
-    /** Defaults to false; keeps the DEW approval loading button in the neutral style, for when another action is highlighted beside it. */
-    isSecondary?: boolean;
-
     reportID?: string;
 };
 
@@ -54,7 +51,6 @@ function AnimatedSettlementButton({
     wrapperStyle,
     sentryLabel,
     isDEWApproval,
-    isSecondary = false,
     reportID,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
@@ -177,7 +173,7 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
-                        variant={isDEWApprovalLoading && isSecondary ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isLoading={isDEWApprovalLoading}
                         sentryLabel={sentryLabel}
                     >
