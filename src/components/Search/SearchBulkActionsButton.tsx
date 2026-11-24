@@ -36,7 +36,8 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import useSharedGroupSelectionTotal, {getSharedGroupSelection} from './hooks/useSharedGroupSelectionTotal';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
 
 type SearchBulkActionsButtonProps = {
@@ -52,6 +53,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -123,8 +125,19 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             return count + 1;
         }, 0);
     };
+    // Groups that share an expense add up to more expenses than they hold, so their count is the server's answer for the groups' union.
+    const sharedGroupSelection = getSharedGroupSelection(queryJSON, selectedTransactions, searchData, !!areAllMatchingItemsSelected);
+    const {count: sharedGroupCount, isLoading: isSharedGroupCountLoading} = useSharedGroupSelectionTotal(
+        sharedGroupSelection,
+        currentSearchResults?.search?.currency,
+        currentSearchKey,
+        true,
+    );
     const {selectedItemsCount, excludedItemsCount} = {
-        selectedItemsCount: getItemsCount(mergeRowsIntoPartlyLoadedGroups(selectedTransactions, searchData, areAllMatchingItemsSelected), 1),
+        selectedItemsCount:
+            sharedGroupSelection && sharedGroupCount !== undefined
+                ? sharedGroupCount + sharedGroupSelection.looseEntries.length
+                : getItemsCount(mergeRowsIntoPartlyLoadedGroups(selectedTransactions, searchData, areAllMatchingItemsSelected), 1),
         // Excluded items come off the server count, which only sums expenses, so a cash back row takes nothing off.
         excludedItemsCount: getItemsCount(excludedTransactions, 0) - getItemsCount(getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions), 0),
     };
@@ -177,6 +190,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
     const selectedBulkActionsCount = areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount;
+    const isSelectedCountLoading = isAllMatchingItemsCountLoading || isSharedGroupCountLoading;
     const shouldShowAllMatchingItemsSelected = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length === 0;
     const selectionButtonText = shouldShowAllMatchingItemsSelected
         ? translate('search.exportAll.allMatchingItemsSelected')
@@ -225,7 +239,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 options={dropdownButtonsOptions}
                                 menuHeaderText={bulkActionsMenuHeaderText}
                                 customText={selectionButtonText}
-                                isLoading={isAllMatchingItemsCountLoading}
+                                isLoading={isSelectedCountLoading}
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={dropdownButtonsOptions.length === 0}
                                 onPress={() => null}
@@ -246,7 +260,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                         <BulkActionBar
                             selectedCount={selectedBulkActionsCount}
                             customText={shouldShowAllMatchingItemsSelected ? selectionButtonText : undefined}
-                            isSelectedCountLoading={isAllMatchingItemsCountLoading}
+                            isSelectedCountLoading={isSelectedCountLoading}
                             options={headerButtonsOptions}
                             // No argument: the boolean flag only clears the report view's `selectedTransactionIDs`.
                             onClearSelection={() => clearSelectedTransactions()}

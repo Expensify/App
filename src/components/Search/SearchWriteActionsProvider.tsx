@@ -44,10 +44,12 @@ import {
     applyShiftRangeBatchToSelection,
     buildShiftRangeSource,
     getClaimedGroupCountField,
+    getClaimedGroupKeys,
     getCoveredGroupCount,
     getGroupByCount,
     getGroupClaims,
     getLowerCount,
+    getOtherClaimedGroupKeysField,
     getRemainingSearchGroupCount,
     getSelectableRows,
     getSelectedRowKeysByGroupKey,
@@ -56,9 +58,11 @@ import {
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
+    removeGroupClaim,
     resolveGroupCount,
     spellOutGroupSelection,
     stampGroupCoverageFlags,
+    withoutOtherGroupClaims,
 } from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
@@ -89,6 +93,9 @@ type SearchWriteActionsProviderProps = {
     /** Drives report-level selection propagation. */
     isExpenseReportType: boolean;
 
+    /** Whether one expense can sit in several groups, as with violations, so a row in a second group has not left the first */
+    doGroupsShareExpenses?: boolean;
+
     /** Whether the current search produced no results. */
     isSearchResultsEmpty: boolean;
 
@@ -108,6 +115,9 @@ type ReconcileSelectionParams = {
 
     /** Whether this is the expense-report view */
     isExpenseReportType: boolean;
+
+    /** Whether one expense can sit in several groups, so a row in a second group has not left the first */
+    doGroupsShareExpenses?: boolean;
 
     /** The currently displayed (filtered, grouped) rows */
     filteredData: SearchData;
@@ -147,6 +157,26 @@ function getHiddenGroupRowKeys(data: SearchData): Set<string> {
 }
 
 /**
+ * Whether a group is still listed and may still hold a row: it lists the row, or has rows it has not loaded that could include it.
+ * Where groups share expenses, that keeps a row stored under its group while a second group also lists it.
+ */
+function getMayGroupHoldRow(data: SearchData): (groupKey: string, rowKey: string) => boolean {
+    const groupsByKey = new Map(isGroupedItemArray(data) ? data.map((group) => [group.keyForList, group]) : []);
+    return (groupKey, rowKey) => {
+        const group = groupsByKey.get(groupKey);
+        return !!group && (group.hasMoreTransactions !== false || group.transactions.some((transaction) => transaction.keyForList === rowKey));
+    };
+}
+
+type GroupClaimChange = {
+    /** Groups whose header check now covers the row */
+    added: Set<string>;
+
+    /** Groups whose header check no longer does */
+    removed: Set<string>;
+};
+
+/**
  * The transaction behind a row, the one it was split from, and its parent report, which every selection entry is built from.
  * Live Onyx comes first, since the hold and split flags read the optimistic row and the snapshot only refreshes when the search returns.
  */
@@ -179,6 +209,7 @@ function useReconcileSelectionWithData({
     type,
     areItemsGrouped,
     isExpenseReportType,
+    doGroupsShareExpenses = false,
     filteredData,
     searchResultsData,
     transactions,
@@ -235,6 +266,9 @@ function useReconcileSelectionWithData({
             const selectedRowKeysByGroupKey = getSelectedRowKeysByGroupKey(selectedTransactions);
             // Read before any group is processed, so a row that moved to a group further down is not kept in, and counted for, the group it left.
             const loadedRowKeys = getLoadedGroupRowKeys(filteredData);
+            const mayGroupHoldRow = getMayGroupHoldRow(filteredData);
+            // Claims that groups sharing a row add or end on it, applied once every group has been read, since the group the row is stored under can come later.
+            const groupClaimChangesByRowKey = new Map<string, GroupClaimChange>();
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
                     continue;
@@ -335,7 +369,11 @@ function useReconcileSelectionWithData({
 
                     const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(transactionItem, transactions, searchResultsData);
                     const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
-                    const hasMovedGroup = !isExpenseReportType && !!reportKey && !!previousSelection?.groupKey && previousSelection.groupKey !== reportKey;
+                    // Where groups share expenses, a row a second group lists has not left the group it is stored under, so it stays there and this group only adds or ends its own claim.
+                    const storedEntry = doGroupsShareExpenses ? newTransactionList[listKey] : undefined;
+                    const storedGroupKey = storedEntry?.groupKey ?? previousSelection?.groupKey;
+                    const isStoredUnderOtherGroup = doGroupsShareExpenses && !!reportKey && !!storedGroupKey && storedGroupKey !== reportKey && mayGroupHoldRow(storedGroupKey, listKey);
+                    const hasMovedGroup = !isExpenseReportType && !isStoredUnderOtherGroup && !!reportKey && !!previousSelection?.groupKey && previousSelection.groupKey !== reportKey;
 
                     const [, baseEntry] = mapTransactionItemToSelectedEntry({
                         item: transactionItem,
@@ -351,10 +389,35 @@ function useReconcileSelectionWithData({
                         rules,
                     });
 
+                    const isEntrySelected = !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || isReachedByGroupSelection);
+                    if (isStoredUnderOtherGroup && shouldInclude && reportKey) {
+                        const claimChange = groupClaimChangesByRowKey.get(listKey) ?? {added: new Set<string>(), removed: new Set<string>()};
+                        if (isClaimEnding) {
+                            claimChange.removed.add(reportKey);
+                        } else if (groupClaim || wasReportSelected) {
+                            claimChange.added.add(reportKey);
+                        }
+                        groupClaimChangesByRowKey.set(listKey, claimChange);
+                        // The group the row is stored under writes it when it lists the row too, so the row is refreshed here only when that group has not.
+                        const previousSelectionFields: Partial<SelectedTransactionInfo> = previousSelection ?? {};
+                        const {isKeptOffPage, ...previousGroupFields} = previousSelectionFields;
+                        const sharedEntry: SelectedTransactionInfo = storedEntry ?? {
+                            ...previousGroupFields,
+                            ...baseEntry,
+                            isSelected: isEntrySelected,
+                            canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
+                            policyID: transactionItem.report?.policyID,
+                        };
+                        liveSelectionEntries.set(listKey, sharedEntry);
+                        liveSelectionEntries.set(transactionItem.transactionID, sharedEntry);
+                        newTransactionList[listKey] = sharedEntry;
+                        continue;
+                    }
+
                     const isSelectedViaGroup = isClaimEnding || hasMovedGroup ? false : (previousSelection?.isSelectedViaGroup ?? (isWritingOutGroupSelection ? true : undefined));
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
-                        isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || isReachedByGroupSelection),
+                        isSelected: isEntrySelected,
                         canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: hasMovedGroup
@@ -362,6 +425,7 @@ function useReconcileSelectionWithData({
                             : (previousSelection?.groupKey ?? (isWritingOutGroupSelection || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined)),
                         isSelectedViaGroup,
                         ...getClaimedGroupCountField(isSelectedViaGroup ? getLowerCount(claimedGroupCount, groupByCount) : undefined),
+                        ...getOtherClaimedGroupKeysField(previousSelection?.otherClaimedGroupKeys),
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
@@ -423,6 +487,25 @@ function useReconcileSelectionWithData({
                 if (reportKey && wasReportSelected && !isExpenseReportType && loadedSelectableCount === 0 && hasUnloadedRows) {
                     newTransactionList[reportKey] = selectedTransactions[reportKey];
                 }
+            }
+
+            for (const [key, claimChange] of groupClaimChangesByRowKey) {
+                const entry = newTransactionList[key];
+                if (!entry) {
+                    continue;
+                }
+                const otherGroupKeys = new Set(entry.otherClaimedGroupKeys);
+                for (const groupKey of claimChange.added) {
+                    otherGroupKeys.add(groupKey);
+                }
+                for (const groupKey of claimChange.removed) {
+                    otherGroupKeys.delete(groupKey);
+                }
+                if (entry.groupKey) {
+                    otherGroupKeys.delete(entry.groupKey);
+                }
+                const {otherClaimedGroupKeys, ...rest} = entry;
+                newTransactionList[key] = {...rest, ...getOtherClaimedGroupKeysField([...otherGroupKeys])};
             }
         } else {
             for (const transactionItem of filteredData) {
@@ -545,7 +628,7 @@ function useReconcileSelectionWithData({
         // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
         // press. We only want it to run when the underlying data, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
+    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, doGroupsShareExpenses, shouldReconcileExcludedTransactions]);
 }
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
@@ -616,6 +699,7 @@ function SearchWriteActionsProvider({
     type,
     areItemsGrouped,
     isExpenseReportType,
+    doGroupsShareExpenses = false,
     isSearchResultsEmpty,
     children,
 }: SearchWriteActionsProviderProps) {
@@ -660,9 +744,12 @@ function SearchWriteActionsProvider({
         item: TransactionListItemType,
         groupKey: string | undefined,
         claimedGroupCountField: {claimedGroupCount?: number},
+        existingEntry?: SelectedTransactionInfo,
     ): [string, SelectedTransactionInfo] => {
         const [key, entry] = buildSelectedEntry(item);
-        return [key, {...entry, groupKey, isSelectedViaGroup: !!groupKey, ...claimedGroupCountField}];
+        // Where groups share expenses, the groups whose header checks already cover the row keep covering it alongside this one.
+        const otherClaimedGroupKeys = doGroupsShareExpenses && existingEntry?.isSelected ? getClaimedGroupKeys(existingEntry).filter((claimedGroupKey) => claimedGroupKey !== groupKey) : [];
+        return [key, {...entry, groupKey, isSelectedViaGroup: !!groupKey, ...claimedGroupCountField, ...getOtherClaimedGroupKeysField(otherClaimedGroupKeys)}];
     };
 
     const commitOptions = {
@@ -690,6 +777,7 @@ function SearchWriteActionsProvider({
         childrenByGroupKey: childrenByGroupKeyRef.current,
         buildSelectedEntry,
         getGroupCount: (groupKey: string, group?: TransactionGroupListItemType) => resolveGroupCount(group ?? groupByKey.get(groupKey), searchResultsData, groupKey),
+        canGroupsShareExpenses: doGroupsShareExpenses,
     });
 
     // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
@@ -822,26 +910,40 @@ function SearchWriteActionsProvider({
 
                 if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                     const findGroupCarryingItem = () => filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
+                    // Where groups share expenses, the row is listed under several groups, so the one it was clicked in is the group the click changes.
+                    const clickedGroupKey = doGroupsShareExpenses ? item.selectionGroupKey : undefined;
                     const groupKey =
-                        baseSelection[item.keyForList]?.groupKey ?? lookups.groupKeyByChildKey.get(item.keyForList) ?? item.selectionGroupKey ?? findGroupCarryingItem()?.keyForList;
+                        clickedGroupKey ??
+                        baseSelection[item.keyForList]?.groupKey ??
+                        lookups.groupKeyByChildKey.get(item.keyForList) ??
+                        item.selectionGroupKey ??
+                        findGroupCarryingItem()?.keyForList;
                     const parentGroup = (groupKey ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ?? findGroupCarryingItem();
                     const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
 
                     if (groupKey) {
                         // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
+                        // Every other group whose header check covered the expense becomes partial as well, since the expense is in each of them.
+                        const releasedGroupKeys = new Set<string>([groupKey, ...getClaimedGroupKeys(baseSelection[item.keyForList])]);
                         for (const [key, transaction] of Object.entries(updatedTransactions)) {
-                            if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
-                                updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
+                            let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
+                            if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
+                                nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
+                            }
+                            if (nextTransaction !== transaction) {
+                                updatedTransactions[key] = nextTransaction;
                             }
                         }
 
                         // Selecting every child individually is still a whole-group selection for delete, so stamp
                         // the parent key on siblings that were picked one by one and had no group key yet.
+                        // A sibling stored under another group that shares it stays there.
                         for (const child of loadedChildren) {
-                            if (!child.keyForList || !updatedTransactions[child.keyForList]) {
+                            const childEntry = child.keyForList ? updatedTransactions[child.keyForList] : undefined;
+                            if (!childEntry || (doGroupsShareExpenses && !!childEntry.groupKey && childEntry.groupKey !== groupKey)) {
                                 continue;
                             }
-                            updatedTransactions[child.keyForList] = {...updatedTransactions[child.keyForList], groupKey};
+                            updatedTransactions[child.keyForList] = {...childEntry, groupKey};
                         }
                         if (updatedTransactions[item.keyForList]) {
                             updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
@@ -903,6 +1005,10 @@ function SearchWriteActionsProvider({
                 const getSelectedGroupRowKeys = () => (groupKey && isGroupEntry(groupKey) ? (getSelectedRowKeysByGroupKey(selectedTransactions).get(groupKey) ?? []) : []);
 
                 if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, lookups))) {
+                    // Where groups share expenses, a row another group's header check covers stays selected for that group.
+                    if (doGroupsShareExpenses && groupKey) {
+                        return removeGroupClaim(selectedTransactions, groupKey, [...groupTransactions.map((transaction) => transaction.keyForList), ...getSelectedGroupRowKeys()]);
+                    }
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
@@ -936,7 +1042,11 @@ function SearchWriteActionsProvider({
                 return stampGroupCoverageFlags({
                     selectedTransactions: {
                         ...selectedTransactions,
-                        ...Object.fromEntries(selectableTransactions.map((transactionItem) => buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField))),
+                        ...Object.fromEntries(
+                            selectableTransactions.map((transactionItem) =>
+                                buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField, selectedTransactions[transactionItem.keyForList]),
+                            ),
+                        ),
                     },
                     groupKey,
                     groupCount: groupKey ? lookups.getGroupCount(groupKey, item) : undefined,
@@ -964,6 +1074,8 @@ function SearchWriteActionsProvider({
                 }
 
                 if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+                    // A row a later group also lists is written again for it, so it carries the claims of the groups written before.
+                    const selectedSoFar: SelectedTransactions = {};
                     const allSelections: Array<[string, SelectedTransactionInfo]> = filteredData.flatMap((item) => {
                         if (item.transactions.length === 0 && item.keyForList) {
                             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -975,9 +1087,9 @@ function SearchWriteActionsProvider({
                         const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
                         const claimedGroupCountField = getClaimedGroupCountField(getGroupByCount(item, searchResultsData, item.keyForList));
                         for (const transactionItem of selectableTransactions) {
-                            entries.push(buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField));
+                            entries.push(buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField, selectedSoFar[transactionItem.keyForList]));
                         }
-                        return Object.entries(
+                        const groupEntries = Object.entries(
                             stampGroupCoverageFlags({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
@@ -985,6 +1097,10 @@ function SearchWriteActionsProvider({
                                 loadedRows: item.transactions,
                             }),
                         );
+                        for (const [key, entry] of groupEntries) {
+                            selectedSoFar[key] = entry;
+                        }
+                        return groupEntries;
                     });
                     return Object.fromEntries(allSelections);
                 }
@@ -1012,6 +1128,7 @@ function SearchWriteActionsProvider({
         type,
         areItemsGrouped,
         isExpenseReportType,
+        doGroupsShareExpenses,
         filteredData,
         searchResultsData,
         transactions,

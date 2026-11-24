@@ -24,6 +24,7 @@ import {View} from 'react-native';
 
 import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
 
+import useSharedGroupSelectionTotal, {getSharedGroupSelection} from './hooks/useSharedGroupSelectionTotal';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
 import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
@@ -215,6 +216,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
+    // Where one expense can sit in several groups, adding up the selected groups counts a shared expense once per group,
+    // so the footer asks the server for the groups' union instead. Read from the selection before partly loaded groups
+    // are merged into one entry each, since a row stored under one group can also be claimed by another.
+    const sharedGroupSelection = isGroupedSearch ? getSharedGroupSelection(currentSearchQueryJSON, loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected) : undefined;
+
     const metadata = searchResults?.search;
 
     const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
@@ -369,8 +375,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         Object.entries(currentSearchResults?.data ?? {}).some(
             ([key, group]) => isGroupEntry(key) && !!group && typeof group === 'object' && 'isCashBack' in group && !!group.isCashBack && !selectedTransactions[key],
         );
+    // Groups that share expenses add up to more than they hold, so their sum can't tell whether every expense is selected.
     const areAllSelectedForFooter =
-        areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount && !hasUnselectedCashBackGroup);
+        areAllMatchingItemsSelected ||
+        (!sharedGroupSelection && selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount && !hasUnselectedCashBackGroup);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
 
     // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
@@ -422,6 +430,10 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const hasConversionFailed = hasCustomFooterCurrency && !!selectedCurrency && !!failedConversionCurrencies?.[selectedCurrency];
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
+
+    // The shared groups' union is asked for in the currency the footer shows, so one request answers both the default and a picked currency.
+    const sharedGroupCurrency = hasCustomFooterCurrency ? selectedCurrency : effectiveDefaultCurrency;
+    const {total: sharedGroupTotal, isLoading: isSharedGroupTotalLoading} = useSharedGroupSelectionTotal(sharedGroupSelection, sharedGroupCurrency, currentSearchKey);
 
     // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
     const isSearchTotalFresh = !!selectedCurrencyConvertedTotal && !!selectedCurrency && conversionSources?.searchTotals?.[currentSearchHash]?.[selectedCurrency] === metadataTotal;
@@ -483,7 +495,18 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     } else {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-        if (shouldUseClientTotal) {
+        if (shouldUseClientTotal && sharedGroupSelection) {
+            const looseTotal = sharedGroupSelection.looseEntries.reduce((total, transaction) => {
+                const transactionID = transaction.transaction?.transactionID;
+                const convertedAmount = hasCustomFooterCurrency && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
+                return total - (convertedAmount ?? getEntrySource(transaction));
+            }, 0);
+            footerData = {
+                count: sharedGroupTotal ? sharedGroupTotal.count + sharedGroupSelection.looseEntries.length : undefined,
+                total: sharedGroupTotal ? sharedGroupTotal.total + looseTotal : undefined,
+                currency: sharedGroupCurrency,
+            };
+        } else if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
@@ -804,7 +827,9 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading =
-        isFooterTotalConverting || (!hasPartialSelection && (isAwaitingBreakdownTotal || isSnapshotTotalForOtherBreakdown || (!!metadata?.isLoading && metadata?.offset === 0)));
+        isFooterTotalConverting ||
+        isSharedGroupTotalLoading ||
+        (!hasPartialSelection && (isAwaitingBreakdownTotal || isSnapshotTotalForOtherBreakdown || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
