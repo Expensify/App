@@ -1,4 +1,4 @@
-import {format as dateFnsFormat} from 'date-fns';
+import {format as dateFnsFormat, getISOWeek, parseISO} from 'date-fns';
 
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
@@ -17,29 +17,6 @@ function getOrdinalSuffix(day: number): string {
         default:
             return 'th';
     }
-}
-
-/**
- * Calculate ISO week number for a given date
- * Uses the "first Thursday" rule: Week 1 is the week containing the year's first Thursday
- */
-function calculateISOWeekNumber(date: Date): number {
-    // Create a copy to avoid modifying the original date
-    const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-
-    // Set to nearest Thursday: current date + 4 - current day number
-    // Make Sunday's day number 7 (getUTCDay returns 0 for Sunday)
-
-    const dayNum = target.getUTCDay() || 7;
-    target.setUTCDate(target.getUTCDate() + 4 - dayNum);
-
-    // Get first day of year for the Thursday's year (in UTC)
-    const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-
-    // Calculate full weeks to nearest Thursday
-    const weekNum = Math.ceil(((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-
-    return weekNum;
 }
 
 /**
@@ -132,7 +109,8 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
     const dayOfYear = calculateDayOfYear(date);
     const daysInMonth = new Date(year, month, 0).getDate();
-    const weekNumber = calculateISOWeekNumber(date);
+    // Read the week in local time like the day and month above, so it is the week of the day the title shows
+    const weekNumber = getISOWeek(date);
 
     // Get localized names
     const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
@@ -238,7 +216,9 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
     }
 
     try {
-        const date = new Date(dateString);
+        // Expense dates are stored without a time, like "2025-01-20". new Date() reads that as midnight UTC, which is the
+        // previous day west of UTC, so parseISO reads it as local midnight to keep the day the backend uses.
+        const date = parseISO(dateString);
         if (Number.isNaN(date.getTime())) {
             return '';
         }

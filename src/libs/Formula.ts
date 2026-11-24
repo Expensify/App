@@ -876,8 +876,7 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
         const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
         const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
-        // Expense dates are stored without a time, like "2025-01-20". new Date() reads that as midnight UTC, which is
-        // the previous day west of UTC, so parseISO reads it as local midnight to keep the day the backend uses.
+        // Parse expense dates the same way formatDate does, so a date stored without a time keeps its day west of UTC
         return {
             startDate: oldestTransactionDateString ? parseISO(oldestTransactionDateString) : currentDate,
             endDate: newestTransactionDateString ? parseISO(newestTransactionDateString) : currentDate,
