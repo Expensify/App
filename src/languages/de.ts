@@ -3668,6 +3668,8 @@ ${amount} für ${merchant} – ${date}`,
         submitButton: 'Workflow hinzufügen',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Workflow auswählen',
+        createNewWorkflow: 'Neuen Workflow erstellen',
         title: 'Genehmigungsworkflow bearbeiten',
         deleteTitle: 'Genehmigungsworkflow löschen',
         deletePrompt: 'Möchtest du diesen Genehmigungs-Workflow wirklich löschen? Alle Mitglieder werden anschließend dem Standard-Workflow folgen.',

@@ -3655,6 +3655,8 @@ ${amount} para ${merchant} - ${date}`,
         submitButton: 'Adicionar fluxo de trabalho',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Escolher fluxo de trabalho',
+        createNewWorkflow: 'Criar novo fluxo de trabalho',
         title: 'Editar fluxo de aprovação',
         deleteTitle: 'Excluir fluxo de aprovação',
         deletePrompt: 'Tem certeza de que deseja excluir este fluxo de aprovação? Todos os membros passarão a seguir o fluxo padrão.',

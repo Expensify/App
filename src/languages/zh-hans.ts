@@ -3524,6 +3524,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         submitButton: '添加工作流',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: '选择工作流程',
+        createNewWorkflow: '创建新工作流程',
         title: '编辑审批流程',
         deleteTitle: '删除审批流程',
         deletePrompt: '确定要删除此审批流程吗？所有成员之后都将遵循默认流程。',

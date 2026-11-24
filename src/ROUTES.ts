@@ -3611,8 +3611,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string, memberEmail?: string) =>
-            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}` as const,
+        getRoute: (policyID: string, firstApproverEmail: string, memberEmail?: string, memberToMove?: string) => {
+            const query = [memberEmail ? `memberEmail=${encodeURIComponent(memberEmail)}` : '', memberToMove ? `memberToMove=${encodeURIComponent(memberToMove)}` : '']
+                .filter(Boolean)
+                .join('&');
+            return `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit${query ? `?${query}` : ''}` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',

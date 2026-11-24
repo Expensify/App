@@ -41,7 +41,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearMemberApproverError, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getEnabledCategoriesCount, getMemberVisibleCategoryNames} from '@libs/CategoryUtils';
@@ -243,37 +243,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const approverLabel = getFirstApproverLabel((memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
 
     const openMemberApprovalWorkflow = () => {
-        // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
-        clearApprovalWorkflow();
-
-        // A member who approves their own expenses still has a workflow, so open it rather than offering to build a
-        // second one. The row names them as their own approver, and a blank create page would contradict that.
-        if (memberFirstApprover?.email) {
-            // The editor matches the member ahead of the approver, against workflows that are not filtered down to the
-            // enforced ones. A downgrade leaves a member on an inert workflow while the row already shows the default
-            // approver they submit to, so naming the member there would open a workflow the workspace no longer runs.
-            const memberWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
-            const isMemberOnTheWorkflowShown = memberWorkflow?.approvers.at(0)?.email === memberFirstApprover.email;
-
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, isMemberOnTheWorkflowShown ? memberLogin : undefined));
-            return;
-        }
-
-        // Seed the draft before the plan gates so the create page already has it when an upgrade lands there.
-        // This entry point goes straight to the create page, skipping the Expenses from and Approver steps that turn
-        // `isInitialFlow` off, and Expenses from discards the draft on the way out while that flag is still set.
+        const workflowMember = {email: memberLogin, displayName, avatar: details?.avatar};
+        // The opening screen previews the enforced chain, without editing the shared source workflow.
         setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            approvers: memberApprovalWorkflow?.approvers ?? [],
+            originalApprovers: memberApprovalWorkflow?.approvers ?? [],
             isInitialFlow: false,
-            members: [{email: memberLogin, displayName, avatar: details?.avatar}],
+            members: [workflowMember],
             availableMembers,
             usedApproverEmails,
+            memberWorkflow: {policyID, member: workflowMember, isConfirmed: false},
         });
 
-        // Creating a workflow is plan-gated, the same way adding one from the Workflows tab is. The `approvals`
-        // upgrade is the only one that fits, since the create page this returns to runs on Control alone.
-        const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
-        if (!isControlPolicy(policy)) {
+        const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover?.email ?? memberLogin, undefined, memberLogin);
+        if (!memberFirstApprover?.email && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, backTo));
             return;
         }
@@ -586,7 +571,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 </OfflineWithFeedback>
                             )}
                             {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
-                                <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
+                                <OfflineWithFeedback
+                                    pendingAction={approverPendingActionByMemberEmail[memberLogin]}
+                                    errors={member?.errorFields?.submitsTo}
+                                    errorRowStyles={styles.ph5}
+                                    onClose={() => clearMemberApproverError(policyID, memberLogin)}
+                                >
                                     <MenuItem.Root
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_APPROVER}
                                         onPress={shouldAllowApproverEdit ? openMemberApprovalWorkflow : undefined}

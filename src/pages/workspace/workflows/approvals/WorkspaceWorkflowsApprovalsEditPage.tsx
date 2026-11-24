@@ -60,11 +60,16 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
+import MemberApprovalWorkflowPage from './MemberApprovalWorkflowPage';
 
 type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
 
-function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
+function WorkspaceWorkflowsApprovalsEditPage(props: WorkspaceWorkflowsApprovalsEditPageProps) {
+    return props.route.params.memberToMove ? <MemberApprovalWorkflowPage {...props} /> : <WorkspaceWorkflowsApprovalsEditPageContent {...props} />;
+}
+
+function WorkspaceWorkflowsApprovalsEditPageContent({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useAllPersonalDetails();
@@ -208,7 +213,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         // Resume after a sub-page round-trip: keep onyx state to avoid wiping the user's pending edits.
-        const isResumingEdit = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT && approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
+        const isResumingEdit =
+            !approvalWorkflow?.memberWorkflow &&
+            approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT &&
+            approvalWorkflow?.originalApprovers?.at(0)?.email === route.params.firstApproverEmail;
         if (isResumingEdit) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time snapshot guarded by isResumingEdit + early return; runs at most once per mount
             setInitialApprovalWorkflow(currentApprovalWorkflow);
@@ -234,6 +242,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         route.params.memberEmail,
         approvalWorkflow?.action,
         approvalWorkflow?.originalApprovers,
+        approvalWorkflow?.memberWorkflow,
     ]);
 
     return (

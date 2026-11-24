@@ -190,6 +190,37 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         });
     });
 
+    it('never enables the opening Members preview save, even after a limit edit', async () => {
+        // Given secondary edits made while only Bob is shown in the preview
+        const draft: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            members: [{email: BOB_EMAIL, displayName: 'bob'}],
+            approvers: [
+                {email: CAROL_EMAIL, displayName: 'carol'},
+                {email: ALICE_EMAIL, displayName: 'alice', overLimitAmount: 50000},
+            ],
+            originalApprovers: [{email: CAROL_EMAIL, displayName: 'carol'}],
+            availableMembers: [],
+            usedApproverEmails: [],
+            isDefault: false,
+            memberWorkflow: {policyID: POLICY_ID, member: {email: BOB_EMAIL, displayName: 'bob'}, isConfirmed: false},
+        };
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, draft);
+        });
+        renderEditPage({...mockRoute, params: {...mockRoute.params, ...{memberToMove: BOB_EMAIL}}});
+        await waitForBatchedUpdatesWithAct();
+        // When saving is attempted before Confirm
+        const save = screen.getByRole('button', {name: translateLocal('common.save')});
+        expect(save).toBeDisabled();
+        fireEvent.press(save);
+        // Then neither routing nor navigation changes, and Delete is absent
+        expect(updateApprovalWorkflow).not.toHaveBeenCalled();
+        expect(updateApprovalWorkflowRules).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(screen.queryByText(translateLocal('common.delete'))).not.toBeOnTheScreen();
+    });
+
     it('preserves pending edits when resuming an EDIT-mode workflow on first mount', async () => {
         const PENDING_MEMBER: Member = {
             email: 'pending-edit@example.com',
