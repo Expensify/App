@@ -1,6 +1,7 @@
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {
+    allPersonalDetailLoginsSelector,
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
@@ -85,6 +86,32 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty array if none of the accountIDs exist in the list', () => {
             const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('allPersonalDetailLoginsSelector', () => {
+        it('returns every login and skips people without one', () => {
+            // Given a list with two people who have a login and one who does not
+            const secondAccountID = 456;
+            const noLoginAccountID = 789;
+            const list = createMock<PersonalDetailsList>({
+                [accountID]: personalDetails,
+                [secondAccountID]: {accountID: secondAccountID, login: 'second@user.com'},
+                [noLoginAccountID]: {accountID: noLoginAccountID, displayName: 'No Login'},
+            });
+
+            // When the logins are selected
+            const result = allPersonalDetailLoginsSelector(list);
+
+            // Then only real logins are returned, which is all short mentions can resolve to
+            expect(result).toEqual([personalDetails.login, 'second@user.com']);
+        });
+
+        it('returns an empty list before personal details load', () => {
+            // Given no personal details yet
+            // When the logins are selected
+            // Then there is nothing to resolve short mentions against
+            expect(allPersonalDetailLoginsSelector(undefined)).toEqual([]);
         });
     });
 
