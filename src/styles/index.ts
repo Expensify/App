@@ -4003,6 +4003,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.growlNotificationCelebrationAnimationSize,
         },
 
+        growlNotificationSupportingText: {
+            color: theme.tooltipSupportingText,
+        },
+
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,

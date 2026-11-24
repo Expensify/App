@@ -181,8 +181,8 @@ export default {
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     growlNotificationMaxWidth: 400,
-    growlNotificationCelebrationSize: 220,
-    growlNotificationCelebrationAnimationSize: 112,
+    growlNotificationCelebrationSize: 240,
+    growlNotificationCelebrationAnimationSize: 132,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,

@@ -37,7 +37,7 @@ function useHomeTodoReportTransition(reportID: string | undefined) {
     useEffect(() => {
         const unregister = registerHomeTodoReportTransition(route.key, {
             playExit: (onFinished, delay) => {
-                homeTodoPanelTranslateX.set(withDelay(delay, withTiming(offset, {duration: EXIT_DURATION, easing})));
+                homeTodoPanelTranslateX.set(withDelay(delay, withTiming(-offset, {duration: EXIT_DURATION, easing})));
                 // The next report is shown even when the exit is interrupted, so the review never stalls.
                 homeTodoPanelOpacity.set(
                     withDelay(
