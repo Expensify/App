@@ -642,7 +642,6 @@ function SearchEditMultiplePage() {
                                     {...dropdownProps}
                                     policyID={policyID}
                                     currentTaxCode={draftTransaction?.taxCode ?? ''}
-                                    selectedTaxRate={selectedTaxRate}
                                 />
                             )}
                             isInteractive={!isTaxDisabled}

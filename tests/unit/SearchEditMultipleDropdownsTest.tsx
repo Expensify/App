@@ -18,7 +18,7 @@ import SearchEditMultipleTaxDropdown from '@pages/Search/SearchEditMultiple/Sear
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {ComponentProps} from 'react';
@@ -68,6 +68,7 @@ const POLICY_ID = 'policy1';
 const DRAFT_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as const;
 const TAG_NAME = 'Engineering';
 const TAX_CODE = 'id_TAX_RATE_1';
+const TAX_EXEMPT_CODE = 'id_TAX_EXEMPT';
 const TAG_LIST_INDEX = 0;
 
 const policyTags: PolicyTagLists = {
@@ -157,13 +158,43 @@ describe('SearchEditMultiple dropdowns', () => {
     describe('tax rate', () => {
         const renderTaxDropdown = (currentTaxCode: string) =>
             render(
-                <SearchEditMultipleTaxDropdown
-                    {...getPopoverProps(jest.fn())}
-                    policyID={POLICY_ID}
-                    currentTaxCode={currentTaxCode}
-                    selectedTaxRate={currentTaxCode ? 'Tax Rate 1' : ''}
-                />,
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <SearchEditMultipleTaxDropdown
+                        {...getPopoverProps(jest.fn())}
+                        policyID={POLICY_ID}
+                        currentTaxCode={currentTaxCode}
+                    />
+                </ComposeProviders>,
             );
+
+        it('marks the picked rate by the name the list gives it, so it does not show twice', async () => {
+            // Given a workspace whose currency isn't USD, with the picked rate as its currency's default and another rate as
+            // the foreign default, and a draft with that rate picked but no currency, which reads as USD
+            const taxPolicy: Partial<Policy> = {
+                id: POLICY_ID,
+                outputCurrency: CONST.CURRENCY.EUR,
+                taxRates: {
+                    name: 'Taxes',
+                    defaultExternalID: TAX_CODE,
+                    foreignTaxDefault: TAX_EXEMPT_CODE,
+                    defaultValue: '5%',
+                    taxes: {
+                        [TAX_CODE]: {name: 'Tax Rate 1', value: '5%'},
+                        [TAX_EXEMPT_CODE]: {name: 'Tax exempt', value: '0%'},
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, taxPolicy);
+            await setDraft({taxCode: TAX_CODE});
+
+            // When the tax list opens
+            renderTaxDropdown(TAX_CODE);
+            await waitForBatchedUpdates();
+
+            // Then the list is told the picked rate as it names it, the workspace default, so the list finds that row and
+            // doesn't add the rate again under the name the bulk edit row shows
+            expect(mockTaxModalProps?.selectedTaxRate).toBe(`Tax Rate 1 (5%) ${CONST.DOT_SEPARATOR} Default`);
+        });
 
         it('records a picked tax rate on the draft', async () => {
             // Given a draft with no tax rate picked yet

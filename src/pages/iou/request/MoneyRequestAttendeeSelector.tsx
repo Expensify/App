@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
@@ -77,6 +78,7 @@ function MoneyRequestAttendeeSelector({
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -264,6 +266,7 @@ function MoneyRequestAttendeeSelector({
                 isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}
+            shouldFooterBeInsideList={shouldFooterBeInsideList}
             isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
