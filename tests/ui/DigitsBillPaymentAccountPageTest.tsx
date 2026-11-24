@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 
 import {updateDigitsBillPaymentAccount} from '@libs/actions/connections/Digits';
 
@@ -73,7 +74,7 @@ describe('DigitsBillPaymentAccountPage', () => {
 
         // When the admin picks the account already shown as the default
         act(() => {
-            mockedSelectionScreen.mock.lastCall?.[0].onSelectRow?.(createMock({value: 'bank'}));
+            mockedSelectionScreen.mock.lastCall?.[0].onSelectRow?.(createMock<SelectorType>({value: 'bank'}));
         });
 
         // Then it's saved, so a later change to the default doesn't move the admin's choice

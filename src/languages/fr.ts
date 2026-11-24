@@ -10109,6 +10109,33 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Digits et synchroniser à nouveau la connexion',
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires ou de cartes de crédit dans Digits, puis synchroniser à nouveau la connexion',
+            noBankAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires dans Digits et synchroniser à nouveau la connexion',
+            noPayableAccountsFoundDescription: 'Veuillez ajouter des comptes de carte de crédit ou de passif courant dans Digits, puis synchroniser de nouveau la connexion.',
+            autoSyncDescription: 'Synchronisez automatiquement Digits et Expensify chaque jour. Les notes de frais se synchronisent en temps réel.',
+            accountingMethods: {
+                label: 'Méthode d’exportation',
+                description: 'Choisissez quand exporter les dépenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Comptabilisation d’engagement',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses personnelles seront exportées une fois l’approbation finale effectuée',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses personnelles seront exportées une fois payées',
+                },
+            },
+            syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un paiement de facture sera généré dans ce compte.',
+            billPaymentAccount: {label: 'Compte de paiement de factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Digits.'},
+            syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
+            settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Digits.'},
+            syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
+            travelBillingSettlementAccount: {
+                label: 'Compte de règlement de facturation de voyage consolidée',
+                description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Digits.',
+            },
+            travelBillingPayableAccount: {label: 'Compte fournisseur de facturation de voyages consolidée'},
+            missingSettlementAccount: (accountName: string) => `Les règlements ne seront pas synchronisés tant que vous n'aurez pas choisi le ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
