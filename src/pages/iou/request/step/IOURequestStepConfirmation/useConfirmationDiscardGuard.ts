@@ -4,11 +4,16 @@
  */
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 
+import type {IOURequestType} from '@src/CONST';
+
 import {useState} from 'react';
 
 type UseConfirmationDiscardGuardParams = {
     /** Whether this confirmation opens the flow, so leaving it discards the draft */
     shouldConfirmDiscardingChanges: boolean;
+
+    /** The draft's request type. A tab switch replaces the draft and remounts the amount field empty, while this confirmation can stay mounted under the hidden tab. */
+    requestType: IOURequestType;
 
     /** The draft's `isAmountSet`, which the inline amount field sets once the user types a number */
     isAmountSet: boolean;
@@ -25,8 +30,13 @@ type UseConfirmationDiscardGuardResult = {
     suppressDiscardPrompt: () => void;
 };
 
-function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, isAmountSet, isSubmitting}: UseConfirmationDiscardGuardParams): UseConfirmationDiscardGuardResult {
+function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestType, isAmountSet, isSubmitting}: UseConfirmationDiscardGuardParams): UseConfirmationDiscardGuardResult {
     const [hasUnsavedAmountInput, setHasUnsavedAmountInput] = useState(false);
+    const [prevRequestType, setPrevRequestType] = useState(requestType);
+    if (prevRequestType !== requestType) {
+        setPrevRequestType(requestType);
+        setHasUnsavedAmountInput(false);
+    }
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => shouldConfirmDiscardingChanges && !isSubmitting && (isAmountSet || hasUnsavedAmountInput),

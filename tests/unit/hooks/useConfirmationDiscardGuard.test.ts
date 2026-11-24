@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useConfirmationDiscardGuard from '@pages/iou/request/step/IOURequestStepConfirmation/useConfirmationDiscardGuard';
 
+import CONST from '@src/CONST';
+
 let mockGetHasUnsavedChanges: () => boolean = () => false;
 const mockSuppressDiscardPrompt = jest.fn();
 
@@ -15,7 +17,7 @@ jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
 
 type GuardParams = Parameters<typeof useConfirmationDiscardGuard>[0];
 
-const untouchedFlowStart: GuardParams = {shouldConfirmDiscardingChanges: true, isAmountSet: false, isSubmitting: false};
+const untouchedFlowStart: GuardParams = {shouldConfirmDiscardingChanges: true, requestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: false, isSubmitting: false};
 
 describe('useConfirmationDiscardGuard', () => {
     it('does not ask before leaving an untouched form', () => {
@@ -49,6 +51,19 @@ describe('useConfirmationDiscardGuard', () => {
 
         // Then leaving would throw that input away, so the form asks first
         expect(mockGetHasUnsavedChanges()).toBe(true);
+    });
+
+    it('forgets the amount field input once a tab switch replaces the draft', () => {
+        // Given the form that opens the flow, where the amount field reported a minus sign typed without digits
+        const {result, rerender} = renderHook((params: GuardParams) => useConfirmationDiscardGuard(params), {initialProps: untouchedFlowStart});
+        act(() => result.current.setHasUnsavedAmountInput(true));
+
+        // When the user switches to the Time tab and back, which replaces the draft and remounts the amount field empty
+        rerender({...untouchedFlowStart, requestType: CONST.IOU.REQUEST_TYPE.TIME});
+        rerender(untouchedFlowStart);
+
+        // Then the sign went away with the old draft, so leaving the fresh form doesn't ask
+        expect(mockGetHasUnsavedChanges()).toBe(false);
     });
 
     it('does not ask while the expense is being submitted', () => {

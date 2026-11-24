@@ -404,6 +404,7 @@ function IOURequestStepConfirmationContent({
     const {setHasUnsavedAmountInput, suppressDiscardPrompt} = useConfirmationDiscardGuard({
         // Embedded on the start page, this confirmation is the flow's first step, so leaving it throws the draft away
         shouldConfirmDiscardingChanges: shouldHideHeader,
+        requestType,
         isAmountSet: !!transaction?.isAmountSet,
         isSubmitting: isConfirmed,
     });
