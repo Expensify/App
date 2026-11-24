@@ -66,9 +66,10 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
+import {canPayOffline} from '@libs/PaymentUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, hasDynamicExternalWorkflow, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -81,6 +82,7 @@ import {
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -108,6 +110,7 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchDateRange, SearchGroupKey, SelectedGroupValueFilter} from '@libs/SearchUIUtils';
 import {
     canChangeWorkspaceOfSearchReport,
+    canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
     getColumnsToShow,
@@ -273,6 +276,18 @@ function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTra
         isGroupExport,
         transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
     };
+}
+
+/**
+ * The violation names the search's own `violation:` filter allows.
+ *
+ * A violation group export replaces them with the selected groups' names, so they are sent on their own. The server
+ * then exports an expense ticked alongside a selected group only under the violations the search shows.
+ */
+function getSearchViolationNames(queryJSON: SearchQueryJSON): string[] {
+    return queryJSON.flatFilters
+        .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)
+        .flatMap((filter) => filter.filters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => String(item.value)));
 }
 
 /**
@@ -1383,6 +1398,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const exportParameters = getCSVExportParameters(isBasicExport, queryJSONToExport);
+            const searchViolationNameList = isGroupExport && transactionIDList.length > 0 && queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION ? getSearchViolationNames(queryJSON) : [];
             await exportSearchItemsToCSV(
                 {
                     jsonQuery: exportParameters.jsonQuery,
@@ -1393,6 +1409,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportName,
                     isGroupExport,
                     isGroupsOnly,
+                    searchViolationNameList,
                 },
                 () => {
                     didFail = true;
@@ -1759,7 +1776,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
-            if (isOffline) {
+            if (isOffline && !canPayOffline(paymentMethod, areAllMatchingItemsSelected)) {
                 // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
                 // so defer it until the popover transition completes (matching the delegate/locked-account guards).
                 deferModalPresentationAfterPopoverDismiss(() => showOfflineModal());
@@ -2128,16 +2145,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
             const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
-            for (const report of quotedReports) {
-                // Search results don't hold the quote, which the server merges into the report in Onyx
-                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
-            }
+            const getQuotes = () => {
+                for (const report of quotedReports) {
+                    // Search results don't hold the quote, which the server merges into the report in Onyx
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                }
+            };
+            getQuotes();
             const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({
                     reports,
                     quotedReportIDs,
+                    getNewQuotes: getQuotes,
                     onConfirm: (wiseQuoteIDsByReportID) => {
                         payExpenseReports(wiseQuoteIDsByReportID);
                         playSound(SOUNDS.SUCCESS);
@@ -3436,39 +3457,50 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(rejectOption);
         }
 
-        const shouldShowChangeApproverOption =
-            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            !isAnyTransactionOnHold &&
-            areSelectedTransactionsIncludedInReports &&
-            selectedReports.length &&
-            selectedReports.every((selectedReport) => {
-                if (selectedReport.canChangeApprover) {
-                    return true;
-                }
+        if (queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !isAnyTransactionOnHold && areSelectedTransactionsIncludedInReports && selectedReports.length > 0) {
+            const approverActionsByReport = selectedReports.map((selectedReport) => {
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
-                // Current approvers can reassign without workspace admin access when strict policy rules are off.
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                const isDEWEnabled = hasDynamicExternalWorkflow(policy);
+                // Read admin access from the live workspace, because the selection's canChangeApprover flag keeps the
+                // settings from when the report was selected, such as Prevent self-approvals or the workflow type.
+                const canAdminChangeApprover = canPolicyAdminChangeApprover(report, policy);
                 const canReassignCurrentReport = canReassignAsApprover({
                     report,
                     currentUserAccountID: accountID,
                     isLoadingSecurityGroup,
                     areStrictPolicyRulesEnabled,
                 });
-                if (!canReassignCurrentReport || !isExpenseReportUtil(report) || !isProcessingReport(report) || isMoneyRequestReportPendingDeletion(report)) {
-                    return false;
-                }
-                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
-                return !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            });
 
-        if (shouldShowChangeApproverOption) {
-            options.push({
-                icon: expensifyIcons.Workflows,
-                text: translate('iou.changeApprover.title'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
-                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_APPROVER,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                return {
+                    canAdd: canAdminChangeApprover && !isDEWEnabled,
+                    canBypass: canAdminChangeApprover && isAllowedToApproveExpenseReport(report, accountID, policy),
+                    canReassign:
+                        !isDEWEnabled &&
+                        (canAdminChangeApprover || canReassignCurrentReport) &&
+                        isExpenseReportUtil(report) &&
+                        isProcessingReport(report) &&
+                        !isMoneyRequestReportPendingDeletion(report) &&
+                        !!policy?.approvalMode &&
+                        policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                };
             });
+            // The picker applies one action to the whole selection, so that action must be available on every report.
+            const shouldShowChangeApproverOption =
+                approverActionsByReport.every(({canAdd}) => canAdd) ||
+                approverActionsByReport.every(({canBypass}) => canBypass) ||
+                approverActionsByReport.every(({canReassign}) => canReassign);
+
+            if (shouldShowChangeApproverOption) {
+                options.push({
+                    icon: expensifyIcons.Workflows,
+                    text: translate('iou.changeApprover.title'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_APPROVER,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                });
+            }
         }
 
         // The same as Select all, the reports that can't move are skipped and listed in the status modal.
@@ -3884,6 +3916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment: stableOnBulkPaySelected,
+        showOfflineModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         isDuplicateReportOptionVisible,

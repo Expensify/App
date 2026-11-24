@@ -996,7 +996,14 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
-    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
+    supportalSwitcher: {
+        title: '切换 Supportal 到其他账户',
+        navigationLabel: 'Supportal',
+        emailLabel: '电子邮箱地址',
+        reasonLabel: '支持登录原因',
+        reasonHint: '未找到此账户的近期工单。',
+        login: '登录',
+    },
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -1202,6 +1209,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
@@ -1846,6 +1855,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: '扣款金额',
             employeeReceived: '员工已收到',
             payAll: '全部支付',
+            fxRateExpiredTitle: '汇率已过期',
+            fxRatesExpiredTitle: '汇率已过期',
+            fxRateExpiredPrompt: '请在付款前查看最新汇率。',
+            fxRatesExpiredPrompt: '请在付款前查看最新汇率。',
+            getLatestRate: '获取最新汇率',
+            getLatestRates: '获取最新汇率',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',
                 other: `${count} 份报告`,
@@ -2250,6 +2265,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `正在等待已取消的付款完成处理${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `付款已暂停，请等待后续更新。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，<strong>禁止</strong>自己审批自己的报销单。请将此报销单提交给其他人，或联系管理员更改你的提交对象。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2478,6 +2494,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左侧导航缓存',
             clearleftHandNavCache: '清除',
             softKillTheApp: '软关闭应用程序',
+            testBusinessBankAccount: '测试美元企业银行账户',
+            testPersonalBankAccount: '测试美元个人银行账户',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
             sentrySendDescription: '向 Sentry 发送数据',
@@ -2485,6 +2503,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            hideEnvironmentBadge: '隐藏环境徽章',
             betaOverrides: 'Beta 覆盖',
             betaOverridesDescription:
                 '覆盖仅适用于此设备，且仅影响前端检查。仅当 Beta 与你账户中的 Beta 不同时，才会保留覆盖，因此切换回原值会移除该覆盖。“重置所有覆盖”会恢复你账户中的值。部分 Beta 同时受后端控制，因此仍可能在请求层面失败。',
@@ -2925,16 +2944,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: '输入您的企业信息',
                 legalName: '企业法定名称',
-                companyType: '公司类型',
-                companyTypeLimitedLiabilityCompany: '有限责任公司（LLC）',
-                companyTypeForProfitCorporation: '营利性公司',
-                companyTypeNonProfitCorporation: '非营利性公司',
-                companyTypeSoleProprietorship: '个人独资企业',
-                companyTypeGeneralPartnership: '普通合伙企业',
-                companyTypeLimitedPartnership: '有限合伙企业',
-                companyTypeLimitedLiabilityPartnership: '有限责任合伙企业（LLP）',
-                companyTypeTrust: '信托',
-                companyTypeOther: '其他',
                 companyRole: '您在公司的职位',
                 companyRoleOwner: '所有者',
                 companyRoleDirector: '董事',
@@ -3187,8 +3196,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: '我确认所提供的信息真实准确。',
                 expensifyTerms: `我同意 Expensify 的<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">条款和条件</a>以及<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
                 expensifyTermsAccessibilityLabel: '我同意 Expensify 的条款和条件以及隐私政策。',
-                wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
-                wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
+                wiseTerms: `点击“确认”即表示我接受 Wise 的<a href="${CONST.WISE.TERMS_URL}">使用条款</a>，同意按照 Wise 的<a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">电子通信政策</a>接收电子记录，并接受其<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
+                wiseTermsAccessibilityLabel: '点击“确认”即表示我接受 Wise 的使用条款，同意按照 Wise 的电子通信政策接收电子记录，并接受其隐私政策。',
                 error: '请接受所有条款以继续。',
             },
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
@@ -3201,7 +3210,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: '账户已批准', heading: '获批可在全球范围内支付', description: '无论成员身在何处，都能支付给他们。'},
             rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
-        wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
+        wiseSetupRow: {
+            inProgress: {message: '全球报销设置进行中。'},
+            inReview: {message: '全球报销设置正在审核中。', action: '查看状态'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',
@@ -5182,6 +5194,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `您从 ${origin} 到 ${destination} 的 ${startDate} 火车票已成功改签。`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `您在 ${startDate} 从 ${origin} 前往 ${destination} 的火车票已更新。`,
             defaultUpdate: (type: string) => `您的${type}预订已更新。`,
+            hotelBooked: (hotelName: string, startDate: string) => `您在 ${hotelName} 的酒店预订（入住日期：${startDate}）已成功预订。`,
+            carBooked: (vendor: string, startDate: string) => `您的 ${vendor} 租车（取车日期：${startDate}）已预订。`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `您从 ${origin} 到 ${destination} 的 ${startDate} 火车票已预订。`,
+            defaultBooked: (type: string) => `您的${type}预订已成功完成。`,
         },
         flightTo: '飞往',
         trainTo: '火车前往',
@@ -5435,6 +5451,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7719,6 +7738,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 willBeReadyToUse: '此卡将立即可用。',
                 willBeReadyToShip: '此卡将立即准备发货。',
                 cardholder: '持卡人',
+                cardholderEmail: '持卡人电子邮箱',
                 cardType: '卡类型',
                 limit: '限额',
                 limitType: '限额类型',
@@ -11125,7 +11145,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = '即将';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '一个月后';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '两周后';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '一周后';
@@ -11213,7 +11235,8 @@ ${reportName}`,
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `资金已退回到银行账户尾号为 ${bankAccountLastFour}。您可以重试付款。`,
                 reimbursementRefundedWithoutBankAccount: '资金已退回。您可以重试付款。',
                 reimbursementHeld: '在我们的合作伙伴完成审核期间，付款已暂时搁置。请留意后续更新。与 <concierge-link>Concierge</concierge-link> 聊天。',
-                reimbursementReleased: '审核已完成，您的付款正在汇出。最终外汇汇率可能会改变金额。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `付款已发出，预计在 ${expectedDate} 前到账。`,
+                reimbursementReleasedWithoutDate: '付款已释放。',
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
