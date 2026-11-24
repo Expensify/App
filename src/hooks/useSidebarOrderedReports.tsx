@@ -183,6 +183,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
+        // These decide whether and how every report shows, so recheck all of them
         if (
             isDefaultRoomsBetaEnabled !== prevIsDefaultRoomsBetaEnabled ||
             isBillPayBetaEnabled !== prevIsBillPayBetaEnabled ||
