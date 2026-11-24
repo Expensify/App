@@ -28,8 +28,12 @@ type WiseQuoteCarouselProps = {
 function WiseQuoteCarousel({reports, quotedReportIDs, isLoading, carousel: {scrollViewRef, ...carousel}}: WiseQuoteCarouselProps) {
     const styles = useThemeStyles();
 
+    // The cards scroll to the edges of the modal, past the margin around its content
     return (
-        <View onLayout={carousel.onLayout}>
+        <View
+            style={styles.mhn5}
+            onLayout={carousel.onLayout}
+        >
             {!!carousel.containerWidth && (
                 <View>
                     <ScrollView
@@ -41,7 +45,7 @@ function WiseQuoteCarousel({reports, quotedReportIDs, isLoading, carousel: {scro
                         scrollEventThrottle={16}
                         onScroll={carousel.onScroll}
                         onScrollBeginDrag={carousel.onScrollBeginDrag}
-                        contentContainerStyle={styles.gap3}
+                        contentContainerStyle={[styles.gap3, styles.ph5]}
                     >
                         {reports.map((report) => (
                             <View

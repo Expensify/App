@@ -39,7 +39,9 @@ function useWiseQuoteCarousel(reportCount: number): WiseQuoteCarouselState {
     const shownIndex = targetIndex ?? currentIndex;
 
     const hasMultipleReports = reportCount > 1;
-    const cardWidth = hasMultipleReports ? containerWidth - NEXT_CARD_PEEK : containerWidth;
+    // The carousel spans the modal's margins, while the cards keep the width of the modal content
+    const contentWidth = containerWidth - 2 * styles.ph5.paddingHorizontal;
+    const cardWidth = hasMultipleReports ? contentWidth - NEXT_CARD_PEEK : contentWidth;
     const cardStep = cardWidth + styles.gap3.gap;
     const lastIndex = reportCount - 1;
 

@@ -56,7 +56,15 @@ function WisePaymentPrompt({children, buttonText}: WisePaymentPromptProps) {
         return <View>{content}</View>;
     }
 
-    return <ScrollView style={StyleUtils.getMaximumHeight(windowHeight - MODAL_CHROME_HEIGHT - insets.top - insets.bottom)}>{content}</ScrollView>;
+    // The ScrollView spans the modal's margins, so it doesn't clip the quote carousel, which scrolls to the modal's edges
+    return (
+        <ScrollView
+            style={[StyleUtils.getMaximumHeight(windowHeight - MODAL_CHROME_HEIGHT - insets.top - insets.bottom), styles.mhn5]}
+            contentContainerStyle={styles.ph5}
+        >
+            {content}
+        </ScrollView>
+    );
 }
 
 export default WisePaymentPrompt;
