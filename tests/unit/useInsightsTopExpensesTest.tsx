@@ -75,10 +75,10 @@ function buildSnapshotData(expenseCount: number, pendingDeleteID?: number): Sear
     return data as SearchResults['data'];
 }
 
-/** Returns the report actions of the expense report holding expense `transactionID`, submitted with the given violations on it. */
-function buildSubmittedViolations(transactionID: string, violationNames: string[]) {
+/** Returns a report's submit action, which recorded the expense's violations at submission. */
+function buildSubmittedViolations(reportID: string, transactionID: string, violationNames: string[]) {
     return {
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionID}`]: {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
             submitted: {
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                 reportActionID: `submitted_${transactionID}`,
@@ -184,8 +184,8 @@ describe('useInsightsTopExpenses', () => {
             const violationQueryJSON = buildTopExpensesQueryJSON(violationQuery);
             const data = {
                 ...buildSnapshotData(2),
-                ...buildSubmittedViolations('1', [CONST.VIOLATIONS.OVER_LIMIT]),
-                ...buildSubmittedViolations('2', [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.RECEIPT_REQUIRED, CONST.VIOLATIONS.MISSING_CATEGORY]),
+                ...buildSubmittedViolations('1', '1', [CONST.VIOLATIONS.OVER_LIMIT]),
+                ...buildSubmittedViolations('2', '2', [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.RECEIPT_REQUIRED, CONST.VIOLATIONS.MISSING_CATEGORY]),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${violationQueryJSON?.hash}`, {
                 data,
@@ -199,6 +199,24 @@ describe('useInsightsTopExpenses', () => {
             // Then Receipt required leads the expense that has it, followed by the rest alphabetically, and the other expense lists only its own
             expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
             expect(result.current.violationsByTransactionID?.['2']).toEqual(['Receipt required', 'Missing category', 'Over limit']);
+        });
+
+        it('lists the violations of an expense moved to another report after it was submitted', async () => {
+            // Given an expense submitted with violations on one report and then moved to another
+            const violationQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`;
+            const violationQueryJSON = buildTopExpensesQueryJSON(violationQuery);
+            const data = {...buildSnapshotData(1), ...buildSubmittedViolations('50', '1', [CONST.VIOLATIONS.OVER_LIMIT])};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${violationQueryJSON?.hash}`, {
+                data,
+                search: {...buildSearchMetadata(), hash: violationQueryJSON?.hash},
+            });
+
+            // When the panel renders
+            const {result} = renderTopExpenses(violationQuery);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expense still shows the violations it was submitted with, since they stay on the report it was submitted on
+            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
         });
 
         it('is stale when the Search got no response', async () => {

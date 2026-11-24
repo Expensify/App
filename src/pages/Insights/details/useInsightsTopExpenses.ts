@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {getPositiveHasFilterValues, getViolationDisplayName, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
-import {getSections, getSortedSections, getViolationNamesForTransaction, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getViolationNamesForTransaction, isReportActionEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
@@ -80,9 +80,10 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
 
     // On a violation's panel, that violation leads each expense's list
     const itemViolation = String(queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)?.filters.at(0)?.value ?? '');
+    // An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are searched
+    const reportActions = Object.keys(snapshot.data).flatMap((key) => (isReportActionEntry(key) ? Object.values(snapshot.data[key]) : []));
     const violationsByTransactionID = Object.fromEntries(
         expenses.map((expense) => {
-            const reportActions = Object.values(snapshot.data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expense.reportID}`] ?? {});
             const names = getViolationNamesForTransaction(reportActions, expense.transactionID, hasFilterValues);
             const otherLabels = [...names]
                 .filter((name) => name !== itemViolation)
