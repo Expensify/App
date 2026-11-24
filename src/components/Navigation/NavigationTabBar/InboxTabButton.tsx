@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -40,6 +41,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     return (
         <PressableWithFeedback
             onPress={navigateToChats}
+            linkRoute={ROUTES.INBOX}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
@@ -87,6 +89,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     return (
         <PressableWithFeedback
             onPress={navigateToChats}
+            linkRoute={ROUTES.INBOX}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}

@@ -1,3 +1,4 @@
+import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
@@ -8,8 +9,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -43,6 +46,9 @@ type DomainMembersTableProps = {
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DomainMemberBulkActionType>>;
 };
 
 /**
@@ -82,6 +88,7 @@ export default function DomainMembersTable({
     filterConfig,
     isItemInFilter,
     headerComponent,
+    bulkActionOptions,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -93,11 +100,21 @@ export default function DomainMembersTable({
     const groupOptionValuesKey = filterConfig?.group.options.map((option) => option.value).join(',') ?? '';
     const isEmpty = members.length === 0;
 
-    const domainMembersTableColumns: Array<TableColumn<DomainMembersTableColumnKey>> = [
+    const domainMembersTableColumns: Array<TableColumn<DomainMembersTableColumnKey, DomainMemberRowData>> = [
         {
             key: 'member',
             label: translate('domain.members.title'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width.
+                getContentToMeasure: (item) => [
+                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.email, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
+            },
         },
         ...(shouldShowGroupColumn
             ? [
@@ -105,6 +122,9 @@ export default function DomainMembersTable({
                       key: 'group' as const,
                       label: translate('common.group'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: DomainMemberRowData) => (item.groupName ? [{text: item.groupName, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -145,6 +165,8 @@ export default function DomainMembersTable({
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_MEMBERS}
             ref={tableRef}
             data={members}
             columns={domainMembersTableColumns}
@@ -171,6 +193,7 @@ export default function DomainMembersTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

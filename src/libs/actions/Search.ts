@@ -4,7 +4,16 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {
+    BankAccountMenuItem,
+    BulkPaySelectionData,
+    PaymentData,
+    SearchFooterTotal,
+    SearchQueryJSON,
+    SearchQueryString,
+    SelectedReports,
+    SelectedTransactions,
+} from '@components/Search/types';
 
 import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -29,13 +38,14 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getSearchErrorMessage} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
+import {markSearchSnapshotStale, releaseSearchSnapshot} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -43,7 +53,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {getActivePaymentType} from '@libs/PaymentUtils';
+import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -75,6 +85,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     getFooterSelectionFromQuery,
+    getSearchQueryError,
     isGroupBySupportedBySearch,
     normalizeDatePresetsInQuery,
     serializeQueryJSONForBackend,
@@ -92,6 +103,7 @@ import type {
     BankAccountList,
     BillingGraceEndPeriod,
     ExportTemplate,
+    InsightsSearchKey,
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
@@ -288,6 +300,8 @@ type HandleActionButtonPressParams = {
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    /** Requires approval callers to confirm report violations before proceeding. */
+    confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     currentUserAccountID: number;
     currentUserLogin?: string;
@@ -338,6 +352,7 @@ function handleActionButtonPress({
     onUndelete,
     onAllHeldExpensesBlock,
     confirmSubmitReportViolations,
+    confirmApproveReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     currentUserLogin,
@@ -427,28 +442,30 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            getApproveActionCallback({
-                hash,
-                item,
-                snapshotReport,
-                snapshotPolicy,
-                policy,
-                currentSearchKey,
-                currentUserAccountID,
-                currentUserLogin,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-                amountOwed,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-                ownerLogin: submitterLogin,
-                allViolations,
-                rules,
-                getCurrencyDecimals,
-                personalDetailsByLogins,
-            });
+            confirmApproveReportViolations(() =>
+                getApproveActionCallback({
+                    hash,
+                    item,
+                    snapshotReport,
+                    snapshotPolicy,
+                    policy,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    ownerBillingGracePeriodEnd,
+                    amountOwed,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    ownerLogin: submitterLogin,
+                    allViolations,
+                    rules,
+                    getCurrencyDecimals,
+                    personalDetailsByLogins,
+                }),
+            );
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -892,7 +909,7 @@ function getOnyxLoadingData(
             value: {
                 errors: null,
                 // The code explains the errors it was stored with, so the two have to be cleared together.
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1039,6 +1056,19 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
 }
 
+/** Stores the query a Spend tab or Insights dashboard reopens with, for changes that make no request that would save it. */
+function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey, query: SearchQueryString) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SEARCH_FILTERS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {[searchKey]: {query}},
+        },
+    ];
+
+    write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
+}
+
 function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -1111,8 +1141,8 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
             value: {
                 errors: null,
-                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
-                search: {state: null, responseJsonCode: null},
+                // Clear the terminal state with the failure so the snapshot can be requested again.
+                search: {state: null, responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1292,6 +1322,12 @@ type InFlightSearchRequest = {
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
+    hash: number;
+    jsonQuery: string;
+    /** False while the request waits for writes. */
+    isSent: boolean;
+    /** Whether the response lost its snapshot and needs a refetch after writes finish. */
+    wasSnapshotDropped?: boolean;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
@@ -1299,6 +1335,20 @@ type InFlightSearchRequest = {
 // save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
+
+/**
+ * Invalidates sent Search snapshots before an inline edit applies its optimistic update. Requests waiting for writes
+ * already include the edit when they are sent. Call synchronously before the edit's write so a Search cannot slip between them.
+ * Only the edited snapshot is invalidated, so unrelated searches can still show their first results.
+ */
+function markInFlightSearchRequestsStale(hash: number | undefined) {
+    for (const request of inFlightSearchRequests.values()) {
+        if (!request.isSent || request.hash !== hash) {
+            continue;
+        }
+        markSearchSnapshotStale(request.jsonQuery);
+    }
+}
 
 /**
  * True when a running first-page request already returns what the caller wants, so the caller can skip its own request.
@@ -1427,8 +1477,7 @@ function search({
      */
     shouldSaveRecentSearch?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
-     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Used by the
      * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
      * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
      * with an incomplete filter set and has to be re-fired once that data lands.
@@ -1443,13 +1492,38 @@ function search({
         return;
     }
 
+    const queryError = getSearchQueryError(queryJSON);
+    if (queryError) {
+        const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
+        // Settle the snapshot as if Auth had rejected the query. The loading updates move it to its final loaded state, so
+        // the error view shows and the query isn't requested again. The error goes last because optimisticData clears it.
+        return Onyx.update([
+            ...(optimisticData ?? []),
+            ...(finallyData ?? []),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                value: {
+                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: queryError},
+                    errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
+                },
+            },
+        ])
+            .then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY)
+            .catch((error: unknown) => {
+                // Callers don't catch search(), so a failed write is logged here like the other snapshot writes
+                Log.hmmm('[Search] failed to store the search query error', {error: String(error)});
+                return undefined;
+            });
+    }
+
     // The backend saves a flagged search as the account's recent search and its last filters and columns. Support agents
     // search a customer's account to troubleshoot, which must not change what the customer sees when they log in.
     const shouldSaveSearchToAccount = shouldSaveRecentSearch && !isSupportAuthToken();
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
-    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
         // to one type let a totals request for another type collide with an in-flight request and get
@@ -1477,7 +1551,8 @@ function search({
                     prevReportsLength,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
-                    skipWaitForWrites,
+                    // A replacement for a stale snapshot must include the edit, even if the joining call skipped writes.
+                    skipWaitForWrites: skipWaitForWrites && !inFlightRequest.wasSnapshotDropped,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
@@ -1487,8 +1562,26 @@ function search({
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch: shouldSaveSearchToAccount, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
-    inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
+    // Wait for the edit without covering the optimistic rows with loading or an offline error.
+    const refetchStaleSnapshot = () =>
+        waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+            if (getIsOffline()) {
+                return undefined;
+            }
+            return search({
+                queryJSON,
+                searchKey,
+                offset,
+                shouldCalculateTotals,
+                prevReportsLength,
+                isLoading: false,
+                shouldUpdateLastSearchParams,
+                shouldSaveRecentSearch,
+                shouldShowLoading: false,
+                skipWaitForWrites: true,
+                shouldReturnTripRooms,
+            });
+        });
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
@@ -1504,6 +1597,16 @@ function search({
         ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
+    const inFlightRequestState: InFlightSearchRequest = {
+        shouldCalculateTotals,
+        shouldSaveRecentSearch: shouldSaveSearchToAccount,
+        footerTotal,
+        shouldReturnTripRooms: isTripRoomsSearch,
+        hash: queryJSON.hash,
+        jsonQuery,
+        isSent: false,
+    };
+    inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1536,13 +1639,21 @@ function search({
         });
     }
 
-    const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+    const startRequest = () => {
+        inFlightRequestState.isSent = true;
+        return makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
+
+                // Preserve an existing totals/recent-search upgrade rather than scheduling a duplicate refetch.
+                if (releaseSearchSnapshot(jsonQuery)) {
+                    inFlightRequestState.wasSnapshotDropped = true;
+                    inFlightRequestState.pendingUpgradeRequest ??= refetchStaleSnapshot;
+                    return result?.jsonCode;
+                }
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
@@ -1553,9 +1664,11 @@ function search({
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
                 if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
-                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
-                    );
+                    const errorTranslationKey = responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY ? getSearchErrorMessage(result) : undefined;
+                    Onyx.merge(snapshotKey, {
+                        search: {responseJsonCode, errorTranslationKey},
+                        ...(errorTranslationKey && {errors: getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey)}),
+                    }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
                 }
 
                 // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.
@@ -1616,9 +1729,11 @@ function search({
                 throw error;
             })
             .finally(() => {
+                releaseSearchSnapshot(jsonQuery);
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
             });
+    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
@@ -2210,7 +2325,18 @@ function rejectMoneyRequestsOnSearch({
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport, isGroupsOnly}: ExportSearchItemsToCSVParams,
+    {
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        excludedTransactionIDList,
+        isBasicExport,
+        exportColumnLabels,
+        exportName,
+        isGroupExport,
+        isGroupsOnly,
+        searchViolationNameList,
+    }: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
     allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
@@ -2249,6 +2375,7 @@ function exportSearchItemsToCSV(
         exportColumnLabels,
         isGroupExport,
         isGroupsOnly,
+        ...(searchViolationNameList?.length ? {searchViolationNameList} : {}),
     }) as Params;
 
     const formData = new FormData();
@@ -2308,7 +2435,8 @@ function queueExportSearchItemsToCSV({
             },
         },
     ];
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
+    // No enhanceParameters here: a saved authToken would be resent unchanged after every reauthentication.
+    const parameters: QueueExportSearchItemsToCSVParams = {
         jsonQuery,
         reportIDList,
         transactionIDList,
@@ -2318,11 +2446,11 @@ function queueExportSearchItemsToCSV({
         exportName,
         exportID,
         isGroupsOnly,
-    }) as QueueExportSearchItemsToCSVParams;
+    };
 
     markExportInitiatedLocally(exportID);
 
-    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, parameters, {
         optimisticData,
         failureData,
     });
@@ -2362,7 +2490,8 @@ function queueExportSearchWithTemplate(
           }
         : {};
 
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
+    // No enhanceParameters here, same reason as queueExportSearchItemsToCSV.
+    const parameters: QueueExportSearchWithTemplateParams = {
         templateName,
         templateType,
         jsonQuery,
@@ -2371,13 +2500,13 @@ function queueExportSearchWithTemplate(
         policyID,
         exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
-    }) as QueueExportSearchWithTemplateParams;
+    };
 
     if (shouldTrackExportProgress) {
         markExportInitiatedLocally(exportID);
     }
 
-    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, parameters, onyxData);
 
     return exportID;
 }
@@ -2389,6 +2518,38 @@ function queueExportSearchWithTemplate(
 function queueBulkPayReports(jsonQuery: string) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.PAY);
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+type BulkExpenseActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
+
+/**
+ * Queues a Hold, Unhold or Reject, with the reason for Hold and Reject, for every expense matching a Select all search that the user can act on.
+ * The expenses checked again inside a deselected group are sent too, since the search leaves out their whole group.
+ */
+function queueBulkExpenseAction(
+    action: BulkExpenseActionType,
+    allMatchingQuery: {jsonQuery: string; excludedTransactionIDList: string[]} | undefined,
+    rowsCheckedInExcludedGroups: SelectedTransactions,
+    comment = '',
+) {
+    if (!allMatchingQuery) {
+        Log.info(`[BulkExpenseAction] Dropping bulk ${action}: an excluded row could not be resolved`);
+        return;
+    }
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(action);
+    const jsonQuery = allMatchingQuery.jsonQuery;
+    const excludedTransactionIDList = allMatchingQuery.excludedTransactionIDList.join(',');
+    const transactionIDList = Object.keys(rowsCheckedInExcludedGroups).join(',');
+    switch (action) {
+        case CONST.SEARCH.BULK_ACTION_TYPES.HOLD:
+            write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        case CONST.SEARCH.BULK_ACTION_TYPES.REJECT:
+            write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        default:
+            write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+    }
 }
 
 /** Moves every report matching the search query that the user can move to the given workspace. */
@@ -2638,6 +2799,8 @@ function handleBulkPayItemSelected(params: {
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
     isOffline: boolean;
+    showOfflineModal: () => void;
+    areAllMatchingItemsSelected: boolean;
     verifyAccountAndResume: (retry?: () => void) => void;
 }) {
     const {
@@ -2659,6 +2822,8 @@ function handleBulkPayItemSelected(params: {
         setPendingPaymentAdditionalData,
         currentUserAccountID,
         isOffline,
+        showOfflineModal,
+        areAllMatchingItemsSelected,
         verifyAccountAndResume,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -2668,11 +2833,10 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    // While offline, route every payment method straight to the offline modal via confirmPayment (onBulkPaySelected),
-    // before any branch below can navigate the user into a KYC / account-verification / add-bank-account / restricted-action flow.
-    if (isOffline) {
-        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
-        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
+    // Check the menu key, not paymentType, because getActivePaymentType maps workspace and invoice keys to ELSEWHERE.
+    if (isOffline && !canPayOffline(item.key, areAllMatchingItemsSelected)) {
+        Log.info('[BulkPay] Blocking bulk pay: offline');
+        deferModalPresentationAfterPopoverDismiss(showOfflineModal);
         return;
     }
 
@@ -2856,10 +3020,13 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    queueBulkExpenseAction,
+    saveSearchFilters,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
     search,
+    markInFlightSearchRequestsStale,
     getFooterConvertedAmounts,
     clearFooterConversion,
     rejectMoneyRequestsOnSearch,
