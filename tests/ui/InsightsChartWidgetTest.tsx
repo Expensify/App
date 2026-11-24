@@ -71,6 +71,7 @@ function renderWidget({
     supportsDrillIn,
     queryJSON = QUERY,
     asOfDate,
+    tagLevelName,
     controls,
     children,
 }: React.PropsWithChildren<{
@@ -79,6 +80,7 @@ function renderWidget({
     supportsDrillIn?: boolean;
     queryJSON?: typeof QUERY;
     asOfDate?: string;
+    tagLevelName?: string;
     controls?: React.ReactNode;
 }> = {}) {
     return render(
@@ -97,6 +99,7 @@ function renderWidget({
                 supportsDrillIn={supportsDrillIn}
                 onRetry={jest.fn()}
                 asOfDate={asOfDate}
+                tagLevelName={tagLevelName}
             >
                 {!!controls && <InsightsChartWidget.Controls>{controls}</InsightsChartWidget.Controls>}
                 {children}
@@ -192,6 +195,23 @@ describe('Insights chart view and press', () => {
         expect(content.queryByText('Tag selector')).toBeNull();
         expect(header.queryByText('Future expenses')).toBeNull();
         expect(content.queryByText('Future expenses') !== null).toBe(state !== INSIGHTS_CHART_STATE.LOADING);
+    });
+
+    it('names the selected tag level when Top tags has no data', async () => {
+        // Given an empty ranking for the Location tag level
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        jest.mocked(useInsightsChartData).mockReturnValue({data: [], state: INSIGHTS_CHART_STATE.EMPTY, comparison: undefined});
+
+        // When the widget renders
+        renderWidget({chart, tagLevelName: 'Location'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the empty chart explains that there are no tagged expenses for that level
+        expect(screen.getByText('No tagged expenses')).toBeOnTheScreen();
+        expect(screen.getByText('No expenses for Location in this date range.')).toBeOnTheScreen();
     });
 
     it.each([

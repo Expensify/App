@@ -265,6 +265,7 @@ function IOURequestStepDistanceOdometer({
         personalDetails,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserPersonalDetails,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backToReport,
         shouldSkipConfirmation,
@@ -444,6 +445,7 @@ function IOURequestStepDistanceOdometer({
                 ]);
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,

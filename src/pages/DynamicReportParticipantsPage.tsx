@@ -37,6 +37,7 @@ import {isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canInviteMembersToReport,
+    canRemoveSupportTicketParticipant,
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
@@ -174,7 +175,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     };
 
     const openMemberDetails = (accountID: number) => {
-        if (isGroupChat && isCurrentUserAdmin) {
+        if ((isGroupChat && isCurrentUserAdmin) || canRemoveSupportTicketParticipant(report, isReportArchived, currentUserAccountID, accountID)) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(accountID)));
             return;
         }
