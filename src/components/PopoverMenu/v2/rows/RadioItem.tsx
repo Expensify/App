@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -31,10 +32,22 @@ type RadioItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps;
+type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps & WithRequiredSentryLabel;
 
 /** Single-select row with a radio indicator; pass `rightIcon` to replace the indicator. */
-function RadioItem({text, isSelected = false, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: RadioItemProps): React.ReactElement | null {
+function RadioItem({
+    text,
+    isSelected = false,
+    onSelect,
+    disabled = false,
+    pendingAction,
+    testID,
+    rightIcon,
+    iconWidth,
+    iconHeight,
+    sentryLabel,
+    ...rest
+}: RadioItemProps): React.ReactElement | null {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -49,6 +62,7 @@ function RadioItem({text, isSelected = false, onSelect, disabled = false, pendin
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem
                 {...rest}
+                sentryLabel={sentryLabel}
                 ref={ref}
                 title={text}
                 iconWidth={iconWidth ?? variables.iconSizeNormal}

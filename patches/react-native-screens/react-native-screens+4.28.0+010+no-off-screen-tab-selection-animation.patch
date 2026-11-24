@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index 3c2acf0..3565fe5 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -320,6 +320,13 @@ static void rns_pushViewController(__unsafe_unretained id self,
+       self.tabBarItemSelectionHidden = NO;
+       [self.tabBar layoutIfNeeded];
+     }];
++  } else if (self.view.window == nil) {
++    // Before the bar is on screen there is nothing to animate, and UIKit would set the selection animation up for
++    // the layout the bar has outside the window. A foldable iPhone moves the bar into a column once it is in the
++    // window, so that animation would morph the selection from the bottom bar's shape into the column's.
++    [UIView performWithoutAnimation:^{
++      [self updateSelectedViewControllerIfNeeded];
++    }];
+   } else {
+     [self updateSelectedViewControllerIfNeeded];
+   }

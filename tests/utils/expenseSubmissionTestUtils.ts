@@ -1,5 +1,8 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {PersonalDetailsByLoginContext} from '@components/PersonalDetailsByLoginProvider';
+
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import type {SubmissionHandle} from '@pages/iou/request/step/confirmation/submission/types';
@@ -8,6 +11,10 @@ import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
 
 import {getCurrencyDecimalsLocal} from './TestHelper';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
@@ -23,6 +30,10 @@ const CURRENT_USER_PERSONAL_DETAILS: CurrentUserPersonalDetails = {accountID: CU
 const OTHER_USER_PARTICIPANT: Participant = {accountID: OTHER_USER_ACCOUNT_ID, login: 'them@test.com', selected: true};
 
 const CURRENT_USER_PARTICIPANT: Participant = {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', selected: true};
+
+// What the submission hooks read from PersonalDetailsByLoginProvider
+const CURRENT_USER_LOGIN = 'me@test.com';
+const PERSONAL_DETAILS_BY_LOGIN: PersonalDetailsByLogin = {[CURRENT_USER_LOGIN]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN}};
 
 const NO_TAX_VALUES = {transactionTaxCode: '', transactionTaxAmount: 0, transactionTaxValue: ''};
 
@@ -100,9 +111,13 @@ function buildOverriddenMapDistanceTransaction(): Transaction {
     });
 }
 
+function PersonalDetailsByLoginWrapper({children}: {children: ReactNode}) {
+    return React.createElement(PersonalDetailsByLoginContext.Provider, {value: {subscribe: () => () => {}, getSnapshot: () => PERSONAL_DETAILS_BY_LOGIN}}, children);
+}
+
 /** Renders a submission hook and presses confirm once, the way the orchestrator would. */
 async function renderAndSubmit(useSubmission: () => SubmissionHandle, shouldHandleNavigation: boolean) {
-    const {result} = renderHook(useSubmission);
+    const {result} = renderHook(useSubmission, {wrapper: PersonalDetailsByLoginWrapper});
     await waitForBatchedUpdatesWithAct();
 
     await act(async () => {

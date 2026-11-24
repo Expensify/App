@@ -115,6 +115,27 @@ describe('useDynamicColumnWidths', () => {
         expect(widthsFrom(result.current.gridTemplateColumns)).toEqual([300, 180, 180]);
     });
 
+    it('sizes a column to a shorter text followed by a badge when that row renders widest', () => {
+        // Given a column whose 300px text has no badge, and whose 250px text is followed by an 80px badge on its row only
+        const badgedData: Row[] = [
+            {keyForList: 'plain', value: 'cell'},
+            {keyForList: 'badged', value: 'short'},
+        ];
+        measuredWidthByText['first-short'] = 250;
+        const columnsWithBadge = columnsWithSizingOn('first', {
+            shouldFitContent: true,
+            getContentToMeasure: (item: Row) => [{text: `first-${item.value}`, trailingWidth: item.value === 'short' ? 80 : undefined}],
+        });
+
+        // When the column is sized from its content
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithBadge, data: badgedData, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false, ...RESIZING_OFF}),
+        );
+
+        // Then the badged row decides the width, and the badge is not added to the row without one
+        expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(330);
+    });
+
     it('lets a column set a minimum of its own, over both the derived floor and its content', () => {
         // Given a column that declares the width it needs, narrower than its content and wider than the floor
         const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 250});
@@ -126,6 +147,33 @@ describe('useDynamicColumnWidths', () => {
 
         // Then the declared minimum decides, rather than the 180px floor below it or the 300px of content above it
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(250);
+    });
+
+    it('keeps the derived floor when a column sets a lower minimum of its own', () => {
+        // Given a column that sets a minimum below the 180px scroll floor
+        const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 100});
+
+        // When the table scrolls
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithMinWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false, ...RESIZING_OFF}),
+        );
+
+        // Then the column still takes the 180px floor, since its own minimum only ever raises the floor
+        expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(180);
+    });
+
+    it('stops a column’s own minimum at its content width', () => {
+        // Given a column whose content needs only 60px but that sets a 250px minimum
+        measuredWidthByText['first-cell'] = 60;
+        const columnsWithMinWidth = columnsWithSizingOn('first', {minWidth: 250});
+
+        // When the table scrolls
+        const {result} = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithMinWidth, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false, ...RESIZING_OFF}),
+        );
+
+        // Then the column stays at its content width rather than padding out to the minimum
+        expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(60);
     });
 
     it('counts a capped column at its cap when predicting whether the table scrolls', () => {
