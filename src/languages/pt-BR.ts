@@ -2776,7 +2776,6 @@ const translations: TranslationDeepObject<typeof en> = {
             Se você perder o acesso ao seu app autenticador e não tiver esses códigos, ficará bloqueado fora da sua conta.<br><br>
             <strong>Observação</strong>: Ativar a 2FA desconecta você de todas as outras sessões.
         `),
-        errorStepCodes: 'Copie ou faça o download dos códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escaneie o código QR usando seu',
         authenticatorApp: 'aplicativo autenticador',

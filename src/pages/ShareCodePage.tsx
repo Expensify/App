@@ -232,9 +232,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                             icon={icons.Copy}
                             successIcon={icons.Checkmark}
                             successText={translate('qrCodes.copied')}
-                            onPress={() => {
-                                Clipboard.setString(url);
-                            }}
+                            onPress={() => Clipboard.setString(url)}
                             shouldLimitWidth={false}
                         />
                         {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.

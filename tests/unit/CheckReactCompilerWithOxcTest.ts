@@ -56,9 +56,9 @@ function checkReactCompilerWithOxc(source: string, filename: string): Compilatio
 }
 
 describe('checkReactCompilerWithOxc', () => {
-    it('preserves memoization for delayed press feedback with async error handling', () => {
-        // Given the delayed press control must retain its compiler-generated caching
-        const filename = path.resolve(__dirname, '../../src/components/Pressable/PressableWithDelayToggle.tsx');
+    it.each(['components/Pressable/PressableWithDelayToggle.tsx', 'components/ContextMenuItem.tsx'])('preserves memoization for %s with async error handling', (componentPath) => {
+        // Given the success-feedback control must retain its compiler-generated caching
+        const filename = path.resolve(__dirname, '../../src', componentPath);
         const source = fs.readFileSync(filename, 'utf8');
 
         // When its async press handler is compiled

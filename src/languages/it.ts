@@ -2773,7 +2773,6 @@ const translations: TranslationDeepObject<typeof en> = {
             Se perdi l’accesso alla tua app di autenticazione e non hai questi codici, verrà bloccato l’accesso al tuo account.<br><br>
             <strong>Nota</strong>: l’abilitazione della 2FA ti disconnette da tutte le altre sessioni.
         `),
-        errorStepCodes: 'Copia o scarica i codici prima di continuare',
         stepVerify: 'Verifica',
         scanCode: 'Scansiona il codice QR usando il tuo',
         authenticatorApp: 'app di autenticazione',

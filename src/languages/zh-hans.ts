@@ -2674,7 +2674,6 @@ const translations: TranslationDeepObject<typeof en> = {
             如果你无法使用验证器应用且没有这些代码，你将无法登录你的账户。<br><br>
             <strong>注意</strong>：启用双重验证会将你登出所有其他会话。
         `),
-        errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',

@@ -180,7 +180,8 @@ describe('DynamicTwoFactorAuthPage', () => {
 
         // When the write fails, an immediate retry remains possible
         await act(async () => resolve(false));
-        expect(screen.getByText('twoFactorAuth.errorStepCodes')).toBeTruthy();
+        expect(screen.queryByRole('alert')).toBeNull();
+        expect(screen.queryByLabelText('common.copied')).toBeNull();
         expect(setCodesAreCopied).not.toHaveBeenCalled();
         fireEvent.press(screen.getByLabelText(copyLabel));
         await act(async () => {
@@ -190,7 +191,6 @@ describe('DynamicTwoFactorAuthPage', () => {
         // Then only the successful retry records acknowledgement and checked feedback
         expect(setCodesAreCopied).toHaveBeenCalledTimes(1);
         expect(screen.getByLabelText('common.copied')).toBeTruthy();
-        expect(screen.queryByText('twoFactorAuth.errorStepCodes')).toBeNull();
     });
 
     it('ignores a successful write that completes after leaving and returning to the page', async () => {

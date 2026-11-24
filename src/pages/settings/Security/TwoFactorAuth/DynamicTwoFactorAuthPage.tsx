@@ -1,7 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
@@ -48,7 +47,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
@@ -216,13 +214,11 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                                             inline={false}
                                             onPress={async () => {
                                                 const generation = copyGenerationRef.current;
-                                                setError('');
                                                 const didCopy = await Clipboard.setString(recoveryCodes);
                                                 if (generation !== copyGenerationRef.current) {
                                                     return false;
                                                 }
                                                 if (!didCopy) {
-                                                    setError(translate('twoFactorAuth.errorStepCodes'));
                                                     return false;
                                                 }
                                                 setCodesAreCopied();
@@ -255,13 +251,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                             {statusAnnouncement.text}
                         </Text>
                     )}
-                    {!!error && (
-                        <FormHelpMessage
-                            isError
-                            message={error}
-                            style={[styles.mb3]}
-                        />
-                    )}
                     {!!recoveryCodes && !is2FAEnabled && (
                         <Button
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
@@ -270,7 +259,6 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                             isDisabled={!isUserValidated}
                             onPress={() => {
                                 localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
-                                setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
                                 // PUSH on web so browser Back returns to the recovery codes. Native has no browser Back, so REPLACE.
