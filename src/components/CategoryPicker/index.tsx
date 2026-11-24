@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
@@ -163,8 +163,10 @@ function CategoryPicker({
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         });
-        // The current category goes in the group it belongs to, so a category the member can't use isn't shown as available
-        const isSelectedCategoryUnavailable = !!selectedCategory && !!unavailableCategories[selectedCategory];
+        // The current category goes in the group it belongs to, so a category the member can't use isn't shown as
+        // available. It's read from every category, since a disabled one isn't among the unavailable ones but still shows
+        const selectedPolicyCategory = selectedCategory ? allCategories[selectedCategory] : undefined;
+        const isSelectedCategoryUnavailable = !!selectedPolicyCategory && !isCategoryVisibleToMember(selectedPolicyCategory, submitterAccountID);
         // Each group is one list under its title. Without the threshold, a long list would add its own "Recent" and
         // "All" headings, which read as groups of their own and repeat recent categories inside the available group.
         const availableSections = getCategoryListSections({

@@ -471,6 +471,25 @@ describe('CategoryPicker', () => {
             expect(findRow('Fuel')?.isSelected).toBe(true);
         });
 
+        it('lists a disabled current category the member can’t use under "Not available"', () => {
+            // Given an expense coded to Lodging, which is disabled and limited to another member
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{...RESTRICTED_CATEGORIES, Lodging: {...makeCategory('Lodging', ''), enabled: false, visibleTo: {[OTHER_ACCOUNT_ID]: true}}}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // When the admin opens the picker
+            renderForSubmitter('Lodging');
+
+            // Then Lodging shows with the categories the member can't use, even though disabled ones aren't otherwise listed
+            expect(getGroups()).toEqual([
+                {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Lodging', 'Fuel']},
+            ]);
+        });
+
         it('filters both groups while searching', () => {
             // Given the admin searched for "fu"
             mockDebouncedSearchValue = 'fu';
