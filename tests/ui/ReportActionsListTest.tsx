@@ -232,6 +232,7 @@ jest.mock('@legendapp/list/react-native', () => {
 });
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
+const mockJumpToLatest = jest.fn();
 jest.mock('@hooks/useReportActionsScroll', () =>
     jest.fn(() => ({
         listRef: {current: null},
@@ -240,7 +241,7 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         onViewableItemsChanged: jest.fn(),
         isFloatingMessageCounterVisible: false,
         isActionBadgeAboveViewport: false,
-        scrollToBottomAndMarkReportAsRead: jest.fn(),
+        scrollToBottomAndMarkReportAsRead: mockJumpToLatest,
         scrollToActionBadgeTarget: jest.fn(),
         shouldBeAlignedToTop: false,
         initialScrollIndex: undefined,
@@ -551,6 +552,52 @@ describe('ReportActionsList (body)', () => {
         expect(scrollElement).toEqual({scrollTop: 0});
         expect(mockLegendGetScrollableNode).toHaveBeenCalledTimes(1);
         expect(visibleRange).toEqual({startIndex: 2, endIndex: 4});
+    });
+
+    describe('web keyboard scrolling', () => {
+        const scroller = document.createElement('div');
+        const row = document.createElement('div');
+        const editor = document.createElement('textarea');
+        const outside = document.createElement('button');
+        beforeEach(() => {
+            jest.replaceProperty(Platform, 'OS', 'web');
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockLegendGetScrollableNode.mockReturnValue(scroller);
+            row.setAttribute('role', 'button');
+            scroller.append(row, editor);
+            document.body.append(scroller, outside);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            mockLegendGetScrollableNode.mockImplementation(() => ({scrollTop: 0}));
+            scroller.remove();
+            outside.remove();
+        });
+
+        it.each([
+            {name: 'an empty click', target: document.body, key: 'End', shiftKey: false, focused: true, shouldJump: true},
+            {name: 'a focused message', target: row, key: 'End', shiftKey: false, focused: true, shouldJump: true},
+            {name: 'a message editor', target: editor, key: 'End', shiftKey: false, focused: true, shouldJump: false},
+            {name: 'a selection shortcut', target: row, key: 'End', shiftKey: true, focused: true, shouldJump: false},
+            {name: 'a control outside the chat', target: outside, key: 'End', shiftKey: false, focused: true, shouldJump: false},
+            {name: 'a background report', target: document.body, key: 'End', shiftKey: false, focused: false, shouldJump: false},
+            {name: 'the start of the loaded history', target: row, key: 'Home', shiftKey: false, focused: true, shouldJump: false},
+        ])('respects the keyboard scroll target for $name', ({target, key, shiftKey, focused, shouldJump}) => {
+            // Given the chat and its editor share the scroller, and another screen can take focus.
+            mockUseIsFocused.mockReturnValue(focused);
+            renderReportActionsList();
+            const event = new KeyboardEvent('keydown', {key, shiftKey, bubbles: true, cancelable: true});
+
+            // When the browser dispatches the shortcut to the focused element or the body after an empty click.
+            const observeDefaultPrevented = jest.fn<void, [boolean]>();
+            target.addEventListener('keydown', (keyEvent) => observeDefaultPrevented(keyEvent.defaultPrevented), {once: true});
+            target.dispatchEvent(event);
+
+            // Then only an End intended for the chat replaces the browser scroll with the Latest messages action.
+            expect(observeDefaultPrevented).toHaveBeenCalledWith(shouldJump);
+            expect(mockJumpToLatest).toHaveBeenCalledTimes(shouldJump ? 1 : 0);
+        });
     });
 
     it('corrects the initial end position after the latest row has been measured', async () => {

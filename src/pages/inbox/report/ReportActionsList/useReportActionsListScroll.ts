@@ -20,8 +20,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
-import {PixelRatio} from 'react-native';
+import {PixelRatio, Platform} from 'react-native';
 
 import type {ReportActionsListScrollMetrics, UseReportActionsListScrollParams} from './types';
 
@@ -235,7 +236,31 @@ function useReportActionsListScroll({
         setTreatAsNoPaginationAnchor,
     });
 
+    const isFocused = useIsFocused();
+    const jumpToLatest = useEffectEvent(scrollToBottomAndMarkReportAsRead);
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
+    useEffect(() => {
+        // Re-run once this list is ready, so the listener checks against its current scroll element.
+        const shouldSkipEndKeyListener = Platform.OS !== 'web' || !isFocused || loadedInitialViewportListID !== listID;
+        if (shouldSkipEndKeyListener) {
+            return;
+        }
+        const scrollElement: unknown = legendListRef.current?.getScrollableNode();
+        if (!(scrollElement instanceof HTMLElement)) {
+            return;
+        }
+        const jumpOnEndKey = (event: KeyboardEvent) => {
+            if (!shouldJumpToLatest(event, scrollElement)) {
+                return;
+            }
+            event.preventDefault();
+            jumpToLatest();
+        };
+        // An empty click leaves focus on the body. Capture End before LegendList handles it on the scroller.
+        document.addEventListener('keydown', jumpOnEndKey, true);
+        return () => document.removeEventListener('keydown', jumpOnEndKey, true);
+    }, [isFocused, listID, loadedInitialViewportListID]);
+
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
     // Offline reports still need their cached rows positioned, but cannot wait for OpenReport.
     const shouldShowInitialViewportSkeleton = loadedInitialViewportListID !== listID || (!isOffline && isInitialReportLoadPending);
@@ -486,6 +511,16 @@ function useReportActionsListScroll({
             },
         },
     };
+}
+
+function shouldJumpToLatest(event: KeyboardEvent, scrollElement: HTMLElement) {
+    const isPlainEndKey = event.key === 'End' && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+    if (!isPlainEndKey || event.defaultPrevented || !(event.target instanceof Element)) {
+        return false;
+    }
+    const target = event.target;
+    const isEditable = (target instanceof HTMLElement && target.isContentEditable) || !!target.closest('input, textarea, select');
+    return !isEditable && (target === document.body || scrollElement.contains(target));
 }
 
 export default useReportActionsListScroll;
