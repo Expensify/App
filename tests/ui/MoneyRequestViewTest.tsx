@@ -404,6 +404,26 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByLabelText('workspace.taxes.taxCode, TAX_10')).toBeOnTheScreen();
     });
 
+    it('keeps the selected Tax code field visible when an ordinary expense has no tax code', async () => {
+        // Given an ordinary expense without a tax code while the workspace has tax tracking enabled.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        const taxPolicy = {tax: {trackingEnabled: true}, taxRates: {taxes: {TAX_10: {name: 'GST', value: '10%', previousTaxCode: 'old-tax-code'}}}};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode: '', taxAmount: 0});
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]);
+        });
+
+        // When the user opens the expense with Tax code selected.
+        renderMoneyRequestView(threadReport, taxPolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the applicable row stays visible without a value or a copy action.
+        const taxCodeField = screen.getByLabelText('workspace.taxes.taxCode');
+        expect(taxCodeField).toBeOnTheScreen();
+        expect(within(taxCodeField).queryByLabelText('common.copyToClipboard')).not.toBeOnTheScreen();
+    });
+
     it('keeps workspace column preferences out of personal IOUs', async () => {
         // Given a personal IOU and an account-wide preference to display MCC in workspace expense reports.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
