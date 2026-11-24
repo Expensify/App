@@ -93,7 +93,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   lastDay: getInsightsLastDay(asOf),
               })
             : undefined;
-    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
+    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON, isCompliance);
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
     const summary = details?.summary;
